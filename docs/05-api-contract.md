@@ -306,6 +306,9 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 | GET | `/auth/users` | Admin: list household users |
 | POST | `/auth/users` | Admin: create household user |
 | PATCH | `/auth/users/{id}` | Admin: update `display_name`, `is_disabled`, `password` (cannot disable self) |
+| GET/PUT/DELETE | `/tasks/{id}/recurrence` | Get, set, or clear recurrence (`rrule`, `is_fixed`, `timezone`, `starts_on`, `ends_on`, optional `text`) |
+
+**Complete + recurrence:** `POST /tasks/{id}/complete` advances `due_at` when a next occurrence exists (`recurrence_advanced: true`, `previous_due_at` set, task stays open). When the frame is exhausted (or no rule), completes normally.
 
 **Register body:**
 
@@ -345,7 +348,6 @@ Not implemented in MVP; documented for contract stability:
 | Update Schedule | `POST /schedule/replan` |
 | Calendar accounts | `/calendar/accounts` |
 | External events | `/calendar/events` |
-| Recurrence | `/tasks/{id}/recurrence` |
 | Reminders | `/tasks/{id}/reminders` |
 | User saved filters (write) | `POST /views` |
 

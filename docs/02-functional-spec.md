@@ -114,6 +114,15 @@ Last destructive mutation (complete, delete, move) is undoable within a session 
 | status | Partial | schedule_status enum | MVP uses unscheduled/completed primarily |
 | is_completed / completed_at | Yes | Boolean + timestamp | |
 | sort_order | Yes | Integer | Reorder within container |
+| recurrence | Yes (W1.5) | `recurrence_rules` 1:1 | `every` / `every!`; optional `starts_on`/`ends_on` frame |
+
+### Recurrence (W1.5)
+
+- One rule per task. Completing a recurring task **advances `due_at`** and keeps the task open while a next occurrence exists inside the frame.
+- `every` slides from completion time; `every!` follows the fixed calendar series.
+- Limited frames: optional start/end dates (inclusive). When no next occurrence remains, complete finishes the series.
+- Quick-add tokens: `every monday, wednesday from 8/30 to 9/20`, `every! 2 weeks from next week until end of year`.
+- Clear recurrence in task detail, then complete, to end an unbounded series early.
 
 ### Completed Task Retention
 

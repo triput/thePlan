@@ -229,12 +229,16 @@ export function TaskList({
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
       if (previous) {
-        queryClient.setQueryData(key, {
-          ...previous,
-          items: previous.items.map((t) =>
-            t.id === taskId ? { ...t, is_completed: true } : t,
-          ),
-        });
+        const target = previous.items.find((t) => t.id === taskId);
+        // Recurring tasks usually roll due forward instead of completing.
+        if (!target?.recurrence) {
+          queryClient.setQueryData(key, {
+            ...previous,
+            items: previous.items.map((t) =>
+              t.id === taskId ? { ...t, is_completed: true } : t,
+            ),
+          });
+        }
       }
       return { previous, key };
     },
@@ -246,8 +250,14 @@ export function TaskList({
         emitToast("Couldn't complete — reverted");
       }
     },
-    onSuccess: (_data, { taskId, undoTaskIds, body }) => {
-      if (body?.bulk_children && undoTaskIds && undoTaskIds.length > 1) {
+    onSuccess: (data, { taskId, undoTaskIds, body }) => {
+      if (data.recurrence_advanced) {
+        push({
+          type: "recurrence_advance",
+          taskId,
+          previousDueAt: data.previous_due_at ?? null,
+        });
+      } else if (body?.bulk_children && undoTaskIds && undoTaskIds.length > 1) {
         push({ type: "bulk_complete", taskIds: undoTaskIds });
       } else {
         push({ type: "complete", taskId });

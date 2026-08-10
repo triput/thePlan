@@ -216,7 +216,9 @@ class Task(Base, TimestampMixin):
     section: Mapped["Section | None"] = relationship(back_populates="tasks")
     label_links: Mapped[list["TaskLabel"]] = relationship(back_populates="task")
     scheduled_blocks: Mapped[list["ScheduledBlock"]] = relationship(back_populates="task")
-
+    recurrence_rule: Mapped["RecurrenceRule | None"] = relationship(
+        back_populates="task", uselist=False, cascade="all, delete-orphan"
+    )
 
 class Label(Base, TimestampMixin):
     __tablename__ = "labels"
@@ -304,6 +306,12 @@ class ScheduledBlock(Base, TimestampMixin):
 
 class RecurrenceRule(Base, TimestampMixin):
     __tablename__ = "recurrence_rules"
+    __table_args__ = (
+        CheckConstraint(
+            "ends_on IS NULL OR starts_on IS NULL OR ends_on >= starts_on",
+            name="recurrence_rules_frame_order",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
     owner_id: Mapped[uuid.UUID] = mapped_column(
@@ -315,6 +323,10 @@ class RecurrenceRule(Base, TimestampMixin):
     rrule: Mapped[str] = mapped_column(Text, nullable=False)
     is_fixed: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, server_default="UTC")
+    starts_on: Mapped[date | None] = mapped_column(Date)
+    ends_on: Mapped[date | None] = mapped_column(Date)
+
+    task: Mapped["Task"] = relationship(back_populates="recurrence_rule")
 
 
 class Reminder(Base, TimestampMixin):

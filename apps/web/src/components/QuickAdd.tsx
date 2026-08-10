@@ -52,6 +52,7 @@ function ParseChips({ parsed }: { parsed: QuickAddParseResponse }) {
   if (parsed.due_at) {
     chips.push(new Date(parsed.due_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }));
   }
+  if (parsed.recurrence?.display) chips.push(parsed.recurrence.display);
   if (parsed.project_id) chips.push("project");
   if (parsed.unresolved.length > 0) chips.push(`unresolved: ${parsed.unresolved.join(", ")}`);
 
@@ -111,6 +112,15 @@ export const QuickAdd = forwardRef<QuickAddHandle, QuickAddProps>(function Quick
         estimated_duration_minutes: parsed.estimated_duration_minutes ?? undefined,
         project_id: isInbox ? null : projectId,
         section_id: parsed.section_id,
+        recurrence: parsed.recurrence
+          ? {
+              rrule: parsed.recurrence.rrule,
+              is_fixed: parsed.recurrence.is_fixed,
+              timezone: parsed.recurrence.timezone,
+              starts_on: parsed.recurrence.starts_on,
+              ends_on: parsed.recurrence.ends_on,
+            }
+          : undefined,
       });
 
       queryClient.invalidateQueries({ queryKey: ["tasks", viewKey(view)] });
@@ -144,7 +154,7 @@ export const QuickAdd = forwardRef<QuickAddHandle, QuickAddProps>(function Quick
       <div className="quick-add-meta">
         {preview && <ParseChips parsed={preview} />}
         <p className="quick-add-hint">
-          Try: <code>Draft spec 1.5h p1 tomorrow #Project</code>
+          Try: <code>Standup every monday, wednesday from 8/30 to 9/20</code>
         </p>
         {createMutation.isError && (
           <p className="form-error">{(createMutation.error as Error).message}</p>

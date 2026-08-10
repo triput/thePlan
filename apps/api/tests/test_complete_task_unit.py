@@ -96,6 +96,8 @@ def _task(*, nesting_level: int = 0, completed: bool = False) -> SimpleNamespace
         is_completed=completed,
         completed_at=None,
         status=ScheduleStatus.unscheduled,
+        due_at=None,
+        recurrence_rule=None,
     )
 
 

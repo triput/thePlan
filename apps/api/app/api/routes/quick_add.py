@@ -8,7 +8,7 @@ from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Epic, Project, Section, User
 from app.models.enums import TaskPriority
-from app.schemas import QuickAddParseRequest, QuickAddParseResponse
+from app.schemas import QuickAddParseRequest, QuickAddParseResponse, RecurrenceOut
 from app.services.quick_add import parse_quick_add
 
 router = APIRouter(prefix="/quick-add", tags=["quick-add"])
@@ -88,6 +88,17 @@ def parse_quick_add_input(
 
     priority = draft.priority or TaskPriority.p4
 
+    recurrence = None
+    if draft.recurrence_rrule and draft.recurrence_display:
+        recurrence = RecurrenceOut(
+            rrule=draft.recurrence_rrule,
+            is_fixed=draft.recurrence_is_fixed,
+            timezone=draft.recurrence_timezone,
+            starts_on=draft.recurrence_starts_on,
+            ends_on=draft.recurrence_ends_on,
+            display=draft.recurrence_display,
+        )
+
     return QuickAddParseResponse(
         title=draft.title,
         priority=priority,
@@ -98,4 +109,5 @@ def parse_quick_add_input(
         section_id=section_id,
         preferred_time_window_id=None,
         unresolved=unresolved,
+        recurrence=recurrence,
     )

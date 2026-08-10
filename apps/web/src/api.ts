@@ -88,6 +88,24 @@ export interface Label {
   task_count?: number;
 }
 
+export interface Recurrence {
+  rrule: string;
+  is_fixed: boolean;
+  timezone: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  display: string;
+}
+
+export interface RecurrenceUpsert {
+  rrule?: string;
+  is_fixed?: boolean;
+  timezone?: string;
+  starts_on?: string | null;
+  ends_on?: string | null;
+  text?: string;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -107,6 +125,9 @@ export interface Task {
   sort_order: number;
   label_ids: string[];
   open_subtask_count: number;
+  recurrence?: Recurrence | null;
+  recurrence_advanced?: boolean;
+  previous_due_at?: string | null;
 }
 
 export interface ApiErrorBody {
@@ -178,6 +199,7 @@ export interface TaskCreate {
   soft_target_at?: string | null;
   estimated_duration_minutes?: number;
   label_ids?: string[];
+  recurrence?: RecurrenceUpsert | null;
 }
 
 export interface TaskUpdate {
@@ -241,6 +263,7 @@ export interface QuickAddParseResponse {
   section_id: string | null;
   preferred_time_window_id: string | null;
   unresolved: string[];
+  recurrence: Recurrence | null;
 }
 
 type QueryParams = Record<string, string | number | boolean | undefined | null>;
@@ -531,6 +554,17 @@ export function completeTask(taskId: string, body: TaskCompleteBody = {}) {
 
 export function uncompleteTask(taskId: string) {
   return apiFetch<Task>(`/api/v1/tasks/${taskId}/uncomplete`, { method: "POST" });
+}
+
+export function putTaskRecurrence(taskId: string, body: RecurrenceUpsert) {
+  return apiFetch<Recurrence>(`/api/v1/tasks/${taskId}/recurrence`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteTaskRecurrence(taskId: string) {
+  return apiFetch<void>(`/api/v1/tasks/${taskId}/recurrence`, { method: "DELETE" });
 }
 
 export function parseQuickAdd(text: string) {

@@ -144,6 +144,25 @@ class TaskCreate(BaseModel):
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int = 30
     label_ids: list[UUID] = Field(default_factory=list)
+    recurrence: "RecurrenceUpsert | None" = None
+
+
+class RecurrenceOut(BaseModel):
+    rrule: str
+    is_fixed: bool
+    timezone: str
+    starts_on: date | None = None
+    ends_on: date | None = None
+    display: str
+
+
+class RecurrenceUpsert(BaseModel):
+    rrule: str | None = None
+    is_fixed: bool = False
+    timezone: str | None = None
+    starts_on: date | None = None
+    ends_on: date | None = None
+    text: str | None = Field(default=None, min_length=1, max_length=255)
 
 
 class TaskUpdate(BaseModel):
@@ -190,6 +209,9 @@ class TaskOut(BaseModel):
     sort_order: int
     label_ids: list[UUID] = Field(default_factory=list)
     open_subtask_count: int = 0
+    recurrence: RecurrenceOut | None = None
+    recurrence_advanced: bool = False
+    previous_due_at: datetime | None = None
 
 
 class LabelCreate(BaseModel):
@@ -244,6 +266,7 @@ class QuickAddParseResponse(BaseModel):
     section_id: UUID | None = None
     preferred_time_window_id: UUID | None = None
     unresolved: list[str] = Field(default_factory=list)
+    recurrence: RecurrenceOut | None = None
 
 
 class ReorderItem(BaseModel):

@@ -1,10 +1,11 @@
 # Changelog
 
-## [0.2.0] — 2026-08-10 — Wave 1.5 auth (in progress)
+## [0.2.0] — 2026-08-10 — Wave 1.5 (in progress)
 
 - Session cookie login/logout; first-run setup claims bootstrap admin
 - Household multi-account (admin-managed); passphrase-friendly secrets
 - Demo user `nebula` with seeded fixture data
+- Recurrence engine: `every` / `every!`, limited frames, multi-weekday, quick-add tokens, task-detail set/clear, complete rollover
 - Hygiene: [docs/HYGIENE-W1.5-QUICKSCAN.md](docs/HYGIENE-W1.5-QUICKSCAN.md)
 
 ## [0.1.0] — 2026-08-10 — Wave 1 MVP

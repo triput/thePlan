@@ -123,6 +123,12 @@ class QuickAddDraft:
     section_name: str | None = None
     preferred_time_window: str | None = None
     unresolved: list[str] = field(default_factory=list)
+    recurrence_rrule: str | None = None
+    recurrence_is_fixed: bool = False
+    recurrence_starts_on: date | None = None
+    recurrence_ends_on: date | None = None
+    recurrence_timezone: str = "UTC"
+    recurrence_display: str | None = None
 
 
 def _first_group(match: re.Match[str]) -> str:
@@ -177,6 +183,22 @@ def parse_quick_add(text: str, *, now: datetime | None = None, timezone_name: st
     draft = QuickAddDraft(title=text.strip())
     due_date: date | None = None
     due_time: time | None = None
+
+    from app.services.recurrence import first_due_at, humanize_recurrence, parse_recurrence_text
+
+    title_after_recurrence, recurrence = parse_recurrence_text(
+        working,
+        now=reference,
+        timezone_name=timezone_name,
+    )
+    if recurrence is not None:
+        draft.recurrence_rrule = recurrence.rrule
+        draft.recurrence_is_fixed = recurrence.is_fixed
+        draft.recurrence_starts_on = recurrence.starts_on
+        draft.recurrence_ends_on = recurrence.ends_on
+        draft.recurrence_timezone = recurrence.timezone
+        draft.recurrence_display = humanize_recurrence(recurrence)
+        working = f" {title_after_recurrence} "
 
     epic_match = EPIC_PATTERN.search(working)
     if epic_match:
@@ -255,6 +277,8 @@ def parse_quick_add(text: str, *, now: datetime | None = None, timezone_name: st
 
     if due_date is not None:
         draft.due_at = _combine_date_time(due_date, due_time, tz)
+    elif recurrence is not None:
+        draft.due_at = first_due_at(recurrence, now=reference, due_time=due_time)
 
     draft.title = working.strip()
     if not draft.title:

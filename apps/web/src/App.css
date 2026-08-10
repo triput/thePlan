@@ -1610,3 +1610,26 @@
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
 }
+
+.recurrence-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.recurrence-fieldset legend {
+  padding: 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.recurrence-current {
+  margin: 0 0 0.5rem;
+}
+
+.recurrence-frame-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}

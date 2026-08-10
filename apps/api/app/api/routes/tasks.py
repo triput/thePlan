@@ -2,14 +2,29 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
-from app.models import Label, Task, TaskLabel, User
-from app.schemas import PaginatedResponse, ReorderRequest, TaskCompleteBody, TaskCreate, TaskOut, TaskUpdate
+from app.models import Label, RecurrenceRule, Task, TaskLabel, User
+from app.schemas import (
+    PaginatedResponse,
+    RecurrenceOut,
+    RecurrenceUpsert,
+    ReorderRequest,
+    TaskCompleteBody,
+    TaskCreate,
+    TaskOut,
+    TaskUpdate,
+)
 from app.services.ownership import verify_owned_project, verify_owned_section, verify_owned_task
+from app.services.recurrence import (
+    first_due_at,
+    humanize_recurrence,
+    spec_from_parts,
+    validate_frame,
+)
 from app.services.reorder import batch_reorder_sort_order
 from app.services.task_helpers import complete_task, mark_task_complete, resolve_nesting_level
 
@@ -17,13 +32,46 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
 def _get_owned_task(db: Session, task_id: UUID, user: User) -> Task:
-    task = db.get(Task, task_id)
+    task = (
+        db.query(Task)
+        .options(joinedload(Task.recurrence_rule), joinedload(Task.label_links))
+        .filter(Task.id == task_id)
+        .one_or_none()
+    )
     if task is None or task.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
     return task
 
 
-def task_to_out(task: Task, db: Session) -> TaskOut:
+def recurrence_to_out(rule: RecurrenceRule | None) -> RecurrenceOut | None:
+    if rule is None:
+        return None
+    from app.services.recurrence import RecurrenceSpec
+
+    spec = RecurrenceSpec(
+        rrule=rule.rrule,
+        is_fixed=rule.is_fixed,
+        timezone=rule.timezone,
+        starts_on=rule.starts_on,
+        ends_on=rule.ends_on,
+    )
+    return RecurrenceOut(
+        rrule=rule.rrule,
+        is_fixed=rule.is_fixed,
+        timezone=rule.timezone,
+        starts_on=rule.starts_on,
+        ends_on=rule.ends_on,
+        display=humanize_recurrence(spec),
+    )
+
+
+def task_to_out(
+    task: Task,
+    db: Session,
+    *,
+    recurrence_advanced: bool = False,
+    previous_due_at: datetime | None = None,
+) -> TaskOut:
     label_ids = [link.label_id for link in task.label_links]
     open_subtask_count = (
         db.query(Task)
@@ -39,6 +87,9 @@ def task_to_out(task: Task, db: Session) -> TaskOut:
             **TaskOut.model_validate(task).model_dump(),
             "label_ids": label_ids,
             "open_subtask_count": open_subtask_count,
+            "recurrence": recurrence_to_out(task.recurrence_rule),
+            "recurrence_advanced": recurrence_advanced,
+            "previous_due_at": previous_due_at,
         }
     )
 
@@ -53,6 +104,56 @@ def _sync_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]
     db.query(TaskLabel).filter(TaskLabel.task_id == task.id).delete(synchronize_session=False)
     for label in labels:
         db.add(TaskLabel(task_id=task.id, label_id=label.id))
+
+
+def _upsert_recurrence(
+    db: Session,
+    task: Task,
+    user: User,
+    body: RecurrenceUpsert,
+) -> RecurrenceRule:
+    timezone_name = body.timezone or (user.settings.timezone if user.settings else "UTC")
+    if body.text:
+        spec = spec_from_parts(text=body.text, timezone=timezone_name)
+        extras = body.model_dump(exclude_unset=True)
+        if "starts_on" in extras:
+            spec.starts_on = extras["starts_on"]
+        if "ends_on" in extras:
+            spec.ends_on = extras["ends_on"]
+        validate_frame(spec.starts_on, spec.ends_on)
+    else:
+        if not body.rrule:
+            raise ApiError(422, "rrule or text is required", "INVALID_RECURRENCE")
+        spec = spec_from_parts(
+            rrule=body.rrule,
+            is_fixed=body.is_fixed,
+            timezone=timezone_name,
+            starts_on=body.starts_on,
+            ends_on=body.ends_on,
+        )
+
+    rule = (
+        db.query(RecurrenceRule)
+        .filter(RecurrenceRule.task_id == task.id)
+        .one_or_none()
+    )
+    if rule is None:
+        rule = RecurrenceRule(owner_id=user.id, task_id=task.id)
+        db.add(rule)
+
+    rule.rrule = spec.rrule
+    rule.is_fixed = spec.is_fixed
+    rule.timezone = spec.timezone
+    rule.starts_on = spec.starts_on
+    rule.ends_on = spec.ends_on
+    db.flush()
+    task.recurrence_rule = rule
+
+    if task.due_at is None:
+        first = first_due_at(spec)
+        if first is not None:
+            task.due_at = first
+    return rule
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -70,7 +171,11 @@ def list_tasks(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> PaginatedResponse:
-    query = db.query(Task).filter(Task.owner_id == user.id)
+    query = (
+        db.query(Task)
+        .options(joinedload(Task.recurrence_rule), joinedload(Task.label_links))
+        .filter(Task.owner_id == user.id)
+    )
     if inbox:
         query = query.filter(Task.project_id.is_(None))
     elif project_id is not None:
@@ -107,7 +212,6 @@ def create_task(
         verify_owned_project(db, body.project_id, user)
     if body.section_id is not None:
         verify_owned_section(db, body.section_id, user)
-    # Parent ownership/existence is enforced in resolve_nesting_level (PARENT_NOT_FOUND).
     try:
         nesting_level = resolve_nesting_level(db, user.id, body.parent_task_id)
     except ApiError as exc:
@@ -133,9 +237,12 @@ def create_task(
     if body.label_ids:
         _sync_task_labels(db, task, user, body.label_ids)
 
+    if body.recurrence is not None:
+        _upsert_recurrence(db, task, user, body.recurrence)
+
     db.commit()
     db.refresh(task)
-    return task_to_out(task, db)
+    return task_to_out(_get_owned_task(db, task.id, user), db)
 
 
 @router.patch("/reorder", status_code=status.HTTP_204_NO_CONTENT)
@@ -197,8 +304,7 @@ def update_task(
         _sync_task_labels(db, task, user, label_ids)
 
     db.commit()
-    db.refresh(task)
-    return task_to_out(task, db)
+    return task_to_out(_get_owned_task(db, task.id, user), db)
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -221,7 +327,7 @@ def complete_task_endpoint(
 ) -> TaskOut:
     task = _get_owned_task(db, task_id, user)
     try:
-        complete_task(
+        previous_due, advanced = complete_task(
             db,
             task,
             bulk_children=body.bulk_children,
@@ -230,8 +336,13 @@ def complete_task_endpoint(
     except ApiError as exc:
         raise exc
     db.commit()
-    db.refresh(task)
-    return task_to_out(task, db)
+    refreshed = _get_owned_task(db, task.id, user)
+    return task_to_out(
+        refreshed,
+        db,
+        recurrence_advanced=advanced,
+        previous_due_at=previous_due,
+    )
 
 
 @router.post("/{task_id}/uncomplete", response_model=TaskOut)
@@ -243,5 +354,43 @@ def uncomplete_task(
     task = _get_owned_task(db, task_id, user)
     mark_task_complete(task, completed=False)
     db.commit()
-    db.refresh(task)
-    return task_to_out(task, db)
+    return task_to_out(_get_owned_task(db, task.id, user), db)
+
+
+@router.get("/{task_id}/recurrence", response_model=RecurrenceOut)
+def get_recurrence(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RecurrenceOut:
+    task = _get_owned_task(db, task_id, user)
+    out = recurrence_to_out(task.recurrence_rule)
+    if out is None:
+        raise ApiError(404, "Recurrence not found", "RECURRENCE_NOT_FOUND")
+    return out
+
+
+@router.put("/{task_id}/recurrence", response_model=RecurrenceOut)
+def put_recurrence(
+    task_id: UUID,
+    body: RecurrenceUpsert,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RecurrenceOut:
+    task = _get_owned_task(db, task_id, user)
+    rule = _upsert_recurrence(db, task, user, body)
+    db.commit()
+    db.refresh(rule)
+    return recurrence_to_out(rule)  # type: ignore[return-value]
+
+
+@router.delete("/{task_id}/recurrence", status_code=status.HTTP_204_NO_CONTENT)
+def delete_recurrence(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    task = _get_owned_task(db, task_id, user)
+    if task.recurrence_rule is not None:
+        db.delete(task.recurrence_rule)
+        db.commit()

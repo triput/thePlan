@@ -70,13 +70,29 @@ def mark_task_complete(task: Task, *, completed: bool) -> None:
             task.status = ScheduleStatus.unscheduled
 
 
+def _rule_to_spec(rule) -> "RecurrenceSpec":
+    from app.services.recurrence import RecurrenceSpec
+
+    return RecurrenceSpec(
+        rrule=rule.rrule,
+        is_fixed=rule.is_fixed,
+        timezone=rule.timezone,
+        starts_on=rule.starts_on,
+        ends_on=rule.ends_on,
+    )
+
+
 def complete_task(
     db: Session,
     task: Task,
     *,
     bulk_children: bool | None,
     force_parent_only: bool,
-) -> None:
+) -> tuple[datetime | None, bool]:
+    """Complete or advance recurrence.
+
+    Returns (previous_due_at, recurrence_advanced).
+    """
     open_count = count_open_children(db, task.id, task.owner_id)
     # Contract: omitted bulk_children → 409; explicit false → parent only;
     # true → bulk. force_parent_only is an alternate parent-only signal.
@@ -89,6 +105,36 @@ def complete_task(
         )
 
     now = datetime.now(timezone.utc)
+    rule = task.recurrence_rule
+    if rule is not None:
+        from app.services.recurrence import next_due_at
+
+        previous_due = task.due_at
+        nxt = next_due_at(
+            _rule_to_spec(rule),
+            previous_due=previous_due,
+            completed_at=now,
+        )
+        if nxt is not None:
+            task.due_at = nxt
+            task.is_completed = False
+            task.completed_at = None
+            if task.status == ScheduleStatus.completed:
+                task.status = ScheduleStatus.unscheduled
+            # Still bulk-complete children if requested when rolling over parent.
+            if bulk_children is True:
+                descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
+                if descendant_ids:
+                    db.query(Task).filter(Task.id.in_(descendant_ids)).update(
+                        {
+                            Task.is_completed: True,
+                            Task.completed_at: now,
+                            Task.status: ScheduleStatus.completed,
+                        },
+                        synchronize_session=False,
+                    )
+            return previous_due, True
+
     if bulk_children is True:
         descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
         if descendant_ids:
@@ -102,3 +148,4 @@ def complete_task(
             )
 
     mark_task_complete(task, completed=True)
+    return None, False

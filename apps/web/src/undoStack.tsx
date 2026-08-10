@@ -13,6 +13,7 @@ import {
   createTask,
   fetchTasks,
   uncompleteTask,
+  updateTask,
   type Task,
   type TaskCreate,
 } from "./api";
@@ -31,7 +32,8 @@ export type UndoEntry =
   | { type: "complete"; taskId: string }
   | { type: "uncomplete"; taskId: string }
   | { type: "delete_tree"; nodes: DeleteTreeNode[] }
-  | { type: "bulk_complete"; taskIds: string[] };
+  | { type: "bulk_complete"; taskIds: string[] }
+  | { type: "recurrence_advance"; taskId: string; previousDueAt: string | null };
 
 type ToastListener = (message: string) => void;
 
@@ -48,6 +50,7 @@ const TOAST_MESSAGES: Record<UndoEntry["type"], string> = {
   uncomplete: "Undid uncomplete",
   delete_tree: "Undid delete",
   bulk_complete: "Undid bulk complete",
+  recurrence_advance: "Undid recurrence advance",
 };
 
 async function invalidateAfterUndo(queryClient: ReturnType<typeof useQueryClient>) {
@@ -95,6 +98,9 @@ export function UndoStackProvider({
           break;
         case "uncomplete":
           await completeTask(entry.taskId, {});
+          break;
+        case "recurrence_advance":
+          await updateTask(entry.taskId, { due_at: entry.previousDueAt });
           break;
         case "delete_tree": {
           const idMap = new Map<string, string>();

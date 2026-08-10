@@ -60,7 +60,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 | Feature | Notes |
 |---------|-------|
-| Recurrence engine | `every` / `every!` semantics; quick-add tokens |
+| Recurrence engine | `every` / `every!`; limited `starts_on`/`ends_on` frames; quick-add + task detail |
 | ~~Todoist import~~ | **Deferred to W3** (stale upstream data; not needed for daily driver) |
 | Time-based reminders | In-app + optional browser Notification API |
 | Login / remote-ready auth | Password session and/or Cloudflare Access |

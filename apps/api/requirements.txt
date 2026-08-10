@@ -27,6 +27,7 @@ pydantic-settings==2.7.0
 pydantic_core==2.46.4
 pwdlib[argon2]==0.3.0
 pytest==9.1.1
+python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 PyYAML==6.0.3
 SQLAlchemy==2.0.51

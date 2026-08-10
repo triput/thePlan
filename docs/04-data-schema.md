@@ -223,9 +223,9 @@ Manual in MVP; auto-populated by scheduler W2.
 
 **Indexes:** `(task_id)`, `(owner_id, start_time, end_time)` for calendar range queries.
 
-### recurrence_rules (stub)
+### recurrence_rules
 
-One rule per task (`task_id UNIQUE`). `rrule` TEXT (iCal RRULE). `is_fixed` for Todoist `every!` semantics. Engine in W1.5.
+One rule per task (`task_id UNIQUE`). Pattern-only iCal `rrule` (`FREQ` / `INTERVAL` / `BYDAY`). `is_fixed` = Todoist `every!` (calendar-fixed) vs `every` (slides from completion). Nullable `starts_on` / `ends_on` (DATE) bound the series window inclusively. Engine advances `due_at` on complete while occurrences remain; exhausts to a true complete at frame end.
 
 ### reminders (stub)
 

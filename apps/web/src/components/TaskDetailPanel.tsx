@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteTask,
+  deleteTaskRecurrence,
   fetchLabels,
   fetchProjects,
   fetchSections,
   fetchTasks,
+  putTaskRecurrence,
   updateTask,
   type Label,
   type Project,
@@ -77,6 +79,9 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [parentTaskId, setParentTaskId] = useState<string>("");
   const [labelIds, setLabelIds] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [recurrenceText, setRecurrenceText] = useState("");
+  const [startsOn, setStartsOn] = useState("");
+  const [endsOn, setEndsOn] = useState("");
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
 
@@ -116,6 +121,9 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setSectionId(task.section_id ?? "");
     setParentTaskId(task.parent_task_id ?? "");
     setLabelIds(task.label_ids);
+    setRecurrenceText("");
+    setStartsOn(task.recurrence?.starts_on ?? "");
+    setEndsOn(task.recurrence?.ends_on ?? "");
   }, [task]);
 
   const byId = useMemo(() => new Map(allTasks.map((t) => [t.id, t])), [allTasks]);
@@ -187,6 +195,39 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       queryClient.invalidateQueries({ queryKey: ["task"] });
       setConfirmDelete(false);
       onClose();
+    },
+  });
+
+  const recurrenceMutation = useMutation({
+    mutationFn: async () => {
+      const trimmed = recurrenceText.trim();
+      if (!trimmed) {
+        await deleteTaskRecurrence(task!.id);
+        return;
+      }
+      await putTaskRecurrence(task!.id, {
+        text: trimmed.toLowerCase().startsWith("every") ? trimmed : `every ${trimmed}`,
+        starts_on: startsOn || null,
+        ends_on: endsOn || null,
+      });
+    },
+    onSuccess: () => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
+      emitToast("Recurrence saved");
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't save recurrence"),
+  });
+
+  const clearRecurrenceMutation = useMutation({
+    mutationFn: () => deleteTaskRecurrence(task!.id),
+    onSuccess: () => {
+      setRecurrenceText("");
+      setStartsOn("");
+      setEndsOn("");
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
+      emitToast("Recurrence cleared");
     },
   });
 
@@ -273,6 +314,62 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               onChange={(e) => setDueAtLocal(e.target.value)}
             />
           </label>
+
+          <fieldset className="field recurrence-fieldset">
+            <legend>Recurrence</legend>
+            {task.recurrence?.display && (
+              <p className="muted small recurrence-current">{task.recurrence.display}</p>
+            )}
+            <label className="field">
+              <span>Pattern</span>
+              <input
+                type="text"
+                value={recurrenceText}
+                onChange={(e) => setRecurrenceText(e.target.value)}
+                placeholder="every monday, wednesday"
+              />
+              <span className="field-hint muted small">
+                Use every / every! plus day, week, or weekdays. Optional frame below.
+              </span>
+            </label>
+            <div className="recurrence-frame-row">
+              <label className="field">
+                <span>From</span>
+                <input
+                  type="date"
+                  value={startsOn}
+                  onChange={(e) => setStartsOn(e.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Until</span>
+                <input
+                  type="date"
+                  value={endsOn}
+                  onChange={(e) => setEndsOn(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn secondary small"
+                disabled={!task.recurrence || clearRecurrenceMutation.isPending}
+                onClick={() => clearRecurrenceMutation.mutate()}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className="btn primary small"
+                disabled={recurrenceMutation.isPending}
+                onClick={() => recurrenceMutation.mutate()}
+              >
+                {recurrenceMutation.isPending ? "Saving…" : "Save recurrence"}
+              </button>
+            </div>
+          </fieldset>
+
           <label className="field">
             <span>Duration (minutes)</span>
             <input

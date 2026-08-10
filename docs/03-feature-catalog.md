@@ -39,7 +39,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Complete / uncomplete | MVP | Parent warn-and-allow policy |
 | Parent bulk-complete children | MVP | Option (b) in completion dialog |
 | Task dependencies | W2 | Schema in MVP; enforced by scheduler W2 |
-| Recurring due dates (`every`, `every!`) | W1.5 | Schema stub MVP |
+| Recurring due dates (`every`, `every!`) | W1.5 | Same-task rollover; limited frames (`starts_on`/`ends_on`); multi-weekday |
+| Quick-add recurrence tokens | W1.5 | `every` / `every!` + from/until frame phrases |
 | Subtask inheritance | MVP | Nesting rules only; scheduler inheritance W2 |
 
 ### Labels & Filters
@@ -80,7 +81,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 |---------|------|-------|
 | Quick-add box | MVP | |
 | Natural language parser (deterministic) | MVP | Duration, priority, due, epic/project tags |
-| Quick-add recurrence tokens | W1.5 | |
+| Quick-add recurrence tokens | W1.5 | `every` / `every!` + from/until |
 | Keyboard shortcuts | MVP | q, j/k navigate, etc. |
 | Voice input | W3 | Priority-3 backlog; no sooner than W2; likely W3 |
 | Email-to-task | W3 | Same as voice; not before W2; likely W3 |
