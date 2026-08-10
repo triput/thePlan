@@ -157,6 +157,57 @@ def test_passphrase_with_spaces(auth_client: TestClient) -> None:
     assert login.status_code == 200
 
 
+def test_admin_set_user_password(auth_client: TestClient) -> None:
+    _register_admin(auth_client)
+    created = auth_client.post(
+        "/api/v1/auth/users",
+        json={
+            "username": "member",
+            "email": "member@example.com",
+            "password": TEST_PASSWORD,
+        },
+    )
+    assert created.status_code == 201, created.text
+    user_id = created.json()["id"]
+    new_password = "fresh meadow willow creek"
+
+    patched = auth_client.patch(
+        f"/api/v1/auth/users/{user_id}",
+        json={"password": new_password},
+    )
+    assert patched.status_code == 200, patched.text
+
+    auth_client.post("/api/v1/auth/logout")
+    old_login = auth_client.post(
+        "/api/v1/auth/login",
+        json={"identifier": "member", "password": TEST_PASSWORD},
+    )
+    assert old_login.status_code == 401
+
+    new_login = auth_client.post(
+        "/api/v1/auth/login",
+        json={"identifier": "member", "password": new_password},
+    )
+    assert new_login.status_code == 200
+
+
+def test_admin_can_set_own_password(auth_client: TestClient) -> None:
+    admin = _register_admin(auth_client)
+    new_password = "admin river canyon summit"
+    patched = auth_client.patch(
+        f"/api/v1/auth/users/{admin['id']}",
+        json={"password": new_password},
+    )
+    assert patched.status_code == 200, patched.text
+
+    auth_client.post("/api/v1/auth/logout")
+    login = auth_client.post(
+        "/api/v1/auth/login",
+        json={"identifier": "admin", "password": new_password},
+    )
+    assert login.status_code == 200
+
+
 def test_me_without_cookie(auth_client: TestClient) -> None:
     _register_admin(auth_client)
     auth_client.post("/api/v1/auth/logout")

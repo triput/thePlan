@@ -25,7 +25,9 @@ from app.services.auth_users import (
     claim_bootstrap_user,
     create_household_user,
     is_setup_required,
+    validate_password,
 )
+from app.services.passwords import hash_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -122,6 +124,11 @@ def update_user(
     updates = body.model_dump(exclude_unset=True)
     if "is_disabled" in updates and updates["is_disabled"] and user.id == admin.id:
         raise ApiError(403, "Cannot disable your own account", "CANNOT_DISABLE_SELF")
+
+    new_password = updates.pop("password", None)
+    if new_password is not None:
+        validate_password(new_password)
+        user.password_hash = hash_password(new_password)
 
     for field, value in updates.items():
         setattr(user, field, value)

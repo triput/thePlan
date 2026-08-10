@@ -936,6 +936,10 @@
   border-radius: 10px;
   width: 100%;
   max-width: 440px;
+  max-height: min(90vh, 920px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 
@@ -944,6 +948,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.1rem 0.5rem;
+  flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -954,6 +959,13 @@
 
 .modal-body {
   padding: 0.5rem 1.1rem 1.1rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal.settings-modal {
+  max-width: 520px;
 }
 
 .help-shortcuts {
@@ -1531,13 +1543,31 @@
 
 .household-user-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.55rem;
   padding: 0.55rem 0.65rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
+}
+
+.household-user-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.household-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.household-password-form {
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border);
 }
 
 .household-user-row.disabled {

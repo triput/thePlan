@@ -68,7 +68,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Cloudflare Tunnel | Template for remote access to home host |
 | Label delete reassign/migrate | On prune: optionally bulk-apply other label(s) to affected tasks before removing the deleted label |
 | Multi-account login (household) | Multiple `users` rows on one deployment; login selects account; domain queries filter `owner_id` — not teams/workspaces ([ADR-002](./adr/ADR-002-single-user.md) amendment) |
-| Admin account + user management | First claimed account is admin; admin can list/create/disable household users (not team RBAC) |
+| Admin account + user management | First claimed account is admin; admin can list/create/disable household users and set passwords (not team RBAC). Temp/forced password reset on next login deferred to W3 (P3). |
 | Demo seed account `nebula` | Non-admin test user with rich fixture data; passphrase stored only in gitignored `.secrets-backup/` |
 | Task soft-delete + restore | **Optional if cheap during auth work** — else defer to W2; see [04-data-schema.md](./04-data-schema.md) |
 

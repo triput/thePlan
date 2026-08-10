@@ -50,6 +50,7 @@ class AuthUserAdminCreate(BaseModel):
 class AuthUserAdminUpdate(BaseModel):
     display_name: str | None = Field(default=None, max_length=255)
     is_disabled: bool | None = None
+    password: str | None = Field(default=None, min_length=12, max_length=128)
 
 
 class EpicCreate(BaseModel):

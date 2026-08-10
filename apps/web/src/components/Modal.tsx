@@ -5,9 +5,10 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }
 
-export function Modal({ open, title, onClose, children }: ModalProps) {
+export function Modal({ open, title, onClose, children, className }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -22,7 +23,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
   return (
     <div className="modal-backdrop" onClick={onClose} role="presentation">
       <div
-        className="modal"
+        className={["modal", className].filter(Boolean).join(" ")}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

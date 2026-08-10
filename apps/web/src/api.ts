@@ -48,6 +48,7 @@ export interface AuthUserCreateBody {
 export interface AuthUserUpdateBody {
   display_name?: string | null;
   is_disabled?: boolean;
+  password?: string;
 }
 
 export interface Epic {

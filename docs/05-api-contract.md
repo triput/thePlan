@@ -305,7 +305,7 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 | GET | `/auth/me` | Current user; `401 SETUP_REQUIRED` or `401 UNAUTHENTICATED` |
 | GET | `/auth/users` | Admin: list household users |
 | POST | `/auth/users` | Admin: create household user |
-| PATCH | `/auth/users/{id}` | Admin: update `display_name`, `is_disabled` (cannot disable self) |
+| PATCH | `/auth/users/{id}` | Admin: update `display_name`, `is_disabled`, `password` (cannot disable self) |
 
 **Register body:**
 

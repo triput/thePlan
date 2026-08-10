@@ -78,7 +78,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   };
 
   return (
-    <Modal open={open} title="Settings" onClose={onClose}>
+    <Modal open={open} title="Settings" onClose={onClose} className="settings-modal">
       <section className="settings-section">
         <h3 className="settings-section-title">Theme</h3>
         <div className="theme-preset-list" role="radiogroup" aria-label="Theme preset">
