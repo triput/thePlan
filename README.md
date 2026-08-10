@@ -1,8 +1,17 @@
 # thePlan
 
-Working docs and planning for **thePlan** — a personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
+Personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
 
-Start here: [docs/README.md](docs/README.md)
+**Wave 1 (MVP) exited 2026-08-10.** Next: [Wave 1.5](docs/07-wave-roadmap.md). Exit record: [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md). Docs index: [docs/README.md](docs/README.md).
+
+## Shipped (Wave 1)
+
+- Hierarchy: Epic → Project → Section → Task → subtask → nested subtask
+- Smart views: Inbox, Today, Upcoming, Project, Label
+- Calendar day/week, due markers, manual scheduled blocks
+- Quick-add, search, undo, optimistic UI, keyboard shortcuts
+- Labels + color presets; nine UI themes (Settings)
+- Local Docker Compose + Postgres; bootstrap user (no login wall)
 
 ## Quick start (Docker Compose)
 
@@ -14,18 +23,22 @@ docker compose -f infra/compose/compose.yaml up --build
 
 | Service | URL |
 |---------|-----|
-| Web | http://localhost:8080 |
+| Web (Compose production build) | http://localhost:8080 |
 | API | http://localhost:8000 |
 | API docs | http://localhost:8000/docs |
 | Postgres | `localhost:5432` (user/db/password: `theplan`) |
 
 Stop: `docker compose -f infra/compose/compose.yaml down`
 
-## Local development (without Docker)
+### Backup one-liner
+
+```powershell
+docker compose -f infra/compose/compose.yaml exec -T postgres pg_dump -U theplan theplan > theplan-backup.sql
+```
+
+## Local development (without full Compose)
 
 ### 1. PostgreSQL
-
-Run Postgres 16 locally or start only the database container:
 
 ```powershell
 docker compose -f infra/compose/compose.yaml up postgres -d
@@ -52,7 +65,7 @@ copy .env.example .env
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:5173 (Vite dev). Compose serves the production build on **:8080**.
 
 ## Repository layout
 
@@ -60,9 +73,5 @@ Open http://localhost:5173
 apps/api/          FastAPI + SQLAlchemy 2 + Alembic
 apps/web/          Vite + React + TypeScript
 infra/compose/     Docker Compose stack
-docs/              Product docs, ADRs, baseline SQL
+docs/              Product docs, ADRs, baseline SQL, Wave 1 exit
 ```
-
-## Wave 0 scope
-
-Runnable hello-stack with CRUD stubs for epics, projects, tasks, and labels. Bootstrap user `local@localhost` with system smart views (Inbox, Today, Upcoming) seeded on API startup.

@@ -18,7 +18,7 @@ Dependency Hygiene is a gate: feature work for a new version does not start unti
 
 ---
 
-## Wave 1 — MVP (Current Target)
+## Wave 1 — MVP (Complete — exited 2026-08-10)
 
 **Goal:** Personal single-user task management with calendar visibility and fast local deployment.
 
@@ -31,6 +31,8 @@ Dependency Hygiene is a gate: feature work for a new version does not start unti
 | Wave 2 | FastAPI + Alembic + CRUD API + quick-add parse |
 | Wave 3 | Vite/React SPA — lists, smart views, calendar, quick-add |
 | Wave 4 | Local deploy docs, backup one-liner |
+
+*Implementation sub-waves (Wave 0–4 above) are delivery phases inside MVP — not the same as roadmap Wave 1.5 / W2 / W3.*
 
 ### Scope
 
@@ -46,9 +48,11 @@ Dependency Hygiene is a gate: feature work for a new version does not start unti
 
 See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-scheduler, no remote auth.
 
+**Exit record:** [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) — exited **2026-08-10**; evidence tip commit `ff5724e`.
+
 ---
 
-## Wave 1.5 — Soon After MVP
+## Wave 1.5 — Soon After MVP (Current Target)
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
 
@@ -146,7 +150,8 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 | Capability | Wave |
 |------------|------|
 | Docker Desktop + Compose (local) | MVP |
-| pg_dump backup docs | MVP |
+| pg_dump backup one-liner (root README) | MVP |
+| Scheduled pg_dump backup script | W1.5 |
 | Cloudflare Tunnel | W1.5+ (post-MVP remote) |
 | Cloudflare Access | W1.5 (optional IdP) |
 | Hosted Postgres | W3 fallback |

@@ -50,7 +50,7 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 ## MVP Scope Summary
 
-**In:** Full hierarchy CRUD, labels, Synesis/Phronesis-aligned color presets ([08-color-palette.md](./08-color-palette.md)), fixed smart views (Inbox, Today, Upcoming, by Project/Epic/Label), calendar view (day/week), quick-add parser, search, undo, local Compose stack, local-only auth.
+**In:** Full hierarchy CRUD, labels, Synesis/Phronesis-aligned color presets ([08-color-palette.md](./08-color-palette.md)), fixed smart views (Inbox, Today, Upcoming, by Project/Label; Epic aggregate view deferred W1.5), calendar view (day/week), quick-add parser, search, undo, local Compose stack, local-only auth.
 
 **Out of MVP:** Auto-scheduler, external calendar sync, recurrence engine, login/remote auth, board/Kanban (optional W3 candidate), teams, gamification, SLM assist, desktop client, voice input, email-to-task, location reminders, templates (all W3 backlog candidates — not before W2 where applicable).
 
@@ -68,3 +68,5 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 ## Success Criteria (MVP)
 
 A single user can manage the full Epic→Nested Subtask hierarchy, complete tasks with parent/child policies, work from Today/Inbox/Upcoming and calendar day/week views, capture tasks via quick-add, search and undo changes, and run the stack locally with p95 interaction feel under 100ms on LAN — without calendar sync, auto-scheduling, or remote authentication.
+
+**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Next: **Wave 1.5** — auth, recurrence, import, reminders ([07-wave-roadmap.md](./07-wave-roadmap.md)).

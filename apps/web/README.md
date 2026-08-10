@@ -11,7 +11,7 @@ copy .env.example .env
 npm run dev
 ```
 
-Open http://localhost:5173 — requires the API running on port 8000 (see `apps/api/README.md` or Docker Compose).
+Open http://localhost:5173 — requires the API running on port 8000 (see `apps/api/README.md` or Docker Compose). Docker Compose serves the production build at http://localhost:8080.
 
 ## Environment
 

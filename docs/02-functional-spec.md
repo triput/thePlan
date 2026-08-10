@@ -379,4 +379,10 @@ Single `user_settings.timezone` (IANA string, e.g. `America/Los_Angeles`). All t
 
 ## 12. Backup
 
-Documented `pg_dump` one-liner against Compose Postgres volume. Optional scheduled backup script in W1.5. OAuth tokens and secrets stored in host env / Docker secrets; never committed to git.
+Documented `pg_dump` one-liner against the Compose Postgres service (see root [README.md](../README.md)):
+
+```powershell
+docker compose -f infra/compose/compose.yaml exec -T postgres pg_dump -U theplan theplan > theplan-backup.sql
+```
+
+Optional scheduled backup script in W1.5. OAuth tokens and secrets stored in host env / Docker secrets; never committed to git.

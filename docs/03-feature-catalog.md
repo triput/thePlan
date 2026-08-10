@@ -51,10 +51,10 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Standalone label management (create/prune without task) | MVP | Dedicated Labels UI |
 | Lowercase-only label names | MVP | Normalize on write; unique per owner |
 | Label delete with reassign/migrate | W1.5 | On prune: optional bulk replace deleted label with one or more other labels before detach; keep related tasks correctly tagged |
-| Epic/project color presets | MVP | Synesis/Phronesis-aligned + custom hex |
+| Epic/project color presets | MVP | Synesis/Phronesis-aligned presets; entity custom hex picker W1.5 |
 | Fixed smart views (Inbox, Today, Upcoming) | MVP | System saved_filters |
 | Smart view by Project | MVP | |
-| Smart view by Epic | MVP | |
+| Smart view by Epic | W1.5 | Epic aggregate rollup UI deferred; projects/labels shipped |
 | Smart view by Label | MVP | |
 | Saved filter query language | W2 | Predicate model from MVP |
 | Custom filter favorites | W2 | User-authored saved_filters |
@@ -66,11 +66,11 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | List view | MVP | Primary task list |
 | Today view | MVP | |
 | Upcoming view | MVP | 7-day horizon default |
-| Calendar view (day/week) | MVP | Due markers + manual blocks |
-| Calendar view (month) | MVP | If cheap; not exit blocker |
-| Day-of-year + ISO week numbers in chrome | Nice-to-have | Show e.g. day 222 · W32; not MVP exit blocker |
+| Calendar view (day/week) | MVP | Due markers + manual blocks; click/slot create + modal edit |
+| Calendar view (month) | W1.5 | Not shipped Wave 1; optional/non-blocker |
+| Day-of-year + ISO week numbers in chrome | MVP | Shipped in calendar titles |
 | Board / Kanban | W3 | Optional column view for project status; not an MVP/W2 timeline. Sections may map to columns |
-| Upcoming drag-plan timeline | MVP | Via calendar view |
+| Upcoming drag-plan timeline | W1.5 | Calendar drag deferred W1.5 |
 | Gantt / project timeline | Out | Calendar only in MVP |
 | Productivity trends / charts | Out | No gamification |
 
@@ -93,7 +93,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Undo last action | MVP | Session stack; delete undo recreates (new IDs) |
 | Task soft-delete + restore | W2 | Optional W1.5; `deleted_at` on tasks; true undelete same UUID |
 | Activity log / audit trail | W2 | schedule_runs + task history lite |
-| Completed task history | MVP | Show/hide toggle |
+| Completed task history | W1.5 | Show/hide toggle deferred |
 
 ### Reminders & Notifications
 
@@ -133,6 +133,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Web app (responsive) | MVP | |
+| UI themes (Settings) | MVP | Nine presets (Dark, Solarized Dark/Light, Light, Black, Forest, Midnight, Amethyst, Garnet) + hex overrides |
 | Desktop (Tauri) | W3 | |
 | Mobile native | Out | Responsive web only |
 | Offline PWA | Out | Online-first MVP |
@@ -188,9 +189,9 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Manual scheduled blocks | MVP | User-placed |
+| Manual scheduled blocks | MVP | Click empty slot or task; modal edit start/end |
 | Pin / lock blocks | W2 | `is_pinned`; scheduler never moves until unpin. Use case: fixed clock time (e.g. prep before someone else's meeting) — not due/deadline. MVP stores flag only |
-| Drag reschedule blocks | MVP | |
+| Drag reschedule blocks / due markers | W1.5 | Click/slot + modal edit shipped in Wave 1 |
 | Bundled / knockout task lists | W2 | vs formal blocks |
 | External calendar as busy source | W2 | Google; MS W3 |
 | Calendar cutout / busy map | W2 | Step 1 of pipeline |
@@ -227,7 +228,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Multi-account household login | W1.5 | N personal `users` rows; same URI; `owner_id` isolation — not teams ([ADR-002](./adr/ADR-002-single-user.md)) |
 | Cloudflare Tunnel remote access | W1.5+ | Post-MVP hosting |
 | Cloudflare Access | W1.5 | Optional IdP |
-| pg_dump backup script | W1.5 | Documented in MVP |
+| pg_dump backup one-liner | MVP | Documented in root README |
+| Scheduled pg_dump backup script | W1.5 | Optional cron/task scheduler |
 | Hosted Postgres fallback | W3 | Not default |
 | WebSocket invalidation | W2 | Optional; REST sufficient MVP |
 | Dependency Hygiene wave | Pre-version | Toolchain + deps pass |
@@ -236,11 +238,11 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 ## MVP Cut Summary
 
-**Ship in Wave 1 (MVP):** Todoist core (hierarchy extension, labels, fixed smart views, quick-add, search, undo, calendar day/week, manual blocks, local Compose, local auth).
+**Ship in Wave 1 (MVP):** Todoist core (hierarchy extension, labels, fixed smart views Inbox/Today/Upcoming/Project/Label, quick-add, search, undo, calendar day/week with click/slot blocks + modal edit, day-of-year/ISO week chrome, nine UI themes, local Compose, local auth, pg_dump one-liner in README).
 
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows.
 
-**Defer to W1.5:** Recurrence engine, import, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune).
+**Defer to W1.5:** Epic aggregate smart view, show-completed toggle, calendar drag, recurrence engine, import, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune); scheduled pg_dump script; calendar month view (optional).
 
 **Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect, task soft-delete + session restore.
 

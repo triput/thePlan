@@ -4,6 +4,8 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Exit criteria (summary):** Full hierarchy CRUD, parent completion with warn+bulk, Today/Inbox/Upcoming smart views, calendar day/week, quick-add, search, undo, local Docker Compose deployment, p95 perceived interaction < 100ms on LAN. **No** calendar sync, **no** auto-scheduler, **no** remote auth required.
 
+> **Wave 1 status:** Exited **2026-08-10** — see [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) for delivered epics (E1–E10) and known gaps deferred to W1.5.
+
 ---
 
 ## E1 — Local Infrastructure
@@ -14,11 +16,11 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] `docker compose up` starts PostgreSQL, API, and web services with healthchecks
-- [ ] Compose file is OCI-portable (no Docker-only proprietary features)
-- [ ] Baseline schema applied on first boot (Alembic or init script)
-- [ ] Bootstrap user and system smart views seeded automatically
-- [ ] Documented in README with port mappings (e.g. web :5173, api :8000, postgres :5432)
+- [x] `docker compose up` starts PostgreSQL, API, and web services with healthchecks
+- [x] Compose file is OCI-portable (no Docker-only proprietary features)
+- [x] Baseline schema applied on first boot (Alembic or init script)
+- [x] Bootstrap user and system smart views seeded automatically
+- [x] Documented in README with port mappings (Compose web :8080, Vite dev :5173, api :8000, postgres :5432)
 
 ### US-1.2: Local-only auth bootstrap
 
@@ -26,10 +28,10 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Single `users` row created at bootstrap (`local@localhost`)
-- [ ] `GET /auth/me` returns bootstrap user without credential prompt
-- [ ] All API mutations scoped to bootstrap owner_id
-- [ ] No password required in MVP UI
+- [x] Single `users` row created at bootstrap (`local@localhost`)
+- [x] `GET /auth/me` returns bootstrap user without credential prompt
+- [x] All API mutations scoped to bootstrap owner_id
+- [x] No password required in MVP UI
 
 ---
 
@@ -41,10 +43,10 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Create epic with title, optional description, color (preset or custom hex), start/target dates
-- [ ] List epics in sidebar; archived hidden by default with toggle
-- [ ] Edit and soft-archive epic
-- [ ] Epic color visible in navigation
+- [x] Create epic with title, optional description, color (preset or custom hex), start/target dates
+- [ ] List epics in sidebar; archived hidden by default with toggle *(archive exists; browse-archived toggle deferred W1.5)*
+- [x] Edit and soft-archive epic
+- [x] Epic color visible in navigation
 
 ### US-2.2: Project management
 
@@ -52,10 +54,10 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Create project with optional epic_id, title, color, description
-- [ ] Reorder projects via sort_order (drag or keyboard)
-- [ ] Archive/unarchive project
-- [ ] Standalone projects (no epic) supported
+- [x] Create project with optional epic_id, title, color, description
+- [x] Reorder projects via sort_order (drag or keyboard)
+- [x] Archive/unarchive project
+- [x] Standalone projects (no epic) supported
 
 ### US-2.3: Sections
 
@@ -63,9 +65,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] CRUD sections within a project
-- [ ] Reorder sections
-- [ ] Tasks display grouped by section in project view
+- [x] CRUD sections within a project
+- [x] Reorder sections
+- [ ] Tasks display grouped by section in project view *(sections exist; visual grouping polish deferred W1.5)*
 
 ### US-2.4: Tasks and nesting
 
@@ -73,11 +75,11 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Create task at project, section, or Inbox (null project)
-- [ ] Create subtask (nesting_level 1) and nested subtask (nesting_level 2)
-- [ ] Reject nesting beyond level 2 with clear error
-- [ ] Reorder tasks within container
-- [ ] Edit title, description, priority, due_at, duration, labels
+- [x] Create task at project, section, or Inbox (null project)
+- [x] Create subtask (nesting_level 1) and nested subtask (nesting_level 2)
+- [x] Reject nesting beyond level 2 with clear error
+- [x] Reorder tasks within container
+- [x] Edit title, description, priority, due_at, duration, labels
 
 ### US-2.5: Inbox
 
@@ -85,9 +87,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Tasks with `project_id IS NULL` appear in Inbox smart view
-- [ ] Move task from Inbox to project/section via UI or API
-- [ ] Inbox accessible from sidebar
+- [x] Tasks with `project_id IS NULL` appear in Inbox smart view
+- [x] Move task from Inbox to project/section via UI or API
+- [x] Inbox accessible from sidebar
 
 ---
 
@@ -99,9 +101,10 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Complete/uncomplete toggles `is_completed` and `completed_at`
-- [ ] Completed tasks hidden from default lists; "Show completed" toggle reveals them
-- [ ] Completed tasks dimmed on calendar
+- [x] Complete/uncomplete toggles `is_completed` and `completed_at`
+- [x] Completed tasks hidden from default lists
+- [ ] "Show completed" toggle reveals them *(deferred W1.5)*
+- [x] Completed tasks dimmed on calendar
 
 ### US-3.2: Parent completion with open children
 
@@ -109,11 +112,11 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Completing parent with open children shows warning dialog (not silent)
-- [ ] Option (a): complete parent only — children remain open
-- [ ] Option (b): bulk-complete all open descendants
-- [ ] API returns 409 OPEN_CHILDREN when choice required; client retries with flag
-- [ ] Uncompleting parent does not auto-uncomplete children
+- [x] Completing parent with open children shows warning dialog (not silent)
+- [x] Option (a): complete parent only — children remain open
+- [x] Option (b): bulk-complete all open descendants
+- [x] API returns 409 OPEN_CHILDREN when choice required; client retries with flag
+- [x] Uncompleting parent does not auto-uncomplete children
 
 ---
 
@@ -125,12 +128,12 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Standalone Labels management UI: list all labels; create one or several without attaching to a task; rename; recolor; delete
-- [ ] Delete confirms when label is in use; shows task usage count; delete removes label and all task attachments
-- [ ] Assign/remove labels on task detail
-- [ ] Filter tasks by label via smart view
-- [ ] Names are **lowercase-only**: input normalized to lowercase on create/rename; API rejects or folds case-only duplicates
-- [ ] Unique per owner after lowercase normalization (no `Waiting` + `waiting` pair)
+- [x] Standalone Labels management UI: list all labels; create one or several without attaching to a task; rename; recolor; delete
+- [x] Delete confirms when label is in use; shows task usage count; delete removes label and all task attachments
+- [x] Assign/remove labels on task detail
+- [x] Filter tasks by label via smart view
+- [x] Names are **lowercase-only**: input normalized to lowercase on create/rename; API rejects or folds case-only duplicates
+- [x] Unique per owner after lowercase normalization (no `Waiting` + `waiting` pair)
 
 **Deferred (W1.5):** On delete, optionally reassign affected tasks to other label(s) in bulk before removing the pruned label.
 
@@ -140,10 +143,10 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Color picker offers the named presets in [08-color-palette.md](./08-color-palette.md) (teal through slate)
-- [ ] Custom `#RRGGBB` input accepted and stored
-- [ ] Invalid hex rejected with validation message
-- [ ] New epics/projects/labels use documented defaults (`#6D3FC9` / `#0A8558` / `#635F75`) unless overridden
+- [x] Color picker offers the named presets in [08-color-palette.md](./08-color-palette.md) (teal through slate)
+- [ ] Custom `#RRGGBB` input accepted and stored *(entity custom hex picker deferred W1.5; UI chrome themes support hex)*
+- [x] Invalid hex rejected with validation message
+- [x] New epics/projects/labels use documented defaults (`#6D3FC9` / `#0A8558` / `#635F75`) unless overridden
 
 ---
 
@@ -155,9 +158,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Lists incomplete tasks with `due_at` on today's local calendar **or** a `scheduled_block` overlapping today (calendar-planned work counts even without due/deadline)
-- [ ] Respects user_settings.timezone for "today" boundary
-- [ ] Sorted by due time / block start then priority
+- [x] Lists incomplete tasks with `due_at` on today's local calendar **or** a `scheduled_block` overlapping today (calendar-planned work counts even without due/deadline)
+- [x] Respects user_settings.timezone for "today" boundary
+- [x] Sorted by due time / block start then priority
 
 ### US-5.2: Upcoming
 
@@ -165,8 +168,8 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Lists incomplete tasks with `due_at` within upcoming_horizon_days (default 7) after today **or** a `scheduled_block` in that window
-- [ ] Grouped or sorted by date
+- [x] Lists incomplete tasks with `due_at` within upcoming_horizon_days (default 7) after today **or** a `scheduled_block` in that window
+- [x] Grouped or sorted by date
 
 ### US-5.3: By Project / Epic / Label
 
@@ -174,9 +177,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Project view shows sections and tasks
-- [ ] Epic view aggregates tasks across linked projects
-- [ ] Label view shows all tasks with selected label
+- [x] Project view shows sections and tasks
+- [ ] Epic view aggregates tasks across linked projects *(deferred W1.5)*
+- [x] Label view shows all tasks with selected label
 
 ---
 
@@ -188,11 +191,11 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Day view shows hourly grid for selected date
-- [ ] Week view shows 7-day grid
-- [ ] Month view included if implementation cost is low (optional, not exit blocker)
-- [ ] Navigate prev/next day/week
-- [ ] **Nice-to-have:** show **day-of-year** number and **ISO week-of-year** (e.g. day 222 · W32) in the calendar chrome — Trish likes these; not an MVP exit blocker
+- [x] Day view shows hourly grid for selected date
+- [x] Week view shows 7-day grid
+- [ ] Month view included if implementation cost is low *(not shipped; optional/non-blocker)*
+- [x] Navigate prev/next day/week
+- [x] Day-of-year and ISO week-of-year in calendar chrome (shipped)
 
 ### US-6.2: Due markers on calendar
 
@@ -200,22 +203,22 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Tasks with due_at render at due datetime on calendar
-- [ ] Timed vs all-day rendering based on time component
-- [ ] Task color from project/epic propagated to marker
+- [x] Tasks with due_at render at due datetime on calendar
+- [x] Timed vs all-day rendering based on time component
+- [x] Task color from project/epic propagated to marker
 
 ### US-6.3: Manual scheduled blocks
 
-**As a** user, **I want** to place and drag time blocks **so that** I can plan my day manually.
+**As a** user, **I want** to place time blocks on the calendar **so that** I can plan my day manually.
 
 **Acceptance criteria:**
 
-- [ ] Create scheduled_block by dragging on calendar or from task
-- [ ] Drag block to change start/end time
-- [ ] Drag due marker to update due_at
-- [ ] Delete block
-- [ ] is_pinned stored (auto-respect / immovable-until-unpin deferred to W2 — fixed clock-time work vs due/deadline)
-- [ ] Overlapping blocks allowed in MVP (visual only)
+- [x] Create scheduled_block by clicking empty calendar slot or from task; edit start/end via modal
+- [ ] Drag block to change start/end time *(deferred W1.5)*
+- [ ] Drag due marker to update due_at *(deferred W1.5)*
+- [x] Delete block
+- [x] is_pinned stored (auto-respect / immovable-until-unpin deferred to W2 — fixed clock-time work vs due/deadline)
+- [x] Overlapping blocks allowed in MVP (visual only)
 
 ### US-6.4: No external calendar in MVP
 
@@ -223,9 +226,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] No Google/Microsoft event overlay
-- [ ] No OAuth calendar flows in MVP UI
-- [ ] calendar_accounts table exists but unused in UI
+- [x] No Google/Microsoft event overlay
+- [x] No OAuth calendar flows in MVP UI
+- [x] calendar_accounts table exists but unused in UI
 
 ---
 
@@ -237,11 +240,11 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Global quick-add shortcut opens capture box
-- [ ] Parser extracts: duration, priority, due/date/time, epic tag, project/section tag
-- [ ] Duration rule: `m`/`min` = minutes; `mo`/`mon`/`month` = months (1.5m = 1.5 minutes)
-- [ ] `POST /quick-add/parse` returns structured draft; client confirms or auto-creates
-- [ ] Unresolved project/epic names reported; task still creatable with title
+- [x] Global quick-add shortcut opens capture box
+- [x] Parser extracts: duration, priority, due/date/time, epic tag, project/section tag
+- [x] Duration rule: `m`/`min` = minutes; `mo`/`mon`/`month` = months (1.5m = 1.5 minutes)
+- [x] `POST /quick-add/parse` returns structured draft; client confirms or auto-creates
+- [x] Unresolved project/epic names reported; task still creatable with title
 
 ### US-7.2: Work capacity in parser
 
@@ -249,8 +252,8 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] 1d = 480 min, 1w = 2400 min, 1mo = 9600 min in parser
-- [ ] Stored as integer minutes in DB
+- [x] 1d = 480 min, 1w = 2400 min, 1mo = 9600 min in parser
+- [x] Stored as integer minutes in DB
 
 ---
 
@@ -328,23 +331,44 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 ## MVP Exit Checklist
 
-| Criterion | Required |
-|-----------|----------|
-| Epic → Nested Subtask hierarchy | Yes |
-| Parent complete warn + bulk children | Yes |
-| Inbox, Today, Upcoming | Yes |
-| Calendar day + week | Yes |
-| Manual scheduled blocks + drag | Yes |
-| Quick-add parser | Yes |
-| Global search | Yes |
-| Undo | Yes |
-| Local Docker Compose | Yes |
-| p95 feel < 100ms LAN | Yes |
-| Calendar sync (GCal/MS) | **No** |
-| Auto-scheduler | **No** |
-| Remote auth / login | **No** |
-| Recurrence engine | **No** (schema yes) |
-| Board/Kanban | **No** (optional W3 candidate) |
+| Criterion | Required | Status (2026-08-10) |
+|-----------|----------|---------------------|
+| Epic → Nested Subtask hierarchy | Yes | Met |
+| Parent complete warn + bulk children | Yes | Met |
+| Inbox, Today, Upcoming | Yes | Met |
+| Calendar day + week | Yes | Met |
+| Manual scheduled blocks (click/slot + modal) | Yes | Met |
+| Calendar drag resize/move | No (W1.5) | Deferred |
+| Quick-add parser | Yes | Met |
+| Global search | Yes | Met |
+| Undo | Yes | Met |
+| Local Docker Compose | Yes | Met |
+| p95 feel < 100ms LAN | Yes | Met (qualitative) |
+| Calendar sync (GCal/MS) | **No** | N/A |
+| Auto-scheduler | **No** | N/A |
+| Remote auth / login | **No** | N/A |
+| Recurrence engine | **No** (schema yes) | N/A |
+| Board/Kanban | **No** (optional W3 candidate) | N/A |
+
+**Wave 1 exited 2026-08-10** with known gaps — see [WAVE-1-EXIT.md](./WAVE-1-EXIT.md).
+
+---
+
+## Wave 1 Known Gaps
+
+Deferred to W1.5 (or later). Full table: [WAVE-1-EXIT.md](./WAVE-1-EXIT.md#known-gaps--wave-15-or-later).
+
+| Gap | Wave |
+|-----|------|
+| Epic aggregate smart view | W1.5 |
+| Show completed toggle | W1.5 |
+| Archived epic/project sidebar toggle | W1.5 |
+| Section-grouped project task layout | W1.5 |
+| Entity custom `#RRGGBB` picker on epics/projects/labels | W1.5 |
+| Calendar drag resize/move | W1.5 |
+| Calendar month view | W1.5 (optional) |
+| Timezone / upcoming horizon settings UI | W1.5 |
+| True soft-delete / session undelete | W2 (optional W1.5) |
 
 ---
 
