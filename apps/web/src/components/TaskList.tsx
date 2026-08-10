@@ -1,0 +1,289 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  ApiError,
+  completeTask,
+  createTask,
+  fetchSections,
+  fetchTasks,
+  uncompleteTask,
+  type Task,
+} from "../api";
+import { PRIORITY_COLORS } from "../colors";
+import {
+  formatDue,
+  formatDuration,
+  isToday,
+  isUpcoming,
+  viewKey,
+  type ViewSelection,
+} from "../view";
+import { CompleteDialog } from "./CompleteDialog";
+import { CreateSectionForm } from "./CreateSectionForm";
+
+interface TaskListProps {
+  view: ViewSelection;
+  projectTitle?: string;
+}
+
+interface PendingComplete {
+  taskId: string;
+  taskTitle: string;
+  openCount: number;
+}
+
+export function TaskList({ view, projectTitle }: TaskListProps) {
+  const queryClient = useQueryClient();
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [subtaskParentId, setSubtaskParentId] = useState<string | null>(null);
+  const [subtaskTitle, setSubtaskTitle] = useState("");
+  const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
+
+  const tasksQuery = useQuery({
+    queryKey: ["tasks", viewKey(view)],
+    queryFn: async () => {
+      if (view.type === "inbox") {
+        return fetchTasks({ inbox: true, limit: 200 });
+      }
+      if (view.type === "project") {
+        return fetchTasks({ project_id: view.projectId, limit: 200 });
+      }
+      return fetchTasks({ limit: 200, is_completed: false });
+    },
+  });
+
+  const sectionsQuery = useQuery({
+    queryKey: ["sections", view.type === "project" ? view.projectId : null],
+    queryFn: () => fetchSections(view.type === "project" ? view.projectId : ""),
+    enabled: view.type === "project",
+  });
+
+  const tasks = useMemo(() => {
+    const items = tasksQuery.data?.items ?? [];
+    if (view.type === "today") {
+      return items.filter((t) => isToday(t.due_at));
+    }
+    if (view.type === "upcoming") {
+      return items.filter((t) => isUpcoming(t.due_at));
+    }
+    return items;
+  }, [tasksQuery.data, view.type]);
+
+  const invalidateTasks = () => {
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
+  };
+
+  const createMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: invalidateTasks,
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: ({
+      taskId,
+      body,
+    }: {
+      taskId: string;
+      body?: { bulk_children?: boolean; force_parent_only?: boolean };
+    }) => completeTask(taskId, body ?? {}),
+    onMutate: async ({ taskId }) => {
+      const key = ["tasks", viewKey(view)];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
+      if (previous) {
+        queryClient.setQueryData(key, {
+          ...previous,
+          items: previous.items.map((t) =>
+            t.id === taskId ? { ...t, is_completed: true } : t,
+          ),
+        });
+      }
+      return { previous, key };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.key, context.previous);
+      }
+    },
+    onSettled: invalidateTasks,
+  });
+
+  const uncompleteMutation = useMutation({
+    mutationFn: uncompleteTask,
+    onSuccess: invalidateTasks,
+  });
+
+  const handleToggleComplete = async (task: Task) => {
+    if (task.is_completed) {
+      uncompleteMutation.mutate(task.id);
+      return;
+    }
+    try {
+      await completeMutation.mutateAsync({ taskId: task.id });
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "OPEN_CHILDREN") {
+        setPendingComplete({
+          taskId: task.id,
+          taskTitle: task.title,
+          openCount: err.openCount ?? task.open_subtask_count,
+        });
+      }
+    }
+  };
+
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newTaskTitle.trim();
+    if (!trimmed) return;
+    createMutation.mutate({
+      title: trimmed,
+      project_id: view.type === "project" ? view.projectId : null,
+    });
+    setNewTaskTitle("");
+  };
+
+  const handleAddSubtask = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = subtaskTitle.trim();
+    if (!trimmed || !subtaskParentId) return;
+    const parent = tasks.find((t) => t.id === subtaskParentId);
+    createMutation.mutate({
+      title: trimmed,
+      parent_task_id: subtaskParentId,
+      project_id: parent?.project_id ?? (view.type === "project" ? view.projectId : null),
+      section_id: parent?.section_id ?? null,
+    });
+    setSubtaskTitle("");
+    setSubtaskParentId(null);
+  };
+
+  const heading =
+    view.type === "project" ? (projectTitle ?? "Project") : view.type === "inbox" ? "Inbox" : view.type === "today" ? "Today" : "Upcoming";
+
+  return (
+    <div className="task-list-pane">
+      <header className="pane-header">
+        <h1>{heading}</h1>
+        {view.type === "project" && <CreateSectionForm projectId={view.projectId} />}
+      </header>
+
+      {sectionsQuery.data && sectionsQuery.data.items.length > 0 && (
+        <div className="sections-bar">
+          {sectionsQuery.data.items.map((s) => (
+            <span key={s.id} className="section-tag">
+              {s.title}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {tasksQuery.isLoading && <p className="muted">Loading tasks…</p>}
+      {tasksQuery.isError && (
+        <p className="form-error">Failed to load tasks: {(tasksQuery.error as Error).message}</p>
+      )}
+
+      <ul className="task-list" aria-label={`Tasks in ${heading}`}>
+        {tasks.length === 0 && !tasksQuery.isLoading && (
+          <li className="empty-state">No tasks here yet.</li>
+        )}
+        {tasks.map((task) => (
+          <li
+            key={task.id}
+            className={`task-row${task.is_completed ? " completed" : ""}`}
+            style={{ paddingLeft: `${12 + task.nesting_level * 20}px` }}
+          >
+            <input
+              type="checkbox"
+              className="task-check"
+              checked={task.is_completed}
+              onChange={() => handleToggleComplete(task)}
+              aria-label={`Mark "${task.title}" complete`}
+            />
+            <span className={`task-title${task.is_completed ? " done" : ""}`}>{task.title}</span>
+            {task.priority !== "p4" && (
+              <span
+                className="priority-badge"
+                style={{ color: PRIORITY_COLORS[task.priority] }}
+              >
+                {task.priority.toUpperCase()}
+              </span>
+            )}
+            {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
+            {task.estimated_duration_minutes > 0 && (
+              <span className="duration-badge">{formatDuration(task.estimated_duration_minutes)}</span>
+            )}
+            {!task.is_completed && (
+              <button
+                type="button"
+                className="icon-btn subtask-btn"
+                title="Add subtask"
+                onClick={() => {
+                  setSubtaskParentId(task.id);
+                  setSubtaskTitle("");
+                }}
+              >
+                +
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {subtaskParentId && (
+        <form className="inline-form subtask-form" onSubmit={handleAddSubtask}>
+          <input
+            type="text"
+            value={subtaskTitle}
+            onChange={(e) => setSubtaskTitle(e.target.value)}
+            placeholder="Subtask title"
+            autoFocus
+          />
+          <button type="submit" className="btn primary small" disabled={createMutation.isPending}>
+            Add subtask
+          </button>
+          <button
+            type="button"
+            className="btn secondary small"
+            onClick={() => setSubtaskParentId(null)}
+          >
+            Cancel
+          </button>
+        </form>
+      )}
+
+      <form className="inline-form add-task-form" onSubmit={handleAddTask}>
+        <input
+          type="text"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="Add a task…"
+        />
+        <button type="submit" className="btn primary small" disabled={createMutation.isPending}>
+          Add
+        </button>
+      </form>
+
+      <CompleteDialog
+        open={pendingComplete !== null}
+        taskTitle={pendingComplete?.taskTitle ?? ""}
+        openCount={pendingComplete?.openCount ?? 0}
+        pending={completeMutation.isPending}
+        onClose={() => setPendingComplete(null)}
+        onParentOnly={() => {
+          if (!pendingComplete) return;
+          completeMutation.mutate(
+            { taskId: pendingComplete.taskId, body: { force_parent_only: true } },
+            { onSuccess: () => setPendingComplete(null) },
+          );
+        }}
+        onBulkChildren={() => {
+          if (!pendingComplete) return;
+          completeMutation.mutate(
+            { taskId: pendingComplete.taskId, body: { bulk_children: true } },
+            { onSuccess: () => setPendingComplete(null) },
+          );
+        }}
+      />
+    </div>
+  );
+}

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Label, User
-from app.schemas import LabelCreate, LabelOut, PaginatedResponse
+from app.schemas import LabelCreate, LabelOut, LabelUpdate, PaginatedResponse
 
 router = APIRouter(prefix="/labels", tags=["labels"])
 
@@ -16,6 +16,13 @@ def normalize_label_name(name: str) -> str:
     if not normalized:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Label name cannot be empty")
     return normalized
+
+
+def _get_owned_label(db: Session, label_id: UUID, user: User) -> Label:
+    label = db.get(Label, label_id)
+    if label is None or label.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Label not found")
+    return label
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -48,7 +55,6 @@ def create_label(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Label '{name}' already exists",
-            headers={"X-Error-Code": "DUPLICATE_LABEL"},
         )
     label = Label(owner_id=user.id, name=name, color_hex=body.color_hex)
     db.add(label)
@@ -63,7 +69,45 @@ def get_label(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> LabelOut:
-    label = db.get(Label, label_id)
-    if label is None or label.owner_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Label not found")
+    label = _get_owned_label(db, label_id, user)
     return LabelOut.model_validate(label)
+
+
+@router.patch("/{label_id}", response_model=LabelOut)
+def update_label(
+    label_id: UUID,
+    body: LabelUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> LabelOut:
+    label = _get_owned_label(db, label_id, user)
+    updates = body.model_dump(exclude_unset=True)
+    if "name" in updates and updates["name"] is not None:
+        name = normalize_label_name(updates["name"])
+        existing = (
+            db.query(Label)
+            .filter(Label.owner_id == user.id, Label.name == name, Label.id != label.id)
+            .first()
+        )
+        if existing is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Label '{name}' already exists",
+            )
+        updates["name"] = name
+    for field, value in updates.items():
+        setattr(label, field, value)
+    db.commit()
+    db.refresh(label)
+    return LabelOut.model_validate(label)
+
+
+@router.delete("/{label_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_label(
+    label_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    label = _get_owned_label(db, label_id, user)
+    db.delete(label)
+    db.commit()

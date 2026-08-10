@@ -1,70 +1,56 @@
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchEpics, fetchHealth, fetchMe, fetchTasks } from "./api";
+import { fetchMe, fetchProjects } from "./api";
+import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
+import { Sidebar } from "./components/Sidebar";
+import { TaskList } from "./components/TaskList";
+import type { ViewSelection } from "./view";
 import "./App.css";
 
 function App() {
-  const health = useQuery({ queryKey: ["health"], queryFn: fetchHealth });
+  const [view, setView] = useState<ViewSelection>({ type: "inbox" });
+  const quickAddRef = useRef<QuickAddHandle>(null);
+
   const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
-  const epics = useQuery({ queryKey: ["epics"], queryFn: fetchEpics });
-  const tasks = useQuery({ queryKey: ["tasks"], queryFn: fetchTasks });
+  const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const projects = projectsQuery.data?.items ?? [];
+
+  const projectTitle =
+    view.type === "project"
+      ? projects.find((p) => p.id === view.projectId)?.title
+      : undefined;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "q" && e.key !== "Q") return;
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      quickAddRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>thePlan</h1>
-        <p className="subtitle">Wave 0 scaffold — task + schedule app</p>
-      </header>
-
-      <section className="panel">
-        <h2>API status</h2>
-        {health.isLoading && <p>Checking health…</p>}
-        {health.isError && <p className="error">API unreachable: {(health.error as Error).message}</p>}
-        {health.isSuccess && (
-          <p>
-            Health: <code>{health.data.status}</code>
-          </p>
-        )}
-        {me.isSuccess && (
-          <p>
-            Signed in as <strong>{me.data.display_name ?? me.data.email}</strong> ({me.data.email})
-          </p>
-        )}
-      </section>
-
-      <div className="columns">
-        <section className="panel">
-          <h2>Epics</h2>
-          {epics.isLoading && <p>Loading…</p>}
-          {epics.isError && <p className="error">Failed to load epics</p>}
-          {epics.isSuccess && epics.data.items.length === 0 && <p className="muted">No epics yet.</p>}
-          {epics.isSuccess && (
-            <ul>
-              {epics.data.items.map((epic) => (
-                <li key={epic.id}>
-                  <span className="swatch" style={{ backgroundColor: epic.color_hex }} />
-                  {epic.title}
-                </li>
-              ))}
-            </ul>
+    <div className="shell">
+      <Sidebar view={view} onSelectView={setView} />
+      <div className="main">
+        <header className="top-bar">
+          <QuickAdd ref={quickAddRef} view={view} projects={projects} />
+          {me.isSuccess && (
+            <span className="user-chip">{me.data.display_name ?? me.data.email}</span>
           )}
-        </section>
-
-        <section className="panel">
-          <h2>Tasks</h2>
-          {tasks.isLoading && <p>Loading…</p>}
-          {tasks.isError && <p className="error">Failed to load tasks</p>}
-          {tasks.isSuccess && tasks.data.items.length === 0 && <p className="muted">No tasks yet — CRUD stubs ready.</p>}
-          {tasks.isSuccess && (
-            <ul>
-              {tasks.data.items.map((task) => (
-                <li key={task.id}>
-                  {task.title}
-                  <span className="badge">{task.priority}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        </header>
+        <main className="main-content">
+          <TaskList view={view} projectTitle={projectTitle} />
+        </main>
       </div>
     </div>
   );
