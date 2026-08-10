@@ -149,7 +149,7 @@ export function dayViewTitle(d: Date): string {
   const year = d.getFullYear();
   const doy = getDayOfYear(d);
   const week = getISOWeek(d);
-  return `${formatDayHeader(d)} · Year ${year}: Day ${doy}  •  Week ${week}`;
+  return `${formatDayHeader(d)}  •  Year ${year}: Day ${doy}  •  Week ${week}`;
 }
 
 export function weekViewTitle(anchor: Date): string {
@@ -160,5 +160,5 @@ export function weekViewTitle(anchor: Date): string {
   const week = getISOWeek(first);
   const doyStart = getDayOfYear(first);
   const doyEnd = getDayOfYear(last);
-  return `Year ${year}: Week ${week} · ${formatShortDate(first)}–${formatShortDate(last)}  •  Days ${doyStart}–${doyEnd}`;
+  return `Year ${year}: Week ${week}  •  ${formatShortDate(first)}–${formatShortDate(last)}  •  Days ${doyStart}–${doyEnd}`;
 }
