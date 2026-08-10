@@ -53,5 +53,24 @@ services:
       timeout: 3s
       retries: 3
 
+  # Optional DB UI: docker compose --profile tools up -d pgadmin
+  pgadmin:
+    image: dpage/pgadmin4:8
+    profiles: ["tools"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: trish@localhost
+      PGADMIN_DEFAULT_PASSWORD: theplan
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  pgadmin_data:

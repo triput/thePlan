@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "thePlan",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "theplan",
+      "Username": "theplan",
+      "SSLMode": "prefer",
+      "Favorite": true
+    }
+  }
+}

@@ -27,8 +27,17 @@ docker compose -f infra/compose/compose.yaml up --build
 | API | http://localhost:8000 |
 | API docs | http://localhost:8000/docs |
 | Postgres | `localhost:5432` (user/db/password: `theplan`) |
+| pgAdmin (optional) | http://localhost:5050 — `trish@localhost` / `theplan` |
 
-Stop: `docker compose -f infra/compose/compose.yaml down`
+pgAdmin is behind Compose profile `tools` (not started by default):
+
+```powershell
+docker compose -f infra/compose/compose.yaml --profile tools up -d pgadmin
+```
+
+Preloaded server **thePlan** → host `postgres`, DB password `theplan`.
+
+Stop: `docker compose -f infra/compose/compose.yaml --profile tools down`
 
 ### Backup one-liner
 
