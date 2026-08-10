@@ -138,18 +138,27 @@ export function slotFromClick(
   return { start, end };
 }
 
+export function getISOWeekYear(d: Date): number {
+  const date = startOfDay(d);
+  // Thursday of this ISO week determines the ISO year
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+  return date.getFullYear();
+}
+
 export function dayViewTitle(d: Date): string {
+  const year = d.getFullYear();
   const doy = getDayOfYear(d);
   const week = getISOWeek(d);
-  return `${formatDayHeader(d)} · day ${doy} · W${week}`;
+  return `${formatDayHeader(d)} · Year ${year}: Day ${doy} • Week ${week}`;
 }
 
 export function weekViewTitle(anchor: Date): string {
   const days = weekDays(anchor);
   const first = days[0];
   const last = days[6];
+  const year = getISOWeekYear(first);
   const week = getISOWeek(first);
   const doyStart = getDayOfYear(first);
   const doyEnd = getDayOfYear(last);
-  return `W${week} · ${formatShortDate(first)}–${formatShortDate(last)} · days ${doyStart}–${doyEnd}`;
+  return `Year ${year}: Week ${week} · ${formatShortDate(first)}–${formatShortDate(last)} · Days ${doyStart}–${doyEnd}`;
 }
