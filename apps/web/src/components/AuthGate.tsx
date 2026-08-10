@@ -16,7 +16,8 @@ interface AuthGateProps {
 export function AuthGate({ children }: AuthGateProps) {
   const authQuery = useAuthQuery();
 
-  if (authQuery.isLoading) {
+  // Prefer cached auth state over a loading flash (e.g. after sign-out).
+  if (authQuery.isPending && !authQuery.data) {
     return (
       <div className="auth-screen">
         <div className="auth-card">

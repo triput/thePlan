@@ -28,7 +28,7 @@ def set_session_user(request: Request, user_id: uuid.UUID) -> None:
 
 
 def clear_session_user(request: Request) -> None:
-    request.session.pop(SESSION_USER_ID_KEY, None)
+    request.session.clear()
 
 
 def get_current_user_optional(

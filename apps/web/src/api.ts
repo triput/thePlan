@@ -280,6 +280,9 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   });
+  if (init?.signal?.aborted) {
+    throw new DOMException("The operation was aborted.", "AbortError");
+  }
   if (!response.ok) {
     throw await parseError(response);
   }
@@ -311,8 +314,8 @@ export function fetchHealth() {
   return apiFetch<{ status: string }>("/health");
 }
 
-export function fetchMe() {
-  return apiFetch<User>("/api/v1/auth/me");
+export function fetchMe(signal?: AbortSignal) {
+  return apiFetch<User>("/api/v1/auth/me", signal ? { signal } : undefined);
 }
 
 export function register(body: AuthRegisterBody) {

@@ -22,11 +22,12 @@ export type AuthState =
   | { status: "setup_required" }
   | { status: "unauthenticated" };
 
-export async function fetchAuthState(): Promise<AuthState> {
+export async function fetchAuthState(signal?: AbortSignal): Promise<AuthState> {
   try {
-    const user = await fetchMe();
+    const user = await fetchMe(signal);
     return { status: "authenticated", user };
   } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
     if (err instanceof ApiError && err.status === 401) {
       if (err.code === "SETUP_REQUIRED") return { status: "setup_required" };
       return { status: "unauthenticated" };
@@ -90,10 +91,18 @@ export function AuthProvider({ user, children }: AuthProviderProps) {
   );
 
   const logout = useCallback(async () => {
-    await logoutApi();
-    queryClient.clear();
+    // Cancel first so an in-flight /auth/me cannot overwrite signed-out state.
+    await queryClient.cancelQueries({ queryKey: ["auth", "me"] });
     const state: AuthState = { status: "unauthenticated" };
     queryClient.setQueryData(["auth", "me"], state);
+    queryClient.removeQueries({
+      predicate: (query) => query.queryKey[0] !== "auth",
+    });
+    try {
+      await logoutApi();
+    } catch {
+      // Local session already cleared; cookie may linger until expiry.
+    }
   }, [queryClient]);
 
   const refreshAuth = useCallback(async () => {
@@ -112,8 +121,9 @@ export function AuthProvider({ user, children }: AuthProviderProps) {
 export function useAuthQuery() {
   return useQuery({
     queryKey: ["auth", "me"],
-    queryFn: fetchAuthState,
+    queryFn: ({ signal }) => fetchAuthState(signal),
     retry: false,
     staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 }
