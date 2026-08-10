@@ -63,12 +63,14 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Backup script | Scheduled pg_dump optional |
 | Cloudflare Tunnel | Template for remote access to home host |
 | Label delete reassign/migrate | On prune: optionally bulk-apply other label(s) to affected tasks before removing the deleted label |
+| Multi-account login (household) | Multiple `users` rows on one deployment; login selects account; domain queries filter `owner_id` — not teams/workspaces ([ADR-002](./adr/ADR-002-single-user.md) amendment) |
+| Task soft-delete + restore | **Optional if cheap during auth work** — else defer to W2; see [04-data-schema.md](./04-data-schema.md) |
 
 ### Auth Progression
 
 MVP: local bootstrap user, no login wall.
 
-W1.5: `password_hash` populated; login/logout endpoints; session cookies; optional Cloudflare Access in front of Tunnel.
+W1.5: `password_hash` populated; register/create-account + login/logout endpoints; session cookies; optional Cloudflare Access in front of Tunnel. **Multi-account single-tenant-of-one:** e.g. operator, spouse, housemate each get their own `users` row and isolated data at the same URI — no team workspaces, sharing, or assignees ([ADR-003](./adr/ADR-003-local-first-auth.md)).
 
 Schema already has `users` + `password_hash` from baseline — no migration required for basic password auth.
 
@@ -107,6 +109,7 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 | Saved filter query language | User-authored saved_filters; fixed views as special case |
 | WebSocket invalidation | Optional cache push |
 | Status tracker | Today's blocks done % + overbook count (utility, not gamification) |
+| Task soft-delete + session restore | Add nullable `deleted_at` on `tasks` (or `is_deleted`); optional same on `scheduled_blocks`; DELETE → soft; list queries filter `deleted_at IS NULL`; undo/restore clears flag and preserves UUID + children. Alternative: `deleted_tasks` staging table. Target **by end of W2** (may land W1.5 if cheap). MVP delete undo recreates via POST (new IDs) — not true undelete |
 
 ### GCal Conflict Policy
 
@@ -151,14 +154,17 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 
 ---
 
-## Explicit Non-Goals (All Waves)
+## Explicit Non-Goals (W1–W3)
 
-- Team workspaces, sharing, comments, assignees
+- Team workspaces, shared projects, comments, assignees
 - Karma, streaks, gamification
 - Flutter (rejected — Tauri + shared web UI)
 - Mobile native apps (responsive web until desktop)
 - Attachments
 - iCloud calendar (unless reopened)
+- Row-level task soft-delete / true session undelete (MVP ships hard delete + client recreate; **not** a permanent non-goal — target W2, optional W1.5)
+
+**Not excluded:** Multiple personal accounts on one deployment (household login) — each operator's data isolated by `owner_id`; see W1.5 auth progression. Lightweight task handoff between personal accounts is a **Post-W3 discussion item**, not W1–W3 scope.
 
 Board / Kanban is **not** a permanent non-goal — see Wave 3 optional candidate.
 
@@ -173,6 +179,7 @@ Not scheduled in W1–W3; park here for later reconsideration:
 | Zapier / IFTTT / automation hubs | External trigger/action connectors; likely needs stable public API + webhooks first |
 | Webhooks (inbound/outbound) | Enabler for hub integrations; may land with or just before Zapier-class work |
 | Notion / Obsidian link or light sync | Deep-link from tasks to notes, or optional bidirectional sync later. Possible late W3 if trivial; prefer post-W3 |
+| Task handoff between household accounts | **Discussion item only — no design now.** Optional future: send/assign a task copy or handoff between personal accounts on the same deployment. Not team workspaces or shared projects; revisit after W3 |
 
 ---
 

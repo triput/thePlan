@@ -11,6 +11,34 @@
       rel="stylesheet"
     />
     <title>thePlan</title>
+    <script>
+      (function () {
+        var themeKey = "theplan.theme";
+        var overrideKey = "theplan.theme.overrides";
+        var theme = localStorage.getItem(themeKey) || "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+        try {
+          var raw = localStorage.getItem(overrideKey);
+          if (!raw) return;
+          var overrides = JSON.parse(raw);
+          var map = {
+            bg: "--bg",
+            panel: "--panel",
+            text: "--text",
+            textMuted: "--text-muted",
+            accent: "--accent",
+          };
+          var style = document.documentElement.style;
+          for (var key in map) {
+            if (Object.prototype.hasOwnProperty.call(overrides, key) && overrides[key]) {
+              style.setProperty(map[key], overrides[key]);
+            }
+          }
+        } catch (_err) {
+          /* ignore invalid stored overrides */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

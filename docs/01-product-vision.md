@@ -34,7 +34,7 @@ Primary deployment is **Docker Compose + PostgreSQL** on local hardware. Remote 
 
 ## Target User
 
-One operator (personal productivity). No teams, workspaces, sharing, or role-based access control. Schema retains `owner_id` on domain tables for future hygiene (desktop multi-profile, optional accounts) without implementing multi-tenancy in MVP.
+One operator per session (personal productivity). **Household deployment:** multiple personal accounts on the same URI (e.g. spouse, housemate) — each with isolated data via `owner_id`; W1.5 login. No team workspaces, shared projects, assignees, or role-based access control.
 
 ## Technology Direction
 
@@ -54,13 +54,16 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 **Out of MVP:** Auto-scheduler, external calendar sync, recurrence engine, login/remote auth, board/Kanban (optional W3 candidate), teams, gamification, SLM assist, desktop client, voice input, email-to-task, location reminders, templates (all W3 backlog candidates — not before W2 where applicable).
 
-## Explicit Non-Goals (All Waves Unless Reopened)
+## Explicit Non-Goals (W1–W3 Unless Reopened)
 
-- Team workspaces, assignees, comments, public sharing
+- Team workspaces, shared projects, assignees, comments, public sharing
 - Karma, streaks, productivity gamification
 - Board / Kanban as a project view (not MVP; optional W3 candidate)
 - Flutter or separate mobile-native clients (responsive web until Tauri)
 - AI/SLM in the critical path before Wave 3
+- Row-level task soft-delete (MVP hard-delete + client recreate; target W2 restore)
+
+**Post-W3 discussion only:** lightweight task handoff between personal household accounts — not team collaboration.
 
 ## Success Criteria (MVP)
 

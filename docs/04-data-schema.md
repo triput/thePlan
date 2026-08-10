@@ -12,7 +12,7 @@ PostgreSQL relational schema for the application. Executable DDL: [sql/001_basel
 | Timestamps | `TIMESTAMPTZ`, stored UTC |
 | Durations | Integer minutes |
 | Ownership | `owner_id UUID NOT NULL` on all domain tables |
-| Soft delete | Use `is_archived` (epics/projects) or status flags; no row-level soft delete in MVP |
+| Soft delete | MVP: `is_archived` (epics/projects) or status flags only; **tasks** hard-delete. W2 target: nullable `deleted_at` on `tasks` (+ optional on `scheduled_blocks`) for session restore fidelity — see [Future: task soft-delete](#future-task-soft-delete-w2) |
 | Naming | snake_case tables and columns |
 | Colors | `#RRGGBB` hex strings, 7 chars; presets in [08-color-palette.md](./08-color-palette.md) |
 
@@ -182,6 +182,18 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 - `(owner_id, is_completed)` — Active task lists
 - `(owner_id, project_id, sort_order)` — Project views
 - `(project_id)`, `(section_id)`, `(parent_task_id)`
+
+### Future: task soft-delete (W2)
+
+**Target:** end of Wave 2 (optional W1.5 if cheap during auth work). Not MVP.
+
+**Recommended approach:** Add nullable `deleted_at TIMESTAMPTZ` on `tasks` (or boolean `is_deleted`). Optionally same on `scheduled_blocks`. `DELETE` becomes soft-set; list/search queries filter `deleted_at IS NULL`. Restore/undo clears the flag and returns the same UUID with children if soft-cascade is applied.
+
+**Cascade policy:** On parent soft-delete, soft-delete descendant tasks and linked `scheduled_blocks` in one transaction (or defer via application logic). Prefer soft-delete over forever-hard-delete for session restore fidelity.
+
+**Alternative:** `deleted_tasks` staging table holding serialized task trees — heavier; prefer column on `tasks` unless audit retention needs differ.
+
+**Client impact:** MVP undo stack remains useful for complete/uncomplete; delete undo becomes a restore API call instead of recreate-via-POST.
 
 ### labels / task_labels
 

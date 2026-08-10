@@ -279,6 +279,8 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Implementation notes (Wave 1):** Client-side undo stack (max 15). Delete undo recreates the deleted task tree via `POST /tasks` (new IDs; scheduled blocks not restored). Bulk-complete undo uncompletes parent + captured open descendants.
 
+**Forward (W2):** True session undelete via task soft-delete (`deleted_at` on `tasks`; see [04-data-schema.md](./04-data-schema.md) and [07-wave-roadmap.md](./07-wave-roadmap.md)). Delete undo becomes restore API; client stack still handles complete/uncomplete.
+
 ---
 
 ## E9 — Performance & UX

@@ -90,7 +90,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Global search | MVP | Title + description |
-| Undo last action | MVP | Session stack |
+| Undo last action | MVP | Session stack; delete undo recreates (new IDs) |
+| Task soft-delete + restore | W2 | Optional W1.5; `deleted_at` on tasks; true undelete same UUID |
 | Activity log / audit trail | W2 | schedule_runs + task history lite |
 | Completed task history | MVP | Show/hide toggle |
 
@@ -223,6 +224,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Podman-compatible Compose | MVP | Alternate runtime |
 | Local-only auth | MVP | ADR-003 |
 | Password login | W1.5 | |
+| Multi-account household login | W1.5 | N personal `users` rows; same URI; `owner_id` isolation — not teams ([ADR-002](./adr/ADR-002-single-user.md)) |
 | Cloudflare Tunnel remote access | W1.5+ | Post-MVP hosting |
 | Cloudflare Access | W1.5 | Optional IdP |
 | pg_dump backup script | W1.5 | Documented in MVP |
@@ -238,12 +240,12 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows.
 
-**Defer to W1.5:** Recurrence engine, import, reminders, login; label delete reassign/migrate (bulk apply other labels on prune).
+**Defer to W1.5:** Recurrence engine, import, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune).
 
-**Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect.
+**Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect, task soft-delete + session restore.
 
 **Defer to W3:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice input, email-to-task, templates.
 
-**Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors (and related inbound/outbound webhooks as needed); Notion / Obsidian deep links or light sync (possible late W3 if cheap, otherwise post-W3). Not in W1–W2 scope.
+**Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors (and related inbound/outbound webhooks as needed); Notion / Obsidian deep links or light sync (possible late W3 if cheap, otherwise post-W3); task handoff between household accounts (discussion item only). Not in W1–W2 scope.
 
-**Never (unless reopened):** Teams, karma, Flutter, attachments, gamification.
+**Never (unless reopened):** Team workspaces, karma, Flutter, attachments, gamification.

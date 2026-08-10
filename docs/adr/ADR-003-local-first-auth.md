@@ -9,7 +9,7 @@
 | Wave | Auth behavior |
 |-------|---------------|
 | **MVP** | Local-only. Bootstrap `users` row at first run. No login wall, no remote IdP. Optional session cookie for CSRF hygiene. `password_hash` nullable. |
-| **W1.5** | Real login story: password session and/or Cloudflare Access in front of Tunnel. Populate `password_hash`. Enable remote hosting without schema rewrite. |
+| **W1.5** | Real login story: register/create-account + password session and/or Cloudflare Access in front of Tunnel. Populate `password_hash`. **Multiple personal accounts** on one deployment (household login); session selects one `users` row; domain queries filter `owner_id`. Enable remote hosting without schema rewrite. |
 
 `users` table exists from baseline DDL with `email`, `password_hash`, `display_name`.
 
@@ -17,7 +17,7 @@
 
 - **Ship fast locally:** Operator runs Compose on LAN; authentication friction blocks daily use for a personal tool.
 - **Reserve remote path:** Home server + Cloudflare Tunnel (W1.5+) requires auth before exposure to internet. Schema and API paths designed now (`/auth/login`, `/auth/me`) avoid rewrite later.
-- **Single-user still:** Login identifies the one operator; not multi-tenant account provisioning.
+- **Household accounts, not teams:** W1.5 supports N personal `users` rows on one URI — each operator's data isolated by `owner_id`. No workspaces, sharing, or assignees ([ADR-002](./ADR-002-single-user.md)).
 
 ## MVP Implementation
 
@@ -28,10 +28,11 @@
 
 ## Wave 1.5 Implementation
 
-1. Set `password_hash` via setup script or first-run wizard.
-2. `POST /auth/login` / `POST /auth/logout` with session cookies.
+1. `POST /auth/register` (or setup script) creates additional `users` rows with `password_hash`.
+2. `POST /auth/login` / `POST /auth/logout` with session cookies; session binds `owner_id`.
 3. Optional: Cloudflare Access as reverse-proxy IdP; `password_hash` remains nullable if Access-only.
 4. OAuth tokens for **calendar** providers stored separately in `calendar_accounts` (W2), not user login.
+5. All domain handlers scope queries to session `owner_id`; no cross-owner reads or writes.
 
 ## Security Notes
 

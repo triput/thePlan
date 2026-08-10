@@ -8,6 +8,7 @@ import { CreateProjectForm } from "./CreateProjectForm";
 import { EditEpicForm } from "./EditEpicForm";
 import { EditProjectForm } from "./EditProjectForm";
 import { ReorderButtons } from "./ReorderButtons";
+import { SettingsPanel } from "./SettingsPanel";
 
 interface SidebarProps {
   view: ViewSelection;
@@ -83,6 +84,7 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
   );
   const [editingEpic, setEditingEpic] = useState<Epic | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
@@ -283,6 +285,22 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
         ))}
       </nav>
 
+      <footer className="sidebar-footer">
+        <button
+          type="button"
+          className="settings-btn"
+          onClick={() => setShowSettings(true)}
+          aria-label="Settings"
+          title="Settings"
+        >
+          <span className="settings-btn-icon" aria-hidden>
+            ⚙
+          </span>
+          <span>Settings</span>
+        </button>
+      </footer>
+
+      <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
       <CreateEpicForm open={showCreateEpic} onClose={() => setShowCreateEpic(false)} />
       <CreateProjectForm
         open={createProjectEpicId !== undefined}

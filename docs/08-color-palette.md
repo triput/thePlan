@@ -2,7 +2,7 @@
 
 Entity colors (epics, projects, labels) and UI chrome guidance for the application. Sourced primarily from **Synesis** theme tokens and account swatches and **Phronesis** cockpit/status accents, with a few Todoist-familiar extras for breadth. Custom `#RRGGBB` remains always allowed.
 
-Client constants should expose the **Entity presets** table below in color pickers. App shell themes (light / dark / solarized) are deferred until UI implementation; prefer Phronesis Hybrid Dark / Synesis Dark as the default chrome direction when theming lands.
+Client constants should expose the **Entity presets** table below in color pickers. App shell themes ship in **thePlan web** (`apps/web`): five named presets (Dark, Solarized Dark, Light, Solarized Light, Black) with optional custom hex overrides persisted in `localStorage`.
 
 ---
 
@@ -68,22 +68,23 @@ Borrowed from Phronesis due/status tokens for familiarity across the suite:
 
 ---
 
-## Chrome theme direction (post-MVP UI polish)
+## Chrome themes (shipped)
 
-Not required for MVP exit. When implementing app chrome, prefer these packs (already proven in sister apps):
+**thePlan web** exposes five named presets in Settings. Default on first load: **Dark** (Phronesis Hybrid Dark tokens). Overrides persist under `theplan.theme` and `theplan.theme.overrides`.
 
-| Pack | Source | Ink / panel / accent (reference) |
-|------|--------|----------------------------------|
-| Hybrid Dark (default) | Phronesis | bg `#0B0F19`, panel `#121827`, accent `#059669` |
-| Dark | Synesis | ink `#0A0E1A`, panel `#111829`, teal `#3DD9C4`, amethyst `#B794F6` |
-| Black | Synesis | ink `#0A0A0C`, panel `#121214` |
-| Light | Synesis / Phronesis | ink `#F5F4FA` / `#F5F7FB`, accent violet or emerald |
-| Solarized Dark / Light | Both | Standard solarized bases with suite accents |
+| Preset | Source | `--bg` | `--panel` | `--accent` | `--text` | `--error` |
+|--------|--------|--------|-----------|------------|----------|-----------|
+| Dark | Phronesis hybrid | `#0B0F19` | `#121827` | `#059669` | `#E6EAF2` | `#F87171` |
+| Solarized Dark | Phronesis | `#002B36` | `#073642` | `#A57BD5` | `#DDE5D8` | `#E34E80` |
+| Light | Phronesis | `#F5F7FB` | `#FFFFFF` | `#8E5FC0` | `#1B2430` | `#C90F56` |
+| Solarized Light | Phronesis | `#FDF6E3` | `#EEE8D5` | `#7F53B3` | `#334155` | `#B2185B` |
+| Black | Synesis | `#0A0A0C` | `#121214` | `#C084FC` | `#E8E8EC` | `#FB7185` |
 
-Full token tables live in:
+CSS variables also include `--panel-hover`, `--border`, `--text-muted`, `--accent-hover`, `--sidebar`, and `--danger`. Sister-app reference tables:
 
 - `F:\Code Repo\Synesis\lib\theme\theme_tokens.dart`
 - `F:\Code Repo\Phronesis\phronesis_app\static\phronesis\themes.css`
+- `apps/web/src/theme.ts` — canonical preset definitions for the web client
 
 ---
 
