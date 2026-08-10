@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchEpics, fetchProjects, reorderProjects, type Epic, type Project } from "../api";
+import { fetchEpics, fetchLabels, fetchProjects, reorderProjects, type Epic, type Project } from "../api";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
 import type { ViewSelection } from "../view";
 import { CreateEpicForm } from "./CreateEpicForm";
@@ -86,9 +86,11 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
 
   const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const labelsQuery = useQuery({ queryKey: ["labels"], queryFn: () => fetchLabels({ limit: 200 }) });
 
   const epics = epicsQuery.data?.items ?? [];
   const projects = projectsQuery.data?.items ?? [];
+  const labels = [...(labelsQuery.data?.items ?? [])].sort((a, b) => a.name.localeCompare(b.name));
 
   const reorderProjectsMutation = useMutation({
     mutationFn: reorderProjects,
@@ -123,6 +125,9 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
 
   const isProjectActive = (projectId: string) =>
     view.type === "project" && view.projectId === projectId;
+
+  const isLabelActive = (labelId: string) =>
+    view.type === "label" && view.labelId === labelId;
 
   const renderEpic = (epic: Epic) => {
     const expanded = expandedEpics.has(epic.id);
@@ -206,6 +211,28 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
           label="Upcoming"
           onClick={() => onSelectView({ type: "upcoming" })}
         />
+
+        <NavItem
+          active={view.type === "labels"}
+          label="Labels"
+          onClick={() => onSelectView({ type: "labels" })}
+        />
+
+        {labels.length > 0 && (
+          <>
+            <p className="nav-section-label">By label</p>
+            {labels.map((label) => (
+              <NavItem
+                key={label.id}
+                active={isLabelActive(label.id)}
+                label={label.name}
+                swatchColor={label.color_hex}
+                indent
+                onClick={() => onSelectView({ type: "label", labelId: label.id })}
+              />
+            ))}
+          </>
+        )}
 
         <div className="nav-section-header">
           <p className="nav-section-label">Epics</p>

@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteTask,
+  fetchLabels,
   fetchProjects,
   fetchSections,
   fetchTasks,
   updateTask,
+  type Label,
   type Project,
   type Task,
   type TaskPriority,
@@ -54,11 +56,15 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [projectId, setProjectId] = useState<string>("");
   const [sectionId, setSectionId] = useState<string>("");
   const [parentTaskId, setParentTaskId] = useState<string>("");
+  const [labelIds, setLabelIds] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const queryClient = useQueryClient();
 
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const projects: Project[] = projectsQuery.data?.items ?? [];
+
+  const labelsQuery = useQuery({ queryKey: ["labels"], queryFn: () => fetchLabels({ limit: 200 }) });
+  const allLabels: Label[] = labelsQuery.data?.items ?? [];
 
   const effectiveProjectId = projectId || null;
 
@@ -73,8 +79,8 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     queryKey: ["tasks", "parents", effectiveProjectId],
     queryFn: () =>
       effectiveProjectId
-        ? fetchTasks({ project_id: effectiveProjectId, limit: 200 })
-        : fetchTasks({ inbox: true, limit: 200 }),
+        ? fetchTasks({ project_id: effectiveProjectId, limit: 200, is_completed: false })
+        : fetchTasks({ inbox: true, limit: 200, is_completed: false }),
     enabled: task !== null,
   });
   const parentCandidates = parentCandidatesQuery.data?.items ?? [];
@@ -89,6 +95,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setProjectId(task.project_id ?? "");
     setSectionId(task.section_id ?? "");
     setParentTaskId(task.parent_task_id ?? "");
+    setLabelIds(task.label_ids);
   }, [task]);
 
   const byId = useMemo(() => new Map(allTasks.map((t) => [t.id, t])), [allTasks]);
@@ -131,6 +138,12 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     }
   };
 
+  const toggleLabel = (labelId: string) => {
+    setLabelIds((prev) =>
+      prev.includes(labelId) ? prev.filter((id) => id !== labelId) : [...prev, labelId],
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!task) return;
@@ -146,6 +159,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       project_id: projectId || null,
       section_id: projectId && sectionId ? sectionId : null,
       parent_task_id: parentTaskId || null,
+      label_ids: labelIds,
     });
   };
 
@@ -257,6 +271,42 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               ))}
             </select>
           </label>
+          <fieldset className="field">
+            <legend>Labels</legend>
+            {allLabels.length === 0 && (
+              <p className="muted small">No labels yet. Create labels from the sidebar.</p>
+            )}
+            <div className="label-toggle-group" role="group" aria-label="Task labels">
+              {allLabels.map((label) => {
+                const selected = labelIds.includes(label.id);
+                return (
+                  <button
+                    key={label.id}
+                    type="button"
+                    className={`label-toggle${selected ? " selected" : ""}`}
+                    style={
+                      selected
+                        ? {
+                            backgroundColor: `color-mix(in srgb, ${label.color_hex} 22%, transparent)`,
+                            borderColor: label.color_hex,
+                            color: label.color_hex,
+                          }
+                        : { borderColor: label.color_hex, color: label.color_hex }
+                    }
+                    aria-pressed={selected}
+                    onClick={() => toggleLabel(label.id)}
+                  >
+                    <span
+                      className="label-swatch tiny"
+                      style={{ backgroundColor: label.color_hex }}
+                      aria-hidden
+                    />
+                    {label.name}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
           {updateMutation.isError && (
             <p className="form-error">{(updateMutation.error as Error).message}</p>
           )}

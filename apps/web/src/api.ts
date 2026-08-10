@@ -43,6 +43,13 @@ export interface Section {
 
 export type TaskPriority = "p1" | "p2" | "p3" | "p4";
 
+export interface Label {
+  id: string;
+  name: string;
+  color_hex: string;
+  task_count?: number;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -148,6 +155,16 @@ export interface TaskUpdate {
 export interface TaskCompleteBody {
   bulk_children?: boolean;
   force_parent_only?: boolean;
+}
+
+export interface LabelCreate {
+  name: string;
+  color_hex?: string;
+}
+
+export interface LabelUpdate {
+  name?: string;
+  color_hex?: string;
 }
 
 export interface QuickAddParseResponse {
@@ -304,12 +321,62 @@ export function fetchTasks(params?: {
   project_id?: string;
   section_id?: string;
   parent_task_id?: string;
+  label_id?: string;
   is_completed?: boolean;
   inbox?: boolean;
   limit?: number;
   offset?: number;
 }) {
   return apiFetchUrl<PaginatedResponse<Task>>(buildUrl("/api/v1/tasks", params));
+}
+
+export function fetchLabels(params?: { limit?: number; offset?: number }) {
+  return apiFetchUrl<PaginatedResponse<Label>>(buildUrl("/api/v1/labels", params));
+}
+
+export function createLabel(body: LabelCreate) {
+  return apiFetch<Label>("/api/v1/labels", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function createLabelsBatch(bodies: LabelCreate[]): Promise<Label[]> {
+  if (bodies.length === 0) return [];
+  try {
+    const response = await fetch(`${API_URL}/api/v1/labels/batch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ labels: bodies }),
+    });
+    if (response.status === 404 || response.status === 405) {
+      throw new Error("batch unavailable");
+    }
+    if (!response.ok) {
+      throw await parseError(response);
+    }
+    const data = (await response.json()) as { items: Label[]; skipped?: unknown[] };
+    return data.items ?? [];
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    const results: Label[] = [];
+    for (const body of bodies) {
+      try {
+        results.push(await createLabel(body));
+      } catch {
+        // skip duplicates when falling back to sequential create
+      }
+    }
+    return results;
+  }
+}
+
+export function updateLabel(labelId: string, body: LabelUpdate) {
+  return apiFetch<Label>(`/api/v1/labels/${labelId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteLabel(labelId: string) {
+  return apiFetch<void>(`/api/v1/labels/${labelId}`, { method: "DELETE" });
 }
 
 export function createTask(body: TaskCreate) {

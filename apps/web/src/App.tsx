@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchMe, fetchProjects } from "./api";
+import { LabelsManagement } from "./components/LabelsManagement";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
 import { Sidebar } from "./components/Sidebar";
 import { TaskList } from "./components/TaskList";
@@ -19,6 +20,8 @@ function App() {
     view.type === "project"
       ? projects.find((p) => p.id === view.projectId)?.title
       : undefined;
+
+  const showTaskList = view.type !== "labels";
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -49,7 +52,11 @@ function App() {
           )}
         </header>
         <main className="main-content">
-          <TaskList view={view} projectTitle={projectTitle} />
+          {showTaskList ? (
+            <TaskList view={view} projectTitle={projectTitle} />
+          ) : (
+            <LabelsManagement />
+          )}
         </main>
       </div>
     </div>

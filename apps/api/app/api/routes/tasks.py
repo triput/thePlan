@@ -58,6 +58,7 @@ def list_tasks(
     project_id: UUID | None = None,
     section_id: UUID | None = None,
     parent_task_id: UUID | None = None,
+    label_id: UUID | None = None,
     is_completed: bool | None = None,
     inbox: bool = Query(default=False),
     limit: int = Query(default=50, ge=1, le=200),
@@ -74,6 +75,8 @@ def list_tasks(
         query = query.filter(Task.section_id == section_id)
     if parent_task_id is not None:
         query = query.filter(Task.parent_task_id == parent_task_id)
+    if label_id is not None:
+        query = query.join(TaskLabel, TaskLabel.task_id == Task.id).filter(TaskLabel.label_id == label_id)
     if is_completed is not None:
         query = query.filter(Task.is_completed == is_completed)
     total = query.count()

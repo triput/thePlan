@@ -45,3 +45,83 @@ def test_create_label_whitespace_only_rejected(client: TestClient) -> None:
     assert response.status_code == 422
     body = response.json()
     assert body["code"] == "LABEL_NAME_EMPTY"
+
+
+def test_list_labels_includes_task_count(client: TestClient) -> None:
+    uid = _uid()
+    label = client.post("/api/v1/labels", json={"name": f"counted-{uid}"}).json()
+    client.post(
+        "/api/v1/tasks",
+        json={"title": f"task-a-{uid}", "label_ids": [label["id"]]},
+    )
+    client.post(
+        "/api/v1/tasks",
+        json={"title": f"task-b-{uid}", "label_ids": [label["id"]]},
+    )
+
+    response = client.get("/api/v1/labels")
+    assert response.status_code == 200
+    items = response.json()["items"]
+    match = next(item for item in items if item["id"] == label["id"])
+    assert match["task_count"] == 2
+
+
+def test_batch_create_labels_success(client: TestClient) -> None:
+    uid = _uid()
+    response = client.post(
+        "/api/v1/labels/batch",
+        json={
+            "labels": [
+                {"name": f"Batch-A-{uid}", "color_hex": "#111111"},
+                {"name": f"Batch-B-{uid}", "color_hex": "#222222"},
+            ]
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["items"]) == 2
+    assert body["skipped"] == []
+    names = {item["name"] for item in body["items"]}
+    assert names == {f"batch-a-{uid}", f"batch-b-{uid}"}
+
+
+def test_batch_create_skips_duplicates(client: TestClient) -> None:
+    uid = _uid()
+    existing = client.post("/api/v1/labels", json={"name": f"existing-{uid}"}).json()
+
+    response = client.post(
+        "/api/v1/labels/batch",
+        json={
+            "labels": [
+                {"name": f"existing-{uid}".upper()},
+                {"name": f"new-{uid}"},
+                {"name": f"new-{uid}".upper()},
+            ]
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["items"]) == 1
+    assert body["items"][0]["name"] == f"new-{uid}"
+    assert len(body["skipped"]) == 2
+    skipped_by_name = {entry["name"]: entry["reason"] for entry in body["skipped"]}
+    assert skipped_by_name[existing["name"]] == "LABEL_DUPLICATE"
+    assert skipped_by_name[f"new-{uid}"] == "duplicate_in_request"
+
+
+def test_batch_create_skips_empty_names(client: TestClient) -> None:
+    uid = _uid()
+    response = client.post(
+        "/api/v1/labels/batch",
+        json={
+            "labels": [
+                {"name": "   "},
+                {"name": f"valid-{uid}"},
+            ]
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["items"]) == 1
+    assert body["items"][0]["name"] == f"valid-{uid}"
+    assert body["skipped"] == [{"name": "", "reason": "LABEL_NAME_EMPTY"}]

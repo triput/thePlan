@@ -225,6 +225,115 @@
   color: #a7f3d0;
 }
 
+.label-chip {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+/* Labels management */
+.labels-management {
+  max-width: 640px;
+  padding-top: 1.25rem;
+}
+
+.labels-section {
+  margin-bottom: 2rem;
+}
+
+.labels-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.labels-create-form {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.labels-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.label-row:last-child {
+  border-bottom: none;
+}
+
+.label-row:hover {
+  background: var(--panel-hover);
+}
+
+.label-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.label-swatch.tiny {
+  width: 8px;
+  height: 8px;
+}
+
+.label-name {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.label-count {
+  font-size: 0.78rem;
+}
+
+.label-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.label-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.78rem;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.label-toggle:hover {
+  opacity: 1;
+  background: var(--panel-hover);
+}
+
+.label-toggle.selected {
+  opacity: 1;
+}
+
 /* Task list */
 .task-list-layout {
   display: flex;

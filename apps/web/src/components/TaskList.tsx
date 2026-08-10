@@ -4,11 +4,13 @@ import {
   ApiError,
   completeTask,
   createTask,
+  fetchLabels,
   fetchSections,
   fetchTasks,
   reorderSections,
   reorderTasks,
   uncompleteTask,
+  type Label,
   type Section,
   type Task,
 } from "../api";
@@ -48,14 +50,37 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
 
+  const labelsQuery = useQuery({
+    queryKey: ["labels"],
+    queryFn: () => fetchLabels({ limit: 200 }),
+  });
+  const labelsById = useMemo(() => {
+    const map = new Map<string, Label>();
+    for (const label of labelsQuery.data?.items ?? []) {
+      map.set(label.id, label);
+    }
+    return map;
+  }, [labelsQuery.data]);
+
   const tasksQuery = useQuery({
     queryKey: ["tasks", viewKey(view)],
     queryFn: async () => {
       if (view.type === "inbox") {
-        return fetchTasks({ inbox: true, limit: 200 });
+        return fetchTasks({ inbox: true, limit: 200, is_completed: false });
       }
       if (view.type === "project") {
         return fetchTasks({ project_id: view.projectId, limit: 200 });
+      }
+      if (view.type === "label") {
+        const result = await fetchTasks({
+          label_id: view.labelId,
+          limit: 200,
+          is_completed: false,
+        });
+        return {
+          ...result,
+          items: result.items.filter((t) => t.label_ids.includes(view.labelId)),
+        };
       }
       return fetchTasks({ limit: 200, is_completed: false });
     },
@@ -227,7 +252,9 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
         ? "Inbox"
         : view.type === "today"
           ? "Today"
-          : "Upcoming";
+          : view.type === "label"
+            ? (labelsById.get(view.labelId)?.name ?? "Label")
+            : "Upcoming";
 
   return (
     <div className={`task-list-layout${selectedTask ? " with-detail" : ""}`}>
@@ -307,6 +334,19 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
                   {formatDuration(task.estimated_duration_minutes)}
                 </span>
               )}
+              {task.label_ids.map((labelId) => {
+                const label = labelsById.get(labelId);
+                if (!label) return null;
+                return (
+                  <span
+                    key={labelId}
+                    className="label-chip"
+                    style={{ borderColor: label.color_hex, color: label.color_hex }}
+                  >
+                    {label.name}
+                  </span>
+                );
+              })}
               <ReorderButtons
                 label={task.title}
                 canMoveUp={canReorderUp(siblings, task.id)}
