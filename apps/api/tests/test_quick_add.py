@@ -40,3 +40,41 @@ def test_epic_project_section_and_due_date() -> None:
     assert draft.due_at is not None
     assert draft.due_at.hour == 9
     assert draft.title == "Review architecture spec"
+
+
+def test_tomorrow_relative_date() -> None:
+    now = datetime(2026, 8, 10, 12, 0, tzinfo=ZoneInfo("UTC"))
+    draft = parse_quick_add("Ship it tomorrow p3", now=now, timezone_name="UTC")
+    assert draft.title == "Ship it"
+    assert draft.priority == TaskPriority.p3
+    assert draft.due_at is not None
+    assert draft.due_at.date().isoformat() == "2026-08-11"
+
+
+def test_quoted_project_token() -> None:
+    draft = parse_quick_add('Draft notes #"Client App"')
+    assert draft.project_name == "Client App"
+    assert draft.section_name is None
+    assert draft.title == "Draft notes"
+
+
+def test_unquoted_project_section_token() -> None:
+    draft = parse_quick_add("Draft notes #Dev/Backend")
+    assert draft.project_name == "Dev"
+    assert draft.section_name == "Backend"
+    assert draft.title == "Draft notes"
+
+
+def test_bare_title_defaults() -> None:
+    draft = parse_quick_add("Just a title")
+    assert draft.title == "Just a title"
+    assert draft.priority is None
+    assert draft.estimated_duration_minutes is None
+    assert draft.due_at is None
+    assert draft.project_name is None
+
+
+def test_duration_work_days() -> None:
+    draft = parse_quick_add("Big chunk 2d")
+    assert draft.estimated_duration_minutes == 960
+    assert draft.title == "Big chunk"

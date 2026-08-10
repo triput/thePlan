@@ -123,7 +123,10 @@ class TaskUpdate(BaseModel):
 
 
 class TaskCompleteBody(BaseModel):
-    bulk_children: bool = False
+    # None = unspecified (409 OPEN_CHILDREN when open kids exist).
+    # False = complete parent only; True = bulk-complete descendants.
+    # force_parent_only remains supported for the current web client.
+    bulk_children: bool | None = None
     force_parent_only: bool = False
 
 

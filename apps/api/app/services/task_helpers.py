@@ -74,11 +74,13 @@ def complete_task(
     db: Session,
     task: Task,
     *,
-    bulk_children: bool,
+    bulk_children: bool | None,
     force_parent_only: bool,
 ) -> None:
     open_count = count_open_children(db, task.id, task.owner_id)
-    if open_count > 0 and not bulk_children and not force_parent_only:
+    # Contract: omitted bulk_children → 409; explicit false → parent only;
+    # true → bulk. force_parent_only is an alternate parent-only signal.
+    if open_count > 0 and bulk_children is None and not force_parent_only:
         raise ApiError(
             409,
             f"Task has {open_count} open subtasks",
@@ -87,7 +89,7 @@ def complete_task(
         )
 
     now = datetime.now(timezone.utc)
-    if bulk_children:
+    if bulk_children is True:
         descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
         if descendant_ids:
             db.query(Task).filter(Task.id.in_(descendant_ids)).update(

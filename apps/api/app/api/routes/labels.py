@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.api.errors import ApiError
 from app.db import get_db
 from app.models import Label, User
 from app.schemas import LabelCreate, LabelOut, LabelUpdate, PaginatedResponse
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/labels", tags=["labels"])
 def normalize_label_name(name: str) -> str:
     normalized = name.strip().lower()
     if not normalized:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Label name cannot be empty")
+        raise ApiError(422, "Label name cannot be empty", "LABEL_NAME_EMPTY")
     return normalized
 
 
@@ -52,10 +53,7 @@ def create_label(
     name = normalize_label_name(body.name)
     existing = db.query(Label).filter(Label.owner_id == user.id, Label.name == name).first()
     if existing is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Label '{name}' already exists",
-        )
+        raise ApiError(409, f"Label '{name}' already exists", "LABEL_DUPLICATE")
     label = Label(owner_id=user.id, name=name, color_hex=body.color_hex)
     db.add(label)
     db.commit()
@@ -90,10 +88,7 @@ def update_label(
             .first()
         )
         if existing is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Label '{name}' already exists",
-            )
+            raise ApiError(409, f"Label '{name}' already exists", "LABEL_DUPLICATE")
         updates["name"] = name
     for field, value in updates.items():
         setattr(label, field, value)

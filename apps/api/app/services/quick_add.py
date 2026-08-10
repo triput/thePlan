@@ -12,7 +12,7 @@ EPIC_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PROJECT_SECTION_PATTERN = re.compile(
-    r'#(?:"([^"]+)"|\'([^\']+)\'|([^/\s]+)(?:/([^/\s]+))?)\b',
+    r'#(?:"([^"]+)"|\'([^\']+)\'|([^/\s]+)(?:/([^/\s]+))?)',
     re.IGNORECASE,
 )
 PRIORITY_PATTERN = re.compile(r"(?<=\s)(?:p|P|!)(1|2|3|4)(?=\s|$)")
