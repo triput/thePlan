@@ -211,6 +211,11 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
           label="Upcoming"
           onClick={() => onSelectView({ type: "upcoming" })}
         />
+        <NavItem
+          active={view.type === "calendar"}
+          label="Calendar"
+          onClick={() => onSelectView({ type: "calendar" })}
+        />
 
         <NavItem
           active={view.type === "labels"}

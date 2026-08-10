@@ -68,6 +68,7 @@ Smart view predicates are stored as JSON in `saved_filters.predicate_json` for f
 
 - **Day** and **Week** layouts required at MVP.
 - **Month** layout: include if implementation cost is low; not a blocker for MVP exit.
+- **Nice-to-have chrome:** day-of-year number and ISO week-of-year (e.g. `day 223 · W33`) in the calendar header — include when shipping calendar UI.
 - Display:
   - Tasks with `due_at` set appear as due markers/events on their due datetime.
   - Manually placed **scheduled_blocks** appear as time blocks on the calendar grid.
@@ -128,6 +129,7 @@ Completed tasks are retained indefinitely. Default list views hide completed ite
 - Label attributes: name (unique per owner), color_hex.
 - **Standalone label management (MVP):** dedicated Labels screen (or settings section) to create, rename, recolor, and delete labels **without** opening a task. Creating several labels in one sitting is supported (repeat create / bulk-friendly UI).
 - **Prune:** deleting a label detaches it from all tasks (`ON DELETE CASCADE` on `task_labels`) and removes the label row. Confirm when the label is still attached to tasks (show usage count).
+- **Backlog (W1.5):** on delete, offer optional **reassign/migrate** — pick one or more surviving labels to apply to those tasks (bulk) before the doomed label is removed, so related work stays tagged without hand-editing each task.
 - **Lowercase-only names:** all label names are stored and compared as lowercase. API and UI normalize on write (`Waiting` → `waiting`). Reject or fold duplicates that differ only by case — uniqueness is `(owner_id, name)` after normalization so `Waiting`, `WAITING`, and `waiting` cannot coexist.
 - Assign/remove on task detail remains available; quick-add label tokens deferred to W1.5 if needed.
 

@@ -62,6 +62,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Login / remote-ready auth | Password session and/or Cloudflare Access |
 | Backup script | Scheduled pg_dump optional |
 | Cloudflare Tunnel | Template for remote access to home host |
+| Label delete reassign/migrate | On prune: optionally bulk-apply other label(s) to affected tasks before removing the deleted label |
 
 ### Auth Progression
 

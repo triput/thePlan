@@ -132,6 +132,8 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 - [ ] Names are **lowercase-only**: input normalized to lowercase on create/rename; API rejects or folds case-only duplicates
 - [ ] Unique per owner after lowercase normalization (no `Waiting` + `waiting` pair)
 
+**Deferred (W1.5):** On delete, optionally reassign affected tasks to other label(s) in bulk before removing the pruned label.
+
 ### US-4.2: Color presets
 
 **As a** user, **I want** Synesis/Phronesis-aligned color presets plus custom hex **so that** epics, projects, and labels match my suite.
@@ -190,6 +192,7 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 - [ ] Week view shows 7-day grid
 - [ ] Month view included if implementation cost is low (optional, not exit blocker)
 - [ ] Navigate prev/next day/week
+- [ ] **Nice-to-have:** show **day-of-year** number and **ISO week-of-year** (e.g. day 222 · W32) in the calendar chrome — Trish likes these; not an MVP exit blocker
 
 ### US-6.2: Due markers on calendar
 

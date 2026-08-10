@@ -216,6 +216,32 @@ class ReorderRequest(BaseModel):
     items: list[ReorderItem] = Field(default_factory=list)
 
 
+class ScheduledBlockCreate(BaseModel):
+    task_id: UUID
+    start_time: datetime
+    end_time: datetime
+    is_pinned: bool = False
+
+
+class ScheduledBlockUpdate(BaseModel):
+    task_id: UUID | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    is_pinned: bool | None = None
+
+
+class ScheduledBlockOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    task_id: UUID
+    start_time: datetime
+    end_time: datetime
+    is_pinned: bool
+    created_at: datetime
+    updated_at: datetime
+
+
 class PaginatedResponse(BaseModel):
     items: list
     total: int

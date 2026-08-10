@@ -167,6 +167,30 @@ export interface LabelUpdate {
   color_hex?: string;
 }
 
+export interface ScheduledBlock {
+  id: string;
+  task_id: string;
+  start_time: string;
+  end_time: string;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScheduledBlockCreate {
+  task_id: string;
+  start_time: string;
+  end_time: string;
+  is_pinned?: boolean;
+}
+
+export interface ScheduledBlockUpdate {
+  task_id?: string;
+  start_time?: string;
+  end_time?: string;
+  is_pinned?: boolean;
+}
+
 export interface QuickAddParseResponse {
   title: string;
   priority: TaskPriority | null;
@@ -324,6 +348,8 @@ export function fetchTasks(params?: {
   label_id?: string;
   is_completed?: boolean;
   inbox?: boolean;
+  due_from?: string;
+  due_to?: string;
   limit?: number;
   offset?: number;
 }) {
@@ -440,6 +466,34 @@ export function reorderTasks(body: ReorderBody) {
     method: "PATCH",
     body: JSON.stringify(body),
   });
+}
+
+export function fetchScheduledBlocks(params: { start: string; end: string }) {
+  return apiFetchUrl<PaginatedResponse<ScheduledBlock>>(
+    buildUrl("/api/v1/scheduled-blocks", params),
+  );
+}
+
+export function fetchScheduledBlock(blockId: string) {
+  return apiFetch<ScheduledBlock>(`/api/v1/scheduled-blocks/${blockId}`);
+}
+
+export function createScheduledBlock(body: ScheduledBlockCreate) {
+  return apiFetch<ScheduledBlock>("/api/v1/scheduled-blocks", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateScheduledBlock(blockId: string, body: ScheduledBlockUpdate) {
+  return apiFetch<ScheduledBlock>(`/api/v1/scheduled-blocks/${blockId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteScheduledBlock(blockId: string) {
+  return apiFetch<void>(`/api/v1/scheduled-blocks/${blockId}`, { method: "DELETE" });
 }
 
 export { API_URL };

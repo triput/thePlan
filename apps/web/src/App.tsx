@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchMe, fetchProjects } from "./api";
+import { CalendarView } from "./components/CalendarView";
 import { LabelsManagement } from "./components/LabelsManagement";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
 import { Sidebar } from "./components/Sidebar";
@@ -21,7 +22,8 @@ function App() {
       ? projects.find((p) => p.id === view.projectId)?.title
       : undefined;
 
-  const showTaskList = view.type !== "labels";
+  const showTaskList = view.type !== "labels" && view.type !== "calendar";
+  const showCalendar = view.type === "calendar";
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -52,7 +54,9 @@ function App() {
           )}
         </header>
         <main className="main-content">
-          {showTaskList ? (
+          {showCalendar ? (
+            <CalendarView />
+          ) : showTaskList ? (
             <TaskList view={view} projectTitle={projectTitle} />
           ) : (
             <LabelsManagement />

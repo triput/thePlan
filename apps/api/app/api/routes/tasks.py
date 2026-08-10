@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -60,6 +61,8 @@ def list_tasks(
     parent_task_id: UUID | None = None,
     label_id: UUID | None = None,
     is_completed: bool | None = None,
+    due_from: datetime | None = None,
+    due_to: datetime | None = None,
     inbox: bool = Query(default=False),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -79,6 +82,10 @@ def list_tasks(
         query = query.join(TaskLabel, TaskLabel.task_id == Task.id).filter(TaskLabel.label_id == label_id)
     if is_completed is not None:
         query = query.filter(Task.is_completed == is_completed)
+    if due_from is not None:
+        query = query.filter(Task.due_at.isnot(None), Task.due_at >= due_from)
+    if due_to is not None:
+        query = query.filter(Task.due_at.isnot(None), Task.due_at < due_to)
     total = query.count()
     items = query.order_by(Task.sort_order, Task.created_at).offset(offset).limit(limit).all()
     return PaginatedResponse(

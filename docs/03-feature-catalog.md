@@ -50,6 +50,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Label colors | MVP | Presets in 08-color-palette |
 | Standalone label management (create/prune without task) | MVP | Dedicated Labels UI |
 | Lowercase-only label names | MVP | Normalize on write; unique per owner |
+| Label delete with reassign/migrate | W1.5 | On prune: optional bulk replace deleted label with one or more other labels before detach; keep related tasks correctly tagged |
 | Epic/project color presets | MVP | Synesis/Phronesis-aligned + custom hex |
 | Fixed smart views (Inbox, Today, Upcoming) | MVP | System saved_filters |
 | Smart view by Project | MVP | |
@@ -67,6 +68,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Upcoming view | MVP | 7-day horizon default |
 | Calendar view (day/week) | MVP | Due markers + manual blocks |
 | Calendar view (month) | MVP | If cheap; not exit blocker |
+| Day-of-year + ISO week numbers in chrome | Nice-to-have | Show e.g. day 222 · W32; not MVP exit blocker |
 | Board / Kanban | W3 | Optional column view for project status; not an MVP/W2 timeline. Sections may map to columns |
 | Upcoming drag-plan timeline | MVP | Via calendar view |
 | Gantt / project timeline | Out | Calendar only in MVP |
@@ -236,7 +238,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows.
 
-**Defer to W1.5:** Recurrence engine, import, reminders, login.
+**Defer to W1.5:** Recurrence engine, import, reminders, login; label delete reassign/migrate (bulk apply other labels on prune).
 
 **Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect.
 

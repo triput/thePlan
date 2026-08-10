@@ -2,6 +2,7 @@ export type ViewSelection =
   | { type: "inbox" }
   | { type: "today" }
   | { type: "upcoming" }
+  | { type: "calendar" }
   | { type: "project"; projectId: string }
   | { type: "labels" }
   | { type: "label"; labelId: string };
@@ -14,6 +15,8 @@ export function viewKey(view: ViewSelection): string {
       return "today";
     case "upcoming":
       return "upcoming";
+    case "calendar":
+      return "calendar";
     case "project":
       return `project:${view.projectId}`;
     case "labels":
@@ -34,6 +37,8 @@ export function viewTitle(
       return "Today";
     case "upcoming":
       return "Upcoming";
+    case "calendar":
+      return "Calendar";
     case "project":
       return options?.projectTitle ?? "Project";
     case "labels":
