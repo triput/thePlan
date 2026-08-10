@@ -9,6 +9,7 @@ from app.api.errors import ApiError
 from app.db import get_db
 from app.models import Label, Task, TaskLabel, User
 from app.schemas import PaginatedResponse, ReorderRequest, TaskCompleteBody, TaskCreate, TaskOut, TaskUpdate
+from app.services.ownership import verify_owned_project, verify_owned_section, verify_owned_task
 from app.services.reorder import batch_reorder_sort_order
 from app.services.task_helpers import complete_task, mark_task_complete, resolve_nesting_level
 
@@ -102,6 +103,11 @@ def create_task(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> TaskOut:
+    if body.project_id is not None:
+        verify_owned_project(db, body.project_id, user)
+    if body.section_id is not None:
+        verify_owned_section(db, body.section_id, user)
+    # Parent ownership/existence is enforced in resolve_nesting_level (PARENT_NOT_FOUND).
     try:
         nesting_level = resolve_nesting_level(db, user.id, body.parent_task_id)
     except ApiError as exc:
@@ -170,6 +176,13 @@ def update_task(
 
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
+
+    if "project_id" in updates and updates["project_id"] is not None:
+        verify_owned_project(db, updates["project_id"], user)
+    if "section_id" in updates and updates["section_id"] is not None:
+        verify_owned_section(db, updates["section_id"], user)
+    if "parent_task_id" in updates and updates["parent_task_id"] is not None:
+        verify_owned_task(db, updates["parent_task_id"], user)
 
     if "parent_task_id" in updates:
         try:

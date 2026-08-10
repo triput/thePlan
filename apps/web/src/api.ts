@@ -9,8 +9,44 @@ export interface PaginatedResponse<T> {
 
 export interface User {
   id: string;
+  username: string | null;
   email: string;
   display_name: string | null;
+  is_admin: boolean;
+}
+
+export interface AuthUserAdmin {
+  id: string;
+  username: string | null;
+  email: string;
+  display_name: string | null;
+  is_admin: boolean;
+  is_disabled: boolean;
+}
+
+export interface AuthRegisterBody {
+  username: string;
+  email: string;
+  password: string;
+  display_name?: string | null;
+}
+
+export interface AuthLoginBody {
+  identifier: string;
+  password: string;
+}
+
+export interface AuthUserCreateBody {
+  username: string;
+  email: string;
+  password: string;
+  display_name?: string | null;
+  is_admin?: boolean;
+}
+
+export interface AuthUserUpdateBody {
+  display_name?: string | null;
+  is_disabled?: boolean;
 }
 
 export interface Epic {
@@ -231,6 +267,7 @@ async function parseError(response: Response): Promise<ApiError> {
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
+    credentials: "include",
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -248,6 +285,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function apiFetchUrl<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
+    credentials: "include",
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -269,6 +307,42 @@ export function fetchHealth() {
 
 export function fetchMe() {
   return apiFetch<User>("/api/v1/auth/me");
+}
+
+export function register(body: AuthRegisterBody) {
+  return apiFetch<User>("/api/v1/auth/register", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function login(body: AuthLoginBody) {
+  return apiFetch<User>("/api/v1/auth/login", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function logout() {
+  return apiFetch<void>("/api/v1/auth/logout", { method: "POST" });
+}
+
+export function fetchUsers() {
+  return apiFetch<AuthUserAdmin[]>("/api/v1/auth/users");
+}
+
+export function createUser(body: AuthUserCreateBody) {
+  return apiFetch<AuthUserAdmin>("/api/v1/auth/users", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateUser(userId: string, body: AuthUserUpdateBody) {
+  return apiFetch<AuthUserAdmin>(`/api/v1/auth/users/${userId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
 }
 
 export function fetchEpics(params?: { archived?: boolean; limit?: number; offset?: number }) {
@@ -386,6 +460,7 @@ export async function createLabelsBatch(bodies: LabelCreate[]): Promise<Label[]>
   try {
     const response = await fetch(`${API_URL}/api/v1/labels/batch`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ labels: bodies }),
     });

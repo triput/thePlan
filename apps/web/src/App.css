@@ -201,12 +201,22 @@
   color: var(--accent);
 }
 
-.user-chip {
+.user-area {
   grid-column: 4;
   grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-chip {
   font-size: 0.8rem;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+.logout-btn {
+  flex-shrink: 0;
 }
 
 .main-content {
@@ -1012,6 +1022,25 @@
   border-color: var(--accent);
 }
 
+.entity-form input[type="password"],
+.entity-form input[type="email"] {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+
+.entity-form input[type="password"]:focus,
+.entity-form input[type="email"]:focus {
+  border-color: var(--accent);
+}
+
+.field-hint {
+  margin-top: 0.15rem;
+}
+
 .color-picker {
   display: flex;
   flex-wrap: wrap;
@@ -1452,4 +1481,102 @@
     order: 3;
     width: 100%;
   }
+}
+
+/* Auth screens */
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 24rem;
+  padding: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.auth-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.auth-subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.auth-form {
+  margin-top: 0.25rem;
+}
+
+/* Household admin */
+.household-user-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.household-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.household-user-row.disabled {
+  opacity: 0.65;
+}
+
+.household-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.household-user-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.household-user-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.household-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.household-toggle input {
+  accent-color: var(--accent);
+}
+
+.household-create-form {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }

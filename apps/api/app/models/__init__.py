@@ -39,9 +39,12 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    username: Mapped[str | None] = mapped_column(String(64), unique=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str | None] = mapped_column(String(255))
     display_name: Mapped[str | None] = mapped_column(String(255))
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    is_disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
 
     settings: Mapped["UserSettings"] = relationship(back_populates="owner", uselist=False)
     saved_filters: Mapped[list["SavedFilter"]] = relationship(back_populates="owner")

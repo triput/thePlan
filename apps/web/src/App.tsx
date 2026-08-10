@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMe, fetchProjects, fetchTask } from "./api";
+import { fetchProjects, fetchTask } from "./api";
+import { useAuth } from "./auth";
 import { CalendarView } from "./components/CalendarView";
 import { HelpOverlay } from "./components/HelpOverlay";
 import { LabelsManagement } from "./components/LabelsManagement";
@@ -24,6 +25,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 function AppInner() {
+  const { user, logout } = useAuth();
   const [view, setView] = useState<ViewSelection>({ type: "inbox" });
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -31,7 +33,6 @@ function AppInner() {
   const searchRef = useRef<SearchBoxHandle>(null);
   const { undo } = useUndoStack();
 
-  const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const projects = projectsQuery.data?.items ?? [];
 
@@ -89,6 +90,8 @@ function AppInner() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [undo]);
 
+  const userLabel = user.display_name ?? user.username ?? user.email;
+
   return (
     <div className="shell">
       <Sidebar view={view} onSelectView={setView} />
@@ -105,9 +108,18 @@ function AppInner() {
           >
             ?
           </button>
-          {me.isSuccess && (
-            <span className="user-chip">{me.data.display_name ?? me.data.email}</span>
-          )}
+          <div className="user-area">
+            <span className="user-chip" title={user.email}>
+              {userLabel}
+            </span>
+            <button
+              type="button"
+              className="btn secondary small logout-btn"
+              onClick={() => void logout()}
+            >
+              Sign out
+            </button>
+          </div>
         </header>
         <div className={`main-body${selectedTaskId ? " with-task-detail" : ""}`}>
           <main className="main-content">

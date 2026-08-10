@@ -14,6 +14,8 @@ import {
   type ThemeOverrideKey,
   type ThemeOverrides,
 } from "../theme";
+import { useAuth } from "../auth";
+import { HouseholdPanel } from "./HouseholdPanel";
 import { Modal } from "./Modal";
 
 interface SettingsPanelProps {
@@ -34,6 +36,7 @@ function effectiveColor(
 }
 
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
+  const { user } = useAuth();
   const [themeId, setThemeId] = useState<ThemeId>(() => loadTheme());
   const [overrides, setOverrides] = useState<ThemeOverrides>(() => loadOverrides());
   const [draftHex, setDraftHex] = useState<Record<ThemeOverrideKey, string>>(() =>
@@ -145,6 +148,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           })}
         </div>
       </section>
+
+      {user.is_admin && <HouseholdPanel currentUserId={user.id} />}
     </Modal>
   );
 }

@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db import get_db
-from app.models import Project, User
+from app.models import Epic, Project, User
 from app.schemas import PaginatedResponse, ProjectCreate, ProjectOut, ProjectUpdate, ReorderRequest
+from app.services.ownership import verify_owned_epic
 from app.services.reorder import batch_reorder_sort_order
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -47,6 +48,8 @@ def create_project(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ProjectOut:
+    if body.epic_id is not None:
+        verify_owned_epic(db, body.epic_id, user)
     project = Project(
         owner_id=user.id,
         title=body.title.strip(),
@@ -94,6 +97,8 @@ def update_project(
 ) -> ProjectOut:
     project = _get_owned_project(db, project_id, user)
     updates = body.model_dump(exclude_unset=True)
+    if "epic_id" in updates and updates["epic_id"] is not None:
+        verify_owned_epic(db, updates["epic_id"], user)
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
     for field, value in updates.items():

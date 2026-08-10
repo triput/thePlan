@@ -51,6 +51,9 @@ def ensure_bootstrap_user(db: Session, *, commit: bool = True) -> User:
         db.add(user)
         db.flush()
 
+    if user is None:
+        raise RuntimeError("Bootstrap user missing and could not be created")
+
     if user.settings is None:
         db.add(UserSettings(owner_id=user.id))
 

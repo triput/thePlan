@@ -26,13 +26,13 @@
 3. API middleware attaches `owner_id` from session or bootstrap default.
 4. No password UI in MVP.
 
-## Wave 1.5 Implementation
+## Wave 1.5 Implementation (shipped)
 
-1. `POST /auth/register` (or setup script) creates additional `users` rows with `password_hash`.
-2. `POST /auth/login` / `POST /auth/logout` with session cookies; session binds `owner_id`.
-3. Optional: Cloudflare Access as reverse-proxy IdP; `password_hash` remains nullable if Access-only.
-4. OAuth tokens for **calendar** providers stored separately in `calendar_accounts` (W2), not user login.
-5. All domain handlers scope queries to session `owner_id`; no cross-owner reads or writes.
+1. `POST /auth/register` claims bootstrap user UUID when no `password_hash` exists yet; sets `is_admin=true`.
+2. `POST /auth/login` / `POST /auth/logout` with signed session cookies; session binds `owner_id`.
+3. Admin `POST /auth/users` for additional household accounts; public registration closed after setup.
+4. Optional demo user `nebula` seeded when `SEED_DEMO_USER=true`; passphrase in gitignored `.secrets-backup/`.
+5. All domain handlers scope queries to session `owner_id`; ownership checks on cross-entity FKs (project epic, task project/section/parent).
 
 ## Security Notes
 

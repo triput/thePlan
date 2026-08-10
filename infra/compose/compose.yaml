@@ -22,6 +22,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://theplan:theplan@postgres:5432/theplan
       CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:8080","http://127.0.0.1:8080"]'
+      SESSION_SECRET: compose-dev-session-secret-change-for-production
+      SEED_DEMO_USER: "true"
     ports:
       - "8000:8000"
     depends_on:

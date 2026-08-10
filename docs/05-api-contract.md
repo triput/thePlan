@@ -2,7 +2,7 @@
 
 Versioned REST API served by FastAPI. Base path: `/api/v1`.
 
-**Auth (MVP):** Local session stub — single bootstrap user; session cookie optional for CSRF. No remote IdP. See [ADR-003-local-first-auth.md](./adr/ADR-003-local-first-auth.md).
+**Auth (W1.5):** Session cookie (Starlette `SessionMiddleware`, signed HttpOnly, SameSite=Lax). First run claims bootstrap user via `POST /auth/register`; household users added by admin only. See [ADR-003-local-first-auth.md](./adr/ADR-003-local-first-auth.md).
 
 **Performance contract:** CRUD endpoints p95 < 50ms on LAN for single-entity writes. CRUD never waits on scheduler.
 
@@ -293,25 +293,44 @@ HTTP 409 — client shows warn-and-allow dialog and retries with chosen `bulk_ch
 
 ---
 
-## Auth Endpoints (W1.5 Stub)
+## Auth Endpoints (W1.5)
 
-Reserved paths; return `501 Not Implemented` in MVP or no-op local bootstrap:
+Session cookie stores `user_id`. Password/passphrase: 12–128 characters, spaces allowed, no complexity rules. Login accepts **username or email** in `identifier`.
 
-| Method | Path | Wave |
-|--------|------|-------|
-| POST | `/auth/login` | W1.5 |
-| POST | `/auth/logout` | W1.5 |
-| GET | `/auth/me` | MVP returns bootstrap user |
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/auth/register` | First-run only (`SETUP_REQUIRED`); claims bootstrap UUID; starts session |
+| POST | `/auth/login` | Body `{ "identifier", "password" }`; generic `401 INVALID_CREDENTIALS` |
+| POST | `/auth/logout` | Clears session; `204` |
+| GET | `/auth/me` | Current user; `401 SETUP_REQUIRED` or `401 UNAUTHENTICATED` |
+| GET | `/auth/users` | Admin: list household users |
+| POST | `/auth/users` | Admin: create household user |
+| PATCH | `/auth/users/{id}` | Admin: update `display_name`, `is_disabled` (cannot disable self) |
 
-MVP `GET /auth/me` response:
+**Register body:**
 
 ```json
 {
-  "id": "uuid",
-  "email": "local@localhost",
-  "display_name": "Local User"
+  "username": "trish",
+  "email": "you@example.com",
+  "password": "correct horse battery staple",
+  "display_name": "Trish"
 }
 ```
+
+**`GET /auth/me` response:**
+
+```json
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "username": "trish",
+  "email": "you@example.com",
+  "display_name": "Trish",
+  "is_admin": true
+}
+```
+
+**Error codes:** `SETUP_REQUIRED`, `SETUP_COMPLETE`, `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `USERNAME_TAKEN`, `EMAIL_TAKEN`, `FORBIDDEN`, `CANNOT_DISABLE_SELF`
 
 ---
 

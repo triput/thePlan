@@ -1,20 +1,35 @@
+import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import auth, epics, labels, projects, quick_add, scheduled_blocks, search, sections, tasks
 from app.api.errors import register_exception_handlers
 from app.bootstrap import ensure_bootstrap_user
 from app.config import get_settings
 from app.db import SessionLocal
+from app.services.demo_seed import ensure_demo_nebula
+
+logger = logging.getLogger(__name__)
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    settings = get_settings()
     db = SessionLocal()
     try:
         ensure_bootstrap_user(db)
+        if settings.seed_demo_user:
+            ensure_demo_nebula(
+                db,
+                repo_root=_REPO_ROOT,
+                configured_password=settings.demo_nebula_password,
+            )
     finally:
         db.close()
     yield
@@ -25,6 +40,13 @@ def create_app() -> FastAPI:
     app = FastAPI(title="thePlan API", version="0.1.0", lifespan=lifespan)
     register_exception_handlers(app)
 
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret,
+        max_age=settings.session_max_age_seconds,
+        same_site="lax",
+        https_only=settings.session_https_only,
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

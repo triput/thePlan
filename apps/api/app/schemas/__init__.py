@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.enums import ScheduleStatus, TaskPriority
 
@@ -10,8 +10,46 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    username: str | None
     email: str
     display_name: str | None
+    is_admin: bool = False
+
+
+class AuthRegisterBody(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    email: EmailStr
+    password: str = Field(min_length=12, max_length=128)
+    display_name: str | None = Field(default=None, max_length=255)
+
+
+class AuthLoginBody(BaseModel):
+    identifier: str = Field(min_length=1, max_length=255)
+    password: str = Field(min_length=1, max_length=128)
+
+
+class AuthUserAdminOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    username: str | None
+    email: str
+    display_name: str | None
+    is_admin: bool
+    is_disabled: bool
+
+
+class AuthUserAdminCreate(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    email: EmailStr
+    password: str = Field(min_length=12, max_length=128)
+    display_name: str | None = Field(default=None, max_length=255)
+    is_admin: bool = False
+
+
+class AuthUserAdminUpdate(BaseModel):
+    display_name: str | None = Field(default=None, max_length=255)
+    is_disabled: bool | None = None
 
 
 class EpicCreate(BaseModel):
