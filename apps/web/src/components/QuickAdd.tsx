@@ -120,30 +120,34 @@ export const QuickAdd = forwardRef<QuickAddHandle, QuickAddProps>(function Quick
 
   return (
     <div className="quick-add">
-      <form onSubmit={handleSubmit}>
-        <input
-          ref={inputRef}
-          type="text"
-          className="quick-add-input"
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            setPreview(null);
-          }}
-          placeholder="Quick add task…"
-          aria-label="Quick add task"
-        />
-        <kbd className="quick-add-kbd" title="Focus with Q">
-          Q
-        </kbd>
-      </form>
-      {preview && <ParseChips parsed={preview} />}
-      <p className="quick-add-hint">
-        Try: <code>Draft spec 1.5h p1 tomorrow #Project</code>
-      </p>
-      {createMutation.isError && (
-        <p className="form-error">{(createMutation.error as Error).message}</p>
-      )}
+      <div className="quick-add-primary">
+        <form onSubmit={handleSubmit}>
+          <input
+            ref={inputRef}
+            type="text"
+            className="quick-add-input"
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              setPreview(null);
+            }}
+            placeholder="Quick add task…"
+            aria-label="Quick add task"
+          />
+          <kbd className="quick-add-kbd" title="Focus with Q">
+            Q
+          </kbd>
+        </form>
+      </div>
+      <div className="quick-add-meta">
+        {preview && <ParseChips parsed={preview} />}
+        <p className="quick-add-hint">
+          Try: <code>Draft spec 1.5h p1 tomorrow #Project</code>
+        </p>
+        {createMutation.isError && (
+          <p className="form-error">{(createMutation.error as Error).message}</p>
+        )}
+      </div>
     </div>
   );
 });
