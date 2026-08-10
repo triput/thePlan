@@ -15,7 +15,16 @@ from app.services.demo_seed import ensure_demo_nebula
 
 logger = logging.getLogger(__name__)
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+def _resolve_repo_root() -> Path:
+    """Local: ThePlan/; Docker (/app/app/main.py): /app."""
+    api_root = Path(__file__).resolve().parents[1]
+    if api_root.parent.name == "apps":
+        return api_root.parents[1]
+    return api_root
+
+
+_REPO_ROOT = _resolve_repo_root()
 
 
 @asynccontextmanager
