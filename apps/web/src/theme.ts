@@ -3,7 +3,11 @@ export type ThemeId =
   | "solarized-dark"
   | "light"
   | "solarized-light"
-  | "black";
+  | "black"
+  | "forest"
+  | "midnight"
+  | "amethyst"
+  | "garnet";
 
 export type ThemeTokenKey =
   | "bg"
@@ -146,6 +150,78 @@ export const THEME_PRESETS: ThemePreset[] = [
       error: "#FB7185",
       sidebar: "#121214",
       danger: "#FB7185",
+    },
+  },
+  {
+    id: "forest",
+    label: "Forest",
+    colorScheme: "light",
+    tokens: {
+      bg: "#F1F6F2",
+      panel: "#FFFFFF",
+      panelHover: "#E4EDE6",
+      border: "#C5D4C9",
+      text: "#1A2E24",
+      textMuted: "#5A6F62",
+      accent: "#1F6B45",
+      accentHover: "#175536",
+      error: "#A33B4A",
+      sidebar: "#FFFFFF",
+      danger: "#A33B4A",
+    },
+  },
+  {
+    id: "midnight",
+    label: "Midnight",
+    colorScheme: "light",
+    tokens: {
+      bg: "#F1F4F9",
+      panel: "#FFFFFF",
+      panelHover: "#E4EAF3",
+      border: "#C4CEDD",
+      text: "#1A2438",
+      textMuted: "#5A6578",
+      accent: "#1E3A5F",
+      accentHover: "#152A46",
+      error: "#A33B4A",
+      sidebar: "#FFFFFF",
+      danger: "#A33B4A",
+    },
+  },
+  {
+    id: "amethyst",
+    label: "Amethyst",
+    colorScheme: "light",
+    tokens: {
+      bg: "#F6F3F9",
+      panel: "#FFFFFF",
+      panelHover: "#EBE5F2",
+      border: "#D0C6DB",
+      text: "#241830",
+      textMuted: "#6A5B78",
+      accent: "#5B2C6F",
+      accentHover: "#472257",
+      error: "#A33B4A",
+      sidebar: "#FFFFFF",
+      danger: "#A33B4A",
+    },
+  },
+  {
+    id: "garnet",
+    label: "Garnet",
+    colorScheme: "light",
+    tokens: {
+      bg: "#F9F4F3",
+      panel: "#FFFFFF",
+      panelHover: "#F0E6E5",
+      border: "#D9C8C6",
+      text: "#2A1C1C",
+      textMuted: "#6F5B5A",
+      accent: "#7A3038",
+      accentHover: "#5F252C",
+      error: "#8B3A42",
+      sidebar: "#FFFFFF",
+      danger: "#8B3A42",
     },
   },
 ];

@@ -70,15 +70,21 @@ Borrowed from Phronesis due/status tokens for familiarity across the suite:
 
 ## Chrome themes (shipped)
 
-**thePlan web** exposes five named presets in Settings. Default on first load: **Dark** (Phronesis Hybrid Dark tokens). Overrides persist under `theplan.theme` and `theplan.theme.overrides`.
+**thePlan web** exposes nine named presets in Settings. Default on first load: **Dark** (Phronesis Hybrid Dark tokens). Overrides persist under `theplan.theme` and `theplan.theme.overrides`.
 
-| Preset | Source | `--bg` | `--panel` | `--accent` | `--text` | `--error` |
-|--------|--------|--------|-----------|------------|----------|-----------|
-| Dark | Phronesis hybrid | `#0B0F19` | `#121827` | `#059669` | `#E6EAF2` | `#F87171` |
-| Solarized Dark | Phronesis | `#002B36` | `#073642` | `#A57BD5` | `#DDE5D8` | `#E34E80` |
-| Light | Phronesis | `#F5F7FB` | `#FFFFFF` | `#8E5FC0` | `#1B2430` | `#C90F56` |
-| Solarized Light | Phronesis | `#FDF6E3` | `#EEE8D5` | `#7F53B3` | `#334155` | `#B2185B` |
-| Black | Synesis | `#0A0A0C` | `#121214` | `#C084FC` | `#E8E8EC` | `#FB7185` |
+| Preset | Shell | `--bg` | `--panel` | `--accent` | `--text` | `--error` |
+|--------|-------|--------|-----------|------------|----------|-----------|
+| Dark | dark | `#0B0F19` | `#121827` | `#059669` | `#E6EAF2` | `#F87171` |
+| Solarized Dark | dark | `#002B36` | `#073642` | `#A57BD5` | `#DDE5D8` | `#E34E80` |
+| Light | light | `#F5F7FB` | `#FFFFFF` | `#8E5FC0` | `#1B2430` | `#C90F56` |
+| Solarized Light | light | `#FDF6E3` | `#EEE8D5` | `#7F53B3` | `#334155` | `#B2185B` |
+| Black | dark | `#0A0A0C` | `#121214` | `#C084FC` | `#E8E8EC` | `#FB7185` |
+| Forest | light | `#F1F6F2` | `#FFFFFF` | `#1F6B45` | `#1A2E24` | `#A33B4A` |
+| Midnight | light | `#F1F4F9` | `#FFFFFF` | `#1E3A5F` | `#1A2438` | `#A33B4A` |
+| Amethyst | light | `#F6F3F9` | `#FFFFFF` | `#5B2C6F` | `#241830` | `#A33B4A` |
+| Garnet | light | `#F9F4F3` | `#FFFFFF` | `#7A3038` | `#2A1C1C` | `#8B3A42` |
+
+Accent-led light packs (Forest / Midnight / Amethyst / Garnet) keep a pale tinted shell; the named color is the chrome accent, not a dark background.
 
 CSS variables also include `--panel-hover`, `--border`, `--text-muted`, `--accent-hover`, `--sidebar`, and `--danger`. Sister-app reference tables:
 
