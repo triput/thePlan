@@ -146,10 +146,11 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 | Temp / forced password reset | Admin sets temporary password; user must change on next login (P3 from W1.5) |
 | Admin full profile edit | Admin may change any household user’s data **except username** (email, display name, password, disable, admin flag as already allowed) |
 | Self-service account settings | Signed-in user manages **own** password, email, and display name (screen name) |
+| Intraday / multi-occurrence habits | Multiple dues in one day (meds, physical activity): e.g. `every day at 8am, 2pm, 8pm` or `3× daily`. Likely mostly **quick-add / NL + BYHOUR (or equivalent)**, not a new rollover model — still same-task advance. Candidate for W3 or a later habit/NL wave if W3 splits |
 
 ### Wave size note
 
-W3 is accumulating desktop + SLM + calendars + account UX + deferred W1.5 leftovers. Before W3 planning starts in earnest, **consider splitting a Wave 4** (e.g. account/profile polish + import/reminders leftovers vs. SLM/Tauri/MS Calendar as the intelligence/desktop wave). No commitment yet — flag only.
+W3 is accumulating desktop + SLM + calendars + account UX + deferred W1.5 leftovers + habit/NL recurrence polish. Before W3 planning starts in earnest, **consider splitting a Wave 4** (e.g. account/profile + import/reminders/habits vs. SLM/Tauri/MS Calendar). No commitment yet — flag only.
 
 ### Desktop Bundle Strategy
 

@@ -41,6 +41,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Task dependencies | W2 | Schema in MVP; enforced by scheduler W2 |
 | Recurring due dates (`every`, `every!`) | W1.5 | Same-task rollover; limited frames (`starts_on`/`ends_on`); multi-weekday |
 | Quick-add recurrence tokens | W1.5 | `every` / `every!` + from/until frame phrases |
+| Intraday multi-occurrence (habits) | W3+ | Multiple times per day; likely NL/`BYHOUR` on existing engine — consider Wave 4 if W3 splits |
 | Subtask inheritance | MVP | Nesting rules only; scheduler inheritance W2 |
 
 ### Labels & Filters
@@ -250,7 +251,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect, task soft-delete + session restore.
 
-**Defer to W3:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice input, email-to-task, templates; Todoist import; admin full profile edit (except username); self-service password/email/display name; temp/forced password reset. W3 is crowding — consider a Wave 4 split before planning starts.
+**Defer to W3:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice input, email-to-task, templates; Todoist import; admin full profile edit (except username); self-service password/email/display name; temp/forced password reset; intraday multi-occurrence habits (likely NL/`BYHOUR` on existing recurrence). W3 is crowding — consider a Wave 4 split before planning starts.
 
 **Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors (and related inbound/outbound webhooks as needed); Notion / Obsidian deep links or light sync (possible late W3 if cheap, otherwise post-W3); task handoff between household accounts (discussion item only). Not in W1–W2 scope.
 

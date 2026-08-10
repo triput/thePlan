@@ -123,6 +123,7 @@ Last destructive mutation (complete, delete, move) is undoable within a session 
 - Limited frames: optional start/end dates (inclusive). When no next occurrence remains, complete finishes the series.
 - Quick-add tokens: `every monday, wednesday from 8/30 to 9/20`, `every! 2 weeks from next week until end of year`.
 - Clear recurrence in task detail, then complete, to end an unbounded series early.
+- **Backlog (W3+):** multiple occurrences per calendar day (medications, activity) — e.g. several clock times or `N× daily`. Expect this to be mostly **natural-language / quick-add + intraday RRULE pieces** on the same rollover model, not a separate recurrence architecture. May land in a habit/NL wave if W3 is split.
 
 ### Completed Task Retention
 
