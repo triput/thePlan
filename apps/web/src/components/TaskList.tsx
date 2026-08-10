@@ -5,6 +5,7 @@ import {
   completeTask,
   createTask,
   fetchLabels,
+  fetchScheduledBlocks,
   fetchSections,
   fetchTasks,
   reorderSections,
@@ -17,10 +18,13 @@ import {
 import { PRIORITY_COLORS } from "../colors";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
 import {
+  endOfLocalDay,
   formatDue,
   formatDuration,
   isToday,
   isUpcoming,
+  rangeOverlapsLocalDay,
+  startOfLocalDay,
   viewKey,
   type ViewSelection,
 } from "../view";
@@ -86,6 +90,29 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
     },
   });
 
+  const smartRange = useMemo(() => {
+    if (view.type === "today") {
+      return { start: startOfLocalDay(new Date()), end: endOfLocalDay(new Date()) };
+    }
+    if (view.type === "upcoming") {
+      const start = endOfLocalDay(new Date());
+      const end = startOfLocalDay(new Date());
+      end.setDate(end.getDate() + 8);
+      return { start, end };
+    }
+    return null;
+  }, [view.type]);
+
+  const blocksQuery = useQuery({
+    queryKey: ["scheduled-blocks", viewKey(view), smartRange?.start.toISOString()],
+    queryFn: () =>
+      fetchScheduledBlocks({
+        start: smartRange!.start.toISOString(),
+        end: smartRange!.end.toISOString(),
+      }),
+    enabled: smartRange !== null,
+  });
+
   const sectionsQuery = useQuery({
     queryKey: ["sections", view.type === "project" ? view.projectId : null],
     queryFn: () => fetchSections(view.type === "project" ? view.projectId : ""),
@@ -95,13 +122,19 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
   const tasks = useMemo(() => {
     const items = tasksQuery.data?.items ?? [];
     if (view.type === "today") {
-      return items.filter((t) => isToday(t.due_at));
+      const scheduledIds = new Set(
+        (blocksQuery.data?.items ?? [])
+          .filter((b) => rangeOverlapsLocalDay(b.start_time, b.end_time, new Date()))
+          .map((b) => b.task_id),
+      );
+      return items.filter((t) => isToday(t.due_at) || scheduledIds.has(t.id));
     }
     if (view.type === "upcoming") {
-      return items.filter((t) => isUpcoming(t.due_at));
+      const scheduledIds = new Set((blocksQuery.data?.items ?? []).map((b) => b.task_id));
+      return items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
     }
     return items;
-  }, [tasksQuery.data, view.type]);
+  }, [tasksQuery.data, blocksQuery.data, view.type]);
 
   const selectedTask = selectedTaskId ? (tasks.find((t) => t.id === selectedTaskId) ?? null) : null;
 

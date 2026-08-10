@@ -56,8 +56,8 @@ System-provided named filters backed by `saved_filters` with `is_system = TRUE`.
 | View | Predicate (conceptual) |
 |------|------------------------|
 | **Inbox** | `project_id IS NULL AND is_completed = FALSE` |
-| **Today** | `due_at` falls on user's local calendar today AND `is_completed = FALSE` |
-| **Upcoming** | `due_at` within next 7 days (configurable horizon later) AND `is_completed = FALSE`, sorted by due |
+| **Today** | Incomplete tasks that belong on today's local calendar: `due_at` falls on today **or** any `scheduled_block` overlaps today. Scheduling onto today (calendar) is enough — due/deadline not required. |
+| **Upcoming** | Incomplete tasks with `due_at` in the next N days after today (default 7) **or** a `scheduled_block` overlapping that window, sorted by soonest due/block start |
 | **By Project** | Filter to selected project; optional section grouping |
 | **By Epic** | All tasks in projects linked to selected epic |
 | **By Label** | Tasks with selected label |

@@ -50,32 +50,52 @@ export function viewTitle(
 
 export function isToday(iso: string | null): boolean {
   if (!iso) return false;
+  return isSameLocalDay(new Date(iso), new Date());
+}
+
+export function isUpcoming(iso: string | null, horizonDays = 7): boolean {
+  if (!iso) return false;
   const due = new Date(iso);
-  const now = new Date();
+  const start = startOfLocalDay(new Date());
+  start.setDate(start.getDate() + 1);
+  const end = startOfLocalDay(new Date());
+  end.setDate(end.getDate() + 1 + horizonDays);
+  return due >= start && due < end;
+}
+
+export function startOfLocalDay(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+export function endOfLocalDay(d: Date): Date {
+  const x = startOfLocalDay(d);
+  x.setDate(x.getDate() + 1);
+  return x;
+}
+
+export function isSameLocalDay(a: Date, b: Date): boolean {
   return (
-    due.getFullYear() === now.getFullYear() &&
-    due.getMonth() === now.getMonth() &&
-    due.getDate() === now.getDate()
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
   );
 }
 
-export function isUpcoming(iso: string | null): boolean {
-  if (!iso) return false;
-  const due = new Date(iso);
-  const endOfToday = new Date();
-  endOfToday.setHours(23, 59, 59, 999);
-  return due > endOfToday;
+/** True if [start, end) overlaps the local calendar day of `day`. */
+export function rangeOverlapsLocalDay(startIso: string, endIso: string, day: Date): boolean {
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  const dayStart = startOfLocalDay(day);
+  const dayEnd = endOfLocalDay(day);
+  return start < dayEnd && end > dayStart;
 }
 
 export function formatDue(iso: string | null): string {
   if (!iso) return "";
   const due = new Date(iso);
-  const now = new Date();
-  const sameDay =
-    due.getFullYear() === now.getFullYear() &&
-    due.getMonth() === now.getMonth() &&
-    due.getDate() === now.getDate();
-  if (sameDay) {
+  if (isToday(iso)) {
     return due.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
   return due.toLocaleDateString(undefined, { month: "short", day: "numeric" });

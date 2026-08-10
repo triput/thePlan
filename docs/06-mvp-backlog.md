@@ -155,9 +155,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Lists incomplete tasks with due_at on user's local calendar today
+- [ ] Lists incomplete tasks with `due_at` on today's local calendar **or** a `scheduled_block` overlapping today (calendar-planned work counts even without due/deadline)
 - [ ] Respects user_settings.timezone for "today" boundary
-- [ ] Sorted by due time then priority
+- [ ] Sorted by due time / block start then priority
 
 ### US-5.2: Upcoming
 
@@ -165,7 +165,7 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Lists incomplete tasks with due_at within upcoming_horizon_days (default 7)
+- [ ] Lists incomplete tasks with `due_at` within upcoming_horizon_days (default 7) after today **or** a `scheduled_block` in that window
 - [ ] Grouped or sorted by date
 
 ### US-5.3: By Project / Epic / Label
