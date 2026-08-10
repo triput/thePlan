@@ -14,7 +14,7 @@ PostgreSQL relational schema for the application. Executable DDL: [sql/001_basel
 | Ownership | `owner_id UUID NOT NULL` on all domain tables |
 | Soft delete | Use `is_archived` (epics/projects) or status flags; no row-level soft delete in MVP |
 | Naming | snake_case tables and columns |
-| Colors | `#RRGGBB` hex strings, 7 chars |
+| Colors | `#RRGGBB` hex strings, 7 chars; presets in [08-color-palette.md](./08-color-palette.md) |
 
 ---
 
@@ -105,8 +105,7 @@ One row per user.
 | owner_id | UUID FK | |
 | title | VARCHAR(255) | |
 | description | TEXT | |
-| color_hex | VARCHAR(7) | |
-| start_date, target_date | DATE | Initiative bounds |
+| color_hex | VARCHAR(7) | Default `#6D3FC9` — see [08-color-palette.md](./08-color-palette.md) |
 | sort_order | INT | |
 | is_archived | BOOLEAN | |
 
@@ -119,8 +118,7 @@ One row per user.
 | owner_id | UUID FK | |
 | epic_id | UUID FK nullable | ON DELETE SET NULL |
 | title, description | | |
-| color_hex | VARCHAR(7) | |
-| sort_order, is_archived | | |
+| color_hex | VARCHAR(7) | Default `#0A8558` |
 
 **Indexes:** `(owner_id)`, `(epic_id)`, `(owner_id, is_archived)`
 
@@ -187,7 +185,7 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 
 ### labels / task_labels
 
-**labels:** `(owner_id, name)` unique.
+**labels:** `(owner_id, name)` unique; `color_hex` default `#635F75` (charcoal).
 
 **task_labels:** composite PK `(task_id, label_id)`.
 

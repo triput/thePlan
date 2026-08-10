@@ -46,7 +46,7 @@ All list endpoints scope to authenticated `owner_id`.
 {
   "title": "Q3 Infrastructure",
   "description": "Platform hardening",
-  "color_hex": "#3B82F6",
+  "color_hex": "#6D3FC9",
   "start_date": "2026-07-01",
   "target_date": "2026-09-30"
 }

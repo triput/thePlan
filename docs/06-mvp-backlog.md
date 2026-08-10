@@ -131,13 +131,14 @@ User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracke
 
 ### US-4.2: Color presets
 
-**As a** user, **I want** Todoist-like color presets plus custom hex **so that** epics and projects look familiar.
+**As a** user, **I want** Synesis/Phronesis-aligned color presets plus custom hex **so that** epics, projects, and labels match my suite.
 
 **Acceptance criteria:**
 
-- [ ] Preset palette available in color picker for epics/projects
+- [ ] Color picker offers the named presets in [08-color-palette.md](./08-color-palette.md) (teal through slate)
 - [ ] Custom `#RRGGBB` input accepted and stored
 - [ ] Invalid hex rejected with validation message
+- [ ] New epics/projects/labels use documented defaults (`#6D3FC9` / `#0A8558` / `#635F75`) unless overridden
 
 ---
 

@@ -45,7 +45,8 @@ Todoist + SkedPal feature harvest with phase tags. This catalog formalizes parit
 | Feature | Phase | Notes |
 |---------|-------|-------|
 | Labels (many-to-many) | MVP | |
-| Label colors | MVP | |
+| Label colors | MVP | Presets in 08-color-palette |
+| Epic/project color presets | MVP | Synesis/Phronesis-aligned + custom hex |
 | Fixed smart views (Inbox, Today, Upcoming) | MVP | System saved_filters |
 | Smart view by Project | MVP | |
 | Smart view by Epic | MVP | |

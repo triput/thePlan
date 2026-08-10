@@ -13,6 +13,9 @@
 | [05-api-contract.md](./05-api-contract.md) | Versioned REST API for MVP resources |
 | [06-mvp-backlog.md](./06-mvp-backlog.md) | Phase 1 user stories and exit criteria |
 | [07-phase-roadmap.md](./07-phase-roadmap.md) | MVP → P1.5 → P2 → P3 roadmap |
+| [08-color-palette.md](./08-color-palette.md) | Entity presets + status accents (Synesis/Phronesis-aligned) |
+
+**Status:** Wave 1 docs package complete. Next when requested: git/GitHub, then code scaffold (Wave 0/2).
 
 ## SQL & ADRs
 

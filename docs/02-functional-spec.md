@@ -128,11 +128,15 @@ Completed tasks are retained indefinitely. Default list views hide completed ite
 - Label attributes: name (unique per owner), color_hex.
 - Assign/remove via task detail UI and quick-add (future token support in P1.5).
 
-### Colors (Epic & Project)
+### Colors (Epic & Project & Label)
 
-- **Preset palette** — Todoist-like named colors (red, orange, yellow, green, teal, blue, purple, charcoal, etc.) mapped to hex values in client constants.
-- **Custom hex** — user may enter any `#RRGGBB` value.
-- Stored as `color_hex VARCHAR(7)` on epics and projects.
+Canonical swatches: [08-color-palette.md](./08-color-palette.md).
+
+- **Preset palette** — Synesis/Phronesis-derived named hexes (teal, emerald, mint, azure, violet, coral, amber, charcoal, etc.) in client constants; a few extras for breadth.
+- **Custom hex** — any `#RRGGBB` (7 chars) always allowed.
+- **Defaults:** epic `#6D3FC9`, project `#0A8558`, label `#635F75`.
+- Stored as `color_hex VARCHAR(7)` on epics, projects, and labels.
+- Priority and due/overdue accents are fixed UI tokens (see palette doc), not user entity colors.
 
 ---
 

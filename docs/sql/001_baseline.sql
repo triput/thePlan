@@ -62,7 +62,7 @@ CREATE TABLE epics (
     owner_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title           VARCHAR(255) NOT NULL,
     description     TEXT,
-    color_hex       VARCHAR(7) NOT NULL DEFAULT '#3B82F6',
+    color_hex       VARCHAR(7) NOT NULL DEFAULT '#6D3FC9',  -- violet (Synesis amethyst)
     start_date      DATE,
     target_date     DATE,
     sort_order      INT NOT NULL DEFAULT 0,
@@ -77,7 +77,7 @@ CREATE TABLE projects (
     epic_id         UUID REFERENCES epics(id) ON DELETE SET NULL,
     title           VARCHAR(255) NOT NULL,
     description     TEXT,
-    color_hex       VARCHAR(7) NOT NULL DEFAULT '#10B981',
+    color_hex       VARCHAR(7) NOT NULL DEFAULT '#0A8558',  -- emerald (Synesis/Phronesis)
     sort_order      INT NOT NULL DEFAULT 0,
     is_archived     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -156,7 +156,7 @@ CREATE TABLE labels (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     owner_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name            VARCHAR(100) NOT NULL,
-    color_hex       VARCHAR(7) NOT NULL DEFAULT '#6B7280',
+    color_hex       VARCHAR(7) NOT NULL DEFAULT '#635F75',  -- charcoal (Synesis muted)
     created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT labels_owner_name_unique UNIQUE (owner_id, name)

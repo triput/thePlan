@@ -50,7 +50,7 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 ## MVP Scope Summary
 
-**In:** Full hierarchy CRUD, labels, fixed smart views (Inbox, Today, Upcoming, by Project/Epic/Label), calendar view (day/week), quick-add parser, search, undo, local Compose stack, local-only auth.
+**In:** Full hierarchy CRUD, labels, Synesis/Phronesis-aligned color presets ([08-color-palette.md](./08-color-palette.md)), fixed smart views (Inbox, Today, Upcoming, by Project/Epic/Label), calendar view (day/week), quick-add parser, search, undo, local Compose stack, local-only auth.
 
 **Out of MVP:** Auto-scheduler, external calendar sync, recurrence engine, login/remote auth, board/Kanban, teams, gamification, SLM assist, desktop client.
 
