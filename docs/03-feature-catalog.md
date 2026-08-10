@@ -109,7 +109,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Todoist CSV/JSON import | W1.5 | Soon after MVP |
+| Todoist CSV/JSON import | W3 | Deferred from W1.5 (stale upstream); CSV/JSON → hierarchy |
 | Google Calendar sync | W2 | Bidirectional |
 | Microsoft Calendar sync | W3 | |
 | iCloud calendar | Out | Unless reopened |
@@ -224,8 +224,11 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Docker Desktop (Windows default) | MVP | ADR-004 |
 | Podman-compatible Compose | MVP | Alternate runtime |
 | Local-only auth | MVP | ADR-003 |
-| Password login | W1.5 | |
+| Password login | W1.5 | Admin can already set any user’s password |
 | Multi-account household login | W1.5 | N personal `users` rows; same URI; `owner_id` isolation — not teams ([ADR-002](./adr/ADR-002-single-user.md)) |
+| Admin full profile edit (except username) | W3 | Email, display name, password, disable; username immutable |
+| Self-service account settings | W3 | User manages own password, email, display name |
+| Temp / forced password reset | W3 | Admin sets temp password; must change on next login |
 | Cloudflare Tunnel remote access | W1.5+ | Post-MVP hosting |
 | Cloudflare Access | W1.5 | Optional IdP |
 | pg_dump backup one-liner | MVP | Documented in root README |
@@ -242,11 +245,11 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows.
 
-**Defer to W1.5:** Epic aggregate smart view, show-completed toggle, calendar drag, recurrence engine, import, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune); scheduled pg_dump script; calendar month view (optional).
+**Defer to W1.5:** Epic aggregate smart view, show-completed toggle, calendar drag, recurrence engine, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune); scheduled pg_dump script; calendar month view (optional).
 
 **Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect, task soft-delete + session restore.
 
-**Defer to W3:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice input, email-to-task, templates.
+**Defer to W3:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice input, email-to-task, templates; Todoist import; admin full profile edit (except username); self-service password/email/display name; temp/forced password reset. W3 is crowding — consider a Wave 4 split before planning starts.
 
 **Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors (and related inbound/outbound webhooks as needed); Notion / Obsidian deep links or light sync (possible late W3 if cheap, otherwise post-W3); task handoff between household accounts (discussion item only). Not in W1–W2 scope.
 

@@ -61,7 +61,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Feature | Notes |
 |---------|-------|
 | Recurrence engine | `every` / `every!` semantics; quick-add tokens |
-| Todoist import | CSV/JSON export → hierarchy mapping |
+| ~~Todoist import~~ | **Deferred to W3** (stale upstream data; not needed for daily driver) |
 | Time-based reminders | In-app + optional browser Notification API |
 | Login / remote-ready auth | Password session and/or Cloudflare Access |
 | Backup script | Scheduled pg_dump optional |
@@ -142,6 +142,14 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 | Voice input | Priority-3 backlog; no sooner than W2; likely W3 |
 | Email-to-task | Same as voice; not before W2; likely W3 |
 | Templates | Backlog nice-to-have; low priority; maybe later |
+| Todoist import | Deferred from W1.5 (stale upstream data); CSV/JSON → hierarchy |
+| Temp / forced password reset | Admin sets temporary password; user must change on next login (P3 from W1.5) |
+| Admin full profile edit | Admin may change any household user’s data **except username** (email, display name, password, disable, admin flag as already allowed) |
+| Self-service account settings | Signed-in user manages **own** password, email, and display name (screen name) |
+
+### Wave size note
+
+W3 is accumulating desktop + SLM + calendars + account UX + deferred W1.5 leftovers. Before W3 planning starts in earnest, **consider splitting a Wave 4** (e.g. account/profile polish + import/reminders leftovers vs. SLM/Tauri/MS Calendar as the intelligence/desktop wave). No commitment yet — flag only.
 
 ### Desktop Bundle Strategy
 
