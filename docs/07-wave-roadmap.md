@@ -68,7 +68,11 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Cloudflare Tunnel | Template for remote access to home host |
 | Label delete reassign/migrate | On prune: optionally bulk-apply other label(s) to affected tasks before removing the deleted label |
 | Multi-account login (household) | Multiple `users` rows on one deployment; login selects account; domain queries filter `owner_id` — not teams/workspaces ([ADR-002](./adr/ADR-002-single-user.md) amendment) |
+| Admin account + user management | First claimed account is admin; admin can list/create/disable household users (not team RBAC) |
+| Demo seed account `nebula` | Non-admin test user with rich fixture data; passphrase stored only in gitignored `.secrets-backup/` |
 | Task soft-delete + restore | **Optional if cheap during auth work** — else defer to W2; see [04-data-schema.md](./04-data-schema.md) |
+
+**Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128; no complexity theater). Login by **username or email**. First registration **claims** the bootstrap user in place (preserves existing data UUID). Subsequent household accounts require an authenticated session (or admin create). Hygiene gate: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
 
 ### Auth Progression
 
@@ -192,11 +196,11 @@ Not scheduled in W1–W3; park here for later reconsideration:
 
 Run before each major version's feature waves:
 
-- [ ] Pin Python, Node, Postgres image versions
-- [ ] Audit FastAPI, SQLAlchemy, Alembic, Vite, React majors
-- [ ] Review container base image CVEs
-- [ ] Update doc pins and ADR references
-- [ ] Record quick-scan or full pass in version notes
+- [x] Pin Python, Node, Postgres image versions — [W1.5 quick scan](./HYGIENE-W1.5-QUICKSCAN.md) (2026-08-10)
+- [x] Audit FastAPI, SQLAlchemy, Alembic, Vite, React majors — spot check in same note
+- [ ] Review container base image CVEs — deferred to next **full** hygiene wave
+- [x] Update doc pins and ADR references — Wave 1 exit + this scan
+- [x] Record quick-scan or full pass in version notes — `docs/HYGIENE-W1.5-QUICKSCAN.md`
 
 ---
 
