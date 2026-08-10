@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, epics, labels, projects, quick_add, scheduled_blocks, sections, tasks
+from app.api.routes import auth, epics, labels, projects, quick_add, scheduled_blocks, search, sections, tasks
 from app.api.errors import register_exception_handlers
 from app.bootstrap import ensure_bootstrap_user
 from app.config import get_settings
@@ -46,6 +46,7 @@ def create_app() -> FastAPI:
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)
     api_router.include_router(scheduled_blocks.router)
+    api_router.include_router(search.router)
     app.include_router(api_router)
     return app
 

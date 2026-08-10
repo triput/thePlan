@@ -136,6 +136,8 @@ export interface TaskCreate {
   parent_task_id?: string | null;
   priority?: TaskPriority;
   due_at?: string | null;
+  deadline_at?: string | null;
+  soft_target_at?: string | null;
   estimated_duration_minutes?: number;
   label_ids?: string[];
 }
@@ -339,6 +341,21 @@ export function updateSection(sectionId: string, body: SectionUpdate) {
 
 export function deleteSection(sectionId: string) {
   return apiFetch<void>(`/api/v1/sections/${sectionId}`, { method: "DELETE" });
+}
+
+export interface SearchTask extends Task {
+  project_title: string | null;
+  labels: { id: string; name: string; color_hex: string }[];
+}
+
+export function searchTasks(q: string, limit?: number) {
+  return apiFetchUrl<PaginatedResponse<SearchTask>>(
+    buildUrl("/api/v1/search", { q, limit }),
+  );
+}
+
+export function fetchTask(taskId: string) {
+  return apiFetch<Task>(`/api/v1/tasks/${taskId}`);
 }
 
 export function fetchTasks(params?: {

@@ -15,6 +15,7 @@ import {
   type Section,
   type Task,
 } from "../api";
+import { fetchOpenDescendantIds, useUndoStack } from "../undoStack";
 import { PRIORITY_COLORS } from "../colors";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
 import {
@@ -32,11 +33,12 @@ import { CompleteDialog } from "./CompleteDialog";
 import { CreateSectionForm } from "./CreateSectionForm";
 import { EditSectionForm } from "./EditSectionForm";
 import { ReorderButtons } from "./ReorderButtons";
-import { TaskDetailPanel } from "./TaskDetailPanel";
 
 interface TaskListProps {
   view: ViewSelection;
   projectTitle?: string;
+  selectedTaskId: string | null;
+  onSelectTask: (taskId: string | null) => void;
 }
 
 interface PendingComplete {
@@ -45,13 +47,18 @@ interface PendingComplete {
   openCount: number;
 }
 
-export function TaskList({ view, projectTitle }: TaskListProps) {
+export function TaskList({
+  view,
+  projectTitle,
+  selectedTaskId,
+  onSelectTask,
+}: TaskListProps) {
   const queryClient = useQueryClient();
+  const { push } = useUndoStack();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [subtaskParentId, setSubtaskParentId] = useState<string | null>(null);
   const [subtaskTitle, setSubtaskTitle] = useState("");
   const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
 
   const labelsQuery = useQuery({
@@ -136,8 +143,6 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
     return items;
   }, [tasksQuery.data, blocksQuery.data, view.type]);
 
-  const selectedTask = selectedTaskId ? (tasks.find((t) => t.id === selectedTaskId) ?? null) : null;
-
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
   };
@@ -154,6 +159,7 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
     }: {
       taskId: string;
       body?: { bulk_children?: boolean; force_parent_only?: boolean };
+      undoTaskIds?: string[];
     }) => completeTask(taskId, body ?? {}),
     onMutate: async ({ taskId }) => {
       const key = ["tasks", viewKey(view)];
@@ -174,12 +180,22 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
         queryClient.setQueryData(context.key, context.previous);
       }
     },
+    onSuccess: (_data, { taskId, undoTaskIds, body }) => {
+      if (body?.bulk_children && undoTaskIds && undoTaskIds.length > 1) {
+        push({ type: "bulk_complete", taskIds: undoTaskIds });
+      } else {
+        push({ type: "complete", taskId });
+      }
+    },
     onSettled: invalidateTasks,
   });
 
   const uncompleteMutation = useMutation({
     mutationFn: uncompleteTask,
-    onSuccess: invalidateTasks,
+    onSuccess: (_data, taskId) => {
+      push({ type: "uncomplete", taskId });
+      invalidateTasks();
+    },
   });
 
   const reorderTasksMutation = useMutation({
@@ -275,7 +291,7 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
   const handleTaskRowClick = (task: Task, e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest("input, button")) return;
-    setSelectedTaskId(task.id);
+    onSelectTask(task.id);
   };
 
   const heading =
@@ -290,7 +306,7 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
             : "Upcoming";
 
   return (
-    <div className={`task-list-layout${selectedTask ? " with-detail" : ""}`}>
+    <div className="task-list-layout">
       <div className="task-list-pane">
         <header className="pane-header">
           <h1>{heading}</h1>
@@ -457,21 +473,23 @@ export function TaskList({ view, projectTitle }: TaskListProps) {
           }}
           onBulkChildren={() => {
             if (!pendingComplete) return;
-            completeMutation.mutate(
-              { taskId: pendingComplete.taskId, body: { bulk_children: true } },
-              { onSuccess: () => setPendingComplete(null) },
-            );
+            const parentId = pendingComplete.taskId;
+            void (async () => {
+              const childIds = await fetchOpenDescendantIds(parentId);
+              completeMutation.mutate(
+                {
+                  taskId: parentId,
+                  body: { bulk_children: true },
+                  undoTaskIds: [parentId, ...childIds],
+                },
+                { onSuccess: () => setPendingComplete(null) },
+              );
+            })();
           }}
         />
 
         <EditSectionForm section={editingSection} onClose={() => setEditingSection(null)} />
       </div>
-
-      <TaskDetailPanel
-        task={selectedTask}
-        allTasks={tasks}
-        onClose={() => setSelectedTaskId(null)}
-      />
     </div>
   );
 }

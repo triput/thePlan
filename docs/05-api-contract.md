@@ -230,9 +230,9 @@ Does not persist — client calls `POST /tasks` with parsed fields.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/search` | `?q=architecture&limit=20` |
+| GET | `/search` | `?q=architecture&limit=20` (limit default 20, max 50) |
 
-Returns tasks matching title/description (case-insensitive). Response includes project name, due_at, labels for context.
+Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escaped). Response is paginated `TaskOut` rows plus `project_title` and embedded `labels` (`id`, `name`, `color_hex`) for context.
 
 ---
 

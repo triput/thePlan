@@ -13,6 +13,7 @@ import {
   type TaskPriority,
   type TaskUpdate,
 } from "../api";
+import { collectDeleteTree, useUndoStack } from "../undoStack";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 interface TaskDetailPanelProps {
@@ -59,6 +60,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [labelIds, setLabelIds] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const queryClient = useQueryClient();
+  const { push } = useUndoStack();
 
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const projects: Project[] = projectsQuery.data?.items ?? [];
@@ -121,9 +123,16 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteTask(task!.id),
-    onSuccess: () => {
+    mutationFn: async () => {
+      const tree = await collectDeleteTree(task!);
+      await deleteTask(task!.id);
+      return tree;
+    },
+    onSuccess: (tree) => {
+      push({ type: "delete_tree", nodes: tree });
       invalidate();
+      queryClient.invalidateQueries({ queryKey: ["search"] });
+      queryClient.invalidateQueries({ queryKey: ["task"] });
       setConfirmDelete(false);
       onClose();
     },
@@ -338,7 +347,9 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
         destructive
         pending={deleteMutation.isPending}
         onClose={() => setConfirmDelete(false)}
-        onConfirm={() => deleteMutation.mutate()}
+        onConfirm={() => {
+          deleteMutation.mutate();
+        }}
       />
     </>
   );

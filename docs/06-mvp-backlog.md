@@ -262,9 +262,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Search box queries title and description
-- [ ] Results show project, due, labels
-- [ ] Click result opens task detail
+- [x] Search box queries title and description
+- [x] Results show project, due, labels
+- [x] Click result opens task detail
 
 ### US-8.2: Undo
 
@@ -272,10 +272,12 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Undo complete/uncomplete (minimum)
-- [ ] Undo delete (soft restore or recreate from cache)
-- [ ] Keyboard shortcut for undo (e.g. Ctrl+Z)
-- [ ] Stack depth ≥ 1; target 10–20
+- [x] Undo complete/uncomplete (minimum)
+- [x] Undo delete (soft restore or recreate from cache)
+- [x] Keyboard shortcut for undo (e.g. Ctrl+Z)
+- [x] Stack depth ≥ 1; target 10–20
+
+**Implementation notes (Wave 1):** Client-side undo stack (max 15). Delete undo recreates the deleted task tree via `POST /tasks` (new IDs; scheduled blocks not restored). Bulk-complete undo uncompletes parent + captured open descendants.
 
 ---
 

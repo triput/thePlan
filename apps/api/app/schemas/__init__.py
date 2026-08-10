@@ -242,6 +242,17 @@ class ScheduledBlockOut(BaseModel):
     updated_at: datetime
 
 
+class SearchLabelOut(BaseModel):
+    id: UUID
+    name: str
+    color_hex: str
+
+
+class SearchTaskOut(TaskOut):
+    project_title: str | None = None
+    labels: list[SearchLabelOut] = Field(default_factory=list)
+
+
 class PaginatedResponse(BaseModel):
     items: list
     total: int
