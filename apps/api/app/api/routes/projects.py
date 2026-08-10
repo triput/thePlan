@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Project, User
-from app.schemas import PaginatedResponse, ProjectCreate, ProjectOut, ProjectUpdate
+from app.schemas import PaginatedResponse, ProjectCreate, ProjectOut, ProjectUpdate, ReorderRequest
+from app.services.reorder import batch_reorder_sort_order
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -57,6 +58,21 @@ def create_project(
     db.commit()
     db.refresh(project)
     return ProjectOut.model_validate(project)
+
+
+@router.patch("/reorder", status_code=status.HTTP_204_NO_CONTENT)
+def reorder_projects(
+    body: ReorderRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    batch_reorder_sort_order(
+        db,
+        Project,
+        user.id,
+        body.items,
+        not_found_detail="Projects not found",
+    )
 
 
 @router.get("/{project_id}", response_model=ProjectOut)

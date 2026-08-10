@@ -1,5 +1,5 @@
 -- 001_baseline.sql
--- Phronesis Light (working name) — PostgreSQL baseline schema
+-- thePlan — PostgreSQL baseline schema
 -- Apply via: psql -f 001_baseline.sql
 -- Alembic migrations should reproduce this baseline.
 

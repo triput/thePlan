@@ -1,1 +1,1 @@
-Early combined draft (vision + schema + scheduling algorithm) superseded by the split docs in `docs/01`–`docs/07`.
+Early combined draft (vision + schema + scheduling algorithm) superseded by the split docs in `docs/01`–`docs/07`. Legacy draft used a different working title (Phronesis Light); the product name of record is **thePlan**.

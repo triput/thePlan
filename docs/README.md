@@ -1,6 +1,6 @@
-# Phronesis Light — Documentation Index
+# thePlan — Documentation Index
 
-**Working name only.** Official product name TBD. Use neutral identifiers in code (`apps/api`, not branded package names).
+**Product name of record:** thePlan. Personal execution tool alongside the Synesis/Phronesis suite. Use neutral identifiers in code (`apps/api`, not branded package names).
 
 ## Terminology
 

@@ -187,6 +187,15 @@ class QuickAddParseResponse(BaseModel):
     unresolved: list[str] = Field(default_factory=list)
 
 
+class ReorderItem(BaseModel):
+    id: UUID
+    sort_order: int
+
+
+class ReorderRequest(BaseModel):
+    items: list[ReorderItem] = Field(default_factory=list)
+
+
 class PaginatedResponse(BaseModel):
     items: list
     total: int

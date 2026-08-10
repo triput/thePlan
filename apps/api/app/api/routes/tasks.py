@@ -7,7 +7,8 @@ from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
 from app.models import Label, Task, TaskLabel, User
-from app.schemas import PaginatedResponse, TaskCompleteBody, TaskCreate, TaskOut, TaskUpdate
+from app.schemas import PaginatedResponse, ReorderRequest, TaskCompleteBody, TaskCreate, TaskOut, TaskUpdate
+from app.services.reorder import batch_reorder_sort_order
 from app.services.task_helpers import complete_task, mark_task_complete, resolve_nesting_level
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -119,6 +120,21 @@ def create_task(
     db.commit()
     db.refresh(task)
     return task_to_out(task, db)
+
+
+@router.patch("/reorder", status_code=status.HTTP_204_NO_CONTENT)
+def reorder_tasks(
+    body: ReorderRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    batch_reorder_sort_order(
+        db,
+        Task,
+        user.id,
+        body.items,
+        not_found_detail="Tasks not found",
+    )
 
 
 @router.get("/{task_id}", response_model=TaskOut)

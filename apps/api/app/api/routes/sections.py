@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Project, Section, User
-from app.schemas import PaginatedResponse, SectionCreate, SectionOut, SectionUpdate
+from app.schemas import PaginatedResponse, ReorderRequest, SectionCreate, SectionOut, SectionUpdate
+from app.services.reorder import batch_reorder_sort_order
 
 router = APIRouter(prefix="/sections", tags=["sections"])
 
@@ -61,6 +62,21 @@ def create_section(
     db.commit()
     db.refresh(section)
     return SectionOut.model_validate(section)
+
+
+@router.patch("/reorder", status_code=status.HTTP_204_NO_CONTENT)
+def reorder_sections(
+    body: ReorderRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    batch_reorder_sort_order(
+        db,
+        Section,
+        user.id,
+        body.items,
+        not_found_detail="Sections not found",
+    )
 
 
 @router.get("/{section_id}", response_model=SectionOut)

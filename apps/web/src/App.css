@@ -79,6 +79,30 @@
   padding-left: 1.75rem;
 }
 
+.nav-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.nav-item-row.indent {
+  padding-left: 0.75rem;
+}
+
+.nav-item-row .nav-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-edit-btn {
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.nav-item-row:hover .nav-edit-btn {
+  opacity: 1;
+}
+
 .nav-swatch {
   width: 8px;
   height: 8px;
@@ -202,9 +226,23 @@
 }
 
 /* Task list */
+.task-list-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+  max-width: 100%;
+}
+
+.task-list-layout.with-detail .task-list-pane {
+  max-width: 480px;
+  flex-shrink: 0;
+}
+
 .task-list-pane {
   max-width: 720px;
   padding-top: 1.25rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .pane-header {
@@ -229,12 +267,70 @@
 }
 
 .section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
   font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
+  padding: 0.15rem 0.35rem 0.15rem 0.5rem;
   border-radius: 4px;
   background: var(--panel);
   border: 1px solid var(--border);
   color: var(--text-muted);
+}
+
+.section-edit-btn {
+  opacity: 0;
+  font-size: 0.75rem;
+  padding: 0 0.2rem;
+}
+
+.section-tag:hover .section-edit-btn {
+  opacity: 1;
+}
+
+.section-tag:hover .section-reorder-btns,
+.section-tag:focus-within .section-reorder-btns {
+  opacity: 1;
+}
+
+.section-reorder-btns {
+  opacity: 0;
+}
+
+.reorder-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.reorder-btn {
+  font-size: 0.75rem;
+  padding: 0 0.15rem;
+  line-height: 1.1;
+}
+
+.reorder-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.nav-reorder-btns {
+  opacity: 0;
+}
+
+.nav-item-row:hover .nav-reorder-btns,
+.nav-item-row:focus-within .nav-reorder-btns {
+  opacity: 1;
+}
+
+.task-reorder-btns {
+  opacity: 0;
+}
+
+.task-row:hover .task-reorder-btns,
+.task-row:focus-within .task-reorder-btns {
+  opacity: 1;
 }
 
 .task-list {
@@ -254,6 +350,10 @@
 
 .task-row:hover {
   background: var(--panel-hover);
+}
+
+.task-row.selected {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-hover));
 }
 
 .task-row.completed {
@@ -393,7 +493,87 @@
   opacity: 1;
 }
 
-/* Modal */
+/* Task detail panel */
+.task-detail-panel {
+  width: 340px;
+  flex-shrink: 0;
+  margin-top: 1.25rem;
+  padding: 0 0 2rem 1.25rem;
+  border-left: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.detail-form {
+  padding-right: 0.25rem;
+}
+
+.field-textarea,
+.field-select,
+.field-number,
+.field-datetime {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  width: 100%;
+}
+
+.field-textarea:focus,
+.field-select:focus,
+.field-number:focus,
+.field-datetime:focus {
+  border-color: var(--accent);
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 4rem;
+  font: inherit;
+}
+
+.btn.danger {
+  background: var(--error);
+  color: #fff;
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: #ef4444;
+}
+
+.danger-text {
+  color: var(--error) !important;
+}
+
+.danger-text:hover {
+  background: color-mix(in srgb, var(--error) 15%, transparent) !important;
+}
+
+.destructive-row {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -410,7 +590,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 
@@ -529,5 +709,22 @@
     max-height: 40vh;
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .task-list-layout.with-detail {
+    flex-direction: column;
+  }
+
+  .task-list-layout.with-detail .task-list-pane {
+    max-width: none;
+  }
+
+  .task-detail-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding: 1rem 0 2rem;
+    position: static;
+    max-height: none;
   }
 }

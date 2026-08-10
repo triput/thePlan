@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchEpics, fetchProjects, type Epic, type Project } from "../api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchEpics, fetchProjects, reorderProjects, type Epic, type Project } from "../api";
+import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
 import type { ViewSelection } from "../view";
 import { CreateEpicForm } from "./CreateEpicForm";
 import { CreateProjectForm } from "./CreateProjectForm";
+import { EditEpicForm } from "./EditEpicForm";
+import { EditProjectForm } from "./EditProjectForm";
+import { ReorderButtons } from "./ReorderButtons";
 
 interface SidebarProps {
   view: ViewSelection;
@@ -16,33 +20,69 @@ function NavItem({
   onClick,
   indent,
   swatchColor,
+  onEdit,
+  reorder,
 }: {
   active: boolean;
   label: string;
   onClick: () => void;
   indent?: boolean;
   swatchColor?: string;
+  onEdit?: () => void;
+  reorder?: {
+    canMoveUp: boolean;
+    canMoveDown: boolean;
+    onMoveUp: () => void;
+    onMoveDown: () => void;
+    pending?: boolean;
+  };
 }) {
   return (
-    <button
-      type="button"
-      className={`nav-item${active ? " active" : ""}${indent ? " indent" : ""}`}
-      onClick={onClick}
-    >
-      {swatchColor && (
-        <span className="nav-swatch" style={{ backgroundColor: swatchColor }} aria-hidden />
+    <div className={`nav-item-row${indent ? " indent" : ""}`}>
+      <button type="button" className={`nav-item${active ? " active" : ""}`} onClick={onClick}>
+        {swatchColor && (
+          <span className="nav-swatch" style={{ backgroundColor: swatchColor }} aria-hidden />
+        )}
+        {label}
+      </button>
+      {reorder && (
+        <ReorderButtons
+          label={label}
+          canMoveUp={reorder.canMoveUp}
+          canMoveDown={reorder.canMoveDown}
+          onMoveUp={reorder.onMoveUp}
+          onMoveDown={reorder.onMoveDown}
+          pending={reorder.pending}
+          className="nav-reorder-btns"
+        />
       )}
-      {label}
-    </button>
+      {onEdit && (
+        <button
+          type="button"
+          className="icon-btn tiny nav-edit-btn"
+          title={`Edit ${label}`}
+          aria-label={`Edit ${label}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+        >
+          ✎
+        </button>
+      )}
+    </div>
   );
 }
 
 export function Sidebar({ view, onSelectView }: SidebarProps) {
+  const queryClient = useQueryClient();
   const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
   const [showCreateEpic, setShowCreateEpic] = useState(false);
   const [createProjectEpicId, setCreateProjectEpicId] = useState<string | null | undefined>(
     undefined,
   );
+  const [editingEpic, setEditingEpic] = useState<Epic | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
@@ -50,9 +90,25 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
   const epics = epicsQuery.data?.items ?? [];
   const projects = projectsQuery.data?.items ?? [];
 
-  const standaloneProjects = projects.filter((p) => !p.epic_id);
+  const reorderProjectsMutation = useMutation({
+    mutationFn: reorderProjects,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+
+  const handleReorderProject = (group: Project[], projectId: string, direction: "up" | "down") => {
+    const items = buildReorderSwap(group, projectId, direction);
+    if (items) reorderProjectsMutation.mutate({ items });
+  };
+
+  const standaloneProjects = [...projects.filter((p) => !p.epic_id)].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
   const projectsByEpic = epics.reduce<Record<string, Project[]>>((acc, epic) => {
-    acc[epic.id] = projects.filter((p) => p.epic_id === epic.id);
+    acc[epic.id] = projects
+      .filter((p) => p.epic_id === epic.id)
+      .sort((a, b) => a.sort_order - b.sort_order);
     return acc;
   }, {});
 
@@ -89,6 +145,14 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
           <button
             type="button"
             className="icon-btn tiny"
+            title="Edit epic"
+            onClick={() => setEditingEpic(epic)}
+          >
+            ✎
+          </button>
+          <button
+            type="button"
+            className="icon-btn tiny"
             title="Add project to epic"
             onClick={() => setCreateProjectEpicId(epic.id)}
           >
@@ -104,6 +168,14 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
               swatchColor={project.color_hex}
               indent
               onClick={() => onSelectView({ type: "project", projectId: project.id })}
+              onEdit={() => setEditingProject(project)}
+              reorder={{
+                canMoveUp: canReorderUp(epicProjects, project.id),
+                canMoveDown: canReorderDown(epicProjects, project.id),
+                onMoveUp: () => handleReorderProject(epicProjects, project.id, "up"),
+                onMoveDown: () => handleReorderProject(epicProjects, project.id, "down"),
+                pending: reorderProjectsMutation.isPending,
+              }}
             />
           ))}
       </div>
@@ -167,6 +239,14 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
             label={project.title}
             swatchColor={project.color_hex}
             onClick={() => onSelectView({ type: "project", projectId: project.id })}
+            onEdit={() => setEditingProject(project)}
+            reorder={{
+              canMoveUp: canReorderUp(standaloneProjects, project.id),
+              canMoveDown: canReorderDown(standaloneProjects, project.id),
+              onMoveUp: () => handleReorderProject(standaloneProjects, project.id, "up"),
+              onMoveDown: () => handleReorderProject(standaloneProjects, project.id, "down"),
+              pending: reorderProjectsMutation.isPending,
+            }}
           />
         ))}
       </nav>
@@ -176,6 +256,13 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
         open={createProjectEpicId !== undefined}
         epicId={createProjectEpicId ?? null}
         onClose={() => setCreateProjectEpicId(undefined)}
+      />
+      <EditEpicForm epic={editingEpic} onClose={() => setEditingEpic(null)} />
+      <EditProjectForm
+        project={editingProject}
+        onClose={() => setEditingProject(null)}
+        view={view}
+        onSelectView={onSelectView}
       />
     </aside>
   );

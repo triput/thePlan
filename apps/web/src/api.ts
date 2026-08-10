@@ -90,8 +90,21 @@ export interface EpicCreate {
   color_hex?: string;
 }
 
+export interface EpicUpdate {
+  title?: string;
+  description?: string | null;
+  color_hex?: string;
+}
+
 export interface ProjectCreate {
   title: string;
+  description?: string | null;
+  epic_id?: string | null;
+  color_hex?: string;
+}
+
+export interface ProjectUpdate {
+  title?: string;
   description?: string | null;
   epic_id?: string | null;
   color_hex?: string;
@@ -103,8 +116,25 @@ export interface SectionCreate {
   sort_order?: number;
 }
 
+export interface SectionUpdate {
+  title?: string;
+  sort_order?: number;
+}
+
 export interface TaskCreate {
   title: string;
+  description?: string | null;
+  project_id?: string | null;
+  section_id?: string | null;
+  parent_task_id?: string | null;
+  priority?: TaskPriority;
+  due_at?: string | null;
+  estimated_duration_minutes?: number;
+  label_ids?: string[];
+}
+
+export interface TaskUpdate {
+  title?: string;
   description?: string | null;
   project_id?: string | null;
   section_id?: string | null;
@@ -206,6 +236,21 @@ export function createEpic(body: EpicCreate) {
   return apiFetch<Epic>("/api/v1/epics", { method: "POST", body: JSON.stringify(body) });
 }
 
+export function updateEpic(epicId: string, body: EpicUpdate) {
+  return apiFetch<Epic>(`/api/v1/epics/${epicId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteEpic(epicId: string) {
+  return apiFetch<void>(`/api/v1/epics/${epicId}`, { method: "DELETE" });
+}
+
+export function archiveEpic(epicId: string) {
+  return apiFetch<Epic>(`/api/v1/epics/${epicId}/archive`, { method: "POST" });
+}
+
 export function fetchProjects(params?: {
   epic_id?: string;
   archived?: boolean;
@@ -219,6 +264,21 @@ export function createProject(body: ProjectCreate) {
   return apiFetch<Project>("/api/v1/projects", { method: "POST", body: JSON.stringify(body) });
 }
 
+export function updateProject(projectId: string, body: ProjectUpdate) {
+  return apiFetch<Project>(`/api/v1/projects/${projectId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteProject(projectId: string) {
+  return apiFetch<void>(`/api/v1/projects/${projectId}`, { method: "DELETE" });
+}
+
+export function archiveProject(projectId: string) {
+  return apiFetch<Project>(`/api/v1/projects/${projectId}/archive`, { method: "POST" });
+}
+
 export function fetchSections(projectId: string) {
   return apiFetchUrl<PaginatedResponse<Section>>(
     buildUrl("/api/v1/sections", { project_id: projectId }),
@@ -227,6 +287,17 @@ export function fetchSections(projectId: string) {
 
 export function createSection(body: SectionCreate) {
   return apiFetch<Section>("/api/v1/sections", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function updateSection(sectionId: string, body: SectionUpdate) {
+  return apiFetch<Section>(`/api/v1/sections/${sectionId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteSection(sectionId: string) {
+  return apiFetch<void>(`/api/v1/sections/${sectionId}`, { method: "DELETE" });
 }
 
 export function fetchTasks(params?: {
@@ -245,6 +316,17 @@ export function createTask(body: TaskCreate) {
   return apiFetch<Task>("/api/v1/tasks", { method: "POST", body: JSON.stringify(body) });
 }
 
+export function updateTask(taskId: string, body: TaskUpdate) {
+  return apiFetch<Task>(`/api/v1/tasks/${taskId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteTask(taskId: string) {
+  return apiFetch<void>(`/api/v1/tasks/${taskId}`, { method: "DELETE" });
+}
+
 export function completeTask(taskId: string, body: TaskCompleteBody = {}) {
   return apiFetch<Task>(`/api/v1/tasks/${taskId}/complete`, {
     method: "POST",
@@ -260,6 +342,36 @@ export function parseQuickAdd(text: string) {
   return apiFetch<QuickAddParseResponse>("/api/v1/quick-add/parse", {
     method: "POST",
     body: JSON.stringify({ text }),
+  });
+}
+
+export interface ReorderItem {
+  id: string;
+  sort_order: number;
+}
+
+export interface ReorderBody {
+  items: ReorderItem[];
+}
+
+export function reorderProjects(body: ReorderBody) {
+  return apiFetch<void>("/api/v1/projects/reorder", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function reorderSections(body: ReorderBody) {
+  return apiFetch<void>("/api/v1/sections/reorder", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function reorderTasks(body: ReorderBody) {
+  return apiFetch<void>("/api/v1/tasks/reorder", {
+    method: "PATCH",
+    body: JSON.stringify(body),
   });
 }
 

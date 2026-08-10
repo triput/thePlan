@@ -1,6 +1,6 @@
 # Product Vision
 
-**Working name:** Phronesis Light (conversational only; official name TBD)
+**Product:** thePlan — personal execution tool alongside the Synesis/Phronesis suite.
 
 ## What We Are Building
 
