@@ -289,6 +289,8 @@ These behaviors are **not in MVP** but are locked for P2 design. Schema and API 
 | **Hard** | `deadline_at`, `is_pinned = TRUE` blocks, external calendar busy events | Never moved automatically |
 | **Soft** | Plan window, `soft_target_at`, preferred time window | Relaxable during fuzzy fit |
 
+**Pinned block (P2 backlog — not MVP exit):** User places (or accepts) a `scheduled_block` at a specific clock time and sets `is_pinned = TRUE`. Update Schedule / fuzzy replan **must not** move or split that block until the user unpins. This is distinct from `due_at` and `deadline_at`: it means “do this work *at this time*” (e.g. prep immediately before a meeting that lives on someone else’s calendar). Operator may choose the time manually from knowledge of external events; own Google busy map (P2 sync) helps when the related event is on a connected calendar, but pin remains the hard lock either way.
+
 ### Rule Inheritance
 
 Child tasks inherit scheduling constraints from parent (time window, plan binding) unless explicitly overridden. Reduces per-task configuration.

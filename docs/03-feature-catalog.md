@@ -181,7 +181,7 @@ Todoist + SkedPal feature harvest with phase tags. This catalog formalizes parit
 | Feature | Phase | Notes |
 |---------|-------|-------|
 | Manual scheduled blocks | MVP | User-placed |
-| Pin / lock blocks | P2 | is_pinned; MVP stores flag |
+| Pin / lock blocks | P2 | `is_pinned`; scheduler never moves until unpin. Use case: fixed clock time (e.g. prep before someone else's meeting) — not due/deadline. MVP stores flag only |
 | Drag reschedule blocks | MVP | |
 | Bundled / knockout task lists | P2 | vs formal blocks |
 | External calendar as busy source | P2 | Google; MS P3 |

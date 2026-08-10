@@ -208,7 +208,7 @@ User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracke
 - [ ] Drag block to change start/end time
 - [ ] Drag due marker to update due_at
 - [ ] Delete block
-- [ ] is_pinned stored (auto-respect behavior deferred to P2)
+- [ ] is_pinned stored (auto-respect / immovable-until-unpin deferred to P2 — fixed clock-time work vs due/deadline)
 - [ ] Overlapping blocks allowed in MVP (visual only)
 
 ### US-6.4: No external calendar in MVP

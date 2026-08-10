@@ -96,7 +96,7 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 |---------|-------|
 | Auto-scheduler worker | Decoupled from CRUD (ADR-005) |
 | UPS scoring + slice/fit | U = 100·e^(-k·max(Slack,0)), k=0.5 |
-| Pins, soft vs hard | deadline_at enforced; pinned immovable |
+| Pins, soft vs hard | `deadline_at` enforced; pinned blocks immovable until unpin (fixed clock-time work, e.g. prep before someone else’s meeting — not due/deadline) |
 | Bundled vs formal blocks | Knockout lists → blocks on replan |
 | Rule inheritance | Parent → child window/plan propagation |
 | Overbook UI | schedule_status.overbooked |
