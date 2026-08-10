@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
@@ -32,6 +32,7 @@ import {
 import { CompleteDialog } from "./CompleteDialog";
 import { CreateSectionForm } from "./CreateSectionForm";
 import { EditSectionForm } from "./EditSectionForm";
+import { emitToast } from "./ToastHost";
 import { ReorderButtons } from "./ReorderButtons";
 
 interface TaskListProps {
@@ -47,6 +48,35 @@ interface PendingComplete {
   openCount: number;
 }
 
+function makeOptimisticTask(body: {
+  title: string;
+  project_id?: string | null;
+  section_id?: string | null;
+  parent_task_id?: string | null;
+  nesting_level: number;
+}): Task {
+  return {
+    id: `temp-${crypto.randomUUID()}`,
+    title: body.title,
+    description: null,
+    project_id: body.project_id ?? null,
+    section_id: body.section_id ?? null,
+    parent_task_id: body.parent_task_id ?? null,
+    nesting_level: body.nesting_level,
+    priority: "p4",
+    due_at: null,
+    deadline_at: null,
+    soft_target_at: null,
+    estimated_duration_minutes: 0,
+    is_completed: false,
+    completed_at: null,
+    status: "open",
+    sort_order: 9999,
+    label_ids: [],
+    open_subtask_count: 0,
+  };
+}
+
 export function TaskList({
   view,
   projectTitle,
@@ -60,6 +90,8 @@ export function TaskList({
   const [subtaskTitle, setSubtaskTitle] = useState("");
   const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
+  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
   const labelsQuery = useQuery({
     queryKey: ["labels"],
@@ -149,7 +181,38 @@ export function TaskList({
 
   const createMutation = useMutation({
     mutationFn: createTask,
+    onMutate: async (body) => {
+      const key = ["tasks", viewKey(view)];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
+      const cachedItems = previous?.items ?? [];
+      const parent = body.parent_task_id
+        ? cachedItems.find((t) => t.id === body.parent_task_id)
+        : undefined;
+      const tempTask = makeOptimisticTask({
+        title: body.title,
+        project_id: body.project_id,
+        section_id: body.section_id,
+        parent_task_id: body.parent_task_id,
+        nesting_level: parent ? parent.nesting_level + 1 : 0,
+      });
+      if (previous) {
+        queryClient.setQueryData(key, {
+          ...previous,
+          items: [...previous.items, tempTask],
+          total: previous.total + 1,
+        });
+      }
+      return { previous, key, tempId: tempTask.id };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.key, context.previous);
+      }
+      emitToast("Couldn't create task — reverted");
+    },
     onSuccess: invalidateTasks,
+    onSettled: invalidateTasks,
   });
 
   const completeMutation = useMutation({
@@ -175,9 +238,12 @@ export function TaskList({
       }
       return { previous, key };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(context.key, context.previous);
+      }
+      if (!(err instanceof ApiError && err.code === "OPEN_CHILDREN")) {
+        emitToast("Couldn't complete — reverted");
       }
     },
     onSuccess: (_data, { taskId, undoTaskIds, body }) => {
@@ -192,10 +258,30 @@ export function TaskList({
 
   const uncompleteMutation = useMutation({
     mutationFn: uncompleteTask,
+    onMutate: async (taskId) => {
+      const key = ["tasks", viewKey(view)];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
+      if (previous) {
+        queryClient.setQueryData(key, {
+          ...previous,
+          items: previous.items.map((t) =>
+            t.id === taskId ? { ...t, is_completed: false } : t,
+          ),
+        });
+      }
+      return { previous, key };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.key, context.previous);
+      }
+      emitToast("Couldn't uncomplete — reverted");
+    },
     onSuccess: (_data, taskId) => {
       push({ type: "uncomplete", taskId });
-      invalidateTasks();
     },
+    onSettled: invalidateTasks,
   });
 
   const reorderTasksMutation = useMutation({
@@ -233,6 +319,16 @@ export function TaskList({
   const getTaskSiblings = (task: Task) =>
     taskSiblings.get(`${task.parent_task_id ?? "root"}:${task.section_id ?? "none"}`) ?? [];
 
+  const scrollToTask = (taskId: string) => {
+    rowRefs.current.get(taskId)?.scrollIntoView({ block: "nearest" });
+  };
+
+  useEffect(() => {
+    if (focusedTaskId && !tasks.some((t) => t.id === focusedTaskId)) {
+      setFocusedTaskId(tasks[0]?.id ?? null);
+    }
+  }, [tasks, focusedTaskId]);
+
   const handleReorderTask = (task: Task, direction: "up" | "down") => {
     const siblings = getTaskSiblings(task);
     const items = buildReorderSwap(siblings, task.id, direction);
@@ -244,7 +340,7 @@ export function TaskList({
     if (items) reorderSectionsMutation.mutate({ items });
   };
 
-  const handleToggleComplete = async (task: Task) => {
+  const handleToggleComplete = useCallback(async (task: Task) => {
     if (task.is_completed) {
       uncompleteMutation.mutate(task.id);
       return;
@@ -260,7 +356,59 @@ export function TaskList({
         });
       }
     }
-  };
+  }, [completeMutation, uncompleteMutation]);
+
+  useEffect(() => {
+    const isInteractiveTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      return Boolean(target.closest("input, textarea, button, select"));
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isInteractiveTarget(e.target)) return;
+      if (document.querySelector(".modal-backdrop")) return;
+      if (tasks.length === 0) return;
+
+      const currentIndex = focusedTaskId
+        ? tasks.findIndex((t) => t.id === focusedTaskId)
+        : -1;
+
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const nextIndex =
+          currentIndex < 0 ? 0 : Math.min(currentIndex + 1, tasks.length - 1);
+        const nextId = tasks[nextIndex].id;
+        setFocusedTaskId(nextId);
+        scrollToTask(nextId);
+        return;
+      }
+
+      if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const nextIndex =
+          currentIndex < 0 ? tasks.length - 1 : Math.max(currentIndex - 1, 0);
+        const nextId = tasks[nextIndex].id;
+        setFocusedTaskId(nextId);
+        scrollToTask(nextId);
+        return;
+      }
+
+      if (e.key === "Enter" && focusedTaskId) {
+        e.preventDefault();
+        onSelectTask(focusedTaskId);
+        return;
+      }
+
+      if ((e.key === "x" || e.key === "X" || e.key === " ") && focusedTaskId) {
+        e.preventDefault();
+        const task = tasks.find((t) => t.id === focusedTaskId);
+        if (task) void handleToggleComplete(task);
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [tasks, focusedTaskId, onSelectTask, handleToggleComplete]);
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -291,6 +439,7 @@ export function TaskList({
   const handleTaskRowClick = (task: Task, e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest("input, button")) return;
+    setFocusedTaskId(task.id);
     onSelectTask(task.id);
   };
 
@@ -357,7 +506,11 @@ export function TaskList({
             return (
             <li
               key={task.id}
-              className={`task-row${task.is_completed ? " completed" : ""}${selectedTaskId === task.id ? " selected" : ""}`}
+              ref={(el) => {
+                if (el) rowRefs.current.set(task.id, el);
+                else rowRefs.current.delete(task.id);
+              }}
+              className={`task-row${task.is_completed ? " completed" : ""}${selectedTaskId === task.id ? " selected" : ""}${focusedTaskId === task.id ? " focused" : ""}`}
               style={{ paddingLeft: `${12 + task.nesting_level * 20}px` }}
               onClick={(e) => handleTaskRowClick(task, e)}
             >

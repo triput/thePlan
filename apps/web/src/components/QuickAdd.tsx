@@ -14,6 +14,7 @@ import {
   type TaskPriority,
 } from "../api";
 import { formatDuration, viewKey, type ViewSelection } from "../view";
+import { emitToast } from "./ToastHost";
 
 export interface QuickAddHandle {
   focus: () => void;
@@ -115,6 +116,7 @@ export const QuickAdd = forwardRef<QuickAddHandle, QuickAddProps>(function Quick
       queryClient.invalidateQueries({ queryKey: ["tasks", viewKey(view)] });
     } catch {
       setPreview(null);
+      emitToast("Couldn't create task");
     }
   };
 

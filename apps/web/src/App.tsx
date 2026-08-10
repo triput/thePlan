@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchMe, fetchProjects, fetchTask } from "./api";
 import { CalendarView } from "./components/CalendarView";
+import { HelpOverlay } from "./components/HelpOverlay";
 import { LabelsManagement } from "./components/LabelsManagement";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
 import { SearchBox, type SearchBoxHandle } from "./components/SearchBox";
@@ -25,6 +26,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 function AppInner() {
   const [view, setView] = useState<ViewSelection>({ type: "inbox" });
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const quickAddRef = useRef<QuickAddHandle>(null);
   const searchRef = useRef<SearchBoxHandle>(null);
   const { undo } = useUndoStack();
@@ -49,7 +51,16 @@ function AppInner() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "?") {
+        if (!isEditableTarget(e.target)) {
+          e.preventDefault();
+          setHelpOpen((open) => !open);
+        }
+        return;
+      }
+
       if (isEditableTarget(e.target)) return;
+      if (document.querySelector(".modal-backdrop")) return;
 
       if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
@@ -58,6 +69,12 @@ function AppInner() {
       }
 
       if (e.key === "q" || e.key === "Q") {
+        e.preventDefault();
+        quickAddRef.current?.focus();
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
         e.preventDefault();
         quickAddRef.current?.focus();
         return;
@@ -79,6 +96,15 @@ function AppInner() {
         <header className="top-bar">
           <QuickAdd ref={quickAddRef} view={view} projects={projects} />
           <SearchBox ref={searchRef} onSelectTask={setSelectedTaskId} />
+          <button
+            type="button"
+            className="icon-btn help-btn"
+            onClick={() => setHelpOpen(true)}
+            title="Keyboard shortcuts (?)"
+            aria-label="Keyboard shortcuts"
+          >
+            ?
+          </button>
           {me.isSuccess && (
             <span className="user-chip">{me.data.display_name ?? me.data.email}</span>
           )}
@@ -123,6 +149,7 @@ function AppInner() {
         </div>
       </div>
       <ToastHost />
+      <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

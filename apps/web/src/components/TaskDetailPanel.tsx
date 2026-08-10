@@ -15,6 +15,7 @@ import {
 } from "../api";
 import { collectDeleteTree, useUndoStack } from "../undoStack";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { emitToast } from "./ToastHost";
 
 interface TaskDetailPanelProps {
   task: Task | null;
@@ -46,6 +47,23 @@ function isDescendantOf(candidate: Task, ancestorId: string, byId: Map<string, T
     current = byId.get(current.parent_task_id);
   }
   return false;
+}
+
+function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
+  return {
+    ...task,
+    title: body.title ?? task.title,
+    description: body.description !== undefined ? body.description : task.description,
+    project_id: body.project_id !== undefined ? body.project_id : task.project_id,
+    section_id: body.section_id !== undefined ? body.section_id : task.section_id,
+    parent_task_id:
+      body.parent_task_id !== undefined ? body.parent_task_id : task.parent_task_id,
+    priority: body.priority ?? task.priority,
+    due_at: body.due_at !== undefined ? body.due_at : task.due_at,
+    estimated_duration_minutes:
+      body.estimated_duration_minutes ?? task.estimated_duration_minutes,
+    label_ids: body.label_ids ?? task.label_ids,
+  };
 }
 
 export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProps) {
@@ -116,8 +134,42 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
 
   const updateMutation = useMutation({
     mutationFn: (body: TaskUpdate) => updateTask(task!.id, body),
+    onMutate: async (body) => {
+      const taskKey = ["task", task!.id];
+      await queryClient.cancelQueries({ queryKey: taskKey });
+      const previousTask = queryClient.getQueryData<Task>(taskKey);
+      const previousTasksEntries = queryClient
+        .getQueriesData<{ items: Task[]; total: number }>({ queryKey: ["tasks"] })
+        .map(([key, data]) => ({ key, data }));
+
+      if (previousTask) {
+        queryClient.setQueryData(taskKey, applyTaskUpdate(previousTask, body));
+      }
+
+      for (const { key, data } of previousTasksEntries) {
+        if (!data) continue;
+        queryClient.setQueryData(key, {
+          ...data,
+          items: data.items.map((t) =>
+            t.id === task!.id ? applyTaskUpdate(t, body) : t,
+          ),
+        });
+      }
+
+      return { previousTask, previousTasksEntries, taskKey };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousTask) {
+        queryClient.setQueryData(context.taskKey, context.previousTask);
+      }
+      for (const { key, data } of context?.previousTasksEntries ?? []) {
+        queryClient.setQueryData(key, data);
+      }
+      emitToast("Couldn't save — reverted");
+    },
     onSuccess: () => {
       invalidate();
+      queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
       onClose();
     },
   });

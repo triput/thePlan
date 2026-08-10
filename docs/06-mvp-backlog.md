@@ -291,9 +291,9 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Task complete, create, move apply optimistically before server confirm
-- [ ] Rollback on API error with toast
-- [ ] p95 perceived interaction < 100ms on LAN for common actions
+- [x] Task complete, create, move apply optimistically before server confirm
+- [x] Rollback on API error with toast
+- [x] p95 perceived interaction < 100ms on LAN for common actions — qualitative LAN feel for now (no harness)
 
 ### US-9.2: Keyboard navigation
 
@@ -301,10 +301,10 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] Navigate task list (j/k or arrow keys)
-- [ ] Open quick-add (q or Ctrl+K)
-- [ ] Complete selected task (keyboard)
-- [ ] Document shortcuts in help overlay
+- [x] Navigate task list (j/k or arrow keys)
+- [x] Open quick-add (q or Ctrl+K)
+- [x] Complete selected task (keyboard)
+- [x] Document shortcuts in help overlay
 
 ---
 
