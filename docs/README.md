@@ -24,7 +24,7 @@ See [07-wave-roadmap.md](./07-wave-roadmap.md) for wave sequencing and [03-featu
 | [07-wave-roadmap.md](./07-wave-roadmap.md) | MVP → W1.5 → W2 → W3 roadmap |
 | [08-color-palette.md](./08-color-palette.md) | Entity presets + status accents (Synesis/Phronesis-aligned) |
 
-**Status:** Wave 1 docs package complete. Next when requested: git/GitHub, then code scaffold (Wave 0/2).
+**Status:** Wave 0 scaffold complete (`apps/api`, `apps/web`, `infra/compose`). Next: Wave 1 MVP features against [06-mvp-backlog.md](./06-mvp-backlog.md).
 
 ## SQL & ADRs
 
