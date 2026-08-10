@@ -15,7 +15,9 @@ from sqlalchemy import (
     Text,
     Time,
     UniqueConstraint,
+    desc,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -314,7 +316,15 @@ class RecurrenceRule(Base, TimestampMixin):
 
 class Reminder(Base, TimestampMixin):
     __tablename__ = "reminders"
-    __table_args__ = (Index("idx_reminders_task", "task_id"),)
+    __table_args__ = (
+        Index("idx_reminders_task", "task_id"),
+        Index(
+            "idx_reminders_fire_at",
+            "owner_id",
+            "fire_at",
+            postgresql_where=text("is_fired = FALSE"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
     owner_id: Mapped[uuid.UUID] = mapped_column(
@@ -409,7 +419,7 @@ class ExternalCalendarEvent(Base):
 
 class ScheduleRun(Base):
     __tablename__ = "schedule_runs"
-    __table_args__ = (Index("idx_schedule_runs_owner", "owner_id", "started_at"),)
+    __table_args__ = (Index("idx_schedule_runs_owner", "owner_id", desc("started_at")),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
     owner_id: Mapped[uuid.UUID] = mapped_column(

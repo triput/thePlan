@@ -39,7 +39,7 @@ SYSTEM_FILTERS = [
 ]
 
 
-def ensure_bootstrap_user(db: Session) -> User:
+def ensure_bootstrap_user(db: Session, *, commit: bool = True) -> User:
     settings = get_settings()
     user = db.get(User, BOOTSTRAP_USER_ID)
     if user is None:
@@ -71,6 +71,9 @@ def ensure_bootstrap_user(db: Session) -> User:
                 )
             )
 
-    db.commit()
-    db.refresh(user)
+    if commit:
+        db.commit()
+        db.refresh(user)
+    else:
+        db.flush()
     return user

@@ -316,11 +316,13 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 **Acceptance criteria:**
 
-- [ ] `due_at` and `deadline_at` both on tasks; MVP UI shows due_at only
-- [ ] `soft_target_at` on tasks (Plans W2)
-- [ ] recurrence_rules, reminders, focus_windows, calendar_accounts tables exist
-- [ ] schedule_status includes overbooked
-- [ ] saved_filters seeded with Inbox/Today/Upcoming
+- [x] `due_at` and `deadline_at` both on tasks; MVP UI shows due_at only
+- [x] `soft_target_at` on tasks (Plans W2)
+- [x] recurrence_rules, reminders, focus_windows, calendar_accounts tables exist
+- [x] schedule_status includes overbooked
+- [x] saved_filters seeded with Inbox/Today/Upcoming
+
+**E10 pass notes:** Baseline already satisfied all criteria (SQL + Alembic `001_baseline` + models + `ensure_bootstrap_user`). Follow-up `002_e10_parity` aligns the reminder partial index and `schedule_runs` DESC index with `docs/sql/001_baseline.sql`. Covered by `tests/test_e10_schema.py`.
 
 ---
 
