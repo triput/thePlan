@@ -11,7 +11,7 @@ FastAPI + SQLAlchemy 2 + Alembic backend for the personal task app.
 
 ```powershell
 cd apps/api
-python -m venv .venv
+py -3.14 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 

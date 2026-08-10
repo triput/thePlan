@@ -19,8 +19,8 @@ idna==3.18
 itsdangerous==2.2.0
 Mako==1.4.1
 MarkupSafe==3.0.3
-psycopg==3.2.3
-psycopg-binary==3.2.3
+psycopg==3.2.13
+psycopg-binary==3.2.13
 pycparser==3.0
 pydantic==2.13.4
 pydantic-settings==2.7.0
@@ -29,7 +29,7 @@ pwdlib[argon2]==0.3.0
 pytest==9.1.1
 python-dotenv==1.2.2
 PyYAML==6.0.3
-SQLAlchemy==2.0.36
+SQLAlchemy==2.0.51
 starlette==0.41.3
 typing-inspection==0.4.3
 typing_extensions==4.16.0
