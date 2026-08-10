@@ -6,7 +6,7 @@ Versioned REST API served by FastAPI. Base path: `/api/v1`.
 
 **Performance contract:** CRUD endpoints p95 < 50ms on LAN for single-entity writes. CRUD never waits on scheduler.
 
-**Future:** Optional WebSocket channel for cache invalidation events (P2); not required for MVP.
+**Future:** Optional WebSocket channel for cache invalidation events (W2); not required for MVP.
 
 ---
 
@@ -124,7 +124,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 }
 ```
 
-`deadline_at` and `soft_target_at` accepted on write but not surfaced in MVP UI. `deadline_at` enforced in P2 scheduler.
+`deadline_at` and `soft_target_at` accepted on write but not surfaced in MVP UI. `deadline_at` enforced in W2 scheduler.
 
 ---
 
@@ -132,13 +132,16 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/labels` | List all labels |
-| POST | `/labels` | Create |
+| GET | `/labels` | List all labels (include optional `task_count` for prune UI) |
+| POST | `/labels` | Create (name lowercased; 409 on duplicate) |
+| POST | `/labels/batch` | Create multiple labels in one request (optional convenience; each name lowercased) |
 | GET | `/labels/{id}` | Get |
-| PATCH | `/labels/{id}` | Update |
-| DELETE | `/labels/{id}` | Delete |
+| PATCH | `/labels/{id}` | Update name/color (name lowercased; 409 on duplicate) |
+| DELETE | `/labels/{id}` | Delete label and cascade detach from tasks |
 | POST | `/tasks/{task_id}/labels/{label_id}` | Attach label |
 | DELETE | `/tasks/{task_id}/labels/{label_id}` | Detach label |
+
+**Normalization:** Request bodies may send mixed-case names; API stores `lower(trim(name))`. Empty name rejected.
 
 ---
 
@@ -174,7 +177,7 @@ Calendar view uses range query: `GET /scheduled-blocks?start=2026-08-11T00:00:00
 | GET | `/views` | List saved_filters (system + user) |
 | GET | `/views/{slug}/tasks` | Tasks matching predicate |
 
-MVP: read-only system views (`inbox`, `today`, `upcoming`). User-created filters and query language in P2.
+MVP: read-only system views (`inbox`, `today`, `upcoming`). User-created filters and query language in W2.
 
 Optional convenience aliases:
 
@@ -290,14 +293,14 @@ HTTP 409 — client shows warn-and-allow dialog and retries with chosen `bulk_ch
 
 ---
 
-## Auth Endpoints (P1.5 Stub)
+## Auth Endpoints (W1.5 Stub)
 
 Reserved paths; return `501 Not Implemented` in MVP or no-op local bootstrap:
 
-| Method | Path | Phase |
+| Method | Path | Wave |
 |--------|------|-------|
-| POST | `/auth/login` | P1.5 |
-| POST | `/auth/logout` | P1.5 |
+| POST | `/auth/login` | W1.5 |
+| POST | `/auth/logout` | W1.5 |
 | GET | `/auth/me` | MVP returns bootstrap user |
 
 MVP `GET /auth/me` response:
@@ -312,7 +315,7 @@ MVP `GET /auth/me` response:
 
 ---
 
-## P2 Endpoints (Reserved)
+## Wave 2 Endpoints (Reserved)
 
 Not implemented in MVP; documented for contract stability:
 
@@ -329,7 +332,7 @@ Not implemented in MVP; documented for contract stability:
 
 ---
 
-## WebSocket (Optional, P2+)
+## WebSocket (Optional, W2+)
 
 Channel: `/ws/v1/events`
 

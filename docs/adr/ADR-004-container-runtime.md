@@ -12,7 +12,7 @@
 | **OCI-portable Compose files** | Required — no Docker-proprietary-only features |
 | **Podman + Compose** | Supported alternate runtime, not a product requirement |
 
-Compose stack services: `postgres`, `api`, `web`. Cloudflare Tunnel sidecar documented P1.5+, not MVP default.
+Compose stack services: `postgres`, `api`, `web`. Cloudflare Tunnel sidecar documented W1.5+, not MVP default.
 
 ## Rationale
 
@@ -39,9 +39,9 @@ Podman remains a compatible alternate for operators who prefer rootless containe
 
 - MVP documentation and scripts default to `docker compose up`.
 - ADR and roadmap note Podman compatibility without maintaining dual CI matrices in MVP.
-- Hosted Postgres is fallback (P3), not replacement for local Compose default.
+- Hosted Postgres is fallback (W3), not replacement for local Compose default.
 
 ## Related
 
 - [ADR-001-tech-stack.md](./ADR-001-tech-stack.md)
-- [07-phase-roadmap.md](../07-phase-roadmap.md)
+- [07-wave-roadmap.md](../07-wave-roadmap.md)

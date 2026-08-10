@@ -62,7 +62,7 @@ System-provided named filters backed by `saved_filters` with `is_system = TRUE`.
 | **By Epic** | All tasks in projects linked to selected epic |
 | **By Label** | Tasks with selected label |
 
-Smart view predicates are stored as JSON in `saved_filters.predicate_json` for forward compatibility with P2 query language (fixed views become special cases of the same model).
+Smart view predicates are stored as JSON in `saved_filters.predicate_json` for forward compatibility with W2 query language (fixed views become special cases of the same model).
 
 ### Calendar View (MVP — Required)
 
@@ -74,9 +74,9 @@ Smart view predicates are stored as JSON in `saved_filters.predicate_json` for f
 - Interactions:
   - Drag a task or block to change `due_at` or block `start_time`/`end_time`.
   - Create a manual block by dragging on empty calendar space (creates `scheduled_blocks` row linked to task).
-  - Pin toggle on blocks (`is_pinned`) is stored but auto-respect behavior is P2; MVP stores the flag for manual blocks.
-- **No external calendar events** in MVP (no Google/Microsoft overlay until P2).
-- Calendar is the only project timeline view in MVP. No Gantt, no board/Kanban timeline.
+  - Pin toggle on blocks (`is_pinned`) is stored but auto-respect behavior is W2; MVP stores the flag for manual blocks.
+- **No external calendar events** in MVP (no Google/Microsoft overlay until W2).
+- Calendar is the only project timeline view in MVP. No Gantt. Board/Kanban deferred to optional W3.
 
 ### Quick-Add
 
@@ -84,7 +84,7 @@ Global capture box (keyboard shortcut, e.g. `q` or `Ctrl+K`). Accepts natural-la
 
 ### Search
 
-Global full-text search across task titles and descriptions. Results open in a flat list with context (project, due, labels). MVP scope: simple `ILIKE` or Postgres full-text; advanced query syntax is P2.
+Global full-text search across task titles and descriptions. Results open in a flat list with context (project, due, labels). MVP scope: simple `ILIKE` or Postgres full-text; advanced query syntax is W2.
 
 ### Undo
 
@@ -97,19 +97,19 @@ Last destructive mutation (complete, delete, move) is undoable within a session 
 | Field | MVP UI | Schema | Notes |
 |-------|--------|--------|-------|
 | title | Yes | Required | Max 500 chars |
-| description | Yes | Optional | Plain text MVP; markdown rendering P2+ |
+| description | Yes | Optional | Plain text MVP; markdown rendering W2+ |
 | priority | Yes | P1–P4 enum | Default P4 |
 | due_at | Yes | TIMESTAMPTZ nullable | User-facing "due date/time" |
-| deadline_at | No (P2) | TIMESTAMPTZ nullable | Hard commit; enforced by scheduler in P2 |
-| soft_target_at | No (P2) | TIMESTAMPTZ nullable | Plan-bound soft target; surfaced with Plans in P2 |
+| deadline_at | No (W2) | TIMESTAMPTZ nullable | Hard commit; enforced by scheduler in W2 |
+| soft_target_at | No (W2) | TIMESTAMPTZ nullable | Plan-bound soft target; surfaced with Plans in W2 |
 | estimated_duration_minutes | Yes | Integer, default 30 | Stored as minutes |
-| min_block_duration_minutes | Schema only | Integer, default 15 | Scheduler P2 |
-| max_block_duration_minutes | Schema only | Integer, default 120 | Scheduler P2 |
+| min_block_duration_minutes | Schema only | Integer, default 15 | Scheduler W2 |
+| max_block_duration_minutes | Schema only | Integer, default 120 | Scheduler W2 |
 | labels | Yes | M2M via task_labels | |
 | project / section | Yes | FK nullable | Null project = Inbox |
 | parent_task_id | Yes | FK nullable | Defines subtask nesting |
 | nesting_level | Derived | 0–2 CHECK | Must match parent chain |
-| preferred_time_window_id | No (P2) | FK focus_windows nullable | SkedPal Time Map binding |
+| preferred_time_window_id | No (W2) | FK focus_windows nullable | SkedPal Time Map binding |
 | status | Partial | schedule_status enum | MVP uses unscheduled/completed primarily |
 | is_completed / completed_at | Yes | Boolean + timestamp | |
 | sort_order | Yes | Integer | Reorder within container |
@@ -126,7 +126,10 @@ Completed tasks are retained indefinitely. Default list views hide completed ite
 
 - Many-to-many with tasks via `labels` + `task_labels`.
 - Label attributes: name (unique per owner), color_hex.
-- Assign/remove via task detail UI and quick-add (future token support in P1.5).
+- **Standalone label management (MVP):** dedicated Labels screen (or settings section) to create, rename, recolor, and delete labels **without** opening a task. Creating several labels in one sitting is supported (repeat create / bulk-friendly UI).
+- **Prune:** deleting a label detaches it from all tasks (`ON DELETE CASCADE` on `task_labels`) and removes the label row. Confirm when the label is still attached to tasks (show usage count).
+- **Lowercase-only names:** all label names are stored and compared as lowercase. API and UI normalize on write (`Waiting` → `waiting`). Reject or fold duplicates that differ only by case — uniqueness is `(owner_id, name)` after normalization so `Waiting`, `WAITING`, and `waiting` cannot coexist.
+- Assign/remove on task detail remains available; quick-add label tokens deferred to W1.5 if needed.
 
 ### Colors (Epic & Project & Label)
 
@@ -148,7 +151,7 @@ Canonical swatches: [08-color-palette.md](./08-color-palette.md).
 - API trusts localhost / LAN binding; optional lightweight session cookie for CSRF hygiene.
 - `users` table populated with one row at bootstrap; `password_hash` nullable in MVP.
 
-### P1.5: Login / Remote-Ready
+### W1.5: Login / Remote-Ready
 
 - Password-based session login and/or Cloudflare Access integration.
 - Enables optional remote hosting without schema rewrite.
@@ -237,7 +240,7 @@ Pattern: `(?<=\s|^)(\d+(?:\.\d+)?)\s*(m|min|mins|minute|minutes|h|hr|hrs|hour|ho
 - **Relative:** today, tomorrow (tom), yesterday, next monday/tue/… — computed against user's local date boundary.
 - **Absolute:** YYYY-MM-DD, MM/DD/YYYY, DD-MMM (15-Aug), Oct 24.
 - **Exact time:** `at 3pm`, `at 14:30` — binds due_at timestamp.
-- **Fuzzy windows (P2 scheduler):** `@morning` (08:00–12:00), `@afternoon` (12:00–17:00), `@evening` (17:00–21:00) — maps to `preferred_time_window_id` when focus windows exist.
+- **Fuzzy windows (W2 scheduler):** `@morning` (08:00–12:00), `@afternoon` (12:00–17:00), `@evening` (17:00–21:00) — maps to `preferred_time_window_id` when focus windows exist.
 
 ### Example
 
@@ -250,7 +253,7 @@ Input: `Review architecture spec 1.5h p1 next Tue at 9am !!Organon #Dev/Backend 
 | Priority | p1 |
 | Duration | 90 minutes |
 | Due | Next Tuesday 09:00 (user TZ → UTC) |
-| Preferred window | morning (stored when P2 windows exist) |
+| Preferred window | morning (stored when W2 windows exist) |
 | Title | "Review architecture spec" |
 
 ---
@@ -259,16 +262,16 @@ Input: `Review architecture spec 1.5h p1 next Tue at 9am !!Organon #Dev/Backend 
 
 - **Due markers:** tasks with `due_at` render on calendar at due datetime (all-day vs timed based on whether time component is midnight/local day boundary).
 - **Manual blocks:** user-created `scheduled_blocks` rows; drag to move/resize.
-- **No external events** until P2 Google Calendar integration.
+- **No external events** until W2 Google Calendar integration.
 - **No auto-scheduler** in MVP; blocks are user-placed only.
 - Dragging a due marker updates `due_at`. Dragging a block updates `start_time`/`end_time`.
-- Conflict display: overlapping manual blocks are allowed in MVP (visual overlap only); overbook detection is P2.
+- Conflict display: overlapping manual blocks are allowed in MVP (visual overlap only); overbook detection is W2.
 
 ---
 
-## 9. Phase 2 — SkedPal Scheduler Behaviors (Spec Level)
+## 9. Wave 2 — SkedPal Scheduler Behaviors (Spec Level)
 
-These behaviors are **not in MVP** but are locked for P2 design. Schema and API are prepared from day one.
+These behaviors are **not in MVP** but are locked for W2 design. Schema and API are prepared from day one.
 
 ### SkedPal Triad
 
@@ -289,7 +292,7 @@ These behaviors are **not in MVP** but are locked for P2 design. Schema and API 
 | **Hard** | `deadline_at`, `is_pinned = TRUE` blocks, external calendar busy events | Never moved automatically |
 | **Soft** | Plan window, `soft_target_at`, preferred time window | Relaxable during fuzzy fit |
 
-**Pinned block (P2 backlog — not MVP exit):** User places (or accepts) a `scheduled_block` at a specific clock time and sets `is_pinned = TRUE`. Update Schedule / fuzzy replan **must not** move or split that block until the user unpins. This is distinct from `due_at` and `deadline_at`: it means “do this work *at this time*” (e.g. prep immediately before a meeting that lives on someone else’s calendar). Operator may choose the time manually from knowledge of external events; own Google busy map (P2 sync) helps when the related event is on a connected calendar, but pin remains the hard lock either way.
+**Pinned block (W2 backlog — not MVP exit):** User places (or accepts) a `scheduled_block` at a specific clock time and sets `is_pinned = TRUE`. Update Schedule / fuzzy replan **must not** move or split that block until the user unpins. This is distinct from `due_at` and `deadline_at`: it means “do this work *at this time*” (e.g. prep immediately before a meeting that lives on someone else’s calendar). Operator may choose the time manually from knowledge of external events; own Google busy map (W2 sync) helps when the related event is on a connected calendar, but pin remains the hard lock either way.
 
 ### Rule Inheritance
 
@@ -334,7 +337,7 @@ Insert `inter_block_buffer_minutes` (default **5**) between back-to-back auto-sc
 - Relax soft window constraints before failing.
 - Pinned blocks and external busy events are immovable.
 
-### GCal Conflict (P2)
+### GCal Conflict (W2)
 
 When a Google Calendar hard event overlaps a pinned block: both treated as BUSY; scheduler never auto-moves pins; surface overbook/flag in UI.
 
@@ -346,18 +349,23 @@ When a Google Calendar hard event overlaps a pinned block: both treated as BUSY;
 |------|--------|
 | Team workspaces, assignees, comments | Out |
 | Karma, streaks, badges | Out |
-| Board / Kanban view | Out |
-| Flutter mobile/desktop | Out (Tauri P3) |
-| External calendar sync | P2 (Google); P3 (Microsoft) |
-| Auto-scheduler | P2 |
-| Recurrence engine | P1.5 (schema in MVP) |
-| SLM / AI quick-add assist | P3 |
-| Location-based reminders | Out |
+| Board / Kanban view | W3 (optional) |
+| Flutter mobile/desktop | Out (Tauri W3) |
+| External calendar sync | W2 (Google); W3 (Microsoft) |
+| Auto-scheduler | W2 |
+| Recurrence engine | W1.5 (schema in MVP) |
+| SLM / AI quick-add assist | W3 |
+| Location-based reminders | W3 (candidate) |
+| Voice input | W3 (candidate; not before W2) |
+| Email-to-task | W3 (candidate; not before W2) |
+| Templates | W3 (backlog; low priority) |
+| Zapier / IFTTT / automation hubs | Post-W3 backlog |
+| Notion / Obsidian deep links or sync | Post-W3 backlog (maybe late W3 if cheap) |
 | Attachments | Out |
-| Todoist import | P1.5 |
-| Saved filter query language | P2 (fixed views MVP) |
+| Todoist import | W1.5 |
+| Saved filter query language | W2 (fixed views MVP) |
 | Offline PWA sync | Out for MVP (online-first) |
-| Remote auth / Cloudflare Access | P1.5 |
+| Remote auth / Cloudflare Access | W1.5 |
 
 ---
 
@@ -369,4 +377,4 @@ Single `user_settings.timezone` (IANA string, e.g. `America/Los_Angeles`). All t
 
 ## 12. Backup
 
-Documented `pg_dump` one-liner against Compose Postgres volume. Optional scheduled backup script in P1.5. OAuth tokens and secrets stored in host env / Docker secrets; never committed to git.
+Documented `pg_dump` one-liner against Compose Postgres volume. Optional scheduled backup script in W1.5. OAuth tokens and secrets stored in host env / Docker secrets; never committed to git.

@@ -22,12 +22,12 @@
 
 ## Rationale
 
-- **Python backend:** Operator's strongest language; excellent fit for scheduling math, NL parser, and calendar workers in P2.
+- **Python backend:** Operator's strongest language; excellent fit for scheduling math, NL parser, and calendar workers in W2.
 - **FastAPI:** Async-capable, OpenAPI generation, fast CRUD iteration.
 - **SQLAlchemy 2 + Alembic:** Mature Postgres ORM with migration discipline matching [001_baseline.sql](../sql/001_baseline.sql).
 - **Vite + React + TypeScript:** Speed-first SPA with optimistic UI; TypeScript for maintainability; team conversant in JS ecosystem.
 - **PostgreSQL:** Relational integrity for hierarchy, dependencies, and scheduling queries.
-- **Tauri 2 (P3):** Lightweight desktop wrapping the same web UI; avoids Dart/Flutter second codebase.
+- **Tauri 2 (W3):** Lightweight desktop wrapping the same web UI; avoids Dart/Flutter second codebase.
 
 ## Consequences
 

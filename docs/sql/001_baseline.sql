@@ -95,7 +95,7 @@ CREATE TABLE sections (
 );
 
 -- ---------------------------------------------------------------------------
--- Focus windows (Time Maps) — used P2; table present from baseline
+-- Focus windows (Time Maps) — used W2; table present from baseline
 -- ---------------------------------------------------------------------------
 CREATE TABLE focus_windows (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -132,8 +132,8 @@ CREATE TABLE tasks (
     max_block_duration_minutes  INT NOT NULL DEFAULT 120 CHECK (max_block_duration_minutes >= min_block_duration_minutes),
 
     due_at                      TIMESTAMPTZ,
-    deadline_at                 TIMESTAMPTZ,       -- hard commit; UI P2
-    soft_target_at              TIMESTAMPTZ,       -- Plan-bound soft target; UI P2
+    deadline_at                 TIMESTAMPTZ,       -- hard commit; UI W2
+    soft_target_at              TIMESTAMPTZ,       -- Plan-bound soft target; UI W2
 
     preferred_time_window_id    UUID REFERENCES focus_windows(id) ON DELETE SET NULL,
 
@@ -159,7 +159,9 @@ CREATE TABLE labels (
     color_hex       VARCHAR(7) NOT NULL DEFAULT '#635F75',  -- charcoal (Synesis muted)
     created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT labels_owner_name_unique UNIQUE (owner_id, name)
+    CONSTRAINT labels_owner_name_unique UNIQUE (owner_id, name),
+    CONSTRAINT labels_name_lowercase CHECK (name = lower(name)),
+    CONSTRAINT labels_name_nonempty CHECK (length(trim(name)) > 0)
 );
 
 CREATE TABLE task_labels (
@@ -198,7 +200,7 @@ CREATE TABLE scheduled_blocks (
 );
 
 -- ---------------------------------------------------------------------------
--- Recurrence (stub — engine P1.5)
+-- Recurrence (stub — engine W1.5)
 -- ---------------------------------------------------------------------------
 CREATE TABLE recurrence_rules (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -212,7 +214,7 @@ CREATE TABLE recurrence_rules (
 );
 
 -- ---------------------------------------------------------------------------
--- Reminders (stub — engine P1.5)
+-- Reminders (stub — engine W1.5)
 -- ---------------------------------------------------------------------------
 CREATE TABLE reminders (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -242,7 +244,7 @@ CREATE TABLE saved_filters (
 );
 
 -- ---------------------------------------------------------------------------
--- Calendar accounts & external events (P2 sync)
+-- Calendar accounts & external events (W2 sync)
 -- ---------------------------------------------------------------------------
 CREATE TABLE calendar_accounts (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -278,7 +280,7 @@ CREATE TABLE external_calendar_events (
 );
 
 -- ---------------------------------------------------------------------------
--- Schedule runs (P2 worker audit)
+-- Schedule runs (W2 worker audit)
 -- ---------------------------------------------------------------------------
 CREATE TABLE schedule_runs (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

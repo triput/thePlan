@@ -1,6 +1,6 @@
-# Phase Roadmap
+# Wave Roadmap
 
-Phased delivery from MVP through P3. Each version begins with a **Dependency Hygiene** wave unless explicitly overridden.
+Delivery waves from MVP through W3. Each version begins with a **Dependency Hygiene** wave unless explicitly overridden.
 
 ---
 
@@ -11,14 +11,14 @@ Phased delivery from MVP through P3. Each version begins with a **Dependency Hyg
         ↓
 Dependency Hygiene Wave (toolchain, pub/package majors, container pins, doc pins)
         ↓
-Feature waves (MVP → P1.5 → P2 → P3)
+Feature waves (MVP → W1.5 → W2 → W3)
 ```
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 
 ---
 
-## Phase 1 — MVP (Current Target)
+## Wave 1 — MVP (Current Target)
 
 **Goal:** Personal single-user task management with calendar visibility and fast local deployment.
 
@@ -48,7 +48,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 ---
 
-## Phase 1.5 — Soon After MVP
+## Wave 1.5 — Soon After MVP
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
 
@@ -67,11 +67,11 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 MVP: local bootstrap user, no login wall.
 
-P1.5: `password_hash` populated; login/logout endpoints; session cookies; optional Cloudflare Access in front of Tunnel.
+W1.5: `password_hash` populated; login/logout endpoints; session cookies; optional Cloudflare Access in front of Tunnel.
 
 Schema already has `users` + `password_hash` from baseline — no migration required for basic password auth.
 
-### Not in P1.5
+### Not in W1.5
 
 - Auto-scheduler
 - Google Calendar sync
@@ -80,7 +80,7 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 
 ---
 
-## Phase 2 — Scheduler + Google Calendar
+## Wave 2 — Scheduler + Google Calendar
 
 **Goal:** SkedPal-class automated time-blocking with external calendar awareness.
 
@@ -90,7 +90,7 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 2. **Plans** — flexible time frames; `soft_target_at` surfaced
 3. **Update Schedule** — explicit replan action; async worker
 
-### Additional P2 Features
+### Additional W2 Features
 
 | Feature | Notes |
 |---------|-------|
@@ -113,7 +113,7 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 
 ---
 
-## Phase 3 — SLM + Microsoft + Desktop
+## Wave 3 — SLM + Microsoft + Desktop
 
 **Goal:** Intelligence assist and native desktop without rewriting domain logic.
 
@@ -124,7 +124,12 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 | Local SLM (Ollama) | Ambiguous quick-add + schedule hints; never blocks CRUD |
 | Microsoft Calendar | calendar_provider.microsoft sync |
 | Tauri 2 desktop | Wraps web UI + FastAPI sidecar |
+| Board / Kanban view | Optional column view for “what’s going on”; sections→columns is a likely mapping. Not a substitute for calendar scheduling |
 | Hosted Postgres fallback | Optional; local Compose remains default |
+| Location reminders | W3 candidate; not W1/W1.5/W2 |
+| Voice input | Priority-3 backlog; no sooner than W2; likely W3 |
+| Email-to-task | Same as voice; not before W2; likely W3 |
+| Templates | Backlog nice-to-have; low priority; maybe later |
 
 ### Desktop Bundle Strategy
 
@@ -134,26 +139,39 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 
 ## Infrastructure Timeline
 
-| Capability | Phase |
-|------------|-------|
+| Capability | Wave |
+|------------|------|
 | Docker Desktop + Compose (local) | MVP |
 | pg_dump backup docs | MVP |
-| Cloudflare Tunnel | P1.5+ (post-MVP remote) |
-| Cloudflare Access | P1.5 (optional IdP) |
-| Hosted Postgres | P3 fallback |
+| Cloudflare Tunnel | W1.5+ (post-MVP remote) |
+| Cloudflare Access | W1.5 (optional IdP) |
+| Hosted Postgres | W3 fallback |
 | Podman alternate runtime | MVP-compatible (ADR-004) |
 
 ---
 
-## Explicit Non-Goals (All Phases)
+## Explicit Non-Goals (All Waves)
 
 - Team workspaces, sharing, comments, assignees
 - Karma, streaks, gamification
-- Board / Kanban timeline
 - Flutter (rejected — Tauri + shared web UI)
 - Mobile native apps (responsive web until desktop)
-- Location reminders, attachments
+- Attachments
 - iCloud calendar (unless reopened)
+
+Board / Kanban is **not** a permanent non-goal — see Wave 3 optional candidate.
+
+---
+
+## Post-W3 Backlog
+
+Not scheduled in W1–W3; park here for later reconsideration:
+
+| Item | Notes |
+|------|-------|
+| Zapier / IFTTT / automation hubs | External trigger/action connectors; likely needs stable public API + webhooks first |
+| Webhooks (inbound/outbound) | Enabler for hub integrations; may land with or just before Zapier-class work |
+| Notion / Obsidian link or light sync | Deep-link from tasks to notes, or optional bidirectional sync later. Possible late W3 if trivial; prefer post-W3 |
 
 ---
 
@@ -171,12 +189,12 @@ Run before each major version's feature waves:
 
 ## Documentation Map
 
-| Phase | Primary docs |
-|-------|--------------|
+| Wave | Primary docs |
+|------|--------------|
 | MVP | 01–07, sql/001_baseline.sql, adr/001–005 |
-| P1.5 | Update 02, 03, 05, 06, 07; new ADRs as needed |
-| P2 | Scheduler spec expansion in 02; calendar sync in 05 |
-| P3 | Desktop bundle ADR; SLM assist appendix |
+| W1.5 | Update 02, 03, 05, 06, 07; new ADRs as needed |
+| W2 | Scheduler spec expansion in 02; calendar sync in 05 |
+| W3 | Desktop bundle ADR; SLM assist appendix |
 
 ---
 

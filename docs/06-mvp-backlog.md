@@ -1,6 +1,6 @@
-# MVP Backlog (Phase 1)
+# MVP Backlog (Wave 1)
 
-User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracked in [07-phase-roadmap.md](./07-phase-roadmap.md).
+User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is tracked in [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 **Exit criteria (summary):** Full hierarchy CRUD, parent completion with warn+bulk, Today/Inbox/Upcoming smart views, calendar day/week, quick-add, search, undo, local Docker Compose deployment, p95 perceived interaction < 100ms on LAN. **No** calendar sync, **no** auto-scheduler, **no** remote auth required.
 
@@ -121,13 +121,16 @@ User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracke
 
 ### US-4.1: Labels
 
-**As a** user, **I want** labels on tasks **so that** I can cross-cut projects.
+**As a** user, **I want** to manage labels on their own and on tasks **so that** I can cross-cut projects and prune stale tags.
 
 **Acceptance criteria:**
 
-- [ ] CRUD labels with name and color
+- [ ] Standalone Labels management UI: list all labels; create one or several without attaching to a task; rename; recolor; delete
+- [ ] Delete confirms when label is in use; shows task usage count; delete removes label and all task attachments
 - [ ] Assign/remove labels on task detail
 - [ ] Filter tasks by label via smart view
+- [ ] Names are **lowercase-only**: input normalized to lowercase on create/rename; API rejects or folds case-only duplicates
+- [ ] Unique per owner after lowercase normalization (no `Waiting` + `waiting` pair)
 
 ### US-4.2: Color presets
 
@@ -208,7 +211,7 @@ User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracke
 - [ ] Drag block to change start/end time
 - [ ] Drag due marker to update due_at
 - [ ] Delete block
-- [ ] is_pinned stored (auto-respect / immovable-until-unpin deferred to P2 — fixed clock-time work vs due/deadline)
+- [ ] is_pinned stored (auto-respect / immovable-until-unpin deferred to W2 — fixed clock-time work vs due/deadline)
 - [ ] Overlapping blocks allowed in MVP (visual only)
 
 ### US-6.4: No external calendar in MVP
@@ -302,12 +305,12 @@ User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracke
 
 ### US-10.1: Deferred fields in schema
 
-**As a** developer, **I want** P2/P1.5 columns present from baseline **so that** later phases avoid painful migrations.
+**As a** developer, **I want** W2/W1.5 columns present from baseline **so that** later waves avoid painful migrations.
 
 **Acceptance criteria:**
 
 - [ ] `due_at` and `deadline_at` both on tasks; MVP UI shows due_at only
-- [ ] `soft_target_at` on tasks (Plans P2)
+- [ ] `soft_target_at` on tasks (Plans W2)
 - [ ] recurrence_rules, reminders, focus_windows, calendar_accounts tables exist
 - [ ] schedule_status includes overbooked
 - [ ] saved_filters seeded with Inbox/Today/Upcoming
@@ -332,18 +335,22 @@ User stories with acceptance criteria for Phase 1 MVP only. P1.5+ work is tracke
 | Auto-scheduler | **No** |
 | Remote auth / login | **No** |
 | Recurrence engine | **No** (schema yes) |
-| Board/Kanban | **No** |
+| Board/Kanban | **No** (optional W3 candidate) |
 
 ---
 
 ## Out of Scope (Explicit)
 
-- Recurrence UI and engine (P1.5)
-- Reminders (P1.5)
-- Todoist import (P1.5)
-- Login / Cloudflare Tunnel (P1.5+)
-- Auto-scheduler, UPS, Update Schedule (P2)
-- Google Calendar sync (P2)
-- Filter query language (P2)
-- SLM assist (P3)
-- Tauri desktop (P3)
+- Recurrence UI and engine (W1.5)
+- Reminders (W1.5)
+- Todoist import (W1.5)
+- Login / Cloudflare Tunnel (W1.5+)
+- Auto-scheduler, UPS, Update Schedule (W2)
+- Google Calendar sync (W2)
+- Filter query language (W2)
+- SLM assist (W3)
+- Tauri desktop (W3)
+- Board / Kanban column view (W3 optional)
+- Location reminders, voice input, email-to-task, templates (W3 candidates)
+- Zapier / IFTTT / automation hubs (Post-W3 backlog)
+- Notion / Obsidian deep links or sync (Post-W3 backlog; maybe late W3 if cheap)

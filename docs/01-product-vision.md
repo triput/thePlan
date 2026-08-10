@@ -4,7 +4,7 @@
 
 ## What We Are Building
 
-A personal, single-user, web-first productivity application that combines structured task management (Todoist-class hierarchy and capture) with automated time-blocking (SkedPal-class scheduling) in a later phase. The application prioritizes execution speed, deep hierarchical organization, and utility over engagement mechanics.
+A personal, single-user, web-first productivity application that combines structured task management (Todoist-class hierarchy and capture) with automated time-blocking (SkedPal-class scheduling) in a later wave. The application prioritizes execution speed, deep hierarchical organization, and utility over engagement mechanics.
 
 ## Core Principles
 
@@ -26,11 +26,11 @@ Epics span multi-month initiatives; projects organize functional domains; sectio
 
 ### Dynamic Scheduling (Later)
 
-Phase 2 introduces SkedPal-inspired fuzzy time-blocking: slice tasks into calendar blocks, respect dependencies and focus windows, pin manual placements, and surface overbooking. MVP ships manual due dates and manually placed blocks only.
+Wave 2 introduces SkedPal-inspired fuzzy time-blocking: slice tasks into calendar blocks, respect dependencies and focus windows, pin manual placements, and surface overbooking. MVP ships manual due dates and manually placed blocks only.
 
 ### Local-First Infrastructure
 
-Primary deployment is **Docker Compose + PostgreSQL** on local hardware. Remote access via Cloudflare Tunnel is planned post-MVP, not required for Phase 1 exit. Hosted Postgres is a fallback option, not the default architecture.
+Primary deployment is **Docker Compose + PostgreSQL** on local hardware. Remote access via Cloudflare Tunnel is planned post-MVP, not required for Wave 1 exit. Hosted Postgres is a fallback option, not the default architecture.
 
 ## Target User
 
@@ -52,15 +52,15 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 **In:** Full hierarchy CRUD, labels, Synesis/Phronesis-aligned color presets ([08-color-palette.md](./08-color-palette.md)), fixed smart views (Inbox, Today, Upcoming, by Project/Epic/Label), calendar view (day/week), quick-add parser, search, undo, local Compose stack, local-only auth.
 
-**Out of MVP:** Auto-scheduler, external calendar sync, recurrence engine, login/remote auth, board/Kanban, teams, gamification, SLM assist, desktop client.
+**Out of MVP:** Auto-scheduler, external calendar sync, recurrence engine, login/remote auth, board/Kanban (optional W3 candidate), teams, gamification, SLM assist, desktop client, voice input, email-to-task, location reminders, templates (all W3 backlog candidates — not before W2 where applicable).
 
-## Explicit Non-Goals (All Phases Unless Reopened)
+## Explicit Non-Goals (All Waves Unless Reopened)
 
 - Team workspaces, assignees, comments, public sharing
 - Karma, streaks, productivity gamification
-- Board / Kanban as a project timeline view
+- Board / Kanban as a project view (not MVP; optional W3 candidate)
 - Flutter or separate mobile-native clients (responsive web until Tauri)
-- AI/SLM in the critical path before Phase 3
+- AI/SLM in the critical path before Wave 3
 
 ## Success Criteria (MVP)
 

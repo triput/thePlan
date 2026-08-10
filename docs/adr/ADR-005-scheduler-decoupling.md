@@ -2,13 +2,13 @@
 
 **Status:** Accepted  
 **Date:** 2026-08-09  
-**Context:** Architecture boundary between CRUD API and P2 auto-scheduling engine.
+**Context:** Architecture boundary between CRUD API and W2 auto-scheduling engine.
 
 ## Decision
 
 **CRUD never waits on the scheduler.**
 
-Task management API endpoints (create, update, complete, move, delete) return immediately without invoking the scheduling pipeline. The auto-scheduler runs as a separate async worker process triggered explicitly (Update Schedule in P2) or on a background schedule — never on the critical path of user mutations.
+Task management API endpoints (create, update, complete, move, delete) return immediately without invoking the scheduling pipeline. The auto-scheduler runs as a separate async worker process triggered explicitly (Update Schedule in W2) or on a background schedule — never on the critical path of user mutations.
 
 ## Rationale
 
@@ -31,7 +31,7 @@ Task management API endpoints (create, update, complete, move, delete) return im
                                      └──────┬───────┘
                                             │
                     Schedule trigger        │ read/write
-                    (P2: POST /schedule/replan)
+                    (W2: POST /schedule/replan)
                                             ▼
                                      ┌──────────────┐
                                      │  Scheduler   │
@@ -40,14 +40,14 @@ Task management API endpoints (create, update, complete, move, delete) return im
                                             │
                                             ▼
                                      ┌──────────────┐
-                                     │ Google Cal   │ (P2)
+                                     │ Google Cal   │ (W2)
                                      └──────────────┘
 ```
 
 ## Rules
 
 1. **MVP:** No scheduler worker. `scheduled_blocks` created only via CRUD API (manual placement).
-2. **P2:** Worker reads tasks, focus_windows, dependencies, external events; writes `scheduled_blocks` and `schedule_runs` audit rows.
+2. **W2:** Worker reads tasks, focus_windows, dependencies, external events; writes `scheduled_blocks` and `schedule_runs` audit rows.
 3. **Pinned blocks:** Worker treats `is_pinned = TRUE` as immovable BUSY.
 4. **Overbook:** Worker sets `tasks.status = overbooked`; does not fail the run.
 5. **Client refresh:** After replan completes, client refetches calendar/blocks (WebSocket optional).
@@ -62,7 +62,7 @@ Task management API endpoints (create, update, complete, move, delete) return im
 ## Consequences
 
 - Wave 2 API implementation must not import scheduler modules in CRUD handlers.
-- P2 adds separate worker entrypoint (e.g. `python -m scheduler.worker` or FastAPI background task queue — but never inline in request handler).
+- W2 adds separate worker entrypoint (e.g. `python -m scheduler.worker` or FastAPI background task queue — but never inline in request handler).
 - [05-api-contract.md](../05-api-contract.md) `POST /schedule/replan` is async-accept (202) with poll or WebSocket completion.
 
 ## Related

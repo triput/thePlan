@@ -6,7 +6,7 @@
 
 ## Decision
 
-The application is **personal single-user**. No workspaces, team sharing, assignees, role-based access control, or multi-tenant isolation logic in MVP through P2.
+The application is **personal single-user**. No workspaces, team sharing, assignees, role-based access control, or multi-tenant isolation logic in MVP through W2.
 
 Every domain table includes `owner_id UUID NOT NULL` referencing `users(id)`.
 
@@ -24,7 +24,7 @@ Every domain table includes `owner_id UUID NOT NULL` referencing `users(id)`.
 - MVP API assumes exactly one active owner (bootstrap user).
 - No invite flows, no `@assignee`, no project sharing URLs.
 - Explicit non-goals: teams, comments, karma, public sharing ([01-product-vision.md](../01-product-vision.md)).
-- P1.5 login adds authentication but not multi-user — still one row, one operator.
+- W1.5 login adds authentication but not multi-user — still one row, one operator.
 - If multi-user is ever reopened, it becomes a major ADR revision with row-level security or account switching — not a incremental patch.
 
 ## Related
