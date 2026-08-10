@@ -68,7 +68,7 @@ Smart view predicates are stored as JSON in `saved_filters.predicate_json` for f
 
 - **Day** and **Week** layouts required at MVP.
 - **Month** layout: include if implementation cost is low; not a blocker for MVP exit.
-- **Nice-to-have chrome:** day-of-year and ISO week-of-year in consistent form with `  •  ` separators (day: `…  •  Year YYYY: Day N  •  Week W`; week: `Year YYYY: Week W  •  …  •  Days A–B`).
+- **Nice-to-have chrome:** day-of-year and ISO week-of-year with `  •  ` separators; date first then year chrome (day: `…  •  Year YYYY: Day N  •  Week W`; week: `MMM D–MMM D  •  Year YYYY: Week W  •  Days A–B`).
 - Display:
   - Tasks with `due_at` set appear as due markers/events on their due datetime.
   - Manually placed **scheduled_blocks** appear as time blocks on the calendar grid.

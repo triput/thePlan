@@ -160,5 +160,5 @@ export function weekViewTitle(anchor: Date): string {
   const week = getISOWeek(first);
   const doyStart = getDayOfYear(first);
   const doyEnd = getDayOfYear(last);
-  return `Year ${year}: Week ${week}  •  ${formatShortDate(first)}–${formatShortDate(last)}  •  Days ${doyStart}–${doyEnd}`;
+  return `${formatShortDate(first)}–${formatShortDate(last)}  •  Year ${year}: Week ${week}  •  Days ${doyStart}–${doyEnd}`;
 }
