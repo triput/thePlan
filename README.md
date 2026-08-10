@@ -27,7 +27,7 @@ docker compose -f infra/compose/compose.yaml up --build
 | API | http://localhost:8000 |
 | API docs | http://localhost:8000/docs |
 | Postgres | `localhost:5432` (user/db/password: `theplan`) |
-| pgAdmin (optional) | http://localhost:5050 — `trish@localhost` / `theplan` |
+| pgAdmin (optional) | http://localhost:5050 — `admin@example.com` / `theplan` |
 
 pgAdmin is behind Compose profile `tools` (not started by default):
 

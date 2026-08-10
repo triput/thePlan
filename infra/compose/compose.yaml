@@ -58,7 +58,7 @@ services:
     image: dpage/pgadmin4:8
     profiles: ["tools"]
     environment:
-      PGADMIN_DEFAULT_EMAIL: trish@localhost
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: theplan
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
