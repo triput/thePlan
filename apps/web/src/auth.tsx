@@ -61,9 +61,12 @@ export function AuthProvider({ user, children }: AuthProviderProps) {
 
   const setAuthenticated = useCallback(
     (nextUser: User) => {
-      queryClient.clear();
       const state: AuthState = { status: "authenticated", user: nextUser };
       queryClient.setQueryData(["auth", "me"], state);
+      // Drop domain caches without clearing auth (clear() races a 401 refetch).
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== "auth",
+      });
     },
     [queryClient],
   );

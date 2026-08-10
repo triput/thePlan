@@ -11,13 +11,13 @@ copy .env.example .env
 npm run dev
 ```
 
-Open http://localhost:5173 — requires the API running on port 8000 (see `apps/api/README.md` or Docker Compose). Docker Compose serves the production build at http://localhost:8080.
+Open http://localhost:5173 — Vite proxies `/api` to the API on port 8000. Docker Compose serves the production build at http://localhost:8080 (nginx also proxies `/api`).
 
 ## Environment
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `VITE_API_URL` | `http://localhost:8000` | Backend base URL |
+| `VITE_API_URL` | _(empty)_ | Leave empty for same-origin `/api` (required for session cookies). Absolute URL only for special cases. |
 
 ## Docker
 

@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+/** Empty = same-origin (Vite proxy / Compose nginx). Absolute URL only for special cases. */
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -244,13 +245,18 @@ export interface QuickAddParseResponse {
 type QueryParams = Record<string, string | number | boolean | undefined | null>;
 
 function buildUrl(path: string, params?: QueryParams): string {
-  const url = new URL(`${API_URL}${path}`);
+  const url = API_URL
+    ? new URL(`${API_URL.replace(/\/$/, "")}${path}`)
+    : new URL(path, typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1");
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== null) {
         url.searchParams.set(key, String(value));
       }
     }
+  }
+  if (!API_URL) {
+    return `${url.pathname}${url.search}`;
   }
   return url.toString();
 }

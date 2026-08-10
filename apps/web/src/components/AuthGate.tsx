@@ -63,9 +63,11 @@ function useUnauthenticatedAuthActions() {
   const queryClient = useQueryClient();
 
   const setAuthenticated = (user: User) => {
-    queryClient.clear();
     const state: AuthState = { status: "authenticated", user };
     queryClient.setQueryData(["auth", "me"], state);
+    queryClient.removeQueries({
+      predicate: (query) => query.queryKey[0] !== "auth",
+    });
   };
 
   return {
