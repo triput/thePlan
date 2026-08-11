@@ -3,7 +3,7 @@
 **Status:** Exited **2026-08-10**  
 **Evidence tip:** `d2b47e9` (calendar drag fix); closeout ship `09de617`; companion **Wave 1.6** mobile polish `95ad007`  
 **Hygiene:** [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (quick-scan pass 2026-08-10)  
-**Next target:** [Wave 2a — Google Calendar](./07-wave-roadmap.md#wave-2--google-calendar--then-scheduler)
+**Next target:** [Wave 2a — Google Calendar](./07-wave-roadmap.md#wave-2--google-calendar--then-scheduler) (**started**)
 
 ## Scope
 

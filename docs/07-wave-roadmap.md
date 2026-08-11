@@ -14,7 +14,7 @@ Dependency Hygiene Wave (toolchain, pub/package majors, container pins, doc pins
 Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W3+)
 ```
 
-**Post-1.6 build order (locked):** close W1.5 leftovers → Google Calendar → Scheduler. Everything else stays W3 or W3+.
+**Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). Everything else stays W3 or W3+.
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 
@@ -124,9 +124,11 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 ---
 
-## Wave 2 — Google Calendar, then Scheduler
+## Wave 2 — Google Calendar, then Scheduler (**in progress**)
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
+
+**Status:** **W2a started 2026-08-10.** Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass). Schema stubs (`calendar_accounts`, `external_calendar_events`) exist; API/UI not yet wired.
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -134,12 +136,20 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 | Feature | Notes |
 |---------|-------|
-| Google Calendar sync | Bidirectional; OAuth via `calendar_accounts` |
+| Google Calendar sync | Bidirectional for full W2a; OAuth via `calendar_accounts` |
 | Busy map / cutout | External hard events as BUSY input |
 | Conflict policy (partial) | External hard events and pinned blocks are BUSY; overbook flagged when detected |
 | Calendar UI wiring | Surfaces synced busy alongside manual blocks |
 
 No full Update Schedule / UPS pipeline in 2a.
+
+#### W2a slice plan
+
+1. **Slice 1 (prove-it):** Google OAuth connect → pull events → store `external_calendar_events` → render read-only busy on Calendar day/week; Settings connect/disconnect/sync. Scopes may start read-only if preferred.
+2. **Slice 2:** Bidirectional write-back of local `scheduled_blocks` (policy TBD), incremental sync / `sync_cursor`, primary-vs-multi calendar selection.
+3. **Slice 3 (capacity):** Overbook flags when external busy overlaps pins/blocks; contract polish in `05-api-contract.md`.
+
+**Operator prerequisites before Slice 1 code lands:** Google Cloud OAuth web client (ID + secret), redirect URI(s), scope choice (readonly vs `calendar.events`), token encryption secret, backup copies under `.secrets-backup/`.
 
 ### Phase 2b — Scheduler (SkedPal triad)
 
@@ -257,6 +267,7 @@ Run before each major version's feature waves:
 - [x] Update doc pins and ADR references — Wave 1 exit + this scan
 - [x] Record quick-scan or full pass in version notes — `docs/HYGIENE-W1.5-QUICKSCAN.md`
 - [x] W1.6 entry: quick-scan only (reuse W1.5 pins unless drift found) — exited with W1.6 ship 2026-08-10
+- [x] W2 entry: quick-scan — [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (2026-08-10)
 
 ---
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased] — Wave 2a (in progress)
+
+- Hygiene gate: [docs/HYGIENE-W2-QUICKSCAN.md](docs/HYGIENE-W2-QUICKSCAN.md) (pass)
+- W2a started: Google Calendar OAuth + busy map (schema stubs already present)
+
+### Planned next
+
+- **W2a Slice 1** — Connect Google, pull events, show busy on calendar
+- **W2a Slice 2+** — Bidirectional write-back, incremental sync
+- **W2b** — SkedPal triad after busy map is usable
+
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 
 - Formal exit record: [docs/WAVE-1.5-EXIT.md](docs/WAVE-1.5-EXIT.md) (tip d2b47e9)

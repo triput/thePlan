@@ -348,7 +348,7 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 
 Wave **1.5 exited 2026-08-10** — [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md). W1.6 phone UI included.
 
-**Next:** Google Calendar (W2a) → Scheduler (W2b). Everything else is W3+.
+**Next:** Wave **2a** (Google Calendar) is in progress — then Scheduler (W2b). Everything else is W3+.
 
 ---
 
