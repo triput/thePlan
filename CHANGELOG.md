@@ -9,10 +9,13 @@
 - **Google Calendar Slice 3 (shipped):** `GET /calendar/conflicts` — block↔busy and block↔block overlap flags; calendar UI conflict styling (no `tasks.status` mutation) — verified live
 - cryptography for Fernet token encryption
 - Parked for W2b+: painted Time Maps (multi-band + green/yellow/red), Time Map overrides, scoped bundles, settings expansion, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
+- **Schema fence locked:** default schedule style = standalone (block/bundle opt-in); MBL = use default; auto-defer on (warn in Settings, don’t nag); green→yellow→never red in principle; pins + GCal busy immovable
 
 ### Planned next
 
-- **W2b Slice 2+** — Plans, Settings expansion, Update Schedule / auto-scheduler worker
+- **W2b Settings expansion** — timezone, buffers, default duration, schedule-style default (standalone)
+- **W2b Plans + deadline/soft_target UI**
+- **Fuzzy algorithm session** — gate before Update Schedule worker
 - **Painted Time Maps** — one map, split colored bands; green preferred, yellow overflow OK, red forbidden
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit

@@ -191,6 +191,18 @@ No full Update Schedule / UPS pipeline in 2a.
 
 **Fuzzy scheduling** (deferral, override min/max block length, soft plans, auto-defer, time pressure vs Time Maps): **dedicated planning session** before deep W2b algorithm work — do not spec ad hoc.
 
+**Schema fence (locked 2026-08-11 — before Update Schedule worker):**
+
+| Decision | Lock |
+|----------|------|
+| Default schedule style for new tasks | **Standalone** — Time Block / Bundle are opt-in only |
+| Min block length (MBL) | **Use user/default** unless task overrides (override UI later) |
+| Auto-defer | **On by default** — missed plan windows may slide; surface a one-time / Settings warning, not a nag modal per task |
+| Time Map preference tiers | **In principle** — green preferred → yellow overflow OK → red forbidden; v1 maps stay one band until Painted Time Maps |
+| Pins + external busy | **Immovable BUSY** — confirmed (ADR-005 + GCal conflict policy) |
+
+Settings expansion is the next build slice; full fuzzy algorithm session remains the gate before the replan worker.
+
 ### GCal Conflict Policy (2a + 2b)
 
 External hard events and pinned blocks are both BUSY. Scheduler never auto-moves pins. Overbook flagged, not silently dropped.
