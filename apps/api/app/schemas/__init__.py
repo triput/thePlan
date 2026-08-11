@@ -249,6 +249,10 @@ class LabelUpdate(BaseModel):
     color_hex: str | None = None
 
 
+class LabelDeleteBody(BaseModel):
+    reassign_to: list[UUID] = Field(default_factory=list)
+
+
 class LabelOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

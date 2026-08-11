@@ -222,7 +222,7 @@ Open **Labels** in the sidebar.
 | Create many | One name per line, shared color → **Create labels** |
 | Edit / delete | **✎** on a row → rename, recolor, or **Delete label** |
 
-Deleting a label removes it from all tasks (confirmation shows task count). **Bulk reassign to other labels on delete** is planned for Wave 1.5 but not in the UI yet — retag tasks manually if needed.
+Deleting a label removes it from all tasks (confirmation shows task count). If the label is used, you can optionally **check other labels** to apply to those tasks before the pruned label is removed.
 
 Sidebar **By label** links filter the task list. Toggle labels on tasks in the detail panel.
 
@@ -349,7 +349,7 @@ Still open or operator-only (not end-user UI):
 
 | Item | Status |
 |------|--------|
-| Label delete → reassign other labels | Not in UI; manual retag |
+| Label delete → reassign other labels | Shipped — optional multi-select on delete |
 | Scheduled pg_dump backup script | One-liner only (see above) |
 | Cloudflare Tunnel template | Operator docs / roadmap |
 | Show completed toggle | Deferred |

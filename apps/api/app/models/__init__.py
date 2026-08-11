@@ -240,7 +240,11 @@ class Label(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     color_hex: Mapped[str] = mapped_column(String(7), nullable=False, server_default="#635F75")
 
-    task_links: Mapped[list["TaskLabel"]] = relationship(back_populates="label")
+    task_links: Mapped[list["TaskLabel"]] = relationship(
+        back_populates="label",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class TaskLabel(Base):

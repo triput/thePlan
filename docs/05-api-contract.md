@@ -137,7 +137,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 | POST | `/labels/batch` | Create multiple labels in one request (optional convenience; each name lowercased) |
 | GET | `/labels/{id}` | Get |
 | PATCH | `/labels/{id}` | Update name/color (name lowercased; 409 on duplicate) |
-| DELETE | `/labels/{id}` | Delete label and cascade detach from tasks |
+| DELETE | `/labels/{id}` | Delete label; optional body `{ "reassign_to": ["uuid", ...] }` bulk-applies surviving labels to affected tasks before remove |
 | POST | `/tasks/{task_id}/labels/{label_id}` | Attach label |
 | DELETE | `/tasks/{task_id}/labels/{label_id}` | Detach label |
 

@@ -135,7 +135,7 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 - [x] Names are **lowercase-only**: input normalized to lowercase on create/rename; API rejects or folds case-only duplicates
 - [x] Unique per owner after lowercase normalization (no `Waiting` + `waiting` pair)
 
-**Deferred (W1.5):** On delete, optionally reassign affected tasks to other label(s) in bulk before removing the pruned label.
+**Done (W1.5):** On delete, optionally reassign affected tasks to other label(s) in bulk before removing the pruned label.
 
 ### US-4.2: Color presets
 

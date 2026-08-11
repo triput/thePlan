@@ -919,6 +919,28 @@
   flex-wrap: wrap;
 }
 
+.label-reassign-fieldset {
+  margin: 0.75rem 0;
+}
+
+.label-reassign-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.label-reassign-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteLabel, updateLabel, type Label } from "../api";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteLabel, fetchLabels, updateLabel, type Label } from "../api";
 import { ColorPicker } from "./ColorPicker";
-import { ConfirmDialog } from "./ConfirmDialog";
 import { Modal } from "./Modal";
 
 interface EditLabelFormProps {
@@ -15,14 +14,30 @@ export function EditLabelForm({ label, taskCount = 0, onClose }: EditLabelFormPr
   const [name, setName] = useState("");
   const [colorHex, setColorHex] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [reassignTo, setReassignTo] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (label) {
       setName(label.name);
       setColorHex(label.color_hex);
+      setConfirmDelete(false);
+      setReassignTo([]);
     }
   }, [label]);
+
+  const labelsQuery = useQuery({
+    queryKey: ["labels"],
+    queryFn: () => fetchLabels({ limit: 200 }),
+    enabled: confirmDelete && label != null,
+  });
+
+  const otherLabels = useMemo(() => {
+    if (!label) return [];
+    return (labelsQuery.data?.items ?? [])
+      .filter((item) => item.id !== label.id)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [labelsQuery.data, label]);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["labels"] });
@@ -39,10 +54,12 @@ export function EditLabelForm({ label, taskCount = 0, onClose }: EditLabelFormPr
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteLabel(label!.id),
+    mutationFn: () =>
+      deleteLabel(label!.id, reassignTo.length > 0 ? { reassign_to: reassignTo } : {}),
     onSuccess: () => {
       invalidate();
       setConfirmDelete(false);
+      setReassignTo([]);
       onClose();
     },
   });
@@ -54,12 +71,18 @@ export function EditLabelForm({ label, taskCount = 0, onClose }: EditLabelFormPr
     updateMutation.mutate({ name: trimmed.toLowerCase(), color_hex: colorHex });
   };
 
+  const toggleReassign = (id: string) => {
+    setReassignTo((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const error = updateMutation.error ?? deleteMutation.error;
   const count = label?.task_count ?? taskCount;
 
   return (
     <>
-      <Modal open={label !== null} title="Edit label" onClose={onClose}>
+      <Modal open={label !== null && !confirmDelete} title="Edit label" onClose={onClose}>
         <form className="entity-form" onSubmit={handleSubmit}>
           <label className="field">
             <span>Name</span>
@@ -74,7 +97,7 @@ export function EditLabelForm({ label, taskCount = 0, onClose }: EditLabelFormPr
             <legend>Color</legend>
             <ColorPicker value={colorHex} onChange={setColorHex} />
           </fieldset>
-          {error && <p className="form-error">{(error as Error).message}</p>}
+          {error && !confirmDelete && <p className="form-error">{(error as Error).message}</p>}
           <div className="form-actions">
             <button type="button" className="btn secondary" onClick={onClose}>
               Cancel
@@ -95,16 +118,72 @@ export function EditLabelForm({ label, taskCount = 0, onClose }: EditLabelFormPr
         </form>
       </Modal>
 
-      <ConfirmDialog
-        open={confirmDelete}
+      <Modal
+        open={confirmDelete && label !== null}
         title="Delete label?"
-        message={`Permanently delete "${label?.name}"? Used on ${count} task${count === 1 ? "" : "s"}.`}
-        confirmLabel="Delete"
-        destructive
-        pending={deleteMutation.isPending}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={() => deleteMutation.mutate()}
-      />
+        onClose={() => {
+          if (deleteMutation.isPending) return;
+          setConfirmDelete(false);
+          setReassignTo([]);
+        }}
+      >
+        <p className="dialog-text">
+          Permanently delete &ldquo;{label?.name}&rdquo;? Used on {count} task
+          {count === 1 ? "" : "s"}.
+        </p>
+        {count > 0 && (
+          <fieldset className="field label-reassign-fieldset">
+            <legend>Also apply to affected tasks (optional)</legend>
+            {otherLabels.length === 0 ? (
+              <p className="muted small">No other labels to reassign to.</p>
+            ) : (
+              <ul className="label-reassign-list">
+                {otherLabels.map((item) => (
+                  <li key={item.id}>
+                    <label className="label-reassign-option">
+                      <input
+                        type="checkbox"
+                        checked={reassignTo.includes(item.id)}
+                        onChange={() => toggleReassign(item.id)}
+                      />
+                      <span
+                        className="label-swatch"
+                        style={{ backgroundColor: item.color_hex }}
+                        aria-hidden
+                      />
+                      <span>{item.name}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </fieldset>
+        )}
+        {deleteMutation.error && (
+          <p className="form-error">{(deleteMutation.error as Error).message}</p>
+        )}
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn secondary"
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              setConfirmDelete(false);
+              setReassignTo([]);
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn danger"
+            disabled={deleteMutation.isPending}
+            onClick={() => deleteMutation.mutate()}
+          >
+            {deleteMutation.isPending ? "Working…" : "Delete"}
+          </button>
+        </div>
+      </Modal>
     </>
   );
 }

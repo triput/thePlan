@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,7 @@ from app.schemas import (
     LabelBatchCreateResponse,
     LabelBatchSkipped,
     LabelCreate,
+    LabelDeleteBody,
     LabelOut,
     LabelUpdate,
     PaginatedResponse,
@@ -178,9 +179,58 @@ def update_label(
 @router.delete("/{label_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_label(
     label_id: UUID,
+    body: LabelDeleteBody | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> None:
+) -> Response:
     label = _get_owned_label(db, label_id, user)
+    reassign_to = list(dict.fromkeys((body.reassign_to if body else []) or []))
+
+    if label_id in reassign_to:
+        raise ApiError(422, "Cannot reassign a label to itself", "LABEL_REASSIGN_SELF")
+
+    if reassign_to:
+        owned = (
+            db.query(Label.id)
+            .filter(Label.owner_id == user.id, Label.id.in_(reassign_to))
+            .all()
+        )
+        owned_ids = {row[0] for row in owned}
+        missing = [str(rid) for rid in reassign_to if rid not in owned_ids]
+        if missing:
+            raise ApiError(
+                422,
+                f"Replacement label(s) not found: {', '.join(missing)}",
+                "LABEL_REASSIGN_NOT_FOUND",
+            )
+
+        task_ids = [
+            row[0]
+            for row in db.query(TaskLabel.task_id).filter(TaskLabel.label_id == label_id).all()
+        ]
+        if task_ids:
+            existing = {
+                (row.task_id, row.label_id)
+                for row in db.query(TaskLabel)
+                .filter(
+                    TaskLabel.task_id.in_(task_ids),
+                    TaskLabel.label_id.in_(reassign_to),
+                )
+                .all()
+            }
+            to_add = [
+                TaskLabel(task_id=task_id, label_id=replace_id)
+                for task_id in task_ids
+                for replace_id in reassign_to
+                if (task_id, replace_id) not in existing
+            ]
+            if to_add:
+                db.add_all(to_add)
+                db.flush()
+
+    db.query(TaskLabel).filter(TaskLabel.label_id == label_id).delete(
+        synchronize_session=False
+    )
     db.delete(label)
     db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

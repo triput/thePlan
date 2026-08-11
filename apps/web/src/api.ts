@@ -551,8 +551,11 @@ export function updateLabel(labelId: string, body: LabelUpdate) {
   });
 }
 
-export function deleteLabel(labelId: string) {
-  return apiFetch<void>(`/api/v1/labels/${labelId}`, { method: "DELETE" });
+export function deleteLabel(labelId: string, body?: { reassign_to?: string[] }) {
+  return apiFetch<void>(`/api/v1/labels/${labelId}`, {
+    method: "DELETE",
+    body: JSON.stringify(body ?? {}),
+  });
 }
 
 export function createTask(body: TaskCreate) {

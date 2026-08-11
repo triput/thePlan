@@ -52,7 +52,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Label colors | MVP | Presets in 08-color-palette |
 | Standalone label management (create/prune without task) | MVP | Dedicated Labels UI |
 | Lowercase-only label names | MVP | Normalize on write; unique per owner |
-| Label delete with reassign/migrate | W1.5 | On prune: optional bulk replace deleted label with one or more other labels before detach; keep related tasks correctly tagged |
+| Label delete with reassign/migrate | W1.5 | Optional bulk apply other label(s) to affected tasks before prune |
 | Epic/project color presets | MVP | Synesis/Phronesis-aligned presets; entity custom hex picker W1.5 |
 | Fixed smart views (Inbox, Today, Upcoming) | MVP | System saved_filters |
 | Smart view by Project | MVP | |
