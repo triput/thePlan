@@ -1727,19 +1727,52 @@
   opacity: 0.92;
 }
 
-.cal-block-resize {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 8px;
-  cursor: ns-resize;
-  touch-action: none;
+.cal-busy-block {
+  left: 2px;
+  right: 2px;
+  border-left-color: color-mix(in srgb, var(--text-muted) 70%, transparent);
+  background: color-mix(in srgb, var(--text-muted) 18%, var(--panel));
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 0;
 }
 
 .calendar-view.is-dragging {
   user-select: none;
   cursor: grabbing;
+}
+
+.calendar-account-list {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.calendar-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.calendar-account-email {
+  font-weight: 600;
+}
+
+.calendar-account-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
 }
 
 .cal-block:hover {

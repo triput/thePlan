@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     seed_demo_user: bool = True
     demo_nebula_password: str | None = None
 
+    # Google Calendar (W2a) — prefer secrets JSON file or explicit ID/secret
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+    google_client_secrets_file: str | None = None
+    token_encryption_key: str | None = None
+    frontend_origin: str = "http://localhost:8080"
+    google_oauth_scopes: str = "https://www.googleapis.com/auth/calendar.events"
 
 @lru_cache
 def get_settings() -> Settings:

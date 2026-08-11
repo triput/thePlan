@@ -27,13 +27,14 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [08-color-palette.md](./08-color-palette.md) | Entity presets + status accents (Synesis/Phronesis-aligned) |
 | [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | Wave 1 exit record — delivered epics, criteria met, known gaps |
 | [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) | Wave 1.5 exit record — auth, recurrence, reminders, ops, closeout UI |
+| [DEFECTS.md](./DEFECTS.md) | Open product defects (non-wave-blocker) |
 | [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) | W1.5 dependency hygiene quick scan (gate exited) |
 | [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) | W2 dependency hygiene quick scan (gate exited) |
 | [USER-GUIDE.md](./USER-GUIDE.md) | End-user guide — run, sign in, tasks, calendar, recurrence, reminders |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **Active: W2a Google Calendar** (hygiene [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md)) → then W2b Scheduler — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **Active: W2a Slice 2** (Slice 1 Google busy sync shipped) → then W2b Scheduler — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 

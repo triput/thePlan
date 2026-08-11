@@ -21,10 +21,19 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+psycopg://theplan:theplan@postgres:5432/theplan
-      CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:8080","http://127.0.0.1:8080"]'
+      CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:8080","http://127.0.0.1:8080","https://plan.silverhelmet.com"]'
       SESSION_SECRET: ${SESSION_SECRET:-compose-dev-session-secret-change-for-production}
       SESSION_HTTPS_ONLY: ${SESSION_HTTPS_ONLY:-false}
       SEED_DEMO_USER: "true"
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
+      GOOGLE_CLIENT_SECRETS_FILE: ${GOOGLE_CLIENT_SECRETS_FILE:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+      GOOGLE_OAUTH_SCOPES: ${GOOGLE_OAUTH_SCOPES:-https://www.googleapis.com/auth/calendar.events}
+    volumes:
+      - ../../.secrets-backup:/secrets:ro
     ports:
       - "8000:8000"
     depends_on:

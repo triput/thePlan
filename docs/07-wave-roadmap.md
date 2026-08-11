@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2a started 2026-08-10.** Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass). Schema stubs (`calendar_accounts`, `external_calendar_events`) exist; API/UI not yet wired.
+**Status:** **W2a Slice 1 complete (2026-08-11)** — OAuth + primary pull + busy overlays verified live. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass). Next: Slice 2 (push, multi-cal roles, 24×7 viewport).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -145,11 +145,22 @@ No full Update Schedule / UPS pipeline in 2a.
 
 #### W2a slice plan
 
-1. **Slice 1 (prove-it):** Google OAuth connect → pull events → store `external_calendar_events` → render read-only busy on Calendar day/week; Settings connect/disconnect/sync. Scopes may start read-only if preferred.
-2. **Slice 2:** Bidirectional write-back of local `scheduled_blocks` (policy TBD), incremental sync / `sync_cursor`, primary-vs-multi calendar selection.
+1. **Slice 1 (prove-it) — complete:** Google OAuth connect → pull events → store `external_calendar_events` → render read-only busy on Calendar day/week; Settings connect/disconnect/sync. Verified live 2026-08-11.
+2. **Slice 2:** Bidirectional write-back of local `scheduled_blocks` (policy TBD), incremental sync / `sync_cursor`, **multi-calendar roles** (below).
 3. **Slice 3 (capacity):** Overbook flags when external busy overlaps pins/blocks; contract polish in `05-api-contract.md`.
 
 **Operator prerequisites before Slice 1 code lands:** Google Cloud OAuth web client (ID + secret), redirect URI(s), scope choice (readonly vs `calendar.events`), token encryption secret, backup copies under `.secrets-backup/`.
+
+#### W2a backlog (product notes — 2026-08-11)
+
+Logged from operator; park here until the matching slice picks them up. Not Slice 1 blockers.
+
+| Item | Target | Notes |
+|------|--------|-------|
+| **Multi-calendar roles** | Slice 2 | Connect / select additional Google calendars beyond primary. Roles: **one primary** (source of truth for busy + default read), **one time-block calendar** (destination for pushed `scheduled_blocks`), **all others informational only** (visible overlays; not write targets; do not drive scheduler capacity unless later opted in). UI must make the two special roles explicit and mutually exclusive. |
+| **24×7 calendar viewport** | Slice 2 or polish before W2b | Day/week grid is currently hard-capped **06:00–22:00** (`CALENDAR_HOUR_START` / `END`). Default may stay 6A–10P; operator must be able to see and place blocks across **full 24 hours**, every day of the week (international teams). Prefer vertical scroll outside the default band and/or a Settings (or calendar chrome) toggle for “show 24 hours”. |
+
+---
 
 ### Phase 2b — Scheduler (SkedPal triad)
 

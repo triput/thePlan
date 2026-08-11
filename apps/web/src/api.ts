@@ -691,4 +691,58 @@ export function deleteScheduledBlock(blockId: string) {
   return apiFetch<void>(`/api/v1/scheduled-blocks/${blockId}`, { method: "DELETE" });
 }
 
+export interface CalendarAccount {
+  id: string;
+  provider: string;
+  account_email: string | null;
+  is_enabled: boolean;
+  sync_cursor: string | null;
+  token_expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExternalCalendarEvent {
+  id: string;
+  calendar_account_id: string;
+  provider: string;
+  external_event_id: string;
+  calendar_id: string;
+  title: string | null;
+  start_time: string;
+  end_time: string;
+  is_all_day: boolean;
+  last_synced_at: string;
+}
+
+export function fetchCalendarAccounts() {
+  return apiFetchUrl<PaginatedResponse<CalendarAccount>>(buildUrl("/api/v1/calendar/accounts"));
+}
+
+export function disconnectCalendarAccount(accountId: string) {
+  return apiFetch<void>(`/api/v1/calendar/accounts/${accountId}`, { method: "DELETE" });
+}
+
+export function syncCalendarAccount(
+  accountId: string,
+  params?: { start?: string; end?: string },
+) {
+  return apiFetchUrl<{ account_id: string; upserted: number }>(
+    buildUrl(`/api/v1/calendar/accounts/${accountId}/sync`, params),
+    { method: "POST", body: "{}" },
+  );
+}
+
+export function fetchExternalCalendarEvents(params: { start: string; end: string }) {
+  return apiFetchUrl<PaginatedResponse<ExternalCalendarEvent>>(
+    buildUrl("/api/v1/calendar/events", params),
+  );
+}
+
+/** Full-page navigation so session cookie rides the OAuth round-trip. */
+export function googleCalendarConnectHref(): string {
+  const base = API_URL.replace(/\/$/, "");
+  return `${base}/api/v1/calendar/oauth/google/start`;
+}
+
 export { API_URL };

@@ -333,6 +333,39 @@ class ScheduledBlockOut(BaseModel):
     updated_at: datetime
 
 
+class CalendarAccountOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    provider: str
+    account_email: str | None
+    is_enabled: bool
+    sync_cursor: str | None
+    token_expires_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ExternalCalendarEventOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    calendar_account_id: UUID
+    provider: str
+    external_event_id: str
+    calendar_id: str
+    title: str | None
+    start_time: datetime
+    end_time: datetime
+    is_all_day: bool
+    last_synced_at: datetime
+
+
+class CalendarSyncResult(BaseModel):
+    account_id: UUID
+    upserted: int
+
+
 class SearchLabelOut(BaseModel):
     id: UUID
     name: str

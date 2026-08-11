@@ -114,6 +114,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 |---------|------|-------|
 | Todoist CSV/JSON import | W3 | Deferred from W1.5 (stale upstream); CSV/JSON → hierarchy |
 | Google Calendar sync | W2a | Bidirectional; before scheduler |
+| Multi-calendar roles | W2a Slice 2 | One primary, one time-block write target, others informational |
+| 24×7 calendar viewport | W2a | Default 6A–10P; scroll/setting for full day |
 | Microsoft Calendar sync | W3 | |
 | iCloud calendar | Out | Unless reopened |
 | Zapier / IFTTT / automation hubs | Post-W3 | Backlog candidate after W3; not planned in W1–W3 |

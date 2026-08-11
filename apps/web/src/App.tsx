@@ -62,6 +62,22 @@ function AppInner() {
     if (!isNarrow) setNavOpen(false);
   }, [isNarrow]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gcal = params.get("gcal");
+    if (!gcal) return;
+    if (gcal === "connected") {
+      emitToast("Google Calendar connected");
+      setView({ type: "calendar" });
+    } else if (gcal === "error") {
+      emitToast(`Google Calendar connect failed (${params.get("reason") ?? "error"})`);
+    }
+    params.delete("gcal");
+    params.delete("reason");
+    const next = params.toString();
+    window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+  }, []);
+
   const selectView = (next: ViewSelection) => {
     setView(next);
     setNavOpen(false);

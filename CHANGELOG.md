@@ -1,14 +1,15 @@
 # Changelog
 
-## [Unreleased] — Wave 2a (in progress)
+## [Unreleased] — Wave 2a (Slice 1 complete)
 
 - Hygiene gate: [docs/HYGIENE-W2-QUICKSCAN.md](docs/HYGIENE-W2-QUICKSCAN.md) (pass)
-- W2a started: Google Calendar OAuth + busy map (schema stubs already present)
+- **Google Calendar Slice 1 (shipped):** OAuth connect (`calendar.events`), encrypted tokens, pull primary events, busy overlays on calendar, Settings connect/sync/disconnect — verified live
+- cryptography added for Fernet token encryption
+- Calendar backlog notes: multi-calendar roles + 24×7 viewport (Slice 2+)
 
 ### Planned next
 
-- **W2a Slice 1** — Connect Google, pull events, show busy on calendar
-- **W2a Slice 2+** — Bidirectional write-back, incremental sync
+- **W2a Slice 2+** — Push local scheduled blocks to Google, incremental sync, multi-calendar roles (primary / time-block / informational), 24×7 viewport option (default stays 6A–10P)
 - **W2b** — SkedPal triad after busy map is usable
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit

@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  disconnectCalendarAccount,
+  fetchCalendarAccounts,
+  googleCalendarConnectHref,
+  syncCalendarAccount,
+} from "../api";
 import {
   getThemePreset,
   isValidHex,
@@ -15,6 +22,7 @@ import {
   type ThemeOverrides,
 } from "../theme";
 import { useAuth } from "../auth";
+import { emitToast } from "./ToastHost";
 import { HouseholdPanel } from "./HouseholdPanel";
 import { Modal } from "./Modal";
 
@@ -37,11 +45,38 @@ function effectiveColor(
 
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [themeId, setThemeId] = useState<ThemeId>(() => loadTheme());
   const [overrides, setOverrides] = useState<ThemeOverrides>(() => loadOverrides());
   const [draftHex, setDraftHex] = useState<Record<ThemeOverrideKey, string>>(() =>
     buildDraftHex(loadOverrides()),
   );
+
+  const accountsQuery = useQuery({
+    queryKey: ["calendar-accounts"],
+    queryFn: () => fetchCalendarAccounts(),
+    enabled: open,
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: disconnectCalendarAccount,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calendar-accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      emitToast("Google Calendar disconnected");
+    },
+    onError: () => emitToast("Couldn't disconnect Google Calendar"),
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: (accountId: string) => syncCalendarAccount(accountId),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-accounts"] });
+      emitToast(`Synced ${result.upserted} Google event${result.upserted === 1 ? "" : "s"}`);
+    },
+    onError: () => emitToast("Couldn't sync Google Calendar"),
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -147,6 +182,70 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             );
           })}
         </div>
+      </section>
+
+      <section className="settings-section">
+        <h3 className="settings-section-title">Google Calendar</h3>
+        <p className="settings-help muted small">
+          Connect your Google account to show external busy time on the calendar. Scopes include
+          event read/write for upcoming bidirectional sync.
+        </p>
+        {accountsQuery.isLoading && <p className="muted small">Loading accounts…</p>}
+        {(accountsQuery.data?.items ?? []).length === 0 && !accountsQuery.isLoading && (
+          <button
+            type="button"
+            className="btn primary small"
+            onClick={() => {
+              window.location.href = googleCalendarConnectHref();
+            }}
+          >
+            Connect Google Calendar
+          </button>
+        )}
+        <ul className="calendar-account-list">
+          {(accountsQuery.data?.items ?? []).map((account) => (
+            <li key={account.id} className="calendar-account-row">
+              <div>
+                <div className="calendar-account-email">
+                  {account.account_email ?? "Google Calendar"}
+                </div>
+                <div className="muted small">
+                  {account.provider}
+                  {account.sync_cursor ? ` · last sync ${new Date(account.sync_cursor).toLocaleString()}` : ""}
+                </div>
+              </div>
+              <div className="calendar-account-actions">
+                <button
+                  type="button"
+                  className="btn secondary small"
+                  disabled={syncMutation.isPending}
+                  onClick={() => syncMutation.mutate(account.id)}
+                >
+                  Sync now
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  disabled={disconnectMutation.isPending}
+                  onClick={() => disconnectMutation.mutate(account.id)}
+                >
+                  Disconnect
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {(accountsQuery.data?.items ?? []).length > 0 && (
+          <button
+            type="button"
+            className="btn ghost small"
+            onClick={() => {
+              window.location.href = googleCalendarConnectHref();
+            }}
+          >
+            Reconnect / add account
+          </button>
+        )}
       </section>
 
       {user.is_admin && <HouseholdPanel currentUserId={user.id} />}

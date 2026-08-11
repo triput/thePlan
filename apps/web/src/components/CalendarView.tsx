@@ -3,11 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createScheduledBlock,
   deleteScheduledBlock,
+  fetchExternalCalendarEvents,
   fetchProjects,
   fetchScheduledBlocks,
   fetchTasks,
   updateScheduledBlock,
   updateTask,
+  type ExternalCalendarEvent,
   type Project,
   type ScheduledBlock,
   type Task,
@@ -205,6 +207,27 @@ function BlockFormModal({
   );
 }
 
+function BusyBlockItem({ event }: { event: ExternalCalendarEvent }) {
+  const start = new Date(event.start_time);
+  const end = new Date(event.end_time);
+  const top = topPercentForTime(start);
+  const height = heightPercentForDuration(blockDurationMinutes(start, end));
+  if (top >= 100 || top + height <= 0) return null;
+
+  return (
+    <div
+      className="cal-block cal-busy-block"
+      style={{
+        top: `${Math.max(0, top)}%`,
+        height: `${Math.min(100 - Math.max(0, top), height)}%`,
+      }}
+      title={event.title ? `Busy: ${event.title}` : "Busy (Google Calendar)"}
+    >
+      <span className="cal-block-title">{event.title ?? "Busy"}</span>
+    </div>
+  );
+}
+
 function DueMarker({
   task,
   color,
@@ -326,6 +349,7 @@ function ScheduledBlockItem({
 function DayColumn({
   day,
   blocks,
+  busyEvents,
   dueTasks,
   tasksById,
   projects,
@@ -342,6 +366,7 @@ function DayColumn({
 }: {
   day: Date;
   blocks: ScheduledBlock[];
+  busyEvents: ExternalCalendarEvent[];
   dueTasks: Task[];
   tasksById: Map<string, Task>;
   projects: Map<string, Project>;
@@ -364,6 +389,13 @@ function DayColumn({
         ? blockPreview.previewStart
         : new Date(b.start_time);
     return isSameDay(start, day);
+  });
+  const dayBusy = busyEvents.filter((event) => {
+    const start = new Date(event.start_time);
+    const end = new Date(event.end_time);
+    const dayStart = startOfDay(day);
+    const dayEnd = addDays(dayStart, 1);
+    return start < dayEnd && end > dayStart;
   });
   const dayDue = dueTasks.filter((t) => {
     const due =
@@ -395,6 +427,9 @@ function DayColumn({
           <div key={i} className="cal-hour-row" style={{ height: ROW_HEIGHT_PX }} />
         ))}
         <div className="cal-overlay">
+          {dayBusy.map((event) => (
+            <BusyBlockItem key={`busy-${event.id}`} event={event} />
+          ))}
           {dayDue.map((task) => (
             <DueMarker
               key={`due-${task.id}`}
@@ -468,6 +503,12 @@ export function CalendarView() {
       fetchScheduledBlocks({ start: toISO(range.start), end: toISO(range.end) }),
   });
 
+  const busyQuery = useQuery({
+    queryKey: ["calendar-events", rangeKey],
+    queryFn: () =>
+      fetchExternalCalendarEvents({ start: toISO(range.start), end: toISO(range.end) }),
+  });
+
   const dueTasksQuery = useQuery({
     queryKey: ["tasks", "calendar-due", rangeKey],
     queryFn: () =>
@@ -490,6 +531,7 @@ export function CalendarView() {
   });
 
   const blocks = blocksQuery.data?.items ?? [];
+  const busyEvents = busyQuery.data?.items ?? [];
   const dueTasks = dueTasksQuery.data?.items ?? [];
   const incompleteTasks = incompleteTasksQuery.data?.items ?? [];
 
@@ -849,6 +891,7 @@ export function CalendarView() {
               key={day.toISOString()}
               day={day}
               blocks={blocks}
+              busyEvents={busyEvents}
               dueTasks={dueTasks}
               tasksById={allTasksById}
               projects={projects}

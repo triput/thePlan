@@ -343,17 +343,28 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 
 ---
 
-## Wave 2 Endpoints (Reserved)
+## Wave 2 Endpoints
 
-Not implemented in MVP; documented for contract stability:
+### Calendar (W2a — Slice 1 shipped)
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/calendar/oauth/google/start` | Session auth; 302 to Google |
+| GET | `/calendar/oauth/google/callback` | OAuth return; upserts `calendar_accounts`, initial sync, 302 to `FRONTEND_ORIGIN` |
+| GET | `/calendar/accounts` | List connected accounts |
+| DELETE | `/calendar/accounts/{id}` | Disconnect + delete mirrored events |
+| POST | `/calendar/accounts/{id}/sync` | Optional `?start=&end=`; pull primary calendar into `external_calendar_events` |
+| GET | `/calendar/events?start=&end=` | Mirrored busy events overlapping range |
+
+Scopes default: `https://www.googleapis.com/auth/calendar.events` (read/write). Bidirectional **push** of local blocks is Slice 2+.
+
+### Reserved (W2b+)
 
 | Resource | Path prefix |
 |----------|-------------|
 | Focus windows | `/focus-windows` |
 | Schedule runs | `/schedule/runs` |
 | Update Schedule | `POST /schedule/replan` |
-| Calendar accounts | `/calendar/accounts` |
-| External events | `/calendar/events` |
 | User saved filters (write) | `POST /views` |
 
 ---

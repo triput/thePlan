@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import (
     auth,
+    calendar,
     epics,
     labels,
     projects,
@@ -89,6 +90,7 @@ def create_app() -> FastAPI:
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)
     api_router.include_router(scheduled_blocks.router)
+    api_router.include_router(calendar.router)
     api_router.include_router(search.router)
     app.include_router(api_router)
     return app
