@@ -170,7 +170,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Focus windows / Time Maps | W2b | `focus_windows` table |
+| Focus windows / Time Maps | W2b Slice 1 | CRUD UI + task binding + `@morning`/`@afternoon`/`@evening`; seeds on provision — **shipped** |
+| Painted Time Maps (green/yellow/red) | W2b late / W3 | Multi-band single map; preferred → overflow → forbidden |
 | Preferred time window per task | W2b | FK on tasks |
 | Working hours configuration | W2b | Via focus_windows + settings |
 | Fuzzy window tokens (@morning, etc.) | W2b | Quick-add binding |

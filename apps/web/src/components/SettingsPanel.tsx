@@ -1,18 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createFocusWindow,
+  deleteFocusWindow,
   disconnectCalendarAccount,
   fetchCalendarAccounts,
   fetchCalendarSubscriptions,
+  fetchFocusWindows,
   fetchGoogleCalendars,
   googleCalendarConnectHref,
   putCalendarSubscriptions,
   syncCalendarAccount,
   updateCalendarAccount,
+  updateFocusWindow,
   type CalendarAccount,
   type CalendarSubscriptionPutItem,
+  type FocusWindow,
   type GoogleCalendarListItem,
 } from "../api";
+import {
+  DAY_BITS,
+  decodeDays,
+  encodeDays,
+  formatDaysSummary,
+  formatTimeRange,
+  WEEKDAY_BITSET,
+} from "../focusWindows";
 import {
   getThemePreset,
   isValidHex,
@@ -341,6 +354,244 @@ function CalendarAccountRow({
   );
 }
 
+const EMPTY_FORM = {
+  name: "",
+  start: "09:00",
+  end: "12:00",
+  days: decodeDays(WEEKDAY_BITSET),
+  isHard: false,
+};
+
+function TimeMapsSection({ enabled }: { enabled: boolean }) {
+  const queryClient = useQueryClient();
+  const windowsQuery = useQuery({
+    queryKey: ["focus-windows"],
+    queryFn: fetchFocusWindows,
+    enabled,
+  });
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formName, setFormName] = useState(EMPTY_FORM.name);
+  const [formStart, setFormStart] = useState(EMPTY_FORM.start);
+  const [formEnd, setFormEnd] = useState(EMPTY_FORM.end);
+  const [formDays, setFormDays] = useState(EMPTY_FORM.days);
+  const [formIsHard, setFormIsHard] = useState(EMPTY_FORM.isHard);
+  const [showForm, setShowForm] = useState(false);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormName(EMPTY_FORM.name);
+    setFormStart(EMPTY_FORM.start);
+    setFormEnd(EMPTY_FORM.end);
+    setFormDays([...EMPTY_FORM.days]);
+    setFormIsHard(EMPTY_FORM.isHard);
+  };
+
+  const startEdit = (window: FocusWindow) => {
+    setEditingId(window.id);
+    setFormName(window.name);
+    setFormStart(window.start_time);
+    setFormEnd(window.end_time);
+    setFormDays(decodeDays(window.days_of_week));
+    setFormIsHard(window.is_hard);
+    setShowForm(true);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const name = formName.trim();
+      if (!name) throw new Error("Name is required");
+      const days_of_week = encodeDays(formDays);
+      if (days_of_week === 0) throw new Error("Select at least one day");
+      const body = {
+        name,
+        start_time: formStart,
+        end_time: formEnd,
+        days_of_week,
+        is_hard: formIsHard,
+      };
+      if (editingId) {
+        return updateFocusWindow(editingId, body);
+      }
+      return createFocusWindow(body);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["focus-windows"] });
+      emitToast(editingId ? "Time Map updated" : "Time Map created");
+      resetForm();
+      setShowForm(false);
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't save Time Map"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteFocusWindow,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["focus-windows"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      emitToast("Time Map deleted");
+      if (editingId) {
+        resetForm();
+        setShowForm(false);
+      }
+    },
+    onError: () => emitToast("Couldn't delete Time Map"),
+  });
+
+  const windows = windowsQuery.data ?? [];
+
+  const toggleDay = (index: number, checked: boolean) => {
+    setFormDays((prev) => {
+      const next = [...prev];
+      next[index] = checked;
+      return next;
+    });
+  };
+
+  return (
+    <section className="settings-section">
+      <div className="settings-section-header">
+        <h3 className="settings-section-title">Time Maps</h3>
+        {!showForm && (
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+          >
+            Add Time Map
+          </button>
+        )}
+      </div>
+      <p className="settings-help muted small">
+        Preferred scheduling windows for tasks. Quick-add tokens{" "}
+        <code>@morning</code>, <code>@afternoon</code>, and <code>@evening</code> match the
+        default seed names when present.
+      </p>
+      {windowsQuery.isLoading && <p className="muted small">Loading Time Maps…</p>}
+      {windows.length > 0 && (
+        <ul className="time-map-list">
+          {windows.map((window) => (
+            <li key={window.id} className="time-map-row">
+              <div className="time-map-info">
+                <div className="time-map-name">{window.name}</div>
+                <div className="muted small">
+                  {formatTimeRange(window.start_time, window.end_time)} ·{" "}
+                  {formatDaysSummary(window.days_of_week)}
+                </div>
+              </div>
+              <span className={`time-map-badge${window.is_hard ? " hard" : ""}`}>
+                {window.is_hard ? "Hard" : "Soft"}
+              </span>
+              <div className="time-map-actions">
+                <button
+                  type="button"
+                  className="btn ghost small"
+                  onClick={() => startEdit(window)}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost small danger-text"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => deleteMutation.mutate(window.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!windowsQuery.isLoading && windows.length === 0 && !showForm && (
+        <p className="muted small">No Time Maps yet.</p>
+      )}
+      {showForm && (
+        <form
+          className="time-map-form entity-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveMutation.mutate();
+          }}
+        >
+          <label className="field">
+            <span>Name</span>
+            <input
+              type="text"
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+              placeholder="Morning Deep Work"
+            />
+          </label>
+          <div className="time-map-time-row">
+            <label className="field">
+              <span>Start</span>
+              <input
+                type="time"
+                value={formStart}
+                onChange={(e) => setFormStart(e.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>End</span>
+              <input
+                type="time"
+                value={formEnd}
+                onChange={(e) => setFormEnd(e.target.value)}
+              />
+            </label>
+          </div>
+          <fieldset className="field">
+            <legend>Days</legend>
+            <div className="time-map-days" role="group" aria-label="Days of week">
+              {DAY_BITS.map(({ label }, index) => (
+                <label key={label} className="time-map-day-check">
+                  <input
+                    type="checkbox"
+                    checked={formDays[index]}
+                    onChange={(e) => toggleDay(index, e.target.checked)}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className="time-map-hard-check">
+            <input
+              type="checkbox"
+              checked={formIsHard}
+              onChange={(e) => setFormIsHard(e.target.checked)}
+            />
+            Hard boundary (scheduler must stay inside window)
+          </label>
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn secondary small"
+              onClick={() => {
+                resetForm();
+                setShowForm(false);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn primary small"
+              disabled={saveMutation.isPending || !formName.trim()}
+            >
+              {saveMutation.isPending ? "Saving…" : editingId ? "Update" : "Create"}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -504,6 +755,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           When off, the calendar shows 6 AM–10 PM. Toggle also available in the calendar header.
         </p>
       </section>
+
+      <TimeMapsSection enabled={open} />
 
       <section className="settings-section">
         <h3 className="settings-section-title">Google Calendar</h3>

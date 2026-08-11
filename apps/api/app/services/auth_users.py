@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.errors import ApiError
 from app.bootstrap import BOOTSTRAP_USER_ID, SYSTEM_FILTERS
 from app.models import SavedFilter, User, UserSettings
+from app.services.focus_windows import ensure_default_focus_windows
 from app.services.passwords import hash_password
 
 USERNAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,62}[a-z0-9]$|^[a-z0-9]$")
@@ -79,6 +80,8 @@ def provision_user_settings_and_filters(db: Session, user_id: uuid.UUID) -> None
                     sort_order=sort_order,
                 )
             )
+
+    ensure_default_focus_windows(db, user_id)
 
 
 def claim_bootstrap_user(

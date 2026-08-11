@@ -10,6 +10,7 @@ from app.api.routes import (
     auth,
     calendar,
     epics,
+    focus_windows,
     labels,
     projects,
     quick_add,
@@ -87,6 +88,7 @@ def create_app() -> FastAPI:
     api_router.include_router(tasks.router)
     api_router.include_router(reminders.router)
     api_router.include_router(labels.router)
+    api_router.include_router(focus_windows.router)
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)
     api_router.include_router(scheduled_blocks.router)

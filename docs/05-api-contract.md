@@ -120,11 +120,42 @@ When completing a parent with open children and `bulk_children` omitted, API ret
   "priority": "p1",
   "due_at": "2026-08-11T09:00:00Z",
   "estimated_duration_minutes": 90,
+  "preferred_time_window_id": "uuid-or-null",
   "label_ids": ["uuid"]
 }
 ```
 
-`deadline_at` and `soft_target_at` accepted on write but not surfaced in MVP UI. `deadline_at` enforced in W2 scheduler.
+`deadline_at` and `soft_target_at` accepted on write but not surfaced in MVP UI. `deadline_at` enforced in W2 scheduler. `preferred_time_window_id` must reference an owned focus window; cleared with `null`.
+
+---
+
+### Focus Windows (Time Maps)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/focus-windows` | List owner windows ordered by name |
+| POST | `/focus-windows` | Create |
+| GET | `/focus-windows/{id}` | Get |
+| PATCH | `/focus-windows/{id}` | Update |
+| DELETE | `/focus-windows/{id}` | Delete (204); `tasks.preferred_time_window_id` SET NULL via FK |
+
+**Default seeds** (inserted on user provision / bootstrap when user has zero windows): Morning 08:00–12:00, Afternoon 12:00–17:00, Evening 17:00–21:00 — soft (`is_hard=false`), Mon–Sun (`days_of_week=127`).
+
+**Create body:**
+
+```json
+{
+  "name": "Morning",
+  "start_time": "08:00",
+  "end_time": "12:00",
+  "days_of_week": 127,
+  "is_hard": false
+}
+```
+
+`days_of_week` is a bitset (Mon=1 … Sun=64); valid range 1–127. Times accept `HH:MM` or `HH:MM:SS`; response serializes times as `HH:MM`. `end_time` must be after `start_time` (422 `FOCUS_WINDOW_INVALID_RANGE`).
+
+Quick-add `@morning`, `@afternoon`, `@evening` resolve to the seeded window IDs by case-insensitive name match; unknown token → `unresolved` entry `time_window:{token}`.
 
 ---
 
@@ -215,12 +246,12 @@ Optional convenience aliases:
   "epic_id": "uuid-if-resolved",
   "project_id": "uuid-if-resolved",
   "section_id": "uuid-if-resolved",
-  "preferred_time_window_id": null,
+  "preferred_time_window_id": "uuid-if-resolved",
   "unresolved": []
 }
 ```
 
-Unresolved tokens (unknown project name) returned in `unresolved` array; client may prompt or create task with partial metadata.
+Unresolved tokens (unknown project name, missing time window) returned in `unresolved` array; client may prompt or create task with partial metadata.
 
 Does not persist — client calls `POST /tasks` with parsed fields.
 
@@ -399,7 +430,6 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 | Resource | Path prefix |
 |----------|-------------|
-| Focus windows | `/focus-windows` |
 | Schedule runs | `/schedule/runs` |
 | Update Schedule | `POST /schedule/replan` |
 | User saved filters (write) | `POST /views` |

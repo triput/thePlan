@@ -5,6 +5,7 @@ import {
   deleteReminder,
   deleteTask,
   deleteTaskRecurrence,
+  fetchFocusWindows,
   fetchLabels,
   fetchProjects,
   fetchSections,
@@ -12,6 +13,7 @@ import {
   fetchTasks,
   putTaskRecurrence,
   updateTask,
+  type FocusWindow,
   type Label,
   type Project,
   type ReminderChannel,
@@ -68,6 +70,10 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
     due_at: body.due_at !== undefined ? body.due_at : task.due_at,
     estimated_duration_minutes:
       body.estimated_duration_minutes ?? task.estimated_duration_minutes,
+    preferred_time_window_id:
+      body.preferred_time_window_id !== undefined
+        ? body.preferred_time_window_id
+        : task.preferred_time_window_id,
     label_ids: body.label_ids ?? task.label_ids,
   };
 }
@@ -82,6 +88,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [sectionId, setSectionId] = useState<string>("");
   const [parentTaskId, setParentTaskId] = useState<string>("");
   const [labelIds, setLabelIds] = useState<string[]>([]);
+  const [preferredTimeWindowId, setPreferredTimeWindowId] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [recurrenceText, setRecurrenceText] = useState("");
   const [startsOn, setStartsOn] = useState("");
@@ -99,6 +106,13 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
 
   const labelsQuery = useQuery({ queryKey: ["labels"], queryFn: () => fetchLabels({ limit: 200 }) });
   const allLabels: Label[] = labelsQuery.data?.items ?? [];
+
+  const focusWindowsQuery = useQuery({
+    queryKey: ["focus-windows"],
+    queryFn: fetchFocusWindows,
+    enabled: task !== null,
+  });
+  const focusWindows: FocusWindow[] = focusWindowsQuery.data ?? [];
 
   const effectiveProjectId = projectId || null;
 
@@ -130,6 +144,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setSectionId(task.section_id ?? "");
     setParentTaskId(task.parent_task_id ?? "");
     setLabelIds(task.label_ids);
+    setPreferredTimeWindowId(task.preferred_time_window_id ?? "");
     setRecurrenceText("");
     setStartsOn(task.recurrence?.starts_on ?? "");
     setEndsOn(task.recurrence?.ends_on ?? "");
@@ -314,6 +329,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       section_id: projectId && sectionId ? sectionId : null,
       parent_task_id: parentTaskId || null,
       label_ids: labelIds,
+      preferred_time_window_id: preferredTimeWindowId || null,
     });
   };
 
@@ -503,6 +519,21 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               onChange={(e) => setDuration(e.target.value)}
               placeholder="30"
             />
+          </label>
+          <label className="field">
+            <span>Time Map</span>
+            <select
+              className="field-select"
+              value={preferredTimeWindowId}
+              onChange={(e) => setPreferredTimeWindowId(e.target.value)}
+            >
+              <option value="">None</option>
+              {focusWindows.map((window) => (
+                <option key={window.id} value={window.id}>
+                  {window.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="field">
             <span>Project</span>

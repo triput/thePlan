@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2a Slice 3 complete (2026-08-11)** — conflict flags verified live. W2a GCal prove-it path done (pull → multi-cal/mirror/24h → conflicts). Next: **W2b** scheduler triad. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
+**Status:** **W2b Slice 1 complete (2026-08-11)** — Time Maps CRUD + seeds + task binding + quick-add tokens verified live. Next: Plans / Settings expansion / painted preference tiers (see below), then Update Schedule. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -163,7 +163,9 @@ No full Update Schedule / UPS pipeline in 2a.
 
 ### Phase 2b — Scheduler (SkedPal triad)
 
-1. **Time Maps** — `focus_windows` UI and task binding (+ temporary day/week overrides that auto-expire — vacation/conference)
+#### W2b slice plan
+
+1. **Slice 1 — complete:** `focus_windows` CRUD + Settings UI; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening`. Verified live 2026-08-11. v1 = one contiguous hard/soft band per named map.
 2. **Plans** — flexible time frames; `soft_target_at` surfaced  
 3. **Update Schedule** — explicit replan action; async worker (ADR-005)
 
@@ -175,6 +177,8 @@ No full Update Schedule / UPS pipeline in 2a.
 | Bundled vs formal blocks | Knockout lists → blocks on replan |
 | Scoped bundles | Bundle constrained to one epic or project — late W2b / early W3 |
 | Settings expansion | API + UI for buffers, default duration, default schedule style (block vs bundle vs standalone) |
+| **Painted Time Maps (SkedPal-class)** | Late W2b / early W3 — one named map with **multiple painted bands** (e.g. morning + evening study on the same map); preference tiers **green → yellow → never red** (scheduler fills preferred first, overflow to yellow only, hard ban on red). Not two duplicate maps for the same intent. Color UI on the week grid. |
+| Temporary Time Map overrides | Day/week dated windows that auto-expire (vacation/conference) |
 | Rule inheritance | Parent → child window/plan propagation |
 | Overbook UI | schedule_status.overbooked |
 | deadline_at UI | Hard commit surfaced |

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models import SavedFilter, User, UserSettings
+from app.services.focus_windows import ensure_default_focus_windows
 
 BOOTSTRAP_USER_ID = uuid.UUID(get_settings().bootstrap_user_id)
 
@@ -73,6 +74,8 @@ def ensure_bootstrap_user(db: Session, *, commit: bool = True) -> User:
                     sort_order=sort_order,
                 )
             )
+
+    ensure_default_focus_windows(db, user.id)
 
     if commit:
         db.commit()

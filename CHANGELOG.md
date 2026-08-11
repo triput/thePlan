@@ -1,17 +1,19 @@
 # Changelog
 
-## [Unreleased] — Wave 2a (Slice 3 complete)
+## [Unreleased] — Wave 2b (Slice 1 complete)
 
+- **W2b Slice 1 (shipped):** Focus windows CRUD (`/focus-windows`); Settings Time Maps UI; task detail Time Map picker; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening` resolution — verified live
 - Hygiene gate: [docs/HYGIENE-W2-QUICKSCAN.md](docs/HYGIENE-W2-QUICKSCAN.md) (pass)
 - **Google Calendar Slice 1 (shipped):** OAuth connect, encrypted tokens, pull primary events, busy overlays — verified live
 - **Google Calendar Slice 2 (shipped):** `calendar_subscriptions` (primary + informational), mirror-to-Google toggle (best-effort push of scheduled blocks), per-subscription syncToken, 24×7 calendar viewport (default 6A–10P) — verified live
 - **Google Calendar Slice 3 (shipped):** `GET /calendar/conflicts` — block↔busy and block↔block overlap flags; calendar UI conflict styling (no `tasks.status` mutation) — verified live
 - cryptography for Fernet token encryption
-- Parked for W2b+: Time Map overrides, scoped bundles, settings expansion, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
+- Parked for W2b+: painted Time Maps (multi-band + green/yellow/red), Time Map overrides, scoped bundles, settings expansion, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
 
 ### Planned next
 
-- **W2b** — SkedPal triad (Time Maps, Plans, Update Schedule)
+- **W2b Slice 2+** — Plans, Settings expansion, Update Schedule / auto-scheduler worker
+- **Painted Time Maps** — one map, split colored bands; green preferred, yellow overflow OK, red forbidden
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 

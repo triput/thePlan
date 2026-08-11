@@ -53,6 +53,7 @@ function ParseChips({ parsed }: { parsed: QuickAddParseResponse }) {
     chips.push(new Date(parsed.due_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }));
   }
   if (parsed.recurrence?.display) chips.push(parsed.recurrence.display);
+  if (parsed.preferred_time_window_id) chips.push("time map");
   if (parsed.project_id) chips.push("project");
   if (parsed.unresolved.length > 0) chips.push(`unresolved: ${parsed.unresolved.join(", ")}`);
 
@@ -110,6 +111,7 @@ export const QuickAdd = forwardRef<QuickAddHandle, QuickAddProps>(function Quick
         priority: (parsed.priority ?? "p4") as TaskPriority,
         due_at: parsed.due_at,
         estimated_duration_minutes: parsed.estimated_duration_minutes ?? undefined,
+        preferred_time_window_id: parsed.preferred_time_window_id,
         project_id: isInbox ? null : projectId,
         section_id: parsed.section_id,
         recurrence: parsed.recurrence

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db import get_db
-from app.models import Epic, Project, Section, User
+from app.models import Epic, FocusWindow, Project, Section, User
 from app.models.enums import TaskPriority
 from app.schemas import QuickAddParseRequest, QuickAddParseResponse, RecurrenceOut
 from app.services.quick_add import parse_quick_add
@@ -65,6 +65,26 @@ def _resolve_project_section(
     return project.id, section.id, unresolved
 
 
+def _resolve_focus_window(
+    db: Session,
+    user: User,
+    token: str | None,
+) -> tuple[UUID | None, list[str]]:
+    if not token:
+        return None, []
+    window = (
+        db.query(FocusWindow)
+        .filter(
+            FocusWindow.owner_id == user.id,
+            func.lower(FocusWindow.name) == token.lower(),
+        )
+        .first()
+    )
+    if window is None:
+        return None, [f"time_window:{token}"]
+    return window.id, []
+
+
 @router.post("/parse", response_model=QuickAddParseResponse)
 def parse_quick_add_input(
     body: QuickAddParseRequest,
@@ -85,6 +105,13 @@ def parse_quick_add_input(
         draft.section_name,
     )
     unresolved.extend(placement_unresolved)
+
+    preferred_time_window_id, window_unresolved = _resolve_focus_window(
+        db,
+        user,
+        draft.preferred_time_window,
+    )
+    unresolved.extend(window_unresolved)
 
     priority = draft.priority or TaskPriority.p4
 
@@ -107,7 +134,7 @@ def parse_quick_add_input(
         epic_id=epic_id,
         project_id=project_id,
         section_id=section_id,
-        preferred_time_window_id=None,
+        preferred_time_window_id=preferred_time_window_id,
         unresolved=unresolved,
         recurrence=recurrence,
     )

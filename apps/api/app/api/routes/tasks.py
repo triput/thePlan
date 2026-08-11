@@ -20,7 +20,12 @@ from app.schemas import (
     TaskOut,
     TaskUpdate,
 )
-from app.services.ownership import verify_owned_project, verify_owned_section, verify_owned_task
+from app.services.ownership import (
+    verify_owned_focus_window,
+    verify_owned_project,
+    verify_owned_section,
+    verify_owned_task,
+)
 from app.services.recurrence import (
     first_due_at,
     humanize_recurrence,
@@ -220,6 +225,8 @@ def create_task(
         verify_owned_project(db, body.project_id, user)
     if body.section_id is not None:
         verify_owned_section(db, body.section_id, user)
+    if body.preferred_time_window_id is not None:
+        verify_owned_focus_window(db, body.preferred_time_window_id, user)
     try:
         nesting_level = resolve_nesting_level(db, user.id, body.parent_task_id)
     except ApiError as exc:
@@ -238,6 +245,7 @@ def create_task(
         deadline_at=body.deadline_at,
         soft_target_at=body.soft_target_at,
         estimated_duration_minutes=body.estimated_duration_minutes,
+        preferred_time_window_id=body.preferred_time_window_id,
     )
     db.add(task)
     db.flush()
@@ -298,6 +306,9 @@ def update_task(
         verify_owned_section(db, updates["section_id"], user)
     if "parent_task_id" in updates and updates["parent_task_id"] is not None:
         verify_owned_task(db, updates["parent_task_id"], user)
+
+    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
+        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
 
     if "parent_task_id" in updates:
         try:

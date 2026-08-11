@@ -1,10 +1,27 @@
-from datetime import date, datetime
-from typing import Literal
+from datetime import date, datetime, time
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field, field_serializer
 
 from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, TaskPriority
+
+
+def _parse_time_value(value: object) -> time:
+    if isinstance(value, time):
+        return value
+    if isinstance(value, str):
+        parts = value.strip().split(":")
+        if len(parts) == 2:
+            hour, minute = int(parts[0]), int(parts[1])
+            return time(hour, minute)
+        if len(parts) == 3:
+            hour, minute, second = int(parts[0]), int(parts[1]), int(parts[2])
+            return time(hour, minute, second)
+    raise ValueError("Invalid time; use HH:MM or HH:MM:SS")
+
+
+TimeField = Annotated[time, BeforeValidator(_parse_time_value)]
 
 
 class UserOut(BaseModel):
@@ -133,6 +150,39 @@ class SectionOut(BaseModel):
     sort_order: int
 
 
+class FocusWindowCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    start_time: TimeField
+    end_time: TimeField
+    days_of_week: int = Field(default=31, ge=1, le=127)
+    is_hard: bool = False
+
+
+class FocusWindowUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    start_time: TimeField | None = None
+    end_time: TimeField | None = None
+    days_of_week: int | None = Field(default=None, ge=1, le=127)
+    is_hard: bool | None = None
+
+
+class FocusWindowOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    start_time: time
+    end_time: time
+    days_of_week: int
+    is_hard: bool
+    created_at: datetime
+    updated_at: datetime
+
+    @field_serializer("start_time", "end_time")
+    def serialize_time(self, value: time) -> str:
+        return value.strftime("%H:%M")
+
+
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=500)
     description: str | None = None
@@ -144,6 +194,7 @@ class TaskCreate(BaseModel):
     deadline_at: datetime | None = None
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int = 30
+    preferred_time_window_id: UUID | None = None
     label_ids: list[UUID] = Field(default_factory=list)
     recurrence: "RecurrenceUpsert | None" = None
 
@@ -202,6 +253,7 @@ class TaskUpdate(BaseModel):
     deadline_at: datetime | None = None
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int | None = None
+    preferred_time_window_id: UUID | None = None
     sort_order: int | None = None
     label_ids: list[UUID] | None = None
 
@@ -229,6 +281,7 @@ class TaskOut(BaseModel):
     deadline_at: datetime | None
     soft_target_at: datetime | None
     estimated_duration_minutes: int
+    preferred_time_window_id: UUID | None = None
     is_completed: bool
     completed_at: datetime | None
     status: ScheduleStatus

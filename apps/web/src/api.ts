@@ -144,6 +144,7 @@ export interface Task {
   deadline_at: string | null;
   soft_target_at: string | null;
   estimated_duration_minutes: number;
+  preferred_time_window_id: string | null;
   is_completed: boolean;
   completed_at: string | null;
   status: string;
@@ -223,6 +224,7 @@ export interface TaskCreate {
   deadline_at?: string | null;
   soft_target_at?: string | null;
   estimated_duration_minutes?: number;
+  preferred_time_window_id?: string | null;
   label_ids?: string[];
   recurrence?: RecurrenceUpsert | null;
 }
@@ -236,7 +238,35 @@ export interface TaskUpdate {
   priority?: TaskPriority;
   due_at?: string | null;
   estimated_duration_minutes?: number;
+  preferred_time_window_id?: string | null;
   label_ids?: string[];
+}
+
+export interface FocusWindow {
+  id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  days_of_week: number;
+  is_hard: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FocusWindowCreate {
+  name: string;
+  start_time: string;
+  end_time: string;
+  days_of_week?: number;
+  is_hard?: boolean;
+}
+
+export interface FocusWindowUpdate {
+  name?: string;
+  start_time?: string;
+  end_time?: string;
+  days_of_week?: number;
+  is_hard?: boolean;
 }
 
 export interface TaskCompleteBody {
@@ -689,6 +719,28 @@ export function updateScheduledBlock(blockId: string, body: ScheduledBlockUpdate
 
 export function deleteScheduledBlock(blockId: string) {
   return apiFetch<void>(`/api/v1/scheduled-blocks/${blockId}`, { method: "DELETE" });
+}
+
+export function fetchFocusWindows() {
+  return apiFetch<FocusWindow[]>("/api/v1/focus-windows");
+}
+
+export function createFocusWindow(body: FocusWindowCreate) {
+  return apiFetch<FocusWindow>("/api/v1/focus-windows", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateFocusWindow(windowId: string, body: FocusWindowUpdate) {
+  return apiFetch<FocusWindow>(`/api/v1/focus-windows/${windowId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteFocusWindow(windowId: string) {
+  return apiFetch<void>(`/api/v1/focus-windows/${windowId}`, { method: "DELETE" });
 }
 
 export interface CalendarAccount {
