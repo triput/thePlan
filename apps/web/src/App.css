@@ -1716,6 +1716,8 @@
   z-index: 1;
   box-sizing: border-box;
   color: var(--text);
+  touch-action: none;
+  user-select: none;
 }
 
 .cal-block.dragging,
@@ -1732,11 +1734,7 @@
   bottom: 0;
   height: 8px;
   cursor: ns-resize;
-}
-
-.cal-due-marker.dragging {
-  z-index: 6;
-  transform: scale(1.25);
+  touch-action: none;
 }
 
 .calendar-view.is-dragging {
@@ -1773,9 +1771,16 @@
   border-radius: 50%;
   border: 2px solid;
   padding: 0;
-  cursor: pointer;
+  cursor: grab;
   z-index: 2;
   box-shadow: 0 0 0 2px var(--panel);
+  touch-action: none;
+}
+
+.cal-due-marker.dragging {
+  z-index: 6;
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.25);
 }
 
 .cal-due-marker:hover {

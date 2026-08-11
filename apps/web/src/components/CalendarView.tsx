@@ -239,7 +239,6 @@ function DueMarker({
       onPointerDown={(e) => {
         if (!dragEnabled || e.button !== 0) return;
         e.stopPropagation();
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         onDragStart(task, e.clientY);
       }}
     />
@@ -304,7 +303,6 @@ function ScheduledBlockItem({
         const target = e.target as HTMLElement;
         if (target.closest(".cal-block-resize")) return;
         e.stopPropagation();
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         onMoveStart(block, e.clientY);
       }}
     >
@@ -317,7 +315,6 @@ function ScheduledBlockItem({
           onPointerDown={(e) => {
             if (e.button !== 0) return;
             e.stopPropagation();
-            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
             onResizeStart(block, e.clientY);
           }}
         />
@@ -452,6 +449,10 @@ export function CalendarView() {
   const [drag, setDrag] = useState<ActiveDrag | null>(null);
   const dragRef = useRef<ActiveDrag | null>(null);
   const suppressClickRef = useRef(false);
+  const dragListenersRef = useRef<{
+    onMove: (e: PointerEvent) => void;
+    onUp: (e: PointerEvent) => void;
+  } | null>(null);
 
   useEffect(() => {
     if (isNarrow) setMode("day");
@@ -510,10 +511,10 @@ export function CalendarView() {
     return map;
   }, [projectsQuery.data]);
 
-  const invalidateCalendar = () => {
+  const invalidateCalendar = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
-  };
+  }, [queryClient]);
 
   const createMutation = useMutation({
     mutationFn: createScheduledBlock,
@@ -535,6 +536,15 @@ export function CalendarView() {
     mutationFn: ({ id, due_at }: { id: string; due_at: string }) => updateTask(id, { due_at }),
     onSuccess: invalidateCalendar,
   });
+
+  const detachDragListeners = useCallback(() => {
+    const listeners = dragListenersRef.current;
+    if (!listeners) return;
+    window.removeEventListener("pointermove", listeners.onMove);
+    window.removeEventListener("pointerup", listeners.onUp);
+    window.removeEventListener("pointercancel", listeners.onUp);
+    dragListenersRef.current = null;
+  }, []);
 
   const commitDrag = useCallback(
     async (finalDrag: ActiveDrag) => {
@@ -558,84 +568,89 @@ export function CalendarView() {
         invalidateCalendar();
       }
     },
-    [updateMutation, updateDueMutation],
+    [updateMutation, updateDueMutation, invalidateCalendar],
   );
 
-  useEffect(() => {
-    dragRef.current = drag;
-  }, [drag]);
+  const beginDrag = useCallback(
+    (initial: ActiveDrag) => {
+      detachDragListeners();
+      dragRef.current = initial;
+      setDrag(initial);
 
-  useEffect(() => {
-    if (!drag) return;
-
-    const onMove = (e: PointerEvent) => {
-      const current = dragRef.current;
-      if (!current) return;
-      const deltaY = e.clientY - current.startClientY;
-      const moved = current.moved || Math.abs(deltaY) >= DRAG_THRESHOLD_PX;
-      const deltaMins = snapMinutes(minutesFromDeltaY(deltaY, ROW_HEIGHT_PX));
-
-      if (current.kind === "block-move") {
-        const duration = blockDurationMinutes(current.originStart, current.originEnd);
-        let nextStart = addMinutes(current.originStart, deltaMins);
-        const targetDay = dayFromPoint(e.clientX, e.clientY);
-        if (targetDay) {
-          nextStart = combineDateAndTime(targetDay, nextStart);
+      const onMove = (e: PointerEvent) => {
+        const current = dragRef.current;
+        if (!current) return;
+        const deltaY = e.clientY - current.startClientY;
+        const moved = current.moved || Math.abs(deltaY) >= DRAG_THRESHOLD_PX;
+        if (moved) {
+          e.preventDefault();
         }
-        nextStart = clampToCalendarWindow(nextStart, duration);
-        const nextEnd = addMinutes(nextStart, duration);
-        setDrag({ ...current, moved, previewStart: nextStart, previewEnd: nextEnd });
-        return;
-      }
+        const deltaMins = snapMinutes(minutesFromDeltaY(deltaY, ROW_HEIGHT_PX));
 
-      if (current.kind === "block-resize") {
-        let nextEnd = addMinutes(current.originEnd, deltaMins);
-        const minEnd = addMinutes(current.originStart, CALENDAR_MIN_BLOCK_MINUTES);
-        if (nextEnd < minEnd) nextEnd = minEnd;
-        const dayEnd = startOfDay(current.originStart);
-        dayEnd.setHours(CALENDAR_HOUR_END, 0, 0, 0);
-        if (nextEnd > dayEnd) nextEnd = dayEnd;
-        setDrag({
-          ...current,
-          moved,
-          previewStart: current.originStart,
-          previewEnd: nextEnd,
-        });
-        return;
-      }
-
-      if (current.kind === "due-move") {
-        let nextDue = addMinutes(current.originDue, deltaMins);
-        const targetDay = dayFromPoint(e.clientX, e.clientY);
-        if (targetDay) {
-          nextDue = combineDateAndTime(targetDay, nextDue);
+        let next: ActiveDrag = current;
+        if (current.kind === "block-move") {
+          const duration = blockDurationMinutes(current.originStart, current.originEnd);
+          let nextStart = addMinutes(current.originStart, deltaMins);
+          const targetDay = dayFromPoint(e.clientX, e.clientY);
+          if (targetDay) {
+            nextStart = combineDateAndTime(targetDay, nextStart);
+          }
+          nextStart = clampToCalendarWindow(nextStart, duration);
+          next = {
+            ...current,
+            moved,
+            previewStart: nextStart,
+            previewEnd: addMinutes(nextStart, duration),
+          };
+        } else if (current.kind === "block-resize") {
+          let nextEnd = addMinutes(current.originEnd, deltaMins);
+          const minEnd = addMinutes(current.originStart, CALENDAR_MIN_BLOCK_MINUTES);
+          if (nextEnd < minEnd) nextEnd = minEnd;
+          const dayEnd = startOfDay(current.originStart);
+          dayEnd.setHours(CALENDAR_HOUR_END, 0, 0, 0);
+          if (nextEnd > dayEnd) nextEnd = dayEnd;
+          next = {
+            ...current,
+            moved,
+            previewStart: current.originStart,
+            previewEnd: nextEnd,
+          };
+        } else {
+          let nextDue = addMinutes(current.originDue, deltaMins);
+          const targetDay = dayFromPoint(e.clientX, e.clientY);
+          if (targetDay) {
+            nextDue = combineDateAndTime(targetDay, nextDue);
+          }
+          nextDue = clampToCalendarWindow(nextDue, 0);
+          next = { ...current, moved, previewDue: nextDue };
         }
-        nextDue = clampToCalendarWindow(nextDue, 0);
-        setDrag({ ...current, moved, previewDue: nextDue });
-      }
-    };
 
-    const onUp = () => {
-      const current = dragRef.current;
-      setDrag(null);
-      if (!current) return;
-      if (!current.moved) return;
-      suppressClickRef.current = true;
-      window.setTimeout(() => {
-        suppressClickRef.current = false;
-      }, 0);
-      void commitDrag(current);
-    };
+        dragRef.current = next;
+        setDrag(next);
+      };
 
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-    };
-  }, [drag !== null, commitDrag]);
+      const onUp = () => {
+        const current = dragRef.current;
+        detachDragListeners();
+        dragRef.current = null;
+        setDrag(null);
+        if (!current?.moved) return;
+        suppressClickRef.current = true;
+        window.setTimeout(() => {
+          suppressClickRef.current = false;
+        }, 0);
+        void commitDrag(current);
+      };
+
+      dragListenersRef.current = { onMove, onUp };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    },
+    [commitDrag, detachDragListeners],
+  );
+
+  useEffect(() => () => detachDragListeners(), [detachDragListeners]);
 
   const goToday = () => setAnchor(startOfDay(new Date()));
 
@@ -670,7 +685,7 @@ export function CalendarView() {
   };
 
   const handleSlotClick = (day: Date, offsetY: number) => {
-    if (suppressClickRef.current || drag) return;
+    if (suppressClickRef.current || dragRef.current) return;
     const { start, end } = slotFromClick(day, offsetY, ROW_HEIGHT_PX);
     openCreate("", start, end);
   };
@@ -689,7 +704,7 @@ export function CalendarView() {
   const handleBlockMoveStart = (block: ScheduledBlock, clientY: number) => {
     const originStart = new Date(block.start_time);
     const originEnd = new Date(block.end_time);
-    setDrag({
+    beginDrag({
       kind: "block-move",
       blockId: block.id,
       originStart,
@@ -704,7 +719,7 @@ export function CalendarView() {
   const handleBlockResizeStart = (block: ScheduledBlock, clientY: number) => {
     const originStart = new Date(block.start_time);
     const originEnd = new Date(block.end_time);
-    setDrag({
+    beginDrag({
       kind: "block-resize",
       blockId: block.id,
       originStart,
@@ -719,7 +734,7 @@ export function CalendarView() {
   const handleDueDragStart = (task: Task, clientY: number) => {
     if (!task.due_at) return;
     const originDue = new Date(task.due_at);
-    setDrag({
+    beginDrag({
       kind: "due-move",
       taskId: task.id,
       originDue,
