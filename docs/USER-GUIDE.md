@@ -19,7 +19,7 @@ thePlan is a personal task and calendar app (Todoist + SkedPal style) that runs 
 - **Recurrence** — `every` / `every!` patterns with optional date frames
 - **Reminders** — In-app toasts and optional browser notifications
 
-Not shipped yet (do not expect these in the UI): auto-scheduler, Google Calendar sync, filter query language, Kanban board, show-completed toggle, calendar drag-reschedule, epic rollup smart view. See [07-wave-roadmap.md](./07-wave-roadmap.md).
+Not shipped yet (do not expect these in the UI): auto-scheduler, Google Calendar sync, filter query language, Kanban board. See [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ---
 
@@ -168,7 +168,7 @@ Click a task in any list to open the right-hand **Task details** panel:
   - **Complete all children too** — one-shot cleanup
 - **Recurring tasks:** completing advances **due** to the next occurrence and leaves the task open until the series ends. Clear recurrence first if you want a final completion.
 
-Completed tasks are hidden from default lists (no show-completed toggle yet).
+Completed tasks are hidden by default. Use **Show completed** in the list header to reveal them (preference is remembered in this browser).
 
 ### Subtasks
 
@@ -346,17 +346,15 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 
 ## Wave 1.5 leftovers / next (brief)
 
-Shipped in 1.5–1.6: login, household, recurrence, reminders, label reassign, backup scripts, Tunnel, phone UI.
+Shipped in 1.5–1.6 + closeout: login, household, recurrence, reminders, label reassign, backup scripts, Tunnel, phone UI, **show completed**, **calendar drag**, **epic rollup**.
 
-**Closeout (next):**
+**Next:** Google Calendar (W2a) → Scheduler (W2b). Everything else is W3+.
 
 | Item | Status |
 |------|--------|
-| Show completed toggle | Open — W1.5 closeout |
-| Calendar drag move/resize | Open — W1.5 closeout (modal edit only today) |
-| Epic aggregate smart view | Open — W1.5 closeout |
-
-**Then:** Google Calendar (W2a) → Scheduler (W2b). Everything else is W3+.
+| Show completed toggle | Shipped — list header; preference remembered |
+| Calendar drag move/resize | Shipped — desktop; phone still uses the edit modal |
+| Epic aggregate smart view | Shipped — click an epic in the sidebar |
 
 ---
 

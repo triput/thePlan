@@ -58,7 +58,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
 
-**Status:** Core feature set shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). **W1.6 mobile polish shipped.** Formal W1.5 exit waits on the closeout checklist below. **Immediate next build:** W1.5 closeout → then [Wave 2a](#wave-2--google-calendar--then-scheduler).
+**Status:** Core feature set shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). **W1.6 mobile polish shipped.** **W1.5 closeout UI shipped** (show-completed, calendar drag, epic aggregate). Formal W1.5 exit record can follow. **Immediate next build:** [Wave 2a Google Calendar](#wave-2--google-calendar--then-scheduler).
 
 ### Shipped
 
@@ -80,9 +80,9 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 | Item | Notes |
 |------|-------|
-| Show-completed toggle | Smart views / project lists; hide completed by default |
-| Calendar drag move/resize | Drag blocks and due markers (modal edit already ships) |
-| Epic aggregate smart view | Rollup of projects/tasks under an epic |
+| ~~Show-completed toggle~~ | **Shipped** — list header checkbox; persisted in localStorage; project lists hide completed by default |
+| ~~Calendar drag move/resize~~ | **Shipped** — desktop day/week drag move + bottom-edge resize; due-dot drag; narrow stays modal-only |
+| ~~Epic aggregate smart view~~ | **Shipped** — click epic in sidebar; `GET /tasks?epic_id=` rollup |
 
 **Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128). Login by **username or email**. First registration **claims** bootstrap user. Hygiene: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
 

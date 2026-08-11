@@ -56,7 +56,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Epic/project color presets | MVP | Synesis/Phronesis-aligned presets; entity custom hex picker W1.5 |
 | Fixed smart views (Inbox, Today, Upcoming) | MVP | System saved_filters |
 | Smart view by Project | MVP | |
-| Smart view by Epic | W1.5 closeout | Epic aggregate rollup UI |
+| Smart view by Epic | W1.5 closeout | **Shipped** — sidebar epic → `?epic_id=` rollup |
 | Smart view by Label | MVP | |
 | Saved filter query language | W2b | Predicate model from MVP; slip to W3+ if capacity |
 | Custom filter favorites | W2b | User-authored saved_filters |
@@ -72,7 +72,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Calendar view (month) | W1.5 | Not shipped Wave 1; optional/non-blocker |
 | Day-of-year + ISO week numbers in chrome | MVP | Shipped in calendar titles |
 | Board / Kanban | W3 | Optional column view for project status; not an MVP/W2 timeline. Sections may map to columns |
-| Upcoming drag-plan timeline | W1.5 closeout | Calendar drag |
+| Upcoming drag-plan timeline | W1.5 closeout | Calendar drag — **shipped** (desktop) |
 | Gantt / project timeline | Out | Calendar only in MVP |
 | Productivity trends / charts | Out | No gamification |
 
@@ -95,7 +95,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Undo last action | MVP | Session stack; delete undo recreates (new IDs) |
 | Task soft-delete + restore | W2b | `deleted_at` on tasks; true undelete same UUID |
 | Activity log / audit trail | W2b | schedule_runs + task history lite |
-| Completed task history | W1.5 closeout | Show/hide completed toggle |
+| Completed task history | W1.5 closeout | Show/hide completed toggle — **shipped** |
+| Smart view by Epic | W1.5 closeout | Click epic in sidebar; `?epic_id=` — **shipped** |
 
 ### Reminders & Notifications
 
@@ -196,7 +197,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 |---------|------|-------|
 | Manual scheduled blocks | MVP | Click empty slot or task; modal edit start/end |
 | Pin / lock blocks | W2b | `is_pinned`; scheduler never moves until unpin. Use case: fixed clock time (e.g. prep before someone else's meeting) — not due/deadline. MVP stores flag only |
-| Drag reschedule blocks / due markers | W1.5 closeout | Modal edit shipped Wave 1; drag in closeout |
+| Drag reschedule blocks / due markers | W1.5 closeout | **Shipped** on desktop; modal on narrow |
 | Bundled / knockout task lists | W2b | vs formal blocks |
 | External calendar as busy source | W2a | Google; MS W3+ |
 | Calendar cutout / busy map | W2a | Step 1 before Update Schedule |
@@ -250,7 +251,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows. (Recurrence + reminders engines landed in W1.5.)
 
-**Defer to W1.5 (shipped core):** Recurrence, reminders, login, household, label reassign, backup script, Tunnel. **Closeout still open:** epic aggregate, show-completed, calendar drag. Calendar month optional/non-blocker.
+**Defer to W1.5 (shipped core + closeout):** Recurrence, reminders, login, household, label reassign, backup script, Tunnel; show-completed, calendar drag, epic aggregate. Calendar month optional/non-blocker.
 
 **Defer to W1.6 (shipped):** Phone-friendly / responsive cleanup.
 

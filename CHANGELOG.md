@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.2] — 2026-08-10 — Wave 1.5 closeout
+
+- Show completed toggle on Inbox / Today / Upcoming / Project / Label / Epic lists (localStorage)
+- Calendar desktop drag: move blocks, resize from bottom edge, drag due markers; phone stays modal-only
+- Epic aggregate smart view: click epic in sidebar; GET /tasks?epic_id= joins projects under the epic
+
+### Planned next
+
+- **W2a** — Google Calendar sync + busy map
+- **W2b** — SkedPal triad (Time Maps / Plans / Update Schedule)
+- Remaining product items → **W3 / W3+** (see [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md))
+
 ## [0.2.1] — 2026-08-10 — Wave 1.6 mobile polish
 
 - Narrow shell: hamburger drawer nav + backdrop (replaces stacked 40vh sidebar)
@@ -12,20 +24,15 @@
 
 - Session cookie login/logout; first-run setup claims bootstrap admin
 - Household multi-account (admin-managed); passphrase-friendly secrets
-- Demo user `nebula` with seeded fixture data
-- Recurrence engine: `every` / `every!`, limited frames, multi-weekday, quick-add tokens, task-detail set/clear, complete rollover
-- Time-based reminders: absolute `fire_at`, task-detail CRUD, client poll + ack, in-app toast + optional browser Notification
-- Label delete reassign/migrate: optional `reassign_to` on delete; Labels UI multi-select
-- Scheduled Postgres backup scripts (`scripts/backup-postgres.ps1` / `.sh`) with retention
+- Demo user 
+ebula with seeded fixture data
+- Recurrence engine: very / very!, limited frames, multi-weekday, quick-add tokens, task-detail set/clear, complete rollover
+- Time-based reminders: absolute ire_at, task-detail CRUD, client poll + ack, in-app toast + optional browser Notification
+- Label delete reassign/migrate: optional 
+eassign_to on delete; Labels UI multi-select
+- Scheduled Postgres backup scripts (scripts/backup-postgres.ps1 / .sh) with retention
 - Cloudflare Tunnel Compose profile + [docs/CLOUDFLARE-TUNNEL.md](docs/CLOUDFLARE-TUNNEL.md) (optional Access)
 - Hygiene: [docs/HYGIENE-W1.5-QUICKSCAN.md](docs/HYGIENE-W1.5-QUICKSCAN.md)
-
-### Planned next
-
-- **W1.5 closeout** — show-completed toggle, calendar drag, epic aggregate view
-- **W2a** — Google Calendar sync + busy map
-- **W2b** — SkedPal triad (Time Maps / Plans / Update Schedule)
-- Remaining product items → **W3 / W3+** (see [07-wave-roadmap.md](docs/07-wave-roadmap.md))
 
 ## [0.1.0] — 2026-08-10 — Wave 1 MVP
 

@@ -4,6 +4,7 @@ export type ViewSelection =
   | { type: "upcoming" }
   | { type: "calendar" }
   | { type: "project"; projectId: string }
+  | { type: "epic"; epicId: string }
   | { type: "labels" }
   | { type: "label"; labelId: string };
 
@@ -19,6 +20,8 @@ export function viewKey(view: ViewSelection): string {
       return "calendar";
     case "project":
       return `project:${view.projectId}`;
+    case "epic":
+      return `epic:${view.epicId}`;
     case "labels":
       return "labels";
     case "label":
@@ -28,7 +31,7 @@ export function viewKey(view: ViewSelection): string {
 
 export function viewTitle(
   view: ViewSelection,
-  options?: { projectTitle?: string; labelName?: string },
+  options?: { projectTitle?: string; labelName?: string; epicTitle?: string },
 ): string {
   switch (view.type) {
     case "inbox":
@@ -41,6 +44,8 @@ export function viewTitle(
       return "Calendar";
     case "project":
       return options?.projectTitle ?? "Project";
+    case "epic":
+      return options?.epicTitle ?? "Epic";
     case "labels":
       return "Labels";
     case "label":

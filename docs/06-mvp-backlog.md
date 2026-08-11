@@ -103,7 +103,7 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 - [x] Complete/uncomplete toggles `is_completed` and `completed_at`
 - [x] Completed tasks hidden from default lists
-- [ ] "Show completed" toggle reveals them *(deferred W1.5)*
+- [x] "Show completed" toggle reveals them *(W1.5 closeout)*
 - [x] Completed tasks dimmed on calendar
 
 ### US-3.2: Parent completion with open children
@@ -338,7 +338,7 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 | Inbox, Today, Upcoming | Yes | Met |
 | Calendar day + week | Yes | Met |
 | Manual scheduled blocks (click/slot + modal) | Yes | Met |
-| Calendar drag resize/move | No (W1.5) | Deferred |
+| Calendar drag resize/move | Yes (W1.5 closeout) | Desktop; modal on narrow |
 | Quick-add parser | Yes | Met |
 | Global search | Yes | Met |
 | Undo | Yes | Met |
@@ -360,12 +360,12 @@ Deferred to W1.5 (or later). Full table: [WAVE-1-EXIT.md](./WAVE-1-EXIT.md#known
 
 | Gap | Wave |
 |-----|------|
-| Epic aggregate smart view | W1.5 |
-| Show completed toggle | W1.5 |
+| Epic aggregate smart view | W1.5 closeout — shipped |
+| Show completed toggle | W1.5 closeout — shipped |
 | Archived epic/project sidebar toggle | W1.5 |
 | Section-grouped project task layout | W1.5 |
 | Entity custom `#RRGGBB` picker on epics/projects/labels | W1.5 |
-| Calendar drag resize/move | W1.5 |
+| Calendar drag resize/move | W1.5 closeout — shipped |
 | Calendar month view | W1.5 (optional) |
 | Timezone / upcoming horizon settings UI | W1.5 |
 | True soft-delete / session undelete | W2 (optional W1.5) |

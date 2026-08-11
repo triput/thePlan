@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
-from app.models import Label, RecurrenceRule, Reminder, Task, TaskLabel, User
+from app.models import Label, Project, RecurrenceRule, Reminder, Task, TaskLabel, User
 from app.schemas import (
     PaginatedResponse,
     RecurrenceOut,
@@ -164,6 +164,7 @@ def list_tasks(
     section_id: UUID | None = None,
     parent_task_id: UUID | None = None,
     label_id: UUID | None = None,
+    epic_id: UUID | None = None,
     is_completed: bool | None = None,
     due_from: datetime | None = None,
     due_to: datetime | None = None,
@@ -182,6 +183,11 @@ def list_tasks(
         query = query.filter(Task.project_id.is_(None))
     elif project_id is not None:
         query = query.filter(Task.project_id == project_id)
+    if epic_id is not None:
+        query = query.join(Project, Task.project_id == Project.id).filter(
+            Project.epic_id == epic_id,
+            Project.owner_id == user.id,
+        )
     if section_id is not None:
         query = query.filter(Task.section_id == section_id)
     if parent_task_id is not None:

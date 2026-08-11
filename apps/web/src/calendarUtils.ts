@@ -138,6 +138,42 @@ export function slotFromClick(
   return { start, end };
 }
 
+export const CALENDAR_SNAP_MINUTES = 15;
+export const CALENDAR_MIN_BLOCK_MINUTES = 15;
+
+/** Convert a vertical pixel delta into calendar minutes for the visible hour window. */
+export function minutesFromDeltaY(deltaY: number, rowHeightPx: number): number {
+  return (deltaY / rowHeightPx) * 60;
+}
+
+export function snapMinutes(minutes: number, step = CALENDAR_SNAP_MINUTES): number {
+  return Math.round(minutes / step) * step;
+}
+
+/** Clamp a Date's clock into the visible calendar window on its calendar day. */
+export function clampToCalendarWindow(d: Date, durationMinutes = 0): Date {
+  const day = startOfDay(d);
+  const windowStart = new Date(day);
+  windowStart.setHours(CALENDAR_HOUR_START, 0, 0, 0);
+  const windowEnd = new Date(day);
+  windowEnd.setHours(CALENDAR_HOUR_END, 0, 0, 0);
+  const maxStart = new Date(windowEnd.getTime() - durationMinutes * 60_000);
+  if (d < windowStart) return windowStart;
+  if (d > maxStart) return maxStart < windowStart ? windowStart : maxStart;
+  return d;
+}
+
+/** Keep time-of-day from `time`, calendar date from `day`. */
+export function combineDateAndTime(day: Date, time: Date): Date {
+  const result = startOfDay(day);
+  result.setHours(time.getHours(), time.getMinutes(), time.getSeconds(), 0);
+  return result;
+}
+
+export function addMinutes(d: Date, minutes: number): Date {
+  return new Date(d.getTime() + minutes * 60_000);
+}
+
 export function getISOWeekYear(d: Date): number {
   const date = startOfDay(d);
   // Thursday of this ISO week determines the ISO year

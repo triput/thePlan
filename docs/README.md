@@ -31,7 +31,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 (MVP) exited **2026-08-10**. W1.6 shipped. **Next: W1.5 closeout** → W2a Google Calendar → W2b Scheduler — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 (MVP) exited **2026-08-10**. W1.5 closeout + W1.6 shipped. **Next: W2a Google Calendar** → W2b Scheduler — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 

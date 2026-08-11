@@ -2,12 +2,12 @@
 
 Personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
 
-**Wave 1 (MVP) exited 2026-08-10.** W1.6 mobile shipped. **Next:** W1.5 closeout (show-completed, calendar drag, epic view) → GCal → Scheduler — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Exit record: [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
+**Wave 1 (MVP) exited 2026-08-10.** W1.5 closeout + W1.6 mobile shipped. **Next:** Google Calendar → Scheduler — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Exit record: [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
 
 ## Shipped (Wave 1)
 
 - Hierarchy: Epic → Project → Section → Task → subtask → nested subtask
-- Smart views: Inbox, Today, Upcoming, Project, Label
+- Smart views: Inbox, Today, Upcoming, Project, Label, Epic rollup
 - Calendar day/week, due markers, manual scheduled blocks
 - Quick-add, search, undo, optimistic UI, keyboard shortcuts
 - Labels + color presets; nine UI themes (Settings)

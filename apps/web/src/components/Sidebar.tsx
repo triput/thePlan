@@ -129,16 +129,19 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
   const isProjectActive = (projectId: string) =>
     view.type === "project" && view.projectId === projectId;
 
+  const isEpicActive = (epicId: string) => view.type === "epic" && view.epicId === epicId;
+
   const isLabelActive = (labelId: string) =>
     view.type === "label" && view.labelId === labelId;
 
   const renderEpic = (epic: Epic) => {
     const expanded = expandedEpics.has(epic.id);
     const epicProjects = projectsByEpic[epic.id] ?? [];
+    const epicActive = isEpicActive(epic.id);
 
     return (
       <div key={epic.id} className="epic-group">
-        <div className="epic-header">
+        <div className={`epic-header${epicActive ? " active" : ""}`}>
           <button
             type="button"
             className="expand-btn"
@@ -148,8 +151,17 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
           >
             {expanded ? "▾" : "▸"}
           </button>
-          <span className="nav-swatch" style={{ backgroundColor: epic.color_hex }} aria-hidden />
-          <span className="epic-title">{epic.title}</span>
+          <button
+            type="button"
+            className={`epic-title-btn${epicActive ? " active" : ""}`}
+            onClick={() => {
+              setExpandedEpics((prev) => new Set(prev).add(epic.id));
+              onSelectView({ type: "epic", epicId: epic.id });
+            }}
+          >
+            <span className="nav-swatch" style={{ backgroundColor: epic.color_hex }} aria-hidden />
+            <span className="epic-title">{epic.title}</span>
+          </button>
           <button
             type="button"
             className="icon-btn tiny"

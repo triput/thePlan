@@ -495,6 +495,7 @@ export function fetchTasks(params?: {
   section_id?: string;
   parent_task_id?: string;
   label_id?: string;
+  epic_id?: string;
   is_completed?: boolean;
   inbox?: boolean;
   due_from?: string;

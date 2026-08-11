@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProjects, fetchTask } from "./api";
+import { fetchEpics, fetchProjects, fetchTask } from "./api";
 import { useAuth } from "./auth";
 import { CalendarView } from "./components/CalendarView";
 import { HelpOverlay } from "./components/HelpOverlay";
@@ -38,12 +38,16 @@ function AppInner() {
   const { undo } = useUndoStack();
 
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
   const projects = projectsQuery.data?.items ?? [];
+  const epics = epicsQuery.data?.items ?? [];
 
   const projectTitle =
     view.type === "project"
       ? projects.find((p) => p.id === view.projectId)?.title
-      : undefined;
+      : view.type === "epic"
+        ? epics.find((e) => e.id === view.epicId)?.title
+        : undefined;
 
   const showTaskList = view.type !== "labels" && view.type !== "calendar";
   const showCalendar = view.type === "calendar";

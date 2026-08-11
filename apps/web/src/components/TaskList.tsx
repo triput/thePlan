@@ -48,6 +48,28 @@ interface PendingComplete {
   openCount: number;
 }
 
+const SHOW_COMPLETED_KEY = "theplan.showCompleted";
+
+function readShowCompleted(): boolean {
+  try {
+    return localStorage.getItem(SHOW_COMPLETED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeShowCompleted(value: boolean) {
+  try {
+    localStorage.setItem(SHOW_COMPLETED_KEY, value ? "1" : "0");
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function tasksCacheKey(view: ViewSelection, showCompleted: boolean) {
+  return ["tasks", viewKey(view), showCompleted ? "with-completed" : "active"] as const;
+}
+
 function makeOptimisticTask(body: {
   title: string;
   project_id?: string | null;
@@ -91,7 +113,13 @@ export function TaskList({
   const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const [showCompleted, setShowCompleted] = useState(readShowCompleted);
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+
+  const setShowCompletedPersisted = useCallback((next: boolean) => {
+    setShowCompleted(next);
+    writeShowCompleted(next);
+  }, []);
 
   const labelsQuery = useQuery({
     queryKey: ["labels"],
@@ -106,26 +134,52 @@ export function TaskList({
   }, [labelsQuery.data]);
 
   const tasksQuery = useQuery({
-    queryKey: ["tasks", viewKey(view)],
+    queryKey: tasksCacheKey(view, showCompleted),
     queryFn: async () => {
-      if (view.type === "inbox") {
-        return fetchTasks({ inbox: true, limit: 200, is_completed: false });
+      const base =
+        view.type === "inbox"
+          ? { inbox: true as const, limit: 200 }
+          : view.type === "project"
+            ? { project_id: view.projectId, limit: 200 }
+            : view.type === "epic"
+              ? { epic_id: view.epicId, limit: 200 }
+              : view.type === "label"
+                ? { label_id: view.labelId, limit: 200 }
+                : { limit: 200 };
+
+      const load = async (is_completed?: boolean) => {
+        const result = await fetchTasks(
+          is_completed === undefined ? base : { ...base, is_completed },
+        );
+        if (view.type === "label") {
+          return {
+            ...result,
+            items: result.items.filter((t) => t.label_ids.includes(view.labelId)),
+          };
+        }
+        return result;
+      };
+
+      if (!showCompleted) {
+        return load(false);
       }
-      if (view.type === "project") {
-        return fetchTasks({ project_id: view.projectId, limit: 200 });
+
+      // Two requests so open tasks are not crowded out of the 200 limit by history.
+      const [open, done] = await Promise.all([load(false), load(true)]);
+      const byId = new Map<string, Task>();
+      for (const task of [...open.items, ...done.items]) {
+        byId.set(task.id, task);
       }
-      if (view.type === "label") {
-        const result = await fetchTasks({
-          label_id: view.labelId,
-          limit: 200,
-          is_completed: false,
-        });
-        return {
-          ...result,
-          items: result.items.filter((t) => t.label_ids.includes(view.labelId)),
-        };
-      }
-      return fetchTasks({ limit: 200, is_completed: false });
+      const items = [...byId.values()].sort((a, b) => {
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+        return a.id.localeCompare(b.id);
+      });
+      return {
+        items,
+        total: open.total + done.total,
+        limit: 200,
+        offset: 0,
+      };
     },
   });
 
@@ -159,7 +213,10 @@ export function TaskList({
   });
 
   const tasks = useMemo(() => {
-    const items = tasksQuery.data?.items ?? [];
+    let items = tasksQuery.data?.items ?? [];
+    if (!showCompleted) {
+      items = items.filter((t) => !t.is_completed);
+    }
     if (view.type === "today") {
       const scheduledIds = new Set(
         (blocksQuery.data?.items ?? [])
@@ -173,7 +230,7 @@ export function TaskList({
       return items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
     }
     return items;
-  }, [tasksQuery.data, blocksQuery.data, view.type]);
+  }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted]);
 
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -182,7 +239,7 @@ export function TaskList({
   const createMutation = useMutation({
     mutationFn: createTask,
     onMutate: async (body) => {
-      const key = ["tasks", viewKey(view)];
+      const key = [...tasksCacheKey(view, showCompleted)];
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
       const cachedItems = previous?.items ?? [];
@@ -225,7 +282,7 @@ export function TaskList({
       undoTaskIds?: string[];
     }) => completeTask(taskId, body ?? {}),
     onMutate: async ({ taskId }) => {
-      const key = ["tasks", viewKey(view)];
+      const key = [...tasksCacheKey(view, showCompleted)];
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
       if (previous) {
@@ -269,7 +326,7 @@ export function TaskList({
   const uncompleteMutation = useMutation({
     mutationFn: uncompleteTask,
     onMutate: async (taskId) => {
-      const key = ["tasks", viewKey(view)];
+      const key = [...tasksCacheKey(view, showCompleted)];
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<{ items: Task[]; total: number }>(key);
       if (previous) {
@@ -456,20 +513,32 @@ export function TaskList({
   const heading =
     view.type === "project"
       ? (projectTitle ?? "Project")
-      : view.type === "inbox"
-        ? "Inbox"
-        : view.type === "today"
-          ? "Today"
-          : view.type === "label"
-            ? (labelsById.get(view.labelId)?.name ?? "Label")
-            : "Upcoming";
+      : view.type === "epic"
+        ? (projectTitle ?? "Epic")
+        : view.type === "inbox"
+          ? "Inbox"
+          : view.type === "today"
+            ? "Today"
+            : view.type === "label"
+              ? (labelsById.get(view.labelId)?.name ?? "Label")
+              : "Upcoming";
 
   return (
     <div className="task-list-layout">
       <div className="task-list-pane">
         <header className="pane-header">
           <h1>{heading}</h1>
-          {view.type === "project" && <CreateSectionForm projectId={view.projectId} />}
+          <div className="pane-header-actions">
+            <label className="show-completed-toggle">
+              <input
+                type="checkbox"
+                checked={showCompleted}
+                onChange={(e) => setShowCompletedPersisted(e.target.checked)}
+              />
+              <span>Show completed</span>
+            </label>
+            {view.type === "project" && <CreateSectionForm projectId={view.projectId} />}
+          </div>
         </header>
 
         {sections.length > 0 && (
@@ -609,6 +678,7 @@ export function TaskList({
           </form>
         )}
 
+        {view.type !== "epic" && (
         <form className="inline-form add-task-form" onSubmit={handleAddTask}>
           <input
             type="text"
@@ -620,6 +690,12 @@ export function TaskList({
             Add
           </button>
         </form>
+        )}
+        {view.type === "epic" && (
+          <p className="muted small epic-add-hint">
+            Open a project under this epic to add tasks. This view lists tasks across linked projects.
+          </p>
+        )}
 
         <CompleteDialog
           open={pendingComplete !== null}
