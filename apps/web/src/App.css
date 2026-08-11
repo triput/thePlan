@@ -1739,6 +1739,33 @@
   z-index: 0;
 }
 
+.cal-block.conflict,
+.cal-busy-block.conflict {
+  border-left-width: 4px;
+  border-left-color: var(--danger);
+  outline: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  outline-offset: -1px;
+}
+
+.cal-block.conflict {
+  background: color-mix(in srgb, var(--danger) 12%, var(--panel)) !important;
+}
+
+.cal-busy-block.conflict {
+  opacity: 0.95;
+  background: color-mix(in srgb, var(--danger) 10%, var(--panel));
+}
+
+.cal-conflict-banner {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
+  color: var(--text);
+  flex-shrink: 0;
+}
+
 .calendar-view.is-dragging {
   user-select: none;
   cursor: grabbing;

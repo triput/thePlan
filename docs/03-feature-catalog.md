@@ -73,6 +73,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Day-of-year + ISO week numbers in chrome | MVP | Shipped in calendar titles |
 | Board / Kanban | W3 | Optional column view for project status; not an MVP/W2 timeline. Sections may map to columns |
 | Upcoming drag-plan timeline | W1.5 closeout | Calendar drag — **shipped** (desktop) |
+| Sidebar → calendar drag-schedule | W2b late / W3 | Drop task from list onto day/time slot to create block |
 | Gantt / project timeline | Out | Calendar only in MVP |
 | Productivity trends / charts | Out | No gamification |
 
@@ -194,7 +195,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Urgency decay (exponential) | W2b | k=0.5 default |
 | Dependency-aware ordering | W2b | Topological sort |
 | Inter-block buffer | W2b | Default 5 min, configurable |
-| Overbook detection & flag | W2b | schedule_status.overbooked |
+| Overbook detection & flag | W2a Slice 3 / W2b | W2a: visual conflict flags via `GET /calendar/conflicts` (no status mutation). W2b: `schedule_status.overbooked` |
 | Contiguity optimization | W2b | Prefer back-to-back slices |
 
 ### Calendar & Blocks

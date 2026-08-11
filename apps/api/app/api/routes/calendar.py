@@ -19,6 +19,8 @@ from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.schemas import (
     CalendarAccountOut,
     CalendarAccountUpdate,
+    CalendarConflictOut,
+    CalendarConflictsResult,
     CalendarSubscriptionOut,
     CalendarSubscriptionsPut,
     CalendarSyncResult,
@@ -26,6 +28,7 @@ from app.schemas import (
     GoogleCalendarListItem,
     PaginatedResponse,
 )
+from app.services.calendar_conflicts import find_conflicts
 from app.services.google_calendar import (
     build_authorize_url,
     exchange_code_for_tokens,
@@ -335,6 +338,32 @@ def sync_calendar_account(
     )
     db.commit()
     return CalendarSyncResult(account_id=account.id, upserted=upserted)
+
+
+@router.get("/conflicts", response_model=CalendarConflictsResult)
+def list_calendar_conflicts(
+    start: datetime = Query(...),
+    end: datetime = Query(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> CalendarConflictsResult:
+    if end <= start:
+        raise ApiError(422, "end must be after start", "INVALID_TIME_RANGE")
+    raw = find_conflicts(db, owner_id=user.id, start=start, end=end)
+    items = [
+        CalendarConflictOut(
+            kind=c.kind.value,
+            block_id=c.block_id,
+            other_block_id=c.other_block_id,
+            external_event_id=c.external_event_id,
+            external_title=c.external_title,
+            start_time=c.start_time,
+            end_time=c.end_time,
+            is_pinned=c.is_pinned,
+        )
+        for c in raw
+    ]
+    return CalendarConflictsResult(items=items, count=len(items))
 
 
 @router.get("/events", response_model=PaginatedResponse)

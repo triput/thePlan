@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -401,6 +402,22 @@ class ExternalCalendarEventOut(BaseModel):
 class CalendarSyncResult(BaseModel):
     account_id: UUID
     upserted: int
+
+
+class CalendarConflictOut(BaseModel):
+    kind: Literal["block_busy", "block_block"]
+    block_id: UUID
+    other_block_id: UUID | None = None
+    external_event_id: UUID | None = None
+    external_title: str | None = None
+    start_time: datetime
+    end_time: datetime
+    is_pinned: bool
+
+
+class CalendarConflictsResult(BaseModel):
+    items: list[CalendarConflictOut]
+    count: int
 
 
 class SearchLabelOut(BaseModel):

@@ -748,6 +748,24 @@ export interface ExternalCalendarEvent {
   last_synced_at: string;
 }
 
+export type CalendarConflictKind = "block_busy" | "block_block";
+
+export interface CalendarConflict {
+  kind: CalendarConflictKind;
+  block_id: string;
+  other_block_id: string | null;
+  external_event_id: string | null;
+  external_title: string | null;
+  start_time: string;
+  end_time: string;
+  is_pinned: boolean;
+}
+
+export interface CalendarConflictsResult {
+  items: CalendarConflict[];
+  count: number;
+}
+
 export function fetchCalendarAccounts() {
   return apiFetchUrl<PaginatedResponse<CalendarAccount>>(buildUrl("/api/v1/calendar/accounts"));
 }
@@ -796,6 +814,10 @@ export function fetchExternalCalendarEvents(params: { start: string; end: string
   return apiFetchUrl<PaginatedResponse<ExternalCalendarEvent>>(
     buildUrl("/api/v1/calendar/events", params),
   );
+}
+
+export function fetchCalendarConflicts(params: { start: string; end: string }) {
+  return apiFetchUrl<CalendarConflictsResult>(buildUrl("/api/v1/calendar/conflicts", params));
 }
 
 /** Full-page navigation so session cookie rides the OAuth round-trip. */

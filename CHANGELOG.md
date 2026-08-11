@@ -1,17 +1,17 @@
 # Changelog
 
-## [Unreleased] — Wave 2a (Slice 2 complete)
+## [Unreleased] — Wave 2a (Slice 3 complete)
 
 - Hygiene gate: [docs/HYGIENE-W2-QUICKSCAN.md](docs/HYGIENE-W2-QUICKSCAN.md) (pass)
 - **Google Calendar Slice 1 (shipped):** OAuth connect, encrypted tokens, pull primary events, busy overlays — verified live
 - **Google Calendar Slice 2 (shipped):** `calendar_subscriptions` (primary + informational), mirror-to-Google toggle (best-effort push of scheduled blocks), per-subscription syncToken, 24×7 calendar viewport (default 6A–10P) — verified live
+- **Google Calendar Slice 3 (shipped):** `GET /calendar/conflicts` — block↔busy and block↔block overlap flags; calendar UI conflict styling (no `tasks.status` mutation) — verified live
 - cryptography for Fernet token encryption
-- Parked for W2b+: Time Map overrides, scoped bundles, settings expansion, fuzzy-scheduling planning session
+- Parked for W2b+: Time Map overrides, scoped bundles, settings expansion, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
 
 ### Planned next
 
-- **W2a Slice 3** — Overbook flags when external busy overlaps pins/blocks
-- **W2b** — SkedPal triad (Time Maps, Plans, Update Schedule) after Slice 3 / busy map polish
+- **W2b** — SkedPal triad (Time Maps, Plans, Update Schedule)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 

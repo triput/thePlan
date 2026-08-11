@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createScheduledBlock,
   deleteScheduledBlock,
+  fetchCalendarConflicts,
   fetchExternalCalendarEvents,
   fetchProjects,
   fetchScheduledBlocks,
@@ -210,7 +211,15 @@ function BlockFormModal({
   );
 }
 
-function BusyBlockItem({ event, bounds }: { event: ExternalCalendarEvent; bounds: HourBounds }) {
+function BusyBlockItem({
+  event,
+  bounds,
+  hasConflict,
+}: {
+  event: ExternalCalendarEvent;
+  bounds: HourBounds;
+  hasConflict?: boolean;
+}) {
   const start = new Date(event.start_time);
   const end = new Date(event.end_time);
   const top = topPercentForTime(start, bounds);
@@ -219,7 +228,7 @@ function BusyBlockItem({ event, bounds }: { event: ExternalCalendarEvent; bounds
 
   return (
     <div
-      className="cal-block cal-busy-block"
+      className={`cal-block cal-busy-block${hasConflict ? " conflict" : ""}`}
       style={{
         top: `${Math.max(0, top)}%`,
         height: `${Math.min(100 - Math.max(0, top), height)}%`,
@@ -281,6 +290,7 @@ function ScheduledBlockItem({
   previewStart,
   previewEnd,
   dragEnabled,
+  hasConflict,
   onClick,
   onMoveStart,
   onResizeStart,
@@ -292,6 +302,7 @@ function ScheduledBlockItem({
   previewStart?: Date;
   previewEnd?: Date;
   dragEnabled: boolean;
+  hasConflict?: boolean;
   onClick: () => void;
   onMoveStart: (block: ScheduledBlock, clientY: number) => void;
   onResizeStart: (block: ScheduledBlock, clientY: number) => void;
@@ -306,7 +317,7 @@ function ScheduledBlockItem({
     <div
       role="button"
       tabIndex={0}
-      className={`cal-block${block.is_pinned ? " pinned" : ""}${dragging ? " dragging" : ""}`}
+      className={`cal-block${block.is_pinned ? " pinned" : ""}${hasConflict ? " conflict" : ""}${dragging ? " dragging" : ""}`}
       style={{
         top: `${top}%`,
         height: `${height}%`,
@@ -314,9 +325,11 @@ function ScheduledBlockItem({
         backgroundColor: `color-mix(in srgb, ${color} 22%, var(--panel))`,
       }}
       title={
-        dragEnabled
-          ? `${task?.title ?? "Scheduled block"} — drag to move, bottom edge to resize`
-          : (task?.title ?? "Scheduled block")
+        hasConflict
+          ? `${task?.title ?? "Scheduled block"} — schedule conflict`
+          : dragEnabled
+            ? `${task?.title ?? "Scheduled block"} — drag to move, bottom edge to resize`
+            : (task?.title ?? "Scheduled block")
       }
       onClick={(e) => {
         e.stopPropagation();
@@ -364,6 +377,8 @@ function DayColumn({
   dragEnabled,
   blockPreview,
   duePreview,
+  conflictingBlockIds,
+  conflictingBusyEventIds,
   onSlotClick,
   onBlockClick,
   onDueClick,
@@ -382,6 +397,8 @@ function DayColumn({
   dragEnabled: boolean;
   blockPreview: ActiveDrag | null;
   duePreview: ActiveDrag | null;
+  conflictingBlockIds: Set<string>;
+  conflictingBusyEventIds: Set<string>;
   onSlotClick: (day: Date, offsetY: number) => void;
   onBlockClick: (block: ScheduledBlock) => void;
   onDueClick: (task: Task) => void;
@@ -437,7 +454,12 @@ function DayColumn({
         ))}
         <div className="cal-overlay">
           {dayBusy.map((event) => (
-            <BusyBlockItem key={`busy-${event.id}`} event={event} bounds={bounds} />
+            <BusyBlockItem
+              key={`busy-${event.id}`}
+              event={event}
+              bounds={bounds}
+              hasConflict={conflictingBusyEventIds.has(event.id)}
+            />
           ))}
           {dayDue.map((task) => (
             <DueMarker
@@ -473,6 +495,7 @@ function DayColumn({
                 previewStart={preview?.previewStart}
                 previewEnd={preview?.previewEnd}
                 dragEnabled={dragEnabled}
+                hasConflict={conflictingBlockIds.has(block.id)}
                 onClick={() => onBlockClick(block)}
                 onMoveStart={onBlockMoveStart}
                 onResizeStart={onBlockResizeStart}
@@ -546,6 +569,12 @@ export function CalendarView() {
       fetchExternalCalendarEvents({ start: toISO(range.start), end: toISO(range.end) }),
   });
 
+  const conflictsQuery = useQuery({
+    queryKey: ["calendar-conflicts", rangeKey],
+    queryFn: () =>
+      fetchCalendarConflicts({ start: toISO(range.start), end: toISO(range.end) }),
+  });
+
   const dueTasksQuery = useQuery({
     queryKey: ["tasks", "calendar-due", rangeKey],
     queryFn: () =>
@@ -569,8 +598,21 @@ export function CalendarView() {
 
   const blocks = blocksQuery.data?.items ?? [];
   const busyEvents = busyQuery.data?.items ?? [];
+  const conflicts = conflictsQuery.data?.items ?? [];
+  const conflictCount = conflictsQuery.data?.count ?? 0;
   const dueTasks = dueTasksQuery.data?.items ?? [];
   const incompleteTasks = incompleteTasksQuery.data?.items ?? [];
+
+  const { conflictingBlockIds, conflictingBusyEventIds } = useMemo(() => {
+    const blockIds = new Set<string>();
+    const busyIds = new Set<string>();
+    for (const c of conflicts) {
+      blockIds.add(c.block_id);
+      if (c.other_block_id) blockIds.add(c.other_block_id);
+      if (c.external_event_id) busyIds.add(c.external_event_id);
+    }
+    return { conflictingBlockIds: blockIds, conflictingBusyEventIds: busyIds };
+  }, [conflicts]);
 
   const tasksById = useMemo(() => {
     const map = new Map<string, Task>();
@@ -592,6 +634,7 @@ export function CalendarView() {
 
   const invalidateCalendar = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
+    queryClient.invalidateQueries({ queryKey: ["calendar-conflicts"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
   }, [queryClient]);
 
@@ -890,6 +933,11 @@ export function CalendarView() {
           </button>
         </div>
         <h1 className="cal-title">{headerTitle}</h1>
+        {conflictCount > 0 && (
+          <p className="cal-conflict-banner muted small" role="status">
+            {conflictCount} schedule conflict{conflictCount === 1 ? "" : "s"}
+          </p>
+        )}
         <div className="cal-mode-toggle">
           <button
             type="button"
@@ -946,6 +994,8 @@ export function CalendarView() {
               dragEnabled={dragEnabled}
               blockPreview={blockDrag}
               duePreview={dueDrag}
+              conflictingBlockIds={conflictingBlockIds}
+              conflictingBusyEventIds={conflictingBusyEventIds}
               onSlotClick={handleSlotClick}
               onBlockClick={openEdit}
               onDueClick={handleDueClick}

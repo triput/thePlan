@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2a Slice 2 complete (2026-08-11)** — multi-cal + mirror push + incremental sync + 24h viewport verified live. Next: Slice 3 overbook flags, then W2b. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
+**Status:** **W2a Slice 3 complete (2026-08-11)** — conflict flags verified live. W2a GCal prove-it path done (pull → multi-cal/mirror/24h → conflicts). Next: **W2b** scheduler triad. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -155,7 +155,7 @@ No full Update Schedule / UPS pipeline in 2a.
 
 1. **Slice 1 (prove-it) — complete:** Google OAuth connect → pull events → store `external_calendar_events` → render read-only busy on Calendar day/week; Settings connect/disconnect/sync. Verified live 2026-08-11.
 2. **Slice 2 — complete:** Multi-calendar subscriptions (`primary` + `informational`); best-effort mirror push of `scheduled_blocks` when `mirror_blocks_to_google`; per-subscription Google `syncToken`; 24×7 viewport toggle (default 6A–10P). Verified live 2026-08-11.
-3. **Slice 3 (capacity):** Overbook flags when external busy overlaps pins/blocks; contract polish in `05-api-contract.md`.
+3. **Slice 3 (capacity) — complete:** Overbook/conflict flags when external busy overlaps pins/blocks (`GET /calendar/conflicts`); calendar UI styling. Does not set `tasks.status` (W2b scheduler). Verified live 2026-08-11.
 
 **Operator note (Slice 2):** Reconnect Google after deploy so `calendar.calendarlist.readonly` is granted. Run Alembic `005_calendar_subscriptions`.
 
@@ -183,6 +183,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | WebSocket invalidation | Optional; else keep REST invalidation |
 | Status tracker | Today's blocks done % + overbook count |
 | Task soft-delete + session restore | Target by end of W2b |
+| Sidebar → calendar drag | Drag a task from list/sidebar onto a day/time slot to create a `scheduled_block` (desktop first; phone keeps tap/slot). Parked UX — not a W2a exit. Late W2b polish or early W3. |
 
 **Fuzzy scheduling** (deferral, override min/max block length, soft plans, auto-defer, time pressure vs Time Maps): **dedicated planning session** before deep W2b algorithm work — do not spec ad hoc.
 

@@ -359,6 +359,39 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 | DELETE | `/calendar/accounts/{id}` | Disconnect + cascade subscriptions/events |
 | POST | `/calendar/accounts/{id}/sync` | Optional `?start=&end=`; full or incremental pull per subscription |
 | GET | `/calendar/events?start=&end=` | Busy overlays only (excludes rows linked to `scheduled_block_id`) |
+| GET | `/calendar/conflicts?start=&end=` | Schedule conflicts in range (422 if `end <= start`) |
+
+**`GET /calendar/conflicts` response:**
+
+```json
+{
+  "items": [
+    {
+      "kind": "block_busy",
+      "block_id": "…",
+      "other_block_id": null,
+      "external_event_id": "…",
+      "external_title": "Team standup",
+      "start_time": "2026-08-11T10:00:00Z",
+      "end_time": "2026-08-11T10:30:00Z",
+      "is_pinned": true
+    },
+    {
+      "kind": "block_block",
+      "block_id": "…",
+      "other_block_id": "…",
+      "external_event_id": null,
+      "external_title": null,
+      "start_time": "2026-08-11T14:00:00Z",
+      "end_time": "2026-08-11T14:30:00Z",
+      "is_pinned": false
+    }
+  ],
+  "count": 2
+}
+```
+
+Overlap rule: `a.start < b.end AND a.end > b.start`. Busy sources are `external_calendar_events` with `scheduled_block_id IS NULL` only (mirrored push rows are excluded). Does **not** mutate `tasks.status` — visual flags only (W2a Slice 3); scheduler sets `schedule_status.overbooked` in W2b.
 
 Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirror is on, create/update/delete of `/scheduled-blocks` best-effort pushes to the primary Google calendar (local CRUD never fails on Google errors).
 
