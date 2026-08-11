@@ -69,4 +69,4 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 A single user can manage the full Epic→Nested Subtask hierarchy, complete tasks with parent/child policies, work from Today/Inbox/Upcoming and calendar day/week views, capture tasks via quick-add, search and undo changes, and run the stack locally with p95 interaction feel under 100ms on LAN — without calendar sync, auto-scheduling, or remote authentication.
 
-**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Wave 1.5 largely shipped (auth, recurrence, reminders, Tunnel). **Next:** [Wave 1.6](./07-wave-roadmap.md#wave-16--mobile--responsive-cleanup) — mobile / responsive cleanup — then Wave 2 scheduler.
+**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Wave 1.5 largely shipped; **Wave 1.6** mobile polish shipped. **Next:** Wave 2 scheduler ([07-wave-roadmap.md](./07-wave-roadmap.md)).

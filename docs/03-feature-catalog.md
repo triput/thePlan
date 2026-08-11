@@ -135,7 +135,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Web app (responsive) | MVP | Basic viewport; stacked narrow layout only |
-| Responsive / phone-friendly polish | W1.6 | Drawer nav, detail sheet, touch targets, narrow calendar — [07](./07-wave-roadmap.md#wave-16--mobile--responsive-cleanup) |
+| Responsive / phone-friendly polish | W1.6 | Drawer nav, detail sheet, touch targets, narrow calendar — shipped |
 | UI themes (Settings) | MVP | Nine presets (Dark, Solarized Dark/Light, Light, Black, Forest, Midnight, Amethyst, Garnet) + hex overrides |
 | Desktop (Tauri) | W3 | |
 | Mobile native | Out | Responsive web only (W1.6 polish) |

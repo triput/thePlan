@@ -31,7 +31,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 (MVP) exited **2026-08-10**. Wave 1.5 near complete. **Next target: Wave 1.6** (mobile / responsive) — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 (MVP) exited **2026-08-10**. Waves 1.5–1.6 largely complete. **Next target: Wave 2** (scheduler) — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 

@@ -2,7 +2,7 @@
 
 Personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
 
-**Wave 1 (MVP) exited 2026-08-10.** Wave 1.5 near complete. Next: [Wave 1.6](docs/07-wave-roadmap.md#wave-16--mobile--responsive-cleanup) (mobile polish), then W2. Exit record: [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
+**Wave 1 (MVP) exited 2026-08-10.** Waves 1.5–1.6 largely complete. Next: [Wave 2](docs/07-wave-roadmap.md) (scheduler). Exit record: [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
 
 ## Shipped (Wave 1)
 

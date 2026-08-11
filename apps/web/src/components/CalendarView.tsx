@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createScheduledBlock,
@@ -32,6 +32,7 @@ import {
   startOfDay,
 } from "../calendarUtils";
 import { DEFAULT_PROJECT_COLOR } from "../colors";
+import { NARROW_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
 import { Modal } from "./Modal";
 
 const ROW_HEIGHT_PX = 48;
@@ -294,11 +295,15 @@ function DayColumn({
 
 export function CalendarView() {
   const queryClient = useQueryClient();
+  const isNarrow = useMediaQuery(NARROW_QUERY);
   const [mode, setMode] = useState<CalendarMode>("day");
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [blockForm, setBlockForm] = useState<BlockFormState | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
 
+  useEffect(() => {
+    if (isNarrow) setMode("day");
+  }, [isNarrow]);
   const range = useMemo(() => visibleRange(anchor, mode), [anchor, mode]);
   const rangeKey = `${toISO(range.start)}-${toISO(range.end)}`;
 
@@ -491,8 +496,9 @@ export function CalendarView() {
           </button>
           <button
             type="button"
-            className={`btn small${mode === "week" ? " primary" : " ghost"}`}
+            className={`btn small cal-week-btn${mode === "week" ? " primary" : " ghost"}`}
             onClick={() => setMode("week")}
+            hidden={isNarrow}
           >
             Week
           </button>

@@ -178,7 +178,7 @@
 
 .top-bar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
   column-gap: 1rem;
   row-gap: 0.35rem;
   align-items: center;
@@ -187,8 +187,21 @@
   background: var(--panel);
 }
 
+.nav-toggle {
+  display: none;
+  grid-column: 1;
+  grid-row: 1;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.25rem;
+}
+
+.nav-backdrop {
+  display: none;
+}
+
 .help-btn {
-  grid-column: 3;
+  grid-column: 4;
   grid-row: 1;
   width: 1.75rem;
   height: 1.75rem;
@@ -202,7 +215,7 @@
 }
 
 .user-area {
-  grid-column: 4;
+  grid-column: 5;
   grid-row: 1;
   display: flex;
   align-items: center;
@@ -247,7 +260,7 @@
   position: relative;
   width: 220px;
   flex-shrink: 0;
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
 }
 
@@ -380,7 +393,7 @@
 }
 
 .quick-add-primary {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1;
   position: relative;
   max-width: 640px;
@@ -1261,30 +1274,220 @@
 @media (max-width: 768px) {
   .shell {
     flex-direction: column;
+    position: relative;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
   }
 
   .sidebar {
-    width: 100%;
-    max-height: 40vh;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(86vw, 300px);
+    max-height: none;
+    z-index: 50;
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
   }
 
-  .task-list-layout.with-detail {
-    flex-direction: column;
+  .shell.nav-open .sidebar {
+    transform: translateX(0);
   }
 
-  .task-list-layout.with-detail .task-list-pane {
+  .top-bar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 0.55rem 0.75rem;
+    column-gap: 0.5rem;
+    row-gap: 0.45rem;
+  }
+
+  .quick-add-primary {
+    grid-column: 2;
     max-width: none;
   }
 
-  .task-detail-panel {
+  .search-box {
+    grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
-    border-left: none;
-    border-top: 1px solid var(--border);
-    padding: 1rem 0 2rem;
-    position: static;
+  }
+
+  .help-btn {
+    display: none;
+  }
+
+  .user-area {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .user-chip {
+    display: none;
+  }
+
+  .logout-btn {
+    min-height: 2.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  .quick-add-kbd,
+  .search-kbd {
+    display: none;
+  }
+
+  .quick-add-input {
+    min-height: 2.75rem;
+    font-size: 1rem;
+  }
+
+  .main-content {
+    padding: 0 0.75rem 1.5rem;
+  }
+
+  .main-body.with-task-detail .main-content {
+    display: none;
+  }
+
+  .main-body.with-task-detail {
+    position: relative;
+  }
+
+  .task-detail-panel,
+  .task-detail-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    width: 100%;
+    max-width: none;
     max-height: none;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    padding: 0.75rem 1rem 2rem;
+    background: var(--bg);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .detail-header .icon-btn,
+  .icon-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .task-check,
+  .task-row {
+    min-height: 2.75rem;
+  }
+
+  .task-check {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .btn,
+  .btn.small {
+    min-height: 2.75rem;
+  }
+
+  .nav-item,
+  .settings-btn {
+    min-height: 2.75rem;
+  }
+
+  .nav-edit-btn,
+  .nav-reorder-btns,
+  .section-edit-btn,
+  .section-reorder-btns,
+  .task-reorder-btns,
+  .subtask-btn {
+    opacity: 1;
+  }
+
+  .modal {
+    width: calc(100vw - 1rem);
+    max-width: none;
+    max-height: min(92vh, 920px);
+    margin: 0.5rem;
+  }
+
+  .modal.settings-modal {
+    max-width: none;
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .recurrence-frame-row,
+  .reminder-add-row,
+  .theme-override-row {
+    grid-template-columns: 1fr;
+  }
+
+  .labels-create-form,
+  .household-create-form {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-screen {
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .cal-mode-toggle .cal-week-btn {
+    display: none;
+  }
+
+  .cal-grid.week {
+    overflow-x: auto;
+  }
+
+  .cal-columns.week {
+    min-width: 560px;
+  }
+
+  .cal-title {
+    font-size: 0.95rem;
+    order: 3;
+    width: 100%;
+  }
+
+  .cal-slots {
+    min-height: 2.75rem;
+  }
+}
+
+@media (hover: none) {
+  .nav-edit-btn,
+  .nav-reorder-btns,
+  .section-edit-btn,
+  .section-reorder-btns,
+  .task-reorder-btns,
+  .subtask-btn {
+    opacity: 1;
   }
 }
 
@@ -1499,22 +1702,6 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-}
-
-@media (max-width: 768px) {
-  .cal-grid.week {
-    overflow-x: auto;
-  }
-
-  .cal-columns.week {
-    min-width: 560px;
-  }
-
-  .cal-title {
-    font-size: 0.95rem;
-    order: 3;
-    width: 100%;
-  }
 }
 
 /* Auth screens */

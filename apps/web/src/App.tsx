@@ -12,6 +12,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TaskDetailPanel } from "./components/TaskDetailPanel";
 import { TaskList } from "./components/TaskList";
 import { emitToast, ToastHost } from "./components/ToastHost";
+import { NARROW_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { UndoStackProvider, useUndoStack } from "./undoStack";
 import type { ViewSelection } from "./view";
 import "./App.css";
@@ -27,9 +28,11 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
 function AppInner() {
   const { user, logout } = useAuth();
+  const isNarrow = useMediaQuery(NARROW_QUERY);
   const [view, setView] = useState<ViewSelection>({ type: "inbox" });
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const quickAddRef = useRef<QuickAddHandle>(null);
   const searchRef = useRef<SearchBoxHandle>(null);
   const { undo } = useUndoStack();
@@ -52,7 +55,23 @@ function AppInner() {
   });
 
   useEffect(() => {
+    if (!isNarrow) setNavOpen(false);
+  }, [isNarrow]);
+
+  const selectView = (next: ViewSelection) => {
+    setView(next);
+    setNavOpen(false);
+    setSelectedTaskId(null);
+  };
+
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && navOpen) {
+        e.preventDefault();
+        setNavOpen(false);
+        return;
+      }
+
       if (e.key === "?") {
         if (!isEditableTarget(e.target)) {
           e.preventDefault();
@@ -89,15 +108,40 @@ function AppInner() {
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [undo]);
+  }, [undo, navOpen]);
 
   const userLabel = user.display_name ?? user.username ?? user.email;
+  const shellClass = [
+    "shell",
+    isNarrow ? "is-narrow" : "",
+    navOpen ? "nav-open" : "",
+    selectedTaskId ? "has-task-detail" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="shell">
-      <Sidebar view={view} onSelectView={setView} />
+    <div className={shellClass}>
+      {navOpen && (
+        <button
+          type="button"
+          className="nav-backdrop"
+          aria-label="Close navigation"
+          onClick={() => setNavOpen(false)}
+        />
+      )}
+      <Sidebar view={view} onSelectView={selectView} onRequestClose={() => setNavOpen(false)} />
       <div className="main">
         <header className="top-bar">
+          <button
+            type="button"
+            className="icon-btn nav-toggle"
+            aria-label={navOpen ? "Close menu" : "Open menu"}
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((open) => !open)}
+          >
+            {navOpen ? "✕" : "☰"}
+          </button>
           <QuickAdd ref={quickAddRef} view={view} projects={projects} />
           <SearchBox ref={searchRef} onSelectTask={setSelectedTaskId} />
           <button
@@ -139,15 +183,37 @@ function AppInner() {
           </main>
           {selectedTaskId && (
             selectedTaskQuery.isLoading ? (
-              <aside className="task-detail-panel" aria-busy="true">
+              <aside className="task-detail-panel task-detail-sheet" aria-busy="true">
+                <header className="detail-header">
+                  <h2>Task details</h2>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => setSelectedTaskId(null)}
+                    aria-label="Close panel"
+                  >
+                    ×
+                  </button>
+                </header>
                 <p className="muted">Loading task…</p>
               </aside>
             ) : selectedTaskQuery.isError ? (
-              <aside className="task-detail-panel">
+              <aside className="task-detail-panel task-detail-sheet">
+                <header className="detail-header">
+                  <h2>Task details</h2>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => setSelectedTaskId(null)}
+                    aria-label="Close panel"
+                  >
+                    ×
+                  </button>
+                </header>
                 <p className="form-error">
                   Failed to load task: {(selectedTaskQuery.error as Error).message}
                 </p>
-                <button type="button" className="btn secondary small" onClick={() => setSelectedTaskId(null)}>
+                <button type="button" className="btn secondary" onClick={() => setSelectedTaskId(null)}>
                   Close
                 </button>
               </aside>

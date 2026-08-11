@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1] — 2026-08-10 — Wave 1.6 mobile polish
+
+- Narrow shell: hamburger drawer nav + backdrop (replaces stacked 40vh sidebar)
+- Task detail opens as full-screen sheet on phone; list hidden while open
+- Larger tap targets; always-visible row/nav affordances on coarse/hover-none
+- Calendar forced to day mode on narrow viewports
+- Top bar reflow: menu + quick-add + sign-out; search on second row
+
 ## [0.2.0] — 2026-08-10 — Wave 1.5 (in progress)
 
 - Session cookie login/logout; first-run setup claims bootstrap admin
@@ -14,7 +22,7 @@
 
 ### Planned next
 
-- **Wave 1.6** — Mobile / responsive cleanup (drawer nav, detail sheet, touch targets, narrow calendar) before W2 — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md#wave-16--mobile--responsive-cleanup)
+- ~~**Wave 1.6** — Mobile / responsive cleanup~~ **shipped** — drawer nav, full-screen task detail, touch targets, day-only calendar on narrow
 
 ## [0.1.0] — 2026-08-10 — Wave 1 MVP
 

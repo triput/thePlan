@@ -13,6 +13,7 @@ import { SettingsPanel } from "./SettingsPanel";
 interface SidebarProps {
   view: ViewSelection;
   onSelectView: (view: ViewSelection) => void;
+  onRequestClose?: () => void;
 }
 
 function NavItem({
@@ -75,7 +76,7 @@ function NavItem({
   );
 }
 
-export function Sidebar({ view, onSelectView }: SidebarProps) {
+export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
   const queryClient = useQueryClient();
   const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
   const [showCreateEpic, setShowCreateEpic] = useState(false);
@@ -289,7 +290,10 @@ export function Sidebar({ view, onSelectView }: SidebarProps) {
         <button
           type="button"
           className="settings-btn"
-          onClick={() => setShowSettings(true)}
+          onClick={() => {
+            setShowSettings(true);
+            onRequestClose?.();
+          }}
           aria-label="Settings"
           title="Settings"
         >

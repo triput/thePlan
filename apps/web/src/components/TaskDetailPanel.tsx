@@ -321,7 +321,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
 
   return (
     <>
-      <aside className="task-detail-panel" aria-label="Task details">
+      <aside className="task-detail-panel task-detail-sheet" aria-label="Task details">
         <header className="detail-header">
           <h2>Task details</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close panel">

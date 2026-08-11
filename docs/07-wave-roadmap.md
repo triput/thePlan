@@ -56,7 +56,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
 
-**Status:** Feature set largely shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). Formal exit still pending leftover UI polish items (e.g. show-completed, calendar drag) which may slip to later waves. **Next build target:** [Wave 1.6](#wave-16--mobile--responsive-cleanup).
+**Status:** Feature set largely shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). Formal exit still pending leftover UI polish items (e.g. show-completed, calendar drag) which may slip to later waves. **Next major feature wave:** [Wave 2](#wave-2--scheduler--google-calendar) (after W1.6 mobile polish).
 
 ### Features
 
@@ -94,24 +94,24 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 
 ---
 
-## Wave 1.6 — Mobile / responsive cleanup (Next target)
+## Wave 1.6 — Mobile / responsive cleanup (Shipped 2026-08-10)
 
 **Goal:** Make daily-driver flows comfortable on a phone browser (especially via Cloudflare Tunnel): navigate, capture, complete, peek calendar, edit a task — without desktop-width assumptions.
 
 **Why now:** Tunnel made remote phone use real. Current narrow CSS mostly stacks sidebar/list/detail; it is not phone-first.
 
-**Hygiene:** Entering W1.6 uses a **quick-scan** only (W1.5 hygiene was recent), unless explicitly overridden for a full pass.
+**Hygiene:** Entering W1.6 uses a **quick-scan** only (W1.5 hygiene was recent), unless explicitly overridden for a full pass. **Quick-scan:** no toolchain drift since W1.5 pins — proceed.
 
 ### In scope
 
 | Item | Notes |
 |------|-------|
-| Collapsible / drawer nav | Do not burn ~40vh on a stacked sidebar |
-| Task detail sheet | Full-width overlay on narrow; easy dismiss |
-| Touch targets | ~44px on complete, row select, icon buttons |
-| Quick-add + modals | No horizontal overflow; keyboard-safe where cheap |
-| Calendar on narrow | Prefer **day** (or compact week); readable blocks |
-| Auth / settings / labels | Forms usable at ~390px width |
+| Collapsible / drawer nav | Hamburger + off-canvas sidebar; backdrop dismiss |
+| Task detail sheet | Full-screen overlay on narrow; list hidden while open |
+| Touch targets | ~44px on complete, rows, icon buttons, primary controls |
+| Quick-add + modals | Full-width search row; modals near full-bleed |
+| Calendar on narrow | Day mode forced; week toggle hidden |
+| Auth / settings / labels | Forms stack to single column where needed |
 | Device smoke | Real phone via Tunnel + DevTools |
 
 ### Out of scope for 1.6
@@ -243,7 +243,7 @@ Run before each major version's feature waves:
 - [ ] Review container base image CVEs — deferred to next **full** hygiene wave
 - [x] Update doc pins and ADR references — Wave 1 exit + this scan
 - [x] Record quick-scan or full pass in version notes — `docs/HYGIENE-W1.5-QUICKSCAN.md`
-- [ ] W1.6 entry: quick-scan only (reuse W1.5 pins unless drift found)
+- [x] W1.6 entry: quick-scan only (reuse W1.5 pins unless drift found) — exited with W1.6 ship 2026-08-10
 
 ---
 

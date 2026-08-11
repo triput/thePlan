@@ -338,7 +338,8 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 2. **Today** is your dashboard — due dates plus anything you blocked on the calendar for today count.
 3. **Inbox** is for capture; move tasks to projects when you know where they belong.
 4. **Passphrases** — a long memorable sentence is fine (12+ characters).
-5. **Back up** before upgrades: run the pg_dump one-liner above.
+5. **Back up** before upgrades: run the backup script or pg_dump one-liner above.
+6. **On a phone:** use the tunnel HTTPS URL; open the ☰ menu for views/projects. Task details fill the screen — close with ×. Calendar stays on **Day** mode on small screens.
 6. **Remote access** (Cloudflare Tunnel / Access) is documented for operators in the roadmap but not part of this baseline UI guide.
 
 ---
@@ -352,7 +353,7 @@ Shipped in 1.5: login, household admin, recurrence, reminders, label reassign, b
 | Label delete → reassign other labels | Shipped — optional multi-select on delete |
 | Scheduled pg_dump backup script | Shipped — `scripts/backup-postgres.ps1` / `.sh` |
 | Cloudflare Tunnel (+ optional Access) | Operator setup — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
-| **Phone-friendly / responsive polish** | **Wave 1.6** — planned ([roadmap](./07-wave-roadmap.md#wave-16--mobile--responsive-cleanup)) |
+| **Phone-friendly / responsive polish** | **Wave 1.6 shipped** — menu drawer, full-screen task detail, larger tap targets |
 | Show completed toggle | Deferred |
 | Calendar drag move/resize | Modal edit only |
 | Epic aggregate smart view | Per-project views only |
