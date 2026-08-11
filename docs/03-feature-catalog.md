@@ -134,12 +134,15 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Web app (responsive) | MVP | |
+| Web app (responsive) | MVP | Basic viewport; stacked narrow layout only |
+| Responsive / phone-friendly polish | W1.6 | Drawer nav, detail sheet, touch targets, narrow calendar — [07](./07-wave-roadmap.md#wave-16--mobile--responsive-cleanup) |
 | UI themes (Settings) | MVP | Nine presets (Dark, Solarized Dark/Light, Light, Black, Forest, Midnight, Amethyst, Garnet) + hex overrides |
 | Desktop (Tauri) | W3 | |
-| Mobile native | Out | Responsive web only |
+| Mobile native | Out | Responsive web only (W1.6 polish) |
 | Offline PWA | Out | Online-first MVP |
 | Flutter client | Out | Rejected |
+
+*MVP viewport meta + stacked `@media` exist; W1.6 is the intentional phone-daily-driver gate after Tunnel.*
 
 ---
 
@@ -248,6 +251,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows. (Recurrence + reminders engines landed in W1.5.)
 
 **Defer to W1.5:** Epic aggregate smart view, show-completed toggle, calendar drag, recurrence engine, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune); scheduled pg_dump script; calendar month view (optional).
+
+**Defer to W1.6:** Phone-friendly / responsive cleanup (drawer nav, task-detail sheet, touch targets, narrow calendar) after Tunnel made remote phone use real — before W2 scheduler.
 
 **Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect, task soft-delete + session restore.
 

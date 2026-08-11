@@ -11,7 +11,7 @@ Delivery waves from MVP through W3. Each version begins with a **Dependency Hygi
         ↓
 Dependency Hygiene Wave (toolchain, pub/package majors, container pins, doc pins)
         ↓
-Feature waves (MVP → W1.5 → W2 → W3)
+Feature waves (MVP → W1.5 → W1.6 → W2 → W3)
 ```
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
@@ -52,9 +52,11 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 ---
 
-## Wave 1.5 — Soon After MVP (Current Target)
+## Wave 1.5 — Soon After MVP (Near complete)
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
+
+**Status:** Feature set largely shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). Formal exit still pending leftover UI polish items (e.g. show-completed, calendar drag) which may slip to later waves. **Next build target:** [Wave 1.6](#wave-16--mobile--responsive-cleanup).
 
 ### Features
 
@@ -88,6 +90,36 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 - Google Calendar sync
 - Filter query language
 - SLM
+- Phone-first responsive polish (→ **W1.6**)
+
+---
+
+## Wave 1.6 — Mobile / responsive cleanup (Next target)
+
+**Goal:** Make daily-driver flows comfortable on a phone browser (especially via Cloudflare Tunnel): navigate, capture, complete, peek calendar, edit a task — without desktop-width assumptions.
+
+**Why now:** Tunnel made remote phone use real. Current narrow CSS mostly stacks sidebar/list/detail; it is not phone-first.
+
+**Hygiene:** Entering W1.6 uses a **quick-scan** only (W1.5 hygiene was recent), unless explicitly overridden for a full pass.
+
+### In scope
+
+| Item | Notes |
+|------|-------|
+| Collapsible / drawer nav | Do not burn ~40vh on a stacked sidebar |
+| Task detail sheet | Full-width overlay on narrow; easy dismiss |
+| Touch targets | ~44px on complete, row select, icon buttons |
+| Quick-add + modals | No horizontal overflow; keyboard-safe where cheap |
+| Calendar on narrow | Prefer **day** (or compact week); readable blocks |
+| Auth / settings / labels | Forms usable at ~390px width |
+| Device smoke | Real phone via Tunnel + DevTools |
+
+### Out of scope for 1.6
+
+- Native apps / Tauri mobile / Flutter
+- Offline-first PWA or mobile push (browser Notification already W1.5)
+- Visual redesign / new brand language
+- W2 scheduler UI
 
 ---
 
@@ -167,6 +199,7 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 | Scheduled pg_dump backup script | W1.5 |
 | Cloudflare Tunnel | W1.5 |
 | Cloudflare Access | W1.5 (optional IdP in front of Tunnel) |
+| Responsive / phone-friendly web | W1.6 (post-Tunnel gate) |
 | Hosted Postgres | W3 fallback |
 | Podman alternate runtime | MVP-compatible (ADR-004) |
 
@@ -177,7 +210,7 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 - Team workspaces, shared projects, comments, assignees
 - Karma, streaks, gamification
 - Flutter (rejected — Tauri + shared web UI)
-- Mobile native apps (responsive web until desktop)
+- Mobile native apps (responsive web until desktop; **W1.6** is the responsive polish gate)
 - Attachments
 - iCloud calendar (unless reopened)
 - Row-level task soft-delete / true session undelete (MVP ships hard delete + client recreate; **not** a permanent non-goal — target W2, optional W1.5)
@@ -210,6 +243,7 @@ Run before each major version's feature waves:
 - [ ] Review container base image CVEs — deferred to next **full** hygiene wave
 - [x] Update doc pins and ADR references — Wave 1 exit + this scan
 - [x] Record quick-scan or full pass in version notes — `docs/HYGIENE-W1.5-QUICKSCAN.md`
+- [ ] W1.6 entry: quick-scan only (reuse W1.5 pins unless drift found)
 
 ---
 
@@ -219,6 +253,7 @@ Run before each major version's feature waves:
 |------|--------------|
 | MVP | 01–07, sql/001_baseline.sql, adr/001–005 |
 | W1.5 | Update 02, 03, 05, 06, 07; new ADRs as needed |
+| W1.6 | Responsive shell notes in 02/03/07; USER-GUIDE mobile tips when built |
 | W2 | Scheduler spec expansion in 02; calendar sync in 05 |
 | W3 | Desktop bundle ADR; SLM assist appendix |
 

@@ -343,17 +343,16 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 
 ---
 
-## Wave 1.5 leftovers (brief)
+## Wave 1.5 leftovers / next (brief)
 
-Shipped in 1.5: login, household admin, recurrence, reminders, demo `nebula` user.
-
-Still open or operator-only (not end-user UI):
+Shipped in 1.5: login, household admin, recurrence, reminders, label reassign, backup scripts, demo `nebula`, Cloudflare Tunnel.
 
 | Item | Status |
 |------|--------|
 | Label delete → reassign other labels | Shipped — optional multi-select on delete |
 | Scheduled pg_dump backup script | Shipped — `scripts/backup-postgres.ps1` / `.sh` |
 | Cloudflare Tunnel (+ optional Access) | Operator setup — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
+| **Phone-friendly / responsive polish** | **Wave 1.6** — planned ([roadmap](./07-wave-roadmap.md#wave-16--mobile--responsive-cleanup)) |
 | Show completed toggle | Deferred |
 | Calendar drag move/resize | Modal edit only |
 | Epic aggregate smart view | Per-project views only |

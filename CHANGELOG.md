@@ -12,6 +12,10 @@
 - Cloudflare Tunnel Compose profile + [docs/CLOUDFLARE-TUNNEL.md](docs/CLOUDFLARE-TUNNEL.md) (optional Access)
 - Hygiene: [docs/HYGIENE-W1.5-QUICKSCAN.md](docs/HYGIENE-W1.5-QUICKSCAN.md)
 
+### Planned next
+
+- **Wave 1.6** — Mobile / responsive cleanup (drawer nav, detail sheet, touch targets, narrow calendar) before W2 — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md#wave-16--mobile--responsive-cleanup)
+
 ## [0.1.0] — 2026-08-10 — Wave 1 MVP
 
 Wave 1 (MVP) exited. See [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md).

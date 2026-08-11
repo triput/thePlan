@@ -363,6 +363,7 @@ When a Google Calendar hard event overlaps a pinned block: both treated as BUSY;
 | Karma, streaks, badges | Out |
 | Board / Kanban view | W3 (optional) |
 | Flutter mobile/desktop | Out (Tauri W3) |
+| Phone-native apps | Out — responsive web; **W1.6** polish gate after Tunnel |
 | External calendar sync | W2 (Google); W3 (Microsoft) |
 | Auto-scheduler | W2 |
 | Recurrence engine | W1.5 (schema in MVP) |
