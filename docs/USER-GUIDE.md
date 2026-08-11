@@ -55,7 +55,9 @@ One-liner (while Compose is running):
 docker compose -f infra/compose/compose.yaml exec -T postgres pg_dump -U theplan theplan > theplan-backup.sql
 ```
 
-A scheduled backup script is planned for Wave 1.5 but not shipped yet.
+**Scheduled backups:** from the repo root run `.\scripts\backup-postgres.ps1` (Windows) or `./scripts/backup-postgres.sh` (Linux/macOS). Dumps land in `backups/` and older files are pruned after 14 days. See the root [README](../README.md) for Task Scheduler / cron examples.
+
+**Remote access:** optional Cloudflare Tunnel — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md).
 
 ---
 
@@ -350,8 +352,8 @@ Still open or operator-only (not end-user UI):
 | Item | Status |
 |------|--------|
 | Label delete → reassign other labels | Shipped — optional multi-select on delete |
-| Scheduled pg_dump backup script | One-liner only (see above) |
-| Cloudflare Tunnel template | Operator docs / roadmap |
+| Scheduled pg_dump backup script | Shipped — `scripts/backup-postgres.ps1` / `.sh` |
+| Cloudflare Tunnel (+ optional Access) | Operator setup — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
 | Show completed toggle | Deferred |
 | Calendar drag move/resize | Modal edit only |
 | Epic aggregate smart view | Per-project views only |
@@ -362,7 +364,8 @@ Still open or operator-only (not end-user UI):
 
 | Doc | Contents |
 |-----|----------|
-| [README.md](../README.md) | Compose quick start, dev setup, backup |
+| [README.md](../README.md) | Compose quick start, dev setup, backup, tunnel |
+| [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Remote access via Cloudflare Tunnel / Access |
 | [02-functional-spec.md](./02-functional-spec.md) | Full behavior spec |
 | [03-feature-catalog.md](./03-feature-catalog.md) | Feature list by wave |
 | [07-wave-roadmap.md](./07-wave-roadmap.md) | What ships next |

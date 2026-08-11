@@ -22,7 +22,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://theplan:theplan@postgres:5432/theplan
       CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:8080","http://127.0.0.1:8080"]'
-      SESSION_SECRET: compose-dev-session-secret-change-for-production
+      SESSION_SECRET: ${SESSION_SECRET:-compose-dev-session-secret-change-for-production}
+      SESSION_HTTPS_ONLY: ${SESSION_HTTPS_ONLY:-false}
       SEED_DEMO_USER: "true"
     ports:
       - "8000:8000"
@@ -70,6 +71,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  # Optional remote access: set CLOUDFLARE_TUNNEL_TOKEN in infra/compose/.env
+  # See docs/CLOUDFLARE-TUNNEL.md
+  # docker compose -f infra/compose/compose.yaml --profile tunnel up -d
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   pgdata:

@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!**/.env.example
 .secrets-backup/
 oauth_local.json
 *.local.bak
@@ -38,6 +39,7 @@ Thumbs.db
 # Docker / local runtime
 *.log
 docker-compose.override.yml
+backups/
 
 # Cursor / agent local
 .cursor/

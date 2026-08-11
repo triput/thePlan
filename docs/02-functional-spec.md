@@ -395,4 +395,6 @@ Documented `pg_dump` one-liner against the Compose Postgres service (see root [R
 docker compose -f infra/compose/compose.yaml exec -T postgres pg_dump -U theplan theplan > theplan-backup.sql
 ```
 
-Optional scheduled backup script in W1.5. OAuth tokens and secrets stored in host env / Docker secrets; never committed to git.
+Optional scheduled backup scripts (W1.5): `scripts/backup-postgres.ps1` / `scripts/backup-postgres.sh` → `backups/` with retention. OAuth tokens and secrets stored in host env / Docker secrets; never committed to git.
+
+Remote access (W1.5): Cloudflare Tunnel Compose profile — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md).

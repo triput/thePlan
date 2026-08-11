@@ -8,6 +8,8 @@
 - Recurrence engine: `every` / `every!`, limited frames, multi-weekday, quick-add tokens, task-detail set/clear, complete rollover
 - Time-based reminders: absolute `fire_at`, task-detail CRUD, client poll + ack, in-app toast + optional browser Notification
 - Label delete reassign/migrate: optional `reassign_to` on delete; Labels UI multi-select
+- Scheduled Postgres backup scripts (`scripts/backup-postgres.ps1` / `.sh`) with retention
+- Cloudflare Tunnel Compose profile + [docs/CLOUDFLARE-TUNNEL.md](docs/CLOUDFLARE-TUNNEL.md) (optional Access)
 - Hygiene: [docs/HYGIENE-W1.5-QUICKSCAN.md](docs/HYGIENE-W1.5-QUICKSCAN.md)
 
 ## [0.1.0] — 2026-08-10 — Wave 1 MVP

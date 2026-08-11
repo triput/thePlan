@@ -28,6 +28,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | Wave 1 exit record — delivered epics, criteria met, known gaps |
 | [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) | W1.5 dependency hygiene quick scan (gate exited) |
 | [USER-GUIDE.md](./USER-GUIDE.md) | End-user guide — run, sign in, tasks, calendar, recurrence, reminders |
+| [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
 **Status:** Wave 1 (MVP) exited **2026-08-10**. Current target: **Wave 1.5** ([07-wave-roadmap.md](./07-wave-roadmap.md)).

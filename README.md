@@ -45,6 +45,36 @@ Stop: `docker compose -f infra/compose/compose.yaml --profile tools down`
 docker compose -f infra/compose/compose.yaml exec -T postgres pg_dump -U theplan theplan > theplan-backup.sql
 ```
 
+### Scheduled backups
+
+Scripts write timestamped dumps to gitignored `backups/` and prune files older than **14** days (`BACKUP_KEEP_DAYS`).
+
+```powershell
+# Windows — run once
+.\scripts\backup-postgres.ps1
+
+# Schedule daily at 02:00 (adjust path):
+schtasks /Create /TN "thePlan Postgres Backup" /TR "powershell -NoProfile -File `"F:\Code Repo\ThePlan\scripts\backup-postgres.ps1`"" /SC DAILY /ST 02:00
+```
+
+```bash
+# Linux/macOS — run once
+chmod +x scripts/backup-postgres.sh
+./scripts/backup-postgres.sh
+
+# cron example (daily 02:15):
+# 15 2 * * * /path/to/ThePlan/scripts/backup-postgres.sh >> /path/to/ThePlan/backups/backup.log 2>&1
+```
+
+### Cloudflare Tunnel (remote access)
+
+Optional Compose profile `tunnel` runs `cloudflared` to the **web** service. Setup: [docs/CLOUDFLARE-TUNNEL.md](docs/CLOUDFLARE-TUNNEL.md).
+
+```powershell
+# Put CLOUDFLARE_TUNNEL_TOKEN in infra/compose/.env (see infra/compose/.env.example)
+docker compose -f infra/compose/compose.yaml --profile tunnel up -d
+```
+
 ## Local development (without full Compose)
 
 ### 1. PostgreSQL
@@ -81,6 +111,7 @@ Open http://localhost:5173 (Vite dev). Compose serves the production build on **
 ```
 apps/api/          FastAPI + SQLAlchemy 2 + Alembic
 apps/web/          Vite + React + TypeScript
-infra/compose/     Docker Compose stack
+infra/compose/     Docker Compose stack (+ optional tunnel / pgAdmin profiles)
+scripts/           Operator helpers (scheduled Postgres backup)
 docs/              Product docs, ADRs, baseline SQL, Wave 1 exit
 ```

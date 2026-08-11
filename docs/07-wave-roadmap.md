@@ -64,8 +64,8 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | ~~Todoist import~~ | **Deferred to W3** (stale upstream data; not needed for daily driver) |
 | Time-based reminders | Absolute `fire_at`; in-app toast + optional browser Notification API |
 | Login / remote-ready auth | Password session and/or Cloudflare Access |
-| Backup script | Scheduled pg_dump optional |
-| Cloudflare Tunnel | Template for remote access to home host |
+| Backup script | `scripts/backup-postgres.ps1` / `.sh`; 14-day retention |
+| Cloudflare Tunnel | Compose profile `tunnel` + [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md); optional Access |
 | Label delete reassign/migrate | Optional `reassign_to` on delete; Labels UI multi-select |
 | Multi-account login (household) | Multiple `users` rows on one deployment; login selects account; domain queries filter `owner_id` — not teams/workspaces ([ADR-002](./adr/ADR-002-single-user.md) amendment) |
 | Admin account + user management | First claimed account is admin; admin can list/create/disable household users and set passwords (not team RBAC). Temp/forced password reset on next login deferred to W3 (P3). |
@@ -165,8 +165,8 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 | Docker Desktop + Compose (local) | MVP |
 | pg_dump backup one-liner (root README) | MVP |
 | Scheduled pg_dump backup script | W1.5 |
-| Cloudflare Tunnel | W1.5+ (post-MVP remote) |
-| Cloudflare Access | W1.5 (optional IdP) |
+| Cloudflare Tunnel | W1.5 |
+| Cloudflare Access | W1.5 (optional IdP in front of Tunnel) |
 | Hosted Postgres | W3 fallback |
 | Podman alternate runtime | MVP-compatible (ADR-004) |
 

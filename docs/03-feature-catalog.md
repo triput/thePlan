@@ -231,10 +231,10 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Admin full profile edit (except username) | W3 | Email, display name, password, disable; username immutable |
 | Self-service account settings | W3 | User manages own password, email, display name |
 | Temp / forced password reset | W3 | Admin sets temp password; must change on next login |
-| Cloudflare Tunnel remote access | W1.5+ | Post-MVP hosting |
-| Cloudflare Access | W1.5 | Optional IdP |
+| Cloudflare Tunnel remote access | W1.5 | Compose profile `tunnel`; see [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
+| Cloudflare Access | W1.5 | Optional; documented with Tunnel |
 | pg_dump backup one-liner | MVP | Documented in root README |
-| Scheduled pg_dump backup script | W1.5 | Optional cron/task scheduler |
+| Scheduled pg_dump backup script | W1.5 | `scripts/backup-postgres.ps1` / `.sh`; prune via `BACKUP_KEEP_DAYS` |
 | Hosted Postgres fallback | W3 | Not default |
 | WebSocket invalidation | W2 | Optional; REST sufficient MVP |
 | Dependency Hygiene wave | Pre-version | Toolchain + deps pass |
