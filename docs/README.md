@@ -23,7 +23,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [04-data-schema.md](./04-data-schema.md) | Tables, enums, indexes, conventions |
 | [05-api-contract.md](./05-api-contract.md) | Versioned REST API for MVP resources |
 | [06-mvp-backlog.md](./06-mvp-backlog.md) | Wave 1 (MVP) user stories and exit criteria |
-| [07-wave-roadmap.md](./07-wave-roadmap.md) | MVP → W1.5 → W1.6 → W2 → W3 roadmap |
+| [07-wave-roadmap.md](./07-wave-roadmap.md) | MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W3+ |
 | [08-color-palette.md](./08-color-palette.md) | Entity presets + status accents (Synesis/Phronesis-aligned) |
 | [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | Wave 1 exit record — delivered epics, criteria met, known gaps |
 | [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) | W1.5 dependency hygiene quick scan (gate exited) |
@@ -31,7 +31,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 (MVP) exited **2026-08-10**. Waves 1.5–1.6 largely complete. **Next target: Wave 2** (scheduler) — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 (MVP) exited **2026-08-10**. W1.6 shipped. **Next: W1.5 closeout** → W2a Google Calendar → W2b Scheduler — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 

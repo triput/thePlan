@@ -22,7 +22,10 @@
 
 ### Planned next
 
-- ~~**Wave 1.6** — Mobile / responsive cleanup~~ **shipped** — drawer nav, full-screen task detail, touch targets, day-only calendar on narrow
+- **W1.5 closeout** — show-completed toggle, calendar drag, epic aggregate view
+- **W2a** — Google Calendar sync + busy map
+- **W2b** — SkedPal triad (Time Maps / Plans / Update Schedule)
+- Remaining product items → **W3 / W3+** (see [07-wave-roadmap.md](docs/07-wave-roadmap.md))
 
 ## [0.1.0] — 2026-08-10 — Wave 1 MVP
 

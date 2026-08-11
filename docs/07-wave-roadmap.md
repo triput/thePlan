@@ -11,8 +11,10 @@ Delivery waves from MVP through W3. Each version begins with a **Dependency Hygi
         ↓
 Dependency Hygiene Wave (toolchain, pub/package majors, container pins, doc pins)
         ↓
-Feature waves (MVP → W1.5 → W1.6 → W2 → W3)
+Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W3+)
 ```
+
+**Post-1.6 build order (locked):** close W1.5 leftovers → Google Calendar → Scheduler. Everything else stays W3 or W3+.
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 
@@ -52,45 +54,50 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 ---
 
-## Wave 1.5 — Soon After MVP (Near complete)
+## Wave 1.5 — Soon After MVP (Closeout in progress)
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
 
-**Status:** Feature set largely shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). Formal exit still pending leftover UI polish items (e.g. show-completed, calendar drag) which may slip to later waves. **Next major feature wave:** [Wave 2](#wave-2--scheduler--google-calendar) (after W1.6 mobile polish).
+**Status:** Core feature set shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). **W1.6 mobile polish shipped.** Formal W1.5 exit waits on the closeout checklist below. **Immediate next build:** W1.5 closeout → then [Wave 2a](#wave-2--google-calendar--then-scheduler).
 
-### Features
+### Shipped
 
 | Feature | Notes |
 |---------|-------|
 | Recurrence engine | `every` / `every!`; limited `starts_on`/`ends_on` frames; quick-add + task detail |
-| ~~Todoist import~~ | **Deferred to W3** (stale upstream data; not needed for daily driver) |
 | Time-based reminders | Absolute `fire_at`; in-app toast + optional browser Notification API |
-| Login / remote-ready auth | Password session and/or Cloudflare Access |
+| Login / remote-ready auth | Password session; optional Cloudflare Access in front of Tunnel |
 | Backup script | `scripts/backup-postgres.ps1` / `.sh`; 14-day retention |
-| Cloudflare Tunnel | Compose profile `tunnel` + [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md); optional Access |
+| Cloudflare Tunnel | Compose profile `tunnel` + [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
 | Label delete reassign/migrate | Optional `reassign_to` on delete; Labels UI multi-select |
-| Multi-account login (household) | Multiple `users` rows on one deployment; login selects account; domain queries filter `owner_id` — not teams/workspaces ([ADR-002](./adr/ADR-002-single-user.md) amendment) |
-| Admin account + user management | First claimed account is admin; admin can list/create/disable household users and set passwords (not team RBAC). Temp/forced password reset on next login deferred to W3 (P3). |
-| Demo seed account `nebula` | Non-admin test user with rich fixture data; passphrase stored only in gitignored `.secrets-backup/` |
-| Task soft-delete + restore | **Optional if cheap during auth work** — else defer to W2; see [04-data-schema.md](./04-data-schema.md) |
+| Multi-account login (household) | Multiple `users` rows; `owner_id` isolation — not teams ([ADR-002](./adr/ADR-002-single-user.md)) |
+| Admin account + user management | First claimed account is admin; list/create/disable; set passwords |
+| Demo seed account `nebula` | Non-admin fixture user; passphrase in gitignored `.secrets-backup/` |
+| ~~Todoist import~~ | **Parked at W3** (stale upstream; not needed for daily driver) |
+| Task soft-delete + restore | **Parked at W2b** (or later) — not part of closeout |
 
-**Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128; no complexity theater). Login by **username or email**. First registration **claims** the bootstrap user in place (preserves existing data UUID). Subsequent household accounts require an authenticated session (or admin create). Hygiene gate: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
+### Closeout checklist (current target)
+
+| Item | Notes |
+|------|-------|
+| Show-completed toggle | Smart views / project lists; hide completed by default |
+| Calendar drag move/resize | Drag blocks and due markers (modal edit already ships) |
+| Epic aggregate smart view | Rollup of projects/tasks under an epic |
+
+**Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128). Login by **username or email**. First registration **claims** bootstrap user. Hygiene: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
 
 ### Auth Progression
 
 MVP: local bootstrap user, no login wall.
 
-W1.5: `password_hash` populated; register/create-account + login/logout endpoints; session cookies; optional Cloudflare Access in front of Tunnel. **Multi-account single-tenant-of-one:** e.g. operator, spouse, housemate each get their own `users` row and isolated data at the same URI — no team workspaces, sharing, or assignees ([ADR-003](./adr/ADR-003-local-first-auth.md)).
-
-Schema already has `users` + `password_hash` from baseline — no migration required for basic password auth.
+W1.5: `password_hash` populated; register + login/logout; session cookies; optional Cloudflare Access. **Multi-account single-tenant-of-one** ([ADR-003](./adr/ADR-003-local-first-auth.md)).
 
 ### Not in W1.5
 
-- Auto-scheduler
-- Google Calendar sync
-- Filter query language
-- SLM
-- Phone-first responsive polish (→ **W1.6**)
+- Auto-scheduler / Google Calendar (→ **W2**)
+- Filter query language (→ **W2b** capacity / W3+)
+- SLM, MS Calendar, Tauri, account self-service, habits, import (→ **W3+**)
+- Phone-first responsive polish (→ **W1.6**, shipped)
 
 ---
 
@@ -98,11 +105,11 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 
 **Goal:** Make daily-driver flows comfortable on a phone browser (especially via Cloudflare Tunnel): navigate, capture, complete, peek calendar, edit a task — without desktop-width assumptions.
 
-**Why now:** Tunnel made remote phone use real. Current narrow CSS mostly stacks sidebar/list/detail; it is not phone-first.
+**Why now:** Tunnel made remote phone use real.
 
-**Hygiene:** Entering W1.6 uses a **quick-scan** only (W1.5 hygiene was recent), unless explicitly overridden for a full pass. **Quick-scan:** no toolchain drift since W1.5 pins — proceed.
+**Hygiene:** Quick-scan only — exited with W1.6 ship 2026-08-10.
 
-### In scope
+### Shipped
 
 | Item | Notes |
 |------|-------|
@@ -112,54 +119,63 @@ Schema already has `users` + `password_hash` from baseline — no migration requ
 | Quick-add + modals | Full-width search row; modals near full-bleed |
 | Calendar on narrow | Day mode forced; week toggle hidden |
 | Auth / settings / labels | Forms stack to single column where needed |
-| Device smoke | Real phone via Tunnel + DevTools |
 
 ### Out of scope for 1.6
 
 - Native apps / Tauri mobile / Flutter
-- Offline-first PWA or mobile push (browser Notification already W1.5)
-- Visual redesign / new brand language
-- W2 scheduler UI
+- Offline-first PWA or mobile push
+- Visual redesign
+- W2 scheduler / GCal UI
 
 ---
 
-## Wave 2 — Scheduler + Google Calendar
+## Wave 2 — Google Calendar, then Scheduler
 
-**Goal:** SkedPal-class automated time-blocking with external calendar awareness.
+**Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-### SkedPal Triad (Confirmed)
+**Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
-1. **Time Maps** — `focus_windows` UI and task binding
-2. **Plans** — flexible time frames; `soft_target_at` surfaced
-3. **Update Schedule** — explicit replan action; async worker
-
-### Additional W2 Features
+### Phase 2a — Google Calendar
 
 | Feature | Notes |
 |---------|-------|
-| Auto-scheduler worker | Decoupled from CRUD (ADR-005) |
+| Google Calendar sync | Bidirectional; OAuth via `calendar_accounts` |
+| Busy map / cutout | External hard events as BUSY input |
+| Conflict policy (partial) | External hard events and pinned blocks are BUSY; overbook flagged when detected |
+| Calendar UI wiring | Surfaces synced busy alongside manual blocks |
+
+No full Update Schedule / UPS pipeline in 2a.
+
+### Phase 2b — Scheduler (SkedPal triad)
+
+1. **Time Maps** — `focus_windows` UI and task binding  
+2. **Plans** — flexible time frames; `soft_target_at` surfaced  
+3. **Update Schedule** — explicit replan action; async worker (ADR-005)
+
+| Feature | Notes |
+|---------|-------|
+| Auto-scheduler worker | Decoupled from CRUD |
 | UPS scoring + slice/fit | U = 100·e^(-k·max(Slack,0)), k=0.5 |
-| Pins, soft vs hard | `deadline_at` enforced; pinned blocks immovable until unpin (fixed clock-time work, e.g. prep before someone else’s meeting — not due/deadline) |
+| Pins, soft vs hard | `deadline_at` enforced; pinned blocks immovable until unpin |
 | Bundled vs formal blocks | Knockout lists → blocks on replan |
 | Rule inheritance | Parent → child window/plan propagation |
 | Overbook UI | schedule_status.overbooked |
 | deadline_at UI | Hard commit surfaced |
-| Google Calendar sync | Bidirectional; busy map input |
 | Task dependency enforcement | Topological ordering in scheduler |
-| Saved filter query language | User-authored saved_filters; fixed views as special case |
-| WebSocket invalidation | Optional cache push |
-| Status tracker | Today's blocks done % + overbook count (utility, not gamification) |
-| Task soft-delete + session restore | Add nullable `deleted_at` on `tasks` (or `is_deleted`); optional same on `scheduled_blocks`; DELETE → soft; list queries filter `deleted_at IS NULL`; undo/restore clears flag and preserves UUID + children. Alternative: `deleted_tasks` staging table. Target **by end of W2** (may land W1.5 if cheap). MVP delete undo recreates via POST (new IDs) — not true undelete |
+| Saved filter query language | User-authored saved_filters — ship if capacity; else W3+ |
+| WebSocket invalidation | Optional; else keep REST invalidation |
+| Status tracker | Today's blocks done % + overbook count |
+| Task soft-delete + session restore | Target by end of W2b |
 
-### GCal Conflict Policy
+### GCal Conflict Policy (2a + 2b)
 
 External hard events and pinned blocks are both BUSY. Scheduler never auto-moves pins. Overbook flagged, not silently dropped.
 
 ---
 
-## Wave 3 — SLM + Microsoft + Desktop
+## Wave 3 / W3+ — Everything else
 
-**Goal:** Intelligence assist and native desktop without rewriting domain logic.
+**Goal:** Intelligence assist, desktop shell, secondary calendars, and deferred product polish — **after** GCal + scheduler.
 
 ### Features
 
@@ -168,25 +184,25 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 | Local SLM (Ollama) | Ambiguous quick-add + schedule hints; never blocks CRUD |
 | Microsoft Calendar | calendar_provider.microsoft sync |
 | Tauri 2 desktop | Wraps web UI + FastAPI sidecar |
-| Board / Kanban view | Optional column view for “what’s going on”; sections→columns is a likely mapping. Not a substitute for calendar scheduling |
+| Board / Kanban view | Optional; sections→columns likely |
 | Hosted Postgres fallback | Optional; local Compose remains default |
-| Location reminders | W3 candidate; not W1/W1.5/W2 |
-| Voice input | Priority-3 backlog; no sooner than W2; likely W3 |
-| Email-to-task | Same as voice; not before W2; likely W3 |
-| Templates | Backlog nice-to-have; low priority; maybe later |
-| Todoist import | Deferred from W1.5 (stale upstream data); CSV/JSON → hierarchy |
-| Temp / forced password reset | Admin sets temporary password; user must change on next login (P3 from W1.5) |
-| Admin full profile edit | Admin may change any household user’s data **except username** (email, display name, password, disable, admin flag as already allowed) |
-| Self-service account settings | Signed-in user manages **own** password, email, and display name (screen name) |
-| Intraday / multi-occurrence habits | Multiple dues in one day (meds, physical activity): e.g. `every day at 8am, 2pm, 8pm` or `3× daily`. Likely mostly **quick-add / NL + BYHOUR (or equivalent)**, not a new rollover model — still same-task advance. Candidate for W3 or a later habit/NL wave if W3 splits |
+| Location reminders | Candidate |
+| Voice input | Candidate |
+| Email-to-task | Candidate |
+| Templates | Nice-to-have |
+| Todoist import | CSV/JSON → hierarchy |
+| Temp / forced password reset | Admin sets temp password; change on next login |
+| Admin full profile edit | Any field except username |
+| Self-service account settings | Own password, email, display name |
+| Intraday / multi-occurrence habits | NL / `BYHOUR` on existing recurrence |
 
 ### Wave size note
 
-W3 is accumulating desktop + SLM + calendars + account UX + deferred W1.5 leftovers + habit/NL recurrence polish. Before W3 planning starts in earnest, **consider splitting a Wave 4** (e.g. account/profile + import/reminders/habits vs. SLM/Tauri/MS Calendar). No commitment yet — flag only.
+W3 is large. Before W3 planning starts in earnest, **split a Wave 4** if needed (e.g. account/profile + import + habits vs. SLM / Tauri / MS Calendar). Flag only until W2b exits.
 
 ### Desktop Bundle Strategy
 
-Tauri shell + embedded API process talking to local Postgres (Compose service or documented install). Same REST contract; no second data model.
+Tauri shell + embedded API process talking to local Postgres. Same REST contract; no second data model.
 
 ---
 
@@ -199,8 +215,10 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 | Scheduled pg_dump backup script | W1.5 |
 | Cloudflare Tunnel | W1.5 |
 | Cloudflare Access | W1.5 (optional IdP in front of Tunnel) |
-| Responsive / phone-friendly web | W1.6 (post-Tunnel gate) |
-| Hosted Postgres | W3 fallback |
+| Responsive / phone-friendly web | W1.6 (shipped) |
+| Google Calendar sync | W2a |
+| Auto-scheduler / Update Schedule | W2b |
+| Hosted Postgres | W3+ fallback |
 | Podman alternate runtime | MVP-compatible (ADR-004) |
 
 ---
@@ -213,7 +231,7 @@ Tauri shell + embedded API process talking to local Postgres (Compose service or
 - Mobile native apps (responsive web until desktop; **W1.6** is the responsive polish gate)
 - Attachments
 - iCloud calendar (unless reopened)
-- Row-level task soft-delete / true session undelete (MVP ships hard delete + client recreate; **not** a permanent non-goal — target W2, optional W1.5)
+- Row-level task soft-delete / true session undelete (MVP hard delete + client recreate; target **W2b**)
 
 **Not excluded:** Multiple personal accounts on one deployment (household login) — each operator's data isolated by `owner_id`; see W1.5 auth progression. Lightweight task handoff between personal accounts is a **Post-W3 discussion item**, not W1–W3 scope.
 
@@ -252,10 +270,11 @@ Run before each major version's feature waves:
 | Wave | Primary docs |
 |------|--------------|
 | MVP | 01–07, sql/001_baseline.sql, adr/001–005 |
-| W1.5 | Update 02, 03, 05, 06, 07; new ADRs as needed |
-| W1.6 | Responsive shell notes in 02/03/07; USER-GUIDE mobile tips when built |
-| W2 | Scheduler spec expansion in 02; calendar sync in 05 |
-| W3 | Desktop bundle ADR; SLM assist appendix |
+| W1.5 | Auth, recurrence, reminders, ops; closeout leftovers |
+| W1.6 | Responsive shell (shipped) |
+| W2a | Google Calendar sync + busy map in 05 |
+| W2b | Scheduler triad expansion in 02; soft-delete |
+| W3+ | Desktop ADR; SLM; MS Calendar; account UX |
 
 ---
 

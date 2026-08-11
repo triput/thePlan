@@ -2,9 +2,9 @@
 
 Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity targets; it is based on the original draft, 2026 product documentation refresh, and locked plan decisions — not a live click-through audit.
 
-**Wave tags:** MVP | W1.5 | W2 | W3 | Out
+**Wave tags:** MVP | W1.5 | W1.6 | W2a | W2b | W3 | W3+ | Out
 
-**Terminology:** Wave tags (W1.5/W2/W3) = delivery waves. **P1–P4** = task priority only (enum, UI, UPS scoring).
+**Terminology:** Wave tags = delivery waves. **P1–P4** = task priority only (enum, UI, UPS scoring). **W2a** = Google Calendar; **W2b** = Scheduler.
 
 ---
 
@@ -31,14 +31,14 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Title & description | MVP | Plain text description |
-| Markdown notes | W2 | Rendering in detail view |
+| Markdown notes | W3+ | Rendering in detail view |
 | Priority P1–P4 | MVP | |
 | Due date / datetime | MVP | `due_at` |
-| Deadline (separate from due) | W2 UI | `deadline_at` in schema from MVP |
+| Deadline (separate from due) | W2b UI | `deadline_at` in schema from MVP |
 | Duration estimate | MVP | Minutes internally |
 | Complete / uncomplete | MVP | Parent warn-and-allow policy |
 | Parent bulk-complete children | MVP | Option (b) in completion dialog |
-| Task dependencies | W2 | Schema in MVP; enforced by scheduler W2 |
+| Task dependencies | W2b | Schema in MVP; enforced by scheduler |
 | Recurring due dates (`every`, `every!`) | W1.5 | Same-task rollover; limited frames (`starts_on`/`ends_on`); multi-weekday |
 | Quick-add recurrence tokens | W1.5 | `every` / `every!` + from/until frame phrases |
 | Intraday multi-occurrence (habits) | W3+ | Multiple times per day; likely NL/`BYHOUR` on existing engine — consider Wave 4 if W3 splits |
@@ -56,10 +56,10 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Epic/project color presets | MVP | Synesis/Phronesis-aligned presets; entity custom hex picker W1.5 |
 | Fixed smart views (Inbox, Today, Upcoming) | MVP | System saved_filters |
 | Smart view by Project | MVP | |
-| Smart view by Epic | W1.5 | Epic aggregate rollup UI deferred; projects/labels shipped |
+| Smart view by Epic | W1.5 closeout | Epic aggregate rollup UI |
 | Smart view by Label | MVP | |
-| Saved filter query language | W2 | Predicate model from MVP |
-| Custom filter favorites | W2 | User-authored saved_filters |
+| Saved filter query language | W2b | Predicate model from MVP; slip to W3+ if capacity |
+| Custom filter favorites | W2b | User-authored saved_filters |
 
 ### Views
 
@@ -72,7 +72,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Calendar view (month) | W1.5 | Not shipped Wave 1; optional/non-blocker |
 | Day-of-year + ISO week numbers in chrome | MVP | Shipped in calendar titles |
 | Board / Kanban | W3 | Optional column view for project status; not an MVP/W2 timeline. Sections may map to columns |
-| Upcoming drag-plan timeline | W1.5 | Calendar drag deferred W1.5 |
+| Upcoming drag-plan timeline | W1.5 closeout | Calendar drag |
 | Gantt / project timeline | Out | Calendar only in MVP |
 | Productivity trends / charts | Out | No gamification |
 
@@ -93,9 +93,9 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 |---------|------|-------|
 | Global search | MVP | Title + description |
 | Undo last action | MVP | Session stack; delete undo recreates (new IDs) |
-| Task soft-delete + restore | W2 | Optional W1.5; `deleted_at` on tasks; true undelete same UUID |
-| Activity log / audit trail | W2 | schedule_runs + task history lite |
-| Completed task history | W1.5 | Show/hide toggle deferred |
+| Task soft-delete + restore | W2b | `deleted_at` on tasks; true undelete same UUID |
+| Activity log / audit trail | W2b | schedule_runs + task history lite |
+| Completed task history | W1.5 closeout | Show/hide completed toggle |
 
 ### Reminders & Notifications
 
@@ -112,7 +112,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Todoist CSV/JSON import | W3 | Deferred from W1.5 (stale upstream); CSV/JSON → hierarchy |
-| Google Calendar sync | W2 | Bidirectional |
+| Google Calendar sync | W2a | Bidirectional; before scheduler |
 | Microsoft Calendar sync | W3 | |
 | iCloud calendar | Out | Unless reopened |
 | Zapier / IFTTT / automation hubs | Post-W3 | Backlog candidate after W3; not planned in W1–W3 |
@@ -153,8 +153,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Estimated duration | MVP | Integer minutes |
-| Min block duration (slice floor) | W2 UI | Schema MVP |
-| Max block duration (slice ceiling) | W2 UI | Schema MVP |
+| Min block duration (slice floor) | W2b UI | Schema MVP |
+| Max block duration (slice ceiling) | W2b UI | Schema MVP |
 | Work capacity baselines (8h/40h/160h) | MVP | Display + parser |
 | Scale-aware duration formatting | MVP | UI formatter |
 
@@ -162,54 +162,54 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Focus windows / Time Maps | W2 | `focus_windows` table |
-| Preferred time window per task | W2 | FK on tasks |
-| Working hours configuration | W2 | Via focus_windows + settings |
-| Fuzzy window tokens (@morning, etc.) | W2 | Quick-add binding |
+| Focus windows / Time Maps | W2b | `focus_windows` table |
+| Preferred time window per task | W2b | FK on tasks |
+| Working hours configuration | W2b | Via focus_windows + settings |
+| Fuzzy window tokens (@morning, etc.) | W2b | Quick-add binding |
 
 ### Plans & Soft Targets
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Plans (flexible time frames) | W2 | First-class entities |
-| soft_target_at on tasks | W2 UI | Schema reserved MVP |
-| Soft vs hard constraint semantics | W2 | Soft=plan/window; hard=deadline/pin/busy |
-| Rule inheritance from parent | W2 | Window/plan propagation |
+| Plans (flexible time frames) | W2b | First-class entities |
+| soft_target_at on tasks | W2b UI | Schema reserved MVP |
+| Soft vs hard constraint semantics | W2b | Soft=plan/window; hard=deadline/pin/busy |
+| Rule inheritance from parent | W2b | Window/plan propagation |
 
 ### Scheduling Engine
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Auto time-blocking | W2 | Async worker |
-| Update Schedule (replan) | W2 | Explicit user action |
-| Slice & fit algorithm | W2 | Min/max block splitting |
-| UPS priority scoring | W2 | Configurable weights |
-| Urgency decay (exponential) | W2 | k=0.5 default |
-| Dependency-aware ordering | W2 | Topological sort |
-| Inter-block buffer | W2 | Default 5 min, configurable |
-| Overbook detection & flag | W2 | schedule_status.overbooked |
-| Contiguity optimization | W2 | Prefer back-to-back slices |
+| Auto time-blocking | W2b | Async worker |
+| Update Schedule (replan) | W2b | Explicit user action |
+| Slice & fit algorithm | W2b | Min/max block splitting |
+| UPS priority scoring | W2b | Configurable weights |
+| Urgency decay (exponential) | W2b | k=0.5 default |
+| Dependency-aware ordering | W2b | Topological sort |
+| Inter-block buffer | W2b | Default 5 min, configurable |
+| Overbook detection & flag | W2b | schedule_status.overbooked |
+| Contiguity optimization | W2b | Prefer back-to-back slices |
 
 ### Calendar & Blocks
 
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Manual scheduled blocks | MVP | Click empty slot or task; modal edit start/end |
-| Pin / lock blocks | W2 | `is_pinned`; scheduler never moves until unpin. Use case: fixed clock time (e.g. prep before someone else's meeting) — not due/deadline. MVP stores flag only |
-| Drag reschedule blocks / due markers | W1.5 | Click/slot + modal edit shipped in Wave 1 |
-| Bundled / knockout task lists | W2 | vs formal blocks |
-| External calendar as busy source | W2 | Google; MS W3 |
-| Calendar cutout / busy map | W2 | Step 1 of pipeline |
-| Status tracker (% done, overbook count) | W2 | Utility, not gamification |
+| Pin / lock blocks | W2b | `is_pinned`; scheduler never moves until unpin. Use case: fixed clock time (e.g. prep before someone else's meeting) — not due/deadline. MVP stores flag only |
+| Drag reschedule blocks / due markers | W1.5 closeout | Modal edit shipped Wave 1; drag in closeout |
+| Bundled / knockout task lists | W2b | vs formal blocks |
+| External calendar as busy source | W2a | Google; MS W3+ |
+| Calendar cutout / busy map | W2a | Step 1 before Update Schedule |
+| Status tracker (% done, overbook count) | W2b | Utility, not gamification |
 
 ### Priority & Ranking
 
 | Feature | Wave | Notes |
 |---------|------|-------|
 | P1–P4 explicit priority | MVP | |
-| Dynamic UPS ranking | W2 | |
+| Dynamic UPS ranking | W2b | |
 | Relative priority board | Out | P1–P4 sufficient unless reopened |
-| Epic alignment boost | W2 | UPS E component |
+| Epic alignment boost | W2b | UPS E component |
 
 ### Capture & Intelligence
 
@@ -239,7 +239,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | pg_dump backup one-liner | MVP | Documented in root README |
 | Scheduled pg_dump backup script | W1.5 | `scripts/backup-postgres.ps1` / `.sh`; prune via `BACKUP_KEEP_DAYS` |
 | Hosted Postgres fallback | W3 | Not default |
-| WebSocket invalidation | W2 | Optional; REST sufficient MVP |
+| WebSocket invalidation | W2b | Optional; REST sufficient MVP |
 | Dependency Hygiene wave | Pre-version | Toolchain + deps pass |
 
 ---
@@ -250,14 +250,16 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows. (Recurrence + reminders engines landed in W1.5.)
 
-**Defer to W1.5:** Epic aggregate smart view, show-completed toggle, calendar drag, recurrence engine, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune); scheduled pg_dump script; calendar month view (optional).
+**Defer to W1.5 (shipped core):** Recurrence, reminders, login, household, label reassign, backup script, Tunnel. **Closeout still open:** epic aggregate, show-completed, calendar drag. Calendar month optional/non-blocker.
 
-**Defer to W1.6:** Phone-friendly / responsive cleanup (drawer nav, task-detail sheet, touch targets, narrow calendar) after Tunnel made remote phone use real — before W2 scheduler.
+**Defer to W1.6 (shipped):** Phone-friendly / responsive cleanup.
 
-**Defer to W2:** Full SkedPal triad, auto-scheduler, GCal, filter query language, dependency enforcement, pinned-block auto-respect, task soft-delete + session restore.
+**Defer to W2a:** Google Calendar sync + busy map / cutout.
 
-**Defer to W3:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice input, email-to-task, templates; Todoist import; admin full profile edit (except username); self-service password/email/display name; temp/forced password reset; intraday multi-occurrence habits (likely NL/`BYHOUR` on existing recurrence). W3 is crowding — consider a Wave 4 split before planning starts.
+**Defer to W2b:** SkedPal triad, auto-scheduler, UPS, pins/deadline UI, dependency enforcement, soft-delete + session restore; filter QL / WebSocket if capacity.
 
-**Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors (and related inbound/outbound webhooks as needed); Notion / Obsidian deep links or light sync (possible late W3 if cheap, otherwise post-W3); task handoff between household accounts (discussion item only). Not in W1–W2 scope.
+**Defer to W3 / W3+:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice, email-to-task, templates; Todoist import; admin full profile edit; self-service password/email/display name; temp password reset; intraday multi-occurrence habits. Split Wave 4 if W3 stays overcrowded.
+
+**Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors; Notion / Obsidian deep links; task handoff between household accounts (discussion only).
 
 **Never (unless reopened):** Team workspaces, karma, Flutter, attachments, gamification.

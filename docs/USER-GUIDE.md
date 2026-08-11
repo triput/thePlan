@@ -346,17 +346,17 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 
 ## Wave 1.5 leftovers / next (brief)
 
-Shipped in 1.5: login, household admin, recurrence, reminders, label reassign, backup scripts, demo `nebula`, Cloudflare Tunnel.
+Shipped in 1.5–1.6: login, household, recurrence, reminders, label reassign, backup scripts, Tunnel, phone UI.
+
+**Closeout (next):**
 
 | Item | Status |
 |------|--------|
-| Label delete → reassign other labels | Shipped — optional multi-select on delete |
-| Scheduled pg_dump backup script | Shipped — `scripts/backup-postgres.ps1` / `.sh` |
-| Cloudflare Tunnel (+ optional Access) | Operator setup — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
-| **Phone-friendly / responsive polish** | **Wave 1.6 shipped** — menu drawer, full-screen task detail, larger tap targets |
-| Show completed toggle | Deferred |
-| Calendar drag move/resize | Modal edit only |
-| Epic aggregate smart view | Per-project views only |
+| Show completed toggle | Open — W1.5 closeout |
+| Calendar drag move/resize | Open — W1.5 closeout (modal edit only today) |
+| Epic aggregate smart view | Open — W1.5 closeout |
+
+**Then:** Google Calendar (W2a) → Scheduler (W2b). Everything else is W3+.
 
 ---
 
