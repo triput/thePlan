@@ -344,17 +344,11 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 
 ---
 
-## Wave 1.5 leftovers / next (brief)
+## Wave 1.5 / next (brief)
 
-Shipped in 1.5–1.6 + closeout: login, household, recurrence, reminders, label reassign, backup scripts, Tunnel, phone UI, **show completed**, **calendar drag**, **epic rollup**.
+Wave **1.5 exited 2026-08-10** — [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md). W1.6 phone UI included.
 
 **Next:** Google Calendar (W2a) → Scheduler (W2b). Everything else is W3+.
-
-| Item | Status |
-|------|--------|
-| Show completed toggle | Shipped — list header; preference remembered |
-| Calendar drag move/resize | Shipped — desktop; phone still uses the edit modal |
-| Epic aggregate smart view | Shipped — click an epic in the sidebar |
 
 ---
 
@@ -368,4 +362,5 @@ Shipped in 1.5–1.6 + closeout: login, household, recurrence, reminders, label 
 | [03-feature-catalog.md](./03-feature-catalog.md) | Feature list by wave |
 | [07-wave-roadmap.md](./07-wave-roadmap.md) | What ships next |
 | [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | MVP exit record |
+| [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) | Wave 1.5 exit record |
 | [CHANGELOG.md](../CHANGELOG.md) | Release notes |

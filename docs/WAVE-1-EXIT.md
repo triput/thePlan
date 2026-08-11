@@ -2,7 +2,7 @@
 
 **Status:** Exited **2026-08-10**  
 **Evidence tip:** `ff5724e` (E10 close); E1–E9 in `main` history  
-**Next target:** [Wave 1.5](./07-wave-roadmap.md#wave-15--soon-after-mvp)
+**Next target:** [Wave 1.5](./07-wave-roadmap.md#wave-15--soon-after-mvp) → **exited** — see [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)
 
 ## Delivered (E1–E10)
 
@@ -39,15 +39,15 @@ Calendar sync, auto-scheduler, remote auth / login wall, recurrence UI, board/Ka
 
 | Gap | Notes |
 |-----|-------|
-| Epic aggregate smart view | Projects/labels yes; epic rollup UI deferred |
-| Show completed toggle | Completed hidden from default lists |
+| Epic aggregate smart view | **Closed in W1.5** — sidebar epic rollup |
+| Show completed toggle | **Closed in W1.5** |
 | Archived epic/project sidebar toggle | Archive exists; browse archived deferred |
 | Section-grouped project task layout | Sections exist; visual grouping polish deferred |
 | Entity custom `#RRGGBB` picker UI | Presets shipped; custom hex on entities deferred (chrome themes already support hex) |
-| Calendar drag resize/move | Click/slot create + modal edit shipped |
+| Calendar drag resize/move | **Closed in W1.5** (desktop; modal on narrow) |
 | Calendar month view | Optional; not exit blocker |
 | Timezone / upcoming horizon settings UI | Schema defaults; browser-local day boundaries in MVP |
-| Soft-delete / true undelete | Recreate-from-cache undo in MVP; soft-delete target W2 (optional W1.5) |
+| Soft-delete / true undelete | Recreate-from-cache undo in MVP; soft-delete target **W2b** |
 
 ## How to run
 

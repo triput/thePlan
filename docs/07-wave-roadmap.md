@@ -54,11 +54,11 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 
 ---
 
-## Wave 1.5 — Soon After MVP (Closeout in progress)
+## Wave 1.5 — Soon After MVP (Complete — exited 2026-08-10)
 
 **Goal:** Daily-driver enhancements and remote-ready auth without scheduler complexity.
 
-**Status:** Core feature set shipped (auth/household, recurrence, reminders, label reassign, backup scripts, Cloudflare Tunnel). **W1.6 mobile polish shipped.** **W1.5 closeout UI shipped** (show-completed, calendar drag, epic aggregate). Formal W1.5 exit record can follow. **Immediate next build:** [Wave 2a Google Calendar](#wave-2--google-calendar--then-scheduler).
+**Status:** **Exited 2026-08-10.** Exit record: [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) — tip `d2b47e9`. Companion **W1.6** mobile polish shipped. **Next:** [Wave 2a Google Calendar](#wave-2--google-calendar--then-scheduler).
 
 ### Shipped
 
@@ -73,16 +73,11 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Multi-account login (household) | Multiple `users` rows; `owner_id` isolation — not teams ([ADR-002](./adr/ADR-002-single-user.md)) |
 | Admin account + user management | First claimed account is admin; list/create/disable; set passwords |
 | Demo seed account `nebula` | Non-admin fixture user; passphrase in gitignored `.secrets-backup/` |
+| Show-completed toggle | List header; localStorage; hide completed by default |
+| Calendar drag move/resize | Desktop day/week; due-dot drag; narrow modal-only |
+| Epic aggregate smart view | Click epic in sidebar; `GET /tasks?epic_id=` |
 | ~~Todoist import~~ | **Parked at W3** (stale upstream; not needed for daily driver) |
-| Task soft-delete + restore | **Parked at W2b** (or later) — not part of closeout |
-
-### Closeout checklist (current target)
-
-| Item | Notes |
-|------|-------|
-| ~~Show-completed toggle~~ | **Shipped** — list header checkbox; persisted in localStorage; project lists hide completed by default |
-| ~~Calendar drag move/resize~~ | **Shipped** — desktop day/week drag move + bottom-edge resize; due-dot drag; narrow stays modal-only |
-| ~~Epic aggregate smart view~~ | **Shipped** — click epic in sidebar; `GET /tasks?epic_id=` rollup |
+| Task soft-delete + restore | **Parked at W2b** (or later) |
 
 **Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128). Login by **username or email**. First registration **claims** bootstrap user. Hygiene: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
 
@@ -270,7 +265,7 @@ Run before each major version's feature waves:
 | Wave | Primary docs |
 |------|--------------|
 | MVP | 01–07, sql/001_baseline.sql, adr/001–005 |
-| W1.5 | Auth, recurrence, reminders, ops; closeout leftovers |
+| W1.5 | Auth, recurrence, reminders, ops; closeout — [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) |
 | W1.6 | Responsive shell (shipped) |
 | W2a | Google Calendar sync + busy map in 05 |
 | W2b | Scheduler triad expansion in 02; soft-delete |

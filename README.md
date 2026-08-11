@@ -2,7 +2,7 @@
 
 Personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
 
-**Wave 1 (MVP) exited 2026-08-10.** W1.5 closeout + W1.6 mobile shipped. **Next:** Google Calendar → Scheduler — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Exit record: [docs/WAVE-1-EXIT.md](docs/WAVE-1-EXIT.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
+**Wave 1 (MVP) exited 2026-08-10.** **Wave 1.5 exited 2026-08-10** ([docs/WAVE-1.5-EXIT.md](docs/WAVE-1.5-EXIT.md)); W1.6 mobile shipped. **Next:** Google Calendar → Scheduler — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
 
 ## Shipped (Wave 1)
 

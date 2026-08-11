@@ -356,7 +356,7 @@ User stories with acceptance criteria for Wave 1 (MVP) only. W1.5+ work is track
 
 ## Wave 1 Known Gaps
 
-Deferred to W1.5 (or later). Full table: [WAVE-1-EXIT.md](./WAVE-1-EXIT.md#known-gaps--wave-15-or-later).
+Deferred to W1.5 (or later). Full table: [WAVE-1-EXIT.md](./WAVE-1-EXIT.md#known-gaps--wave-15-or-later). Wave 1.5 exit: [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md).
 
 | Gap | Wave |
 |-----|------|
