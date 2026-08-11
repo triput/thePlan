@@ -611,6 +611,12 @@ export function TaskList({
                 </span>
               )}
               {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
+              {task.soft_target_at && (
+                <span className="soft-target-badge">Soft {formatDue(task.soft_target_at)}</span>
+              )}
+              {task.deadline_at && (
+                <span className="deadline-badge">Deadline {formatDue(task.deadline_at)}</span>
+              )}
               {task.estimated_duration_minutes > 0 && (
                 <span className="duration-badge">
                   {formatDuration(task.estimated_duration_minutes)}

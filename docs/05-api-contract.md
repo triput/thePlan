@@ -127,7 +127,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 `estimated_duration_minutes` optional on create: omit or `null` → `user_settings.default_estimated_duration_minutes`; explicit value wins (including `30`).
 
-`deadline_at` and `soft_target_at` accepted on write but not surfaced in MVP UI. `deadline_at` enforced in W2 scheduler. `preferred_time_window_id` must reference an owned focus window; cleared with `null`.
+`deadline_at` and `soft_target_at` accepted on write and surfaced in task detail + list UI (Plans A, W2b). `deadline_at` enforced in W2 scheduler. `preferred_time_window_id` must reference an owned focus window; cleared with `null`.
 
 ---
 

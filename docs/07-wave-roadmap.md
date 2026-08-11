@@ -167,7 +167,7 @@ No full Update Schedule / UPS pipeline in 2a.
 
 1. **Slice 1 — complete:** `focus_windows` CRUD + Settings UI; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening`. Verified live 2026-08-11. v1 = one contiguous hard/soft band per named map.
 2. **Settings expansion — complete:** `GET/PATCH /settings` + Scheduling defaults UI; `default_estimated_duration_minutes`, `default_min_block_duration_minutes`, `default_schedule_style` (`standalone`), `auto_defer_enabled`; task create + quick-add inherit default duration when omitted. Verified live 2026-08-11. Polish: timezone dropdown → [DEF-002](./DEFECTS.md).
-3. **Plans** — flexible time frames; `soft_target_at` surfaced
+3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired. **Plans B** (named plans, flexible frames) next.
 4. **Update Schedule** — explicit replan action; async worker (ADR-005)
 
 | Feature | Notes |
@@ -182,7 +182,8 @@ No full Update Schedule / UPS pipeline in 2a.
 | Temporary Time Map overrides | Day/week dated windows that auto-expire (vacation/conference) |
 | Rule inheritance | Parent → child window/plan propagation |
 | Overbook UI | schedule_status.overbooked |
-| deadline_at UI | Hard commit surfaced |
+| deadline_at UI | **shipped** (Plans A) — hard commit surfaced in task detail + list |
+| soft_target_at UI | **shipped** (Plans A) — flexible plan target in task detail + list |
 | Task dependency enforcement | Topological ordering in scheduler |
 | Saved filter query language | User-authored saved_filters — ship if capacity; else W3+ |
 | WebSocket invalidation | Optional; else keep REST invalidation |

@@ -797,9 +797,20 @@
 
 .priority-badge,
 .due-badge,
+.soft-target-badge,
+.deadline-badge,
 .duration-badge {
   font-size: 0.72rem;
   color: var(--text-muted);
+}
+
+.soft-target-badge {
+  opacity: 0.85;
+}
+
+.deadline-badge {
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .empty-state {

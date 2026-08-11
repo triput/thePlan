@@ -68,6 +68,9 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
       body.parent_task_id !== undefined ? body.parent_task_id : task.parent_task_id,
     priority: body.priority ?? task.priority,
     due_at: body.due_at !== undefined ? body.due_at : task.due_at,
+    deadline_at: body.deadline_at !== undefined ? body.deadline_at : task.deadline_at,
+    soft_target_at:
+      body.soft_target_at !== undefined ? body.soft_target_at : task.soft_target_at,
     estimated_duration_minutes:
       body.estimated_duration_minutes ?? task.estimated_duration_minutes,
     preferred_time_window_id:
@@ -83,6 +86,8 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("p4");
   const [dueAtLocal, setDueAtLocal] = useState("");
+  const [softTargetAtLocal, setSoftTargetAtLocal] = useState("");
+  const [deadlineAtLocal, setDeadlineAtLocal] = useState("");
   const [duration, setDuration] = useState("");
   const [projectId, setProjectId] = useState<string>("");
   const [sectionId, setSectionId] = useState<string>("");
@@ -139,6 +144,8 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setDescription(task.description ?? "");
     setPriority(task.priority);
     setDueAtLocal(toDatetimeLocal(task.due_at));
+    setSoftTargetAtLocal(toDatetimeLocal(task.soft_target_at));
+    setDeadlineAtLocal(toDatetimeLocal(task.deadline_at));
     setDuration(task.estimated_duration_minutes > 0 ? String(task.estimated_duration_minutes) : "");
     setProjectId(task.project_id ?? "");
     setSectionId(task.section_id ?? "");
@@ -324,6 +331,8 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       description: description.trim() || null,
       priority,
       due_at: fromDatetimeLocal(dueAtLocal),
+      soft_target_at: fromDatetimeLocal(softTargetAtLocal),
+      deadline_at: fromDatetimeLocal(deadlineAtLocal),
       estimated_duration_minutes: Number.isFinite(parsedDuration) ? parsedDuration : 0,
       project_id: projectId || null,
       section_id: projectId && sectionId ? sectionId : null,
@@ -381,6 +390,30 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               value={dueAtLocal}
               onChange={(e) => setDueAtLocal(e.target.value)}
             />
+          </label>
+          <label className="field">
+            <span>Soft target</span>
+            <input
+              type="datetime-local"
+              className="field-datetime"
+              value={softTargetAtLocal}
+              onChange={(e) => setSoftTargetAtLocal(e.target.value)}
+            />
+            <span className="field-hint muted small">
+              Flexible plan target — scheduler may slide
+            </span>
+          </label>
+          <label className="field">
+            <span>Deadline</span>
+            <input
+              type="datetime-local"
+              className="field-datetime"
+              value={deadlineAtLocal}
+              onChange={(e) => setDeadlineAtLocal(e.target.value)}
+            />
+            <span className="field-hint muted small">
+              Hard commit — scheduler must not miss
+            </span>
           </label>
 
           <fieldset className="field recurrence-fieldset">

@@ -237,6 +237,8 @@ export interface TaskUpdate {
   parent_task_id?: string | null;
   priority?: TaskPriority;
   due_at?: string | null;
+  deadline_at?: string | null;
+  soft_target_at?: string | null;
   estimated_duration_minutes?: number;
   preferred_time_window_id?: string | null;
   label_ids?: string[];
