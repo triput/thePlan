@@ -20,6 +20,7 @@ from app.schemas import (
     TaskOut,
     TaskUpdate,
 )
+from app.services.auth_users import get_or_provision_user_settings
 from app.services.ownership import (
     verify_owned_focus_window,
     verify_owned_project,
@@ -232,6 +233,12 @@ def create_task(
     except ApiError as exc:
         raise exc
 
+    if body.estimated_duration_minutes is None:
+        settings = get_or_provision_user_settings(db, user)
+        estimated_duration_minutes = settings.default_estimated_duration_minutes
+    else:
+        estimated_duration_minutes = body.estimated_duration_minutes
+
     task = Task(
         owner_id=user.id,
         title=body.title.strip(),
@@ -244,7 +251,7 @@ def create_task(
         due_at=body.due_at,
         deadline_at=body.deadline_at,
         soft_target_at=body.soft_target_at,
-        estimated_duration_minutes=body.estimated_duration_minutes,
+        estimated_duration_minutes=estimated_duration_minutes,
         preferred_time_window_id=body.preferred_time_window_id,
     )
     db.add(task)

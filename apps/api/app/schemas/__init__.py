@@ -1,10 +1,10 @@
 from datetime import date, datetime, time
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field, field_serializer
 
-from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, TaskPriority
+from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority
 
 
 def _parse_time_value(value: object) -> time:
@@ -69,6 +69,36 @@ class AuthUserAdminUpdate(BaseModel):
     display_name: str | None = Field(default=None, max_length=255)
     is_disabled: bool | None = None
     password: str | None = Field(default=None, min_length=12, max_length=128)
+
+
+class UserSettingsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    timezone: str
+    locale: str
+    workday_minutes: int
+    workweek_days: int
+    inter_block_buffer_minutes: int
+    ups_weights: dict[str, Any]
+    upcoming_horizon_days: int
+    default_estimated_duration_minutes: int
+    default_min_block_duration_minutes: int
+    default_schedule_style: ScheduleStyle
+    auto_defer_enabled: bool
+
+
+class UserSettingsUpdate(BaseModel):
+    timezone: str | None = Field(default=None, min_length=1, max_length=64)
+    locale: str | None = Field(default=None, min_length=1, max_length=16)
+    workday_minutes: int | None = Field(default=None, gt=0)
+    workweek_days: int | None = Field(default=None, ge=1, le=7)
+    inter_block_buffer_minutes: int | None = Field(default=None, ge=0)
+    ups_weights: dict[str, Any] | None = None
+    upcoming_horizon_days: int | None = Field(default=None, ge=1)
+    default_estimated_duration_minutes: int | None = Field(default=None, gt=0)
+    default_min_block_duration_minutes: int | None = Field(default=None, gt=0)
+    default_schedule_style: ScheduleStyle | None = None
+    auto_defer_enabled: bool | None = None
 
 
 class EpicCreate(BaseModel):
@@ -193,7 +223,8 @@ class TaskCreate(BaseModel):
     due_at: datetime | None = None
     deadline_at: datetime | None = None
     soft_target_at: datetime | None = None
-    estimated_duration_minutes: int = 30
+    # Omit or null to use user_settings.default_estimated_duration_minutes; explicit value wins.
+    estimated_duration_minutes: int | None = None
     preferred_time_window_id: UUID | None = None
     label_ids: list[UUID] = Field(default_factory=list)
     recurrence: "RecurrenceUpsert | None" = None

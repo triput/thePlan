@@ -30,3 +30,9 @@ class CalendarSubscriptionRole(str, enum.Enum):
 class ReminderChannel(str, enum.Enum):
     in_app = "in_app"
     browser = "browser"
+
+
+class ScheduleStyle(str, enum.Enum):
+    standalone = "standalone"
+    time_block = "time_block"
+    bundle = "bundle"

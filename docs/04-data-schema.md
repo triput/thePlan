@@ -72,6 +72,10 @@ users ──┬── user_settings
 
 `in_app`, `browser` — W1.5 reminders.
 
+### schedule_style
+
+`standalone` (default for new tasks), `time_block`, `bundle` — W2b scheduler default style on user settings (not yet on tasks).
+
 ---
 
 ## Tables
@@ -102,6 +106,12 @@ One row per user.
 | inter_block_buffer_minutes | INT | 5 | W2 scheduler buffer |
 | ups_weights | JSONB | Wp/Wu/Wd/We/k | W2 UPS tuning |
 | upcoming_horizon_days | INT | 7 | Upcoming view |
+| default_estimated_duration_minutes | INT | 30 | Task create default when omitted |
+| default_min_block_duration_minutes | INT | 15 | MBL default (matches task min_block) |
+| default_schedule_style | schedule_style | standalone | Block/bundle opt-in |
+| auto_defer_enabled | BOOLEAN | true | Missed plan windows may slide |
+
+**Checks:** `workday_minutes > 0`, `workweek_days` 1–7, `inter_block_buffer_minutes >= 0`, `upcoming_horizon_days > 0`, duration defaults `> 0`.
 
 ### epics
 

@@ -242,6 +242,42 @@ export interface TaskUpdate {
   label_ids?: string[];
 }
 
+export type ScheduleStyle = "standalone" | "time_block" | "bundle";
+
+export interface UserSettings {
+  timezone: string;
+  locale: string;
+  workday_minutes: number;
+  workweek_days: number;
+  inter_block_buffer_minutes: number;
+  upcoming_horizon_days: number;
+  default_estimated_duration_minutes: number;
+  default_min_block_duration_minutes: number;
+  default_schedule_style: ScheduleStyle;
+  auto_defer_enabled: boolean;
+  ups_weights?: Record<string, unknown>;
+  id?: string;
+  owner_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type UserSettingsUpdate = Partial<
+  Pick<
+    UserSettings,
+    | "timezone"
+    | "locale"
+    | "workday_minutes"
+    | "workweek_days"
+    | "inter_block_buffer_minutes"
+    | "upcoming_horizon_days"
+    | "default_estimated_duration_minutes"
+    | "default_min_block_duration_minutes"
+    | "default_schedule_style"
+    | "auto_defer_enabled"
+  >
+>;
+
 export interface FocusWindow {
   id: string;
   name: string;
@@ -719,6 +755,17 @@ export function updateScheduledBlock(blockId: string, body: ScheduledBlockUpdate
 
 export function deleteScheduledBlock(blockId: string) {
   return apiFetch<void>(`/api/v1/scheduled-blocks/${blockId}`, { method: "DELETE" });
+}
+
+export function fetchSettings() {
+  return apiFetch<UserSettings>("/api/v1/settings");
+}
+
+export function updateSettings(patch: UserSettingsUpdate) {
+  return apiFetch<UserSettings>("/api/v1/settings", {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
 }
 
 export function fetchFocusWindows() {

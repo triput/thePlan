@@ -1,19 +1,18 @@
 # Changelog
 
-## [Unreleased] — Wave 2b (Slice 1 complete)
+## [Unreleased] — Wave 2b (Settings expansion complete)
 
+- **W2b Settings expansion (shipped):** Alembic `006_settings_expansion`; `GET/PATCH /settings`; Settings → Scheduling defaults UI (timezone, locale, workday/week, buffer, horizon, default duration/MBL, schedule style standalone/block/bundle, auto-defer warning); task create and quick-add inherit default duration when omitted; number-input `step` fix so 480 workday minutes is valid
 - **W2b Slice 1 (shipped):** Focus windows CRUD (`/focus-windows`); Settings Time Maps UI; task detail Time Map picker; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening` resolution — verified live
 - Hygiene gate: [docs/HYGIENE-W2-QUICKSCAN.md](docs/HYGIENE-W2-QUICKSCAN.md) (pass)
-- **Google Calendar Slice 1 (shipped):** OAuth connect, encrypted tokens, pull primary events, busy overlays — verified live
-- **Google Calendar Slice 2 (shipped):** `calendar_subscriptions` (primary + informational), mirror-to-Google toggle (best-effort push of scheduled blocks), per-subscription syncToken, 24×7 calendar viewport (default 6A–10P) — verified live
-- **Google Calendar Slice 3 (shipped):** `GET /calendar/conflicts` — block↔busy and block↔block overlap flags; calendar UI conflict styling (no `tasks.status` mutation) — verified live
+- **Google Calendar Slice 1–3 (shipped):** OAuth, multi-cal/mirror/24h, conflict flags
 - cryptography for Fernet token encryption
-- Parked for W2b+: painted Time Maps (multi-band + green/yellow/red), Time Map overrides, scoped bundles, settings expansion, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
-- **Schema fence locked:** default schedule style = standalone (block/bundle opt-in); MBL = use default; auto-defer on (warn in Settings, don’t nag); green→yellow→never red in principle; pins + GCal busy immovable
+- Parked for W2b+: painted Time Maps, Time Map overrides, scoped bundles, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
+- **Schema fence locked:** standalone default; MBL use default; auto-defer on; green→yellow→never red in principle; pins + GCal busy immovable
+- **DEF-002:** Timezone dropdown picker (polish; bundle with other fixes)
 
 ### Planned next
 
-- **W2b Settings expansion** — timezone, buffers, default duration, schedule-style default (standalone)
 - **W2b Plans + deadline/soft_target UI**
 - **Fuzzy algorithm session** — gate before Update Schedule worker
 - **Painted Time Maps** — one map, split colored bands; green preferred, yellow overflow OK, red forbidden

@@ -9,6 +9,7 @@ from app.db import get_db
 from app.models import Epic, FocusWindow, Project, Section, User
 from app.models.enums import TaskPriority
 from app.schemas import QuickAddParseRequest, QuickAddParseResponse, RecurrenceOut
+from app.services.auth_users import get_or_provision_user_settings
 from app.services.quick_add import parse_quick_add
 
 router = APIRouter(prefix="/quick-add", tags=["quick-add"])
@@ -94,6 +95,15 @@ def parse_quick_add_input(
     timezone_name = user.settings.timezone if user.settings else "UTC"
     draft = parse_quick_add(body.text, timezone_name=timezone_name)
 
+    needs_settings_commit = user.settings is None
+    settings = get_or_provision_user_settings(db, user)
+    if needs_settings_commit:
+        db.commit()
+
+    estimated_duration_minutes = draft.estimated_duration_minutes
+    if estimated_duration_minutes is None:
+        estimated_duration_minutes = settings.default_estimated_duration_minutes
+
     unresolved: list[str] = []
     epic_id, epic_unresolved = _resolve_epic_id(db, user, draft.epic_name)
     unresolved.extend(epic_unresolved)
@@ -129,7 +139,7 @@ def parse_quick_add_input(
     return QuickAddParseResponse(
         title=draft.title,
         priority=priority,
-        estimated_duration_minutes=draft.estimated_duration_minutes,
+        estimated_duration_minutes=estimated_duration_minutes,
         due_at=draft.due_at,
         epic_id=epic_id,
         project_id=project_id,

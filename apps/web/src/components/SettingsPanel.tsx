@@ -8,15 +8,20 @@ import {
   fetchCalendarSubscriptions,
   fetchFocusWindows,
   fetchGoogleCalendars,
+  fetchSettings,
   googleCalendarConnectHref,
   putCalendarSubscriptions,
   syncCalendarAccount,
   updateCalendarAccount,
   updateFocusWindow,
+  updateSettings,
   type CalendarAccount,
   type CalendarSubscriptionPutItem,
   type FocusWindow,
   type GoogleCalendarListItem,
+  type ScheduleStyle,
+  type UserSettings,
+  type UserSettingsUpdate,
 } from "../api";
 import {
   DAY_BITS,
@@ -362,6 +367,324 @@ const EMPTY_FORM = {
   isHard: false,
 };
 
+type SchedulingDraft = {
+  timezone: string;
+  locale: string;
+  workday_minutes: string;
+  workweek_days: string;
+  inter_block_buffer_minutes: string;
+  upcoming_horizon_days: string;
+  default_estimated_duration_minutes: string;
+  default_min_block_duration_minutes: string;
+  default_schedule_style: ScheduleStyle;
+  auto_defer_enabled: boolean;
+};
+
+function settingsToDraft(settings: UserSettings): SchedulingDraft {
+  return {
+    timezone: settings.timezone,
+    locale: settings.locale,
+    workday_minutes: String(settings.workday_minutes),
+    workweek_days: String(settings.workweek_days),
+    inter_block_buffer_minutes: String(settings.inter_block_buffer_minutes),
+    upcoming_horizon_days: String(settings.upcoming_horizon_days),
+    default_estimated_duration_minutes: String(settings.default_estimated_duration_minutes),
+    default_min_block_duration_minutes: String(settings.default_min_block_duration_minutes),
+    default_schedule_style: settings.default_schedule_style,
+    auto_defer_enabled: settings.auto_defer_enabled,
+  };
+}
+
+function parsePositiveInt(raw: string): number | null {
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return value;
+}
+
+function parseNonNegativeInt(raw: string): number | null {
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isFinite(value) || value < 0) return null;
+  return value;
+}
+
+function buildSettingsPatch(saved: UserSettings, draft: SchedulingDraft): UserSettingsUpdate | null {
+  const patch: UserSettingsUpdate = {};
+  const timezone = draft.timezone.trim();
+  const locale = draft.locale.trim();
+  if (!timezone) throw new Error("Timezone is required");
+  if (!locale) throw new Error("Locale is required");
+  if (timezone !== saved.timezone) patch.timezone = timezone;
+  if (locale !== saved.locale) patch.locale = locale;
+
+  const workdayMinutes = parsePositiveInt(draft.workday_minutes);
+  if (workdayMinutes === null) throw new Error("Workday minutes must be a positive number");
+  if (workdayMinutes !== saved.workday_minutes) patch.workday_minutes = workdayMinutes;
+
+  const workweekDays = Number.parseInt(draft.workweek_days, 10);
+  if (!Number.isFinite(workweekDays) || workweekDays < 1 || workweekDays > 7) {
+    throw new Error("Workweek days must be between 1 and 7");
+  }
+  if (workweekDays !== saved.workweek_days) patch.workweek_days = workweekDays;
+
+  const bufferMinutes = parseNonNegativeInt(draft.inter_block_buffer_minutes);
+  if (bufferMinutes === null) {
+    throw new Error("Buffer minutes must be zero or greater");
+  }
+  if (bufferMinutes !== saved.inter_block_buffer_minutes) {
+    patch.inter_block_buffer_minutes = bufferMinutes;
+  }
+
+  const horizonDays = parsePositiveInt(draft.upcoming_horizon_days);
+  if (horizonDays === null) throw new Error("Upcoming horizon days must be a positive number");
+  if (horizonDays !== saved.upcoming_horizon_days) patch.upcoming_horizon_days = horizonDays;
+
+  const defaultDuration = parsePositiveInt(draft.default_estimated_duration_minutes);
+  if (defaultDuration === null) {
+    throw new Error("Default task duration must be a positive number");
+  }
+  if (defaultDuration !== saved.default_estimated_duration_minutes) {
+    patch.default_estimated_duration_minutes = defaultDuration;
+  }
+
+  const minBlockDuration = parsePositiveInt(draft.default_min_block_duration_minutes);
+  if (minBlockDuration === null) {
+    throw new Error("Default min block length must be a positive number");
+  }
+  if (minBlockDuration !== saved.default_min_block_duration_minutes) {
+    patch.default_min_block_duration_minutes = minBlockDuration;
+  }
+
+  if (draft.default_schedule_style !== saved.default_schedule_style) {
+    patch.default_schedule_style = draft.default_schedule_style;
+  }
+  if (draft.auto_defer_enabled !== saved.auto_defer_enabled) {
+    patch.auto_defer_enabled = draft.auto_defer_enabled;
+  }
+
+  return Object.keys(patch).length > 0 ? patch : null;
+}
+
+function isSettingsDirty(saved: UserSettings, draft: SchedulingDraft): boolean {
+  try {
+    return buildSettingsPatch(saved, draft) !== null;
+  } catch {
+    return true;
+  }
+}
+
+function SchedulingDefaultsSection({ enabled }: { enabled: boolean }) {
+  const queryClient = useQueryClient();
+  const settingsQuery = useQuery({
+    queryKey: ["user-settings"],
+    queryFn: fetchSettings,
+    enabled,
+  });
+
+  const [draft, setDraft] = useState<SchedulingDraft | null>(null);
+
+  useEffect(() => {
+    if (settingsQuery.data) {
+      setDraft(settingsToDraft(settingsQuery.data));
+    }
+  }, [settingsQuery.data]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!settingsQuery.data || !draft) return null;
+      const patch = buildSettingsPatch(settingsQuery.data, draft);
+      if (!patch) return null;
+      return updateSettings(patch);
+    },
+    onSuccess: (result) => {
+      if (result) {
+        queryClient.setQueryData(["user-settings"], result);
+        setDraft(settingsToDraft(result));
+        emitToast("Scheduling defaults saved");
+      }
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't save scheduling defaults"),
+  });
+
+  const saved = settingsQuery.data;
+  const dirty = saved && draft ? isSettingsDirty(saved, draft) : false;
+
+  return (
+    <section className="settings-section">
+      <h3 className="settings-section-title">Scheduling defaults</h3>
+      <p className="settings-help muted small">
+        Timezone, work capacity, and planner defaults used when scheduling tasks.
+      </p>
+      {settingsQuery.isLoading && <p className="muted small">Loading scheduling defaults…</p>}
+      {settingsQuery.isError && (
+        <p className="muted small">Couldn't load scheduling defaults — try again later.</p>
+      )}
+      {draft && !settingsQuery.isLoading && (
+        <form
+          className="scheduling-defaults-form entity-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveMutation.mutate();
+          }}
+        >
+          <label className="field">
+            <span>Timezone</span>
+            <input
+              type="text"
+              value={draft.timezone}
+              onChange={(e) => setDraft((prev) => prev && { ...prev, timezone: e.target.value })}
+              placeholder="America/Los_Angeles"
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </label>
+          <label className="field">
+            <span>Locale</span>
+            <input
+              type="text"
+              value={draft.locale}
+              onChange={(e) => setDraft((prev) => prev && { ...prev, locale: e.target.value })}
+              placeholder="en-US"
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </label>
+          <div className="time-map-time-row">
+            <label className="field">
+              <span>Workday minutes</span>
+              <input
+                type="number"
+                className="field-number"
+                min={1}
+                step={1}
+                value={draft.workday_minutes}
+                onChange={(e) =>
+                  setDraft((prev) => prev && { ...prev, workday_minutes: e.target.value })
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Workweek days</span>
+              <input
+                type="number"
+                className="field-number"
+                min={1}
+                max={7}
+                step={1}
+                value={draft.workweek_days}
+                onChange={(e) =>
+                  setDraft((prev) => prev && { ...prev, workweek_days: e.target.value })
+                }
+              />
+            </label>
+          </div>
+          <div className="time-map-time-row">
+            <label className="field">
+              <span>Buffer between blocks (minutes)</span>
+              <input
+                type="number"
+                className="field-number"
+                min={0}
+                step={1}
+                value={draft.inter_block_buffer_minutes}
+                onChange={(e) =>
+                  setDraft((prev) => prev && { ...prev, inter_block_buffer_minutes: e.target.value })
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Upcoming horizon (days)</span>
+              <input
+                type="number"
+                className="field-number"
+                min={1}
+                step={1}
+                value={draft.upcoming_horizon_days}
+                onChange={(e) =>
+                  setDraft((prev) => prev && { ...prev, upcoming_horizon_days: e.target.value })
+                }
+              />
+            </label>
+          </div>
+          <div className="time-map-time-row">
+            <label className="field">
+              <span>Default task duration (minutes)</span>
+              <input
+                type="number"
+                className="field-number"
+                min={1}
+                step={1}
+                value={draft.default_estimated_duration_minutes}
+                onChange={(e) =>
+                  setDraft((prev) => prev && {
+                    ...prev,
+                    default_estimated_duration_minutes: e.target.value,
+                  })
+                }
+              />
+            </label>
+            <label className="field">
+              <span>Default min block length (minutes)</span>
+              <input
+                type="number"
+                className="field-number"
+                min={1}
+                step={1}
+                value={draft.default_min_block_duration_minutes}
+                onChange={(e) =>
+                  setDraft((prev) => prev && {
+                    ...prev,
+                    default_min_block_duration_minutes: e.target.value,
+                  })
+                }
+              />
+            </label>
+          </div>
+          <label className="field">
+            <span>Default schedule style</span>
+            <select
+              className="field-select"
+              value={draft.default_schedule_style}
+              onChange={(e) =>
+                setDraft((prev) => prev && {
+                  ...prev,
+                  default_schedule_style: e.target.value as ScheduleStyle,
+                })
+              }
+            >
+              <option value="standalone">Standalone (default)</option>
+              <option value="time_block">Time block (opt-in)</option>
+              <option value="bundle">Bundle (opt-in)</option>
+            </select>
+          </label>
+          <label className="time-map-hard-check">
+            <input
+              type="checkbox"
+              checked={draft.auto_defer_enabled}
+              onChange={(e) =>
+                setDraft((prev) => prev && { ...prev, auto_defer_enabled: e.target.checked })
+              }
+            />
+            Auto-defer missed plan windows
+          </label>
+          <p className="settings-help muted small">
+            When on, missed plan windows may slide to a later date. Turn off to keep hard plan
+            frames.
+          </p>
+          <div className="form-actions">
+            <button
+              type="submit"
+              className="btn primary small"
+              disabled={saveMutation.isPending || !dirty}
+            >
+              {saveMutation.isPending ? "Saving…" : "Save scheduling defaults"}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
 function TimeMapsSection({ enabled }: { enabled: boolean }) {
   const queryClient = useQueryClient();
   const windowsQuery = useQuery({
@@ -693,6 +1016,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           ))}
         </div>
       </section>
+
+      <SchedulingDefaultsSection enabled={open} />
 
       <section className="settings-section">
         <div className="settings-section-header">

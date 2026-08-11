@@ -18,6 +18,7 @@ from app.api.routes import (
     scheduled_blocks,
     search,
     sections,
+    settings as settings_routes,
     tasks,
 )
 from app.api.errors import register_exception_handlers
@@ -94,6 +95,7 @@ def create_app() -> FastAPI:
     api_router.include_router(scheduled_blocks.router)
     api_router.include_router(calendar.router)
     api_router.include_router(search.router)
+    api_router.include_router(settings_routes.router)
     app.include_router(api_router)
     return app
 

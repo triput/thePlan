@@ -47,3 +47,27 @@ List shows a depth-first tree: each parent’s children (by sibling `sort_order`
 - Drag-and-drop reparent
 - Section-grouped project layout polish
 - Soft-delete
+
+---
+
+## DEF-002 — Timezone setting is free-text, not a picker
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P4** (UX polish; IANA text works) |
+| **Status** | Open |
+| **Found** | 2026-08-11 |
+| **Surface** | Settings → Scheduling defaults → Timezone |
+| **Wave** | Bug bash / polish bundle — non-urgent |
+
+### Symptom
+
+Timezone is a free-text field. Easy to typo; no discoverability of valid IANA zones.
+
+### Expected
+
+Dropdown (searchable preferred) of common/valid IANA timezones; still store the same string on `user_settings.timezone`.
+
+### Notes
+
+Bundle with other small Settings/UI fixes when convenient. Not a Settings expansion exit blocker.

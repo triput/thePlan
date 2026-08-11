@@ -28,6 +28,7 @@ from app.models.enums import (
     CalendarSubscriptionRole,
     ReminderChannel,
     ScheduleStatus,
+    ScheduleStyle,
     TaskPriority,
 )
 
@@ -74,6 +75,18 @@ class UserSettings(Base, TimestampMixin):
         server_default='{"Wp": 0.35, "Wu": 0.40, "Wd": 0.15, "We": 0.10, "k": 0.5}',
     )
     upcoming_horizon_days: Mapped[int] = mapped_column(Integer, nullable=False, server_default="7")
+    default_estimated_duration_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="30"
+    )
+    default_min_block_duration_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="15"
+    )
+    default_schedule_style: Mapped[ScheduleStyle] = mapped_column(
+        SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
+        nullable=False,
+        server_default="standalone",
+    )
+    auto_defer_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
 
     owner: Mapped["User"] = relationship(back_populates="settings")
 

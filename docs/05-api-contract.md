@@ -125,6 +125,8 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 }
 ```
 
+`estimated_duration_minutes` optional on create: omit or `null` → `user_settings.default_estimated_duration_minutes`; explicit value wins (including `30`).
+
 `deadline_at` and `soft_target_at` accepted on write but not surfaced in MVP UI. `deadline_at` enforced in W2 scheduler. `preferred_time_window_id` must reference an owned focus window; cleared with `null`.
 
 ---
@@ -271,8 +273,28 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/settings` | Get user_settings for owner |
-| PATCH | `/settings` | Update timezone, workday_minutes, etc. |
+| GET | `/settings` | Get `user_settings` for owner (provisions row if missing) |
+| PATCH | `/settings` | Partial update of editable fields |
+
+**Response / PATCH fields:**
+
+| Field | Type | Default | Validation |
+|-------|------|---------|------------|
+| timezone | string | UTC | Non-empty IANA name (length check) |
+| locale | string | en-US | |
+| workday_minutes | int | 480 | > 0 |
+| workweek_days | int | 5 | 1–7 |
+| inter_block_buffer_minutes | int | 5 | >= 0 |
+| ups_weights | object | Wp/Wu/Wd/We/k | JSON object |
+| upcoming_horizon_days | int | 7 | >= 1 |
+| default_estimated_duration_minutes | int | 30 | > 0 |
+| default_min_block_duration_minutes | int | 15 | > 0 |
+| default_schedule_style | enum | standalone | `standalone`, `time_block`, `bundle` |
+| auto_defer_enabled | bool | true | |
+
+**Task create duration:** `estimated_duration_minutes` on `POST /tasks` is optional. Omit or send `null` to use `user_settings.default_estimated_duration_minutes`; an explicit value (including `30`) is stored as-is.
+
+**Quick-add parse:** When the parser finds no duration token, `estimated_duration_minutes` in the parse response is filled from `user_settings.default_estimated_duration_minutes` before return.
 
 ---
 

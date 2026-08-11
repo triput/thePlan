@@ -84,6 +84,19 @@ def provision_user_settings_and_filters(db: Session, user_id: uuid.UUID) -> None
     ensure_default_focus_windows(db, user_id)
 
 
+def get_or_provision_user_settings(db: Session, user: User) -> UserSettings:
+    if user.settings is not None:
+        return user.settings
+    provision_user_settings_and_filters(db, user.id)
+    db.flush()
+    settings = (
+        db.query(UserSettings)
+        .filter(UserSettings.owner_id == user.id)
+        .one()
+    )
+    return settings
+
+
 def claim_bootstrap_user(
     db: Session,
     *,
