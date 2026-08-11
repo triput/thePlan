@@ -17,9 +17,6 @@ import {
 import {
   addDays,
   addMinutes,
-  CALENDAR_HOUR_END,
-  CALENDAR_HOUR_START,
-  CALENDAR_HOURS,
   CALENDAR_MIN_BLOCK_MINUTES,
   clampToCalendarWindow,
   combineDateAndTime,
@@ -29,12 +26,17 @@ import {
   heightPercentForDuration,
   isSameDay,
   isToday,
+  loadShow24h,
   minutesFromDeltaY,
+  resolveHourBounds,
+  saveShow24h,
+  SHOW_24H_STORAGE_KEY,
   slotFromClick,
   snapMinutes,
   toISO,
   topPercentForTime,
   type CalendarMode,
+  type HourBounds,
   visibleRange,
   weekDays,
   dayViewTitle,
@@ -48,6 +50,7 @@ import { Modal } from "./Modal";
 
 const ROW_HEIGHT_PX = 48;
 const DRAG_THRESHOLD_PX = 5;
+const CALENDAR_HOURS_EVENT = "theplan:calendar-hours";
 
 interface BlockFormState {
   taskId: string;
@@ -207,11 +210,11 @@ function BlockFormModal({
   );
 }
 
-function BusyBlockItem({ event }: { event: ExternalCalendarEvent }) {
+function BusyBlockItem({ event, bounds }: { event: ExternalCalendarEvent; bounds: HourBounds }) {
   const start = new Date(event.start_time);
   const end = new Date(event.end_time);
-  const top = topPercentForTime(start);
-  const height = heightPercentForDuration(blockDurationMinutes(start, end));
+  const top = topPercentForTime(start, bounds);
+  const height = heightPercentForDuration(blockDurationMinutes(start, end), bounds);
   if (top >= 100 || top + height <= 0) return null;
 
   return (
@@ -231,6 +234,7 @@ function BusyBlockItem({ event }: { event: ExternalCalendarEvent }) {
 function DueMarker({
   task,
   color,
+  bounds,
   previewDue,
   dragEnabled,
   onClick,
@@ -238,6 +242,7 @@ function DueMarker({
 }: {
   task: Task;
   color: string;
+  bounds: HourBounds;
   previewDue?: Date;
   dragEnabled: boolean;
   onClick: () => void;
@@ -245,7 +250,7 @@ function DueMarker({
 }) {
   const due = previewDue ?? (task.due_at ? new Date(task.due_at) : null);
   if (!due) return null;
-  const top = topPercentForTime(due);
+  const top = topPercentForTime(due, bounds);
   if (top <= 0 || top >= 100) return null;
 
   return (
@@ -272,6 +277,7 @@ function ScheduledBlockItem({
   block,
   task,
   color,
+  bounds,
   previewStart,
   previewEnd,
   dragEnabled,
@@ -282,6 +288,7 @@ function ScheduledBlockItem({
   block: ScheduledBlock;
   task: Task | undefined;
   color: string;
+  bounds: HourBounds;
   previewStart?: Date;
   previewEnd?: Date;
   dragEnabled: boolean;
@@ -291,8 +298,8 @@ function ScheduledBlockItem({
 }) {
   const start = previewStart ?? new Date(block.start_time);
   const end = previewEnd ?? new Date(block.end_time);
-  const top = topPercentForTime(start);
-  const height = heightPercentForDuration(blockDurationMinutes(start, end));
+  const top = topPercentForTime(start, bounds);
+  const height = heightPercentForDuration(blockDurationMinutes(start, end), bounds);
   const dragging = Boolean(previewStart || previewEnd);
 
   return (
@@ -348,6 +355,7 @@ function ScheduledBlockItem({
 
 function DayColumn({
   day,
+  bounds,
   blocks,
   busyEvents,
   dueTasks,
@@ -365,6 +373,7 @@ function DayColumn({
   showDayLabel,
 }: {
   day: Date;
+  bounds: HourBounds;
   blocks: ScheduledBlock[];
   busyEvents: ExternalCalendarEvent[];
   dueTasks: Task[];
@@ -423,18 +432,19 @@ function DayColumn({
           onSlotClick(day, e.clientY - rect.top);
         }}
       >
-        {Array.from({ length: CALENDAR_HOURS }, (_, i) => (
+        {Array.from({ length: bounds.hours }, (_, i) => (
           <div key={i} className="cal-hour-row" style={{ height: ROW_HEIGHT_PX }} />
         ))}
         <div className="cal-overlay">
           {dayBusy.map((event) => (
-            <BusyBlockItem key={`busy-${event.id}`} event={event} />
+            <BusyBlockItem key={`busy-${event.id}`} event={event} bounds={bounds} />
           ))}
           {dayDue.map((task) => (
             <DueMarker
               key={`due-${task.id}`}
               task={task}
               color={projectColor(projects, task.project_id)}
+              bounds={bounds}
               previewDue={
                 duePreview?.kind === "due-move" && duePreview.taskId === task.id
                   ? duePreview.previewDue
@@ -459,6 +469,7 @@ function DayColumn({
                 block={block}
                 task={task}
                 color={projectColor(projects, task?.project_id ?? null)}
+                bounds={bounds}
                 previewStart={preview?.previewStart}
                 previewEnd={preview?.previewEnd}
                 dragEnabled={dragEnabled}
@@ -479,6 +490,7 @@ export function CalendarView() {
   const isNarrow = useMediaQuery(NARROW_QUERY);
   const [mode, setMode] = useState<CalendarMode>("day");
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
+  const [show24h, setShow24h] = useState(() => loadShow24h());
   const [blockForm, setBlockForm] = useState<BlockFormState | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [drag, setDrag] = useState<ActiveDrag | null>(null);
@@ -492,6 +504,31 @@ export function CalendarView() {
   useEffect(() => {
     if (isNarrow) setMode("day");
   }, [isNarrow]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === SHOW_24H_STORAGE_KEY) setShow24h(loadShow24h());
+    };
+    const onHoursEvent = (e: Event) => {
+      const detail = (e as CustomEvent<boolean>).detail;
+      setShow24h(typeof detail === "boolean" ? detail : loadShow24h());
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(CALENDAR_HOURS_EVENT, onHoursEvent);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(CALENDAR_HOURS_EVENT, onHoursEvent);
+    };
+  }, []);
+
+  const hours = useMemo(() => resolveHourBounds(show24h), [show24h]);
+
+  const toggleShow24h = () => {
+    const next = !show24h;
+    setShow24h(next);
+    saveShow24h(next);
+    window.dispatchEvent(new CustomEvent(CALENDAR_HOURS_EVENT, { detail: next }));
+  };
 
   const dragEnabled = !isNarrow;
   const range = useMemo(() => visibleRange(anchor, mode), [anchor, mode]);
@@ -637,7 +674,7 @@ export function CalendarView() {
           if (targetDay) {
             nextStart = combineDateAndTime(targetDay, nextStart);
           }
-          nextStart = clampToCalendarWindow(nextStart, duration);
+          nextStart = clampToCalendarWindow(nextStart, duration, hours);
           next = {
             ...current,
             moved,
@@ -649,7 +686,7 @@ export function CalendarView() {
           const minEnd = addMinutes(current.originStart, CALENDAR_MIN_BLOCK_MINUTES);
           if (nextEnd < minEnd) nextEnd = minEnd;
           const dayEnd = startOfDay(current.originStart);
-          dayEnd.setHours(CALENDAR_HOUR_END, 0, 0, 0);
+          dayEnd.setHours(hours.end, 0, 0, 0);
           if (nextEnd > dayEnd) nextEnd = dayEnd;
           next = {
             ...current,
@@ -663,7 +700,7 @@ export function CalendarView() {
           if (targetDay) {
             nextDue = combineDateAndTime(targetDay, nextDue);
           }
-          nextDue = clampToCalendarWindow(nextDue, 0);
+          nextDue = clampToCalendarWindow(nextDue, 0, hours);
           next = { ...current, moved, previewDue: nextDue };
         }
 
@@ -689,7 +726,7 @@ export function CalendarView() {
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", onUp);
     },
-    [commitDrag, detachDragListeners],
+    [commitDrag, detachDragListeners, hours],
   );
 
   useEffect(() => () => detachDragListeners(), [detachDragListeners]);
@@ -728,7 +765,7 @@ export function CalendarView() {
 
   const handleSlotClick = (day: Date, offsetY: number) => {
     if (suppressClickRef.current || dragRef.current) return;
-    const { start, end } = slotFromClick(day, offsetY, ROW_HEIGHT_PX);
+    const { start, end } = slotFromClick(day, offsetY, ROW_HEIGHT_PX, hours);
     openCreate("", start, end);
   };
 
@@ -736,7 +773,7 @@ export function CalendarView() {
     if (suppressClickRef.current) return;
     const due = task.due_at ? new Date(task.due_at) : new Date();
     const start = new Date(due);
-    if (start.getHours() < CALENDAR_HOUR_START) start.setHours(CALENDAR_HOUR_START, 0, 0, 0);
+    if (start.getHours() < hours.start) start.setHours(hours.start, 0, 0, 0);
     const end = new Date(start);
     const mins = task.estimated_duration_minutes || 60;
     end.setMinutes(end.getMinutes() + mins);
@@ -856,6 +893,15 @@ export function CalendarView() {
         <div className="cal-mode-toggle">
           <button
             type="button"
+            className="btn small cal-hours-toggle ghost"
+            onClick={toggleShow24h}
+            aria-pressed={show24h}
+            title={show24h ? "Showing 24 hours — click for 6 AM–10 PM" : "Showing 6 AM–10 PM — click for 24 hours"}
+          >
+            {show24h ? "24h" : "6A–10P"}
+          </button>
+          <button
+            type="button"
             className={`btn small${mode === "day" ? " primary" : " ghost"}`}
             onClick={() => setMode("day")}
           >
@@ -876,20 +922,22 @@ export function CalendarView() {
         <p className="muted small cal-loading">Loading calendar…</p>
       )}
 
-      <div className={`cal-grid${mode === "week" ? " week" : " day"}`}>
-        <div className="cal-time-gutter">
-          {mode === "week" && <div className="cal-gutter-spacer" />}
-          {Array.from({ length: CALENDAR_HOURS }, (_, i) => (
-            <div key={i} className="cal-time-label" style={{ height: ROW_HEIGHT_PX }}>
-              {formatHour(CALENDAR_HOUR_START + i)}
-            </div>
-          ))}
-        </div>
-        <div className={`cal-columns${mode === "week" ? " week" : ""}`}>
-          {days.map((day) => (
-            <DayColumn
-              key={day.toISOString()}
-              day={day}
+      <div className={`cal-grid-wrap${show24h ? " show-24h" : ""}`}>
+        <div className={`cal-grid${mode === "week" ? " week" : " day"}`}>
+          <div className="cal-time-gutter">
+            {mode === "week" && <div className="cal-gutter-spacer" />}
+            {Array.from({ length: hours.hours }, (_, i) => (
+              <div key={i} className="cal-time-label" style={{ height: ROW_HEIGHT_PX }}>
+                {formatHour(hours.start + i)}
+              </div>
+            ))}
+          </div>
+          <div className={`cal-columns${mode === "week" ? " week" : ""}`}>
+            {days.map((day) => (
+              <DayColumn
+                key={day.toISOString()}
+                day={day}
+                bounds={hours}
               blocks={blocks}
               busyEvents={busyEvents}
               dueTasks={dueTasks}
@@ -907,6 +955,7 @@ export function CalendarView() {
               showDayLabel={mode === "week"}
             />
           ))}
+          </div>
         </div>
       </div>
 

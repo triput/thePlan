@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.models.enums import ReminderChannel, ScheduleStatus, TaskPriority
+from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, TaskPriority
 
 
 class UserOut(BaseModel):
@@ -340,10 +340,47 @@ class CalendarAccountOut(BaseModel):
     provider: str
     account_email: str | None
     is_enabled: bool
+    mirror_blocks_to_google: bool
     sync_cursor: str | None
+    last_synced_at: datetime | None
     token_expires_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class CalendarAccountUpdate(BaseModel):
+    mirror_blocks_to_google: bool | None = None
+    is_enabled: bool | None = None
+
+
+class GoogleCalendarListItem(BaseModel):
+    id: str
+    summary: str | None = None
+    primary: bool = False
+    access_role: str | None = None
+
+
+class CalendarSubscriptionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    calendar_account_id: UUID
+    external_calendar_id: str
+    summary: str | None
+    role: CalendarSubscriptionRole
+    is_enabled: bool
+    sync_cursor: str | None = None
+
+
+class CalendarSubscriptionPutItem(BaseModel):
+    external_calendar_id: str = Field(min_length=1, max_length=255)
+    summary: str | None = Field(default=None, max_length=255)
+    role: CalendarSubscriptionRole
+    is_enabled: bool = True
+
+
+class CalendarSubscriptionsPut(BaseModel):
+    items: list[CalendarSubscriptionPutItem] = Field(min_length=1)
 
 
 class ExternalCalendarEventOut(BaseModel):

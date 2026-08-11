@@ -35,12 +35,13 @@ def test_schedule_status_includes_overbooked() -> None:
 
 
 def test_stub_tables_mapped() -> None:
-    from app.models import CalendarAccount, FocusWindow, RecurrenceRule, Reminder as ReminderModel
+    from app.models import CalendarAccount, CalendarSubscription, FocusWindow, RecurrenceRule, Reminder as ReminderModel
 
     assert FocusWindow.__tablename__ == "focus_windows"
     assert RecurrenceRule.__tablename__ == "recurrence_rules"
     assert ReminderModel.__tablename__ == "reminders"
     assert CalendarAccount.__tablename__ == "calendar_accounts"
+    assert CalendarSubscription.__tablename__ == "calendar_subscriptions"
 
 
 def test_reminder_fire_at_index_declared() -> None:

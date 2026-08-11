@@ -1,27 +1,40 @@
-"""Google Calendar OAuth + events sync helpers."""
+"""Google Calendar OAuth, sync, and mirror helpers."""
 
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import httpx
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import Settings, get_settings
-from app.models import CalendarAccount, ExternalCalendarEvent
-from app.models.enums import CalendarProvider
+from app.models import (
+    CalendarAccount,
+    CalendarSubscription,
+    ExternalCalendarEvent,
+    ScheduledBlock,
+    Task,
+)
+from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.services.token_crypto import decrypt_token, encrypt_token
+
+logger = logging.getLogger(__name__)
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
-GOOGLE_EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+GOOGLE_CALENDAR_LIST_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
+
+
+class GoogleSyncTokenExpired(Exception):
+    """Raised when Google returns 410 for an incremental sync token."""
 
 
 @dataclass(frozen=True)
@@ -30,6 +43,14 @@ class GoogleOAuthConfig:
     client_secret: str
     redirect_uri: str
     scopes: str
+
+
+def _calendar_events_base(calendar_id: str) -> str:
+    return f"https://www.googleapis.com/calendar/v3/calendars/{quote(calendar_id, safe='')}/events"
+
+
+def _iso_z(dt: datetime) -> str:
+    return _ensure_aware(dt).astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def load_google_oauth_config(settings: Settings | None = None) -> GoogleOAuthConfig:
@@ -144,38 +165,32 @@ def parse_google_event_times(event: dict[str, Any]) -> tuple[datetime, datetime,
         return _ensure_aware(start_dt), _ensure_aware(end_dt), False
     if "date" in start and "date" in end:
         start_dt = datetime.fromisoformat(start["date"]).replace(tzinfo=timezone.utc)
-        # Google end date is exclusive for all-day events
         end_exclusive = datetime.fromisoformat(end["date"]).replace(tzinfo=timezone.utc)
-        end_dt = end_exclusive
-        return start_dt, end_dt, True
+        return start_dt, end_exclusive, True
     return None
 
 
-def list_primary_events(
+def _paginate_events(
     access_token: str,
+    url: str,
     *,
-    time_min: datetime,
-    time_max: datetime,
-) -> list[dict[str, Any]]:
-    params = {
-        "timeMin": _ensure_aware(time_min).astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "timeMax": _ensure_aware(time_max).astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "singleEvents": "true",
-        "orderBy": "startTime",
-        "maxResults": "2500",
-    }
+    params: dict[str, str],
+) -> tuple[list[dict[str, Any]], str | None]:
     items: list[dict[str, Any]] = []
     page_token: str | None = None
+    next_sync_token: str | None = None
     with httpx.Client(timeout=60.0) as client:
         while True:
             query = dict(params)
             if page_token:
                 query["pageToken"] = page_token
             response = client.get(
-                GOOGLE_EVENTS_URL,
+                url,
                 params=query,
                 headers={"Authorization": f"Bearer {access_token}"},
             )
+            if response.status_code == 410:
+                raise GoogleSyncTokenExpired()
             if response.status_code >= 400:
                 raise ApiError(
                     502,
@@ -186,9 +201,166 @@ def list_primary_events(
             payload = response.json()
             items.extend(payload.get("items") or [])
             page_token = payload.get("nextPageToken")
+            if payload.get("nextSyncToken"):
+                next_sync_token = payload["nextSyncToken"]
+            if not page_token:
+                break
+    return items, next_sync_token
+
+
+def list_google_calendars(access_token: str) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    page_token: str | None = None
+    with httpx.Client(timeout=30.0) as client:
+        while True:
+            params: dict[str, str] = {"maxResults": "250"}
+            if page_token:
+                params["pageToken"] = page_token
+            response = client.get(
+                GOOGLE_CALENDAR_LIST_URL,
+                params=params,
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            if response.status_code >= 400:
+                raise ApiError(
+                    502,
+                    "Google Calendar list failed",
+                    "GOOGLE_CALENDAR_LIST",
+                    body=response.text[:500],
+                )
+            payload = response.json()
+            items.extend(payload.get("items") or [])
+            page_token = payload.get("nextPageToken")
             if not page_token:
                 break
     return items
+
+
+def list_calendar_events(
+    access_token: str,
+    calendar_id: str,
+    *,
+    time_min: datetime,
+    time_max: datetime,
+) -> tuple[list[dict[str, Any]], str | None]:
+    params = {
+        "timeMin": _iso_z(time_min),
+        "timeMax": _iso_z(time_max),
+        "singleEvents": "true",
+        "orderBy": "startTime",
+        "maxResults": "2500",
+    }
+    return _paginate_events(access_token, _calendar_events_base(calendar_id), params=params)
+
+
+def list_calendar_events_incremental(
+    access_token: str,
+    calendar_id: str,
+    sync_token: str,
+) -> tuple[list[dict[str, Any]], str | None]:
+    params = {"syncToken": sync_token}
+    return _paginate_events(access_token, _calendar_events_base(calendar_id), params=params)
+
+
+def _event_time_body(start: datetime, end: datetime) -> dict[str, Any]:
+    return {
+        "start": {"dateTime": _iso_z(start), "timeZone": "UTC"},
+        "end": {"dateTime": _iso_z(end), "timeZone": "UTC"},
+    }
+
+
+def create_google_event(
+    access_token: str,
+    calendar_id: str,
+    *,
+    title: str,
+    start: datetime,
+    end: datetime,
+) -> dict[str, Any]:
+    body = {"summary": title, **_event_time_body(start, end)}
+    with httpx.Client(timeout=30.0) as client:
+        response = client.post(
+            _calendar_events_base(calendar_id),
+            json=body,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+    if response.status_code >= 400:
+        raise ApiError(
+            502,
+            "Google Calendar event create failed",
+            "GOOGLE_EVENT_CREATE",
+            body=response.text[:500],
+        )
+    return response.json()
+
+
+def patch_google_event(
+    access_token: str,
+    calendar_id: str,
+    event_id: str,
+    *,
+    title: str,
+    start: datetime,
+    end: datetime,
+) -> dict[str, Any]:
+    body = {"summary": title, **_event_time_body(start, end)}
+    event_path = f"{_calendar_events_base(calendar_id)}/{quote(event_id, safe='')}"
+    with httpx.Client(timeout=30.0) as client:
+        response = client.patch(
+            event_path,
+            json=body,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+    if response.status_code >= 400:
+        raise ApiError(
+            502,
+            "Google Calendar event patch failed",
+            "GOOGLE_EVENT_PATCH",
+            body=response.text[:500],
+        )
+    return response.json()
+
+
+def delete_google_event(access_token: str, calendar_id: str, event_id: str) -> None:
+    event_path = f"{_calendar_events_base(calendar_id)}/{quote(event_id, safe='')}"
+    with httpx.Client(timeout=30.0) as client:
+        response = client.delete(
+            event_path,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+    if response.status_code >= 400 and response.status_code != 404:
+        raise ApiError(
+            502,
+            "Google Calendar event delete failed",
+            "GOOGLE_EVENT_DELETE",
+            body=response.text[:500],
+        )
+
+
+def ensure_primary_subscription(db: Session, account: CalendarAccount) -> CalendarSubscription:
+    sub = (
+        db.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account.id,
+            CalendarSubscription.external_calendar_id == "primary",
+        )
+        .one_or_none()
+    )
+    if sub is None:
+        sub = CalendarSubscription(
+            owner_id=account.owner_id,
+            calendar_account_id=account.id,
+            external_calendar_id="primary",
+            summary="Primary",
+            role=CalendarSubscriptionRole.primary,
+            is_enabled=True,
+        )
+        db.add(sub)
+    else:
+        sub.role = CalendarSubscriptionRole.primary
+        sub.is_enabled = True
+    db.flush()
+    return sub
 
 
 def upsert_account_tokens(
@@ -239,6 +411,7 @@ def upsert_account_tokens(
     account.token_expires_at = expires_at
     account.is_enabled = True
     db.flush()
+    ensure_primary_subscription(db, account)
     return account
 
 
@@ -275,17 +448,80 @@ def get_valid_access_token(
     return access
 
 
-def sync_account_events(
+def _find_external_event(
     db: Session,
     *,
-    settings: Settings,
+    owner_id,
+    external_id: str,
+) -> ExternalCalendarEvent | None:
+    return (
+        db.query(ExternalCalendarEvent)
+        .filter(
+            ExternalCalendarEvent.provider == CalendarProvider.google,
+            ExternalCalendarEvent.external_event_id == external_id,
+            ExternalCalendarEvent.owner_id == owner_id,
+        )
+        .one_or_none()
+    )
+
+
+def _upsert_external_event(
+    db: Session,
+    *,
     account: CalendarAccount,
+    subscription: CalendarSubscription,
+    event: dict[str, Any],
+    now: datetime,
+) -> bool:
+    external_id = event.get("id")
+    if not external_id:
+        return False
+    times = parse_google_event_times(event)
+    if times is None:
+        return False
+    start_dt, end_dt, is_all_day = times
+    if end_dt <= start_dt:
+        return False
+
+    row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
+    if row is None:
+        row = ExternalCalendarEvent(
+            owner_id=account.owner_id,
+            calendar_account_id=account.id,
+            provider=CalendarProvider.google,
+            external_event_id=external_id,
+            calendar_id=subscription.external_calendar_id,
+            start_time=start_dt,
+            end_time=end_dt,
+        )
+        db.add(row)
+
+    row.calendar_account_id = account.id
+    row.title = (event.get("summary") or "Busy")[:500]
+    row.start_time = start_dt
+    row.end_time = end_dt
+    row.is_all_day = is_all_day
+    row.calendar_id = subscription.external_calendar_id
+    row.last_synced_at = now
+    return True
+
+
+def _sync_subscription_full(
+    db: Session,
+    *,
+    access: str,
+    account: CalendarAccount,
+    subscription: CalendarSubscription,
     time_min: datetime,
     time_max: datetime,
+    now: datetime,
 ) -> int:
-    access = get_valid_access_token(db, settings=settings, account=account)
-    events = list_primary_events(access, time_min=time_min, time_max=time_max)
-    now = datetime.now(timezone.utc)
+    events, next_sync_token = list_calendar_events(
+        access,
+        subscription.external_calendar_id,
+        time_min=time_min,
+        time_max=time_max,
+    )
     seen_external_ids: set[str] = set()
     upserted = 0
 
@@ -294,47 +530,22 @@ def sync_account_events(
         external_id = event.get("id")
         if not external_id or status == "cancelled":
             continue
-        times = parse_google_event_times(event)
-        if times is None:
-            continue
-        start_dt, end_dt, is_all_day = times
-        if end_dt <= start_dt:
-            continue
         seen_external_ids.add(external_id)
-        row = (
-            db.query(ExternalCalendarEvent)
-            .filter(
-                ExternalCalendarEvent.provider == CalendarProvider.google,
-                ExternalCalendarEvent.external_event_id == external_id,
-                ExternalCalendarEvent.owner_id == account.owner_id,
-            )
-            .one_or_none()
-        )
-        if row is None:
-            row = ExternalCalendarEvent(
-                owner_id=account.owner_id,
-                calendar_account_id=account.id,
-                provider=CalendarProvider.google,
-                external_event_id=external_id,
-                calendar_id="primary",
-                start_time=start_dt,
-                end_time=end_dt,
-            )
-            db.add(row)
-        row.calendar_account_id = account.id
-        row.title = (event.get("summary") or "Busy")[:500]
-        row.start_time = start_dt
-        row.end_time = end_dt
-        row.is_all_day = is_all_day
-        row.calendar_id = "primary"
-        row.last_synced_at = now
-        upserted += 1
+        if _upsert_external_event(
+            db,
+            account=account,
+            subscription=subscription,
+            event=event,
+            now=now,
+        ):
+            upserted += 1
 
-    # Drop prior mirrors for this account that fall in the window but vanished upstream
     stale = (
         db.query(ExternalCalendarEvent)
         .filter(
             ExternalCalendarEvent.calendar_account_id == account.id,
+            ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
+            ExternalCalendarEvent.scheduled_block_id.is_(None),
             ExternalCalendarEvent.start_time < time_max,
             ExternalCalendarEvent.end_time > time_min,
         )
@@ -344,6 +555,241 @@ def sync_account_events(
         if row.external_event_id not in seen_external_ids:
             db.delete(row)
 
-    account.sync_cursor = now.isoformat()
+    if next_sync_token:
+        subscription.sync_cursor = next_sync_token
     db.flush()
     return upserted
+
+
+def _sync_subscription_incremental(
+    db: Session,
+    *,
+    access: str,
+    account: CalendarAccount,
+    subscription: CalendarSubscription,
+    now: datetime,
+) -> int:
+    assert subscription.sync_cursor
+    events, next_sync_token = list_calendar_events_incremental(
+        access,
+        subscription.external_calendar_id,
+        subscription.sync_cursor,
+    )
+    upserted = 0
+
+    for event in events:
+        status = event.get("status")
+        external_id = event.get("id")
+        if not external_id:
+            continue
+        if status == "cancelled":
+            row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
+            if row is not None:
+                db.delete(row)
+            continue
+        if _upsert_external_event(
+            db,
+            account=account,
+            subscription=subscription,
+            event=event,
+            now=now,
+        ):
+            upserted += 1
+
+    if next_sync_token:
+        subscription.sync_cursor = next_sync_token
+    db.flush()
+    return upserted
+
+
+def _sync_subscription(
+    db: Session,
+    *,
+    settings: Settings,
+    account: CalendarAccount,
+    subscription: CalendarSubscription,
+    time_min: datetime,
+    time_max: datetime,
+    access: str,
+    now: datetime,
+) -> int:
+    if subscription.sync_cursor:
+        try:
+            return _sync_subscription_incremental(
+                db,
+                access=access,
+                account=account,
+                subscription=subscription,
+                now=now,
+            )
+        except GoogleSyncTokenExpired:
+            subscription.sync_cursor = None
+            db.flush()
+
+    return _sync_subscription_full(
+        db,
+        access=access,
+        account=account,
+        subscription=subscription,
+        time_min=time_min,
+        time_max=time_max,
+        now=now,
+    )
+
+
+def sync_account_events(
+    db: Session,
+    *,
+    settings: Settings,
+    account: CalendarAccount,
+    time_min: datetime,
+    time_max: datetime,
+) -> int:
+    access = get_valid_access_token(db, settings=settings, account=account)
+    now = datetime.now(timezone.utc)
+    subscriptions = (
+        db.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account.id,
+            CalendarSubscription.is_enabled.is_(True),
+        )
+        .all()
+    )
+    if not subscriptions:
+        ensure_primary_subscription(db, account)
+        subscriptions = (
+            db.query(CalendarSubscription)
+            .filter(
+                CalendarSubscription.calendar_account_id == account.id,
+                CalendarSubscription.is_enabled.is_(True),
+            )
+            .all()
+        )
+
+    upserted = 0
+    for subscription in subscriptions:
+        upserted += _sync_subscription(
+            db,
+            settings=settings,
+            account=account,
+            subscription=subscription,
+            time_min=time_min,
+            time_max=time_max,
+            access=access,
+            now=now,
+        )
+
+    account.last_synced_at = now
+    db.flush()
+    return upserted
+
+
+def _mirror_account_and_calendar(
+    db: Session,
+    owner_id,
+) -> tuple[CalendarAccount | None, str]:
+    account = (
+        db.query(CalendarAccount)
+        .filter(
+            CalendarAccount.owner_id == owner_id,
+            CalendarAccount.provider == CalendarProvider.google,
+            CalendarAccount.is_enabled.is_(True),
+            CalendarAccount.mirror_blocks_to_google.is_(True),
+        )
+        .first()
+    )
+    if account is None:
+        return None, "primary"
+
+    primary_sub = (
+        db.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account.id,
+            CalendarSubscription.role == CalendarSubscriptionRole.primary,
+            CalendarSubscription.is_enabled.is_(True),
+        )
+        .first()
+    )
+    calendar_id = primary_sub.external_calendar_id if primary_sub else "primary"
+    return account, calendar_id
+
+
+def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock) -> None:
+    account, calendar_id = _mirror_account_and_calendar(db, block.owner_id)
+    if account is None:
+        return
+
+    task = db.get(Task, block.task_id)
+    title = (task.title if task else "Scheduled block")[:500]
+    access = get_valid_access_token(db, settings=settings, account=account)
+    existing = (
+        db.query(ExternalCalendarEvent)
+        .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
+        .one_or_none()
+    )
+    now = datetime.now(timezone.utc)
+
+    if existing:
+        patch_google_event(
+            access,
+            calendar_id,
+            existing.external_event_id,
+            title=title,
+            start=block.start_time,
+            end=block.end_time,
+        )
+        existing.title = title
+        existing.start_time = block.start_time
+        existing.end_time = block.end_time
+        existing.calendar_id = calendar_id
+        existing.last_synced_at = now
+    else:
+        event = create_google_event(
+            access,
+            calendar_id,
+            title=title,
+            start=block.start_time,
+            end=block.end_time,
+        )
+        external_id = event.get("id")
+        if not external_id:
+            raise ApiError(502, "Google did not return event id", "GOOGLE_EVENT_NO_ID")
+        row = ExternalCalendarEvent(
+            owner_id=block.owner_id,
+            calendar_account_id=account.id,
+            scheduled_block_id=block.id,
+            task_id=block.task_id,
+            provider=CalendarProvider.google,
+            external_event_id=external_id,
+            calendar_id=calendar_id,
+            title=title,
+            start_time=block.start_time,
+            end_time=block.end_time,
+            is_all_day=False,
+            last_synced_at=now,
+        )
+        db.add(row)
+
+    db.flush()
+
+
+def delete_mirrored_block(db: Session, settings: Settings, block: ScheduledBlock) -> None:
+    existing = (
+        db.query(ExternalCalendarEvent)
+        .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
+        .one_or_none()
+    )
+    if existing is None:
+        return
+
+    account = db.get(CalendarAccount, existing.calendar_account_id)
+    if account is None or not account.is_enabled:
+        db.delete(existing)
+        db.flush()
+        return
+
+    calendar_id = existing.calendar_id
+    access = get_valid_access_token(db, settings=settings, account=account)
+    delete_google_event(access, calendar_id, existing.external_event_id)
+    db.delete(existing)
+    db.flush()

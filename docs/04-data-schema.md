@@ -31,7 +31,8 @@ users ──┬── user_settings
         │                          └── reminders
         ├── focus_windows
         ├── saved_filters
-        ├── calendar_accounts ── external_calendar_events
+        ├── calendar_accounts ── calendar_subscriptions
+        │                    └── external_calendar_events
         └── schedule_runs
 ```
 
@@ -62,6 +63,10 @@ users ──┬── user_settings
 ### calendar_provider
 
 `google`, `microsoft` — W2/W3 sync.
+
+### calendar_subscription_role
+
+`primary` (busy source + optional mirror write target), `informational` (see-only overlay).
 
 ### reminder_channel
 
@@ -269,7 +274,11 @@ Example Inbox predicate:
 
 ### calendar_accounts
 
-OAuth token storage (encrypted at rest in application layer). `sync_cursor` for incremental sync. W2.
+OAuth token storage (encrypted at rest in application layer). `mirror_blocks_to_google` toggles pushing `scheduled_blocks` to the primary Google calendar (best-effort). `last_synced_at` records the last successful multi-subscription sync. Legacy `sync_cursor` on the account is unused; per-subscription `sync_cursor` stores Google `nextSyncToken`.
+
+### calendar_subscriptions
+
+Per-account Google calendar selection: `external_calendar_id`, `role` (`primary` | `informational`), `is_enabled`, and `sync_cursor` (Google incremental sync token). Unique on `(calendar_account_id, external_calendar_id)`.
 
 ### external_calendar_events
 

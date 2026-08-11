@@ -345,18 +345,22 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 
 ## Wave 2 Endpoints
 
-### Calendar (W2a — Slice 1 shipped)
+### Calendar (W2a — Slice 2)
 
 | Method | Path | Notes |
 |--------|------|-------|
 | GET | `/calendar/oauth/google/start` | Session auth; 302 to Google |
-| GET | `/calendar/oauth/google/callback` | OAuth return; upserts `calendar_accounts`, initial sync, 302 to `FRONTEND_ORIGIN` |
-| GET | `/calendar/accounts` | List connected accounts |
-| DELETE | `/calendar/accounts/{id}` | Disconnect + delete mirrored events |
-| POST | `/calendar/accounts/{id}/sync` | Optional `?start=&end=`; pull primary calendar into `external_calendar_events` |
-| GET | `/calendar/events?start=&end=` | Mirrored busy events overlapping range |
+| GET | `/calendar/oauth/google/callback` | OAuth return; upserts `calendar_accounts` + primary subscription; initial sync; 302 to `FRONTEND_ORIGIN` |
+| GET | `/calendar/accounts` | List connected accounts (`mirror_blocks_to_google`, `last_synced_at`) |
+| PATCH | `/calendar/accounts/{id}` | Update `mirror_blocks_to_google` / `is_enabled` |
+| GET | `/calendar/calendars?account_id=` | Proxy Google calendarList |
+| GET | `/calendar/accounts/{id}/subscriptions` | Local calendar subscriptions |
+| PUT | `/calendar/accounts/{id}/subscriptions` | Replace selection; exactly one `primary`; rest `informational` |
+| DELETE | `/calendar/accounts/{id}` | Disconnect + cascade subscriptions/events |
+| POST | `/calendar/accounts/{id}/sync` | Optional `?start=&end=`; full or incremental pull per subscription |
+| GET | `/calendar/events?start=&end=` | Busy overlays only (excludes rows linked to `scheduled_block_id`) |
 
-Scopes default: `https://www.googleapis.com/auth/calendar.events` (read/write). Bidirectional **push** of local blocks is Slice 2+.
+Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirror is on, create/update/delete of `/scheduled-blocks` best-effort pushes to the primary Google calendar (local CRUD never fails on Google errors).
 
 ### Reserved (W2b+)
 

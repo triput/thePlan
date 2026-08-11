@@ -22,6 +22,11 @@ class CalendarProvider(str, enum.Enum):
     microsoft = "microsoft"
 
 
+class CalendarSubscriptionRole(str, enum.Enum):
+    primary = "primary"
+    informational = "informational"
+
+
 class ReminderChannel(str, enum.Enum):
     in_app = "in_app"
     browser = "browser"

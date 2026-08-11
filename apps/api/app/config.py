@@ -27,7 +27,10 @@ class Settings(BaseSettings):
     google_client_secrets_file: str | None = None
     token_encryption_key: str | None = None
     frontend_origin: str = "http://localhost:8080"
-    google_oauth_scopes: str = "https://www.googleapis.com/auth/calendar.events"
+    google_oauth_scopes: str = (
+        "https://www.googleapis.com/auth/calendar.events "
+        "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
+    )
 
 @lru_cache
 def get_settings() -> Settings:

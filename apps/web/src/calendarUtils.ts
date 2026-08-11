@@ -1,8 +1,43 @@
 /** Local-time calendar helpers (ISO weeks = Monday-start). */
 
-export const CALENDAR_HOUR_START = 6;
-export const CALENDAR_HOUR_END = 22;
-export const CALENDAR_HOURS = CALENDAR_HOUR_END - CALENDAR_HOUR_START;
+export const DEFAULT_CALENDAR_HOUR_START = 6;
+export const DEFAULT_CALENDAR_HOUR_END = 22;
+
+/** @deprecated Prefer resolveHourBounds / DEFAULT_* — kept for callers mid-refactor */
+export const CALENDAR_HOUR_START = DEFAULT_CALENDAR_HOUR_START;
+/** @deprecated Prefer resolveHourBounds / DEFAULT_* */
+export const CALENDAR_HOUR_END = DEFAULT_CALENDAR_HOUR_END;
+/** @deprecated Prefer resolveHourBounds().hours */
+export const CALENDAR_HOURS = DEFAULT_CALENDAR_HOUR_END - DEFAULT_CALENDAR_HOUR_START;
+
+export const SHOW_24H_STORAGE_KEY = "theplan.calendarShow24h";
+
+export type HourBounds = { start: number; end: number; hours: number };
+
+export function resolveHourBounds(show24h: boolean): HourBounds {
+  if (show24h) return { start: 0, end: 24, hours: 24 };
+  return {
+    start: DEFAULT_CALENDAR_HOUR_START,
+    end: DEFAULT_CALENDAR_HOUR_END,
+    hours: DEFAULT_CALENDAR_HOUR_END - DEFAULT_CALENDAR_HOUR_START,
+  };
+}
+
+export function loadShow24h(): boolean {
+  try {
+    return localStorage.getItem(SHOW_24H_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function saveShow24h(value: boolean): void {
+  try {
+    localStorage.setItem(SHOW_24H_STORAGE_KEY, value ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
+}
 
 export type CalendarMode = "day" | "week";
 
@@ -80,7 +115,7 @@ export function weekDays(anchor: Date): Date[] {
 
 export function formatHour(hour: number): string {
   const d = new Date();
-  d.setHours(hour, 0, 0, 0);
+  d.setHours(hour % 24, 0, 0, 0);
   return d.toLocaleTimeString(undefined, { hour: "numeric" });
 }
 
@@ -113,14 +148,17 @@ export function minutesFromMidnight(d: Date): number {
   return d.getHours() * 60 + d.getMinutes();
 }
 
-export function topPercentForTime(d: Date): number {
-  const mins = minutesFromMidnight(d) - CALENDAR_HOUR_START * 60;
-  const total = CALENDAR_HOURS * 60;
+export function topPercentForTime(d: Date, bounds: HourBounds = resolveHourBounds(false)): number {
+  const mins = minutesFromMidnight(d) - bounds.start * 60;
+  const total = bounds.hours * 60;
   return Math.max(0, Math.min(100, (mins / total) * 100));
 }
 
-export function heightPercentForDuration(minutes: number): number {
-  const total = CALENDAR_HOURS * 60;
+export function heightPercentForDuration(
+  minutes: number,
+  bounds: HourBounds = resolveHourBounds(false),
+): number {
+  const total = bounds.hours * 60;
   return Math.max(2, (minutes / total) * 100);
 }
 
@@ -128,9 +166,10 @@ export function slotFromClick(
   day: Date,
   offsetY: number,
   rowHeightPx: number,
+  bounds: HourBounds = resolveHourBounds(false),
 ): { start: Date; end: Date } {
   const hourIndex = Math.floor(offsetY / rowHeightPx);
-  const hour = Math.max(CALENDAR_HOUR_START, Math.min(CALENDAR_HOUR_END - 1, CALENDAR_HOUR_START + hourIndex));
+  const hour = Math.max(bounds.start, Math.min(bounds.end - 1, bounds.start + hourIndex));
   const start = new Date(day);
   start.setHours(hour, 0, 0, 0);
   const end = new Date(start);
@@ -151,12 +190,16 @@ export function snapMinutes(minutes: number, step = CALENDAR_SNAP_MINUTES): numb
 }
 
 /** Clamp a Date's clock into the visible calendar window on its calendar day. */
-export function clampToCalendarWindow(d: Date, durationMinutes = 0): Date {
+export function clampToCalendarWindow(
+  d: Date,
+  durationMinutes = 0,
+  bounds: HourBounds = resolveHourBounds(false),
+): Date {
   const day = startOfDay(d);
   const windowStart = new Date(day);
-  windowStart.setHours(CALENDAR_HOUR_START, 0, 0, 0);
+  windowStart.setHours(bounds.start, 0, 0, 0);
   const windowEnd = new Date(day);
-  windowEnd.setHours(CALENDAR_HOUR_END, 0, 0, 0);
+  windowEnd.setHours(bounds.end, 0, 0, 0);
   const maxStart = new Date(windowEnd.getTime() - durationMinutes * 60_000);
   if (d < windowStart) return windowStart;
   if (d > maxStart) return maxStart < windowStart ? windowStart : maxStart;

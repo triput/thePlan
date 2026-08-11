@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -6,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
+from app.config import get_settings
 from app.db import get_db
 from app.models import ScheduledBlock, Task, User
 from app.schemas import (
@@ -14,6 +16,9 @@ from app.schemas import (
     ScheduledBlockOut,
     ScheduledBlockUpdate,
 )
+from app.services.google_calendar import delete_mirrored_block, push_scheduled_block
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/scheduled-blocks", tags=["scheduled-blocks"])
 
@@ -87,6 +92,13 @@ def create_scheduled_block(
     db.add(block)
     db.commit()
     db.refresh(block)
+    settings = get_settings()
+    try:
+        push_scheduled_block(db, settings, block)
+        db.commit()
+    except Exception:
+        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block.id)
+        db.rollback()
     return ScheduledBlockOut.model_validate(block)
 
 
@@ -122,6 +134,13 @@ def update_scheduled_block(
 
     db.commit()
     db.refresh(block)
+    settings = get_settings()
+    try:
+        push_scheduled_block(db, settings, block)
+        db.commit()
+    except Exception:
+        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block.id)
+        db.rollback()
     return ScheduledBlockOut.model_validate(block)
 
 
@@ -132,5 +151,12 @@ def delete_scheduled_block(
     user: User = Depends(get_current_user),
 ) -> None:
     block = _get_owned_block(db, block_id, user)
+    settings = get_settings()
+    try:
+        delete_mirrored_block(db, settings, block)
+        db.commit()
+    except Exception:
+        logger.exception("Failed to delete mirrored Google event for block %s", block.id)
+        db.rollback()
     db.delete(block)
     db.commit()

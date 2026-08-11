@@ -696,10 +696,43 @@ export interface CalendarAccount {
   provider: string;
   account_email: string | null;
   is_enabled: boolean;
+  mirror_blocks_to_google: boolean;
   sync_cursor: string | null;
+  last_synced_at: string | null;
   token_expires_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface GoogleCalendarListItem {
+  id: string;
+  summary: string | null;
+  primary: boolean;
+  access_role: string | null;
+}
+
+export type CalendarSubscriptionRole = "primary" | "informational";
+
+export interface CalendarSubscription {
+  id: string;
+  calendar_account_id: string;
+  external_calendar_id: string;
+  summary: string | null;
+  role: CalendarSubscriptionRole;
+  is_enabled: boolean;
+  sync_cursor: string | null;
+}
+
+export interface CalendarSubscriptionPutItem {
+  external_calendar_id: string;
+  summary?: string | null;
+  role: CalendarSubscriptionRole;
+  is_enabled: boolean;
+}
+
+export interface CalendarAccountUpdate {
+  mirror_blocks_to_google?: boolean;
+  is_enabled?: boolean;
 }
 
 export interface ExternalCalendarEvent {
@@ -717,6 +750,32 @@ export interface ExternalCalendarEvent {
 
 export function fetchCalendarAccounts() {
   return apiFetchUrl<PaginatedResponse<CalendarAccount>>(buildUrl("/api/v1/calendar/accounts"));
+}
+
+export function updateCalendarAccount(accountId: string, body: CalendarAccountUpdate) {
+  return apiFetch<CalendarAccount>(`/api/v1/calendar/accounts/${accountId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchGoogleCalendars(accountId: string) {
+  return apiFetchUrl<PaginatedResponse<GoogleCalendarListItem>>(
+    buildUrl("/api/v1/calendar/calendars", { account_id: accountId }),
+  );
+}
+
+export function fetchCalendarSubscriptions(accountId: string) {
+  return apiFetchUrl<PaginatedResponse<CalendarSubscription>>(
+    buildUrl(`/api/v1/calendar/accounts/${accountId}/subscriptions`),
+  );
+}
+
+export function putCalendarSubscriptions(accountId: string, items: CalendarSubscriptionPutItem[]) {
+  return apiFetchUrl<PaginatedResponse<CalendarSubscription>>(
+    buildUrl(`/api/v1/calendar/accounts/${accountId}/subscriptions`),
+    { method: "PUT", body: JSON.stringify({ items }) },
+  );
 }
 
 export function disconnectCalendarAccount(accountId: string) {

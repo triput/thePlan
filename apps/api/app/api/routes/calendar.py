@@ -14,18 +14,24 @@ from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.config import get_settings
 from app.db import get_db
-from app.models import CalendarAccount, ExternalCalendarEvent, User
-from app.models.enums import CalendarProvider
+from app.models import CalendarAccount, CalendarSubscription, ExternalCalendarEvent, User
+from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.schemas import (
     CalendarAccountOut,
+    CalendarAccountUpdate,
+    CalendarSubscriptionOut,
+    CalendarSubscriptionsPut,
     CalendarSyncResult,
     ExternalCalendarEventOut,
+    GoogleCalendarListItem,
     PaginatedResponse,
 )
 from app.services.google_calendar import (
     build_authorize_url,
     exchange_code_for_tokens,
     fetch_google_email,
+    get_valid_access_token,
+    list_google_calendars,
     load_google_oauth_config,
     sync_account_events,
     upsert_account_tokens,
@@ -42,10 +48,24 @@ def _account_out(account: CalendarAccount) -> CalendarAccountOut:
         provider=account.provider.value if hasattr(account.provider, "value") else str(account.provider),
         account_email=account.account_email,
         is_enabled=account.is_enabled,
+        mirror_blocks_to_google=account.mirror_blocks_to_google,
         sync_cursor=account.sync_cursor,
+        last_synced_at=account.last_synced_at,
         token_expires_at=account.token_expires_at,
         created_at=account.created_at,
         updated_at=account.updated_at,
+    )
+
+
+def _subscription_out(sub: CalendarSubscription) -> CalendarSubscriptionOut:
+    return CalendarSubscriptionOut(
+        id=sub.id,
+        calendar_account_id=sub.calendar_account_id,
+        external_calendar_id=sub.external_calendar_id,
+        summary=sub.summary,
+        role=sub.role,
+        is_enabled=sub.is_enabled,
+        sync_cursor=sub.sync_cursor,
     )
 
 
@@ -86,6 +106,135 @@ def list_calendar_accounts(
         items=[_account_out(item) for item in items],
         total=len(items),
         limit=len(items) or 50,
+        offset=0,
+    )
+
+
+@router.patch("/accounts/{account_id}", response_model=CalendarAccountOut)
+def update_calendar_account(
+    account_id: UUID,
+    body: CalendarAccountUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> CalendarAccountOut:
+    account = _owned_account(db, account_id, user)
+    updates = body.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(account, field, value)
+    db.commit()
+    db.refresh(account)
+    return _account_out(account)
+
+
+@router.get("/calendars", response_model=PaginatedResponse)
+def list_google_calendars_for_account(
+    account_id: UUID = Query(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> PaginatedResponse:
+    account = _owned_account(db, account_id, user)
+    if account.provider != CalendarProvider.google:
+        raise ApiError(400, "Account is not a Google calendar", "CALENDAR_NOT_GOOGLE")
+    settings = get_settings()
+    access = get_valid_access_token(db, settings=settings, account=account)
+    raw = list_google_calendars(access)
+    items = [
+        GoogleCalendarListItem(
+            id=str(entry.get("id") or ""),
+            summary=entry.get("summary"),
+            primary=bool(entry.get("primary")),
+            access_role=entry.get("accessRole"),
+        )
+        for entry in raw
+        if entry.get("id")
+    ]
+    return PaginatedResponse(
+        items=items,
+        total=len(items),
+        limit=len(items) or 50,
+        offset=0,
+    )
+
+
+@router.get("/accounts/{account_id}/subscriptions", response_model=PaginatedResponse)
+def list_calendar_subscriptions(
+    account_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> PaginatedResponse:
+    account = _owned_account(db, account_id, user)
+    items = (
+        db.query(CalendarSubscription)
+        .filter(CalendarSubscription.calendar_account_id == account.id)
+        .order_by(CalendarSubscription.created_at)
+        .all()
+    )
+    return PaginatedResponse(
+        items=[_subscription_out(item) for item in items],
+        total=len(items),
+        limit=len(items) or 50,
+        offset=0,
+    )
+
+
+@router.put("/accounts/{account_id}/subscriptions", response_model=PaginatedResponse)
+def put_calendar_subscriptions(
+    account_id: UUID,
+    body: CalendarSubscriptionsPut,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> PaginatedResponse:
+    account = _owned_account(db, account_id, user)
+    items = body.items
+
+    primary_candidates = [item for item in items if item.role == CalendarSubscriptionRole.primary]
+    if len(primary_candidates) != 1:
+        raise ApiError(
+            422,
+            "Exactly one primary calendar subscription is required",
+            "CALENDAR_PRIMARY_REQUIRED",
+        )
+
+    requested_ids = {item.external_calendar_id for item in items}
+    existing = (
+        db.query(CalendarSubscription)
+        .filter(CalendarSubscription.calendar_account_id == account.id)
+        .all()
+    )
+    existing_by_id = {sub.external_calendar_id: sub for sub in existing}
+
+    for item in items:
+        sub = existing_by_id.get(item.external_calendar_id)
+        is_new = sub is None
+        if is_new:
+            sub = CalendarSubscription(
+                owner_id=user.id,
+                calendar_account_id=account.id,
+                external_calendar_id=item.external_calendar_id,
+            )
+            db.add(sub)
+            existing_by_id[item.external_calendar_id] = sub
+        sub.summary = item.summary
+        sub.role = item.role
+        sub.is_enabled = item.is_enabled
+        if is_new:
+            sub.sync_cursor = None
+
+    for sub in existing:
+        if sub.external_calendar_id not in requested_ids:
+            sub.is_enabled = False
+
+    db.commit()
+    updated = (
+        db.query(CalendarSubscription)
+        .filter(CalendarSubscription.calendar_account_id == account.id)
+        .order_by(CalendarSubscription.created_at)
+        .all()
+    )
+    return PaginatedResponse(
+        items=[_subscription_out(item) for item in updated],
+        total=len(updated),
+        limit=len(updated) or 50,
         offset=0,
     )
 
@@ -135,7 +284,6 @@ def google_oauth_callback(
         account_email=email,
         token_payload=tokens,
     )
-    # Immediate sync: current week ± a few days so Calendar lights up
     now = datetime.now(timezone.utc)
     sync_account_events(
         db,
@@ -202,6 +350,7 @@ def list_external_events(
         db.query(ExternalCalendarEvent)
         .filter(
             ExternalCalendarEvent.owner_id == user.id,
+            ExternalCalendarEvent.scheduled_block_id.is_(None),
             ExternalCalendarEvent.start_time < end,
             ExternalCalendarEvent.end_time > start,
         )
