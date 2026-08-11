@@ -307,8 +307,14 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 | POST | `/auth/users` | Admin: create household user |
 | PATCH | `/auth/users/{id}` | Admin: update `display_name`, `is_disabled`, `password` (cannot disable self) |
 | GET/PUT/DELETE | `/tasks/{id}/recurrence` | Get, set, or clear recurrence (`rrule`, `is_fixed`, `timezone`, `starts_on`, `ends_on`, optional `text`) |
+| GET/POST | `/tasks/{id}/reminders` | List / create absolute-time reminders (`fire_at`, `channel`) |
+| GET | `/reminders/due` | Unfired reminders with `fire_at <= now` (includes `task_title`) |
+| PATCH/DELETE | `/reminders/{id}` | Update unfired reminder or delete |
+| POST | `/reminders/{id}/ack` | Mark fired (idempotent) |
 
-**Complete + recurrence:** `POST /tasks/{id}/complete` advances `due_at` when a next occurrence exists (`recurrence_advanced: true`, `previous_due_at` set, task stays open). When the frame is exhausted (or no rule), completes normally.
+**Complete + recurrence:** `POST /tasks/{id}/complete` advances `due_at` when a next occurrence exists (`recurrence_advanced: true`, `previous_due_at` set, task stays open). When the frame is exhausted (or no rule), completes normally and marks that task’s unfired reminders fired.
+
+**Reminders:** Absolute `fire_at` only (no relative-to-due). Channels: `in_app`, `browser`. Web client polls `/reminders/due`, shows toast (and optional Notification), then acks.
 
 **Register body:**
 
@@ -348,7 +354,6 @@ Not implemented in MVP; documented for contract stability:
 | Update Schedule | `POST /schedule/replan` |
 | Calendar accounts | `/calendar/accounts` |
 | External events | `/calendar/events` |
-| Reminders | `/tasks/{id}/reminders` |
 | User saved filters (write) | `POST /views` |
 
 ---

@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createTaskReminder,
+  deleteReminder,
   deleteTask,
   deleteTaskRecurrence,
   fetchLabels,
   fetchProjects,
   fetchSections,
+  fetchTaskReminders,
   fetchTasks,
   putTaskRecurrence,
   updateTask,
   type Label,
   type Project,
+  type ReminderChannel,
   type Task,
   type TaskPriority,
   type TaskUpdate,
@@ -82,6 +86,11 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [recurrenceText, setRecurrenceText] = useState("");
   const [startsOn, setStartsOn] = useState("");
   const [endsOn, setEndsOn] = useState("");
+  const [reminderAtLocal, setReminderAtLocal] = useState("");
+  const [reminderChannel, setReminderChannel] = useState<ReminderChannel>("in_app");
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
+    typeof Notification === "undefined" ? "unsupported" : Notification.permission,
+  );
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
 
@@ -124,7 +133,17 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setRecurrenceText("");
     setStartsOn(task.recurrence?.starts_on ?? "");
     setEndsOn(task.recurrence?.ends_on ?? "");
+    setReminderAtLocal("");
+    setReminderChannel("in_app");
   }, [task]);
+
+  const remindersQuery = useQuery({
+    queryKey: ["reminders", task?.id],
+    queryFn: () => fetchTaskReminders(task!.id),
+    enabled: task != null,
+  });
+  const reminders = remindersQuery.data ?? [];
+  const upcomingReminders = reminders.filter((r) => !r.is_fired);
 
   const byId = useMemo(() => new Map(allTasks.map((t) => [t.id, t])), [allTasks]);
 
@@ -230,6 +249,39 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       emitToast("Recurrence cleared");
     },
   });
+
+  const createReminderMutation = useMutation({
+    mutationFn: async () => {
+      const fireAt = fromDatetimeLocal(reminderAtLocal);
+      if (!fireAt) throw new Error("Pick a reminder time");
+      return createTaskReminder(task!.id, { fire_at: fireAt, channel: reminderChannel });
+    },
+    onSuccess: () => {
+      setReminderAtLocal("");
+      queryClient.invalidateQueries({ queryKey: ["reminders", task!.id] });
+      emitToast("Reminder added");
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't add reminder"),
+  });
+
+  const deleteReminderMutation = useMutation({
+    mutationFn: (reminderId: string) => deleteReminder(reminderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reminders", task!.id] });
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't delete reminder"),
+  });
+
+  const requestBrowserNotifications = async () => {
+    if (typeof Notification === "undefined") {
+      setNotifPermission("unsupported");
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    setNotifPermission(permission);
+    if (permission === "granted") emitToast("Browser notifications enabled");
+    else if (permission === "denied") emitToast("Browser notifications blocked");
+  };
 
   const handleProjectChange = (value: string) => {
     setProjectId(value);
@@ -366,6 +418,76 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
                 onClick={() => recurrenceMutation.mutate()}
               >
                 {recurrenceMutation.isPending ? "Saving…" : "Save recurrence"}
+              </button>
+            </div>
+          </fieldset>
+
+          <fieldset className="field recurrence-fieldset">
+            <legend>Reminders</legend>
+            {upcomingReminders.length > 0 ? (
+              <ul className="reminder-list">
+                {upcomingReminders.map((reminder) => (
+                  <li key={reminder.id} className="reminder-row">
+                    <span>
+                      {new Date(reminder.fire_at).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                      <span className="muted small"> · {reminder.channel === "browser" ? "browser" : "in-app"}</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn secondary small"
+                      disabled={deleteReminderMutation.isPending}
+                      onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted small">No upcoming reminders</p>
+            )}
+            <div className="reminder-add-row">
+              <label className="field">
+                <span>When</span>
+                <input
+                  type="datetime-local"
+                  className="field-datetime"
+                  value={reminderAtLocal}
+                  onChange={(e) => setReminderAtLocal(e.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Channel</span>
+                <select
+                  className="field-select"
+                  value={reminderChannel}
+                  onChange={(e) => setReminderChannel(e.target.value as ReminderChannel)}
+                >
+                  <option value="in_app">In-app toast</option>
+                  <option value="browser">Browser notification</option>
+                </select>
+              </label>
+            </div>
+            {notifPermission !== "unsupported" && notifPermission !== "granted" && (
+              <button
+                type="button"
+                className="btn secondary small reminder-notif-btn"
+                onClick={() => void requestBrowserNotifications()}
+              >
+                Enable browser notifications
+              </button>
+            )}
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn primary small"
+                disabled={!reminderAtLocal || createReminderMutation.isPending}
+                onClick={() => createReminderMutation.mutate()}
+              >
+                {createReminderMutation.isPending ? "Adding…" : "Add reminder"}
               </button>
             </div>
           </fieldset>

@@ -6,7 +6,18 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.api.routes import auth, epics, labels, projects, quick_add, scheduled_blocks, search, sections, tasks
+from app.api.routes import (
+    auth,
+    epics,
+    labels,
+    projects,
+    quick_add,
+    reminders,
+    scheduled_blocks,
+    search,
+    sections,
+    tasks,
+)
 from app.api.errors import register_exception_handlers
 from app.bootstrap import ensure_bootstrap_user
 from app.config import get_settings
@@ -73,6 +84,7 @@ def create_app() -> FastAPI:
     api_router.include_router(epics.router)
     api_router.include_router(projects.router)
     api_router.include_router(tasks.router)
+    api_router.include_router(reminders.router)
     api_router.include_router(labels.router)
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)

@@ -6,6 +6,7 @@ import { CalendarView } from "./components/CalendarView";
 import { HelpOverlay } from "./components/HelpOverlay";
 import { LabelsManagement } from "./components/LabelsManagement";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
+import { ReminderPoller } from "./components/ReminderPoller";
 import { SearchBox, type SearchBoxHandle } from "./components/SearchBox";
 import { Sidebar } from "./components/Sidebar";
 import { TaskDetailPanel } from "./components/TaskDetailPanel";
@@ -161,6 +162,7 @@ function AppInner() {
         </div>
       </div>
       <ToastHost />
+      <ReminderPoller />
       <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );

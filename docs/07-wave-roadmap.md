@@ -62,7 +62,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 |---------|-------|
 | Recurrence engine | `every` / `every!`; limited `starts_on`/`ends_on` frames; quick-add + task detail |
 | ~~Todoist import~~ | **Deferred to W3** (stale upstream data; not needed for daily driver) |
-| Time-based reminders | In-app + optional browser Notification API |
+| Time-based reminders | Absolute `fire_at`; in-app toast + optional browser Notification API |
 | Login / remote-ready auth | Password session and/or Cloudflare Access |
 | Backup script | Scheduled pg_dump optional |
 | Cloudflare Tunnel | Template for remote access to home host |

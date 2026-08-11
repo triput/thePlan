@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.models.enums import ScheduleStatus, TaskPriority
+from app.models.enums import ReminderChannel, ScheduleStatus, TaskPriority
 
 
 class UserOut(BaseModel):
@@ -163,6 +163,31 @@ class RecurrenceUpsert(BaseModel):
     starts_on: date | None = None
     ends_on: date | None = None
     text: str | None = Field(default=None, min_length=1, max_length=255)
+
+
+class ReminderCreate(BaseModel):
+    fire_at: datetime
+    channel: ReminderChannel = ReminderChannel.in_app
+
+
+class ReminderUpdate(BaseModel):
+    fire_at: datetime | None = None
+    channel: ReminderChannel | None = None
+
+
+class ReminderOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    task_id: UUID
+    fire_at: datetime
+    channel: ReminderChannel
+    is_fired: bool
+    created_at: datetime
+
+
+class ReminderDueOut(ReminderOut):
+    task_title: str
 
 
 class TaskUpdate(BaseModel):

@@ -7,11 +7,13 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
-from app.models import Label, RecurrenceRule, Task, TaskLabel, User
+from app.models import Label, RecurrenceRule, Reminder, Task, TaskLabel, User
 from app.schemas import (
     PaginatedResponse,
     RecurrenceOut,
     RecurrenceUpsert,
+    ReminderCreate,
+    ReminderOut,
     ReorderRequest,
     TaskCompleteBody,
     TaskCreate,
@@ -394,3 +396,43 @@ def delete_recurrence(
     if task.recurrence_rule is not None:
         db.delete(task.recurrence_rule)
         db.commit()
+
+
+@router.get("/{task_id}/reminders", response_model=list[ReminderOut])
+def list_task_reminders(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[ReminderOut]:
+    _get_owned_task(db, task_id, user)
+    rows = (
+        db.query(Reminder)
+        .filter(Reminder.task_id == task_id, Reminder.owner_id == user.id)
+        .order_by(Reminder.fire_at.asc())
+        .all()
+    )
+    return [ReminderOut.model_validate(row) for row in rows]
+
+
+@router.post(
+    "/{task_id}/reminders",
+    response_model=ReminderOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_task_reminder(
+    task_id: UUID,
+    body: ReminderCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ReminderOut:
+    _get_owned_task(db, task_id, user)
+    reminder = Reminder(
+        owner_id=user.id,
+        task_id=task_id,
+        fire_at=body.fire_at,
+        channel=body.channel,
+    )
+    db.add(reminder)
+    db.commit()
+    db.refresh(reminder)
+    return ReminderOut.model_validate(reminder)

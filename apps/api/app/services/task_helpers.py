@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
-from app.models import Task
+from app.models import Reminder, Task
 from app.models.enums import ScheduleStatus
 
 
@@ -148,4 +148,9 @@ def complete_task(
             )
 
     mark_task_complete(task, completed=True)
+    db.query(Reminder).filter(
+        Reminder.task_id == task.id,
+        Reminder.owner_id == task.owner_id,
+        Reminder.is_fired.is_(False),
+    ).update({Reminder.is_fired: True}, synchronize_session=False)
     return None, False

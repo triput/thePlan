@@ -101,10 +101,10 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Time-based reminders | W1.5 | Schema stub MVP |
+| Time-based reminders | W1.5 | Absolute `fire_at`; in-app toast + optional browser Notification |
 | Location reminders | W3 | W3 candidate; not W1/W1.5/W2 |
-| In-app notifications | W1.5 | |
-| Browser Notification API | W1.5 | Optional |
+| In-app notifications | W1.5 | Toast via client poll + ack |
+| Browser Notification API | W1.5 | Optional; channel=`browser` + permission |
 | Push (mobile) | Out | No mobile app |
 
 ### Integrations & Import
@@ -245,7 +245,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Ship in Wave 1 (MVP):** Todoist core (hierarchy extension, labels, fixed smart views Inbox/Today/Upcoming/Project/Label, quick-add, search, undo, calendar day/week with click/slot blocks + modal edit, day-of-year/ISO week chrome, nine UI themes, local Compose, local auth, pg_dump one-liner in README).
 
-**Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows.
+**Schema-only in Wave 1:** Recurrence, reminders, deadline_at, soft_target_at, scheduler fields, external calendar tables, focus_windows. (Recurrence + reminders engines landed in W1.5.)
 
 **Defer to W1.5:** Epic aggregate smart view, show-completed toggle, calendar drag, recurrence engine, reminders, login, multi-account household login; label delete reassign/migrate (bulk apply other labels on prune); scheduled pg_dump script; calendar month view (optional).
 

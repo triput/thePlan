@@ -227,16 +227,19 @@ Manual in MVP; auto-populated by scheduler W2.
 
 One rule per task (`task_id UNIQUE`). Pattern-only iCal `rrule` (`FREQ` / `INTERVAL` / `BYDAY`). `is_fixed` = Todoist `every!` (calendar-fixed) vs `every` (slides from completion). Nullable `starts_on` / `ends_on` (DATE) bound the series window inclusively. Engine advances `due_at` on complete while occurrences remain; exhausts to a true complete at frame end.
 
-### reminders (stub)
+### reminders
+
+Absolute fire times (no relative-to-due in W1.5). Client polls due reminders and acks after display.
 
 | Column | Type | Notes |
 |--------|------|-------|
-| task_id | UUID FK | |
-| fire_at | TIMESTAMPTZ | |
-| channel | reminder_channel | |
-| is_fired | BOOLEAN | |
+| owner_id | UUID FK | |
+| task_id | UUID FK | CASCADE delete with task |
+| fire_at | TIMESTAMPTZ | When to surface |
+| channel | reminder_channel | `in_app` or `browser` |
+| is_fired | BOOLEAN | Set on ack or true task complete |
 
-Partial index: `(owner_id, fire_at) WHERE is_fired = FALSE`.
+Partial index: `(owner_id, fire_at) WHERE is_fired = FALSE`. True complete (not recurrence advance) marks unfired reminders fired.
 
 ### saved_filters
 

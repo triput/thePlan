@@ -106,6 +106,31 @@ export interface RecurrenceUpsert {
   text?: string;
 }
 
+export type ReminderChannel = "in_app" | "browser";
+
+export interface Reminder {
+  id: string;
+  task_id: string;
+  fire_at: string;
+  channel: ReminderChannel;
+  is_fired: boolean;
+  created_at: string;
+}
+
+export interface ReminderDue extends Reminder {
+  task_title: string;
+}
+
+export interface ReminderCreate {
+  fire_at: string;
+  channel?: ReminderChannel;
+}
+
+export interface ReminderUpdate {
+  fire_at?: string;
+  channel?: ReminderChannel;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -565,6 +590,36 @@ export function putTaskRecurrence(taskId: string, body: RecurrenceUpsert) {
 
 export function deleteTaskRecurrence(taskId: string) {
   return apiFetch<void>(`/api/v1/tasks/${taskId}/recurrence`, { method: "DELETE" });
+}
+
+export function fetchTaskReminders(taskId: string) {
+  return apiFetch<Reminder[]>(`/api/v1/tasks/${taskId}/reminders`);
+}
+
+export function createTaskReminder(taskId: string, body: ReminderCreate) {
+  return apiFetch<Reminder>(`/api/v1/tasks/${taskId}/reminders`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateReminder(reminderId: string, body: ReminderUpdate) {
+  return apiFetch<Reminder>(`/api/v1/reminders/${reminderId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteReminder(reminderId: string) {
+  return apiFetch<void>(`/api/v1/reminders/${reminderId}`, { method: "DELETE" });
+}
+
+export function fetchDueReminders() {
+  return apiFetch<ReminderDue[]>("/api/v1/reminders/due");
+}
+
+export function ackReminder(reminderId: string) {
+  return apiFetch<Reminder>(`/api/v1/reminders/${reminderId}/ack`, { method: "POST" });
 }
 
 export function parseQuickAdd(text: string) {

@@ -219,6 +219,10 @@ class Task(Base, TimestampMixin):
     recurrence_rule: Mapped["RecurrenceRule | None"] = relationship(
         back_populates="task", uselist=False, cascade="all, delete-orphan"
     )
+    reminders: Mapped[list["Reminder"]] = relationship(
+        back_populates="task", cascade="all, delete-orphan"
+    )
+
 
 class Label(Base, TimestampMixin):
     __tablename__ = "labels"
@@ -355,6 +359,8 @@ class Reminder(Base, TimestampMixin):
         server_default="in_app",
     )
     is_fired: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+
+    task: Mapped["Task"] = relationship(back_populates="reminders")
 
 
 class SavedFilter(Base, TimestampMixin):
