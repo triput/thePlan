@@ -340,7 +340,7 @@ Press **?** anywhere (outside text fields) for the overlay, or use:
 4. **Passphrases** — a long memorable sentence is fine (12+ characters).
 5. **Back up** before upgrades: run the backup script or pg_dump one-liner above.
 6. **On a phone:** use the tunnel HTTPS URL; open the ☰ menu for views/projects. Task details fill the screen — close with ×. Calendar stays on **Day** mode on small screens.
-6. **Remote access** (Cloudflare Tunnel / Access) is documented for operators in the roadmap but not part of this baseline UI guide.
+7. **Remote access** (Cloudflare Tunnel / Access) is documented for operators in [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md).
 
 ---
 
