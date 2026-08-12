@@ -92,13 +92,17 @@ def create_scheduled_block(
     db.add(block)
     db.commit()
     db.refresh(block)
+    block_id = block.id
     settings = get_settings()
     try:
         push_scheduled_block(db, settings, block)
         db.commit()
     except Exception:
-        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block.id)
+        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block_id)
         db.rollback()
+        block = db.get(ScheduledBlock, block_id)
+        if block is None:
+            raise
     return ScheduledBlockOut.model_validate(block)
 
 
@@ -134,13 +138,17 @@ def update_scheduled_block(
 
     db.commit()
     db.refresh(block)
+    block_id = block.id
     settings = get_settings()
     try:
         push_scheduled_block(db, settings, block)
         db.commit()
     except Exception:
-        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block.id)
+        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block_id)
         db.rollback()
+        block = db.get(ScheduledBlock, block_id)
+        if block is None:
+            raise
     return ScheduledBlockOut.model_validate(block)
 
 

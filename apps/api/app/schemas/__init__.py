@@ -442,6 +442,20 @@ class ScheduledBlockOut(BaseModel):
     updated_at: datetime
 
 
+class ScheduleRunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    status: str
+    started_at: datetime
+    finished_at: datetime | None
+    tasks_scheduled: int
+    blocks_created: int
+    overbooked_count: int
+    error_message: str | None
+    stats_json: dict[str, Any] | None
+
+
 class CalendarAccountOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

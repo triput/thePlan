@@ -77,7 +77,8 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 
 ## Consequences
 
-- **Next implementable slice:** Update Schedule thin — `POST /schedule/replan` (202 accept), `schedule_runs` audit rows, async worker implementing this contract
+- **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
+- **Next:** schedule refactor (A), then painted Time Maps
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay manual until a later slice; roadmap “knockout → blocks on replan” applies post–v1
 - Functional spec §9 retains product-level SkedPal semantics; worker implementers treat this ADR as the v1 source of truth for fit and replan
@@ -88,4 +89,4 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 - [02-functional-spec.md §9](../02-functional-spec.md#9-wave-2--skedpal-scheduler-behaviors-spec-level) — SkedPal triad, UPS formula, buffer
 - [07-wave-roadmap.md](../07-wave-roadmap.md) — W2b slice plan; schema fence (2026-08-11)
 - [04-data-schema.md](../04-data-schema.md) — `user_settings`, tasks, `scheduled_blocks`, dependencies
-- [05-api-contract.md](../05-api-contract.md) — `POST /schedule/replan` (planned)
+- [05-api-contract.md](../05-api-contract.md) — `POST /schedule/replan`, `GET /schedule/runs/{id}`

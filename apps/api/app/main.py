@@ -17,6 +17,7 @@ from app.api.routes import (
     quick_add,
     reminders,
     scheduled_blocks,
+    schedule,
     search,
     sections,
     settings as settings_routes,
@@ -95,6 +96,7 @@ def create_app() -> FastAPI:
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)
     api_router.include_router(scheduled_blocks.router)
+    api_router.include_router(schedule.router)
     api_router.include_router(calendar.router)
     api_router.include_router(search.router)
     api_router.include_router(settings_routes.router)

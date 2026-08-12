@@ -478,12 +478,21 @@ Overlap rule: `a.start < b.end AND a.end > b.start`. Busy sources are `external_
 
 Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirror is on, create/update/delete of `/scheduled-blocks` best-effort pushes to the primary Google calendar (local CRUD never fails on Google errors).
 
+### Schedule (W2b — Update Schedule thin)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/schedule/replan` | Start explicit replan ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Returns **202** with `ScheduleRunOut` (`status: running`). **409** `SCHEDULE_RUN_IN_PROGRESS` if another run is active. Stale `running` rows older than **15 minutes** are reclaimed as `failed` before enqueue. CRUD never waits on the worker ([ADR-005](./adr/ADR-005-scheduler-decoupling.md)). |
+| GET | `/schedule/runs/{id}` | Poll run status and stats. **404** if missing or not owned. |
+
+**`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
+
+Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable.
+
 ### Reserved (W2b+)
 
 | Resource | Path prefix |
 |----------|-------------|
-| Schedule runs | `/schedule/runs` |
-| Update Schedule | `POST /schedule/replan` |
 | User saved filters (write) | `POST /views` |
 
 ---

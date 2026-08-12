@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ApiError,
   createScheduledBlock,
   deleteScheduledBlock,
   fetchCalendarConflicts,
   fetchExternalCalendarEvents,
   fetchProjects,
+  fetchScheduleRun,
   fetchScheduledBlocks,
   fetchTasks,
+  postScheduleReplan,
   updateScheduledBlock,
   updateTask,
   type ExternalCalendarEvent,
   type Project,
+  type ScheduleRunOut,
   type ScheduledBlock,
   type Task,
 } from "../api";
@@ -52,6 +56,8 @@ import { Modal } from "./Modal";
 const ROW_HEIGHT_PX = 48;
 const DRAG_THRESHOLD_PX = 5;
 const CALENDAR_HOURS_EVENT = "theplan:calendar-hours";
+const REPLAN_POLL_MS = 500;
+const REPLAN_TIMEOUT_MS = 60_000;
 
 interface BlockFormState {
   taskId: string;
@@ -634,9 +640,64 @@ export function CalendarView() {
 
   const invalidateCalendar = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
+    queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
     queryClient.invalidateQueries({ queryKey: ["calendar-conflicts"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
   }, [queryClient]);
+
+  const [replanPolling, setReplanPolling] = useState(false);
+
+  const finishReplanRun = useCallback(
+    (run: ScheduleRunOut) => {
+      if (run.status === "completed") {
+        invalidateCalendar();
+        const parts: string[] = [];
+        if (run.blocks_created > 0) {
+          parts.push(`${run.blocks_created} block${run.blocks_created === 1 ? "" : "s"} created`);
+        }
+        if (run.overbooked_count > 0) {
+          parts.push(`${run.overbooked_count} overbooked`);
+        }
+        emitToast(
+          parts.length > 0 ? `Schedule updated: ${parts.join(", ")}` : "Schedule updated",
+        );
+        return;
+      }
+      if (run.status === "failed") {
+        emitToast(run.error_message || "Schedule update failed");
+      }
+    },
+    [invalidateCalendar],
+  );
+
+  const handleUpdateSchedule = useCallback(async () => {
+    if (replanPolling) return;
+    setReplanPolling(true);
+    try {
+      let run = await postScheduleReplan();
+      const deadline = Date.now() + REPLAN_TIMEOUT_MS;
+      while (run.status === "running" && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, REPLAN_POLL_MS));
+        run = await fetchScheduleRun(run.id);
+      }
+      if (run.status === "running") {
+        run = await fetchScheduleRun(run.id);
+        if (run.status === "running") {
+          emitToast("Schedule update is still running — refresh later to see results");
+          return;
+        }
+      }
+      finishReplanRun(run);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        emitToast("A schedule update is already in progress");
+        return;
+      }
+      emitToast(err instanceof Error ? err.message : "Couldn't start schedule update");
+    } finally {
+      setReplanPolling(false);
+    }
+  }, [finishReplanRun, replanPolling]);
 
   const createMutation = useMutation({
     mutationFn: createScheduledBlock,
@@ -939,6 +1000,14 @@ export function CalendarView() {
           </p>
         )}
         <div className="cal-mode-toggle">
+          <button
+            type="button"
+            className="btn small primary cal-replan-btn"
+            onClick={handleUpdateSchedule}
+            disabled={replanPolling}
+          >
+            {replanPolling ? "Updating…" : "Update Schedule"}
+          </button>
           <button
             type="button"
             className="btn small cal-hours-toggle ghost"

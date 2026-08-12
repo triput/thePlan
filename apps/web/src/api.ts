@@ -965,6 +965,31 @@ export function fetchCalendarConflicts(params: { start: string; end: string }) {
   return apiFetchUrl<CalendarConflictsResult>(buildUrl("/api/v1/calendar/conflicts", params));
 }
 
+export type ScheduleRunStatus = "running" | "completed" | "failed";
+
+export interface ScheduleRunOut {
+  id: string;
+  status: ScheduleRunStatus;
+  started_at: string;
+  finished_at: string | null;
+  tasks_scheduled: number;
+  blocks_created: number;
+  overbooked_count: number;
+  error_message: string | null;
+  stats_json: Record<string, unknown> | null;
+}
+
+export function postScheduleReplan() {
+  return apiFetch<ScheduleRunOut>("/api/v1/schedule/replan", {
+    method: "POST",
+    body: "{}",
+  });
+}
+
+export function fetchScheduleRun(id: string) {
+  return apiFetch<ScheduleRunOut>(`/api/v1/schedule/runs/${id}`);
+}
+
 /** Full-page navigation so session cookie rides the OAuth round-trip. */
 export function googleCalendarConnectHref(): string {
   const base = API_URL.replace(/\/$/, "");

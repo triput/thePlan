@@ -1,7 +1,8 @@
 # Changelog
 
-## [Unreleased] — Wave 2b (Settings expansion complete)
+## [Unreleased] — Wave 2b (Update Schedule thin shipped)
 
+- **W2b Update Schedule (thin):** `POST /schedule/replan` (202 `ScheduleRunOut`; stale reclaim 15m; 409 `SCHEDULE_RUN_IN_PROGRESS`); `GET /schedule/runs/{id}`; in-process async worker per [ADR-006](docs/adr/ADR-006-fuzzy-scheduling.md); Calendar **Update Schedule** button with poll
 - **Docs:** Guest [Quick Start guide](docs/guides/QUICK-START.md) for live-instance UI (W2b Plans B scope; no ops/setup)
 - **W2b Plans B (shipped):** Alembic `007_plans`; `plans` CRUD (`GET/POST/PATCH/DELETE /plans`); `tasks.plan_id` + bind semantics (set copies plan `soft_target_at` when present; unbind leaves soft target; same-request `soft_target_at` wins); Settings Plans section; task detail Plan picker; list plan-badge
 - **W2b Plans A (thin):** `deadline_at` + `soft_target_at` in task detail panel and list badges; `TaskUpdate` typed for both fields
@@ -17,8 +18,9 @@
 
 ### Planned next
 
-- **Update Schedule (thin worker)** — `POST /schedule/replan` (202), `schedule_runs`, async worker per [ADR-006](docs/adr/ADR-006-fuzzy-scheduling.md)
+- **Schedule refactor (A)** — cleanup pass after thin ship (module boundaries, worker hardening)
 - **Painted Time Maps** — one map, split colored bands; green preferred, yellow overflow OK, red forbidden
+- **Dependency Hygiene** — gate before W3 feature waves (per version policy)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 

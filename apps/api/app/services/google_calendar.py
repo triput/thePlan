@@ -721,7 +721,13 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
 
     task = db.get(Task, block.task_id)
     title = (task.title if task else "Scheduled block")[:500]
-    access = get_valid_access_token(db, settings=settings, account=account)
+    try:
+        access = get_valid_access_token(db, settings=settings, account=account)
+    except ApiError as exc:
+        # Account row can exist while Compose/test env lacks OAuth client config.
+        if exc.content.get("code") == "GOOGLE_OAUTH_NOT_CONFIGURED":
+            return
+        raise
     existing = (
         db.query(ExternalCalendarEvent)
         .filter(ExternalCalendarEvent.scheduled_block_id == block.id)

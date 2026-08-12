@@ -12,7 +12,7 @@ For operator/runbook stuff, see [USER-GUIDE.md](../USER-GUIDE.md) and the root [
 
 thePlan is Trish's personal execution app — Todoist-style hierarchy and capture, plus SkedPal-ish scheduling primitives (Time Maps, Plans, calendar blocks). It's **local-first-ish**: your data lives on her stack, the UI is fast and optimistic, and Google Calendar can overlay **busy** time so manual planning doesn't pretend meetings don't exist.
 
-There is **no karma**, **no streaks**, and **no team assignees**. Just tasks, time, and a calendar that eventually wants to auto-schedule things (that last bit isn't live yet — see [What's not ready](#whats-not-ready-yet)).
+There is **no karma**, **no streaks**, and **no team assignees**. Just tasks, time, and a calendar that can **auto-schedule** open work when you ask — see [Update Schedule](#update-schedule) on Calendar.
 
 ---
 
@@ -220,7 +220,7 @@ Blocks you place today show up in **Today** even without a due date.
 
 ### Conflicts
 
-When a scheduled block or pinned placement overlaps **Google busy** time, the UI flags **schedule conflicts** — a banner count plus conflict styling on the overlapping items. This is visual awareness today; the auto-scheduler isn't rewriting your calendar yet.
+When a scheduled block or pinned placement overlaps **Google busy** time, the UI flags **schedule conflicts** — a banner count plus conflict styling on the overlapping items. **Update Schedule** won't move pins or external busy; it may still flag overbook when tasks can't fit before a deadline.
 
 ### Google Calendar overlays (what you'll see)
 
@@ -234,6 +234,12 @@ If **your account** (or Trish's, if you're browsing her login) has Google connec
 If nobody connected Google on this account, you only see thePlan tasks and manual blocks — no external busy. Connecting is optional per user in **Settings → Google Calendar → Connect Google Calendar** (OAuth in-browser; Trish handles server-side credentials).
 
 Use **Sync now** after changing subscriptions. Pick calendars, mark one **primary**, save.
+
+### Update Schedule
+
+Calendar header → **Update Schedule**. Triggers an explicit replan ([ADR-006](../adr/ADR-006-fuzzy-scheduling.md)): the worker places open tasks into free slots inside your horizon, respects pins and Google busy, and rewrites **unpinned** blocks in range. Button shows **Updating…** while the run finishes (polls in the background).
+
+**What it does today:** standalone/time-block tasks get auto-placed; dependencies honored; overbooked tasks flagged in run stats. **What it doesn't:** painted Time Maps (green/yellow/red tiers), bundle auto-placement, sidebar drag-to-schedule, or background/cron replan — you press the button when you want a fresh layout.
 
 ---
 
@@ -301,7 +307,7 @@ Account-level planner knobs:
 | **Default schedule style** | **Standalone** (default), **Time block**, or **Bundle** — opt-in styles for future worker |
 | **Auto-defer missed plan windows** | When on, missed soft plan targets may slide later instead of going stale |
 
-These matter most once **Update Schedule** exists; they're still useful now for consistent defaults.
+These feed **Update Schedule** (horizon, buffer, MBL, auto-defer, default duration/style).
 
 ### Calendar display
 
@@ -377,9 +383,8 @@ Press **?** for the overlay. Highlights:
 
 Don't go hunting for these — they're real roadmap, not hidden beta:
 
-- **Update Schedule** — not shipped yet; fuzzy algorithm contract locked ([ADR-006](../adr/ADR-006-fuzzy-scheduling.md)); replan button + async worker still to build
-- **Auto time-blocking** — UPS scoring, slice/fit, dependency-aware ordering
 - **Painted Time Maps** — one map with green/yellow/red preference tiers on the week grid
+- **Bundle auto-placement** — bundled tasks stay manual; knockout→blocks on replan is post–v1
 - **Time Map temporary overrides** — vacation/conference dated exceptions
 - **Sidebar → calendar drag** — drop a task from the list onto a slot to block time
 - **Custom saved filters / query language** — only fixed smart views today

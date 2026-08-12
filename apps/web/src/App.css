@@ -1598,7 +1598,13 @@
 
 .cal-mode-toggle {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
+}
+
+.cal-replan-btn {
+  margin-right: 0.35rem;
+  white-space: nowrap;
 }
 
 .cal-loading {
