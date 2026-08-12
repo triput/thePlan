@@ -213,6 +213,26 @@ class FocusWindowOut(BaseModel):
         return value.strftime("%H:%M")
 
 
+class PlanCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    soft_target_at: datetime | None = None
+
+
+class PlanUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    soft_target_at: datetime | None = None
+
+
+class PlanOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    soft_target_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=500)
     description: str | None = None
@@ -226,6 +246,7 @@ class TaskCreate(BaseModel):
     # Omit or null to use user_settings.default_estimated_duration_minutes; explicit value wins.
     estimated_duration_minutes: int | None = None
     preferred_time_window_id: UUID | None = None
+    plan_id: UUID | None = None
     label_ids: list[UUID] = Field(default_factory=list)
     recurrence: "RecurrenceUpsert | None" = None
 
@@ -285,6 +306,7 @@ class TaskUpdate(BaseModel):
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int | None = None
     preferred_time_window_id: UUID | None = None
+    plan_id: UUID | None = None
     sort_order: int | None = None
     label_ids: list[UUID] | None = None
 
@@ -313,6 +335,8 @@ class TaskOut(BaseModel):
     soft_target_at: datetime | None
     estimated_duration_minutes: int
     preferred_time_window_id: UUID | None = None
+    plan_id: UUID | None = None
+    plan_name: str | None = None
     is_completed: bool
     completed_at: datetime | None
     status: ScheduleStatus

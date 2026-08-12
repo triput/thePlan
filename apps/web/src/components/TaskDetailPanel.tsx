@@ -7,6 +7,7 @@ import {
   deleteTaskRecurrence,
   fetchFocusWindows,
   fetchLabels,
+  fetchPlans,
   fetchProjects,
   fetchSections,
   fetchTaskReminders,
@@ -15,6 +16,7 @@ import {
   updateTask,
   type FocusWindow,
   type Label,
+  type Plan,
   type Project,
   type ReminderChannel,
   type Task,
@@ -71,6 +73,7 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
     deadline_at: body.deadline_at !== undefined ? body.deadline_at : task.deadline_at,
     soft_target_at:
       body.soft_target_at !== undefined ? body.soft_target_at : task.soft_target_at,
+    plan_id: body.plan_id !== undefined ? body.plan_id : task.plan_id,
     estimated_duration_minutes:
       body.estimated_duration_minutes ?? task.estimated_duration_minutes,
     preferred_time_window_id:
@@ -94,6 +97,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [parentTaskId, setParentTaskId] = useState<string>("");
   const [labelIds, setLabelIds] = useState<string[]>([]);
   const [preferredTimeWindowId, setPreferredTimeWindowId] = useState<string>("");
+  const [planId, setPlanId] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [recurrenceText, setRecurrenceText] = useState("");
   const [startsOn, setStartsOn] = useState("");
@@ -118,6 +122,13 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     enabled: task !== null,
   });
   const focusWindows: FocusWindow[] = focusWindowsQuery.data ?? [];
+
+  const plansQuery = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+    enabled: task !== null,
+  });
+  const plans: Plan[] = plansQuery.data ?? [];
 
   const effectiveProjectId = projectId || null;
 
@@ -152,6 +163,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setParentTaskId(task.parent_task_id ?? "");
     setLabelIds(task.label_ids);
     setPreferredTimeWindowId(task.preferred_time_window_id ?? "");
+    setPlanId(task.plan_id ?? "");
     setRecurrenceText("");
     setStartsOn(task.recurrence?.starts_on ?? "");
     setEndsOn(task.recurrence?.ends_on ?? "");
@@ -320,6 +332,16 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     );
   };
 
+  const handlePlanChange = (value: string) => {
+    setPlanId(value);
+    if (value) {
+      const plan = plans.find((p) => p.id === value);
+      if (plan?.soft_target_at) {
+        setSoftTargetAtLocal(toDatetimeLocal(plan.soft_target_at));
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!task) return;
@@ -339,6 +361,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       parent_task_id: parentTaskId || null,
       label_ids: labelIds,
       preferred_time_window_id: preferredTimeWindowId || null,
+      plan_id: planId || null,
     });
   };
 
@@ -413,6 +436,25 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             />
             <span className="field-hint muted small">
               Hard commit — scheduler must not miss
+            </span>
+          </label>
+
+          <label className="field">
+            <span>Plan</span>
+            <select
+              className="field-select"
+              value={planId}
+              onChange={(e) => handlePlanChange(e.target.value)}
+            >
+              <option value="">None</option>
+              {plans.map((plan) => (
+                <option key={plan.id} value={plan.id}>
+                  {plan.name}
+                </option>
+              ))}
+            </select>
+            <span className="field-hint muted small">
+              Assigning a plan may copy its soft target onto this task
             </span>
           </label>
 

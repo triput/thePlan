@@ -143,6 +143,8 @@ export interface Task {
   due_at: string | null;
   deadline_at: string | null;
   soft_target_at: string | null;
+  plan_id: string | null;
+  plan_name?: string | null;
   estimated_duration_minutes: number;
   preferred_time_window_id: string | null;
   is_completed: boolean;
@@ -223,6 +225,7 @@ export interface TaskCreate {
   due_at?: string | null;
   deadline_at?: string | null;
   soft_target_at?: string | null;
+  plan_id?: string | null;
   estimated_duration_minutes?: number;
   preferred_time_window_id?: string | null;
   label_ids?: string[];
@@ -239,9 +242,28 @@ export interface TaskUpdate {
   due_at?: string | null;
   deadline_at?: string | null;
   soft_target_at?: string | null;
+  plan_id?: string | null;
   estimated_duration_minutes?: number;
   preferred_time_window_id?: string | null;
   label_ids?: string[];
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  soft_target_at: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PlanCreate {
+  name: string;
+  soft_target_at?: string | null;
+}
+
+export interface PlanUpdate {
+  name?: string;
+  soft_target_at?: string | null;
 }
 
 export type ScheduleStyle = "standalone" | "time_block" | "bundle";
@@ -790,6 +812,28 @@ export function updateFocusWindow(windowId: string, body: FocusWindowUpdate) {
 
 export function deleteFocusWindow(windowId: string) {
   return apiFetch<void>(`/api/v1/focus-windows/${windowId}`, { method: "DELETE" });
+}
+
+export function fetchPlans() {
+  return apiFetch<Plan[]>("/api/v1/plans");
+}
+
+export function createPlan(body: PlanCreate) {
+  return apiFetch<Plan>("/api/v1/plans", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updatePlan(planId: string, body: PlanUpdate) {
+  return apiFetch<Plan>(`/api/v1/plans/${planId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deletePlan(planId: string) {
+  return apiFetch<void>(`/api/v1/plans/${planId}`, { method: "DELETE" });
 }
 
 export interface CalendarAccount {

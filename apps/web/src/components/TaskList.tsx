@@ -5,6 +5,7 @@ import {
   completeTask,
   createTask,
   fetchLabels,
+  fetchPlans,
   fetchScheduledBlocks,
   fetchSections,
   fetchTasks,
@@ -89,6 +90,8 @@ function makeOptimisticTask(body: {
     due_at: null,
     deadline_at: null,
     soft_target_at: null,
+    plan_id: null,
+    plan_name: null,
     estimated_duration_minutes: 0,
     preferred_time_window_id: null,
     is_completed: false,
@@ -133,6 +136,18 @@ export function TaskList({
     }
     return map;
   }, [labelsQuery.data]);
+
+  const plansQuery = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+  });
+  const planNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const plan of plansQuery.data ?? []) {
+      map.set(plan.id, plan.name);
+    }
+    return map;
+  }, [plansQuery.data]);
 
   const tasksQuery = useQuery({
     queryKey: tasksCacheKey(view, showCompleted),
@@ -611,6 +626,11 @@ export function TaskList({
                 </span>
               )}
               {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
+              {(task.plan_name || task.plan_id) && (
+                <span className="plan-badge">
+                  Plan {task.plan_name ?? planNameById.get(task.plan_id!) ?? "…"}
+                </span>
+              )}
               {task.soft_target_at && (
                 <span className="soft-target-badge">Soft {formatDue(task.soft_target_at)}</span>
               )}

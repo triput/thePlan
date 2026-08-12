@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Settings expansion complete (2026-08-11)** — `GET/PATCH /settings` + Scheduling defaults UI (timezone, buffers, durations, schedule style, auto-defer); duration inheritance on task/quick-add. Slice 1 Time Maps verified. Next: Plans / painted preference tiers / fuzzy session before Update Schedule. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
+**Status:** **W2b Plans B complete (2026-08-11)** — named Plans CRUD + task bind; Plans A thin UI shipped earlier. Next: **fuzzy algorithm session** before Update Schedule worker; then painted Time Maps. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -167,8 +167,9 @@ No full Update Schedule / UPS pipeline in 2a.
 
 1. **Slice 1 — complete:** `focus_windows` CRUD + Settings UI; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening`. Verified live 2026-08-11. v1 = one contiguous hard/soft band per named map.
 2. **Settings expansion — complete:** `GET/PATCH /settings` + Scheduling defaults UI; `default_estimated_duration_minutes`, `default_min_block_duration_minutes`, `default_schedule_style` (`standalone`), `auto_defer_enabled`; task create + quick-add inherit default duration when omitted. Verified live 2026-08-11. Polish: timezone dropdown → [DEF-002](./DEFECTS.md).
-3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired. **Plans B** (named plans, flexible frames) next.
-4. **Update Schedule** — explicit replan action; async worker (ADR-005)
+3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired.
+4. **Plans B — complete:** `plans` table + CRUD; `tasks.plan_id`; bind copies plan `soft_target_at`; Settings Plans UI; task detail Plan picker; list plan-badge. Out of scope this slice: scheduler worker, rule inheritance, quick-add plan tokens, sidebar plans.
+5. **Update Schedule** — explicit replan action; async worker (ADR-005); **blocked** until fuzzy algorithm session exits
 
 | Feature | Notes |
 |---------|-------|
@@ -183,7 +184,8 @@ No full Update Schedule / UPS pipeline in 2a.
 | Rule inheritance | Parent → child window/plan propagation |
 | Overbook UI | schedule_status.overbooked |
 | deadline_at UI | **shipped** (Plans A) — hard commit surfaced in task detail + list |
-| soft_target_at UI | **shipped** (Plans A) — flexible plan target in task detail + list |
+| soft_target_at UI | **shipped** (Plans A/B) — task detail + list; copied on plan bind |
+| Plans CRUD + task bind | **shipped** (Plans B) — Settings Plans section; task picker; list badge |
 | Task dependency enforcement | Topological ordering in scheduler |
 | Saved filter query language | User-authored saved_filters — ship if capacity; else W3+ |
 | WebSocket invalidation | Optional; else keep REST invalidation |

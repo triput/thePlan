@@ -121,6 +121,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
   "due_at": "2026-08-11T09:00:00Z",
   "estimated_duration_minutes": 90,
   "preferred_time_window_id": "uuid-or-null",
+  "plan_id": "uuid-or-null",
   "label_ids": ["uuid"]
 }
 ```
@@ -128,6 +129,33 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 `estimated_duration_minutes` optional on create: omit or `null` → `user_settings.default_estimated_duration_minutes`; explicit value wins (including `30`).
 
 `deadline_at` and `soft_target_at` accepted on write and surfaced in task detail + list UI (Plans A, W2b). `deadline_at` enforced in W2 scheduler. `preferred_time_window_id` must reference an owned focus window; cleared with `null`.
+
+`plan_id` optional on create/update; must reference an owned plan; cleared with `null`. **Plan bind:** setting `plan_id` copies the plan's `soft_target_at` onto the task when the plan has one; clearing `plan_id` leaves `soft_target_at` unchanged; patching `soft_target_at` alone does not clear `plan_id`. When both `plan_id` and `soft_target_at` appear in the same request, explicit `soft_target_at` wins after bind.
+
+`TaskOut` includes `plan_id` and denormalized `plan_name` (null when unbound).
+
+---
+
+### Plans
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/plans` | List owner plans ordered by name |
+| POST | `/plans` | Create |
+| GET | `/plans/{id}` | Get |
+| PATCH | `/plans/{id}` | Update |
+| DELETE | `/plans/{id}` | Delete (204); `tasks.plan_id` SET NULL via FK |
+
+**Create body:**
+
+```json
+{
+  "name": "Finish Q3 report",
+  "soft_target_at": "2026-08-15T17:00:00Z"
+}
+```
+
+`name` trimmed; empty → 422 `PLAN_NAME_EMPTY`. `soft_target_at` optional flexible frame for bound tasks.
 
 ---
 
@@ -322,6 +350,8 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
   "due_at": "2026-08-11T09:00:00Z",
   "deadline_at": null,
   "soft_target_at": null,
+  "plan_id": null,
+  "plan_name": null,
   "estimated_duration_minutes": 90,
   "is_completed": false,
   "completed_at": null,

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
-from app.models import Label, Project, RecurrenceRule, Reminder, Task, TaskLabel, User
+from app.models import Label, Plan, Project, RecurrenceRule, Reminder, Task, TaskLabel, User
 from app.schemas import (
     PaginatedResponse,
     RecurrenceOut,
@@ -23,6 +23,7 @@ from app.schemas import (
 from app.services.auth_users import get_or_provision_user_settings
 from app.services.ownership import (
     verify_owned_focus_window,
+    verify_owned_plan,
     verify_owned_project,
     verify_owned_section,
     verify_owned_task,
@@ -37,6 +38,35 @@ from app.services.reorder import batch_reorder_sort_order
 from app.services.task_helpers import complete_task, mark_task_complete, resolve_nesting_level
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+
+_MISSING = object()
+
+
+def _resolve_plan_bind(
+    db: Session,
+    user: User,
+    plan_id: UUID | None,
+) -> datetime | None:
+    """Return plan soft_target_at when binding, or None if plan has no frame."""
+    if plan_id is None:
+        return None
+    plan = verify_owned_plan(db, plan_id, user)
+    return plan.soft_target_at
+
+
+def _apply_plan_bind_soft_target(
+    *,
+    plan_id: UUID | None,
+    explicit_soft_target: datetime | None,
+    soft_target_in_request: bool,
+    bound_soft_target: datetime | None,
+) -> datetime | None:
+    soft_target_at = explicit_soft_target if soft_target_in_request else None
+    if plan_id is not None and bound_soft_target is not None:
+        soft_target_at = bound_soft_target
+    if soft_target_in_request:
+        soft_target_at = explicit_soft_target
+    return soft_target_at
 
 
 def _get_owned_task(db: Session, task_id: UUID, user: User) -> Task:
@@ -79,6 +109,7 @@ def task_to_out(
     *,
     recurrence_advanced: bool = False,
     previous_due_at: datetime | None = None,
+    plan_names: dict[UUID, str] | None = None,
 ) -> TaskOut:
     label_ids = [link.label_id for link in task.label_links]
     open_subtask_count = (
@@ -90,6 +121,13 @@ def task_to_out(
         )
         .count()
     )
+    plan_name: str | None = None
+    if task.plan_id is not None:
+        if plan_names is not None:
+            plan_name = plan_names.get(task.plan_id)
+        else:
+            plan = db.get(Plan, task.plan_id)
+            plan_name = plan.name if plan is not None else None
     return TaskOut.model_validate(
         {
             **TaskOut.model_validate(task).model_dump(),
@@ -98,6 +136,7 @@ def task_to_out(
             "recurrence": recurrence_to_out(task.recurrence_rule),
             "recurrence_advanced": recurrence_advanced,
             "previous_due_at": previous_due_at,
+            "plan_name": plan_name,
         }
     )
 
@@ -208,8 +247,15 @@ def list_tasks(
         query = query.filter(Task.due_at.isnot(None), Task.due_at < due_to)
     total = query.count()
     items = query.order_by(Task.sort_order, Task.created_at).offset(offset).limit(limit).all()
+    plan_ids = {item.plan_id for item in items if item.plan_id is not None}
+    plan_names: dict[UUID, str] = {}
+    if plan_ids:
+        plan_names = {
+            row.id: row.name
+            for row in db.query(Plan).filter(Plan.owner_id == user.id, Plan.id.in_(plan_ids)).all()
+        }
     return PaginatedResponse(
-        items=[task_to_out(item, db) for item in items],
+        items=[task_to_out(item, db, plan_names=plan_names) for item in items],
         total=total,
         limit=limit,
         offset=offset,
@@ -228,6 +274,9 @@ def create_task(
         verify_owned_section(db, body.section_id, user)
     if body.preferred_time_window_id is not None:
         verify_owned_focus_window(db, body.preferred_time_window_id, user)
+    explicit_fields = body.model_dump(exclude_unset=True)
+    if body.plan_id is not None:
+        verify_owned_plan(db, body.plan_id, user)
     try:
         nesting_level = resolve_nesting_level(db, user.id, body.parent_task_id)
     except ApiError as exc:
@@ -238,6 +287,14 @@ def create_task(
         estimated_duration_minutes = settings.default_estimated_duration_minutes
     else:
         estimated_duration_minutes = body.estimated_duration_minutes
+
+    bound_soft_target = _resolve_plan_bind(db, user, body.plan_id)
+    soft_target_at = _apply_plan_bind_soft_target(
+        plan_id=body.plan_id,
+        explicit_soft_target=body.soft_target_at,
+        soft_target_in_request="soft_target_at" in explicit_fields,
+        bound_soft_target=bound_soft_target,
+    )
 
     task = Task(
         owner_id=user.id,
@@ -250,9 +307,10 @@ def create_task(
         priority=body.priority,
         due_at=body.due_at,
         deadline_at=body.deadline_at,
-        soft_target_at=body.soft_target_at,
+        soft_target_at=soft_target_at,
         estimated_duration_minutes=estimated_duration_minutes,
         preferred_time_window_id=body.preferred_time_window_id,
+        plan_id=body.plan_id,
     )
     db.add(task)
     db.flush()
@@ -303,6 +361,8 @@ def update_task(
     task = _get_owned_task(db, task_id, user)
     updates = body.model_dump(exclude_unset=True)
     label_ids = updates.pop("label_ids", None)
+    soft_target_at = updates.pop("soft_target_at", _MISSING)
+    plan_id = updates.pop("plan_id", _MISSING)
 
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
@@ -323,8 +383,21 @@ def update_task(
         except ApiError as exc:
             raise exc
 
+    if plan_id is not _MISSING:
+        if plan_id is not None:
+            verify_owned_plan(db, plan_id, user)
+            task.plan_id = plan_id
+            bound_soft_target = _resolve_plan_bind(db, user, plan_id)
+            if bound_soft_target is not None:
+                task.soft_target_at = bound_soft_target
+        else:
+            task.plan_id = None
+
     for field, value in updates.items():
         setattr(task, field, value)
+
+    if soft_target_at is not _MISSING:
+        task.soft_target_at = soft_target_at
 
     if label_ids is not None:
         _sync_task_labels(db, task, user, label_ids)

@@ -30,6 +30,7 @@ users ──┬── user_settings
         │                          ├── recurrence_rules
         │                          └── reminders
         ├── focus_windows
+        ├── plans
         ├── saved_filters
         ├── calendar_accounts ── calendar_subscriptions
         │                    └── external_calendar_events
@@ -160,6 +161,18 @@ W2 UI; table present from baseline.
 | days_of_week | SMALLINT | Bitset Mon=1 … Sun=64 |
 | is_hard | BOOLEAN | Hard vs soft window |
 
+### plans
+
+Named reusable soft time frames (Plans B, W2b). Alembic `007_plans`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| owner_id | UUID FK | ON DELETE CASCADE |
+| name | VARCHAR(100) | Trimmed; non-empty |
+| soft_target_at | TIMESTAMPTZ nullable | Flexible "do around…" frame for bound tasks |
+
+**Indexes:** `(owner_id)`, `(owner_id, name)`
+
 ### tasks
 
 Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
@@ -180,7 +193,8 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 | max_block_duration_minutes | INT | Default 120 |
 | due_at | TIMESTAMPTZ nullable | **MVP UI** |
 | deadline_at | TIMESTAMPTZ nullable | Hard commit; **W2 UI** |
-| soft_target_at | TIMESTAMPTZ nullable | **Plan-bound soft target; W2 UI** |
+| soft_target_at | TIMESTAMPTZ nullable | Flexible target; may copy from bound plan |
+| plan_id | UUID FK nullable | plans; ON DELETE SET NULL |
 | preferred_time_window_id | UUID FK nullable | focus_windows |
 | status | schedule_status | |
 | is_completed | BOOLEAN | |
@@ -188,12 +202,13 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 
 **Nesting invariant:** Application validates `nesting_level = parent.nesting_level + 1` when parent exists; root tasks have `nesting_level = 0`.
 
-**soft_target_at / Plans:** Reserved for Plan-bound soft targets in W2. When Plans ship, tasks linked to a Plan inherit or store `soft_target_at` as the flexible "do this around…" constraint distinct from `due_at` (user intent) and `deadline_at` (hard must-finish).
+**Plans bind:** Setting `plan_id` copies `plans.soft_target_at` onto the task when present; unbind leaves `soft_target_at`; explicit task `soft_target_at` patch does not clear `plan_id`. Distinct from `due_at` (user intent) and `deadline_at` (hard must-finish).
 
 **Indexes:**
 
 - `(owner_id, due_at)` — Today/Upcoming/calendar
 - `(owner_id, deadline_at)` — W2 scheduler
+- `(owner_id, plan_id)` — Plan rollups / list badges
 - `(owner_id, is_completed)` — Active task lists
 - `(owner_id, project_id, sort_order)` — Project views
 - `(project_id)`, `(section_id)`, `(parent_task_id)`

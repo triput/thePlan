@@ -798,6 +798,7 @@
 .priority-badge,
 .due-badge,
 .soft-target-badge,
+.plan-badge,
 .deadline-badge,
 .duration-badge {
   font-size: 0.72rem;
@@ -806,6 +807,11 @@
 
 .soft-target-badge {
   opacity: 0.85;
+}
+
+.plan-badge {
+  opacity: 0.9;
+  font-style: italic;
 }
 
 .deadline-badge {

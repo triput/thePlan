@@ -175,6 +175,21 @@ class FocusWindow(Base, TimestampMixin):
     is_hard: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
 
 
+class Plan(Base, TimestampMixin):
+    __tablename__ = "plans"
+    __table_args__ = (
+        Index("idx_plans_owner", "owner_id"),
+        Index("idx_plans_owner_name", "owner_id", "name"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    soft_target_at: Mapped[datetime | None] = mapped_column()
+
+
 class Task(Base, TimestampMixin):
     __tablename__ = "tasks"
     __table_args__ = (
@@ -192,6 +207,7 @@ class Task(Base, TimestampMixin):
         Index("idx_tasks_owner_deadline_at", "owner_id", "deadline_at"),
         Index("idx_tasks_owner_is_completed", "owner_id", "is_completed"),
         Index("idx_tasks_owner_project_sort", "owner_id", "project_id", "sort_order"),
+        Index("idx_tasks_owner_plan", "owner_id", "plan_id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
@@ -222,6 +238,9 @@ class Task(Base, TimestampMixin):
     soft_target_at: Mapped[datetime | None] = mapped_column()
     preferred_time_window_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="SET NULL")
+    )
+    plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("plans.id", ondelete="SET NULL")
     )
     status: Mapped[ScheduleStatus] = mapped_column(
         SAEnum(ScheduleStatus, name="schedule_status", native_enum=True),

@@ -180,8 +180,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Plans (flexible time frames) | W2b | First-class entities |
-| soft_target_at on tasks | W2b UI | Schema reserved MVP |
+| Plans (flexible time frames) | W2b | CRUD + task bind + Settings UI — **shipped** (Plans B) |
+| soft_target_at on tasks | W2b UI | Task detail + list badges; copied on plan bind — **shipped** |
 | Soft vs hard constraint semantics | W2b | Soft=plan/window; hard=deadline/pin/busy |
 | Rule inheritance from parent | W2b | Window/plan propagation |
 

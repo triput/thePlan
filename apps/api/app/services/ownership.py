@@ -5,7 +5,7 @@ import uuid
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models import Epic, FocusWindow, Project, Section, Task, User
+from app.models import Epic, FocusWindow, Plan, Project, Section, Task, User
 
 
 def verify_owned_epic(db: Session, epic_id: uuid.UUID, user: User) -> Epic:
@@ -41,3 +41,10 @@ def verify_owned_focus_window(db: Session, window_id: uuid.UUID, user: User) -> 
     if window is None or window.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Focus window not found")
     return window
+
+
+def verify_owned_plan(db: Session, plan_id: uuid.UUID, user: User) -> Plan:
+    plan = db.get(Plan, plan_id)
+    if plan is None or plan.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
+    return plan

@@ -158,6 +158,7 @@ export function taskToCreateSnapshot(task: {
   due_at: string | null;
   deadline_at?: string | null;
   soft_target_at?: string | null;
+  plan_id?: string | null;
   estimated_duration_minutes: number;
   label_ids: string[];
 }): TaskCreate {
@@ -171,6 +172,7 @@ export function taskToCreateSnapshot(task: {
     due_at: task.due_at,
     deadline_at: task.deadline_at ?? null,
     soft_target_at: task.soft_target_at ?? null,
+    plan_id: task.plan_id ?? null,
     estimated_duration_minutes: task.estimated_duration_minutes,
     label_ids: task.label_ids,
   };
