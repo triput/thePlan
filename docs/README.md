@@ -47,6 +47,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [adr/ADR-003-local-first-auth.md](./adr/ADR-003-local-first-auth.md) | Local-only MVP auth; login in W1.5 |
 | [adr/ADR-004-container-runtime.md](./adr/ADR-004-container-runtime.md) | Docker Desktop default; OCI-portable Compose |
 | [adr/ADR-005-scheduler-decoupling.md](./adr/ADR-005-scheduler-decoupling.md) | CRUD never waits on scheduler |
+| [adr/ADR-006-fuzzy-scheduling.md](./adr/ADR-006-fuzzy-scheduling.md) | v1 fuzzy fit / Update Schedule replan contract |
 
 ## Legacy
 

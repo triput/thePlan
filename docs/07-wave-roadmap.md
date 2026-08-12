@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Plans B complete (2026-08-11)** — named Plans CRUD + task bind; Plans A thin UI shipped earlier. Next: **fuzzy algorithm session** before Update Schedule worker; then painted Time Maps. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
+**Status:** **W2b Plans B complete (2026-08-11)** — named Plans CRUD + task bind; Plans A thin UI shipped earlier. **Fuzzy algorithm session complete (2026-08-12)** — [ADR-006](./adr/ADR-006-fuzzy-scheduling.md); **Update Schedule** worker is the next implementable slice; then painted Time Maps. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -169,14 +169,14 @@ No full Update Schedule / UPS pipeline in 2a.
 2. **Settings expansion — complete:** `GET/PATCH /settings` + Scheduling defaults UI; `default_estimated_duration_minutes`, `default_min_block_duration_minutes`, `default_schedule_style` (`standalone`), `auto_defer_enabled`; task create + quick-add inherit default duration when omitted. Verified live 2026-08-11. Polish: timezone dropdown → [DEF-002](./DEFECTS.md).
 3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired.
 4. **Plans B — complete:** `plans` table + CRUD; `tasks.plan_id`; bind copies plan `soft_target_at`; Settings Plans UI; task detail Plan picker; list plan-badge. Out of scope this slice: scheduler worker, rule inheritance, quick-add plan tokens, sidebar plans.
-5. **Update Schedule** — explicit replan action; async worker (ADR-005); **blocked** until fuzzy algorithm session exits
+5. **Update Schedule** — **next implementable** — explicit replan action; async worker ([ADR-005](./adr/ADR-005-scheduler-decoupling.md) + [ADR-006](./adr/ADR-006-fuzzy-scheduling.md))
 
 | Feature | Notes |
 |---------|-------|
 | Auto-scheduler worker | Decoupled from CRUD |
 | UPS scoring + slice/fit | U = 100·e^(-k·max(Slack,0)), k=0.5 |
 | Pins, soft vs hard | `deadline_at` enforced; pinned blocks immovable until unpin |
-| Bundled vs formal blocks | Knockout lists → blocks on replan |
+| Bundled vs formal blocks | Knockout lists → blocks on replan (**post–v1**; v1 excludes bundle auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
 | Scoped bundles | Bundle constrained to one epic or project — late W2b / early W3 |
 | Settings expansion | W2b — **shipped** | API + Scheduling defaults UI; timezone still free-text ([DEF-002](./DEFECTS.md)) |
 | **Painted Time Maps (SkedPal-class)** | Late W2b / early W3 — one named map with **multiple painted bands** (e.g. morning + evening study on the same map); preference tiers **green → yellow → never red** (scheduler fills preferred first, overflow to yellow only, hard ban on red). Not two duplicate maps for the same intent. Color UI on the week grid. |
@@ -193,7 +193,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | Task soft-delete + session restore | Target by end of W2b |
 | Sidebar → calendar drag | Drag a task from list/sidebar onto a day/time slot to create a `scheduled_block` (desktop first; phone keeps tap/slot). Parked UX — not a W2a exit. Late W2b polish or early W3. |
 
-**Fuzzy scheduling** (deferral, override min/max block length, soft plans, auto-defer, time pressure vs Time Maps): **dedicated planning session** before deep W2b algorithm work — do not spec ad hoc.
+**Fuzzy scheduling** — **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)): replan contract, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook locked for v1 Update Schedule worker.
 
 **Schema fence (locked 2026-08-11 — before Update Schedule worker):**
 
@@ -205,7 +205,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | Time Map preference tiers | **In principle** — green preferred → yellow overflow OK → red forbidden; v1 maps stay one band until Painted Time Maps |
 | Pins + external busy | **Immovable BUSY** — confirmed (ADR-005 + GCal conflict policy) |
 
-Settings expansion is **shipped**; full fuzzy algorithm session remains the gate before the replan worker.
+Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Update Schedule worker is unblocked.
 
 ### GCal Conflict Policy (2a + 2b)
 

@@ -285,6 +285,8 @@ Input: `Review architecture spec 1.5h p1 next Tue at 9am !!Organon #Dev/Backend 
 
 These behaviors are **not in MVP** but are locked for W2 design. Schema and API are prepared from day one.
 
+**v1 worker contract:** Fuzzy fit, replan horizon, candidate set, relaxation ladder, slice/fit, and overbook semantics for Update Schedule are locked in [ADR-006](./adr/ADR-006-fuzzy-scheduling.md). This section retains product-level semantics; implement the worker against the ADR.
+
 ### SkedPal Triad
 
 1. **Time Maps** — `focus_windows` table: named recurring local time ranges (e.g. "Morning Deep Work" Mon–Fri 08:00–11:00). Tasks bind via `preferred_time_window_id`.
@@ -345,9 +347,7 @@ Insert `inter_block_buffer_minutes` (default **5**) between back-to-back auto-sc
 
 ### Fuzzy Fit Rules
 
-- Prefer contiguous blocks within a focus window over scattered minimum slices.
-- Relax soft window constraints before failing.
-- Pinned blocks and external busy events are immovable.
+See [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) for the v1 relaxation ladder, horizon wipe/rewrite rules, bundle exclusion, auto-defer slide-only behavior, and leftover slice rule. Summary: prefer contiguous blocks within a focus window; relax soft constraints before failing; pins and external busy are immovable.
 
 ### GCal Conflict (W2)
 

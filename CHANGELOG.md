@@ -10,13 +10,14 @@
 - Hygiene gate: [docs/HYGIENE-W2-QUICKSCAN.md](docs/HYGIENE-W2-QUICKSCAN.md) (pass)
 - **Google Calendar Slice 1–3 (shipped):** OAuth, multi-cal/mirror/24h, conflict flags
 - cryptography for Fernet token encryption
-- Parked for W2b+: painted Time Maps, Time Map overrides, scoped bundles, fuzzy-scheduling planning session, sidebar→calendar drag-schedule
+- **ADR-006 accepted (2026-08-12):** Fuzzy scheduling contract for v1 Update Schedule — replan trigger/horizon, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook ([docs/adr/ADR-006-fuzzy-scheduling.md](docs/adr/ADR-006-fuzzy-scheduling.md))
+- Parked for W2b+: painted Time Maps, Time Map overrides, scoped bundles, sidebar→calendar drag-schedule
 - **Schema fence locked:** standalone default; MBL use default; auto-defer on; green→yellow→never red in principle; pins + GCal busy immovable
 - **DEF-002:** Timezone dropdown picker (polish; bundle with other fixes)
 
 ### Planned next
 
-- **Fuzzy algorithm session** — gate before Update Schedule worker
+- **Update Schedule (thin worker)** — `POST /schedule/replan` (202), `schedule_runs`, async worker per [ADR-006](docs/adr/ADR-006-fuzzy-scheduling.md)
 - **Painted Time Maps** — one map, split colored bands; green preferred, yellow overflow OK, red forbidden
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit

@@ -68,4 +68,5 @@ Task management API endpoints (create, update, complete, move, delete) return im
 ## Related
 
 - [02-functional-spec.md](../02-functional-spec.md) §9 — scheduling pipeline
+- [ADR-006-fuzzy-scheduling.md](./ADR-006-fuzzy-scheduling.md) — v1 fuzzy fit / replan contract
 - [ADR-001-tech-stack.md](./ADR-001-tech-stack.md)

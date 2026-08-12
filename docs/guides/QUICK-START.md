@@ -377,7 +377,7 @@ Press **?** for the overlay. Highlights:
 
 Don't go hunting for these — they're real roadmap, not hidden beta:
 
-- **Update Schedule** — SkedPal-style "replan my week" button and async auto-scheduler worker
+- **Update Schedule** — not shipped yet; fuzzy algorithm contract locked ([ADR-006](../adr/ADR-006-fuzzy-scheduling.md)); replan button + async worker still to build
 - **Auto time-blocking** — UPS scoring, slice/fit, dependency-aware ordering
 - **Painted Time Maps** — one map with green/yellow/red preference tiers on the week grid
 - **Time Map temporary overrides** — vacation/conference dated exceptions
