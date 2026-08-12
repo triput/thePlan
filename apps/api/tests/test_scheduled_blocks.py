@@ -5,9 +5,22 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from fastapi.testclient import TestClient
 
 UTC = timezone.utc
+
+
+@pytest.fixture(autouse=True)
+def _skip_calendar_mirror(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "app.api.routes.scheduled_blocks.push_scheduled_block",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "app.api.routes.scheduled_blocks.delete_mirrored_block",
+        lambda *args, **kwargs: None,
+    )
 
 
 def _uid() -> str:

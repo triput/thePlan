@@ -170,7 +170,7 @@ No full Update Schedule / UPS pipeline in 2a.
 3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired.
 4. **Plans B — complete:** `plans` table + CRUD; `tasks.plan_id`; bind copies plan `soft_target_at`; Settings Plans UI; task detail Plan picker; list plan-badge. Out of scope this slice: scheduler worker, rule inheritance, quick-add plan tokens, sidebar plans.
 5. **Update Schedule (thin) — complete:** `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar **Update Schedule** button with poll. Verified 2026-08-12.
-6. **Schedule refactor (A) — next** — post-thin cleanup (module boundaries, worker hardening); then **Painted Time Maps**.
+6. **Schedule refactor (A) — complete:** shared `busy_intervals`; `workday_start_local`; per-task `schedule_style`; scheduler module map + compose-worker note. Verified 2026-08-12. Next: **Painted Time Maps**.
 
 | Feature | Notes |
 |---------|-------|

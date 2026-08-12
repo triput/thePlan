@@ -6,12 +6,23 @@ from fastapi.testclient import TestClient
 
 
 def test_get_settings_returns_defaults(client: TestClient) -> None:
+    reset = client.patch(
+        "/api/v1/settings",
+        json={
+            "timezone": "UTC",
+            "locale": "en-US",
+            "workday_start_local": "08:00",
+        },
+    )
+    assert reset.status_code == 200, reset.text
+
     response = client.get("/api/v1/settings")
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["timezone"] == "UTC"
     assert body["locale"] == "en-US"
     assert body["workday_minutes"] == 480
+    assert body["workday_start_local"] == "08:00"
     assert body["workweek_days"] == 5
     assert body["inter_block_buffer_minutes"] == 5
     assert body["upcoming_horizon_days"] == 7
@@ -20,6 +31,19 @@ def test_get_settings_returns_defaults(client: TestClient) -> None:
     assert body["default_schedule_style"] == "standalone"
     assert body["auto_defer_enabled"] is True
     assert set(body["ups_weights"].keys()) == {"Wp", "Wu", "Wd", "We", "k"}
+
+
+def test_patch_settings_workday_start(client: TestClient) -> None:
+    patch = client.patch(
+        "/api/v1/settings",
+        json={"workday_start_local": "09:30"},
+    )
+    assert patch.status_code == 200, patch.text
+    assert patch.json()["workday_start_local"] == "09:30"
+
+    get_after = client.get("/api/v1/settings")
+    assert get_after.status_code == 200
+    assert get_after.json()["workday_start_local"] == "09:30"
 
 
 def test_patch_settings_timezone_buffer_and_style(client: TestClient) -> None:

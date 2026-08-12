@@ -377,6 +377,7 @@ type SchedulingDraft = {
   timezone: string;
   locale: string;
   workday_minutes: string;
+  workday_start_local: string;
   workweek_days: string;
   inter_block_buffer_minutes: string;
   upcoming_horizon_days: string;
@@ -391,6 +392,7 @@ function settingsToDraft(settings: UserSettings): SchedulingDraft {
     timezone: settings.timezone,
     locale: settings.locale,
     workday_minutes: String(settings.workday_minutes),
+    workday_start_local: settings.workday_start_local,
     workweek_days: String(settings.workweek_days),
     inter_block_buffer_minutes: String(settings.inter_block_buffer_minutes),
     upcoming_horizon_days: String(settings.upcoming_horizon_days),
@@ -425,6 +427,13 @@ function buildSettingsPatch(saved: UserSettings, draft: SchedulingDraft): UserSe
   const workdayMinutes = parsePositiveInt(draft.workday_minutes);
   if (workdayMinutes === null) throw new Error("Workday minutes must be a positive number");
   if (workdayMinutes !== saved.workday_minutes) patch.workday_minutes = workdayMinutes;
+
+  const workdayStart = draft.workday_start_local.trim();
+  if (!/^\d{2}:\d{2}(:\d{2})?$/.test(workdayStart)) {
+    throw new Error("Workday start must be HH:MM");
+  }
+  const normalizedStart = workdayStart.length === 5 ? workdayStart : workdayStart.slice(0, 5);
+  if (normalizedStart !== saved.workday_start_local) patch.workday_start_local = normalizedStart;
 
   const workweekDays = Number.parseInt(draft.workweek_days, 10);
   if (!Number.isFinite(workweekDays) || workweekDays < 1 || workweekDays > 7) {
@@ -555,6 +564,16 @@ function SchedulingDefaultsSection({ enabled }: { enabled: boolean }) {
             />
           </label>
           <div className="time-map-time-row">
+            <label className="field">
+              <span>Workday start</span>
+              <input
+                type="time"
+                value={draft.workday_start_local.slice(0, 5)}
+                onChange={(e) =>
+                  setDraft((prev) => prev && { ...prev, workday_start_local: e.target.value })
+                }
+              />
+            </label>
             <label className="field">
               <span>Workday minutes</span>
               <input

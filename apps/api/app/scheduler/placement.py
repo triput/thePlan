@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models import FocusWindow, ScheduleStatus, ScheduledBlock, Task, UserSettings
 from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_overlaps_busy
-from app.services.calendar_conflicts import ranges_overlap
+from app.services.busy_intervals import ranges_overlap
 
 
 @dataclass
@@ -31,7 +31,7 @@ def is_workday(day: date, workweek_days: int) -> bool:
 
 
 def workday_bounds(day: date, settings: UserSettings, tz: ZoneInfo) -> tuple[datetime, datetime]:
-    start_local = datetime.combine(day, time(8, 0), tzinfo=tz)
+    start_local = datetime.combine(day, settings.workday_start_local, tzinfo=tz)
     end_local = start_local + timedelta(minutes=settings.workday_minutes)
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 

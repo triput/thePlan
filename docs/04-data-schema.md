@@ -103,6 +103,7 @@ One row per user.
 | timezone | VARCHAR(64) | UTC | IANA zone |
 | locale | VARCHAR(16) | en-US | |
 | workday_minutes | INT | 480 | 8 h baseline |
+| workday_start_local | TIME | 08:00:00 | Local workday start for placement |
 | workweek_days | INT | 5 | |
 | inter_block_buffer_minutes | INT | 5 | W2 scheduler buffer |
 | ups_weights | JSONB | Wp/Wu/Wd/We/k | W2 UPS tuning |
@@ -195,6 +196,7 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 | deadline_at | TIMESTAMPTZ nullable | Hard commit; **W2 UI** |
 | soft_target_at | TIMESTAMPTZ nullable | Flexible target; may copy from bound plan |
 | plan_id | UUID FK nullable | plans; ON DELETE SET NULL |
+| schedule_style | schedule_style nullable | NULL = inherit `user_settings.default_schedule_style` |
 | preferred_time_window_id | UUID FK nullable | focus_windows |
 | status | schedule_status | |
 | is_completed | BOOLEAN | |

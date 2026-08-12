@@ -1,7 +1,8 @@
 # Changelog
 
-## [Unreleased] — Wave 2b (Update Schedule thin shipped)
+## [Unreleased] — Wave 2b (Schedule refactor A)
 
+- **W2b Schedule refactor (A):** Alembic `008_schedule_refactor`; shared `busy_intervals` primitives; `user_settings.workday_start_local` (default 08:00); nullable `tasks.schedule_style` (inherit user default); Settings workday-start field; task detail schedule-style picker; per-task bundle override; scheduler README notes future compose worker
 - **W2b Update Schedule (thin):** `POST /schedule/replan` (202 `ScheduleRunOut`; stale reclaim 15m; 409 `SCHEDULE_RUN_IN_PROGRESS`); `GET /schedule/runs/{id}`; in-process async worker per [ADR-006](docs/adr/ADR-006-fuzzy-scheduling.md); Calendar **Update Schedule** button with poll
 - **Docs:** Guest [Quick Start guide](docs/guides/QUICK-START.md) for live-instance UI (W2b Plans B scope; no ops/setup)
 - **W2b Plans B (shipped):** Alembic `007_plans`; `plans` CRUD (`GET/POST/PATCH/DELETE /plans`); `tasks.plan_id` + bind semantics (set copies plan `soft_target_at` when present; unbind leaves soft target; same-request `soft_target_at` wins); Settings Plans section; task detail Plan picker; list plan-badge
@@ -12,13 +13,12 @@
 - **Google Calendar Slice 1–3 (shipped):** OAuth, multi-cal/mirror/24h, conflict flags
 - cryptography for Fernet token encryption
 - **ADR-006 accepted (2026-08-12):** Fuzzy scheduling contract for v1 Update Schedule — replan trigger/horizon, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook ([docs/adr/ADR-006-fuzzy-scheduling.md](docs/adr/ADR-006-fuzzy-scheduling.md))
-- Parked for W2b+: painted Time Maps, Time Map overrides, scoped bundles, sidebar→calendar drag-schedule
+- Parked for W2b+: painted Time Maps, Time Map overrides, scoped bundles, sidebar→calendar drag-schedule, dedicated compose worker container
 - **Schema fence locked:** standalone default; MBL use default; auto-defer on; green→yellow→never red in principle; pins + GCal busy immovable
 - **DEF-002:** Timezone dropdown picker (polish; bundle with other fixes)
 
 ### Planned next
 
-- **Schedule refactor (A)** — cleanup pass after thin ship (module boundaries, worker hardening)
 - **Painted Time Maps** — one map, split colored bands; green preferred, yellow overflow OK, red forbidden
 - **Dependency Hygiene** — gate before W3 feature waves (per version policy)
 

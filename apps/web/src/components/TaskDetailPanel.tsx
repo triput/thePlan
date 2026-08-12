@@ -19,6 +19,7 @@ import {
   type Plan,
   type Project,
   type ReminderChannel,
+  type ScheduleStyle,
   type Task,
   type TaskPriority,
   type TaskUpdate,
@@ -80,6 +81,8 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
       body.preferred_time_window_id !== undefined
         ? body.preferred_time_window_id
         : task.preferred_time_window_id,
+    schedule_style:
+      body.schedule_style !== undefined ? body.schedule_style : task.schedule_style,
     label_ids: body.label_ids ?? task.label_ids,
   };
 }
@@ -97,6 +100,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [parentTaskId, setParentTaskId] = useState<string>("");
   const [labelIds, setLabelIds] = useState<string[]>([]);
   const [preferredTimeWindowId, setPreferredTimeWindowId] = useState<string>("");
+  const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const [planId, setPlanId] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [recurrenceText, setRecurrenceText] = useState("");
@@ -163,6 +167,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setParentTaskId(task.parent_task_id ?? "");
     setLabelIds(task.label_ids);
     setPreferredTimeWindowId(task.preferred_time_window_id ?? "");
+    setScheduleStyle(task.schedule_style ?? "");
     setPlanId(task.plan_id ?? "");
     setRecurrenceText("");
     setStartsOn(task.recurrence?.starts_on ?? "");
@@ -361,6 +366,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       parent_task_id: parentTaskId || null,
       label_ids: labelIds,
       preferred_time_window_id: preferredTimeWindowId || null,
+      schedule_style: scheduleStyle || null,
       plan_id: planId || null,
     });
   };
@@ -609,6 +615,22 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
                 </option>
               ))}
             </select>
+          </label>
+          <label className="field">
+            <span>Schedule style</span>
+            <select
+              className="field-select"
+              value={scheduleStyle}
+              onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
+            >
+              <option value="">Inherit user default</option>
+              <option value="standalone">Standalone</option>
+              <option value="time_block">Time block</option>
+              <option value="bundle">Bundle</option>
+            </select>
+            <span className="field-hint muted small">
+              Bundle tasks are excluded from auto-placement
+            </span>
           </label>
           <label className="field">
             <span>Project</span>

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from app.services.calendar_conflicts import ranges_overlap
+from app.services.busy_intervals import ranges_overlap
 
 
 def _dt(hour: int, minute: int = 0) -> datetime:

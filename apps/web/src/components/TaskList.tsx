@@ -92,6 +92,7 @@ function makeOptimisticTask(body: {
     soft_target_at: null,
     plan_id: null,
     plan_name: null,
+    schedule_style: null,
     estimated_duration_minutes: 0,
     preferred_time_window_id: null,
     is_completed: false,

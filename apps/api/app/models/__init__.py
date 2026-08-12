@@ -67,6 +67,9 @@ class UserSettings(Base, TimestampMixin):
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, server_default="UTC")
     locale: Mapped[str] = mapped_column(String(16), nullable=False, server_default="en-US")
     workday_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="480")
+    workday_start_local: Mapped[time] = mapped_column(
+        Time, nullable=False, server_default="08:00:00"
+    )
     workweek_days: Mapped[int] = mapped_column(Integer, nullable=False, server_default="5")
     inter_block_buffer_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="5")
     ups_weights: Mapped[dict[str, Any]] = mapped_column(
@@ -241,6 +244,10 @@ class Task(Base, TimestampMixin):
     )
     plan_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("plans.id", ondelete="SET NULL")
+    )
+    schedule_style: Mapped[ScheduleStyle | None] = mapped_column(
+        SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
+        nullable=True,
     )
     status: Mapped[ScheduleStatus] = mapped_column(
         SAEnum(ScheduleStatus, name="schedule_status", native_enum=True),

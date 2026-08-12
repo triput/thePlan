@@ -221,6 +221,45 @@ def test_bundle_gate_skips_auto_placement(
     assert run["blocks_created"] == 0
 
 
+def test_task_schedule_style_round_trip(client: TestClient) -> None:
+    create = client.post(
+        "/api/v1/tasks",
+        json={"title": "Bundle override task", "schedule_style": "bundle"},
+    )
+    assert create.status_code == 201, create.text
+    assert create.json()["schedule_style"] == "bundle"
+
+    patch = client.patch(
+        f"/api/v1/tasks/{create.json()['id']}",
+        json={"schedule_style": None},
+    )
+    assert patch.status_code == 200, patch.text
+    assert patch.json()["schedule_style"] is None
+
+
+def test_per_task_bundle_override_skips_auto_placement(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    task = _create_task(client, estimated_duration_minutes=30, schedule_style="bundle")
+    _replan_sync(client, db_session, monkeypatch)
+
+    horizon_start = FIXED_NOW
+    horizon_end = FIXED_NOW + timedelta(days=7)
+    blocks = client.get(
+        "/api/v1/scheduled-blocks",
+        params={"start": _iso(horizon_start), "end": _iso(horizon_end)},
+    ).json()["items"]
+    task_blocks = [row for row in blocks if row["task_id"] == task["id"]]
+    assert task_blocks == []
+
+    refreshed = client.get(f"/api/v1/tasks/{task['id']}").json()
+    assert refreshed["status"] in {"unscheduled", "overbooked"}
+
+
 def test_get_run_not_found_for_other_user(client: TestClient) -> None:
     missing = client.get(f"/api/v1/schedule/runs/{uuid.uuid4()}")
     assert missing.status_code == 404

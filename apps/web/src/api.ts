@@ -145,6 +145,7 @@ export interface Task {
   soft_target_at: string | null;
   plan_id: string | null;
   plan_name?: string | null;
+  schedule_style: ScheduleStyle | null;
   estimated_duration_minutes: number;
   preferred_time_window_id: string | null;
   is_completed: boolean;
@@ -226,6 +227,7 @@ export interface TaskCreate {
   deadline_at?: string | null;
   soft_target_at?: string | null;
   plan_id?: string | null;
+  schedule_style?: ScheduleStyle | null;
   estimated_duration_minutes?: number;
   preferred_time_window_id?: string | null;
   label_ids?: string[];
@@ -243,6 +245,7 @@ export interface TaskUpdate {
   deadline_at?: string | null;
   soft_target_at?: string | null;
   plan_id?: string | null;
+  schedule_style?: ScheduleStyle | null;
   estimated_duration_minutes?: number;
   preferred_time_window_id?: string | null;
   label_ids?: string[];
@@ -272,6 +275,7 @@ export interface UserSettings {
   timezone: string;
   locale: string;
   workday_minutes: number;
+  workday_start_local: string;
   workweek_days: number;
   inter_block_buffer_minutes: number;
   upcoming_horizon_days: number;
@@ -292,6 +296,7 @@ export type UserSettingsUpdate = Partial<
     | "timezone"
     | "locale"
     | "workday_minutes"
+    | "workday_start_local"
     | "workweek_days"
     | "inter_block_buffer_minutes"
     | "upcoming_horizon_days"

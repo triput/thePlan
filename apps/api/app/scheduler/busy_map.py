@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models import ExternalCalendarEvent, ScheduledBlock
-from app.services.calendar_conflicts import ranges_overlap
+from app.services.busy_intervals import TimeInterval, merge_intervals, ranges_overlap
 
 
 @dataclass(frozen=True)
@@ -18,18 +18,16 @@ class BusyInterval:
     end: datetime
 
 
-def _merge_intervals(intervals: list[BusyInterval]) -> list[BusyInterval]:
-    if not intervals:
-        return []
-    sorted_intervals = sorted(intervals, key=lambda item: item.start)
-    merged: list[BusyInterval] = [sorted_intervals[0]]
-    for current in sorted_intervals[1:]:
-        prev = merged[-1]
-        if current.start <= prev.end:
-            merged[-1] = BusyInterval(prev.start, max(prev.end, current.end))
-        else:
-            merged.append(current)
-    return merged
+def _to_time_intervals(intervals: list[BusyInterval]) -> list[TimeInterval]:
+    return [TimeInterval(item.start, item.end) for item in intervals]
+
+
+def _from_time_intervals(intervals: list[TimeInterval]) -> list[BusyInterval]:
+    return [BusyInterval(item.start, item.end) for item in intervals]
+
+
+def _merge_busy(intervals: list[BusyInterval]) -> list[BusyInterval]:
+    return _from_time_intervals(merge_intervals(_to_time_intervals(intervals)))
 
 
 def build_busy_map(
@@ -67,7 +65,7 @@ def build_busy_map(
     for event in events:
         intervals.append(BusyInterval(event.start_time, event.end_time))
 
-    return _merge_intervals(intervals)
+    return _merge_busy(intervals)
 
 
 def add_busy_interval(
@@ -78,7 +76,7 @@ def add_busy_interval(
 ) -> list[BusyInterval]:
     """Append a busy interval including post-block buffer and re-merge."""
     buffered_end = end + timedelta(minutes=buffer_minutes)
-    return _merge_intervals([*busy, BusyInterval(start, buffered_end)])
+    return _merge_busy([*busy, BusyInterval(start, buffered_end)])
 
 
 def interval_overlaps_busy(

@@ -311,6 +311,7 @@ def create_task(
         estimated_duration_minutes=estimated_duration_minutes,
         preferred_time_window_id=body.preferred_time_window_id,
         plan_id=body.plan_id,
+        schedule_style=body.schedule_style,
     )
     db.add(task)
     db.flush()

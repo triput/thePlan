@@ -132,7 +132,9 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 `plan_id` optional on create/update; must reference an owned plan; cleared with `null`. **Plan bind:** setting `plan_id` copies the plan's `soft_target_at` onto the task when the plan has one; clearing `plan_id` leaves `soft_target_at` unchanged; patching `soft_target_at` alone does not clear `plan_id`. When both `plan_id` and `soft_target_at` appear in the same request, explicit `soft_target_at` wins after bind.
 
-`TaskOut` includes `plan_id` and denormalized `plan_name` (null when unbound).
+`schedule_style` optional on create/update: omit or `null` → inherit `user_settings.default_schedule_style`; explicit `standalone`, `time_block`, or `bundle` overrides. Bundle (effective or default) excludes the task from auto-placement per ADR-006.
+
+`TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), and `schedule_style` (null when inheriting).
 
 ---
 
@@ -311,6 +313,7 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
 | timezone | string | UTC | Non-empty IANA name (length check) |
 | locale | string | en-US | |
 | workday_minutes | int | 480 | > 0 |
+| workday_start_local | time | 08:00 | HH:MM local workday start |
 | workweek_days | int | 5 | 1–7 |
 | inter_block_buffer_minutes | int | 5 | >= 0 |
 | ups_weights | object | Wp/Wu/Wd/We/k | JSON object |
@@ -352,6 +355,7 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
   "soft_target_at": null,
   "plan_id": null,
   "plan_name": null,
+  "schedule_style": null,
   "estimated_duration_minutes": 90,
   "is_completed": false,
   "completed_at": null,

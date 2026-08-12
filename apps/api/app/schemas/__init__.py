@@ -77,6 +77,7 @@ class UserSettingsOut(BaseModel):
     timezone: str
     locale: str
     workday_minutes: int
+    workday_start_local: time
     workweek_days: int
     inter_block_buffer_minutes: int
     ups_weights: dict[str, Any]
@@ -86,11 +87,16 @@ class UserSettingsOut(BaseModel):
     default_schedule_style: ScheduleStyle
     auto_defer_enabled: bool
 
+    @field_serializer("workday_start_local")
+    def serialize_workday_start(self, value: time) -> str:
+        return value.strftime("%H:%M")
+
 
 class UserSettingsUpdate(BaseModel):
     timezone: str | None = Field(default=None, min_length=1, max_length=64)
     locale: str | None = Field(default=None, min_length=1, max_length=16)
     workday_minutes: int | None = Field(default=None, gt=0)
+    workday_start_local: TimeField | None = None
     workweek_days: int | None = Field(default=None, ge=1, le=7)
     inter_block_buffer_minutes: int | None = Field(default=None, ge=0)
     ups_weights: dict[str, Any] | None = None
@@ -247,6 +253,7 @@ class TaskCreate(BaseModel):
     estimated_duration_minutes: int | None = None
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
+    schedule_style: ScheduleStyle | None = None
     label_ids: list[UUID] = Field(default_factory=list)
     recurrence: "RecurrenceUpsert | None" = None
 
@@ -307,6 +314,7 @@ class TaskUpdate(BaseModel):
     estimated_duration_minutes: int | None = None
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
+    schedule_style: ScheduleStyle | None = None
     sort_order: int | None = None
     label_ids: list[UUID] | None = None
 
@@ -337,6 +345,7 @@ class TaskOut(BaseModel):
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
     plan_name: str | None = None
+    schedule_style: ScheduleStyle | None = None
     is_completed: bool
     completed_at: datetime | None
     status: ScheduleStatus

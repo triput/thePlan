@@ -14,6 +14,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models import ExternalCalendarEvent, ScheduledBlock
+from app.services.busy_intervals import overlap_interval
 
 
 class ConflictKind(str, Enum):
@@ -31,22 +32,6 @@ class Conflict:
     start_time: datetime
     end_time: datetime
     is_pinned: bool
-
-
-def ranges_overlap(a_start: datetime, a_end: datetime, b_start: datetime, b_end: datetime) -> bool:
-    """True when half-open intervals [a_start, a_end) and [b_start, b_end) intersect."""
-    return a_start < b_end and a_end > b_start
-
-
-def _overlap_interval(
-    a_start: datetime,
-    a_end: datetime,
-    b_start: datetime,
-    b_end: datetime,
-) -> tuple[datetime, datetime] | None:
-    if not ranges_overlap(a_start, a_end, b_start, b_end):
-        return None
-    return max(a_start, b_start), min(a_end, b_end)
 
 
 def find_conflicts(
@@ -82,7 +67,7 @@ def find_conflicts(
 
     for block in blocks:
         for event in busy_events:
-            overlap = _overlap_interval(
+            overlap = overlap_interval(
                 block.start_time,
                 block.end_time,
                 event.start_time,
@@ -105,7 +90,7 @@ def find_conflicts(
 
     for i, block_a in enumerate(blocks):
         for block_b in blocks[i + 1 :]:
-            overlap = _overlap_interval(
+            overlap = overlap_interval(
                 block_a.start_time,
                 block_a.end_time,
                 block_b.start_time,
