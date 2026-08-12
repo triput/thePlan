@@ -2,6 +2,7 @@
 
 ## [Unreleased] — Wave 2b (Settings expansion complete)
 
+- **Docs:** Guest [Quick Start guide](docs/guides/QUICK-START.md) for live-instance UI (W2b Plans B scope; no ops/setup)
 - **W2b Plans B (shipped):** Alembic `007_plans`; `plans` CRUD (`GET/POST/PATCH/DELETE /plans`); `tasks.plan_id` + bind semantics (set copies plan `soft_target_at` when present; unbind leaves soft target; same-request `soft_target_at` wins); Settings Plans section; task detail Plan picker; list plan-badge
 - **W2b Plans A (thin):** `deadline_at` + `soft_target_at` in task detail panel and list badges; `TaskUpdate` typed for both fields
 - **W2b Settings expansion (shipped):** Alembic `006_settings_expansion`; `GET/PATCH /settings`; Settings → Scheduling defaults UI (timezone, locale, workday/week, buffer, horizon, default duration/MBL, schedule style standalone/block/bundle, auto-defer warning); task create and quick-add inherit default duration when omitted; number-input `step` fix so 480 workday minutes is valid

@@ -30,7 +30,8 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [DEFECTS.md](./DEFECTS.md) | Open product defects (non-wave-blocker) |
 | [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) | W1.5 dependency hygiene quick scan (gate exited) |
 | [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) | W2 dependency hygiene quick scan (gate exited) |
-| [USER-GUIDE.md](./USER-GUIDE.md) | End-user guide — run, sign in, tasks, calendar, recurrence, reminders |
+| [USER-GUIDE.md](./USER-GUIDE.md) | Operator guide — run stack, sign in, household admin, tasks, calendar |
+| [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest quick start — live instance UI tour (no ops/setup) |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
