@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.config import get_settings
 from app.db import SessionLocal
@@ -106,7 +106,10 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
         preferred_windows: dict[UUID, FocusWindow] = {}
         if preferred_ids:
             for window in (
-                db.query(FocusWindow).filter(FocusWindow.id.in_(preferred_ids)).all()
+                db.query(FocusWindow)
+                .options(joinedload(FocusWindow.bands))
+                .filter(FocusWindow.id.in_(preferred_ids))
+                .all()
             ):
                 preferred_windows[window.id] = window
 

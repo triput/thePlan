@@ -35,10 +35,10 @@ Update Schedule is **explicit user action only** ([ADR-005](./ADR-005-scheduler-
 
 When fit fails, apply in order:
 
-1. **Preferred Time Map** — if soft (`is_hard = false`), allow other free slots in workday
-2. **Hard Time Map with no fit** — try adjacent free within workday; **no** painted yellow/red tiers in v1
+1. **Preferred Time Map tiers** — try **green** bands first, then **yellow**, then **neutral** workday slots minus **red** bands (painted tiers shipped 2026-08-12)
+2. **`strict_mode` map** — when the bound map has `strict_mode=true`, **do not** spill to neutral workday; only green/yellow bands apply
 3. **Auto-defer** (`auto_defer_enabled`) — if plan / `soft_target_at` is past or unreachable in horizon, **slide for scheduling behavior only**; **do not** rewrite stored `soft_target_at` in v1
-4. **Never** move pins or external busy; **never** violate `deadline_at`
+4. **Never** move pins or external busy; **never** violate `deadline_at`; **never** auto-place into **red** bands
 
 ### Slice & fit
 
@@ -60,11 +60,10 @@ When fit fails, apply in order:
 | MBL | From user/default unless task overrides |
 | Auto-defer | **On by default** |
 | Pins + GCal busy | **Immovable BUSY** |
-| Time Map preference tiers | Green → yellow → never red **in principle only** until Painted Time Maps ship |
+| Time Map preference tiers | Green → yellow → never red **in force** for bound maps (Painted Time Maps shipped 2026-08-12) |
 
 ## Explicitly out of v1
 
-- Painted Time Maps UI / tiers (yellow/red overflow bands)
 - Bundle → block conversion on replan
 - Rule inheritance parent → child
 - Sidebar → calendar drag
@@ -78,7 +77,8 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 ## Consequences
 
 - **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
-- **Next:** schedule refactor (A), then painted Time Maps
+- **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
+- **Next:** Dependency Hygiene gate before W3; remaining W2b+ parked items (Time Map overrides, scoped bundles, sidebar drag-schedule, compose worker)
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay manual until a later slice; roadmap “knockout → blocks on replan” applies post–v1
 - Functional spec §9 retains product-level SkedPal semantics; worker implementers treat this ADR as the v1 source of truth for fit and replan

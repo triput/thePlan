@@ -30,6 +30,7 @@ from app.models.enums import (
     ScheduleStatus,
     ScheduleStyle,
     TaskPriority,
+    TimeMapBandTier,
 )
 
 
@@ -165,17 +166,41 @@ class Section(Base, TimestampMixin):
 
 class FocusWindow(Base, TimestampMixin):
     __tablename__ = "focus_windows"
-    __table_args__ = (CheckConstraint("end_time > start_time", name="focus_window_time_order"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
     owner_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
+    strict_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    bands: Mapped[list["TimeMapBand"]] = relationship(
+        back_populates="map",
+        cascade="all, delete-orphan",
+        order_by="TimeMapBand.sort_order",
+    )
+
+
+class TimeMapBand(Base):
+    __tablename__ = "time_map_bands"
+    __table_args__ = (
+        CheckConstraint("end_time > start_time", name="time_map_band_time_order"),
+        Index("idx_time_map_bands_map", "map_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    map_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="CASCADE"), nullable=False
+    )
+    tier: Mapped[TimeMapBandTier] = mapped_column(
+        SAEnum(TimeMapBandTier, name="time_map_band_tier", native_enum=True),
+        nullable=False,
+    )
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
-    days_of_week: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="31")
-    is_hard: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    days_of_week: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default="127")
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+
+    map: Mapped["FocusWindow"] = relationship(back_populates="bands")
 
 
 class Plan(Base, TimestampMixin):

@@ -9,9 +9,10 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
-from app.models import FocusWindow, ScheduleStatus, ScheduledBlock, Task, UserSettings
+from app.models import FocusWindow, ScheduleStatus, ScheduledBlock, Task, TimeMapBand, UserSettings
+from app.models.enums import TimeMapBandTier
 from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_overlaps_busy
-from app.services.busy_intervals import ranges_overlap
+from app.services.busy_intervals import TimeInterval, ranges_overlap, subtract_intervals_from_range
 
 
 @dataclass
@@ -36,15 +37,15 @@ def workday_bounds(day: date, settings: UserSettings, tz: ZoneInfo) -> tuple[dat
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
-def focus_bounds(
+def band_bounds(
     day: date,
-    window: FocusWindow,
+    band: TimeMapBand,
     tz: ZoneInfo,
 ) -> tuple[datetime, datetime] | None:
-    if not (window.days_of_week & (1 << day.weekday())):
+    if not (band.days_of_week & (1 << day.weekday())):
         return None
-    start_local = datetime.combine(day, window.start_time, tzinfo=tz)
-    end_local = datetime.combine(day, window.end_time, tzinfo=tz)
+    start_local = datetime.combine(day, band.start_time, tzinfo=tz)
+    end_local = datetime.combine(day, band.end_time, tzinfo=tz)
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
@@ -59,6 +60,57 @@ def intersect_ranges(
     if start < end:
         return start, end
     return None
+
+
+def _clip_band_to_workday(
+    day: date,
+    band: TimeMapBand,
+    settings: UserSettings,
+    tz: ZoneInfo,
+) -> tuple[datetime, datetime] | None:
+    bounds = band_bounds(day, band, tz)
+    if bounds is None:
+        return None
+    work_start, work_end = workday_bounds(day, settings, tz)
+    return intersect_ranges(work_start, work_end, bounds[0], bounds[1])
+
+
+def _search_windows_for_day(
+    day: date,
+    settings: UserSettings,
+    tz: ZoneInfo,
+    preferred: FocusWindow | None,
+) -> list[tuple[datetime, datetime]]:
+    if not is_workday(day, settings.workweek_days):
+        return []
+
+    work_start, work_end = workday_bounds(day, settings, tz)
+    if preferred is None:
+        return [(work_start, work_end)]
+
+    green_clips: list[tuple[datetime, datetime]] = []
+    yellow_clips: list[tuple[datetime, datetime]] = []
+    red_clips: list[tuple[datetime, datetime]] = []
+
+    for band in preferred.bands:
+        clipped = _clip_band_to_workday(day, band, settings, tz)
+        if clipped is None:
+            continue
+        if band.tier == TimeMapBandTier.green:
+            green_clips.append(clipped)
+        elif band.tier == TimeMapBandTier.yellow:
+            yellow_clips.append(clipped)
+        elif band.tier == TimeMapBandTier.red:
+            red_clips.append(clipped)
+
+    ordered: list[tuple[datetime, datetime]] = green_clips + yellow_clips
+
+    if not preferred.strict_mode:
+        red_intervals = [TimeInterval(start, end) for start, end in red_clips]
+        neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
+        ordered.extend((item.start, item.end) for item in neutral)
+
+    return ordered
 
 
 def effective_soft_target(
@@ -77,38 +129,6 @@ def effective_soft_target(
     if soft < horizon_start or soft >= horizon_end:
         return horizon_start
     return soft
-
-
-def _search_windows_for_day(
-    day: date,
-    settings: UserSettings,
-    tz: ZoneInfo,
-    preferred: FocusWindow | None,
-) -> list[tuple[datetime, datetime]]:
-    if not is_workday(day, settings.workweek_days):
-        return []
-
-    work_start, work_end = workday_bounds(day, settings, tz)
-    if preferred is None:
-        return [(work_start, work_end)]
-
-    focus = focus_bounds(day, preferred, tz)
-    if focus is None:
-        return [(work_start, work_end)]
-
-    focus_start, focus_end = focus
-    if preferred.is_hard:
-        clipped = intersect_ranges(work_start, work_end, focus_start, focus_end)
-        windows = [clipped] if clipped else []
-        windows.append((work_start, work_end))
-        return windows
-
-    clipped = intersect_ranges(work_start, work_end, focus_start, focus_end)
-    ordered: list[tuple[datetime, datetime]] = []
-    if clipped:
-        ordered.append(clipped)
-    ordered.append((work_start, work_end))
-    return ordered
 
 
 def find_slot(

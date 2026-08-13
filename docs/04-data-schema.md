@@ -29,7 +29,7 @@ users ──┬── user_settings
         │                          ├── scheduled_blocks
         │                          ├── recurrence_rules
         │                          └── reminders
-        ├── focus_windows
+        ├── focus_windows ── time_map_bands
         ├── plans
         ├── saved_filters
         ├── calendar_accounts ── calendar_subscriptions
@@ -75,7 +75,11 @@ users ──┬── user_settings
 
 ### schedule_style
 
-`standalone` (default for new tasks), `time_block`, `bundle` — W2b scheduler default style on user settings (not yet on tasks).
+`standalone` (default for new tasks), `time_block`, `bundle` — W2b scheduler; nullable on tasks inherits `user_settings.default_schedule_style`.
+
+### time_map_band_tier
+
+`green`, `yellow`, `red` — W2b Painted Time Maps preference tiers on `time_map_bands`. Scheduler fills green first, then yellow, then neutral workday minus red; red is never auto-placed. `strict_mode` on the parent map forbids neutral spill.
 
 ---
 
@@ -152,15 +156,33 @@ One row per user.
 
 ### focus_windows (Time Maps)
 
-W2 UI; table present from baseline.
+Named map header; painted bands live in `time_map_bands`. Alembic `009_painted_time_maps` slimmed the header and migrated legacy `is_hard` → `strict_mode`.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | owner_id | UUID FK | |
 | name | VARCHAR(100) | e.g. "Morning Deep Work" |
-| start_time, end_time | TIME | Local wall time |
+| strict_mode | BOOLEAN | When true, scheduler may not spill to neutral (non-tier) workday slots |
+
+**Migration 009 backfill:** existing rows with `start_time`/`end_time`/`days_of_week`/`is_hard` became one **green** band per map; `strict_mode` copied from `is_hard`.
+
+### time_map_bands
+
+Painted preference bands on a Time Map. A map may have multiple bands (e.g. morning green + evening yellow on the same map).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| map_id | UUID FK | focus_windows; ON DELETE CASCADE |
+| tier | time_map_band_tier | green, yellow, or red |
+| start_time, end_time | TIME | Local wall time; `end_time > start_time` |
 | days_of_week | SMALLINT | Bitset Mon=1 … Sun=64 |
-| is_hard | BOOLEAN | Hard vs soft window |
+| sort_order | INT | Stable band ordering in API/UI |
+
+**Indexes:** `(map_id)` — `idx_time_map_bands_map`
+
+**Validation:** same-tier bands must not overlap on shared days (application layer). Cross-tier overlap is allowed (red can carve forbidden zones inside green/yellow).
+
+**Scheduler semantics:** green → yellow → neutral workday minus red; red never receives auto-placement; `strict_mode` on the parent map suppresses neutral spill.
 
 ### plans
 
@@ -197,7 +219,7 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 | soft_target_at | TIMESTAMPTZ nullable | Flexible target; may copy from bound plan |
 | plan_id | UUID FK nullable | plans; ON DELETE SET NULL |
 | schedule_style | schedule_style nullable | NULL = inherit `user_settings.default_schedule_style` |
-| preferred_time_window_id | UUID FK nullable | focus_windows |
+| preferred_time_window_id | UUID FK nullable | focus_windows (map header; bands resolved at schedule time) |
 | status | schedule_status | |
 | is_completed | BOOLEAN | |
 | completed_at | TIMESTAMPTZ nullable | |

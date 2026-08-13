@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Update Schedule thin complete (2026-08-12)** — replan API + in-process worker + Calendar button per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md). **Next:** schedule refactor (A), then painted Time Maps. **Dependency Hygiene** required before W3. Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass at W2 entry).
+**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Next:** **Dependency Hygiene** gate before W3 feature waves (plus remaining W2b+ parked items). Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass at W2 entry).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -165,12 +165,13 @@ No full Update Schedule / UPS pipeline in 2a.
 
 #### W2b slice plan
 
-1. **Slice 1 — complete:** `focus_windows` CRUD + Settings UI; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening`. Verified live 2026-08-11. v1 = one contiguous hard/soft band per named map.
+1. **Slice 1 — complete:** `focus_windows` CRUD + Settings UI; default Morning/Afternoon/Evening seeds; `preferred_time_window_id` on tasks; quick-add `@morning|@afternoon|@evening`. Verified live 2026-08-11.
 2. **Settings expansion — complete:** `GET/PATCH /settings` + Scheduling defaults UI; `default_estimated_duration_minutes`, `default_min_block_duration_minutes`, `default_schedule_style` (`standalone`), `auto_defer_enabled`; task create + quick-add inherit default duration when omitted. Verified live 2026-08-11. Polish: timezone dropdown → [DEF-002](./DEFECTS.md).
 3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired.
 4. **Plans B — complete:** `plans` table + CRUD; `tasks.plan_id`; bind copies plan `soft_target_at`; Settings Plans UI; task detail Plan picker; list plan-badge. Out of scope this slice: scheduler worker, rule inheritance, quick-add plan tokens, sidebar plans.
 5. **Update Schedule (thin) — complete:** `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar **Update Schedule** button with poll. Verified 2026-08-12.
-6. **Schedule refactor (A) — complete:** shared `busy_intervals`; `workday_start_local`; per-task `schedule_style`; scheduler module map + compose-worker note. Verified 2026-08-12. Next: **Painted Time Maps**.
+6. **Schedule refactor (A) — complete:** shared `busy_intervals`; `workday_start_local`; per-task `schedule_style`; scheduler module map + compose-worker note. Verified 2026-08-12.
+7. **Painted Time Maps — complete:** Alembic `009_painted_time_maps`; slim map header + `strict_mode`; `time_map_bands` (green/yellow/red); existing windows backfilled as one green band; scheduler green → yellow → neutral (minus red); strict kills neutral; Settings multi-band editor; week calendar color overlay. Verified 2026-08-12.
 
 | Feature | Notes |
 |---------|-------|
@@ -180,7 +181,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | Bundled vs formal blocks | Knockout lists → blocks on replan (**post–v1**; v1 excludes bundle auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
 | Scoped bundles | Bundle constrained to one epic or project — late W2b / early W3 |
 | Settings expansion | W2b — **shipped** | API + Scheduling defaults UI; timezone still free-text ([DEF-002](./DEFECTS.md)) |
-| **Painted Time Maps (SkedPal-class)** | Late W2b / early W3 — one named map with **multiple painted bands** (e.g. morning + evening study on the same map); preference tiers **green → yellow → never red** (scheduler fills preferred first, overflow to yellow only, hard ban on red). Not two duplicate maps for the same intent. Color UI on the week grid. |
+| **Painted Time Maps (SkedPal-class)** | **Shipped (2026-08-12)** — one named map with **multiple painted bands**; preference tiers **green → yellow → never red**; scheduler fills green first, overflow to yellow, neutral workday minus red when not strict; `strict_mode` forbids neutral spill. Settings multi-band editor + week calendar color overlay. Tasks bind to the map via `preferred_time_window_id`. |
 | Temporary Time Map overrides | Day/week dated windows that auto-expire (vacation/conference) |
 | Rule inheritance | Parent → child window/plan propagation |
 | Overbook UI | schedule_status.overbooked |
@@ -203,10 +204,10 @@ No full Update Schedule / UPS pipeline in 2a.
 | Default schedule style for new tasks | **Standalone** — Time Block / Bundle are opt-in only |
 | Min block length (MBL) | **Use user/default** unless task overrides (override UI later) |
 | Auto-defer | **On by default** — missed plan windows may slide; surface a one-time / Settings warning, not a nag modal per task |
-| Time Map preference tiers | **In principle** — green preferred → yellow overflow OK → red forbidden; v1 maps stay one band until Painted Time Maps |
+| Time Map preference tiers | **In force** — green preferred → yellow overflow OK → red forbidden; scheduler honors tiers for bound maps ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
 | Pins + external busy | **Immovable BUSY** — confirmed (ADR-005 + GCal conflict policy) |
 
-Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)); Update Schedule thin worker **shipped 2026-08-12**. Next W2b slices: refactor (A) → painted Time Maps. **Dependency Hygiene** gate before W3.
+Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)); Update Schedule thin worker **shipped 2026-08-12**; Painted Time Maps **shipped 2026-08-12**. **Next:** **Dependency Hygiene** gate before W3 (and remaining W2b+ parked items: Time Map overrides, scoped bundles, sidebar drag-schedule, compose worker).
 
 ### GCal Conflict Policy (2a + 2b)
 

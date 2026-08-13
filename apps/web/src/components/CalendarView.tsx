@@ -6,6 +6,7 @@ import {
   deleteScheduledBlock,
   fetchCalendarConflicts,
   fetchExternalCalendarEvents,
+  fetchFocusWindows,
   fetchProjects,
   fetchScheduleRun,
   fetchScheduledBlocks,
@@ -18,6 +19,7 @@ import {
   type ScheduleRunOut,
   type ScheduledBlock,
   type Task,
+  type TimeMapBand,
 } from "../api";
 import {
   addDays,
@@ -48,6 +50,11 @@ import {
   weekViewTitle,
   startOfDay,
 } from "../calendarUtils";
+import {
+  combineDayAndHHMM,
+  dayMatchesBitset,
+  TIME_MAP_TIER_CLASS,
+} from "../focusWindows";
 import { DEFAULT_PROJECT_COLOR } from "../colors";
 import { NARROW_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
 import { emitToast } from "./ToastHost";
@@ -214,6 +221,35 @@ function BlockFormModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function TimeMapBandOverlay({
+  band,
+  day,
+  bounds,
+}: {
+  band: TimeMapBand;
+  day: Date;
+  bounds: HourBounds;
+}) {
+  if (!dayMatchesBitset(day, band.days_of_week)) return null;
+  const start = combineDayAndHHMM(day, band.start_time);
+  const end = combineDayAndHHMM(day, band.end_time);
+  if (end <= start) return null;
+  const top = topPercentForTime(start, bounds);
+  const height = heightPercentForDuration(blockDurationMinutes(start, end), bounds);
+  if (top >= 100 || top + height <= 0) return null;
+
+  return (
+    <div
+      className={`cal-time-map-band ${TIME_MAP_TIER_CLASS[band.tier]}`}
+      style={{
+        top: `${Math.max(0, top)}%`,
+        height: `${Math.min(100 - Math.max(0, top), height)}%`,
+      }}
+      aria-hidden
+    />
   );
 }
 
@@ -385,6 +421,7 @@ function DayColumn({
   duePreview,
   conflictingBlockIds,
   conflictingBusyEventIds,
+  timeMapBands,
   onSlotClick,
   onBlockClick,
   onDueClick,
@@ -405,6 +442,7 @@ function DayColumn({
   duePreview: ActiveDrag | null;
   conflictingBlockIds: Set<string>;
   conflictingBusyEventIds: Set<string>;
+  timeMapBands?: TimeMapBand[];
   onSlotClick: (day: Date, offsetY: number) => void;
   onBlockClick: (block: ScheduledBlock) => void;
   onDueClick: (task: Task) => void;
@@ -459,6 +497,14 @@ function DayColumn({
           <div key={i} className="cal-hour-row" style={{ height: ROW_HEIGHT_PX }} />
         ))}
         <div className="cal-overlay">
+          {timeMapBands?.map((band, index) => (
+            <TimeMapBandOverlay
+              key={`${band.id ?? band.sort_order}-${band.tier}-${index}`}
+              band={band}
+              day={day}
+              bounds={bounds}
+            />
+          ))}
           {dayBusy.map((event) => (
             <BusyBlockItem
               key={`busy-${event.id}`}
@@ -602,6 +648,11 @@ export function CalendarView() {
     queryFn: () => fetchProjects(),
   });
 
+  const focusWindowsQuery = useQuery({
+    queryKey: ["focus-windows"],
+    queryFn: fetchFocusWindows,
+  });
+
   const blocks = blocksQuery.data?.items ?? [];
   const busyEvents = busyQuery.data?.items ?? [];
   const conflicts = conflictsQuery.data?.items ?? [];
@@ -637,6 +688,11 @@ export function CalendarView() {
     }
     return map;
   }, [projectsQuery.data]);
+
+  const timeMapBands = useMemo(() => {
+    if (mode !== "week") return undefined;
+    return (focusWindowsQuery.data ?? []).flatMap((window) => window.bands ?? []);
+  }, [focusWindowsQuery.data, mode]);
 
   const invalidateCalendar = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
@@ -1072,6 +1128,7 @@ export function CalendarView() {
               onBlockResizeStart={handleBlockResizeStart}
               onDueDragStart={handleDueDragStart}
               showDayLabel={mode === "week"}
+              timeMapBands={timeMapBands}
             />
           ))}
           </div>

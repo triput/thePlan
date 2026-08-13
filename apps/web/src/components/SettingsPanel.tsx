@@ -25,16 +25,19 @@ import {
   type GoogleCalendarListItem,
   type Plan,
   type ScheduleStyle,
+  type TimeMapBand,
+  type TimeMapBandTier,
   type UserSettings,
   type UserSettingsUpdate,
 } from "../api";
 import {
   DAY_BITS,
   decodeDays,
+  defaultGreenBand,
   encodeDays,
-  formatDaysSummary,
-  formatTimeRange,
-  WEEKDAY_BITSET,
+  formatBandsSummary,
+  isValidBandTimeRange,
+  TIME_MAP_TIER_LABELS,
 } from "../focusWindows";
 import {
   getThemePreset,
@@ -365,13 +368,45 @@ function CalendarAccountRow({
   );
 }
 
-const EMPTY_FORM = {
+const EMPTY_TIME_MAP_FORM = {
   name: "",
-  start: "09:00",
-  end: "12:00",
-  days: decodeDays(WEEKDAY_BITSET),
-  isHard: false,
+  strictMode: false,
+  bands: [defaultGreenBand()],
 };
+
+type BandDraft = {
+  clientKey: string;
+  id?: string;
+  tier: TimeMapBandTier;
+  start_time: string;
+  end_time: string;
+  days: boolean[];
+  sort_order: number;
+};
+
+function newBandDraft(band: TimeMapBand = defaultGreenBand()): BandDraft {
+  return {
+    clientKey: band.id ?? crypto.randomUUID(),
+    id: band.id,
+    tier: band.tier,
+    start_time: band.start_time,
+    end_time: band.end_time,
+    days: decodeDays(band.days_of_week),
+    sort_order: band.sort_order,
+  };
+}
+
+function draftToBand(draft: BandDraft, sortOrder: number): TimeMapBand {
+  const band: TimeMapBand = {
+    tier: draft.tier,
+    start_time: draft.start_time,
+    end_time: draft.end_time,
+    days_of_week: encodeDays(draft.days),
+    sort_order: sortOrder,
+  };
+  if (draft.id) band.id = draft.id;
+  return band;
+}
 
 type SchedulingDraft = {
   timezone: string;
@@ -719,29 +754,30 @@ function TimeMapsSection({ enabled }: { enabled: boolean }) {
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formName, setFormName] = useState(EMPTY_FORM.name);
-  const [formStart, setFormStart] = useState(EMPTY_FORM.start);
-  const [formEnd, setFormEnd] = useState(EMPTY_FORM.end);
-  const [formDays, setFormDays] = useState(EMPTY_FORM.days);
-  const [formIsHard, setFormIsHard] = useState(EMPTY_FORM.isHard);
+  const [formName, setFormName] = useState(EMPTY_TIME_MAP_FORM.name);
+  const [formStrictMode, setFormStrictMode] = useState(EMPTY_TIME_MAP_FORM.strictMode);
+  const [formBands, setFormBands] = useState<BandDraft[]>(() =>
+    EMPTY_TIME_MAP_FORM.bands.map((band) => newBandDraft(band)),
+  );
   const [showForm, setShowForm] = useState(false);
 
   const resetForm = () => {
     setEditingId(null);
-    setFormName(EMPTY_FORM.name);
-    setFormStart(EMPTY_FORM.start);
-    setFormEnd(EMPTY_FORM.end);
-    setFormDays([...EMPTY_FORM.days]);
-    setFormIsHard(EMPTY_FORM.isHard);
+    setFormName(EMPTY_TIME_MAP_FORM.name);
+    setFormStrictMode(EMPTY_TIME_MAP_FORM.strictMode);
+    setFormBands(EMPTY_TIME_MAP_FORM.bands.map((band) => newBandDraft(band)));
   };
 
   const startEdit = (window: FocusWindow) => {
     setEditingId(window.id);
     setFormName(window.name);
-    setFormStart(window.start_time);
-    setFormEnd(window.end_time);
-    setFormDays(decodeDays(window.days_of_week));
-    setFormIsHard(window.is_hard);
+    setFormStrictMode(window.strict_mode);
+    const sorted = [...window.bands].sort((a, b) => a.sort_order - b.sort_order);
+    setFormBands(
+      sorted.length > 0
+        ? sorted.map((band) => newBandDraft(band))
+        : [newBandDraft(defaultGreenBand())],
+    );
     setShowForm(true);
   };
 
@@ -749,14 +785,23 @@ function TimeMapsSection({ enabled }: { enabled: boolean }) {
     mutationFn: async () => {
       const name = formName.trim();
       if (!name) throw new Error("Name is required");
-      const days_of_week = encodeDays(formDays);
-      if (days_of_week === 0) throw new Error("Select at least one day");
+      if (formBands.length === 0) throw new Error("Add at least one band");
+
+      const bands = formBands.map((draft, index) => {
+        const days_of_week = encodeDays(draft.days);
+        if (days_of_week === 0) {
+          throw new Error(`Band ${index + 1}: select at least one day`);
+        }
+        if (!isValidBandTimeRange(draft.start_time, draft.end_time)) {
+          throw new Error(`Band ${index + 1}: end time must be after start time`);
+        }
+        return draftToBand(draft, index);
+      });
+
       const body = {
         name,
-        start_time: formStart,
-        end_time: formEnd,
-        days_of_week,
-        is_hard: formIsHard,
+        strict_mode: formStrictMode,
+        bands,
       };
       if (editingId) {
         return updateFocusWindow(editingId, body);
@@ -788,11 +833,31 @@ function TimeMapsSection({ enabled }: { enabled: boolean }) {
 
   const windows = windowsQuery.data ?? [];
 
-  const toggleDay = (index: number, checked: boolean) => {
-    setFormDays((prev) => {
-      const next = [...prev];
-      next[index] = checked;
-      return next;
+  const updateBand = (clientKey: string, patch: Partial<BandDraft>) => {
+    setFormBands((prev) =>
+      prev.map((band) => (band.clientKey === clientKey ? { ...band, ...patch } : band)),
+    );
+  };
+
+  const toggleBandDay = (clientKey: string, index: number, checked: boolean) => {
+    setFormBands((prev) =>
+      prev.map((band) => {
+        if (band.clientKey !== clientKey) return band;
+        const days = [...band.days];
+        days[index] = checked;
+        return { ...band, days };
+      }),
+    );
+  };
+
+  const addBand = () => {
+    setFormBands((prev) => [...prev, newBandDraft(defaultGreenBand(prev.length))]);
+  };
+
+  const removeBand = (clientKey: string) => {
+    setFormBands((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((band) => band.clientKey !== clientKey);
     });
   };
 
@@ -825,14 +890,11 @@ function TimeMapsSection({ enabled }: { enabled: boolean }) {
             <li key={window.id} className="time-map-row">
               <div className="time-map-info">
                 <div className="time-map-name">{window.name}</div>
-                <div className="muted small">
-                  {formatTimeRange(window.start_time, window.end_time)} ·{" "}
-                  {formatDaysSummary(window.days_of_week)}
-                </div>
+                <div className="muted small">{formatBandsSummary(window.bands ?? [])}</div>
               </div>
-              <span className={`time-map-badge${window.is_hard ? " hard" : ""}`}>
-                {window.is_hard ? "Hard" : "Soft"}
-              </span>
+              {window.strict_mode && (
+                <span className="time-map-badge hard">Strict</span>
+              )}
               <div className="time-map-actions">
                 <button
                   type="button"
@@ -874,47 +936,87 @@ function TimeMapsSection({ enabled }: { enabled: boolean }) {
               placeholder="Morning Deep Work"
             />
           </label>
-          <div className="time-map-time-row">
-            <label className="field">
-              <span>Start</span>
-              <input
-                type="time"
-                value={formStart}
-                onChange={(e) => setFormStart(e.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span>End</span>
-              <input
-                type="time"
-                value={formEnd}
-                onChange={(e) => setFormEnd(e.target.value)}
-              />
-            </label>
-          </div>
-          <fieldset className="field">
-            <legend>Days</legend>
-            <div className="time-map-days" role="group" aria-label="Days of week">
-              {DAY_BITS.map(({ label }, index) => (
-                <label key={label} className="time-map-day-check">
-                  <input
-                    type="checkbox"
-                    checked={formDays[index]}
-                    onChange={(e) => toggleDay(index, e.target.checked)}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
           <label className="time-map-hard-check">
             <input
               type="checkbox"
-              checked={formIsHard}
-              onChange={(e) => setFormIsHard(e.target.checked)}
+              checked={formStrictMode}
+              onChange={(e) => setFormStrictMode(e.target.checked)}
             />
-            Hard boundary (scheduler must stay inside window)
+            Strict — no spill outside painted bands
           </label>
+          <fieldset className="field time-map-bands-field">
+            <legend>Bands</legend>
+            <div className="time-map-band-list">
+              {formBands.map((band, bandIndex) => (
+                <div key={band.clientKey} className="time-map-band-row">
+                  <div className="time-map-band-row-header">
+                    <span className="time-map-band-row-label">Band {bandIndex + 1}</span>
+                    <button
+                      type="button"
+                      className="btn ghost small danger-text"
+                      disabled={formBands.length <= 1}
+                      onClick={() => removeBand(band.clientKey)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="time-map-band-row-fields">
+                    <label className="field">
+                      <span>Tier</span>
+                      <select
+                        className="field-select"
+                        value={band.tier}
+                        onChange={(e) =>
+                          updateBand(band.clientKey, {
+                            tier: e.target.value as TimeMapBandTier,
+                          })
+                        }
+                      >
+                        {(Object.keys(TIME_MAP_TIER_LABELS) as TimeMapBandTier[]).map((tier) => (
+                          <option key={tier} value={tier}>
+                            {TIME_MAP_TIER_LABELS[tier]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="field">
+                      <span>Start</span>
+                      <input
+                        type="time"
+                        value={band.start_time}
+                        onChange={(e) =>
+                          updateBand(band.clientKey, { start_time: e.target.value })
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      <span>End</span>
+                      <input
+                        type="time"
+                        value={band.end_time}
+                        onChange={(e) => updateBand(band.clientKey, { end_time: e.target.value })}
+                      />
+                    </label>
+                  </div>
+                  <div className="time-map-days" role="group" aria-label={`Band ${bandIndex + 1} days`}>
+                    {DAY_BITS.map(({ label }, index) => (
+                      <label key={label} className="time-map-day-check">
+                        <input
+                          type="checkbox"
+                          checked={band.days[index]}
+                          onChange={(e) => toggleBandDay(band.clientKey, index, e.target.checked)}
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button type="button" className="link-btn time-map-add-band" onClick={addBand}>
+              Add band
+            </button>
+          </fieldset>
           <div className="form-actions">
             <button
               type="button"

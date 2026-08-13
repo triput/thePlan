@@ -201,6 +201,7 @@ Open **Calendar** in the sidebar.
 |-------|------------|
 | **Due markers** | Tasks with a **due** date/time — colored tick/dot (project color) |
 | **Scheduled blocks** | Manual time blocks you placed for a task — solid blocks |
+| **Time Map overlay** | Faint green/yellow/red bands from **Settings → Time Maps** (week view) |
 | **Google busy** | External calendar events (read-only gray blocks) — meetings, holds, life |
 | **Pinned blocks** | Your blocks marked **Pinned** — styled distinctly; won't move on future replan |
 
@@ -239,7 +240,7 @@ Use **Sync now** after changing subscriptions. Pick calendars, mark one **primar
 
 Calendar header → **Update Schedule**. Triggers an explicit replan ([ADR-006](../adr/ADR-006-fuzzy-scheduling.md)): the worker places open tasks into free slots inside your horizon, respects pins and Google busy, and rewrites **unpinned** blocks in range. Button shows **Updating…** while the run finishes (polls in the background).
 
-**What it does today:** standalone/time-block tasks get auto-placed; dependencies honored; overbooked tasks flagged in run stats. **What it doesn't:** painted Time Maps (green/yellow/red tiers), bundle auto-placement, sidebar drag-to-schedule, or background/cron replan — you press the button when you want a fresh layout.
+**What it does today:** standalone/time-block tasks get auto-placed; dependencies honored; bound Time Maps respect green/yellow/red tiers; overbooked tasks flagged in run stats. **What it doesn't:** bundle auto-placement, Time Map temporary overrides, sidebar drag-to-schedule, or background/cron replan — you press the button when you want a fresh layout.
 
 ---
 
@@ -247,18 +248,27 @@ Calendar header → **Update Schedule**. Triggers an explicit replan ([ADR-006](
 
 **Settings → Time Maps** — named recurring windows when certain work *prefers* to happen (SkedPal "focus windows").
 
-New accounts get seed maps: **Morning**, **Afternoon**, **Evening** (with quick-add tokens `@morning`, `@afternoon`, `@evening`).
+New accounts get seed maps: **Morning**, **Afternoon**, **Evening** (with quick-add tokens `@morning`, `@afternoon`, `@evening`). Each seed is one **green** band.
 
 Each map has:
 
 - **Name**
-- **Start / end time** (local)
-- **Days of week**
-- **Hard vs soft** — hard = stricter constraint for future scheduler; soft = preference
+- **Strict mode** — when on, the scheduler may **only** place into this map's green/yellow bands (no spill to other free workday time)
+- **Painted bands** — one map can have **multiple** colored time ranges on the week grid
 
-**Bind on a task:** Task details → **Time Map** dropdown, or quick-add tokens.
+### Band tiers (green / yellow / red)
 
-v1 is **one contiguous band per map**. Painted multi-band maps (green/yellow/red tiers on one map) are not shipped yet.
+| Tier | Meaning for Update Schedule |
+|------|----------------------------|
+| **Green** | Preferred — scheduler tries here first |
+| **Yellow** | Overflow OK — used when green is full or doesn't fit |
+| **Red** | Forbidden — scheduler never auto-places here (meetings, lunch, commute blackouts) |
+
+When **strict mode** is off, the scheduler may also use neutral workday time **outside** your red bands after green/yellow are exhausted. When strict mode is on, neutral spill is blocked — only green/yellow count.
+
+**Settings editor:** add/edit/remove bands per map; pick tier, start/end, and days. The **week calendar** shows a faint color overlay so you can see painted windows at a glance.
+
+**Bind on a task:** Task details → **Time Map** dropdown (binds the **map**, not an individual band), or quick-add tokens. The scheduler picks the right tier at replan time.
 
 ---
 
@@ -383,7 +393,6 @@ Press **?** for the overlay. Highlights:
 
 Don't go hunting for these — they're real roadmap, not hidden beta:
 
-- **Painted Time Maps** — one map with green/yellow/red preference tiers on the week grid
 - **Bundle auto-placement** — bundled tasks stay manual; knockout→blocks on replan is post–v1
 - **Time Map temporary overrides** — vacation/conference dated exceptions
 - **Sidebar → calendar drag** — drop a task from the list onto a slot to block time

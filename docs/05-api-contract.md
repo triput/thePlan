@@ -165,15 +165,47 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/focus-windows` | List owner windows ordered by name |
+| GET | `/focus-windows` | List owner windows ordered by name (includes nested `bands`) |
 | POST | `/focus-windows` | Create |
 | GET | `/focus-windows/{id}` | Get |
 | PATCH | `/focus-windows/{id}` | Update |
 | DELETE | `/focus-windows/{id}` | Delete (204); `tasks.preferred_time_window_id` SET NULL via FK |
 
-**Default seeds** (inserted on user provision / bootstrap when user has zero windows): Morning 08:00–12:00, Afternoon 12:00–17:00, Evening 17:00–21:00 — soft (`is_hard=false`), Mon–Sun (`days_of_week=127`).
+**Default seeds** (inserted on user provision / bootstrap when user has zero windows): Morning 08:00–12:00, Afternoon 12:00–17:00, Evening 17:00–21:00 — each one **green** band, `strict_mode=false`, Mon–Sun (`days_of_week=127`).
 
-**Create body:**
+**Create body (multi-band):**
+
+```json
+{
+  "name": "Study",
+  "strict_mode": false,
+  "bands": [
+    {
+      "tier": "green",
+      "start_time": "08:00",
+      "end_time": "10:00",
+      "days_of_week": 127,
+      "sort_order": 0
+    },
+    {
+      "tier": "yellow",
+      "start_time": "19:00",
+      "end_time": "21:00",
+      "days_of_week": 127,
+      "sort_order": 1
+    },
+    {
+      "tier": "red",
+      "start_time": "12:00",
+      "end_time": "13:00",
+      "days_of_week": 127,
+      "sort_order": 2
+    }
+  ]
+}
+```
+
+**Legacy create body** (still accepted — synthesizes one green band):
 
 ```json
 {
@@ -185,7 +217,15 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 }
 ```
 
-`days_of_week` is a bitset (Mon=1 … Sun=64); valid range 1–127. Times accept `HH:MM` or `HH:MM:SS`; response serializes times as `HH:MM`. `end_time` must be after `start_time` (422 `FOCUS_WINDOW_INVALID_RANGE`).
+`strict_mode` on the map replaces legacy `is_hard`. PATCH accepts `strict_mode` or legacy `is_hard` (alias). When `bands` is omitted on PATCH, legacy `start_time`/`end_time`/`days_of_week` may update a single existing band.
+
+**Band fields:** `tier` is `green`, `yellow`, or `red`. `days_of_week` is a bitset (Mon=1 … Sun=64); valid range 1–127. Times accept `HH:MM` or `HH:MM:SS`; response serializes times as `HH:MM`. Each band's `end_time` must be after `start_time` (422 `FOCUS_WINDOW_INVALID_RANGE`). Same-tier bands must not overlap on shared days (422 `TIME_MAP_BAND_OVERLAP`).
+
+**Response shape:** `FocusWindowOut` includes `id`, `name`, `strict_mode`, `bands[]` (`id`, `tier`, `start_time`, `end_time`, `days_of_week`, `sort_order`), timestamps.
+
+**Scheduler placement (bound map):** green bands first, then yellow, then neutral workday minus red bands — unless `strict_mode=true`, in which case neutral spill is forbidden. Red bands are never auto-placement targets.
+
+Tasks bind to the **map** via `preferred_time_window_id`; tier selection is resolved from the map's bands at replan time.
 
 Quick-add `@morning`, `@afternoon`, `@evening` resolve to the seeded window IDs by case-insensitive name match; unknown token → `unresolved` entry `time_window:{token}`.
 
@@ -491,7 +531,7 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 **`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
 
-Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable.
+Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Bound Time Maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
 
 ### Reserved (W2b+)
 

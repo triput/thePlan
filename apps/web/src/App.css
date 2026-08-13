@@ -1720,6 +1720,31 @@
   pointer-events: auto;
 }
 
+.cal-overlay > .cal-time-map-band {
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cal-time-map-band {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 3px;
+  opacity: 0.18;
+}
+
+.cal-time-map-band--green {
+  background: #22c55e;
+}
+
+.cal-time-map-band--yellow {
+  background: #eab308;
+}
+
+.cal-time-map-band--red {
+  background: #ef4444;
+}
+
 .cal-block {
   position: absolute;
   left: 4px;
@@ -1881,6 +1906,46 @@
   margin: 0.35rem 0 0;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+.time-map-bands-field {
+  margin-top: 0.5rem;
+}
+
+.time-map-band-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.time-map-band-row {
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 50%, var(--bg));
+}
+
+.time-map-band-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.time-map-band-row-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.time-map-band-row-fields {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 1fr) 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.time-map-add-band {
+  margin-top: 0.45rem;
 }
 
 .calendar-account-list {

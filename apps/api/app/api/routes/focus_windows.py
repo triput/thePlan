@@ -3,28 +3,37 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user
-from app.api.errors import ApiError
 from app.db import get_db
 from app.models import FocusWindow, User
 from app.schemas import FocusWindowCreate, FocusWindowOut, FocusWindowUpdate
-from app.services.focus_windows import ensure_default_focus_windows
+from app.services.focus_windows import (
+    ensure_default_focus_windows,
+    replace_bands,
+    resolve_create_bands,
+    resolve_create_strict_mode,
+    resolve_update_bands,
+)
 
 router = APIRouter(prefix="/focus-windows", tags=["focus-windows"])
 
 
+def _load_focus_window(db: Session, window_id: UUID) -> FocusWindow | None:
+    return (
+        db.query(FocusWindow)
+        .options(joinedload(FocusWindow.bands))
+        .filter(FocusWindow.id == window_id)
+        .one_or_none()
+    )
+
+
 def _get_owned_focus_window(db: Session, window_id: UUID, user: User) -> FocusWindow:
-    window = db.get(FocusWindow, window_id)
+    window = _load_focus_window(db, window_id)
     if window is None or window.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Focus window not found")
     return window
-
-
-def _validate_window_times(start_time, end_time) -> None:
-    if end_time <= start_time:
-        raise ApiError(422, "end_time must be after start_time", "FOCUS_WINDOW_INVALID_RANGE")
 
 
 @router.get("", response_model=list[FocusWindowOut])
@@ -37,6 +46,7 @@ def list_focus_windows(
         db.commit()
     rows = (
         db.query(FocusWindow)
+        .options(joinedload(FocusWindow.bands))
         .filter(FocusWindow.owner_id == user.id)
         .order_by(FocusWindow.name)
         .all()
@@ -50,18 +60,18 @@ def create_focus_window(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> FocusWindowOut:
-    _validate_window_times(body.start_time, body.end_time)
+    bands = resolve_create_bands(body)
     window = FocusWindow(
         owner_id=user.id,
         name=body.name.strip(),
-        start_time=body.start_time,
-        end_time=body.end_time,
-        days_of_week=body.days_of_week,
-        is_hard=body.is_hard,
+        strict_mode=resolve_create_strict_mode(body),
     )
     db.add(window)
+    db.flush()
+    replace_bands(db, window, bands)
     db.commit()
-    db.refresh(window)
+    window = _load_focus_window(db, window.id)
+    assert window is not None
     return FocusWindowOut.model_validate(window)
 
 
@@ -84,17 +94,22 @@ def update_focus_window(
 ) -> FocusWindowOut:
     window = _get_owned_focus_window(db, window_id, user)
     updates = body.model_dump(exclude_unset=True)
+
     if "name" in updates and updates["name"] is not None:
-        updates["name"] = updates["name"].strip()
+        window.name = updates["name"].strip()
 
-    start_time = updates.get("start_time", window.start_time)
-    end_time = updates.get("end_time", window.end_time)
-    _validate_window_times(start_time, end_time)
+    if "strict_mode" in updates and updates["strict_mode"] is not None:
+        window.strict_mode = updates["strict_mode"]
+    elif "is_hard" in updates and updates["is_hard"] is not None:
+        window.strict_mode = updates["is_hard"]
 
-    for field, value in updates.items():
-        setattr(window, field, value)
+    bands = resolve_update_bands(body, window)
+    if bands is not None:
+        replace_bands(db, window, bands)
+
     db.commit()
-    db.refresh(window)
+    window = _load_focus_window(db, window.id)
+    assert window is not None
     return FocusWindowOut.model_validate(window)
 
 

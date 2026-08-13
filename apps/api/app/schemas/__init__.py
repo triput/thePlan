@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field, field_serializer
 
-from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority
+from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority, TimeMapBandTier
 
 
 def _parse_time_value(value: object) -> time:
@@ -186,16 +186,45 @@ class SectionOut(BaseModel):
     sort_order: int
 
 
-class FocusWindowCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
+class TimeMapBandIn(BaseModel):
+    tier: TimeMapBandTier
     start_time: TimeField
     end_time: TimeField
-    days_of_week: int = Field(default=31, ge=1, le=127)
-    is_hard: bool = False
+    days_of_week: int = Field(default=127, ge=1, le=127)
+    sort_order: int = 0
+
+
+class TimeMapBandOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    tier: TimeMapBandTier
+    start_time: time
+    end_time: time
+    days_of_week: int
+    sort_order: int
+
+    @field_serializer("start_time", "end_time")
+    def serialize_time(self, value: time) -> str:
+        return value.strftime("%H:%M")
+
+
+class FocusWindowCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    strict_mode: bool = False
+    bands: list[TimeMapBandIn] | None = None
+    # Legacy optional fields — synthesize one green band when bands is omitted.
+    start_time: TimeField | None = None
+    end_time: TimeField | None = None
+    days_of_week: int | None = Field(default=None, ge=1, le=127)
+    is_hard: bool | None = None
 
 
 class FocusWindowUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
+    strict_mode: bool | None = None
+    bands: list[TimeMapBandIn] | None = None
+    # Legacy optional fields for partial band updates via single green band.
     start_time: TimeField | None = None
     end_time: TimeField | None = None
     days_of_week: int | None = Field(default=None, ge=1, le=127)
@@ -207,16 +236,10 @@ class FocusWindowOut(BaseModel):
 
     id: UUID
     name: str
-    start_time: time
-    end_time: time
-    days_of_week: int
-    is_hard: bool
+    strict_mode: bool
+    bands: list[TimeMapBandOut]
     created_at: datetime
     updated_at: datetime
-
-    @field_serializer("start_time", "end_time")
-    def serialize_time(self, value: time) -> str:
-        return value.strftime("%H:%M")
 
 
 class PlanCreate(BaseModel):

@@ -43,3 +43,30 @@ def merge_intervals(intervals: list[TimeInterval]) -> list[TimeInterval]:
         else:
             merged.append(current)
     return merged
+
+
+def subtract_intervals_from_range(
+    range_start: datetime,
+    range_end: datetime,
+    exclusions: list[TimeInterval],
+) -> list[TimeInterval]:
+    """Return sub-intervals of [range_start, range_end) not covered by exclusions."""
+    if range_start >= range_end:
+        return []
+    if not exclusions:
+        return [TimeInterval(range_start, range_end)]
+
+    merged = merge_intervals(exclusions)
+    result: list[TimeInterval] = []
+    cursor = range_start
+    for exc in merged:
+        if exc.start >= range_end:
+            break
+        if exc.end <= cursor:
+            continue
+        if cursor < exc.start:
+            result.append(TimeInterval(cursor, min(exc.start, range_end)))
+        cursor = max(cursor, exc.end)
+    if cursor < range_end:
+        result.append(TimeInterval(cursor, range_end))
+    return [item for item in result if item.start < item.end]

@@ -307,31 +307,36 @@ export type UserSettingsUpdate = Partial<
   >
 >;
 
-export interface FocusWindow {
-  id: string;
-  name: string;
+export type TimeMapBandTier = "green" | "yellow" | "red";
+
+export interface TimeMapBand {
+  id?: string;
+  tier: TimeMapBandTier;
   start_time: string;
   end_time: string;
   days_of_week: number;
-  is_hard: boolean;
+  sort_order: number;
+}
+
+export interface FocusWindow {
+  id: string;
+  name: string;
+  strict_mode: boolean;
+  bands: TimeMapBand[];
   created_at: string;
   updated_at: string;
 }
 
 export interface FocusWindowCreate {
   name: string;
-  start_time: string;
-  end_time: string;
-  days_of_week?: number;
-  is_hard?: boolean;
+  strict_mode?: boolean;
+  bands: TimeMapBand[];
 }
 
 export interface FocusWindowUpdate {
   name?: string;
-  start_time?: string;
-  end_time?: string;
-  days_of_week?: number;
-  is_hard?: boolean;
+  strict_mode?: boolean;
+  bands?: TimeMapBand[];
 }
 
 export interface TaskCompleteBody {
