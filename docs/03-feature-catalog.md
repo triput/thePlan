@@ -23,7 +23,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Inbox (no project) | MVP | `project_id IS NULL` |
 | Archive project/epic | MVP | Soft archive |
 | Reorder tasks/sections | MVP | sort_order |
-| Templates | W3 | Backlog nice-to-have; low priority; maybe later |
+| Templates | W4 | Backlog nice-to-have; low priority |
 | Project/view sharing | Out | Single-user |
 
 ### Task Core
@@ -71,7 +71,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Calendar view (day/week) | MVP | Due markers + manual blocks; click/slot create + modal edit |
 | Calendar view (month) | W1.5 | Not shipped Wave 1; optional/non-blocker |
 | Day-of-year + ISO week numbers in chrome | MVP | Shipped in calendar titles |
-| Board / Kanban | W3 | Optional column view for project status; not an MVP/W2 timeline. Sections may map to columns |
+| Board / Kanban | W3+ | Optional column view; sections may map to columns |
 | Upcoming drag-plan timeline | W1.5 closeout | Calendar drag — **shipped** (desktop) |
 | Sidebar → calendar drag-schedule | W2b late / W3 | Drop task from list onto day/time slot to create block |
 | Gantt / project timeline | Out | Calendar only in MVP |
@@ -85,8 +85,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Natural language parser (deterministic) | MVP | Duration, priority, due, epic/project tags |
 | Quick-add recurrence tokens | W1.5 | `every` / `every!` + from/until |
 | Keyboard shortcuts | MVP | q, j/k navigate, etc. |
-| Voice input | W3 | Priority-3 backlog; no sooner than W2; likely W3 |
-| Email-to-task | W3 | Same as voice; not before W2; likely W3 |
+| Voice input | W4 | Candidate |
+| Email-to-task | W4 | Candidate |
 
 ### Search & History
 
@@ -104,7 +104,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Time-based reminders | W1.5 | Absolute `fire_at`; in-app toast + optional browser Notification |
-| Location reminders | W3 | W3 candidate; not W1/W1.5/W2 |
+| Location reminders | W4 | Candidate |
 | In-app notifications | W1.5 | Toast via client poll + ack |
 | Browser Notification API | W1.5 | Optional; channel=`browser` + permission |
 | Push (mobile) | Out | No mobile app |
@@ -113,7 +113,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Todoist CSV/JSON import | W3 | Deferred from W1.5 (stale upstream); CSV/JSON → hierarchy |
+| Todoist CSV/JSON import | W3+ | Deferred from W1.5 (stale upstream); CSV/JSON → hierarchy |
 | Google Calendar sync | W2a | Pull + optional mirror push; before scheduler |
 | Multi-calendar subscriptions | W2a Slice 2 | One primary (busy) + informational overlays; mirror toggle to primary |
 | 24×7 calendar viewport | W2a Slice 2 | Default 6A–10P; Settings/chrome toggle for full day |
@@ -121,7 +121,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Scoped bundles | W2b late / W3 | Bundle constrained to epic or project |
 | Scheduling settings expansion | W2b | Buffers, default duration, default block vs bundle style |
 | Fuzzy scheduling depth | W2b session | Deferral, MBL overrides, soft plans — dedicated plan first |
-| Microsoft Calendar sync | W3 | |
+| Microsoft Calendar sync | W3 | Slice 2 — after account polish |
 | iCloud calendar | Out | Unless reopened |
 | Zapier / IFTTT / automation hubs | Post-W3 | Backlog candidate after W3; not planned in W1–W3 |
 | Notion / Obsidian deep links or sync | Post-W3 (maybe late W3) | Backlog: open/link notes from tasks; full sync unlikely early. Prefer post-W3; reconsider at W3 only if cheap |
@@ -136,7 +136,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Shared projects | Out | |
 | Team workspaces | Out | |
 | Karma / streaks | Out | Explicit non-goal |
-| AI assist (Todoist-style) | W3 | SLM local assist W3 |
+| AI assist (Todoist-style) | W3+ | SLM local assist; never blocks CRUD |
 
 ### Platform
 
@@ -145,7 +145,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Web app (responsive) | MVP | Basic viewport; stacked narrow layout only |
 | Responsive / phone-friendly polish | W1.6 | Drawer nav, detail sheet, touch targets, narrow calendar — shipped |
 | UI themes (Settings) | MVP | Nine presets (Dark, Solarized Dark/Light, Light, Black, Forest, Midnight, Amethyst, Garnet) + hex overrides |
-| Desktop (Tauri) | W3 | |
+| Desktop (Tauri) | W3 | Slice 3 — after MS Calendar; Desktop ADR first |
 | Mobile native | Out | Responsive web only (W1.6 polish) |
 | Offline PWA | Out | Online-first MVP |
 | Flutter client | Out | Rejected |
@@ -225,8 +225,8 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Outline-first capture | MVP | List hierarchy + quick-add |
-| SLM-assisted parsing | W3 | Ollama; never blocks CRUD |
-| SLM schedule hints | W3 | Advisory only |
+| SLM-assisted parsing | W3+ | Ollama; never blocks CRUD |
+| SLM schedule hints | W3+ | Advisory only |
 
 ---
 
@@ -240,14 +240,14 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Local-only auth | MVP | ADR-003 |
 | Password login | W1.5 | Admin can already set any user’s password |
 | Multi-account household login | W1.5 | N personal `users` rows; same URI; `owner_id` isolation — not teams ([ADR-002](./adr/ADR-002-single-user.md)) |
-| Admin full profile edit (except username) | W3 | Email, display name, password, disable; username immutable |
-| Self-service account settings | W3 | User manages own password, email, display name |
-| Temp / forced password reset | W3 | Admin sets temp password; must change on next login |
+| Admin full profile edit (except username) | W3 | Slice 1 — email, display name, password, disable; username immutable ([ADR-007](./adr/ADR-007-account-self-service.md)) |
+| Self-service account settings | W3 | Slice 1 — `PATCH /auth/me` |
+| Temp / forced password reset | W3 | Slice 1 — `must_change_password` |
 | Cloudflare Tunnel remote access | W1.5 | Compose profile `tunnel`; see [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) |
 | Cloudflare Access | W1.5 | Optional; documented with Tunnel |
 | pg_dump backup one-liner | MVP | Documented in root README |
 | Scheduled pg_dump backup script | W1.5 | `scripts/backup-postgres.ps1` / `.sh`; prune via `BACKUP_KEEP_DAYS` |
-| Hosted Postgres fallback | W3 | Not default |
+| Hosted Postgres fallback | W4 | Not default |
 | WebSocket invalidation | W2b | Optional; REST sufficient MVP |
 | Dependency Hygiene wave | Pre-version | Toolchain + deps pass |
 
@@ -267,7 +267,13 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Defer to W2b:** SkedPal triad, auto-scheduler, UPS, pins/deadline UI, dependency enforcement, soft-delete + session restore; filter QL / WebSocket if capacity.
 
-**Defer to W3 / W3+:** SLM, Microsoft calendar, Tauri desktop, optional Kanban, location reminders, voice, email-to-task, templates; Todoist import; admin full profile edit; self-service password/email/display name; temp password reset; intraday multi-occurrence habits. Split Wave 4 if W3 stays overcrowded.
+**Defer to W3:** Account polish (Slice 1) → Microsoft Calendar (Slice 2) → Tauri (Slice 3). See [07-wave-roadmap.md](./07-wave-roadmap.md) cut.
+
+**Defer to W3+:** SLM, Todoist import, intraday multi-occurrence habits, optional Kanban.
+
+**Defer to W4 / candidates:** Location reminders, voice, email-to-task, templates, hosted Postgres, saved filter query language.
+
+**Parked W2c:** Soft-delete, Time Map overrides, scoped bundles, sidebar drag, compose worker (after W3 or as fallout).
 
 **Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors; Notion / Obsidian deep links; task handoff between household accounts (discussion only).
 

@@ -87,14 +87,18 @@ users ──┬── user_settings
 
 ### users
 
-Single-user MVP; table exists from day one for W1.5 login.
+Household personal accounts (W1.5+). One session → one `users` row; domain data scoped by `owner_id`.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | id | UUID PK | |
-| email | VARCHAR(255) UNIQUE | Bootstrap local address |
+| username | VARCHAR(64) UNIQUE nullable | Immutable after create ([ADR-007](./adr/ADR-007-account-self-service.md)) |
+| email | VARCHAR(255) UNIQUE | Login identifier; self-service + admin editable (W3) |
 | password_hash | VARCHAR(255) nullable | Set in W1.5 |
 | display_name | VARCHAR(255) | |
+| is_admin | BOOLEAN | Default false; bootstrap register → true |
+| is_disabled | BOOLEAN | Default false; admin cannot disable self |
+| must_change_password | BOOLEAN | **W3 Slice 1** — default false; set when admin sets password; cleared on self-service password change ([ADR-007](./adr/ADR-007-account-self-service.md)) |
 | created_at, updated_at | TIMESTAMPTZ | |
 
 ### user_settings

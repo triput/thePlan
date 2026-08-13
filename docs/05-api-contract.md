@@ -420,7 +420,7 @@ HTTP 409 — client shows warn-and-allow dialog and retries with chosen `bulk_ch
 
 ---
 
-## Auth Endpoints (W1.5)
+## Auth Endpoints (W1.5 + W3 Slice 1)
 
 Session cookie stores `user_id`. Password/passphrase: 12–128 characters, spaces allowed, no complexity rules. Login accepts **username or email** in `identifier`.
 
@@ -429,10 +429,11 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 | POST | `/auth/register` | First-run only (`SETUP_REQUIRED`); claims bootstrap UUID; starts session |
 | POST | `/auth/login` | Body `{ "identifier", "password" }`; generic `401 INVALID_CREDENTIALS` |
 | POST | `/auth/logout` | Clears session; `204` |
-| GET | `/auth/me` | Current user; `401 SETUP_REQUIRED` or `401 UNAUTHENTICATED` |
+| GET | `/auth/me` | Current user; includes `must_change_password` (W3); `401 SETUP_REQUIRED` or `401 UNAUTHENTICATED` |
+| PATCH | `/auth/me` | **W3 Slice 1** — self-service: optional `password`, `email`, `display_name`. Clears `must_change_password` when `password` is set. `422 EMAIL_TAKEN` on conflict. Username not accepted. |
 | GET | `/auth/users` | Admin: list household users |
 | POST | `/auth/users` | Admin: create household user |
-| PATCH | `/auth/users/{id}` | Admin: update `display_name`, `is_disabled`, `password` (cannot disable self) |
+| PATCH | `/auth/users/{id}` | Admin: update `display_name`, `email` (W3), `is_disabled`, `password`, optional `must_change_password`. Setting `password` **always** sets `must_change_password=true`. Cannot disable self. Username immutable. |
 | GET/PUT/DELETE | `/tasks/{id}/recurrence` | Get, set, or clear recurrence (`rrule`, `is_fixed`, `timezone`, `starts_on`, `ends_on`, optional `text`) |
 | GET/POST | `/tasks/{id}/reminders` | List / create absolute-time reminders (`fire_at`, `channel`) |
 | GET | `/reminders/due` | Unfired reminders with `fire_at <= now` (includes `task_title`) |
@@ -462,11 +463,34 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
   "username": "trish",
   "email": "you@example.com",
   "display_name": "Trish",
-  "is_admin": true
+  "is_admin": true,
+  "must_change_password": false
 }
 ```
 
-**Error codes:** `SETUP_REQUIRED`, `SETUP_COMPLETE`, `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `USERNAME_TAKEN`, `EMAIL_TAKEN`, `FORBIDDEN`, `CANNOT_DISABLE_SELF`
+**`PATCH /auth/me` body (all fields optional; at least one required):**
+
+```json
+{
+  "password": "new correct horse battery staple",
+  "email": "new@example.com",
+  "display_name": "Trish"
+}
+```
+
+**Forced password change (W3 Slice 1 — [ADR-007](./adr/ADR-007-account-self-service.md)):**
+
+- `users.must_change_password` — set when admin PATCHes `password`; cleared when user PATCHes own `password` via `/auth/me`.
+- Client: blocking change-password sheet while flag is true.
+- Optional API: mutating domain routes return `403 PASSWORD_CHANGE_REQUIRED` while flag is true (`GET/PATCH /auth/me` still allowed).
+
+**UI sketch (W3 Slice 1):**
+
+- **Settings → Account** (all users): edit display name, email, password.
+- **Settings → Household** (admin): add email field on user edit; copy that setting a password forces change on next login.
+- **App shell:** if `must_change_password`, modal/sheet until password updated — no task/calendar chrome underneath.
+
+**Error codes:** `SETUP_REQUIRED`, `SETUP_COMPLETE`, `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `USERNAME_TAKEN`, `EMAIL_TAKEN`, `FORBIDDEN`, `CANNOT_DISABLE_SELF`, `PASSWORD_CHANGE_REQUIRED` (W3)
 
 ---
 

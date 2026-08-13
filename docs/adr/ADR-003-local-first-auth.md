@@ -49,4 +49,5 @@
 ## Related
 
 - [ADR-002-single-user.md](./ADR-002-single-user.md)
+- [ADR-007-account-self-service.md](./ADR-007-account-self-service.md) — W3 self-service + forced password change
 - [07-wave-roadmap.md](../07-wave-roadmap.md)

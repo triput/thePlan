@@ -69,4 +69,4 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 A single user can manage the full Epic→Nested Subtask hierarchy, complete tasks with parent/child policies, work from Today/Inbox/Upcoming and calendar day/week views, capture tasks via quick-add, search and undo changes, and run the stack locally with p95 interaction feel under 100ms on LAN — without calendar sync, auto-scheduling, or remote authentication.
 
-**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a Google Calendar complete** (Slices 1–3). **W2b core complete** (Painted Time Maps + Update Schedule). Leftovers → **W2c**. **Next: W3 and/or W2c** ([07-wave-roadmap.md](./07-wave-roadmap.md)).
+**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **Next: W3 Slice 1** account polish ([ADR-007](./adr/ADR-007-account-self-service.md)) — [07-wave-roadmap.md](./07-wave-roadmap.md).

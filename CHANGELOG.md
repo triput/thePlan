@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased] — Wave 3 (cut locked)
+
+- **W3 cut locked (2026-08-12):** W3 = Account polish → MS Calendar → Tauri; W3+ = SLM, Todoist import, habits, optional Kanban; W4 = voice/email/location/templates/hosted Postgres/filter QL; W2c parked — [07-wave-roadmap.md](docs/07-wave-roadmap.md)
+- **ADR-007 accepted (2026-08-12):** Account self-service + forced password change ([docs/adr/ADR-007-account-self-service.md](docs/adr/ADR-007-account-self-service.md))
+
 ## [Unreleased] — Wave 2b (Schedule refactor A)
 
 - **Fix:** Week Time Map overlay — red bands used element `opacity` over seed greens and read as another green; use tier alpha fills, z-index (green < yellow < red), and a red hatch so forbidden zones stay red
@@ -24,7 +29,8 @@
 
 ### Planned next
 
-- **W3** core features and/or **W2c** polish slice ([07-wave-roadmap.md](docs/07-wave-roadmap.md) — order flexible)
+- **W3 Slice 1** implementation after [ADR-007](docs/adr/ADR-007-account-self-service.md) accept (account self-service, admin email, forced password change)
+- **W2c** remains parked (after W3 or as fallout bucket)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 

@@ -39,10 +39,11 @@ Daily-driver enhancements and remote-ready auth **without** scheduler / calendar
 | Auto-scheduler / SkedPal triad / UPS | **W2b** |
 | Soft-delete + true undelete | **W2c** |
 | Saved filter query language | **W3+** (unless capacity steals into W2c) |
-| Todoist import | **W3** |
-| Account self-service / admin full profile edit / temp password reset | **W3+** |
+| Account self-service / admin full profile edit / temp password reset | **W3 Slice 1** ([ADR-007](./adr/ADR-007-account-self-service.md)) |
+| Todoist import | **W3+** |
 | Intraday multi-occurrence habits (`BYHOUR`) | **W3+** |
-| SLM, Microsoft Calendar, Tauri, Kanban | **W3+** |
+| SLM, Kanban | **W3+** |
+| Microsoft Calendar, Tauri | **W3** Slices 2–3 |
 | Calendar month view | Optional non-blocker (still open) |
 
 ## Known gaps carried forward

@@ -78,7 +78,7 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 
 - **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
 - **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
-- **Next:** Wave 3 core and/or **W2c** (scheduler polish & catch-all — Time Map overrides, rule inheritance, scoped bundles, soft-delete, sidebar drag-schedule, compose worker; order vs W3 flexible)
+- **Next:** W3 Slice 1 after [ADR-007](./ADR-007-account-self-service.md) accept; W2c parked
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay manual until a later slice; roadmap “knockout → blocks on replan” applies post–v1
 - Functional spec §9 retains product-level SkedPal semantics; worker implementers treat this ADR as the v1 source of truth for fit and replan

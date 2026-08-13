@@ -11,10 +11,10 @@ Delivery waves from MVP through W3. Each version begins with a **Dependency Hygi
         ↓
 Dependency Hygiene Wave (toolchain, pub/package majors, container pins, doc pins)
         ↓
-Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W2c polish ↔ W3+)
+Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W2c polish ↔ W3 → W3+ → W4)
 ```
 
-**Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). **W2c** (scheduler polish / catch-all) may run **before or after** core W3 feature work — operator choice. Everything else stays W3 or W3+.
+**Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). **W2c** parked (after W3 or as fallout). **W3 cut locked 2026-08-12:** Account → MS Calendar → Tauri; see [Wave 3](#wave-3--w3--w4--cut-locked-2026-08-12).
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 
@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). Core W2b closed; leftovers live in **[W2c](#wave-2c--scheduler-polish--catch-all)**. **Next:** Wave 3 core features and/or W2c (order flexible).
+**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). Core W2b closed; leftovers live in **[W2c](#wave-2c--scheduler-polish--catch-all)** (parked). **Next:** **W3** ([cut locked](#wave-3--w3--w4--cut-locked-2026-08-12)) — Slice 1 Account polish discovery.
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -256,36 +256,49 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 ---
 
-## Wave 3 / W3+ — Everything else
+## Wave 3 / W3+ / W4 — Cut locked (2026-08-12)
 
-**Goal:** Intelligence assist, desktop shell, secondary calendars, and deferred product polish — **after** GCal + core scheduler (W2b). **W2c** may interleave before or after this wave.
+**Goal:** After GCal + core scheduler (W2b). **W2c** stays parked (may run after W3 as polish + fallout). Hygiene exited ([HYGIENE-W3.md](./HYGIENE-W3.md)).
 
-### Features
+**Status:** **Cut locked 2026-08-12.** Slice order by developer leverage. **Slice 1** — [ADR-007](./adr/ADR-007-account-self-service.md) **accepted**; implementation tomorrow.
 
-| Feature | Notes |
-|---------|-------|
-| Local SLM (Ollama) | Ambiguous quick-add + schedule hints; never blocks CRUD |
-| Microsoft Calendar | calendar_provider.microsoft sync |
-| Tauri 2 desktop | Wraps web UI + FastAPI sidecar |
-| Board / Kanban view | Optional; sections→columns likely |
-| Hosted Postgres fallback | Optional; local Compose remains default |
-| Location reminders | Candidate |
-| Voice input | Candidate |
-| Email-to-task | Candidate |
-| Templates | Nice-to-have |
-| Todoist import | CSV/JSON → hierarchy |
-| Temp / forced password reset | Admin sets temp password; change on next login |
-| Admin full profile edit | Any field except username |
-| Self-service account settings | Own password, email, display name |
-| Intraday / multi-occurrence habits | NL / `BYHOUR` on existing recurrence |
+### Bucket table
 
-### Wave size note
+| Bucket | Contents | Why |
+|--------|----------|-----|
+| **W3** | **1. Account polish** → **2. Microsoft Calendar** → **3. Tauri desktop** | Small auth delta first; reuse GCal patterns while fresh; package desktop last so it wraps a richer app |
+| **W3+** | Local SLM (Ollama), Todoist import, intraday/`BYHOUR` habits, optional Kanban | Useful; not required to close account/calendar/desktop wave; SLM stays non-blocking candy |
+| **W4 / candidates** | Voice, email-to-task, location reminders, templates, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
+| **Parked** | **W2c** | After W3 as polish + W3 fallout bucket |
 
-W3 is large. Before W3 planning starts in earnest, **split a Wave 4** if needed (e.g. account/profile + import + habits vs. SLM / Tauri / MS Calendar). **W2c** is the dedicated polish/catch-all slice — not a W3 size split.
+**Out of cut:** Post-W3 backlog (Zapier/webhooks, Notion/Obsidian, household task handoff).
 
-### Desktop Bundle Strategy
+### W3 slice plan
 
-Tauri shell + embedded API process talking to local Postgres. Same REST contract; no second data model.
+1. **Slice 1 — Account polish (discovery):** Self-service `PATCH /auth/me` (password, email, display name); admin email on profile edit; `must_change_password` forced reset — [ADR-007](./adr/ADR-007-account-self-service.md). Username immutable. No email verification / IdP.
+2. **Slice 2 — Microsoft Calendar:** `calendar_provider.microsoft` busy sync parallel to Google (mirror W2a patterns).
+3. **Slice 3 — Tauri 2 desktop:** Shell + FastAPI sidecar + local Postgres; same REST contract; Desktop ADR before build.
+
+### Feature map (legacy flat list → buckets)
+
+| Feature | Bucket |
+|---------|--------|
+| Self-service account settings | **W3 Slice 1** |
+| Admin full profile edit (except username) | **W3 Slice 1** |
+| Temp / forced password reset | **W3 Slice 1** |
+| Microsoft Calendar | **W3 Slice 2** |
+| Tauri 2 desktop | **W3 Slice 3** |
+| Local SLM (Ollama) | **W3+** |
+| Todoist import | **W3+** |
+| Intraday / multi-occurrence habits | **W3+** |
+| Board / Kanban view | **W3+** (optional) |
+| Location reminders, voice, email-to-task, templates | **W4 / candidates** |
+| Hosted Postgres fallback | **W4 / candidates** |
+| Saved filter query language | **W4 / candidates** (or W2c steal) |
+
+### Desktop Bundle Strategy (Slice 3)
+
+Tauri shell + embedded API process talking to local Postgres. Same REST contract; no second data model. Write Desktop ADR before implementation.
 
 ---
 
@@ -361,7 +374,9 @@ Run before each major version's feature waves:
 | W2a | Google Calendar sync + busy map in 05 |
 | W2b | Scheduler triad expansion in 02 |
 | W2c | Soft-delete; Time Map overrides; scoped bundles; sidebar drag; compose worker |
-| W3+ | Desktop ADR; SLM; MS Calendar; account UX |
+| W3 | Account polish ([ADR-007](./adr/ADR-007-account-self-service.md)); MS Calendar; Tauri Desktop ADR |
+| W3+ | SLM; Todoist import; habits; optional Kanban |
+| W4 | Voice, email-to-task, location, templates, hosted Postgres |
 
 ---
 
