@@ -85,7 +85,8 @@ services:
   # See docs/CLOUDFLARE-TUNNEL.md
   # docker compose -f infra/compose/compose.yaml --profile tunnel up -d
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    # Pin version (hygiene W3) — avoid floating :latest; bump deliberately.
+    image: cloudflare/cloudflared:2026.7.3
     profiles: ["tunnel"]
     command: tunnel --no-autoupdate run
     environment:

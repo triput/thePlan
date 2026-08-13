@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Next:** **Dependency Hygiene** gate before W3 feature waves (plus remaining W2b+ parked items). Hygiene: [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (pass at W2 entry).
+**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). **Next:** Wave 3 features and/or remaining W2b+ parked items (overrides, scoped bundles, sidebar drag, soft-delete, compose worker).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -207,7 +207,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | Time Map preference tiers | **In force** — green preferred → yellow overflow OK → red forbidden; scheduler honors tiers for bound maps ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
 | Pins + external busy | **Immovable BUSY** — confirmed (ADR-005 + GCal conflict policy) |
 
-Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)); Update Schedule thin worker **shipped 2026-08-12**; Painted Time Maps **shipped 2026-08-12**. **Next:** **Dependency Hygiene** gate before W3 (and remaining W2b+ parked items: Time Map overrides, scoped bundles, sidebar drag-schedule, compose worker).
+Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)); Update Schedule thin worker **shipped 2026-08-12**; Painted Time Maps **shipped 2026-08-12**. **Dependency Hygiene (W3 entry) exited 2026-08-12** ([HYGIENE-W3.md](./HYGIENE-W3.md)). Remaining W2b+ parked: Time Map overrides, scoped bundles, sidebar drag-schedule, soft-delete, compose worker.
 
 ### GCal Conflict Policy (2a + 2b)
 
@@ -300,11 +300,12 @@ Run before each major version's feature waves:
 
 - [x] Pin Python, Node, Postgres image versions — [W1.5 quick scan](./HYGIENE-W1.5-QUICKSCAN.md) (2026-08-10)
 - [x] Audit FastAPI, SQLAlchemy, Alembic, Vite, React majors — spot check in same note
-- [ ] Review container base image CVEs — deferred to next **full** hygiene wave
+- [ ] Review container base image CVEs — deferred (optional; noted in [HYGIENE-W3.md](./HYGIENE-W3.md))
 - [x] Update doc pins and ADR references — Wave 1 exit + this scan
 - [x] Record quick-scan or full pass in version notes — `docs/HYGIENE-W1.5-QUICKSCAN.md`
 - [x] W1.6 entry: quick-scan only (reuse W1.5 pins unless drift found) — exited with W1.6 ship 2026-08-10
 - [x] W2 entry: quick-scan — [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (2026-08-10)
+- [x] **W3 entry: full hygiene** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12); cloudflared pinned to `2026.7.3`
 
 ---
 

@@ -2,6 +2,7 @@
 
 ## [Unreleased] — Wave 2b (Schedule refactor A)
 
+- **Dependency Hygiene (W3 entry):** [HYGIENE-W3.md](docs/HYGIENE-W3.md) — pass; pin `cloudflare/cloudflared:2026.7.3` (drop `:latest`); toolchain/majors spot-check keep; no forced package upgrades
 - **W2b Painted Time Maps (shipped):** Alembic `009_painted_time_maps`; slim `focus_windows` header + `strict_mode` (replaces `is_hard`); child `time_map_bands` with green/yellow/red tiers; existing windows backfilled as one green band; scheduler placement order green → yellow → neutral (minus red); `strict_mode` kills neutral spill; Settings multi-band editor; week calendar color overlay; tasks still bind via `preferred_time_window_id`
 - **W2b Schedule refactor (A):** Alembic `008_schedule_refactor`; shared `busy_intervals` primitives; `user_settings.workday_start_local` (default 08:00); nullable `tasks.schedule_style` (inherit user default); Settings workday-start field; task detail schedule-style picker; per-task bundle override; scheduler README notes future compose worker
 - **W2b Update Schedule (thin):** `POST /schedule/replan` (202 `ScheduleRunOut`; stale reclaim 15m; 409 `SCHEDULE_RUN_IN_PROGRESS`); `GET /schedule/runs/{id}`; in-process async worker per [ADR-006](docs/adr/ADR-006-fuzzy-scheduling.md); Calendar **Update Schedule** button with poll
@@ -20,7 +21,7 @@
 
 ### Planned next
 
-- **Dependency Hygiene** — gate before W3 feature waves (per version policy); remaining W2b+ parked items (Time Map overrides, scoped bundles, sidebar drag-schedule, compose worker)
+- Remaining W2b+ parked items (Time Map overrides, scoped bundles, sidebar drag-schedule, soft-delete, compose worker) and/or Wave 3 features (hygiene gate exited)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 
