@@ -78,7 +78,7 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 
 - **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
 - **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
-- **Next:** Dependency Hygiene gate before W3; remaining W2b+ parked items (Time Map overrides, scoped bundles, sidebar drag-schedule, compose worker)
+- **Next:** Wave 3 core and/or **W2c** (scheduler polish & catch-all — Time Map overrides, rule inheritance, scoped bundles, soft-delete, sidebar drag-schedule, compose worker; order vs W3 flexible)
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay manual until a later slice; roadmap “knockout → blocks on replan” applies post–v1
 - Functional spec §9 retains product-level SkedPal semantics; worker implementers treat this ADR as the v1 source of truth for fit and replan
@@ -87,6 +87,6 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 
 - [ADR-005-scheduler-decoupling.md](./ADR-005-scheduler-decoupling.md) — CRUD never waits on scheduler; explicit Update Schedule trigger
 - [02-functional-spec.md §9](../02-functional-spec.md#9-wave-2--skedpal-scheduler-behaviors-spec-level) — SkedPal triad, UPS formula, buffer
-- [07-wave-roadmap.md](../07-wave-roadmap.md) — W2b slice plan; schema fence (2026-08-11)
+- [07-wave-roadmap.md](../07-wave-roadmap.md) — W2b slice plan; **W2c** polish & catch-all; schema fence (2026-08-11)
 - [04-data-schema.md](../04-data-schema.md) — `user_settings`, tasks, `scheduled_blocks`, dependencies
 - [05-api-contract.md](../05-api-contract.md) — `POST /schedule/replan`, `GET /schedule/runs/{id}`

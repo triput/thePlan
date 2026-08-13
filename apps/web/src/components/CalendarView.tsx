@@ -34,9 +34,11 @@ import {
   isSameDay,
   isToday,
   loadShow24h,
+  loadTimeMapOverlayId,
   minutesFromDeltaY,
   resolveHourBounds,
   saveShow24h,
+  saveTimeMapOverlayId,
   SHOW_24H_STORAGE_KEY,
   slotFromClick,
   snapMinutes,
@@ -566,6 +568,7 @@ export function CalendarView() {
   const [mode, setMode] = useState<CalendarMode>("day");
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [show24h, setShow24h] = useState(() => loadShow24h());
+  const [overlayMapId, setOverlayMapId] = useState(() => loadTimeMapOverlayId());
   const [blockForm, setBlockForm] = useState<BlockFormState | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [drag, setDrag] = useState<ActiveDrag | null>(null);
@@ -689,12 +692,35 @@ export function CalendarView() {
     return map;
   }, [projectsQuery.data]);
 
-  const timeMapBands = useMemo(() => {
-    if (mode !== "week") return undefined;
-    return (focusWindowsQuery.data ?? []).flatMap((window) => window.bands ?? []);
-  }, [focusWindowsQuery.data, mode]);
+  const focusWindows = focusWindowsQuery.data ?? [];
 
-  const invalidateCalendar = useCallback(() => {
+  const effectiveOverlayMapId = useMemo(() => {
+    if (!overlayMapId) return "";
+    return focusWindows.some((w) => w.id === overlayMapId) ? overlayMapId : "";
+  }, [focusWindows, overlayMapId]);
+
+  useEffect(() => {
+    if (overlayMapId && !effectiveOverlayMapId) {
+      setOverlayMapId("");
+      saveTimeMapOverlayId("");
+    }
+  }, [overlayMapId, effectiveOverlayMapId]);
+
+  const timeMapBands = useMemo(() => {
+    if (mode !== "week" || !effectiveOverlayMapId) return undefined;
+    const window = focusWindows.find((w) => w.id === effectiveOverlayMapId);
+    const bands = window?.bands ?? [];
+    // Paint green → yellow → red so higher tiers sit on top in DOM + CSS z-index.
+    const tierOrder: Record<string, number> = { green: 0, yellow: 1, red: 2 };
+    return [...bands].sort(
+      (a, b) => (tierOrder[a.tier] ?? 0) - (tierOrder[b.tier] ?? 0) || a.sort_order - b.sort_order,
+    );
+  }, [effectiveOverlayMapId, focusWindows, mode]);
+
+  const setTimeMapOverlay = (mapId: string) => {
+    setOverlayMapId(mapId);
+    saveTimeMapOverlayId(mapId);
+  };  const invalidateCalendar = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
     queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
     queryClient.invalidateQueries({ queryKey: ["calendar-conflicts"] });
@@ -1073,14 +1099,32 @@ export function CalendarView() {
           >
             {show24h ? "24h" : "6A–10P"}
           </button>
+          {mode === "week" && (
+            <label className="cal-time-map-overlay">
+              <span className="cal-time-map-overlay-label">Time Map</span>
+              <select
+                className="cal-time-map-overlay-select"
+                value={effectiveOverlayMapId}
+                onChange={(e) => setTimeMapOverlay(e.target.value)}
+                aria-label="Time Map overlay — visual only; does not change scheduling"
+                title="Visual prompt only — does not change scheduling"
+              >
+                <option value="">Neutral</option>
+                {focusWindows.map((window) => (
+                  <option key={window.id} value={window.id}>
+                    {window.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <button
             type="button"
             className={`btn small${mode === "day" ? " primary" : " ghost"}`}
             onClick={() => setMode("day")}
           >
             Day
-          </button>
-          <button
+          </button>          <button
             type="button"
             className={`btn small cal-week-btn${mode === "week" ? " primary" : " ghost"}`}
             onClick={() => setMode("week")}

@@ -11,10 +11,10 @@ Delivery waves from MVP through W3. Each version begins with a **Dependency Hygi
         ↓
 Dependency Hygiene Wave (toolchain, pub/package majors, container pins, doc pins)
         ↓
-Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W3+)
+Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W2c polish ↔ W3+)
 ```
 
-**Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). Everything else stays W3 or W3+.
+**Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). **W2c** (scheduler polish / catch-all) may run **before or after** core W3 feature work — operator choice. Everything else stays W3 or W3+.
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 
@@ -77,7 +77,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Calendar drag move/resize | Desktop day/week; due-dot drag; narrow modal-only |
 | Epic aggregate smart view | Click epic in sidebar; `GET /tasks?epic_id=` |
 | ~~Todoist import~~ | **Parked at W3** (stale upstream; not needed for daily driver) |
-| Task soft-delete + restore | **Parked at W2b** (or later) |
+| Task soft-delete + restore | **Parked at W2c** |
 
 **Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128). Login by **username or email**. First registration **claims** bootstrap user. Hygiene: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
 
@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). **Next:** Wave 3 features and/or remaining W2b+ parked items (overrides, scoped bundles, sidebar drag, soft-delete, compose worker).
+**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). Core W2b closed; leftovers live in **[W2c](#wave-2c--scheduler-polish--catch-all)**. **Next:** Wave 3 core features and/or W2c (order flexible).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -179,21 +179,22 @@ No full Update Schedule / UPS pipeline in 2a.
 | UPS scoring + slice/fit | U = 100·e^(-k·max(Slack,0)), k=0.5 |
 | Pins, soft vs hard | `deadline_at` enforced; pinned blocks immovable until unpin |
 | Bundled vs formal blocks | Knockout lists → blocks on replan (**post–v1**; v1 excludes bundle auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
-| Scoped bundles | Bundle constrained to one epic or project — late W2b / early W3 |
+| Scoped bundles | → **[W2c](#wave-2c--scheduler-polish--catch-all)** — bundle constrained to one epic or project |
 | Settings expansion | W2b — **shipped** | API + Scheduling defaults UI; timezone still free-text ([DEF-002](./DEFECTS.md)) |
 | **Painted Time Maps (SkedPal-class)** | **Shipped (2026-08-12)** — one named map with **multiple painted bands**; preference tiers **green → yellow → never red**; scheduler fills green first, overflow to yellow, neutral workday minus red when not strict; `strict_mode` forbids neutral spill. Settings multi-band editor + week calendar color overlay. Tasks bind to the map via `preferred_time_window_id`. |
-| Temporary Time Map overrides | Day/week dated windows that auto-expire (vacation/conference) |
-| Rule inheritance | Parent → child window/plan propagation |
-| Overbook UI | schedule_status.overbooked |
+| Temporary Time Map overrides | → **W2c** — day/week dated windows that auto-expire (vacation/conference) |
+| Rule inheritance | → **W2c** — parent → child window/plan propagation |
+| Overbook UI | → **W2c** (or W3 fallout) — `schedule_status.overbooked` |
 | deadline_at UI | **shipped** (Plans A) — hard commit surfaced in task detail + list |
 | soft_target_at UI | **shipped** (Plans A/B) — task detail + list; copied on plan bind |
 | Plans CRUD + task bind | **shipped** (Plans B) — Settings Plans section; task picker; list badge |
-| Task dependency enforcement | Topological ordering in scheduler |
-| Saved filter query language | User-authored saved_filters — ship if capacity; else W3+ |
+| Task dependency enforcement | → **W2c** (or W3 fallout) — topological ordering in scheduler |
+| Saved filter query language | User-authored saved_filters — **W3+** unless capacity steals into W2c |
 | WebSocket invalidation | Optional; else keep REST invalidation |
-| Status tracker | Today's blocks done % + overbook count |
-| Task soft-delete + session restore | Target by end of W2b |
-| Sidebar → calendar drag | Drag a task from list/sidebar onto a day/time slot to create a `scheduled_block` (desktop first; phone keeps tap/slot). Parked UX — not a W2a exit. Late W2b polish or early W3. |
+| Status tracker | → **W2c** (or W3 fallout) — today's blocks done % + overbook count |
+| Task soft-delete + session restore | → **W2c** |
+| Sidebar → calendar drag | → **W2c** — drag task from list/sidebar onto day/time → `scheduled_block` (desktop first; phone keeps tap/slot) |
+| Dedicated compose worker | → **W2c** — extract Update Schedule from in-process thread into a Compose service |
 
 **Fuzzy scheduling** — **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)): replan contract, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook locked for v1 Update Schedule worker.
 
@@ -207,7 +208,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | Time Map preference tiers | **In force** — green preferred → yellow overflow OK → red forbidden; scheduler honors tiers for bound maps ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
 | Pins + external busy | **Immovable BUSY** — confirmed (ADR-005 + GCal conflict policy) |
 
-Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)); Update Schedule thin worker **shipped 2026-08-12**; Painted Time Maps **shipped 2026-08-12**. **Dependency Hygiene (W3 entry) exited 2026-08-12** ([HYGIENE-W3.md](./HYGIENE-W3.md)). Remaining W2b+ parked: Time Map overrides, scoped bundles, sidebar drag-schedule, soft-delete, compose worker.
+Settings expansion is **shipped**; fuzzy algorithm session **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)); Update Schedule thin worker **shipped 2026-08-12**; Painted Time Maps **shipped 2026-08-12**. **Dependency Hygiene (W3 entry) exited 2026-08-12** ([HYGIENE-W3.md](./HYGIENE-W3.md)). Core W2b **closed**; remaining polish → **[W2c](#wave-2c--scheduler-polish--catch-all)**.
 
 ### GCal Conflict Policy (2a + 2b)
 
@@ -215,9 +216,49 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 
 ---
 
+## Wave 2c — Scheduler polish & catch-all
+
+**Goal:** Finish the W2b leftovers that were intentionally parked after Painted Time Maps, without blocking (or being blocked by) core Wave 3 feature work.
+
+**Status:** **Defined 2026-08-12** — not started. Timing vs W3 is **operator choice**.
+
+**Ordering (flexible):**
+
+| When | Role |
+|------|------|
+| **Before** core W3 | Clear the scheduler backlog first; W3 starts cleaner |
+| **After** core W3 | Still ships the W2 leftovers **and** doubles as a **placeholder bucket** for anything that falls out of W3 (deferred polish, partial slices, “not in this W3 cut”) |
+
+Either order is fine. Do not treat W2c as a hard gate for starting W3.
+
+### Seed backlog (from W2b park)
+
+| Item | Notes |
+|------|-------|
+| Temporary Time Map overrides | Dated day/week windows that auto-expire (vacation/conference) |
+| Rule inheritance | Parent → child Time Map / plan propagation |
+| Scoped bundles | Bundle constrained to one epic or project |
+| Task soft-delete + session restore | `deleted_at` + restore path; see [04-data-schema.md](./04-data-schema.md) |
+| Sidebar → calendar drag | Desktop drag-to-slot → `scheduled_block`; phone stays tap/slot |
+| Dedicated compose worker | Separate Compose service for Update Schedule (replace in-process thread) |
+
+### May also absorb (capacity / fallout)
+
+| Item | Notes |
+|------|-------|
+| Overbook UI | Surface `schedule_status.overbooked` |
+| Task dependency enforcement | Topological ordering in scheduler |
+| Status tracker | Today's blocks done % + overbook count |
+| Bundle auto-place (post–v1) | Knockout → blocks on replan; still out of ADR-006 v1 |
+| W3 fallout | Whatever core W3 explicitly defers when W2c runs after W3 |
+
+Saved filter query language stays **W3+** unless capacity clearly steals it into this slice.
+
+---
+
 ## Wave 3 / W3+ — Everything else
 
-**Goal:** Intelligence assist, desktop shell, secondary calendars, and deferred product polish — **after** GCal + scheduler.
+**Goal:** Intelligence assist, desktop shell, secondary calendars, and deferred product polish — **after** GCal + core scheduler (W2b). **W2c** may interleave before or after this wave.
 
 ### Features
 
@@ -240,7 +281,7 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 
 ### Wave size note
 
-W3 is large. Before W3 planning starts in earnest, **split a Wave 4** if needed (e.g. account/profile + import + habits vs. SLM / Tauri / MS Calendar). Flag only until W2b exits.
+W3 is large. Before W3 planning starts in earnest, **split a Wave 4** if needed (e.g. account/profile + import + habits vs. SLM / Tauri / MS Calendar). **W2c** is the dedicated polish/catch-all slice — not a W3 size split.
 
 ### Desktop Bundle Strategy
 
@@ -260,6 +301,7 @@ Tauri shell + embedded API process talking to local Postgres. Same REST contract
 | Responsive / phone-friendly web | W1.6 (shipped) |
 | Google Calendar sync | W2a |
 | Auto-scheduler / Update Schedule | W2b |
+| Scheduler polish / catch-all | W2c (before or after core W3) |
 | Hosted Postgres | W3+ fallback |
 | Podman alternate runtime | MVP-compatible (ADR-004) |
 
@@ -273,7 +315,7 @@ Tauri shell + embedded API process talking to local Postgres. Same REST contract
 - Mobile native apps (responsive web until desktop; **W1.6** is the responsive polish gate)
 - Attachments
 - iCloud calendar (unless reopened)
-- Row-level task soft-delete / true session undelete (MVP hard delete + client recreate; target **W2b**)
+- Row-level task soft-delete / true session undelete (MVP hard delete + client recreate; target **W2c**)
 
 **Not excluded:** Multiple personal accounts on one deployment (household login) — each operator's data isolated by `owner_id`; see W1.5 auth progression. Lightweight task handoff between personal accounts is a **Post-W3 discussion item**, not W1–W3 scope.
 
@@ -317,7 +359,8 @@ Run before each major version's feature waves:
 | W1.5 | Auth, recurrence, reminders, ops; closeout — [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) |
 | W1.6 | Responsive shell (shipped) |
 | W2a | Google Calendar sync + busy map in 05 |
-| W2b | Scheduler triad expansion in 02; soft-delete |
+| W2b | Scheduler triad expansion in 02 |
+| W2c | Soft-delete; Time Map overrides; scoped bundles; sidebar drag; compose worker |
 | W3+ | Desktop ADR; SLM; MS Calendar; account UX |
 
 ---

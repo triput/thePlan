@@ -2,6 +2,9 @@
 
 ## [Unreleased] — Wave 2b (Schedule refactor A)
 
+- **Fix:** Week Time Map overlay — red bands used element `opacity` over seed greens and read as another green; use tier alpha fills, z-index (green < yellow < red), and a red hatch so forbidden zones stay red
+- **UX:** Week **Time Map** dropdown — default **Neutral** (no bands); selecting a map paints only that map’s bands (visual only; does not change scheduling)
+- **Docs:** **W2c** slice — scheduler polish & catch-all (Time Map overrides, rule inheritance, scoped bundles, soft-delete, sidebar drag, compose worker); may run before or after core W3 and absorb W3 fallout
 - **Dependency Hygiene (W3 entry):** [HYGIENE-W3.md](docs/HYGIENE-W3.md) — pass; pin `cloudflare/cloudflared:2026.7.3` (drop `:latest`); toolchain/majors spot-check keep; no forced package upgrades
 - **W2b Painted Time Maps (shipped):** Alembic `009_painted_time_maps`; slim `focus_windows` header + `strict_mode` (replaces `is_hard`); child `time_map_bands` with green/yellow/red tiers; existing windows backfilled as one green band; scheduler placement order green → yellow → neutral (minus red); `strict_mode` kills neutral spill; Settings multi-band editor; week calendar color overlay; tasks still bind via `preferred_time_window_id`
 - **W2b Schedule refactor (A):** Alembic `008_schedule_refactor`; shared `busy_intervals` primitives; `user_settings.workday_start_local` (default 08:00); nullable `tasks.schedule_style` (inherit user default); Settings workday-start field; task detail schedule-style picker; per-task bundle override; scheduler README notes future compose worker
@@ -15,13 +18,13 @@
 - **Google Calendar Slice 1–3 (shipped):** OAuth, multi-cal/mirror/24h, conflict flags
 - cryptography for Fernet token encryption
 - **ADR-006 accepted (2026-08-12):** Fuzzy scheduling contract for v1 Update Schedule — replan trigger/horizon, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook ([docs/adr/ADR-006-fuzzy-scheduling.md](docs/adr/ADR-006-fuzzy-scheduling.md))
-- Parked for W2b+: Time Map overrides, scoped bundles, sidebar→calendar drag-schedule, dedicated compose worker container
+- Parked as **W2c** (scheduler polish & catch-all): Time Map overrides, rule inheritance, scoped bundles, soft-delete, sidebar→calendar drag, dedicated compose worker — may run before or after core W3; after W3 also absorbs W3 fallout
 - **Schema fence locked:** standalone default; MBL use default; auto-defer on; green→yellow→never red **in force** for bound Time Maps; pins + GCal busy immovable
 - **DEF-002:** Timezone dropdown picker (polish; bundle with other fixes)
 
 ### Planned next
 
-- Remaining W2b+ parked items (Time Map overrides, scoped bundles, sidebar drag-schedule, soft-delete, compose worker) and/or Wave 3 features (hygiene gate exited)
+- **W3** core features and/or **W2c** polish slice ([07-wave-roadmap.md](docs/07-wave-roadmap.md) — order flexible)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit
 

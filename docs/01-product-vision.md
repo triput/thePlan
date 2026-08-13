@@ -61,7 +61,7 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 - Board / Kanban as a project view (not MVP; optional W3 candidate)
 - Flutter or separate mobile-native clients (responsive web until Tauri)
 - AI/SLM in the critical path before Wave 3
-- Row-level task soft-delete (MVP hard-delete + client recreate; target W2 restore)
+- Row-level task soft-delete (MVP hard-delete + client recreate; target **W2c** restore)
 
 **Post-W3 discussion only:** lightweight task handoff between personal household accounts — not team collaboration.
 
@@ -69,4 +69,4 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 
 A single user can manage the full Epic→Nested Subtask hierarchy, complete tasks with parent/child policies, work from Today/Inbox/Upcoming and calendar day/week views, capture tasks via quick-add, search and undo changes, and run the stack locally with p95 interaction feel under 100ms on LAN — without calendar sync, auto-scheduling, or remote authentication.
 
-**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a Google Calendar complete** (Slices 1–3). **Next: W2b Scheduler** ([07-wave-roadmap.md](./07-wave-roadmap.md)).
+**Status:** Wave 1 exited **2026-08-10** ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md)). Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a Google Calendar complete** (Slices 1–3). **W2b core complete** (Painted Time Maps + Update Schedule). Leftovers → **W2c**. **Next: W3 and/or W2c** ([07-wave-roadmap.md](./07-wave-roadmap.md)).

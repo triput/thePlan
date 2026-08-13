@@ -533,7 +533,7 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Bound Time Maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
 
-### Reserved (W2b+)
+### Reserved (W2c / W3+)
 
 | Resource | Path prefix |
 |----------|-------------|

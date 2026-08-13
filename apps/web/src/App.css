@@ -1607,6 +1607,30 @@
   white-space: nowrap;
 }
 
+.cal-time-map-overlay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 0.25rem;
+}
+
+.cal-time-map-overlay-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cal-time-map-overlay-select {
+  max-width: 11rem;
+  padding: 0.2rem 0.4rem;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
 .cal-loading {
   margin: 0 0 0.5rem;
 }
@@ -1730,21 +1754,31 @@
   left: 2px;
   right: 2px;
   border-radius: 3px;
-  opacity: 0.18;
+  /* Alpha on the fill (not element opacity) so stacked tiers keep their hue —
+     red over seed greens must still read red, not olive. */
 }
 
 .cal-time-map-band--green {
-  background: #22c55e;
+  background: color-mix(in srgb, #22c55e 22%, transparent);
+  z-index: 1;
 }
 
 .cal-time-map-band--yellow {
-  background: #eab308;
+  background: color-mix(in srgb, #eab308 26%, transparent);
+  z-index: 2;
 }
 
 .cal-time-map-band--red {
-  background: #ef4444;
+  /* Stronger + hatch so forbidden zones stay readable over green soup. */
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, #ef4444 48%, transparent),
+    color-mix(in srgb, #ef4444 48%, transparent) 3px,
+    color-mix(in srgb, #b91c1c 28%, transparent) 3px,
+    color-mix(in srgb, #b91c1c 28%, transparent) 7px
+  );
+  z-index: 3;
 }
-
 .cal-block {
   position: absolute;
   left: 4px;

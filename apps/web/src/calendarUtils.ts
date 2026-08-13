@@ -11,6 +11,8 @@ export const CALENDAR_HOUR_END = DEFAULT_CALENDAR_HOUR_END;
 export const CALENDAR_HOURS = DEFAULT_CALENDAR_HOUR_END - DEFAULT_CALENDAR_HOUR_START;
 
 export const SHOW_24H_STORAGE_KEY = "theplan.calendarShow24h";
+/** Empty string = Neutral (no Time Map band overlay). */
+export const TIME_MAP_OVERLAY_STORAGE_KEY = "theplan.calendarTimeMapOverlay";
 
 export type HourBounds = { start: number; end: number; hours: number };
 
@@ -34,6 +36,24 @@ export function loadShow24h(): boolean {
 export function saveShow24h(value: boolean): void {
   try {
     localStorage.setItem(SHOW_24H_STORAGE_KEY, value ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Selected Time Map id for week-view band overlay, or "" for Neutral. */
+export function loadTimeMapOverlayId(): string {
+  try {
+    return localStorage.getItem(TIME_MAP_OVERLAY_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveTimeMapOverlayId(mapId: string): void {
+  try {
+    if (!mapId) localStorage.removeItem(TIME_MAP_OVERLAY_STORAGE_KEY);
+    else localStorage.setItem(TIME_MAP_OVERLAY_STORAGE_KEY, mapId);
   } catch {
     /* ignore */
   }

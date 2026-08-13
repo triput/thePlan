@@ -47,7 +47,7 @@ Calendar sync, auto-scheduler, remote auth / login wall, recurrence UI, board/Ka
 | Calendar drag resize/move | **Closed in W1.5** (desktop; modal on narrow) |
 | Calendar month view | Optional; not exit blocker |
 | Timezone / upcoming horizon settings UI | Schema defaults; browser-local day boundaries in MVP |
-| Soft-delete / true undelete | Recreate-from-cache undo in MVP; soft-delete target **W2b** |
+| Soft-delete / true undelete | Recreate-from-cache undo in MVP; soft-delete target **W2c** |
 
 ## How to run
 

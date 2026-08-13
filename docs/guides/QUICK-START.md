@@ -201,7 +201,7 @@ Open **Calendar** in the sidebar.
 |-------|------------|
 | **Due markers** | Tasks with a **due** date/time — colored tick/dot (project color) |
 | **Scheduled blocks** | Manual time blocks you placed for a task — solid blocks |
-| **Time Map overlay** | Faint green/yellow/red bands from **Settings → Time Maps** (week view) |
+| **Time Map overlay** | Week view only — **Time Map** dropdown (default **Neutral** = no bands). Pick one map to paint its green/yellow/red bands. Visual prompt only; scheduling still uses each task’s bound map. |
 | **Google busy** | External calendar events (read-only gray blocks) — meetings, holds, life |
 | **Pinned blocks** | Your blocks marked **Pinned** — styled distinctly; won't move on future replan |
 
@@ -398,7 +398,7 @@ Don't go hunting for these — they're real roadmap, not hidden beta:
 - **Sidebar → calendar drag** — drop a task from the list onto a slot to block time
 - **Custom saved filters / query language** — only fixed smart views today
 - **Kanban board**, **voice input**, **email-to-task**, **Todoist import**, **Microsoft Calendar**
-- **True task undelete** — undo recreates; server soft-delete restore is W2b+ 
+- **True task undelete** — undo recreates; server soft-delete restore is W2c
 - **Markdown** in descriptions, **location reminders**, **mobile app**
 
 Wave status detail: [07-wave-roadmap.md](../07-wave-roadmap.md).

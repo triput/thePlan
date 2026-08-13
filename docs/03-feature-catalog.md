@@ -94,7 +94,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 |---------|------|-------|
 | Global search | MVP | Title + description |
 | Undo last action | MVP | Session stack; delete undo recreates (new IDs) |
-| Task soft-delete + restore | W2b | `deleted_at` on tasks; true undelete same UUID |
+| Task soft-delete + restore | W2c | `deleted_at` on tasks; true undelete same UUID |
 | Activity log / audit trail | W2b | schedule_runs + task history lite |
 | Completed task history | W1.5 closeout | Show/hide completed toggle — **shipped** |
 | Smart view by Epic | W1.5 closeout | Click epic in sidebar; `?epic_id=` — **shipped** |

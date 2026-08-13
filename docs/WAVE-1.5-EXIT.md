@@ -37,8 +37,8 @@ Daily-driver enhancements and remote-ready auth **without** scheduler / calendar
 |------|-----------|
 | Google Calendar sync / busy map | **W2a** |
 | Auto-scheduler / SkedPal triad / UPS | **W2b** |
-| Soft-delete + true undelete | **W2b** (or later) |
-| Saved filter query language | **W2b** capacity / **W3+** |
+| Soft-delete + true undelete | **W2c** |
+| Saved filter query language | **W3+** (unless capacity steals into W2c) |
 | Todoist import | **W3** |
 | Account self-service / admin full profile edit / temp password reset | **W3+** |
 | Intraday multi-occurrence habits (`BYHOUR`) | **W3+** |

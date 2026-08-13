@@ -22,13 +22,13 @@ export const TIME_MAP_TIER_LABELS: Record<TimeMapBandTier, string> = {
   red: "Red",
 };
 
-/** Tier fill colors for calendar band overlays (traffic-light, not accent purple). */
+/** Tier fill colors for calendar band overlays (traffic-light, not accent purple).
+ *  Calendar CSS uses color-mix / hatch for red so it stays readable over stacked greens. */
 export const TIME_MAP_TIER_COLORS: Record<TimeMapBandTier, string> = {
   green: "#22c55e",
   yellow: "#eab308",
   red: "#ef4444",
 };
-
 export const TIME_MAP_TIER_CLASS: Record<TimeMapBandTier, string> = {
   green: "cal-time-map-band--green",
   yellow: "cal-time-map-band--yellow",
