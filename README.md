@@ -2,7 +2,7 @@
 
 Personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
 
-**Wave 1 (MVP) exited 2026-08-10.** **Wave 1.5 exited 2026-08-10** ([docs/WAVE-1.5-EXIT.md](docs/WAVE-1.5-EXIT.md)); W1.6 mobile shipped. **Active: Wave 2a (Google Calendar)** — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
+**Wave 1 (MVP) exited 2026-08-10.** **Wave 1.5 exited 2026-08-10** ([docs/WAVE-1.5-EXIT.md](docs/WAVE-1.5-EXIT.md)); W1.6 mobile shipped. **W2a/W2b core complete.** **W3 Slice 1–2 shipped** (Account polish + Microsoft Calendar); **next: Slice 3 Tauri** — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md). Microsoft Calendar setup: [docs/MICROSOFT-CALENDAR.md](docs/MICROSOFT-CALENDAR.md).
 
 ## Shipped (Wave 1)
 
@@ -28,6 +28,8 @@ docker compose -f infra/compose/compose.yaml up --build
 | API docs | http://localhost:8000/docs |
 | Postgres | `localhost:5432` (user/db/password: `theplan`) |
 | pgAdmin (optional) | http://localhost:5050 — `admin@example.com` / `theplan` |
+
+When connected in Settings, Google and/or Microsoft Calendar overlay busy time and can mirror scheduled blocks (operator setup: [docs/MICROSOFT-CALENDAR.md](docs/MICROSOFT-CALENDAR.md)).
 
 pgAdmin is behind Compose profile `tools` (not started by default):
 

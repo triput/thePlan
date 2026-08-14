@@ -44,6 +44,14 @@ def test_stub_tables_mapped() -> None:
     assert CalendarSubscription.__tablename__ == "calendar_subscriptions"
 
 
+def test_calendar_account_mirror_blocks_column() -> None:
+    from app.models import CalendarAccount
+
+    columns = {c.name for c in inspect(CalendarAccount).columns}
+    assert "mirror_blocks" in columns
+    assert "mirror_blocks_to_google" not in columns
+
+
 def test_reminder_fire_at_index_declared() -> None:
     names = {idx.name for idx in Reminder.__table__.indexes}
     assert "idx_reminders_fire_at" in names

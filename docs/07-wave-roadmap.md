@@ -260,7 +260,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 **Goal:** After GCal + core scheduler (W2b). **W2c** stays parked (may run after W3 as polish + fallout). Hygiene exited ([HYGIENE-W3.md](./HYGIENE-W3.md)).
 
-**Status:** **Cut locked 2026-08-12.** **Slice 1 Account polish shipped** per [ADR-007](./adr/ADR-007-account-self-service.md). **Next:** Slice 2 Microsoft Calendar.
+**Status:** **Cut locked 2026-08-12.** **Slice 1 Account polish shipped.** **Slice 2 Microsoft Calendar shipped** ([ADR-008](./adr/ADR-008-microsoft-calendar.md); [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md)). **Next: Slice 3 Tauri.**
 
 ### Bucket table
 
@@ -276,8 +276,8 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 ### W3 slice plan
 
 1. **Slice 1 — Account polish — complete:** Alembic `010_must_change_password`; self-service `PATCH /auth/me` (password, email, display name); admin email on profile edit; admin-set password forces `must_change_password`; API gate `403 PASSWORD_CHANGE_REQUIRED`; Settings → Account UI; Household email + copy; blocking change-password gate — [ADR-007](./adr/ADR-007-account-self-service.md). Username immutable. No email verification / IdP.
-2. **Slice 2 — Microsoft Calendar:** `calendar_provider.microsoft` busy sync parallel to Google (mirror W2a patterns).
-3. **Slice 3 — Tauri 2 desktop:** Shell + FastAPI sidecar + local Postgres; same REST contract; Desktop ADR before build.
+2. **Slice 2 — Microsoft Calendar — complete:** Graph OAuth + multi-cal + busy pull + mirror push; Alembic `011_mirror_blocks` (`mirror_blocks` rename); Settings Microsoft section + `?mcal=` toast; mocked Graph tests — [ADR-008](./adr/ADR-008-microsoft-calendar.md); operator setup [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md).
+3. **Slice 3 — Tauri 2 desktop (next):** Shell + FastAPI sidecar + local Postgres; same REST contract; Desktop ADR before build.
 
 ### Feature map (legacy flat list → buckets)
 

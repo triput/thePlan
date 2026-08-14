@@ -2,6 +2,11 @@
 
 ## [Unreleased] — Wave 3 (cut locked)
 
+- **ADR-008 accepted (2026-08-14):** Microsoft Calendar Graph sync — full GCal parity, `mirror_blocks` rename, tenant `common` ([docs/adr/ADR-008-microsoft-calendar.md](docs/adr/ADR-008-microsoft-calendar.md))
+- **W3 Slice 2 (shipped):** Microsoft Calendar — Graph OAuth, multi-cal subscriptions, busy pull, mirror push ([docs/MICROSOFT-CALENDAR.md](docs/MICROSOFT-CALENDAR.md))
+- **W3 Slice 2 (shipped):** Alembic `011_mirror_blocks` — rename `mirror_blocks_to_google` → `mirror_blocks` (provider-neutral)
+- **W3 Slice 2 (shipped):** Settings → Microsoft Calendar section + `?mcal=` OAuth toast
+- **W3 Slice 2 (shipped):** Mocked Microsoft Graph unit tests
 - **W3 cut locked (2026-08-12):** W3 = Account polish → MS Calendar → Tauri; W3+ = SLM, Todoist import, habits, optional Kanban; W4 = voice/email/location/templates/hosted Postgres/filter QL; W2c parked — [07-wave-roadmap.md](docs/07-wave-roadmap.md)
 - **ADR-007 accepted (2026-08-12):** Account self-service + forced password change ([docs/adr/ADR-007-account-self-service.md](docs/adr/ADR-007-account-self-service.md))
 - **W3 Slice 1 (shipped):** Alembic `010_must_change_password`; `users.must_change_password` column
@@ -34,7 +39,7 @@
 
 ### Planned next
 
-- **W3 Slice 2** — Microsoft Calendar busy sync (parallel to Google; [07-wave-roadmap.md](docs/07-wave-roadmap.md))
+- **W3 Slice 3** — Tauri 2 desktop ([07-wave-roadmap.md](docs/07-wave-roadmap.md))
 - **W2c** remains parked (after W3 or as fallout bucket)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit

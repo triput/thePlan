@@ -18,9 +18,14 @@ from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon, wipe_unpinned_blocks_in_horizon
 from app.scheduler.placement import place_task
 from app.scheduler.ups import score_tasks
-from app.services.google_calendar import push_scheduled_block
+from app.services import google_calendar, microsoft_calendar
 
 logger = logging.getLogger(__name__)
+
+
+def _push_mirrored_block(db: Session, settings, block: ScheduledBlock) -> None:
+    google_calendar.push_scheduled_block(db, settings, block)
+    microsoft_calendar.push_scheduled_block(db, settings, block)
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -151,9 +156,9 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
         )
         for block in new_blocks:
             try:
-                push_scheduled_block(db, app_settings, block)
+                _push_mirrored_block(db, app_settings, block)
             except Exception:
-                logger.exception("Failed to mirror block %s to Google Calendar", block.id)
+                logger.exception("Failed to mirror block %s to calendar", block.id)
 
         run.tasks_scheduled = tasks_scheduled
         run.blocks_created = blocks_created

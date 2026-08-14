@@ -32,6 +32,14 @@ class Settings(BaseSettings):
         "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
     )
 
+    # Microsoft Calendar / Graph (W3 Slice 2) — ADR-008; confidential client, tenant default common
+    microsoft_client_id: str | None = None
+    microsoft_client_secret: str | None = None
+    microsoft_redirect_uri: str | None = None
+    microsoft_tenant_id: str = "common"
+    microsoft_oauth_scopes: str = "Calendars.ReadWrite offline_access User.Read"
+
+
 @lru_cache
 def get_settings() -> Settings:
     settings = Settings()

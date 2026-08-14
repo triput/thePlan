@@ -694,7 +694,7 @@ def _mirror_account_and_calendar(
             CalendarAccount.owner_id == owner_id,
             CalendarAccount.provider == CalendarProvider.google,
             CalendarAccount.is_enabled.is_(True),
-            CalendarAccount.mirror_blocks_to_google.is_(True),
+            CalendarAccount.mirror_blocks.is_(True),
         )
         .first()
     )
@@ -730,7 +730,10 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
         raise
     existing = (
         db.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
+        .filter(
+            ExternalCalendarEvent.scheduled_block_id == block.id,
+            ExternalCalendarEvent.provider == CalendarProvider.google,
+        )
         .one_or_none()
     )
     now = datetime.now(timezone.utc)
@@ -782,7 +785,10 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
 def delete_mirrored_block(db: Session, settings: Settings, block: ScheduledBlock) -> None:
     existing = (
         db.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
+        .filter(
+            ExternalCalendarEvent.scheduled_block_id == block.id,
+            ExternalCalendarEvent.provider == CalendarProvider.google,
+        )
         .one_or_none()
     )
     if existing is None:

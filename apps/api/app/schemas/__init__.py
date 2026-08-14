@@ -2,7 +2,16 @@ from datetime import date, datetime, time
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field, field_serializer, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_serializer,
+    model_validator,
+)
 
 from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority, TimeMapBandTier
 
@@ -511,7 +520,7 @@ class CalendarAccountOut(BaseModel):
     provider: str
     account_email: str | None
     is_enabled: bool
-    mirror_blocks_to_google: bool
+    mirror_blocks: bool
     sync_cursor: str | None
     last_synced_at: datetime | None
     token_expires_at: datetime | None
@@ -520,7 +529,12 @@ class CalendarAccountOut(BaseModel):
 
 
 class CalendarAccountUpdate(BaseModel):
-    mirror_blocks_to_google: bool | None = None
+    model_config = ConfigDict(populate_by_name=True)
+
+    mirror_blocks: bool | None = Field(
+        default=None,
+        validation_alias=AliasChoices("mirror_blocks", "mirror_blocks_to_google"),
+    )
     is_enabled: bool | None = None
 
 

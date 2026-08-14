@@ -16,11 +16,30 @@ from app.schemas import (
     ScheduledBlockOut,
     ScheduledBlockUpdate,
 )
-from app.services.google_calendar import delete_mirrored_block, push_scheduled_block
+from app.services.google_calendar import (
+    delete_mirrored_block as delete_mirrored_block_google,
+    push_scheduled_block as push_scheduled_block_google,
+)
+from app.services.microsoft_calendar import (
+    delete_mirrored_block as delete_mirrored_block_microsoft,
+    push_scheduled_block as push_scheduled_block_microsoft,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/scheduled-blocks", tags=["scheduled-blocks"])
+
+
+def push_scheduled_block(db: Session, settings, block: ScheduledBlock) -> None:
+    """Push to Google and Microsoft; each provider no-ops when not configured/mirrored."""
+    push_scheduled_block_google(db, settings, block)
+    push_scheduled_block_microsoft(db, settings, block)
+
+
+def delete_mirrored_block(db: Session, settings, block: ScheduledBlock) -> None:
+    """Delete Google and Microsoft mirrors; each provider no-ops when none exists."""
+    delete_mirrored_block_google(db, settings, block)
+    delete_mirrored_block_microsoft(db, settings, block)
 
 
 def _validate_time_range(start_time: datetime, end_time: datetime) -> None:
@@ -98,7 +117,7 @@ def create_scheduled_block(
         push_scheduled_block(db, settings, block)
         db.commit()
     except Exception:
-        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block_id)
+        logger.exception("Failed to mirror scheduled block %s to calendar", block_id)
         db.rollback()
         block = db.get(ScheduledBlock, block_id)
         if block is None:
@@ -144,7 +163,7 @@ def update_scheduled_block(
         push_scheduled_block(db, settings, block)
         db.commit()
     except Exception:
-        logger.exception("Failed to mirror scheduled block %s to Google Calendar", block_id)
+        logger.exception("Failed to mirror scheduled block %s to calendar", block_id)
         db.rollback()
         block = db.get(ScheduledBlock, block_id)
         if block is None:
@@ -164,7 +183,7 @@ def delete_scheduled_block(
         delete_mirrored_block(db, settings, block)
         db.commit()
     except Exception:
-        logger.exception("Failed to delete mirrored Google event for block %s", block.id)
+        logger.exception("Failed to delete mirrored calendar event for block %s", block.id)
         db.rollback()
     db.delete(block)
     db.commit()

@@ -64,18 +64,40 @@ function AppInner() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    let changed = false;
+    let openCalendar = false;
+
     const gcal = params.get("gcal");
-    if (!gcal) return;
-    if (gcal === "connected") {
-      emitToast("Google Calendar connected");
-      setView({ type: "calendar" });
-    } else if (gcal === "error") {
-      emitToast(`Google Calendar connect failed (${params.get("reason") ?? "error"})`);
+    if (gcal) {
+      if (gcal === "connected") {
+        emitToast("Google Calendar connected");
+        openCalendar = true;
+      } else if (gcal === "error") {
+        emitToast(`Google Calendar connect failed (${params.get("reason") ?? "error"})`);
+      }
+      params.delete("gcal");
+      params.delete("reason");
+      changed = true;
     }
-    params.delete("gcal");
-    params.delete("reason");
-    const next = params.toString();
-    window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+
+    const mcal = params.get("mcal");
+    if (mcal) {
+      if (mcal === "connected") {
+        emitToast("Microsoft Calendar connected");
+        openCalendar = true;
+      } else if (mcal === "error") {
+        emitToast(`Microsoft Calendar connect failed (${params.get("reason") ?? "error"})`);
+      }
+      params.delete("mcal");
+      params.delete("reason");
+      changed = true;
+    }
+
+    if (openCalendar) setView({ type: "calendar" });
+    if (changed) {
+      const next = params.toString();
+      window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+    }
   }, []);
 
   const selectView = (next: ViewSelection) => {

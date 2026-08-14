@@ -479,7 +479,7 @@ class CalendarAccount(Base, TimestampMixin):
     token_expires_at: Mapped[datetime | None] = mapped_column()
     sync_cursor: Mapped[str | None] = mapped_column(Text)
     is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
-    mirror_blocks_to_google: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    mirror_blocks: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     last_synced_at: Mapped[datetime | None] = mapped_column()
 
     subscriptions: Mapped[list["CalendarSubscription"]] = relationship(

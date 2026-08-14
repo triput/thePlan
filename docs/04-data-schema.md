@@ -327,11 +327,11 @@ Example Inbox predicate:
 
 ### calendar_accounts
 
-OAuth token storage (encrypted at rest in application layer). `mirror_blocks_to_google` toggles pushing `scheduled_blocks` to the primary Google calendar (best-effort). `last_synced_at` records the last successful multi-subscription sync. Legacy `sync_cursor` on the account is unused; per-subscription `sync_cursor` stores Google `nextSyncToken`.
+OAuth token storage (encrypted at rest in application layer). **`mirror_blocks`** (renamed from `mirror_blocks_to_google` in W3 Slice 2 — [ADR-008](./adr/ADR-008-microsoft-calendar.md)) toggles pushing `scheduled_blocks` to this account’s enabled **primary** calendar (Google or Microsoft; best-effort). `last_synced_at` records the last successful multi-subscription sync. Legacy `sync_cursor` on the account is unused; per-subscription `sync_cursor` stores Google `nextSyncToken` or Graph delta token.
 
 ### calendar_subscriptions
 
-Per-account Google calendar selection: `external_calendar_id`, `role` (`primary` | `informational`), `is_enabled`, and `sync_cursor` (Google incremental sync token). Unique on `(calendar_account_id, external_calendar_id)`.
+Per-account calendar selection: `external_calendar_id`, `role` (`primary` | `informational`), `is_enabled`, and `sync_cursor` (provider incremental token). Unique on `(calendar_account_id, external_calendar_id)`.
 
 ### external_calendar_events
 

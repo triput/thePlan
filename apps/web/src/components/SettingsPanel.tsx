@@ -13,6 +13,7 @@ import {
   fetchPlans,
   fetchSettings,
   googleCalendarConnectHref,
+  microsoftCalendarConnectHref,
   putCalendarSubscriptions,
   syncCalendarAccount,
   updateCalendarAccount,
@@ -66,6 +67,18 @@ import { Modal } from "./Modal";
 
 const CALENDAR_HOURS_EVENT = "theplan:calendar-hours";
 const PASSWORD_HINT = "12+ characters; spaces OK for passphrases";
+
+function calendarProviderLabel(provider: string): string {
+  if (provider === "microsoft") return "Microsoft Calendar";
+  if (provider === "google") return "Google Calendar";
+  return "Calendar";
+}
+
+function calendarMirrorLabel(provider: string): string {
+  if (provider === "microsoft") return "Push time blocks to Microsoft";
+  if (provider === "google") return "Push time blocks to Google";
+  return "Push time blocks to calendar";
+}
 
 interface SettingsPanelProps {
   open: boolean;
@@ -215,7 +228,7 @@ function CalendarSubscriptionsPicker({
     return <p className="muted small">Loading calendars…</p>;
   }
   if (calendarsQuery.isError) {
-    return <p className="muted small">Couldn't load Google calendars — try reconnecting.</p>;
+    return <p className="muted small">Couldn't load calendars — try reconnecting.</p>;
   }
   if (calendars.length === 0) {
     return <p className="muted small">No calendars found on this account.</p>;
@@ -242,7 +255,7 @@ function CalendarSubscriptionsPicker({
                   checked={entry.checked}
                   onChange={(e) => toggleChecked(cal.id, e.target.checked)}
                 />
-                <span>{label}{cal.primary ? " (Google primary)" : ""}</span>
+                <span>{label}{cal.primary ? " (account primary)" : ""}</span>
               </label>
               {entry.checked && checkedCount > 1 && (
                 <label className="calendar-sub-primary">
@@ -299,21 +312,21 @@ function CalendarAccountRow({
   syncPending: boolean;
   queryClient: ReturnType<typeof useQueryClient>;
 }) {
-  const [mirror, setMirror] = useState(account.mirror_blocks_to_google);
+  const [mirror, setMirror] = useState(account.mirror_blocks);
 
   useEffect(() => {
-    setMirror(account.mirror_blocks_to_google);
-  }, [account.mirror_blocks_to_google]);
+    setMirror(account.mirror_blocks);
+  }, [account.mirror_blocks]);
 
   const mirrorMutation = useMutation({
     mutationFn: (value: boolean) =>
-      updateCalendarAccount(account.id, { mirror_blocks_to_google: value }),
+      updateCalendarAccount(account.id, { mirror_blocks: value }),
     onMutate: (value) => setMirror(value),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["calendar-accounts"] });
     },
     onError: () => {
-      setMirror(account.mirror_blocks_to_google);
+      setMirror(account.mirror_blocks);
       emitToast("Couldn't update mirror setting");
     },
   });
@@ -326,7 +339,7 @@ function CalendarAccountRow({
     <li className="calendar-account-row">
       <div className="calendar-account-info">
         <div className="calendar-account-email">
-          {account.account_email ?? "Google Calendar"}
+          {account.account_email ?? calendarProviderLabel(account.provider)}
         </div>
         <div className="muted small">
           {account.provider}
@@ -339,7 +352,7 @@ function CalendarAccountRow({
             disabled={mirrorMutation.isPending}
             onChange={(e) => mirrorMutation.mutate(e.target.checked)}
           />
-          Push time blocks to Google
+          {calendarMirrorLabel(account.provider)}
         </label>
         <CalendarSubscriptionsPicker
           accountId={account.id}
@@ -1369,23 +1382,30 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   });
 
   const disconnectMutation = useMutation({
-    mutationFn: disconnectCalendarAccount,
-    onSuccess: () => {
+    mutationFn: ({ accountId }: { accountId: string; provider: string }) =>
+      disconnectCalendarAccount(accountId),
+    onSuccess: (_data, { provider }) => {
       queryClient.invalidateQueries({ queryKey: ["calendar-accounts"] });
       queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
-      emitToast("Google Calendar disconnected");
+      emitToast(`${calendarProviderLabel(provider)} disconnected`);
     },
-    onError: () => emitToast("Couldn't disconnect Google Calendar"),
+    onError: (_err, { provider }) =>
+      emitToast(`Couldn't disconnect ${calendarProviderLabel(provider)}`),
   });
 
   const syncMutation = useMutation({
-    mutationFn: (accountId: string) => syncCalendarAccount(accountId),
-    onSuccess: (result) => {
+    mutationFn: ({ accountId }: { accountId: string; provider: string }) =>
+      syncCalendarAccount(accountId),
+    onSuccess: (result, { provider }) => {
       queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       queryClient.invalidateQueries({ queryKey: ["calendar-accounts"] });
-      emitToast(`Synced ${result.upserted} Google event${result.upserted === 1 ? "" : "s"}`);
+      const label = calendarProviderLabel(provider);
+      emitToast(
+        `Synced ${result.upserted} ${label} event${result.upserted === 1 ? "" : "s"}`,
+      );
     },
-    onError: () => emitToast("Couldn't sync Google Calendar"),
+    onError: (_err, { provider }) =>
+      emitToast(`Couldn't sync ${calendarProviderLabel(provider)}`),
   });
 
   useEffect(() => {
@@ -1428,6 +1448,10 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
     setOverrides(next);
     setDraftHex(buildDraftHex(next));
   };
+
+  const allAccounts = accountsQuery.data?.items ?? [];
+  const googleAccounts = allAccounts.filter((a) => a.provider === "google");
+  const microsoftAccounts = allAccounts.filter((a) => a.provider === "microsoft");
 
   return (
     <Modal open={open} title="Settings" onClose={onClose} className="settings-modal">
@@ -1531,7 +1555,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           event read/write for upcoming bidirectional sync.
         </p>
         {accountsQuery.isLoading && <p className="muted small">Loading accounts…</p>}
-        {(accountsQuery.data?.items ?? []).length === 0 && !accountsQuery.isLoading && (
+        {googleAccounts.length === 0 && !accountsQuery.isLoading && (
           <button
             type="button"
             className="btn primary small"
@@ -1543,24 +1567,76 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           </button>
         )}
         <ul className="calendar-account-list">
-          {(accountsQuery.data?.items ?? []).map((account) => (
+          {googleAccounts.map((account) => (
             <CalendarAccountRow
               key={account.id}
               account={account}
               queryClient={queryClient}
               disconnectPending={disconnectMutation.isPending}
               syncPending={syncMutation.isPending}
-              onSync={() => syncMutation.mutate(account.id)}
-              onDisconnect={() => disconnectMutation.mutate(account.id)}
+              onSync={() =>
+                syncMutation.mutate({ accountId: account.id, provider: account.provider })
+              }
+              onDisconnect={() =>
+                disconnectMutation.mutate({ accountId: account.id, provider: account.provider })
+              }
             />
           ))}
         </ul>
-        {(accountsQuery.data?.items ?? []).length > 0 && (
+        {googleAccounts.length > 0 && (
           <button
             type="button"
             className="btn ghost small"
             onClick={() => {
               window.location.href = googleCalendarConnectHref();
+            }}
+          >
+            Reconnect / add account
+          </button>
+        )}
+      </section>
+
+      <section className="settings-section">
+        <h3 className="settings-section-title">Microsoft Calendar</h3>
+        <p className="settings-help muted small">
+          Connect your Microsoft account to show external busy time on the calendar. Scopes include
+          event read/write for upcoming bidirectional sync.
+        </p>
+        {accountsQuery.isLoading && <p className="muted small">Loading accounts…</p>}
+        {microsoftAccounts.length === 0 && !accountsQuery.isLoading && (
+          <button
+            type="button"
+            className="btn primary small"
+            onClick={() => {
+              window.location.href = microsoftCalendarConnectHref();
+            }}
+          >
+            Connect Microsoft Calendar
+          </button>
+        )}
+        <ul className="calendar-account-list">
+          {microsoftAccounts.map((account) => (
+            <CalendarAccountRow
+              key={account.id}
+              account={account}
+              queryClient={queryClient}
+              disconnectPending={disconnectMutation.isPending}
+              syncPending={syncMutation.isPending}
+              onSync={() =>
+                syncMutation.mutate({ accountId: account.id, provider: account.provider })
+              }
+              onDisconnect={() =>
+                disconnectMutation.mutate({ accountId: account.id, provider: account.provider })
+              }
+            />
+          ))}
+        </ul>
+        {microsoftAccounts.length > 0 && (
+          <button
+            type="button"
+            className="btn ghost small"
+            onClick={() => {
+              window.location.href = microsoftCalendarConnectHref();
             }}
           >
             Reconnect / add account

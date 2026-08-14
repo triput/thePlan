@@ -496,21 +496,27 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 
 ## Wave 2 Endpoints
 
-### Calendar (W2a — Slice 2)
+### Calendar (W2a Google + W3 Slice 2 Microsoft)
 
 | Method | Path | Notes |
 |--------|------|-------|
 | GET | `/calendar/oauth/google/start` | Session auth; 302 to Google |
-| GET | `/calendar/oauth/google/callback` | OAuth return; upserts `calendar_accounts` + primary subscription; initial sync; 302 to `FRONTEND_ORIGIN` |
-| GET | `/calendar/accounts` | List connected accounts (`mirror_blocks_to_google`, `last_synced_at`) |
-| PATCH | `/calendar/accounts/{id}` | Update `mirror_blocks_to_google` / `is_enabled` |
-| GET | `/calendar/calendars?account_id=` | Proxy Google calendarList |
+| GET | `/calendar/oauth/google/callback` | OAuth return; upserts account + primary subscription; initial sync; 302 `FRONTEND_ORIGIN/?gcal=…` |
+| GET | `/calendar/oauth/microsoft/start` | **W3** — Session auth; 302 to Entra (`tenant` default `common`) |
+| GET | `/calendar/oauth/microsoft/callback` | **W3** — upserts `provider=microsoft`; initial sync; 302 `FRONTEND_ORIGIN/?mcal=…` |
+| GET | `/calendar/accounts` | List connected accounts (`provider`, `mirror_blocks`, `last_synced_at`) |
+| PATCH | `/calendar/accounts/{id}` | Update `mirror_blocks` / `is_enabled` (legacy write alias `mirror_blocks_to_google` OK) |
+| GET | `/calendar/calendars?account_id=` | Provider-aware calendar list (Google calendarList or Graph `/me/calendars`) |
 | GET | `/calendar/accounts/{id}/subscriptions` | Local calendar subscriptions |
 | PUT | `/calendar/accounts/{id}/subscriptions` | Replace selection; exactly one `primary`; rest `informational` |
 | DELETE | `/calendar/accounts/{id}` | Disconnect + cascade subscriptions/events |
-| POST | `/calendar/accounts/{id}/sync` | Optional `?start=&end=`; full or incremental pull per subscription |
+| POST | `/calendar/accounts/{id}/sync` | Optional `?start=&end=`; full or incremental pull per subscription (Google syncToken or Graph delta) |
 | GET | `/calendar/events?start=&end=` | Busy overlays only (excludes rows linked to `scheduled_block_id`) |
 | GET | `/calendar/conflicts?start=&end=` | Schedule conflicts in range (422 if `end <= start`) |
+
+**Mirror:** `mirror_blocks` pushes local `scheduled_blocks` to the account’s enabled **primary** calendar (Google or Microsoft). See [ADR-008](./adr/ADR-008-microsoft-calendar.md).
+
+**Microsoft env:** `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_REDIRECT_URI`, optional `MICROSOFT_TENANT_ID` (default `common`). Scopes: `Calendars.ReadWrite`, `offline_access`, `User.Read`. Shared `TOKEN_ENCRYPTION_KEY` / `FRONTEND_ORIGIN`.
 
 **`GET /calendar/conflicts` response:**
 

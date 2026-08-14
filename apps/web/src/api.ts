@@ -868,7 +868,7 @@ export interface CalendarAccount {
   provider: string;
   account_email: string | null;
   is_enabled: boolean;
-  mirror_blocks_to_google: boolean;
+  mirror_blocks: boolean;
   sync_cursor: string | null;
   last_synced_at: string | null;
   token_expires_at: string | null;
@@ -903,7 +903,7 @@ export interface CalendarSubscriptionPutItem {
 }
 
 export interface CalendarAccountUpdate {
-  mirror_blocks_to_google?: boolean;
+  mirror_blocks?: boolean;
   is_enabled?: boolean;
 }
 
@@ -1021,6 +1021,12 @@ export function fetchScheduleRun(id: string) {
 export function googleCalendarConnectHref(): string {
   const base = API_URL.replace(/\/$/, "");
   return `${base}/api/v1/calendar/oauth/google/start`;
+}
+
+/** Full-page navigation so session cookie rides the OAuth round-trip. */
+export function microsoftCalendarConnectHref(): string {
+  const base = API_URL.replace(/\/$/, "");
+  return `${base}/api/v1/calendar/oauth/microsoft/start`;
 }
 
 export { API_URL };
