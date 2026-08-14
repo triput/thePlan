@@ -20,7 +20,7 @@
 
 ### Sidecar lifecycle
 
-1. On app start: ensure loopback port (prefer fixed `18765` unless busy → ephemeral), spawn uvicorn with `apps/api` and env (`DATABASE_URL` to Compose Postgres on host, `CORS_ORIGINS` / `FRONTEND_ORIGIN` suitable for the WebView origin).
+1. On app start: bind fixed loopback `18765` (`http://127.0.0.1:18765`). If busy, fail with a clear dialog (no ephemeral remapping — web assets bake `VITE_API_URL` at build time). Spawn uvicorn with `apps/api` and env (`DATABASE_URL` to Compose Postgres on host, `CORS_ORIGINS` / `FRONTEND_ORIGIN` suitable for the WebView origin).
 2. Wait for `GET /health` before showing primary UI (or show a short “starting…” state).
 3. On app quit: terminate sidecar process tree.
 

@@ -298,7 +298,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 ### Desktop Bundle Strategy (Slice 3)
 
-Tauri shell + embedded API process talking to local Postgres. Same REST contract; no second data model. Write Desktop ADR before implementation.
+**Shipped (prove-it):** Tauri 2 shell + FastAPI sidecar on loopback; Postgres remains Compose ([ADR-009](adr/ADR-009-tauri-desktop.md)). Same REST contract; no second data model. Single installer / bundled Postgres deferred to a later packaging wave.
 
 ---
 
