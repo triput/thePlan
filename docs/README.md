@@ -35,9 +35,10 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest quick start — live instance UI tour (no ops/setup) |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md) | Microsoft Calendar Entra app setup (W3 Slice 2) |
+| [DESKTOP.md](./DESKTOP.md) | Tauri desktop prove-it operator note (W3 Slice 3) |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–2 shipped** (Account + Microsoft Calendar); **next: Slice 3 Tauri** — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped** (Account + Microsoft Calendar + Tauri prove-it) — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 
@@ -52,6 +53,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [adr/ADR-006-fuzzy-scheduling.md](./adr/ADR-006-fuzzy-scheduling.md) | v1 fuzzy fit / Update Schedule replan contract |
 | [adr/ADR-007-account-self-service.md](./adr/ADR-007-account-self-service.md) | W3 Slice 1 — self-service + forced password change |
 | [adr/ADR-008-microsoft-calendar.md](./adr/ADR-008-microsoft-calendar.md) | W3 Slice 2 — Microsoft Graph calendar sync |
+| [adr/ADR-009-tauri-desktop.md](./adr/ADR-009-tauri-desktop.md) | W3 Slice 3 — Tauri prove-it shell + API sidecar |
 
 ## Legacy
 

@@ -2,7 +2,7 @@
 
 Personal web-first task + scheduling app alongside the Synesis/Phronesis suite.
 
-**Wave 1 (MVP) exited 2026-08-10.** **Wave 1.5 exited 2026-08-10** ([docs/WAVE-1.5-EXIT.md](docs/WAVE-1.5-EXIT.md)); W1.6 mobile shipped. **W2a/W2b core complete.** **W3 Slice 1–2 shipped** (Account polish + Microsoft Calendar); **next: Slice 3 Tauri** — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md). Microsoft Calendar setup: [docs/MICROSOFT-CALENDAR.md](docs/MICROSOFT-CALENDAR.md).
+**Wave 1 (MVP) exited 2026-08-10.** **Wave 1.5 exited 2026-08-10** ([docs/WAVE-1.5-EXIT.md](docs/WAVE-1.5-EXIT.md)); W1.6 mobile shipped. **W2a/W2b core complete.** **W3 Slice 1–3 shipped** (Account polish + Microsoft Calendar + Tauri prove-it) — [docs/07-wave-roadmap.md](docs/07-wave-roadmap.md). Docs index: [docs/README.md](docs/README.md). **Using the app:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md). Microsoft Calendar: [docs/MICROSOFT-CALENDAR.md](docs/MICROSOFT-CALENDAR.md). Desktop: [docs/DESKTOP.md](docs/DESKTOP.md).
 
 ## Shipped (Wave 1)
 

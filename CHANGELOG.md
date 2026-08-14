@@ -2,6 +2,9 @@
 
 ## [Unreleased] — Wave 3 (cut locked)
 
+- **W3 Slice 3 (shipped):** Tauri 2 desktop shell (`apps/desktop`) — loads `apps/web` production build; spawns FastAPI uvicorn sidecar on `127.0.0.1:18765`; Compose Postgres; kill-on-exit ([docs/DESKTOP.md](docs/DESKTOP.md), [apps/desktop/README.md](apps/desktop/README.md))
+- **W3 Slice 3 (shipped):** Fixed sidecar port — busy `18765` fails with log + dialog; `THEPLAN_API_PYTHON` / PATH Python; smoke script `npm run smoke:sidecar`
+- **ADR-009 accepted (2026-08-14):** Tauri prove-it desktop — FastAPI sidecar + Compose Postgres; single installer deferred ([docs/adr/ADR-009-tauri-desktop.md](docs/adr/ADR-009-tauri-desktop.md))
 - **ADR-008 accepted (2026-08-14):** Microsoft Calendar Graph sync — full GCal parity, `mirror_blocks` rename, tenant `common` ([docs/adr/ADR-008-microsoft-calendar.md](docs/adr/ADR-008-microsoft-calendar.md))
 - **W3 Slice 2 (shipped):** Microsoft Calendar — Graph OAuth, multi-cal subscriptions, busy pull, mirror push ([docs/MICROSOFT-CALENDAR.md](docs/MICROSOFT-CALENDAR.md))
 - **W3 Slice 2 (shipped):** Alembic `011_mirror_blocks` — rename `mirror_blocks_to_google` → `mirror_blocks` (provider-neutral)
@@ -39,7 +42,7 @@
 
 ### Planned next
 
-- **W3 Slice 3** — Tauri 2 desktop ([07-wave-roadmap.md](docs/07-wave-roadmap.md))
+- **W3** core slices 1–3 complete (Account + MS Calendar + Tauri prove-it); packaging / single installer later
 - **W2c** remains parked (after W3 or as fallout bucket)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit

@@ -1,0 +1,16 @@
+{
+  "name": "theplan-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "thePlan Tauri 2 desktop shell (W3 Slice 3 prove-it)",
+  "scripts": {
+    "build:web": "node ./scripts/build-web.mjs",
+    "smoke:sidecar": "node ./scripts/smoke-sidecar.mjs",
+    "tauri": "tauri",
+    "tauri:dev": "npm run build:web && tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
