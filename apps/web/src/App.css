@@ -1257,12 +1257,16 @@
   margin: 0 0 0.75rem;
 }
 
-.account-readonly {
+.account-username-value {
   margin: 0;
-  padding: 0.45rem 0.55rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.account-username-field .field-hint {
+  margin-top: 0;
 }
 
 .theme-preset-list {

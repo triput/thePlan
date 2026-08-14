@@ -1292,7 +1292,7 @@ function AccountSection({ enabled }: { enabled: boolean }) {
     <section className="settings-section">
       <h3 className="settings-section-title">Account</h3>
       <p className="settings-help muted small">
-        Update your display name, email, or password. Username cannot be changed.
+        Update your display name, email, or password.
       </p>
       <form
         className="entity-form account-form"
@@ -1302,9 +1302,10 @@ function AccountSection({ enabled }: { enabled: boolean }) {
           saveMutation.mutate();
         }}
       >
-        <div className="field">
+        <div className="field account-username-field">
           <span>Username</span>
-          <p className="account-readonly muted small">{user.username ?? "—"}</p>
+          <p className="account-username-value">{user.username ?? "—"}</p>
+          <span className="field-hint muted small">Cannot be changed</span>
         </div>
         <label className="field">
           <span>Display name</span>
