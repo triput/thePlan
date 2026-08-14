@@ -16,13 +16,18 @@ docker compose -f infra/compose/compose.yaml up -d postgres
 
 ## Python for the sidecar
 
-The shell uses **`python` / `python3` from PATH**, or override:
+Resolution order:
+
+1. `THEPLAN_API_PYTHON` (if set)
+2. `apps/api/.venv` (`Scripts/python.exe` on Windows, `bin/python` elsewhere)
+3. `python` / `python3` on PATH (last resort — easy to pick up the wrong env)
 
 ```powershell
+# Optional override
 $env:THEPLAN_API_PYTHON = "F:\Code Repo\ThePlan\apps\api\.venv\Scripts\python.exe"
 ```
 
-Recommended: point `THEPLAN_API_PYTHON` at `apps/api/.venv` so uvicorn and project deps resolve. Optional: `THEPLAN_API_DIR` if the API tree is not at `apps/api` relative to the crate.
+Optional: `THEPLAN_API_DIR` if the API tree is not at `apps/api` relative to the crate.
 
 ## Run (dev)
 

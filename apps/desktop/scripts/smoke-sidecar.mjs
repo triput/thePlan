@@ -3,6 +3,7 @@
  * Does not launch the GUI. Requires Compose Postgres (or reachable DATABASE_URL).
  */
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,6 +30,19 @@ function portFree(host, port) {
 function resolvePython() {
   if (process.env.THEPLAN_API_PYTHON) {
     return process.env.THEPLAN_API_PYTHON;
+  }
+  const venvCandidates =
+    process.platform === "win32"
+      ? [
+          path.join(apiDir, ".venv", "Scripts", "python.exe"),
+          path.join(apiDir, "venv", "Scripts", "python.exe"),
+        ]
+      : [
+          path.join(apiDir, ".venv", "bin", "python"),
+          path.join(apiDir, "venv", "bin", "python"),
+        ];
+  for (const candidate of venvCandidates) {
+    if (existsSync(candidate)) return candidate;
   }
   return process.platform === "win32" ? "python" : "python3";
 }

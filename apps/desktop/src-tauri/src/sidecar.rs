@@ -76,7 +76,7 @@ fn api_dir() -> Result<PathBuf, String> {
     ))
 }
 
-fn resolve_python() -> Result<PathBuf, String> {
+fn resolve_python(api_dir: &Path) -> Result<PathBuf, String> {
     if let Ok(override_py) = std::env::var("THEPLAN_API_PYTHON") {
         let path = PathBuf::from(override_py);
         if path.exists() {
@@ -88,23 +88,42 @@ fn resolve_python() -> Result<PathBuf, String> {
         ));
     }
 
-    // Prefer `python` on PATH (Windows); fall back to `python3`.
+    // Prefer repo venv — PATH `python` often points at unrelated envs (e.g. other tools).
+    let venv_candidates = [
+        api_dir.join(".venv").join("Scripts").join("python.exe"),
+        api_dir.join(".venv").join("bin").join("python"),
+        api_dir.join("venv").join("Scripts").join("python.exe"),
+        api_dir.join("venv").join("bin").join("python"),
+    ];
+    for candidate in &venv_candidates {
+        if candidate.is_file() && python_runs(candidate.as_os_str()) {
+            return Ok(candidate.clone());
+        }
+    }
+
     for candidate in ["python", "python3"] {
-        if python_runs(candidate) {
+        if python_runs(std::ffi::OsStr::new(candidate)) {
             return Ok(PathBuf::from(candidate));
         }
     }
 
-    Err(
-        "Python not found on PATH. Install Python 3.11+ or set THEPLAN_API_PYTHON to your \
-         interpreter (recommended: apps/api/.venv/Scripts/python.exe)."
-            .into(),
-    )
+    Err(format!(
+        "No usable Python for the sidecar. Create apps/api/.venv with project deps, or set \
+         THEPLAN_API_PYTHON (e.g. {}).",
+        api_dir
+            .join(".venv")
+            .join("Scripts")
+            .join("python.exe")
+            .display()
+    ))
 }
 
-fn python_runs(bin: &str) -> bool {
+fn python_runs(bin: &std::ffi::OsStr) -> bool {
     Command::new(bin)
-        .args(["-c", "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)"])
+        .args([
+            "-c",
+            "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)",
+        ])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
@@ -178,7 +197,7 @@ pub fn start_sidecar() -> Result<Child, String> {
     assert_port_free()?;
 
     let api_dir = api_dir()?;
-    let python = resolve_python()?;
+    let python = resolve_python(&api_dir)?;
 
     eprintln!(
         "[thePlan desktop] starting sidecar: {} -m uvicorn app.main:app --host {API_HOST} --port {API_PORT}",

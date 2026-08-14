@@ -10,7 +10,7 @@ Windows Tauri 2 window shipping the **`apps/web`** production build, plus a **Fa
 ## Operator steps
 
 1. Start Postgres: `docker compose -f infra/compose/compose.yaml up -d postgres`
-2. Ensure API Python works (`apps/api` venv recommended); optionally set `THEPLAN_API_PYTHON`
+2. Ensure `apps/api/.venv` exists with project deps (sidecar prefers it over PATH `python`); optionally set `THEPLAN_API_PYTHON`
 3. `cd apps/desktop && npm install && npm run tauri:dev` (or `npm run tauri:build`)
 4. WebView2 required on Windows
 
