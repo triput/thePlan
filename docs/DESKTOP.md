@@ -5,7 +5,7 @@
 
 ## What this is
 
-Windows Tauri 2 window shipping the **`apps/web`** production build, plus a **FastAPI uvicorn sidecar** on `127.0.0.1:18765`. Same REST contract as Compose. **Postgres remains Compose** on the host — not embedded in this slice. Single-installer / bundled DB is a later packaging wave.
+Windows Tauri 2 window that starts a **FastAPI uvicorn sidecar** on `127.0.0.1:18765`, serves the **`apps/web`** production build from that origin, and navigates the WebView there (same-origin cookies). Same REST contract as Compose. **Postgres remains Compose** on the host — not embedded in this slice. Single-installer / bundled DB is a later packaging wave.
 
 ## Operator steps
 

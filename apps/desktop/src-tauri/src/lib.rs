@@ -1,11 +1,12 @@
 //! thePlan desktop shell — spawn FastAPI (uvicorn) sidecar, load apps/web build.
 //! ADR-009 / W3 Slice 3 prove-it: fixed loopback port 18765, Compose Postgres.
+//! After health, navigate to the sidecar origin so session cookies are same-site.
 
 mod sidecar;
 
-use sidecar::{start_sidecar, stop_sidecar, SidecarState};
+use sidecar::{start_sidecar, stop_sidecar, SidecarState, API_HOST, API_PORT};
 use std::sync::Mutex;
-use tauri::{Manager, RunEvent, WebviewWindow};
+use tauri::{Manager, RunEvent, Url, WebviewWindow};
 
 fn show_fatal(title: &str, message: &str) {
     eprintln!("[thePlan desktop] FATAL: {message}");
@@ -18,6 +19,16 @@ fn show_main_window(window: &WebviewWindow) {
         eprintln!("[thePlan desktop] failed to show window: {err}");
     }
     let _ = window.set_focus();
+}
+
+fn navigate_to_sidecar(window: &WebviewWindow) -> Result<(), String> {
+    let url = format!("http://{API_HOST}:{API_PORT}/");
+    let parsed = Url::parse(&url).map_err(|e| format!("bad sidecar URL {url}: {e}"))?;
+    window
+        .navigate(parsed)
+        .map_err(|e| format!("failed to navigate to {url}: {e}"))?;
+    eprintln!("[thePlan desktop] navigated WebView to {url}");
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -35,6 +46,11 @@ pub fn run() {
             match start_sidecar() {
                 Ok(child) => {
                     app.manage(SidecarState(Mutex::new(Some(child))));
+                    if let Err(err) = navigate_to_sidecar(&window) {
+                        show_fatal("thePlan — failed to load UI", &err);
+                        app.handle().exit(1);
+                        return Ok(());
+                    }
                     show_main_window(&window);
                     Ok(())
                 }

@@ -26,7 +26,8 @@
 
 ### Auth / CORS
 
-- Session cookies against loopback API; configure CORS and `FRONTEND_ORIGIN` so the Tauri WebView origin (or `http://127.0.0.1:<ui>`) can use credentials.
+- Desktop shell navigates the WebView to `http://127.0.0.1:18765/` after the sidecar is healthy; the API serves `apps/web` dist via `THEPLAN_WEB_DIST` so session cookies are **same-origin** (SameSite=lax works).
+- CORS still allows Tauri custom-protocol origins (`tauri.localhost`, `asset.localhost`) as a belt-and-suspenders if the UI is ever loaded from the embedded asset protocol.
 - No separate desktop auth model.
 
 ### Layout

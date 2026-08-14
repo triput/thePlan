@@ -41,9 +41,10 @@ npm run tauri:dev
 That builds `apps/web` with `VITE_API_URL=http://127.0.0.1:18765`, then starts Tauri. On launch the Rust shell:
 
 1. Fails clearly if port **18765** is busy (fixed port — no ephemeral fallback in this slice)
-2. Spawns `python -m uvicorn app.main:app --host 127.0.0.1 --port 18765` with cwd `apps/api`
+2. Spawns uvicorn with cwd `apps/api`, preferring `apps/api/.venv`, and sets `THEPLAN_WEB_DIST` so the API serves the web build
 3. Waits up to ~30s for `GET /health`
-4. Shows the main window; kills the sidecar process tree on quit
+4. Navigates the WebView to `http://127.0.0.1:18765/` (same-origin session cookies; avoids Tauri custom-protocol CORS pain)
+5. Shows the main window; kills the sidecar process tree on quit
 
 Equivalent: `npm run build:web` then `npm run tauri -- dev`.
 

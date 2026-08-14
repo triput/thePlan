@@ -178,13 +178,22 @@ pub fn wait_for_health(timeout: Duration) -> Result<(), String> {
 }
 
 fn cors_origins_json() -> String {
+    // Tauri 2 WebView may present as tauri.localhost or asset.localhost (custom protocol).
     serde_json_ish(&[
         "http://127.0.0.1:18765",
         "http://localhost:18765",
         "http://tauri.localhost",
         "https://tauri.localhost",
         "tauri://localhost",
+        "http://asset.localhost",
+        "https://asset.localhost",
     ])
+}
+
+/// Absolute path to apps/web/dist for THEPLAN_WEB_DIST (same-origin UI).
+fn web_dist_dir() -> Option<PathBuf> {
+    let from_manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../web/dist");
+    from_manifest.canonicalize().ok().filter(|p| p.join("index.html").is_file())
 }
 
 /// Minimal JSON string array without pulling serde_json.
@@ -198,12 +207,20 @@ pub fn start_sidecar() -> Result<Child, String> {
 
     let api_dir = api_dir()?;
     let python = resolve_python(&api_dir)?;
+    let web_dist = web_dist_dir();
 
     eprintln!(
         "[thePlan desktop] starting sidecar: {} -m uvicorn app.main:app --host {API_HOST} --port {API_PORT}",
         python.display()
     );
     eprintln!("[thePlan desktop] cwd: {}", api_dir.display());
+    if let Some(ref dist) = web_dist {
+        eprintln!("[thePlan desktop] THEPLAN_WEB_DIST: {}", dist.display());
+    } else {
+        eprintln!(
+            "[thePlan desktop] WARNING: apps/web/dist missing — UI navigate may 404; run build:web"
+        );
+    }
 
     let mut command = Command::new(&python);
     command
@@ -224,8 +241,12 @@ pub fn start_sidecar() -> Result<Child, String> {
             }),
         )
         .env("CORS_ORIGINS", cors_origins_json())
-        .env("FRONTEND_ORIGIN", "http://127.0.0.1:18765")
-        .env("SESSION_HTTPS_ONLY", "false")
+        .env("FRONTEND_ORIGIN", format!("http://{API_HOST}:{API_PORT}"))
+        .env("SESSION_HTTPS_ONLY", "false");
+    if let Some(dist) = web_dist {
+        command.env("THEPLAN_WEB_DIST", dist);
+    }
+    command
         .stdin(Stdio::null())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());

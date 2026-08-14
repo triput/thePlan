@@ -1,9 +1,11 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import (
@@ -103,7 +105,21 @@ def create_app() -> FastAPI:
     api_router.include_router(search.router)
     api_router.include_router(settings_routes.router)
     app.include_router(api_router)
+    _maybe_mount_web(app)
     return app
+
+
+def _maybe_mount_web(app: FastAPI) -> None:
+    """Serve apps/web dist when THEPLAN_WEB_DIST is set (desktop sidecar same-origin UI)."""
+    raw = os.environ.get("THEPLAN_WEB_DIST", "").strip()
+    if not raw:
+        return
+    dist = Path(raw)
+    if not dist.is_dir() or not (dist / "index.html").is_file():
+        logger.warning("THEPLAN_WEB_DIST is set but unusable: %s", dist)
+        return
+    app.mount("/", StaticFiles(directory=str(dist), html=True), name="web")
+    logger.info("Serving web UI from %s", dist)
 
 
 app = create_app()
