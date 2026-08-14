@@ -1257,6 +1257,14 @@
   margin: 0 0 0.75rem;
 }
 
+.account-readonly {
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
 .theme-preset-list {
   display: flex;
   flex-direction: column;
@@ -2234,6 +2242,11 @@
 }
 
 .household-password-form {
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border);
+}
+
+.household-email-form {
   padding-top: 0.35rem;
   border-top: 1px solid var(--border);
 }

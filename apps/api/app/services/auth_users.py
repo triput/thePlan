@@ -127,6 +127,7 @@ def claim_bootstrap_user(
     user.display_name = (display_name or norm_username).strip() or norm_username
     user.is_admin = True
     user.is_disabled = False
+    user.must_change_password = False
 
     provision_user_settings_and_filters(db, user.id)
     db.commit()
@@ -189,3 +190,20 @@ def authenticate_user(db: Session, identifier: str, password: str) -> User | Non
 
 def get_user_by_id(db: Session, user_id: uuid.UUID) -> User | None:
     return db.get(User, user_id)
+
+
+def assert_email_available(
+    db: Session,
+    raw_email: str,
+    *,
+    exclude_user_id: uuid.UUID,
+    status_code: int = 422,
+) -> str:
+    norm_email = normalize_email(raw_email)
+    if (
+        db.query(User.id)
+        .filter(User.email == norm_email, User.id != exclude_user_id)
+        .first()
+    ):
+        raise ApiError(status_code, "Email already taken", "EMAIL_TAKEN")
+    return norm_email

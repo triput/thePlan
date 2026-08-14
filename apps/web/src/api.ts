@@ -14,6 +14,7 @@ export interface User {
   email: string;
   display_name: string | null;
   is_admin: boolean;
+  must_change_password: boolean;
 }
 
 export interface AuthUserAdmin {
@@ -23,6 +24,7 @@ export interface AuthUserAdmin {
   display_name: string | null;
   is_admin: boolean;
   is_disabled: boolean;
+  must_change_password: boolean;
 }
 
 export interface AuthRegisterBody {
@@ -47,8 +49,16 @@ export interface AuthUserCreateBody {
 
 export interface AuthUserUpdateBody {
   display_name?: string | null;
+  email?: string;
   is_disabled?: boolean;
   password?: string;
+  must_change_password?: boolean;
+}
+
+export interface AuthMeUpdateBody {
+  password?: string;
+  email?: string;
+  display_name?: string | null;
 }
 
 export interface Epic {
@@ -465,6 +475,13 @@ export function fetchHealth() {
 
 export function fetchMe(signal?: AbortSignal) {
   return apiFetch<User>("/api/v1/auth/me", signal ? { signal } : undefined);
+}
+
+export function updateMe(body: AuthMeUpdateBody) {
+  return apiFetch<User>("/api/v1/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
 }
 
 export function register(body: AuthRegisterBody) {

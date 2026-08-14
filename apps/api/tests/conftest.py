@@ -24,6 +24,33 @@ get_settings.cache_clear()
 _TEST_PASSWORD = "test passphrase twelve"
 
 
+class _SharedGateSession:
+    """Expose the transactional test session to PasswordChangeGateMiddleware.
+
+    The gate opens SessionLocal() on a separate connection, which cannot see
+    uncommitted test data (including must_change_password). Tests share the
+    fixture session and no-op close() so teardown still owns the transaction.
+    """
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def get(self, *args: object, **kwargs: object) -> object:
+        return self._session.get(*args, **kwargs)
+
+    def close(self) -> None:
+        return None
+
+
+def _bind_password_gate_to_test_session(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "app.api.middleware.password_change_gate.SessionLocal",
+        lambda: _SharedGateSession(db_session),
+    )
+
+
 def _reset_to_setup_required(db: Session) -> None:
     """Within the test transaction, clear all password hashes so setup is required."""
     users = db.query(User).all()
@@ -31,12 +58,21 @@ def _reset_to_setup_required(db: Session) -> None:
         user.password_hash = None
         user.is_admin = False
         user.is_disabled = False
+        user.must_change_password = False
+    db.flush()
+
+
+def _clear_must_change_password(db: Session) -> None:
+    """Domain tests should not inherit a leftover forced-password flag."""
+    for user in db.query(User).all():
+        user.must_change_password = False
     db.flush()
 
 
 def _ensure_authenticated(client: TestClient, db: Session) -> None:
     me = client.get("/api/v1/auth/me")
     if me.status_code == 200:
+        _clear_must_change_password(db)
         return
 
     if me.status_code == 401 and me.json().get("code") == "SETUP_REQUIRED":
@@ -98,9 +134,10 @@ def db_session() -> Session:
 
 
 @pytest.fixture()
-def auth_client(db_session: Session) -> TestClient:
+def auth_client(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     """TestClient without auto-login; forces SETUP_REQUIRED for auth flow tests."""
     _reset_to_setup_required(db_session)
+    _bind_password_gate_to_test_session(db_session, monkeypatch)
     app = create_app()
 
     def _override_get_db():
@@ -116,8 +153,10 @@ def auth_client(db_session: Session) -> TestClient:
 
 
 @pytest.fixture()
-def client(db_session: Session) -> TestClient:
+def client(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     """Authenticated TestClient for domain API tests."""
+    _clear_must_change_password(db_session)
+    _bind_password_gate_to_test_session(db_session, monkeypatch)
     app = create_app()
 
     def _override_get_db():

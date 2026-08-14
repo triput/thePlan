@@ -2,10 +2,17 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AuthProvider,
+  useAuth,
   useAuthQuery,
   type AuthState,
 } from "../auth";
-import { ApiError, login as loginApi, register as registerApi, type User } from "../api";
+import {
+  ApiError,
+  login as loginApi,
+  register as registerApi,
+  updateMe,
+  type User,
+} from "../api";
 
 const PASSWORD_HINT = "12+ characters; spaces OK for passphrases";
 
@@ -57,7 +64,15 @@ export function AuthGate({ children }: AuthGateProps) {
     return <LoginScreen />;
   }
 
-  return <AuthProvider user={state.user}>{children}</AuthProvider>;
+  return (
+    <AuthProvider user={state.user}>
+      {state.user.must_change_password ? (
+        <MustChangePasswordScreen />
+      ) : (
+        children
+      )}
+    </AuthProvider>
+  );
 }
 
 function useUnauthenticatedAuthActions() {
@@ -235,6 +250,69 @@ function LoginScreen() {
           <div className="form-actions stacked">
             <button type="submit" className="btn primary" disabled={pending}>
               {pending ? "Signing in…" : "Sign in"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function MustChangePasswordScreen() {
+  const { logout } = useAuth();
+  const queryClient = useQueryClient();
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    try {
+      const nextUser = await updateMe({ password });
+      const state: AuthState = { status: "authenticated", user: nextUser };
+      queryClient.setQueryData(["auth", "me"], state);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't update password");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="auth-screen">
+      <div className="auth-card">
+        <h1 className="auth-title">Choose a new password</h1>
+        <p className="auth-subtitle muted">
+          Your account requires a new password before you can use thePlan.
+        </p>
+        <form className="entity-form auth-form" onSubmit={(e) => void handleSubmit(e)}>
+          <label className="field">
+            <span>New password or passphrase</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              minLength={12}
+              required
+              autoFocus
+            />
+            <span className="field-hint muted small">{PASSWORD_HINT}</span>
+          </label>
+          {error && <p className="form-error">{error}</p>}
+          <div className="form-actions stacked">
+            <button type="submit" className="btn primary" disabled={pending}>
+              {pending ? "Saving…" : "Update password"}
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={pending}
+              onClick={() => void logout()}
+            >
+              Sign out
             </button>
           </div>
         </form>

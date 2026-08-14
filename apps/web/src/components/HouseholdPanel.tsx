@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ApiError,
   createUser,
   fetchUsers,
   updateUser,
@@ -27,6 +28,7 @@ export function HouseholdPanel({ currentUserId }: HouseholdPanelProps) {
   const [displayName, setDisplayName] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
   const [passwordUserId, setPasswordUserId] = useState<string | null>(null);
+  const [emailUserId, setEmailUserId] = useState<string | null>(null);
 
   const createMutation = useMutation({
     mutationFn: createUser,
@@ -56,6 +58,15 @@ export function HouseholdPanel({ currentUserId }: HouseholdPanelProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth", "users"] });
       setPasswordUserId(null);
+    },
+  });
+
+  const emailMutation = useMutation({
+    mutationFn: ({ userId, email: next }: { userId: string; email: string }) =>
+      updateUser(userId, { email: next }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auth", "users"] });
+      setEmailUserId(null);
     },
   });
 
@@ -106,20 +117,35 @@ export function HouseholdPanel({ currentUserId }: HouseholdPanelProps) {
               user={user}
               isSelf={user.id === currentUserId}
               showPasswordForm={passwordUserId === user.id}
-              onTogglePasswordForm={() =>
-                setPasswordUserId((current) => (current === user.id ? null : user.id))
-              }
+              showEmailForm={emailUserId === user.id}
+              onTogglePasswordForm={() => {
+                setEmailUserId(null);
+                setPasswordUserId((current) => (current === user.id ? null : user.id));
+              }}
+              onToggleEmailForm={() => {
+                setPasswordUserId(null);
+                setEmailUserId((current) => (current === user.id ? null : user.id));
+              }}
               onToggleDisabled={(isDisabled) =>
                 toggleMutation.mutate({ userId: user.id, isDisabled })
               }
               onSetPassword={(next) =>
                 passwordMutation.mutateAsync({ userId: user.id, password: next })
               }
+              onSetEmail={(next) =>
+                emailMutation.mutateAsync({ userId: user.id, email: next })
+              }
               togglePending={toggleMutation.isPending}
               passwordPending={passwordMutation.isPending && passwordUserId === user.id}
+              emailPending={emailMutation.isPending && emailUserId === user.id}
               passwordError={
                 passwordMutation.isError && passwordUserId === user.id
                   ? (passwordMutation.error as Error).message
+                  : null
+              }
+              emailError={
+                emailMutation.isError && emailUserId === user.id
+                  ? (emailMutation.error as Error).message
                   : null
               }
             />
@@ -200,25 +226,37 @@ function HouseholdUserRow({
   user,
   isSelf,
   showPasswordForm,
+  showEmailForm,
   onTogglePasswordForm,
+  onToggleEmailForm,
   onToggleDisabled,
   onSetPassword,
+  onSetEmail,
   togglePending,
   passwordPending,
+  emailPending,
   passwordError,
+  emailError,
 }: {
   user: AuthUserAdmin;
   isSelf: boolean;
   showPasswordForm: boolean;
+  showEmailForm: boolean;
   onTogglePasswordForm: () => void;
+  onToggleEmailForm: () => void;
   onToggleDisabled: (isDisabled: boolean) => void;
   onSetPassword: (password: string) => Promise<unknown>;
+  onSetEmail: (email: string) => Promise<unknown>;
   togglePending: boolean;
   passwordPending: boolean;
+  emailPending: boolean;
   passwordError: string | null;
+  emailError: string | null;
 }) {
   const [newPassword, setNewPassword] = useState("");
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [newEmail, setNewEmail] = useState(user.email);
+  const [localPasswordError, setLocalPasswordError] = useState<string | null>(null);
+  const [localEmailError, setLocalEmailError] = useState<string | null>(null);
   const label = user.display_name ?? user.username ?? user.email;
   const sublabel = user.display_name
     ? (user.username ?? user.email)
@@ -226,12 +264,26 @@ function HouseholdUserRow({
 
   const handlePasswordSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLocalError(null);
+    setLocalPasswordError(null);
     try {
       await onSetPassword(newPassword);
       setNewPassword("");
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Failed to set password");
+      setLocalPasswordError(err instanceof Error ? err.message : "Failed to set password");
+    }
+  };
+
+  const handleEmailSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLocalEmailError(null);
+    try {
+      await onSetEmail(newEmail.trim());
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "EMAIL_TAKEN") {
+        setLocalEmailError("That email is already in use.");
+      } else {
+        setLocalEmailError(err instanceof Error ? err.message : "Failed to update email");
+      }
     }
   };
 
@@ -244,6 +296,7 @@ function HouseholdUserRow({
             {sublabel}
             {user.is_admin && " · Admin"}
             {user.is_disabled && " · Disabled"}
+            {user.must_change_password && " · Must change password"}
             {isSelf && " · You"}
           </span>
         </div>
@@ -252,8 +305,19 @@ function HouseholdUserRow({
             type="button"
             className="link-btn"
             onClick={() => {
+              setNewEmail(user.email);
+              setLocalEmailError(null);
+              onToggleEmailForm();
+            }}
+          >
+            {showEmailForm ? "Cancel" : "Edit email"}
+          </button>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => {
               setNewPassword("");
-              setLocalError(null);
+              setLocalPasswordError(null);
               onTogglePasswordForm();
             }}
           >
@@ -272,8 +336,35 @@ function HouseholdUserRow({
         </div>
       </div>
 
+      {showEmailForm && (
+        <form className="entity-form household-email-form" onSubmit={(e) => void handleEmailSubmit(e)}>
+          <label className="field">
+            <span>Email</span>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              autoComplete="off"
+              required
+              autoFocus
+            />
+          </label>
+          {(localEmailError || emailError) && (
+            <p className="form-error">{localEmailError ?? emailError}</p>
+          )}
+          <div className="form-actions">
+            <button type="submit" className="btn primary small" disabled={emailPending}>
+              {emailPending ? "Saving…" : "Save email"}
+            </button>
+          </div>
+        </form>
+      )}
+
       {showPasswordForm && (
         <form className="entity-form household-password-form" onSubmit={(e) => void handlePasswordSubmit(e)}>
+          <p className="settings-help muted small">
+            Setting a password requires that user to change it on their next sign-in.
+          </p>
           <label className="field">
             <span>New password or passphrase</span>
             <input
@@ -283,12 +374,12 @@ function HouseholdUserRow({
               autoComplete="new-password"
               minLength={12}
               required
-              autoFocus
+              autoFocus={!showEmailForm}
             />
             <span className="field-hint muted small">{PASSWORD_HINT}</span>
           </label>
-          {(localError || passwordError) && (
-            <p className="form-error">{localError ?? passwordError}</p>
+          {(localPasswordError || passwordError) && (
+            <p className="form-error">{localPasswordError ?? passwordError}</p>
           )}
           <div className="form-actions">
             <button type="submit" className="btn primary small" disabled={passwordPending}>

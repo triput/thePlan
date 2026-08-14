@@ -14,6 +14,7 @@ from app.db import get_db
 from app.models import User
 from app.schemas import (
     AuthLoginBody,
+    AuthMeUpdate,
     AuthRegisterBody,
     AuthUserAdminCreate,
     AuthUserAdminOut,
@@ -21,6 +22,7 @@ from app.schemas import (
     UserOut,
 )
 from app.services.auth_users import (
+    assert_email_available,
     authenticate_user,
     claim_bootstrap_user,
     create_household_user,
@@ -84,6 +86,34 @@ def auth_me(
     return UserOut.model_validate(user)
 
 
+@router.patch("/me", response_model=UserOut)
+def auth_me_update(
+    body: AuthMeUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> UserOut:
+    updates = body.model_dump(exclude_unset=True)
+
+    if "password" in updates:
+        validate_password(updates["password"])
+        user.password_hash = hash_password(updates["password"])
+        user.must_change_password = False
+
+    if "email" in updates:
+        user.email = assert_email_available(
+            db,
+            str(updates["email"]),
+            exclude_user_id=user.id,
+        )
+
+    if "display_name" in updates:
+        user.display_name = updates["display_name"]
+
+    db.commit()
+    db.refresh(user)
+    return UserOut.model_validate(user)
+
+
 @router.get("/users", response_model=list[AuthUserAdminOut])
 def list_users(
     db: Session = Depends(get_db),
@@ -125,13 +155,27 @@ def update_user(
     if "is_disabled" in updates and updates["is_disabled"] and user.id == admin.id:
         raise ApiError(403, "Cannot disable your own account", "CANNOT_DISABLE_SELF")
 
+    password_present = "password" in updates
     new_password = updates.pop("password", None)
     if new_password is not None:
         validate_password(new_password)
         user.password_hash = hash_password(new_password)
 
+    if "email" in updates:
+        user.email = assert_email_available(
+            db,
+            str(updates.pop("email")),
+            exclude_user_id=user.id,
+        )
+
+    explicit_must_change = updates.pop("must_change_password", None)
     for field, value in updates.items():
         setattr(user, field, value)
+
+    if password_present:
+        user.must_change_password = True
+    elif explicit_must_change is not None:
+        user.must_change_password = explicit_must_change
 
     db.commit()
     db.refresh(user)

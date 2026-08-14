@@ -4,6 +4,11 @@
 
 - **W3 cut locked (2026-08-12):** W3 = Account polish → MS Calendar → Tauri; W3+ = SLM, Todoist import, habits, optional Kanban; W4 = voice/email/location/templates/hosted Postgres/filter QL; W2c parked — [07-wave-roadmap.md](docs/07-wave-roadmap.md)
 - **ADR-007 accepted (2026-08-12):** Account self-service + forced password change ([docs/adr/ADR-007-account-self-service.md](docs/adr/ADR-007-account-self-service.md))
+- **W3 Slice 1 (shipped):** Alembic `010_must_change_password`; `users.must_change_password` column
+- **W3 Slice 1 (shipped):** `PATCH /auth/me` self-service — optional `password`, `email`, `display_name`; clears flag when password is set; `422 EMAIL_TAKEN` on conflict; username immutable
+- **W3 Slice 1 (shipped):** Admin `PATCH /auth/users/{id}` — email edit + setting `password` always forces `must_change_password`
+- **W3 Slice 1 (shipped):** API password-change gate — mutating domain routes return `403 PASSWORD_CHANGE_REQUIRED` while flag is set (`GET/PATCH /auth/me` exempt)
+- **W3 Slice 1 (shipped):** Settings → Account UI (all users); Household email edit + admin temp-password copy; blocking change-password gate in app shell until flag clears
 
 ## [Unreleased] — Wave 2b (Schedule refactor A)
 
@@ -29,7 +34,7 @@
 
 ### Planned next
 
-- **W3 Slice 1** implementation after [ADR-007](docs/adr/ADR-007-account-self-service.md) accept (account self-service, admin email, forced password change)
+- **W3 Slice 2** — Microsoft Calendar busy sync (parallel to Google; [07-wave-roadmap.md](docs/07-wave-roadmap.md))
 - **W2c** remains parked (after W3 or as fallout bucket)
 
 ## [0.2.3] — 2026-08-10 — Wave 1.5 exit

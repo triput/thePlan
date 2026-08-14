@@ -53,6 +53,9 @@ class User(Base, TimestampMixin):
     display_name: Mapped[str | None] = mapped_column(String(255))
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     is_disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    must_change_password: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
 
     settings: Mapped["UserSettings"] = relationship(back_populates="owner", uselist=False)
     saved_filters: Mapped[list["SavedFilter"]] = relationship(back_populates="owner")

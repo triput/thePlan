@@ -24,6 +24,7 @@ from app.api.routes import (
     tasks,
 )
 from app.api.errors import register_exception_handlers
+from app.api.middleware import PasswordChangeGateMiddleware
 from app.bootstrap import ensure_bootstrap_user
 from app.config import get_settings
 from app.db import SessionLocal
@@ -65,6 +66,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="thePlan API", version="0.1.0", lifespan=lifespan)
     register_exception_handlers(app)
 
+    app.add_middleware(PasswordChangeGateMiddleware)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,

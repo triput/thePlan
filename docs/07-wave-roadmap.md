@@ -128,7 +128,7 @@ W1.5: `password_hash` populated; register + login/logout; session cookies; optio
 
 **Goal:** External busy awareness first, then SkedPal-class automated time-blocking that consumes it.
 
-**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). Core W2b closed; leftovers live in **[W2c](#wave-2c--scheduler-polish--catch-all)** (parked). **Next:** **W3** ([cut locked](#wave-3--w3--w4--cut-locked-2026-08-12)) — Slice 1 Account polish discovery.
+**Status:** **W2b Painted Time Maps shipped (2026-08-12)** — multi-band maps, scheduler tier placement, Settings editor, calendar overlay. **Hygiene W3 entry exited** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12). Core W2b closed; leftovers live in **[W2c](#wave-2c--scheduler-polish--catch-all)** (parked). **W3 Slice 1 Account polish shipped** — see [Wave 3](#wave-3--w3--w4--cut-locked-2026-08-12).
 
 **Order (locked):** **2a Google Calendar → 2b Scheduler.** Do not start the auto-scheduler worker until GCal busy sync is usable.
 
@@ -260,7 +260,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 **Goal:** After GCal + core scheduler (W2b). **W2c** stays parked (may run after W3 as polish + fallout). Hygiene exited ([HYGIENE-W3.md](./HYGIENE-W3.md)).
 
-**Status:** **Cut locked 2026-08-12.** Slice order by developer leverage. **Slice 1** — [ADR-007](./adr/ADR-007-account-self-service.md) **accepted**; implementation tomorrow.
+**Status:** **Cut locked 2026-08-12.** **Slice 1 Account polish shipped** per [ADR-007](./adr/ADR-007-account-self-service.md). **Next:** Slice 2 Microsoft Calendar.
 
 ### Bucket table
 
@@ -275,7 +275,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 ### W3 slice plan
 
-1. **Slice 1 — Account polish (discovery):** Self-service `PATCH /auth/me` (password, email, display name); admin email on profile edit; `must_change_password` forced reset — [ADR-007](./adr/ADR-007-account-self-service.md). Username immutable. No email verification / IdP.
+1. **Slice 1 — Account polish — complete:** Alembic `010_must_change_password`; self-service `PATCH /auth/me` (password, email, display name); admin email on profile edit; admin-set password forces `must_change_password`; API gate `403 PASSWORD_CHANGE_REQUIRED`; Settings → Account UI; Household email + copy; blocking change-password gate — [ADR-007](./adr/ADR-007-account-self-service.md). Username immutable. No email verification / IdP.
 2. **Slice 2 — Microsoft Calendar:** `calendar_provider.microsoft` busy sync parallel to Google (mirror W2a patterns).
 3. **Slice 3 — Tauri 2 desktop:** Shell + FastAPI sidecar + local Postgres; same REST contract; Desktop ADR before build.
 
