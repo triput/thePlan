@@ -71,3 +71,51 @@ Dropdown (searchable preferred) of common/valid IANA timezones; still store the 
 ### Notes
 
 Bundle with other small Settings/UI fixes when convenient. Not a Settings expansion exit blocker.
+
+---
+
+## DEF-003 — Mobile task detail: content below deadline clipped, no scroll
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (detail unusable on phone for long tasks) |
+| **Status** | Open |
+| **Found** | 2026-08-14 |
+| **Surface** | Task detail sheet / panel on narrow (mobile) viewport |
+| **Wave** | Bug bash / cleanup — do **not** derail W3 |
+
+### Symptom
+
+On mobile web, opening a task’s detail view shows content through **deadline**, but nothing below is reachable — cannot scroll the detail body.
+
+### Expected
+
+Detail sheet scrolls so fields below deadline (notes, Time Map, Plan, reminders, etc.) are reachable.
+
+### Notes
+
+Likely overflow / flex / `100dvh` sheet layout; check W1.6 detail-sheet CSS vs nested scroll containers.
+
+---
+
+## DEF-004 — Inbox up/down reorder arrows do nothing
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (controls present but inert; workarounds exist) |
+| **Status** | Open |
+| **Found** | 2026-08-14 |
+| **Surface** | Inbox task list reorder arrows |
+| **Wave** | Bug bash / cleanup — do **not** derail W3 |
+
+### Symptom
+
+Up/down move arrows in the **Inbox** view do not change task order (no visible reorder; likely no successful `sort_order` swap).
+
+### Expected
+
+Arrows swap sibling/`sort_order` with adjacent visible rows (same behavior as other list views that reorder correctly), or arrows are hidden if Inbox intentionally has no reorder.
+
+### Notes
+
+May relate to Inbox filter set, shared `sort_order` defaults, or reorder helpers only wired for project views. Related to DEF-001 tree-order concerns but distinct (controls fire vs display order).
