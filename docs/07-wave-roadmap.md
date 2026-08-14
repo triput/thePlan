@@ -260,16 +260,17 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 **Goal:** After GCal + core scheduler (W2b). **W2c** stays parked (may run after W3 as polish + fallout). Hygiene exited ([HYGIENE-W3.md](./HYGIENE-W3.md)).
 
-**Status:** **Cut locked 2026-08-12.** **Slice 1–3 shipped.** Slice 3 Tauri prove-it — [ADR-009](./adr/ADR-009-tauri-desktop.md) (sidecar + Compose Postgres; single installer deferred); operator note [DESKTOP.md](./DESKTOP.md).
+**Status:** **Cut locked 2026-08-12.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist** — discovery / [ADR-010](./adr/ADR-010-slm-assist.md) (Proposed); operator note [SLM-ASSIST.md](./SLM-ASSIST.md). Tunnel remains daily driver. **Desktop packaging / single installer → V.Later** (Tauri prove-it already shipped; not a gate).
 
 ### Bucket table
 
 | Bucket | Contents | Why |
 |--------|----------|-----|
 | **W3** | **1. Account polish** → **2. Microsoft Calendar** → **3. Tauri desktop** | Small auth delta first; reuse GCal patterns while fresh; package desktop last so it wraps a richer app |
-| **W3+** | Local SLM (Ollama), Todoist import, intraday/`BYHOUR` habits, optional Kanban | Useful; not required to close account/calendar/desktop wave; SLM stays non-blocking candy |
+| **W3+** | Local SLM (Ollama) **← next**, Todoist import, intraday/`BYHOUR` habits, optional Kanban | Useful; not required to close account/calendar/desktop wave; SLM stays non-blocking candy |
 | **W4 / candidates** | Voice, email-to-task, location reminders, templates, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
 | **Parked** | **W2c** | After W3 as polish + W3 fallout bucket |
+| **V.Later** | Tauri single-installer / bundled Postgres / zero-Docker desktop daily driver | Tabled 2026-08-14; tunnel is the daily driver |
 
 **Out of cut:** Post-W3 backlog (Zapier/webhooks, Notion/Obsidian, household task handoff).
 
@@ -288,7 +289,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Temp / forced password reset | **W3 Slice 1** |
 | Microsoft Calendar | **W3 Slice 2** |
 | Tauri 2 desktop | **W3 Slice 3** |
-| Local SLM (Ollama) | **W3+** |
+| Local SLM (Ollama) | **W3+** — ADR-010 Proposed; [SLM-ASSIST.md](./SLM-ASSIST.md) |
 | Todoist import | **W3+** |
 | Intraday / multi-occurrence habits | **W3+** |
 | Board / Kanban view | **W3+** (optional) |
@@ -298,7 +299,12 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 ### Desktop Bundle Strategy (Slice 3)
 
-**Shipped (prove-it):** Tauri 2 shell + FastAPI sidecar on loopback; Postgres remains Compose ([ADR-009](adr/ADR-009-tauri-desktop.md)). Same REST contract; no second data model. Single installer / bundled Postgres deferred to a later packaging wave.
+**Shipped (prove-it):** Tauri 2 shell + FastAPI sidecar on loopback; Postgres remains Compose ([ADR-009](adr/ADR-009-tauri-desktop.md)). Same REST contract; no second data model. **Single installer / bundled Postgres → V.Later** (tabled 2026-08-14; tunnel daily driver).
+
+### W3+ SLM Assist (next)
+
+1. **Discovery:** [ADR-010](adr/ADR-010-slm-assist.md) Proposed — review→confirm→apply; Ollama default; OpenAI-compatible client; CRUD never blocked; [SLM-ASSIST.md](SLM-ASSIST.md).
+2. **Implement (after ADR accept):** `assist/propose` + `assist/apply`, review UI, mocked tests.
 
 ---
 
