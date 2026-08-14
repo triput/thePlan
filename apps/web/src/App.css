@@ -787,7 +787,9 @@
 
 .task-title {
   flex: 1;
+  min-width: 0;
   font-size: 0.92rem;
+  overflow-wrap: break-word;
 }
 
 .task-title.done {
@@ -1479,9 +1481,24 @@
   }
 
   .detail-header .icon-btn,
-  .icon-btn {
+  .modal-header .icon-btn,
+  .top-bar .icon-btn,
+  .nav-toggle {
     min-width: 2.75rem;
     min-height: 2.75rem;
+  }
+
+  /* Keep task-row actions tappable without stealing title width (word-tower). */
+  .task-row .icon-btn,
+  .reorder-btn {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  .task-title {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: break-word;
   }
 
   .task-check,
@@ -1511,6 +1528,34 @@
   .task-reorder-btns,
   .subtask-btn {
     opacity: 1;
+  }
+
+  .calendar-account-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-account-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .calendar-mirror-check {
+    align-items: flex-start;
+  }
+
+  .calendar-sub-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .calendar-sub-check {
+    flex: 1 1 100%;
+  }
+
+  .calendar-sub-primary,
+  .calendar-sub-primary-badge {
+    margin-left: 1.6rem;
   }
 
   .modal {

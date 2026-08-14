@@ -116,6 +116,24 @@ Up/down move arrows in the **Inbox** view do not change task order (no visible r
 
 Arrows swap sibling/`sort_order` with adjacent visible rows (same behavior as other list views that reorder correctly), or arrows are hidden if Inbox intentionally has no reorder.
 
-### Notes
+## DEF-005 — Mobile layout: word-tower / crushed flex columns (Inbox + Settings)
 
-May relate to Inbox filter set, shared `sort_order` defaults, or reorder helpers only wired for project views. Related to DEF-001 tree-order concerns but distinct (controls fire vs display order).
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (Inbox + Settings unreadable on phone) |
+| **Status** | Fixed 2026-08-14 |
+| **Found** | 2026-08-14 |
+| **Surface** | Narrow viewport — task rows, Settings Google Calendar / subscriptions |
+| **Wave** | Hotfix (not W3 derail) |
+
+### Symptom
+
+On mobile Chrome, task titles and Settings calendar copy wrapped one word per line; subscription “Primary” controls overlapped checkboxes.
+
+### Root cause
+
+W1.6 touch-target rule applied `min-width/min-height: 2.75rem` to **all** `.icon-btn`, so reorder/subtask buttons stole horizontal space from `.task-title`. Calendar account rows used `flex: 1; min-width: 0` beside Sync/Disconnect, so the info column shrunk instead of wrapping.
+
+### Fix
+
+Scope large touch targets to chrome (header/nav); keep smaller targets on task-row icons; stack calendar account rows and wrap subscription Primary under the label on narrow viewports.
