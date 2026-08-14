@@ -329,6 +329,22 @@ Does not persist — client calls `POST /tasks` with parsed fields.
 
 ---
 
+### Assist (W3+ SLM — ADR-010)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/assist/status` | Ollama/OpenAI-compat reachability + configured model/base URL |
+| POST | `/assist/propose` | Free text → structured `create_task` actions (no DB writes) |
+| POST | `/assist/apply` | Apply **approved** action list (create tasks + labels) |
+
+**Propose errors:** `503 ASSIST_UNAVAILABLE` when the model host is down/disabled; `502 ASSIST_BAD_RESPONSE` on unusable model JSON.
+
+**Apply:** each action returns `{ok, task_id?, error?, created_labels}`; unknown project names fall back to inbox; labels create-if-missing.
+
+Does not replace `/quick-add/parse`. Voice/STT out of cut.
+
+---
+
 ### Search
 
 | Method | Path | Description |

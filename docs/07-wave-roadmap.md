@@ -260,7 +260,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 **Goal:** After GCal + core scheduler (W2b). **W2c** stays parked (may run after W3 as polish + fallout). Hygiene exited ([HYGIENE-W3.md](./HYGIENE-W3.md)).
 
-**Status:** **Cut locked 2026-08-12.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist** — discovery / [ADR-010](./adr/ADR-010-slm-assist.md) (Proposed); operator note [SLM-ASSIST.md](./SLM-ASSIST.md). Tunnel remains daily driver. **Desktop packaging / single installer → V.Later** (Tauri prove-it already shipped; not a gate).
+**Status:** **Cut locked 2026-08-12.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist shipped (prove-it)** — [ADR-010](./adr/ADR-010-slm-assist.md) Accepted; [SLM-ASSIST.md](./SLM-ASSIST.md). Tunnel remains daily driver. **Desktop packaging / single installer → V.Later**.
 
 ### Bucket table
 
@@ -289,7 +289,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Temp / forced password reset | **W3 Slice 1** |
 | Microsoft Calendar | **W3 Slice 2** |
 | Tauri 2 desktop | **W3 Slice 3** |
-| Local SLM (Ollama) | **W3+** — ADR-010 Proposed; [SLM-ASSIST.md](./SLM-ASSIST.md) |
+| Local SLM (Ollama) | **W3+** — shipped prove-it; [ADR-010](./adr/ADR-010-slm-assist.md); [SLM-ASSIST.md](./SLM-ASSIST.md) |
 | Todoist import | **W3+** |
 | Intraday / multi-occurrence habits | **W3+** |
 | Board / Kanban view | **W3+** (optional) |
@@ -301,10 +301,10 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 
 **Shipped (prove-it):** Tauri 2 shell + FastAPI sidecar on loopback; Postgres remains Compose ([ADR-009](adr/ADR-009-tauri-desktop.md)). Same REST contract; no second data model. **Single installer / bundled Postgres → V.Later** (tabled 2026-08-14; tunnel daily driver).
 
-### W3+ SLM Assist (next)
+### W3+ SLM Assist
 
-1. **Discovery:** [ADR-010](adr/ADR-010-slm-assist.md) Proposed — review→confirm→apply; Ollama default; OpenAI-compatible client; CRUD never blocked; [SLM-ASSIST.md](SLM-ASSIST.md).
-2. **Implement (after ADR accept):** `assist/propose` + `assist/apply`, review UI, mocked tests.
+1. **Shipped (prove-it):** [ADR-010](adr/ADR-010-slm-assist.md) — review→confirm→apply; Ollama default (`llama3.2`); OpenAI-compatible client; `POST /assist/propose` + `/apply` + `/status`; Assist panel + Settings status; mocked tests; [SLM-ASSIST.md](SLM-ASSIST.md).
+2. **Follow-ons (not this cut):** cloud provider Settings, schedule hints, voice (W4).
 
 ---
 

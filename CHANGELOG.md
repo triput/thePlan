@@ -2,7 +2,8 @@
 
 ## [Unreleased] — Wave 3+ (SLM)
 
-- **ADR-010 Proposed (2026-08-14):** Local SLM Assist — Ollama default, OpenAI-compatible client, review→confirm→apply; CRUD never blocked; cloud/voice/packaging out ([docs/adr/ADR-010-slm-assist.md](docs/adr/ADR-010-slm-assist.md), [docs/SLM-ASSIST.md](docs/SLM-ASSIST.md))
+- **ADR-010 accepted (2026-08-14):** Local SLM Assist — Ollama default, OpenAI-compatible client, review→confirm→apply; CRUD never blocked ([docs/adr/ADR-010-slm-assist.md](docs/adr/ADR-010-slm-assist.md), [docs/SLM-ASSIST.md](docs/SLM-ASSIST.md))
+- **W3+ Assist (shipped):** `POST /api/v1/assist/propose`, `POST /api/v1/assist/apply`, `GET /api/v1/assist/status`; Assist panel (Propose → review → Approve); Settings reachability; Compose `ASSIST_*` env; mocked httpx tests
 - **Docs:** Desktop packaging / single installer tabled to **V.Later**; tunnel remains daily driver
 
 ## [Unreleased] — Wave 3 (cut locked)

@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     microsoft_tenant_id: str = "common"
     microsoft_oauth_scopes: str = "Calendars.ReadWrite offline_access User.Read"
 
+    # W3+ SLM Assist (ADR-010) — OpenAI-compatible; default Ollama
+    assist_base_url: str = "http://127.0.0.1:11434/v1"
+    assist_model: str = "llama3.2"
+    assist_timeout_seconds: float = 60.0
+    assist_enabled: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:

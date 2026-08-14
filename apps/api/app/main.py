@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import (
     auth,
+    assist,
     calendar,
     epics,
     focus_windows,
@@ -99,6 +100,7 @@ def create_app() -> FastAPI:
     api_router.include_router(plans.router)
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)
+    api_router.include_router(assist.router)
     api_router.include_router(scheduled_blocks.router)
     api_router.include_router(schedule.router)
     api_router.include_router(calendar.router)

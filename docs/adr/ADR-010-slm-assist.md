@@ -1,6 +1,6 @@
 # ADR-010: Local SLM Assist (Ollama prove-it)
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-08-14  
 **Context:** W3 core (Account → MS Calendar → Tauri) shipped. Roadmap **W3+** leads with local SLM assist ([07-wave-roadmap.md](../07-wave-roadmap.md), [03-feature-catalog.md](../03-feature-catalog.md)). Operator daily driver remains **Cloudflare Tunnel**; Tauri single-installer / bundled Postgres tabled to **V.Later**. Voice stays **W4**. Prefer review→confirm over auto-apply for first ship.
 

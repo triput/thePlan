@@ -37,6 +37,10 @@ services:
       MICROSOFT_REDIRECT_URI: ${MICROSOFT_REDIRECT_URI:-}
       MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID:-common}
       MICROSOFT_OAUTH_SCOPES: ${MICROSOFT_OAUTH_SCOPES:-Calendars.ReadWrite offline_access User.Read}
+      # W3+ Assist — host Ollama from API container (Docker Desktop)
+      ASSIST_BASE_URL: ${ASSIST_BASE_URL:-http://host.docker.internal:11434/v1}
+      ASSIST_MODEL: ${ASSIST_MODEL:-llama3.2}
+      ASSIST_ENABLED: ${ASSIST_ENABLED:-true}
     volumes:
       - ../../.secrets-backup:/secrets:ro
     ports:

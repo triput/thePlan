@@ -750,6 +750,64 @@ export function parseQuickAdd(text: string) {
   });
 }
 
+export type AssistActionType = "create_task";
+
+export interface AssistCreateTaskAction {
+  type: AssistActionType;
+  title: string;
+  description?: string | null;
+  project_name?: string | null;
+  section_name?: string | null;
+  priority?: TaskPriority | null;
+  due_at?: string | null;
+  label_names?: string[];
+  estimated_duration_minutes?: number | null;
+}
+
+export interface AssistProposeResponse {
+  actions: AssistCreateTaskAction[];
+  model: string;
+}
+
+export interface AssistApplyResultItem {
+  ok: boolean;
+  action_type: string;
+  title?: string | null;
+  task_id?: string | null;
+  error?: string | null;
+  created_labels: string[];
+}
+
+export interface AssistApplyResponse {
+  results: AssistApplyResultItem[];
+}
+
+export interface AssistStatus {
+  reachable: boolean;
+  base_url: string;
+  model: string;
+  detail?: string | null;
+  enabled: boolean;
+}
+
+export function fetchAssistStatus() {
+  return apiFetch<AssistStatus>("/api/v1/assist/status");
+}
+
+export function proposeAssist(text: string) {
+  return apiFetch<AssistProposeResponse>("/api/v1/assist/propose", {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
+}
+
+export function applyAssist(actions: AssistCreateTaskAction[]) {
+  return apiFetch<AssistApplyResponse>("/api/v1/assist/apply", {
+    method: "POST",
+    body: JSON.stringify({ actions }),
+  });
+}
+
 export interface ReorderItem {
   id: string;
   sort_order: number;

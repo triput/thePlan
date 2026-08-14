@@ -487,6 +487,102 @@
   margin-top: 0.35rem;
 }
 
+.assist {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.assist-toggle {
+  white-space: nowrap;
+}
+
+.assist-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface, var(--panel));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--text) 18%, transparent);
+}
+
+.assist-help,
+.assist-status {
+  margin: 0 0 0.5rem;
+}
+
+.assist-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.assist-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 4.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.assist-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.assist-action-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.assist-action {
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.assist-action-main {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.assist-action-title {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.assist-action-priority {
+  flex: 0 0 auto;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.assist-action-meta {
+  margin-top: 0.3rem;
+}
+
 .parse-chips {
   display: flex;
   flex-wrap: wrap;

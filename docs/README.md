@@ -39,7 +39,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [SLM-ASSIST.md](./SLM-ASSIST.md) | Local SLM Assist operator note (W3+; ADR-010) |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist** discovery — [ADR-010](./adr/ADR-010-slm-assist.md) Proposed — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist prove-it shipped** — [ADR-010](./adr/ADR-010-slm-assist.md) — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 
@@ -55,7 +55,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [adr/ADR-007-account-self-service.md](./adr/ADR-007-account-self-service.md) | W3 Slice 1 — self-service + forced password change |
 | [adr/ADR-008-microsoft-calendar.md](./adr/ADR-008-microsoft-calendar.md) | W3 Slice 2 — Microsoft Graph calendar sync |
 | [adr/ADR-009-tauri-desktop.md](./adr/ADR-009-tauri-desktop.md) | W3 Slice 3 — Tauri prove-it shell + API sidecar |
-| [adr/ADR-010-slm-assist.md](./adr/ADR-010-slm-assist.md) | W3+ — local SLM Assist (Ollama; review→confirm→apply) |
+| [adr/ADR-010-slm-assist.md](./adr/ADR-010-slm-assist.md) | W3+ — local SLM Assist (Ollama; review→confirm→apply) — Accepted |
 
 ## Legacy
 
