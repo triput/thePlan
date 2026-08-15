@@ -267,8 +267,8 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Bucket | Contents | Why |
 |--------|----------|-----|
 | **W3** | **1. Account polish** → **2. Microsoft Calendar** → **3. Tauri desktop** | Small auth delta first; reuse GCal patterns while fresh; package desktop last so it wraps a richer app |
-| **W3+** | Local SLM (Ollama) **← next**, Todoist import, intraday/`BYHOUR` habits, optional Kanban | Useful; not required to close account/calendar/desktop wave; SLM stays non-blocking candy |
-| **W4 / candidates** | Voice, email-to-task, location reminders, templates, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
+| **W3+** | Local SLM (Ollama) **shipped**; **Theme F** templates + outline ingest ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)) **← next**; Todoist import; intraday/`BYHOUR` habits; optional Kanban | Useful; not required to close account/calendar/desktop wave |
+| **W4 / candidates** | Voice, email-to-task, location reminders, full template catalog, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
 | **Parked** | **W2c** | After W3 as polish + W3 fallout bucket |
 | **V.Later** | Tauri single-installer / bundled Postgres / zero-Docker desktop daily driver | Tabled 2026-08-14; tunnel is the daily driver |
 
@@ -290,10 +290,11 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Microsoft Calendar | **W3 Slice 2** |
 | Tauri 2 desktop | **W3 Slice 3** |
 | Local SLM (Ollama) | **W3+** — shipped prove-it; [ADR-010](./adr/ADR-010-slm-assist.md); [SLM-ASSIST.md](./SLM-ASSIST.md) |
+| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) Proposed; fixture in `testdata/outlines/` |
 | Todoist import | **W3+** |
 | Intraday / multi-occurrence habits | **W3+** |
 | Board / Kanban view | **W3+** (optional) |
-| Location reminders, voice, email-to-task, templates | **W4 / candidates** |
+| Location reminders, voice, email-to-task, full template catalog | **W4 / candidates** |
 | Hosted Postgres fallback | **W4 / candidates** |
 | Saved filter query language | **W4 / candidates** (or W2c steal) |
 

@@ -8,4 +8,6 @@ Operator-owned curriculum dumps for Theme F (templates + outline ingest).
 
 **Shape (reference for Theme F ingest):** `certificate` → `courses[]` → `modules[]` → `tasks[]` with `task_type`, `duration_minutes`, `optional`, order fields, and synthetic `id`s.
 
+Contract and product decisions: [ADR-011](../../docs/adr/ADR-011-templates-outline-ingest.md).
+
 thePlan must never call Coursera APIs. Ingest is file paste/upload only.

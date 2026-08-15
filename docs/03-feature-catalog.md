@@ -23,7 +23,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Inbox (no project) | MVP | `project_id IS NULL` |
 | Archive project/epic | MVP | Soft archive |
 | Reorder tasks/sections | MVP | sort_order |
-| Templates | W4 | Backlog nice-to-have; low priority |
+| Templates | W3+ / W4 | **Theme F prove-it:** built-in `coursera_specialization` pack + outline ingest ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)). Full template CRUD/catalog remains W4. |
 | Project/view sharing | Out | Single-user |
 
 ### Task Core
@@ -114,6 +114,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Feature | Wave | Notes |
 |---------|------|-------|
 | Todoist CSV/JSON import | W3+ | Deferred from W1.5 (stale upstream); CSV/JSON → hierarchy |
+| Outline ingest (curriculum JSON) | W3+ Theme F | Operator paste/upload → review → apply; golden fixture under `testdata/outlines/`; [ADR-011](./adr/ADR-011-templates-outline-ingest.md). No Coursera client. |
 | Google Calendar sync | W2a | Pull + optional mirror push; before scheduler |
 | Multi-calendar subscriptions | W2a Slice 2 | One primary (busy) + informational overlays; mirror toggle to primary |
 | 24×7 calendar viewport | W2a Slice 2 | Default 6A–10P; Settings/chrome toggle for full day |
@@ -269,9 +270,9 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Defer to W3:** Account polish (Slice 1) → Microsoft Calendar (Slice 2) → Tauri (Slice 3). See [07-wave-roadmap.md](./07-wave-roadmap.md) cut.
 
-**Defer to W3+:** SLM, Todoist import, intraday multi-occurrence habits, optional Kanban.
+**Defer to W3+:** Todoist import, intraday multi-occurrence habits, optional Kanban; **Theme F** templates prove-it + outline ingest ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)).
 
-**Defer to W4 / candidates:** Location reminders, voice, email-to-task, templates, hosted Postgres, saved filter query language.
+**Defer to W4 / candidates:** Location reminders, voice, email-to-task, full template catalog/CRUD, hosted Postgres, saved filter query language.
 
 **Parked W2c:** Soft-delete, Time Map overrides, scoped bundles, sidebar drag, compose worker (after W3 or as fallout).
 
