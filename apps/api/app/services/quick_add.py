@@ -29,7 +29,7 @@ TIME_AT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 RELATIVE_DATE_PATTERN = re.compile(
-    r"(?<=\s)(today|tomorrow|tom|yesterday)(?=\s|$)",
+    r"(?<=\s)(today|tonight|tomorrow|tom|yesterday)(?=\s|$)",
     re.IGNORECASE,
 )
 NEXT_WEEKDAY_PATTERN = re.compile(
@@ -237,7 +237,7 @@ def parse_quick_add(text: str, *, now: datetime | None = None, timezone_name: st
     relative_match = RELATIVE_DATE_PATTERN.search(working)
     if relative_match:
         token = relative_match.group(1).lower()
-        if token in {"today"}:
+        if token in {"today", "tonight"}:
             due_date = local_today
         elif token in {"tomorrow", "tom"}:
             due_date = local_today + timedelta(days=1)

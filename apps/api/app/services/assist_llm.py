@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 
 from app.api.errors import ApiError
 from app.config import Settings, get_settings
 from app.schemas import AssistCreateTaskAction
+from app.services.quick_add import parse_quick_add
 
 _SYSTEM_PROMPT = """You are a planning assistant for thePlan, a personal task manager.
 Given the user's request, propose zero or more create_task actions as JSON only.
@@ -20,9 +23,10 @@ Return exactly this shape:
 
 Rules:
 - type must be "create_task" only (no deletes, schedule changes, or calendar writes).
-- title is required and concise.
+- title is required: a concise task name. Strip scheduling words (tonight, tomorrow, at 9pm, p1, etc.) from the title when they are timing/priority cues.
+- description must be null unless the user clearly asked for notes/details beyond the task name. NEVER copy the whole user request into description.
 - priority if set must be one of: p1, p2, p3, p4.
-- due_at if set must be ISO-8601 datetime (include timezone offset when known).
+- due_at if the user gave a time/date: ISO-8601 datetime WITH timezone offset, resolved against Current local time below (e.g. "tonight at 9PM" → today's date at 21:00 in that timezone).
 - project_name / section_name / label_names are human names to resolve later; omit or null when unknown.
 - Prefer multiple actions when the user listed multiple distinct tasks.
 - Do not invent unrelated work. If nothing actionable, return {"actions":[]}.
@@ -71,10 +75,81 @@ def parse_actions_payload(content: str) -> list[AssistCreateTaskAction]:
     return actions
 
 
-def propose_actions(text: str, *, settings: Settings | None = None) -> tuple[list[AssistCreateTaskAction], str]:
+def enrich_actions_from_quick_add(
+    actions: list[AssistCreateTaskAction],
+    text: str,
+    *,
+    timezone_name: str,
+) -> list[AssistCreateTaskAction]:
+    """Fill gaps with the deterministic quick-add parser; scrub prompt-as-description dumps."""
+    draft = parse_quick_add(text, timezone_name=timezone_name)
+    prompt = text.strip()
+    enriched: list[AssistCreateTaskAction] = []
+
+    source = actions
+    if not source and draft.title.strip():
+        source = [
+            AssistCreateTaskAction(
+                title=draft.title,
+                priority=draft.priority,
+                due_at=draft.due_at,
+                estimated_duration_minutes=draft.estimated_duration_minutes,
+                project_name=draft.project_name,
+                section_name=draft.section_name,
+            )
+        ]
+
+    for action in source:
+        updates: dict[str, Any] = {}
+        if action.due_at is None and draft.due_at is not None:
+            updates["due_at"] = draft.due_at
+        if action.priority is None and draft.priority is not None:
+            updates["priority"] = draft.priority
+        if (
+            action.estimated_duration_minutes is None
+            and draft.estimated_duration_minutes is not None
+        ):
+            updates["estimated_duration_minutes"] = draft.estimated_duration_minutes
+        if not action.project_name and draft.project_name:
+            updates["project_name"] = draft.project_name
+        if not action.section_name and draft.section_name:
+            updates["section_name"] = draft.section_name
+
+        desc = (action.description or "").strip()
+        if desc and (desc == prompt or desc == action.title.strip()):
+            updates["description"] = None
+
+        # Prefer cleaned quick-add title when the model left timing words in the title.
+        if draft.title and draft.title.strip() and draft.title.strip() != action.title.strip():
+            draft_lower = draft.title.strip().lower()
+            title_lower = action.title.strip().lower()
+            if draft_lower in title_lower or any(
+                token in title_lower for token in ("tonight", " tomorrow", " at ", " today")
+            ):
+                if len(draft.title.strip()) >= 3:
+                    updates["title"] = draft.title.strip()
+
+        enriched.append(action.model_copy(update=updates) if updates else action)
+    return enriched
+
+
+def propose_actions(
+    text: str,
+    *,
+    timezone_name: str = "UTC",
+    settings: Settings | None = None,
+) -> tuple[list[AssistCreateTaskAction], str]:
     cfg = settings or get_settings()
     if not cfg.assist_enabled:
         raise ApiError(503, "Assist is disabled", "ASSIST_UNAVAILABLE")
+
+    tz = ZoneInfo(timezone_name)
+    now = datetime.now(tz)
+    system = (
+        f"{_SYSTEM_PROMPT}\n\n"
+        f"Current local time: {now.isoformat()} (timezone {timezone_name}).\n"
+        "Resolve relative phrases like tonight/today/tomorrow against that clock."
+    )
 
     base = cfg.assist_base_url.rstrip("/")
     url = f"{base}/chat/completions"
@@ -82,7 +157,7 @@ def propose_actions(text: str, *, settings: Settings | None = None) -> tuple[lis
         "model": cfg.assist_model,
         "temperature": 0.2,
         "messages": [
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": system},
             {"role": "user", "content": text.strip()},
         ],
     }
@@ -114,7 +189,9 @@ def propose_actions(text: str, *, settings: Settings | None = None) -> tuple[lis
     if not isinstance(content, str) or not content.strip():
         raise ApiError(502, "Assist model returned empty content", "ASSIST_BAD_RESPONSE")
 
-    return parse_actions_payload(content), cfg.assist_model
+    actions = parse_actions_payload(content)
+    actions = enrich_actions_from_quick_add(actions, text, timezone_name=timezone_name)
+    return actions, cfg.assist_model
 
 
 def check_assist_reachable(*, settings: Settings | None = None) -> tuple[bool, str | None]:

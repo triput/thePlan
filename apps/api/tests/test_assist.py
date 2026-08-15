@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
@@ -49,6 +51,7 @@ def test_propose_returns_actions(client: TestClient, monkeypatch: pytest.MonkeyP
                                     {
                                         "type": "create_task",
                                         "title": "Buy oat milk",
+                                        "description": "remind me to buy oat milk",
                                         "priority": "p3",
                                         "label_names": ["errands"],
                                     }
@@ -70,6 +73,50 @@ def test_propose_returns_actions(client: TestClient, monkeypatch: pytest.MonkeyP
     assert body["actions"][0]["title"] == "Buy oat milk"
     assert body["actions"][0]["priority"] == "p3"
     assert body["actions"][0]["label_names"] == ["errands"]
+    # Prompt dump must not survive as description
+    assert body["actions"][0]["description"] is None
+
+
+def test_propose_enriches_tonight_due(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    get_settings.cache_clear()
+    prompt = "Finish entering Coursera specialization tasks tonight at 9PM"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "actions": [
+                                    {
+                                        "type": "create_task",
+                                        "title": prompt,
+                                        "description": prompt,
+                                        "due_at": None,
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+        return httpx.Response(200, json=payload)
+
+    _patch_assist_httpx(monkeypatch, handler)
+    res = client.post("/api/v1/assist/propose", json={"text": prompt})
+    assert res.status_code == 200, res.text
+    action = res.json()["actions"][0]
+    assert action["due_at"] is not None
+    # Stored as UTC; 9PM America/Los_Angeles → 04:00Z next calendar day in summer.
+    due = datetime.fromisoformat(action["due_at"].replace("Z", "+00:00"))
+    assert due.astimezone(ZoneInfo("America/Los_Angeles")).hour == 21
+    assert action["description"] is None
+    assert "tonight" not in action["title"].lower()
+    assert "coursera" in action["title"].lower()
 
 
 def test_propose_unavailable_when_ollama_down(

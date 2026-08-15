@@ -42,6 +42,19 @@ def test_epic_project_section_and_due_date() -> None:
     assert draft.title == "Review architecture spec"
 
 
+def test_tonight_at_time() -> None:
+    now = datetime(2026, 8, 14, 12, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    draft = parse_quick_add(
+        "Finish entering Coursera specialization tasks tonight at 9PM",
+        now=now,
+        timezone_name="America/Los_Angeles",
+    )
+    assert draft.title == "Finish entering Coursera specialization tasks"
+    assert draft.due_at is not None
+    assert draft.due_at.astimezone(ZoneInfo("America/Los_Angeles")).hour == 21
+    assert draft.due_at.astimezone(ZoneInfo("America/Los_Angeles")).date().isoformat() == "2026-08-14"
+
+
 def test_tomorrow_relative_date() -> None:
     now = datetime(2026, 8, 10, 12, 0, tzinfo=ZoneInfo("UTC"))
     draft = parse_quick_add("Ship it tomorrow p3", now=now, timezone_name="UTC")

@@ -16,6 +16,7 @@ from app.schemas import (
 )
 from app.services.assist_apply import apply_assist_actions
 from app.services.assist_llm import check_assist_reachable, propose_actions
+from app.services.auth_users import get_or_provision_user_settings
 
 router = APIRouter(prefix="/assist", tags=["assist"])
 
@@ -37,10 +38,14 @@ def assist_status(user: User = Depends(get_current_user)) -> AssistStatusOut:
 @router.post("/propose", response_model=AssistProposeResponse)
 def assist_propose(
     body: AssistProposeRequest,
+    db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> AssistProposeResponse:
-    _ = user
-    actions, model = propose_actions(body.text)
+    user_settings = get_or_provision_user_settings(db, user)
+    actions, model = propose_actions(
+        body.text,
+        timezone_name=user_settings.timezone or "UTC",
+    )
     return AssistProposeResponse(actions=actions, model=model)
 
 
