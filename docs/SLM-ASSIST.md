@@ -43,3 +43,7 @@ Not in prove-it. The client is OpenAI-compatible so a later Settings/`base_url` 
 ## Out of scope here
 
 Voice/STT, auto-apply, schedule mutations via SLM, multi-provider Settings matrix, packaging.
+
+## Known follow-ups
+
+- **[DEF-006](./DEFECTS.md#def-006--nl-due-times-24-hour-clock-and-broader-datetime-forms)** — expand deterministic due/time NL (24-hour clock and broader datetime forms) for quick-add + Assist enrich. Required eventually; not urgent.

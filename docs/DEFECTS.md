@@ -116,7 +116,41 @@ Up/down move arrows in the **Inbox** view do not change task order (no visible r
 
 Arrows swap sibling/`sort_order` with adjacent visible rows (same behavior as other list views that reorder correctly), or arrows are hidden if Inbox intentionally has no reorder.
 
+---
+
+## DEF-006 — NL due times: 24-hour clock and broader datetime forms
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (required eventually; not blocking daily driver) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-14 |
+| **Surface** | Quick-add + Assist enrich (`apps/api/app/services/quick_add.py`; Assist uses same parser) |
+| **Wave** | Bug bash / NL polish — shared by quick-add and W3+ Assist |
+
+### Symptom / gap
+
+Relative phrases like `tonight` / `tomorrow` and `at 9PM` work after recent Assist work. **24-hour and alternate datetime entry** are incomplete or unproven as a product surface:
+
+- Prefer explicit support for `at 21:00`, `at 21:00`, bare `21:00`, and unambiguous 24h without requiring `am`/`pm`.
+- Broader forms operators actually type (locale-ish dates, `9pm` without `at`, `2100`, ISO local, etc.) should be inventoried and covered deliberately — not “whatever the SLM invents.”
+
+### Current behavior (partial)
+
+`TIME_AT_PATTERN` is `at <hour>[:mm][am|pm]?`. Hour without meridiem can already be 0–23 in `_parse_at_time`, so **`at 21:00` may work**, but coverage is thin and undocumented; Assist still depends on this shared parser for reliable due enrichment.
+
+### Expected
+
+Documented, tested NL due/time grammar for quick-add **and** Assist enrich: 12h and 24h, common separators, and a short allowlist of date forms — same rules both paths.
+
+### Notes
+
+Non-urgent but **required** before treating Assist time understanding as “done.” Prefer extending the deterministic parser over hoping the SLM formats ISO correctly.
+
+---
+
 ## DEF-005 — Mobile layout: word-tower / crushed flex columns (Inbox + Settings)
+
 
 | Field | Value |
 |-------|--------|
