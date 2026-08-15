@@ -345,6 +345,17 @@ Does not replace `/quick-add/parse`. Voice/STT out of cut.
 
 ---
 
+### Outline ingest (W3+ Theme F — ADR-011)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/outlines/propose` | Validate outline JSON + template pack → structured create actions (no DB writes) |
+| POST | `/outlines/apply` | Apply **approved** epic/project/section/task (+ label) actions |
+
+Default template: `coursera_specialization`. Deterministic (no LLM). Operator-owned file only — no Coursera client. See [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [09-technical-architecture.md](./09-technical-architecture.md).
+
+---
+
 ### Search
 
 | Method | Path | Description |

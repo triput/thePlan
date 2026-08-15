@@ -308,7 +308,34 @@ Operator gut: some files may house **too many vectors** (UI + orchestration + do
 
 ### Notes
 
-Triggered by intuition after rapid Theme F / Assist growth, not by a concrete defect. Assessment first; code moves only after explicit greenlight. Separate from feature DEF-008–010.
+Triggered by intuition after rapid Theme F / Assist growth, not by a concrete defect. Assessment first; code moves only after explicit greenlight. Separate from feature DEF-008–010. Pair with [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up) / [09-technical-architecture.md](./09-technical-architecture.md) when mapping hotspots.
+
+---
+
+## DEF-012 — Living technical architecture + diagrams (catch-up)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (docs debt; product works without it) |
+| **Status** | Open — living doc; **initial catch-up drafted 2026-08-14** |
+| **Found** | 2026-08-14 |
+| **Surface** | [09-technical-architecture.md](./09-technical-architecture.md) (+ index in [README.md](./README.md)) |
+| **Wave** | Docs hygiene; update when topology/pipelines/layering change |
+
+### Symptom / ask
+
+Wave 1 doc package + ADRs existed, but organic growth (W2/W3/Assist/Theme F) left no single **current** system map. Operator wants a hangable architecture page with **diagrams**, knowing it will keep growing.
+
+### Expected
+
+- Keep [09-technical-architecture.md](./09-technical-architecture.md) current: runtime topology, layering rules, major pipelines, pointers into code/docs.
+- Add diagrams as needed (auth, calendar sync, Update Schedule, …).
+- Optionally sync stale lines in functional spec / API contract / feature catalog in the same passes—not a big-bang rewrite.
+
+### Notes
+
+Initial draft shipped with Mermaid: topology, layers, hierarchy, capture pipelines. Not a substitute for ADRs or the functional spec.
+
 
 
 

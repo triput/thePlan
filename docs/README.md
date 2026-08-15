@@ -25,6 +25,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [06-mvp-backlog.md](./06-mvp-backlog.md) | Wave 1 (MVP) user stories and exit criteria |
 | [07-wave-roadmap.md](./07-wave-roadmap.md) | MVP → W1.5 → W1.6 → W2a → W2b → W2c (parked) ↔ W3 / W3+ / W4 |
 | [08-color-palette.md](./08-color-palette.md) | Entity presets + status accents (Synesis/Phronesis-aligned) |
+| [09-technical-architecture.md](./09-technical-architecture.md) | **Living** system map + diagrams (topology, layers, pipelines) — catch-up 2026-08-14 |
 | [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | Wave 1 exit record — delivered epics, criteria met, known gaps |
 | [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) | Wave 1.5 exit record — auth, recurrence, reminders, ops, closeout UI |
 | [DEFECTS.md](./DEFECTS.md) | Open product defects (non-wave-blocker) |
@@ -39,7 +40,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [SLM-ASSIST.md](./SLM-ASSIST.md) | Local SLM Assist operator note (W3+; ADR-010) |
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
-**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist prove-it shipped** — [ADR-010](./adr/ADR-010-slm-assist.md) — [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist + Theme F outline ingest shipped** — [ADR-010](./adr/ADR-010-slm-assist.md), [ADR-011](./adr/ADR-011-templates-outline-ingest.md) — system map [09-technical-architecture.md](./09-technical-architecture.md) — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ## SQL & ADRs
 
@@ -56,6 +57,8 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [adr/ADR-008-microsoft-calendar.md](./adr/ADR-008-microsoft-calendar.md) | W3 Slice 2 — Microsoft Graph calendar sync |
 | [adr/ADR-009-tauri-desktop.md](./adr/ADR-009-tauri-desktop.md) | W3 Slice 3 — Tauri prove-it shell + API sidecar |
 | [adr/ADR-010-slm-assist.md](./adr/ADR-010-slm-assist.md) | W3+ — local SLM Assist (Ollama; review→confirm→apply) — Accepted |
+| [adr/ADR-011-templates-outline-ingest.md](./adr/ADR-011-templates-outline-ingest.md) | W3+ Theme F — outline ingest / `coursera_specialization` pack — Accepted |
+| [OUTLINE-INGEST.md](./OUTLINE-INGEST.md) | Theme F operator note |
 
 ## Legacy
 
