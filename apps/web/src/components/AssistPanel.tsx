@@ -13,15 +13,24 @@ import { emitToast } from "./ToastHost";
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
 
+type ReviewAction = AssistCreateTaskAction & { clientId: string };
+
+function withClientIds(actions: AssistCreateTaskAction[]): ReviewAction[] {
+  return actions.map((action) => ({
+    ...action,
+    clientId: crypto.randomUUID(),
+  }));
+}
+
 function ActionReviewRow({
   action,
   index,
   onChange,
   onRemove,
 }: {
-  action: AssistCreateTaskAction;
+  action: ReviewAction;
   index: number;
-  onChange: (index: number, next: AssistCreateTaskAction) => void;
+  onChange: (index: number, next: ReviewAction) => void;
   onRemove: (index: number) => void;
 }) {
   return (
@@ -66,7 +75,7 @@ function ActionReviewRow({
 export function AssistPanel() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
-  const [actions, setActions] = useState<AssistCreateTaskAction[] | null>(null);
+  const [actions, setActions] = useState<ReviewAction[] | null>(null);
   const [model, setModel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -82,7 +91,7 @@ export function AssistPanel() {
   const proposeMutation = useMutation({
     mutationFn: proposeAssist,
     onSuccess: (data) => {
-      setActions(data.actions);
+      setActions(withClientIds(data.actions));
       setModel(data.model);
       setError(null);
       if (data.actions.length === 0) {
@@ -101,7 +110,10 @@ export function AssistPanel() {
   });
 
   const applyMutation = useMutation({
-    mutationFn: applyAssist,
+    mutationFn: (items: ReviewAction[]) =>
+      applyAssist(
+        items.map(({ clientId: _clientId, ...action }) => action),
+      ),
     onSuccess: (data) => {
       const okCount = data.results.filter((r) => r.ok).length;
       const failCount = data.results.length - okCount;
@@ -213,23 +225,23 @@ export function AssistPanel() {
             Proposal from <code>{model}</code> — edit or remove before approve.
           </p>
         )}
-        {actions && actions.length > 0 && (
-          <ul className="assist-action-list">
-            {actions.map((action, index) => (
-              <ActionReviewRow
-                key={`${action.title}-${index}`}
-                action={action}
-                index={index}
-                onChange={(i, next) =>
-                  setActions((prev) => (prev ? prev.map((a, j) => (j === i ? next : a)) : prev))
-                }
-                onRemove={(i) =>
-                  setActions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))
-                }
-              />
-            ))}
-          </ul>
-        )}
+          {actions && actions.length > 0 && (
+            <ul className="assist-action-list">
+              {actions.map((action, index) => (
+                <ActionReviewRow
+                  key={action.clientId}
+                  action={action}
+                  index={index}
+                  onChange={(i, next) =>
+                    setActions((prev) => (prev ? prev.map((a, j) => (j === i ? next : a)) : prev))
+                  }
+                  onRemove={(i) =>
+                    setActions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))
+                  }
+                />
+              ))}
+            </ul>
+          )}
         {error && <p className="form-error">{error}</p>}
       </Modal>
     </div>
