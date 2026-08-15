@@ -10,7 +10,7 @@ import { AssistPanel } from "./components/AssistPanel";
 import { OutlineImportPanel } from "./components/OutlineImportPanel";
 import { ReminderPoller } from "./components/ReminderPoller";
 import { SearchBox, type SearchBoxHandle } from "./components/SearchBox";
-import { Sidebar } from "./components/Sidebar";
+import { requestExpandEpic, Sidebar } from "./components/Sidebar";
 import { TaskDetailPanel } from "./components/TaskDetailPanel";
 import { TaskList } from "./components/TaskList";
 import { emitToast, ToastHost } from "./components/ToastHost";
@@ -39,8 +39,11 @@ function AppInner() {
   const searchRef = useRef<SearchBoxHandle>(null);
   const { undo } = useUndoStack();
 
-  const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
-  const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => fetchProjects({ limit: 200 }),
+  });
+  const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics({ limit: 200 }) });
   const projects = projectsQuery.data?.items ?? [];
   const epics = epicsQuery.data?.items ?? [];
 
@@ -189,7 +192,13 @@ function AppInner() {
           <QuickAdd ref={quickAddRef} view={view} projects={projects} />
           <div className="assist-cluster">
             <AssistPanel />
-            <OutlineImportPanel />
+            <OutlineImportPanel
+              onApplied={(epicId) => {
+                if (!epicId) return;
+                requestExpandEpic(epicId);
+                selectView({ type: "epic", epicId });
+              }}
+            />
           </div>
           <SearchBox ref={searchRef} onSelectTask={setSelectedTaskId} />
           <button

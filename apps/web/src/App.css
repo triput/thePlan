@@ -1000,6 +1000,40 @@
   padding: 0;
 }
 
+.epic-task-groups {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.epic-project-group {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.epic-project-heading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.epic-section-group {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 0.35rem;
+  border-left: 2px solid var(--border);
+}
+
+.epic-section-heading {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted, #6b7280);
+}
+
+.epic-add-hint {
+  margin-top: 0.75rem;
+}
+
 .task-row {
   display: flex;
   align-items: center;

@@ -26,7 +26,8 @@ Durations come from `duration_minutes`. Optional items are included by default; 
 1. Obtain a curriculum JSON in the fixture shape (ChatGPT Coursera plugin, DevTools save, hand-built — outside thePlan).
 2. Open **Outline** → paste or choose the file.
 3. Propose → skim/edit/remove rows → Approve.
-4. Expect one epic, N projects, modules as sections, and many tasks (IBM RAG fixture ≈ 417 tasks). Large applies can take a moment.
+4. After apply, thePlan opens the new epic (expanded). **Courses are projects** under that epic in the sidebar; **modules are sections** inside each course (visible in the epic’s grouped task list, or open a course for the sections bar).
+5. Expect one epic, N projects, modules as sections, and many tasks (IBM RAG fixture ≈ 417 tasks). Large applies can take a moment.
 
 Re-importing the same outline **will duplicate** entities in prove-it (no dedupe yet).
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchEpics, fetchLabels, fetchProjects, reorderProjects, type Epic, type Project } from "../api";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
@@ -9,6 +9,12 @@ import { EditEpicForm } from "./EditEpicForm";
 import { EditProjectForm } from "./EditProjectForm";
 import { ReorderButtons } from "./ReorderButtons";
 import { SettingsPanel } from "./SettingsPanel";
+
+const EXPAND_EPIC_EVENT = "theplan:expand-epic";
+
+export function requestExpandEpic(epicId: string) {
+  window.dispatchEvent(new CustomEvent(EXPAND_EPIC_EVENT, { detail: { epicId } }));
+}
 
 interface SidebarProps {
   view: ViewSelection;
@@ -87,13 +93,37 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
-  const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics({ limit: 200 }) });
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => fetchProjects({ limit: 200 }),
+  });
   const labelsQuery = useQuery({ queryKey: ["labels"], queryFn: () => fetchLabels({ limit: 200 }) });
 
   const epics = epicsQuery.data?.items ?? [];
   const projects = projectsQuery.data?.items ?? [];
   const labels = [...(labelsQuery.data?.items ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+
+  useEffect(() => {
+    if (view.type === "epic") {
+      setExpandedEpics((prev) => {
+        if (prev.has(view.epicId)) return prev;
+        const next = new Set(prev);
+        next.add(view.epicId);
+        return next;
+      });
+    }
+  }, [view]);
+
+  useEffect(() => {
+    const onExpand = (event: Event) => {
+      const epicId = (event as CustomEvent<{ epicId?: string }>).detail?.epicId;
+      if (!epicId) return;
+      setExpandedEpics((prev) => new Set(prev).add(epicId));
+    };
+    window.addEventListener(EXPAND_EPIC_EVENT, onExpand);
+    return () => window.removeEventListener(EXPAND_EPIC_EVENT, onExpand);
+  }, []);
 
   const reorderProjectsMutation = useMutation({
     mutationFn: reorderProjects,

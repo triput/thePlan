@@ -6,6 +6,7 @@ import {
   createTask,
   fetchLabels,
   fetchPlans,
+  fetchProjects,
   fetchScheduledBlocks,
   fetchSections,
   fetchTasks,
@@ -150,6 +151,33 @@ export function TaskList({
     return map;
   }, [plansQuery.data]);
 
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => fetchProjects({ limit: 200 }),
+  });
+  const projects = projectsQuery.data?.items ?? [];
+  const projectById = useMemo(() => {
+    const map = new Map(projects.map((p) => [p.id, p]));
+    return map;
+  }, [projects]);
+
+  const epicProjects = useMemo(() => {
+    if (view.type !== "epic") return [];
+    return projects
+      .filter((p) => p.epic_id === view.epicId)
+      .sort((a, b) => a.sort_order - b.sort_order);
+  }, [projects, view]);
+
+  const epicSectionsQuery = useQuery({
+    queryKey: ["sections", "epic", view.type === "epic" ? view.epicId : null, epicProjects.map((p) => p.id)],
+    enabled: view.type === "epic" && epicProjects.length > 0,
+    queryFn: async () => {
+      const pages = await Promise.all(epicProjects.map((p) => fetchSections(p.id)));
+      return pages.flatMap((page) => page.items);
+    },
+  });
+  const epicSections = epicSectionsQuery.data ?? [];
+
   const tasksQuery = useQuery({
     queryKey: tasksCacheKey(view, showCompleted),
     queryFn: async () => {
@@ -159,7 +187,7 @@ export function TaskList({
           : view.type === "project"
             ? { project_id: view.projectId, limit: 200 }
             : view.type === "epic"
-              ? { epic_id: view.epicId, limit: 200 }
+              ? { epic_id: view.epicId, limit: 1000 }
               : view.type === "label"
                 ? { label_id: view.labelId, limit: 200 }
                 : { limit: 200 };
@@ -527,6 +555,87 @@ export function TaskList({
     onSelectTask(task.id);
   };
 
+  const renderTaskRow = (task: Task) => {
+    const siblings = getTaskSiblings(task);
+    return (
+      <li
+        key={task.id}
+        ref={(el) => {
+          if (el) rowRefs.current.set(task.id, el);
+          else rowRefs.current.delete(task.id);
+        }}
+        className={`task-row${task.is_completed ? " completed" : ""}${selectedTaskId === task.id ? " selected" : ""}${focusedTaskId === task.id ? " focused" : ""}`}
+        style={{ paddingLeft: `${12 + task.nesting_level * 20}px` }}
+        onClick={(e) => handleTaskRowClick(task, e)}
+      >
+        <input
+          type="checkbox"
+          className="task-check"
+          checked={task.is_completed}
+          onChange={() => handleToggleComplete(task)}
+          aria-label={`Mark "${task.title}" complete`}
+        />
+        <span className={`task-title${task.is_completed ? " done" : ""}`}>{task.title}</span>
+        {task.priority !== "p4" && (
+          <span className="priority-badge" style={{ color: PRIORITY_COLORS[task.priority] }}>
+            {task.priority.toUpperCase()}
+          </span>
+        )}
+        {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
+        {(task.plan_name || task.plan_id) && (
+          <span className="plan-badge">
+            Plan {task.plan_name ?? planNameById.get(task.plan_id!) ?? "…"}
+          </span>
+        )}
+        {task.soft_target_at && (
+          <span className="soft-target-badge">Soft {formatDue(task.soft_target_at)}</span>
+        )}
+        {task.deadline_at && (
+          <span className="deadline-badge">Deadline {formatDue(task.deadline_at)}</span>
+        )}
+        {task.estimated_duration_minutes > 0 && (
+          <span className="duration-badge">{formatDuration(task.estimated_duration_minutes)}</span>
+        )}
+        {task.label_ids.map((labelId) => {
+          const label = labelsById.get(labelId);
+          if (!label) return null;
+          return (
+            <span
+              key={labelId}
+              className="label-chip"
+              style={{ borderColor: label.color_hex, color: label.color_hex }}
+            >
+              {label.name}
+            </span>
+          );
+        })}
+        <ReorderButtons
+          label={task.title}
+          canMoveUp={canReorderUp(siblings, task.id)}
+          canMoveDown={canReorderDown(siblings, task.id)}
+          onMoveUp={() => handleReorderTask(task, "up")}
+          onMoveDown={() => handleReorderTask(task, "down")}
+          pending={reorderTasksMutation.isPending}
+          className="task-reorder-btns"
+        />
+        {!task.is_completed && (
+          <button
+            type="button"
+            className="icon-btn subtask-btn"
+            title="Add subtask"
+            aria-label={`Add subtask to ${task.title}`}
+            onClick={() => {
+              setSubtaskParentId(task.id);
+              setSubtaskTitle("");
+            }}
+          >
+            +
+          </button>
+        )}
+      </li>
+    );
+  };
+
   const heading =
     view.type === "project"
       ? (projectTitle ?? "Project")
@@ -593,96 +702,56 @@ export function TaskList({
           </p>
         )}
 
-        <ul className="task-list" aria-label={`Tasks in ${heading}`}>
-          {tasks.length === 0 && !tasksQuery.isLoading && (
-            <li className="empty-state">No tasks here yet.</li>
-          )}
-          {tasks.map((task) => {
-            const siblings = getTaskSiblings(task);
-            return (
-            <li
-              key={task.id}
-              ref={(el) => {
-                if (el) rowRefs.current.set(task.id, el);
-                else rowRefs.current.delete(task.id);
-              }}
-              className={`task-row${task.is_completed ? " completed" : ""}${selectedTaskId === task.id ? " selected" : ""}${focusedTaskId === task.id ? " focused" : ""}`}
-              style={{ paddingLeft: `${12 + task.nesting_level * 20}px` }}
-              onClick={(e) => handleTaskRowClick(task, e)}
-            >
-              <input
-                type="checkbox"
-                className="task-check"
-                checked={task.is_completed}
-                onChange={() => handleToggleComplete(task)}
-                aria-label={`Mark "${task.title}" complete`}
-              />
-              <span className={`task-title${task.is_completed ? " done" : ""}`}>{task.title}</span>
-              {task.priority !== "p4" && (
-                <span
-                  className="priority-badge"
-                  style={{ color: PRIORITY_COLORS[task.priority] }}
-                >
-                  {task.priority.toUpperCase()}
-                </span>
-              )}
-              {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
-              {(task.plan_name || task.plan_id) && (
-                <span className="plan-badge">
-                  Plan {task.plan_name ?? planNameById.get(task.plan_id!) ?? "…"}
-                </span>
-              )}
-              {task.soft_target_at && (
-                <span className="soft-target-badge">Soft {formatDue(task.soft_target_at)}</span>
-              )}
-              {task.deadline_at && (
-                <span className="deadline-badge">Deadline {formatDue(task.deadline_at)}</span>
-              )}
-              {task.estimated_duration_minutes > 0 && (
-                <span className="duration-badge">
-                  {formatDuration(task.estimated_duration_minutes)}
-                </span>
-              )}
-              {task.label_ids.map((labelId) => {
-                const label = labelsById.get(labelId);
-                if (!label) return null;
-                return (
-                  <span
-                    key={labelId}
-                    className="label-chip"
-                    style={{ borderColor: label.color_hex, color: label.color_hex }}
-                  >
-                    {label.name}
-                  </span>
-                );
-              })}
-              <ReorderButtons
-                label={task.title}
-                canMoveUp={canReorderUp(siblings, task.id)}
-                canMoveDown={canReorderDown(siblings, task.id)}
-                onMoveUp={() => handleReorderTask(task, "up")}
-                onMoveDown={() => handleReorderTask(task, "down")}
-                pending={reorderTasksMutation.isPending}
-                className="task-reorder-btns"
-              />
-              {!task.is_completed && (
-                <button
-                  type="button"
-                  className="icon-btn subtask-btn"
-                  title="Add subtask"
-                  aria-label={`Add subtask to ${task.title}`}
-                  onClick={() => {
-                    setSubtaskParentId(task.id);
-                    setSubtaskTitle("");
-                  }}
-                >
-                  +
-                </button>
-              )}
-            </li>
-            );
-          })}
-        </ul>
+        {view.type === "epic" ? (
+          <div className="epic-task-groups" aria-label={`Tasks in ${heading}`}>
+            {tasks.length === 0 && !tasksQuery.isLoading && (
+              <p className="empty-state">No tasks here yet.</p>
+            )}
+            {epicProjects.map((project) => {
+              const projectTasks = tasks.filter((t) => t.project_id === project.id);
+              if (projectTasks.length === 0) return null;
+              const projectSections = epicSections
+                .filter((s) => s.project_id === project.id)
+                .sort((a, b) => a.sort_order - b.sort_order);
+              return (
+                <section key={project.id} className="epic-project-group">
+                  <h2 className="epic-project-heading">{project.title}</h2>
+                  {projectSections.length > 0 ? (
+                    projectSections.map((section) => {
+                      const sectionTasks = projectTasks.filter((t) => t.section_id === section.id);
+                      if (sectionTasks.length === 0) return null;
+                      return (
+                        <div key={section.id} className="epic-section-group">
+                          <h3 className="epic-section-heading">{section.title}</h3>
+                          <ul className="task-list">{sectionTasks.map(renderTaskRow)}</ul>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <ul className="task-list">{projectTasks.map(renderTaskRow)}</ul>
+                  )}
+                </section>
+              );
+            })}
+            {tasks.some((t) => !t.project_id || !projectById.has(t.project_id)) && (
+              <section className="epic-project-group">
+                <h2 className="epic-project-heading">Other</h2>
+                <ul className="task-list">
+                  {tasks
+                    .filter((t) => !t.project_id || !projectById.has(t.project_id))
+                    .map(renderTaskRow)}
+                </ul>
+              </section>
+            )}
+          </div>
+        ) : (
+          <ul className="task-list" aria-label={`Tasks in ${heading}`}>
+            {tasks.length === 0 && !tasksQuery.isLoading && (
+              <li className="empty-state">No tasks here yet.</li>
+            )}
+            {tasks.map(renderTaskRow)}
+          </ul>
+        )}
 
         {subtaskParentId && (
           <form className="inline-form subtask-form" onSubmit={handleAddSubtask}>
@@ -721,7 +790,8 @@ export function TaskList({
         )}
         {view.type === "epic" && (
           <p className="muted small epic-add-hint">
-            Open a project under this epic to add tasks. This view lists tasks across linked projects.
+            Courses are projects under this epic (expand in the sidebar). Modules are sections —
+            open a course to manage them, or browse the grouped list above.
           </p>
         )}
 

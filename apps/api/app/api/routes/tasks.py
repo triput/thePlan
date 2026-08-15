@@ -214,7 +214,7 @@ def list_tasks(
     due_from: datetime | None = None,
     due_to: datetime | None = None,
     inbox: bool = Query(default=False),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(default=50, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

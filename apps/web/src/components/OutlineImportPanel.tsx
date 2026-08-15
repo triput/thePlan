@@ -78,7 +78,11 @@ function ActionReviewRow({
   );
 }
 
-export function OutlineImportPanel() {
+export function OutlineImportPanel({
+  onApplied,
+}: {
+  onApplied?: (epicId: string | null) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [jsonText, setJsonText] = useState("");
   const [skipOptional, setSkipOptional] = useState(false);
@@ -116,6 +120,9 @@ export function OutlineImportPanel() {
     onSuccess: (data) => {
       const okCount = data.results.filter((r) => r.ok).length;
       const failCount = data.results.length - okCount;
+      const epicId =
+        data.results.find((r) => r.ok && r.action_type === "create_epic" && r.entity_id)
+          ?.entity_id ?? null;
       emitToast(
         failCount === 0
           ? `Applied ${okCount} action${okCount === 1 ? "" : "s"}`
@@ -130,6 +137,7 @@ export function OutlineImportPanel() {
       setActions(null);
       setSummary(null);
       setOpen(false);
+      onApplied?.(epicId);
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "Apply failed");
