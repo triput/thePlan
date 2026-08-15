@@ -667,32 +667,8 @@ export function TaskList({
           </div>
         </header>
 
-        {sections.length > 0 && (
-          <div className="sections-bar">
-            {sections.map((s) => (
-              <span key={s.id} className="section-tag">
-                {s.title}
-                <ReorderButtons
-                  label={s.title}
-                  canMoveUp={canReorderUp(sections, s.id)}
-                  canMoveDown={canReorderDown(sections, s.id)}
-                  onMoveUp={() => handleReorderSection(s, "up")}
-                  onMoveDown={() => handleReorderSection(s, "down")}
-                  pending={reorderSectionsMutation.isPending}
-                  className="section-reorder-btns"
-                />
-                <button
-                  type="button"
-                  className="icon-btn tiny section-edit-btn"
-                  title={`Edit ${s.title}`}
-                  aria-label={`Edit ${s.title}`}
-                  onClick={() => setEditingSection(s)}
-                >
-                  ✎
-                </button>
-              </span>
-            ))}
-          </div>
+        {view.type === "project" && sections.length === 0 && (
+          <p className="muted small">No sections yet — use Add section above, or tasks sit in one list.</p>
         )}
 
         {tasksQuery.isLoading && <p className="muted">Loading tasks…</p>}
@@ -718,7 +694,9 @@ export function TaskList({
                   <h2 className="epic-project-heading">{project.title}</h2>
                   {projectSections.length > 0 ? (
                     projectSections.map((section) => {
-                      const sectionTasks = projectTasks.filter((t) => t.section_id === section.id);
+                      const sectionTasks = projectTasks
+                        .filter((t) => t.section_id === section.id)
+                        .sort((a, b) => a.sort_order - b.sort_order);
                       if (sectionTasks.length === 0) return null;
                       return (
                         <div key={section.id} className="epic-section-group">
@@ -739,6 +717,60 @@ export function TaskList({
                 <ul className="task-list">
                   {tasks
                     .filter((t) => !t.project_id || !projectById.has(t.project_id))
+                    .map(renderTaskRow)}
+                </ul>
+              </section>
+            )}
+          </div>
+        ) : view.type === "project" && sections.length > 0 ? (
+          <div className="project-section-groups" aria-label={`Tasks in ${heading}`}>
+            {tasks.length === 0 && !tasksQuery.isLoading && (
+              <p className="empty-state">No tasks here yet.</p>
+            )}
+            {sections.map((section) => {
+              const sectionTasks = tasks
+                .filter((t) => t.section_id === section.id)
+                .sort((a, b) => a.sort_order - b.sort_order);
+              return (
+                <section key={section.id} className="project-section-group">
+                  <div className="project-section-heading-row">
+                    <h2 className="project-section-heading">{section.title}</h2>
+                    <ReorderButtons
+                      label={section.title}
+                      canMoveUp={canReorderUp(sections, section.id)}
+                      canMoveDown={canReorderDown(sections, section.id)}
+                      onMoveUp={() => handleReorderSection(section, "up")}
+                      onMoveDown={() => handleReorderSection(section, "down")}
+                      pending={reorderSectionsMutation.isPending}
+                      className="section-reorder-btns"
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn tiny section-edit-btn"
+                      title={`Edit ${section.title}`}
+                      aria-label={`Edit ${section.title}`}
+                      onClick={() => setEditingSection(section)}
+                    >
+                      ✎
+                    </button>
+                  </div>
+                  {sectionTasks.length === 0 ? (
+                    <p className="muted small empty-section">No tasks in this section.</p>
+                  ) : (
+                    <ul className="task-list">{sectionTasks.map(renderTaskRow)}</ul>
+                  )}
+                </section>
+              );
+            })}
+            {tasks.some((t) => !t.section_id) && (
+              <section className="project-section-group">
+                <div className="project-section-heading-row">
+                  <h2 className="project-section-heading">No section</h2>
+                </div>
+                <ul className="task-list">
+                  {tasks
+                    .filter((t) => !t.section_id)
+                    .sort((a, b) => a.sort_order - b.sort_order)
                     .map(renderTaskRow)}
                 </ul>
               </section>

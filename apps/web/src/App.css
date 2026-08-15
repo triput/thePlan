@@ -1034,6 +1034,47 @@
   margin-top: 0.75rem;
 }
 
+.project-section-groups {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.project-section-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.project-section-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.project-section-heading {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.project-section-heading-row .section-reorder-btns,
+.project-section-heading-row .section-edit-btn {
+  opacity: 0.55;
+}
+
+.project-section-heading-row:hover .section-reorder-btns,
+.project-section-heading-row:focus-within .section-reorder-btns,
+.project-section-heading-row:hover .section-edit-btn,
+.project-section-heading-row:focus-within .section-edit-btn {
+  opacity: 1;
+}
+
+.empty-section {
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
 .task-row {
   display: flex;
   align-items: center;
