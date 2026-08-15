@@ -149,6 +149,39 @@ Non-urgent but **required** before treating Assist time understanding as “done
 
 ---
 
+## DEF-007 — NL duration (and Assist defaulting to 30m)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (required eventually; wrong estimates train bad habits) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-14 |
+| **Surface** | Quick-add duration tokens + Assist propose/enrich/apply |
+| **Wave** | Bug bash / NL polish (pair with DEF-006) |
+
+### Symptom
+
+Operator asked Assist roughly: schedule/do something **at 8PM**, **duration 60 minutes**. Result used the **default 30 minutes** (and in this case landed at **9** instead of 8 — treat time skew as related until reproduced).
+
+### Current behavior (partial)
+
+- Compact quick-add tokens like `60m` / `1h` already parse into `estimated_duration_minutes`.
+- Prose such as **“duration 60 minutes”** / **“for an hour”** is **not** covered by `DURATION_PATTERN`.
+- Assist enrich only fills duration when the deterministic parser finds it; otherwise apply uses user settings default (often 30).
+- Assist prove-it still creates **tasks** (`due_at` + estimate), not calendar `scheduled_blocks`. “Schedule at 8PM” is interpreted as due/time cues, not a pinned block — call that out if product wants block creation later (out of ADR-010 prove-it).
+
+### Expected
+
+- Deterministic NL understands common duration phrasings (and keeps compact `60m`/`1h`).
+- Assist propose/review/apply preserve that duration so Approve does not silently fall back to 30.
+- Document whether “schedule at …” means **due** vs **scheduled_block** once duration work lands.
+
+### Notes
+
+Non-urgent but **required**. Prefer parser + enrich (same path as DEF-006) over prompt-only.
+
+---
+
 ## DEF-005 — Mobile layout: word-tower / crushed flex columns (Inbox + Settings)
 
 

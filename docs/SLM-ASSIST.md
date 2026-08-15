@@ -47,3 +47,4 @@ Voice/STT, auto-apply, schedule mutations via SLM, multi-provider Settings matri
 ## Known follow-ups
 
 - **[DEF-006](./DEFECTS.md#def-006--nl-due-times-24-hour-clock-and-broader-datetime-forms)** — expand deterministic due/time NL (24-hour clock and broader datetime forms) for quick-add + Assist enrich. Required eventually; not urgent.
+- **[DEF-007](./DEFECTS.md#def-007--nl-duration-and-assist-defaulting-to-30m)** — duration prose (`duration 60 minutes`, etc.) so Assist does not fall back to the 30m default. Required eventually; not urgent.
