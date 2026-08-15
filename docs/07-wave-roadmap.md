@@ -290,7 +290,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Microsoft Calendar | **W3 Slice 2** |
 | Tauri 2 desktop | **W3 Slice 3** |
 | Local SLM (Ollama) | **W3+** — shipped prove-it; [ADR-010](./adr/ADR-010-slm-assist.md); [SLM-ASSIST.md](./SLM-ASSIST.md) |
-| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) Proposed; fixture in `testdata/outlines/` |
+| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) **Accepted**; fixture in `testdata/outlines/` |
 | Todoist import | **W3+** |
 | Intraday / multi-occurrence habits | **W3+** |
 | Board / Kanban view | **W3+** (optional) |

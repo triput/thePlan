@@ -669,3 +669,93 @@ class AssistStatusOut(BaseModel):
     model: str
     detail: str | None = None
     enabled: bool = True
+
+
+# --- W3+ Theme F outline ingest (ADR-011) ---
+
+
+class OutlineCreateEpicAction(BaseModel):
+    type: Literal["create_epic"] = "create_epic"
+    key: str = Field(min_length=1, max_length=200)
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = None
+    sort_order: int = 0
+
+
+class OutlineCreateProjectAction(BaseModel):
+    type: Literal["create_project"] = "create_project"
+    key: str = Field(min_length=1, max_length=200)
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = None
+    sort_order: int = 0
+    epic_key: str = Field(min_length=1, max_length=200)
+
+
+class OutlineCreateSectionAction(BaseModel):
+    type: Literal["create_section"] = "create_section"
+    key: str = Field(min_length=1, max_length=200)
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = None
+    sort_order: int = 0
+    project_key: str = Field(min_length=1, max_length=200)
+
+
+class OutlineCreateTaskAction(BaseModel):
+    type: Literal["create_task"] = "create_task"
+    key: str = Field(min_length=1, max_length=200)
+    title: str = Field(min_length=1, max_length=500)
+    description: str | None = None
+    sort_order: int = 0
+    project_key: str = Field(min_length=1, max_length=200)
+    section_key: str | None = None
+    label_names: list[str] = Field(default_factory=list)
+    estimated_duration_minutes: int | None = Field(default=None, ge=1, le=24 * 60)
+    optional: bool = False
+    outline_id: str | None = None
+
+
+OutlineAction = Annotated[
+    OutlineCreateEpicAction
+    | OutlineCreateProjectAction
+    | OutlineCreateSectionAction
+    | OutlineCreateTaskAction,
+    Field(discriminator="type"),
+]
+
+
+class OutlineProposeSummary(BaseModel):
+    epic_count: int = 0
+    project_count: int = 0
+    section_count: int = 0
+    task_count: int = 0
+    optional_skipped: int = 0
+
+
+class OutlineProposeRequest(BaseModel):
+    template_id: str = "coursera_specialization"
+    outline: dict[str, Any]
+    skip_optional: bool = False
+
+
+class OutlineProposeResponse(BaseModel):
+    actions: list[OutlineAction]
+    template_id: str
+    summary: OutlineProposeSummary
+
+
+class OutlineApplyRequest(BaseModel):
+    actions: list[OutlineAction] = Field(min_length=1)
+
+
+class OutlineApplyResultItem(BaseModel):
+    ok: bool
+    action_type: str
+    title: str | None = None
+    key: str | None = None
+    entity_id: UUID | None = None
+    error: str | None = None
+    created_labels: list[str] = Field(default_factory=list)
+
+
+class OutlineApplyResponse(BaseModel):
+    results: list[OutlineApplyResultItem]

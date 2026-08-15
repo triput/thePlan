@@ -1,6 +1,6 @@
 # ADR-011: Templates + outline ingest (Theme F)
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-08-14  
 **Context:** Assist prove-it and honesty cut shipped ([ADR-010](./ADR-010-slm-assist.md)). Operator has a Coursera specialization outline as a local JSON file ([testdata/outlines/](../testdata/outlines/README.md)) and wants Epic → Project → Section → Task expansion without hand-entry or an in-app Coursera client. Templates were cataloged as W4; Theme F pulls a **narrow** templates+ingest prove-it forward.
 
@@ -82,5 +82,6 @@ Reuse Assist’s review→confirm UX pattern; do **not** route syllabus JSON thr
 
 - [ADR-010-slm-assist.md](./ADR-010-slm-assist.md)  
 - [testdata/outlines/README.md](../testdata/outlines/README.md)  
+- [OUTLINE-INGEST.md](../OUTLINE-INGEST.md)  
 - [03-feature-catalog.md](../03-feature-catalog.md)  
 - [07-wave-roadmap.md](../07-wave-roadmap.md)  

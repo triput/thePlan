@@ -487,9 +487,16 @@
   margin-top: 0.35rem;
 }
 
-.assist {
+.assist-cluster {
   grid-column: 3;
   grid-row: 1;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.assist {
   flex: 0 0 auto;
 }
 
@@ -605,6 +612,127 @@
 }
 
 .assist-action-meta {
+  margin-top: 0.3rem;
+}
+
+.outline {
+  flex: 0 0 auto;
+}
+
+.outline-toggle {
+  white-space: nowrap;
+}
+
+.modal.outline-modal {
+  max-width: 40rem;
+}
+
+.outline-help,
+.outline-summary {
+  margin: 0 0 0.75rem;
+}
+
+.outline-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.outline-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 8rem;
+  max-height: 40vh;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.outline-upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.outline-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.outline-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.outline-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.outline-action-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  max-height: min(50vh, 28rem);
+  overflow-y: auto;
+}
+
+.outline-action {
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.outline-action-main {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.outline-type-badge {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.outline-action-title {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.outline-action-meta {
   margin-top: 0.3rem;
 }
 
@@ -1538,7 +1666,7 @@
     max-width: none;
   }
 
-  .assist {
+  .assist-cluster {
     grid-column: 3;
     grid-row: 1;
   }

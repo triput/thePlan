@@ -808,6 +808,104 @@ export function applyAssist(actions: AssistCreateTaskAction[]) {
   });
 }
 
+export type OutlineActionType =
+  | "create_epic"
+  | "create_project"
+  | "create_section"
+  | "create_task";
+
+export interface OutlineCreateEpicAction {
+  type: "create_epic";
+  key: string;
+  title: string;
+  description?: string | null;
+  sort_order: number;
+}
+
+export interface OutlineCreateProjectAction {
+  type: "create_project";
+  key: string;
+  title: string;
+  description?: string | null;
+  sort_order: number;
+  epic_key: string;
+}
+
+export interface OutlineCreateSectionAction {
+  type: "create_section";
+  key: string;
+  title: string;
+  description?: string | null;
+  sort_order: number;
+  project_key: string;
+}
+
+export interface OutlineCreateTaskAction {
+  type: "create_task";
+  key: string;
+  title: string;
+  description?: string | null;
+  sort_order: number;
+  project_key: string;
+  section_key?: string | null;
+  label_names: string[];
+  estimated_duration_minutes?: number | null;
+  optional: boolean;
+  outline_id?: string | null;
+}
+
+export type OutlineAction =
+  | OutlineCreateEpicAction
+  | OutlineCreateProjectAction
+  | OutlineCreateSectionAction
+  | OutlineCreateTaskAction;
+
+export interface OutlineProposeSummary {
+  epic_count: number;
+  project_count: number;
+  section_count: number;
+  task_count: number;
+  optional_skipped: number;
+}
+
+export interface OutlineProposeResponse {
+  actions: OutlineAction[];
+  template_id: string;
+  summary: OutlineProposeSummary;
+}
+
+export interface OutlineApplyResultItem {
+  ok: boolean;
+  action_type: string;
+  title?: string | null;
+  key?: string | null;
+  entity_id?: string | null;
+  error?: string | null;
+  created_labels: string[];
+}
+
+export interface OutlineApplyResponse {
+  results: OutlineApplyResultItem[];
+}
+
+export function proposeOutline(body: {
+  template_id: string;
+  outline: Record<string, unknown>;
+  skip_optional?: boolean;
+}) {
+  return apiFetch<OutlineProposeResponse>("/api/v1/outlines/propose", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function applyOutline(actions: OutlineAction[]) {
+  return apiFetch<OutlineApplyResponse>("/api/v1/outlines/apply", {
+    method: "POST",
+    body: JSON.stringify({ actions }),
+  });
+}
+
 export interface ReorderItem {
   id: string;
   sort_order: number;
