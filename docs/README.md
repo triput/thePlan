@@ -42,6 +42,12 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 
 **Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist + Theme F outline ingest shipped** — [ADR-010](./adr/ADR-010-slm-assist.md), [ADR-011](./adr/ADR-011-templates-outline-ingest.md) — system map [09-technical-architecture.md](./09-technical-architecture.md) — [07-wave-roadmap.md](./07-wave-roadmap.md).
 
+## Dev
+
+| Document | Description |
+|----------|-------------|
+| [dev/FILE-HEADERS.md](./dev/FILE-HEADERS.md) | Module/file header convention (Python docstrings + TS/TSX info blocks) |
+
 ## SQL & ADRs
 
 | Path | Description |

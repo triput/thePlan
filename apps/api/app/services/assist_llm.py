@@ -1,4 +1,7 @@
-"""OpenAI-compatible chat client for Assist (default: Ollama). ADR-010."""
+"""OpenAI-compatible chat client for Assist (default: Ollama). ADR-010.
+
+Service layer — propose JSON actions from natural language.
+"""
 
 from __future__ import annotations
 

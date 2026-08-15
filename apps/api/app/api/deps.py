@@ -1,3 +1,8 @@
+"""FastAPI session/auth dependencies — current user resolution.
+
+API deps layer — shared by routes; not domain services.
+"""
+
 from __future__ import annotations
 
 import uuid

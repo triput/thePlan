@@ -1,4 +1,7 @@
-"""Built-in outline template packs — Theme F / ADR-011."""
+"""Built-in outline template packs — Theme F / ADR-011.
+
+Service layer — map outline JSON → propose actions (coursera_specialization).
+"""
 
 from __future__ import annotations
 

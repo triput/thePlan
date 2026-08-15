@@ -1,4 +1,7 @@
-"""Merge external calendar busy + pinned blocks into sorted BUSY intervals."""
+"""Merge external calendar busy + pinned blocks into sorted BUSY intervals.
+
+Scheduler layer — input to fuzzy placement / replan (ADR-005, ADR-006).
+"""
 
 from __future__ import annotations
 

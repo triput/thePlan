@@ -336,7 +336,29 @@ Wave 1 doc package + ADRs existed, but organic growth (W2/W3/Assist/Theme F) lef
 
 Initial draft shipped with Mermaid: topology, layers, hierarchy, capture pipelines. Not a substitute for ADRs or the functional spec.
 
+---
 
+## DEF-013 — File headers across api/web hotspots
 
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (convention / readability; product works without it) |
+| **Status** | Open — backlog; **initial convention shipped 2026-08-14** |
+| **Found** | 2026-08-14 |
+| **Surface** | Source modules under `apps/api`, `apps/web` — see [dev/FILE-HEADERS.md](./dev/FILE-HEADERS.md) |
+| **Wave** | Docs / hygiene chore; sprinkle while touching files or as a short pass |
 
+### Symptom / ask
+
+Operator wants proper module/file headers (short info blocks) as a house quirk. Not huge yet, but the convention should be real — not vaporware.
+
+### Expected
+
+- Follow [dev/FILE-HEADERS.md](./dev/FILE-HEADERS.md): Python module docstrings (purpose + ADR/layer when useful); TS/TSX `/** ... */` on non-trivial entry surfaces.
+- Apply across remaining api/web **hotspots** (routes, services, scheduler, fat components) — not mass-rewriting every re-export or generated file.
+- Keep headers short (2–6 lines); no corporate novel.
+
+### Notes
+
+Starter set applied with the convention doc (`busy_map`, `deps`, outline/Assist services, `OutlineImportPanel`). Rest is opportunistic or a dedicated P3 pass.
 

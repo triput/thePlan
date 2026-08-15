@@ -1,3 +1,8 @@
+/**
+ * Outline import UI — propose → review → apply (Theme F / ADR-011).
+ * Entry surface for Coursera specialization pack ingest.
+ */
+
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
