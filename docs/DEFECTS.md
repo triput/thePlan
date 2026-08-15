@@ -231,3 +231,30 @@ Operator wants to **drag the left edge** of the right-hand task detail sidebar t
 
 Not urgent. Drag-resize only — no need for dual-panel fancy layouts in this item.
 
+---
+
+## DEF-009 — Outline import into existing hierarchy (partial / lower-level)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (prove-it full-tree import covers first land; grafting is the next real pain) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-14 |
+| **Surface** | Outline ingest (`/outlines/propose|apply`, Outline UI) — Theme F follow-on |
+| **Wave** | Theme F polish / bug bash (after ADR-011 prove-it) |
+
+### Symptom / ask
+
+Current outline import always proposes a **full** certificate → epic → courses → modules → tasks tree. Operator wants **lower-level imports**, e.g. a single course (or module) landing as a **project under an existing epic**, without creating a duplicate specialization epic.
+
+### Expected (when built)
+
+- Propose/apply can target an existing parent: at least **epic** (import course(s) as projects + nested sections/tasks); ideally also **project** (modules → sections) and maybe **section** (tasks only).
+- UI: pick target epic/project (or paste outline that is a course/module subtree) before Propose.
+- Same review → confirm → apply; still no Coursera client; dedupe remains separate ([ADR-011](./adr/ADR-011-templates-outline-ingest.md) non-goal until booked).
+
+### Notes
+
+Severity sits between P2 and P3 on purpose: not blocking daily driver while the full-tree path works, but it will feel like P2 the first time a second course needs to join an epic already in thePlan. Acceptable outline shapes: full certificate JSON with “attach under epic X”, or a course-/module-scoped JSON fragment.
+
+
