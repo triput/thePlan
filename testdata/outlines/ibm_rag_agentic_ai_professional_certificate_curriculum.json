@@ -1,0 +1,3639 @@
+{
+  "certificate": {
+    "title": "IBM RAG and Agentic AI Professional Certificate",
+    "provider": "IBM",
+    "platform": "Coursera",
+    "source_url": "https://www.coursera.org/professional-certificates/ibm-rag-and-agentic-ai",
+    "course_count": 10,
+    "curriculum_checked": "2026-08-14",
+    "notes": "Compiled from Coursera's public curriculum. Task-level deep links are not publicly exposed on the catalog pages."
+  },
+  "courses": [
+    {
+      "course_order": 1,
+      "title": "Develop Generative AI Applications: Get Started",
+      "estimated_hours": 10,
+      "url": "https://www.coursera.org/learn/develop-generative-ai-applications-get-started?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Foundations of Generative AI and Prompt Engineering",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 1,
+              "id": "c01-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c01-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Introduction to Generative AI",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 3,
+              "id": "c01-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "What are Generative AI Models?",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 4,
+              "id": "c01-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Video: What is NLP (Natural Language Processing)?",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 5,
+              "id": "c01-m01-t05"
+            },
+            {
+              "task_type": "video",
+              "title": "Introduction to In-Context Learning",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 6,
+              "id": "c01-m01-t06"
+            },
+            {
+              "task_type": "video",
+              "title": "Introduction to LangChain",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 7,
+              "id": "c01-m01-t07"
+            },
+            {
+              "task_type": "video",
+              "title": "Advanced Methods of Prompt Engineering",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 8,
+              "id": "c01-m01-t08"
+            },
+            {
+              "task_type": "video",
+              "title": "LangChain LCEL Chaining Method",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 9,
+              "id": "c01-m01-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 10,
+              "id": "c01-m01-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "Helpful Tips for Course Completion",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 11,
+              "id": "c01-m01-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "About this Optional Lesson",
+              "duration_minutes": 2,
+              "optional": true,
+              "task_order": 12,
+              "id": "c01-m01-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Comprehensive Guide to Generative AI",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 13,
+              "id": "c01-m01-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "(Optional) Reading: What is Prompt Engineering, and Why Do We Care?",
+              "duration_minutes": 15,
+              "optional": true,
+              "task_order": 14,
+              "id": "c01-m01-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Foundations of Generative AI and Prompt Engineering",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 15,
+              "id": "c01-m01-t15"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Foundations of Generative AI and LangChain",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 16,
+              "id": "c01-m01-t16"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Generative AI Essentials",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 17,
+              "id": "c01-m01-t17"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Working with Prompt Engineering and Prompt Templates",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 18,
+              "id": "c01-m01-t18"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Foundations of Generative AI and Prompt Engineering",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 19,
+              "id": "c01-m01-t19"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Master Prompt Engineering and LangChain PromptTemplates",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 20,
+              "id": "c01-m01-t20"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Introduction to LangChain in GenAI Applications",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "LangChain: Core Concepts",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 1,
+              "id": "c01-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "LangChain Chains and Agents for Building Applications",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 2,
+              "id": "c01-m02-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "(Optional) LangChain LCEL Chaining Method",
+              "duration_minutes": 5,
+              "optional": true,
+              "task_order": 3,
+              "id": "c01-m02-t03"
+            },
+            {
+              "task_type": "reading",
+              "title": "Recap: Introduction to LangChain",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 4,
+              "id": "c01-m02-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Introduction to LangChain in GenAI Applications",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 5,
+              "id": "c01-m02-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Introduction to LangChain in GenAI Applications",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 6,
+              "id": "c01-m02-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: LangChain Core Components and Advanced Features",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 7,
+              "id": "c01-m02-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Introduction to LangChain in GenAI applications",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 8,
+              "id": "c01-m02-t08"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build Smarter AI Apps: Empower LLMs with LangChain",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 9,
+              "id": "c01-m02-t09"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Build a Generative AI Application with LangChain",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Choose the Right AI Model for Your Use Case",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 1,
+              "id": "c01-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "From Idea to AI: Building Applications with Generative AI",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 2,
+              "id": "c01-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Introduction to Flask",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 3,
+              "id": "c01-m03-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-up",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 4,
+              "id": "c01-m03-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "(Optional) Reading: Flask: A Gateway to Web Development in Python",
+              "duration_minutes": 15,
+              "optional": true,
+              "task_order": 5,
+              "id": "c01-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "(Optional) Reading: Python with Flask for Large Scale Projects",
+              "duration_minutes": 15,
+              "optional": true,
+              "task_order": 6,
+              "id": "c01-m03-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Web Development Using Flask",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 7,
+              "id": "c01-m03-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Build a Generative AI Application with LangChain",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 8,
+              "id": "c01-m03-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Build GenAI Application with LangChain",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 9,
+              "id": "c01-m03-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 10,
+              "id": "c01-m03-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgments",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 11,
+              "id": "c01-m03-t11"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Application Development Workflow with Generative AI",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 12,
+              "id": "c01-m03-t12"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Build a Generative AI Application with LangChain",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 13,
+              "id": "c01-m03-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Hands-on with GenAI: Choosing the Right Model for Your Application",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 14,
+              "id": "c01-m03-t14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 2,
+      "title": "Build RAG Applications: Get Started",
+      "estimated_hours": 7,
+      "url": "https://www.coursera.org/learn/build-rag-applications-get-started?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Introduction to RAG",
+          "estimated_hours": 2,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c02-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c02-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Why RAG?",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 3,
+              "id": "c02-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "More RAG Details",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 4,
+              "id": "c02-m01-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 5,
+              "id": "c02-m01-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "What is RAG?",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 6,
+              "id": "c02-m01-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Introduction to RAG",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c02-m01-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Introduction to RAG",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 8,
+              "id": "c02-m01-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: What is RAG?",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 9,
+              "id": "c02-m01-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Introduction to RAG",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 10,
+              "id": "c02-m01-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Summarize Private Documents Using RAG, LangChain, and LLMs",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 11,
+              "id": "c02-m01-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Helpful Tips for Course Completion",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 12,
+              "id": "c02-m01-t12"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Build Apps with RAG",
+          "estimated_hours": 2,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Getting Started with Gradio",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 1,
+              "id": "c02-m02-t01"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Building Apps with RAG",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 2,
+              "id": "c02-m02-t02"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Building Apps with RAG",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 3,
+              "id": "c02-m02-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Building Apps with RAG",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 4,
+              "id": "c02-m02-t04"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Set Up a Simple Gradio Interface to Interact with Your Models",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 5,
+              "id": "c02-m02-t05"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Construct a QA Bot that Leverages the LangChain and LLM to Answer Questions from Loaded Document",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 6,
+              "id": "c02-m02-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Introduction to Gradio",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 7,
+              "id": "c02-m02-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Building Apps with RAG",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 8,
+              "id": "c02-m02-t08"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Build RAG Apps with LlamaIndex",
+          "estimated_hours": 2,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Intro to LlamaIndex: Document Ingestion and Chunking",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 1,
+              "id": "c02-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Intro to LlamaIndex: From Vector Stores to Query Engines",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c02-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 3,
+              "id": "c02-m03-t03"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Build RAG Apps with LlamaIndex",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 4,
+              "id": "c02-m03-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 5,
+              "id": "c02-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgments",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 6,
+              "id": "c02-m03-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Application Development with LlamaIndex",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 7,
+              "id": "c02-m03-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Build RAG Apps with LlamaIndex",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 8,
+              "id": "c02-m03-t08"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an AI Icebreaker Bot with IBM Granite 3.0 & LlamaIndex",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 9,
+              "id": "c02-m03-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: LangChain and LlamaIndex Compared",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 10,
+              "id": "c02-m03-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Build RAG Apps with LlamaIndex",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 11,
+              "id": "c02-m03-t11"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 3,
+      "title": "Vector Databases for RAG: An Introduction",
+      "estimated_hours": 9,
+      "url": "https://www.coursera.org/learn/vector-databases-for-rag-an-introduction?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Introduction to Vector Databases and Chroma DB",
+          "estimated_hours": 5,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Video: Course Introduction",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 1,
+              "id": "c03-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c03-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Vector Database Concepts",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 3,
+              "id": "c03-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Vector Database Types",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 4,
+              "id": "c03-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Applications of Vector Databases",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 5,
+              "id": "c03-m01-t05"
+            },
+            {
+              "task_type": "video",
+              "title": "Chroma DB Key Concepts and Architecture",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 6,
+              "id": "c03-m01-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "IBM Product Spotlight: watsonx.data",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c03-m01-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 8,
+              "id": "c03-m01-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Summary and Highlights: Introduction to Vector Databases and Chroma DB",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 9,
+              "id": "c03-m01-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to Vector Databases and Similarity Search",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 10,
+              "id": "c03-m01-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Exploring Chroma DB",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 11,
+              "id": "c03-m01-t11"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Introduction to Vector Databases and Chroma DB",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 12,
+              "id": "c03-m01-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Similarity Search by Hand",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 13,
+              "id": "c03-m01-t13"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 14,
+              "id": "c03-m01-t14"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Similarity Search on Text Using Chroma DB and Python",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 15,
+              "id": "c03-m01-t15"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 16,
+              "id": "c03-m01-t16"
+            },
+            {
+              "task_type": "discussion",
+              "title": "[Optional] Discussion Prompt: Meet and Greet",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 17,
+              "id": "c03-m01-t17"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Helpful Tips for Course Completion",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 18,
+              "id": "c03-m01-t18"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Vector Databases Versus Traditional Databases",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 19,
+              "id": "c03-m01-t19"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Similarity Search",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 20,
+              "id": "c03-m01-t20"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Chroma DB Filtering",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 21,
+              "id": "c03-m01-t21"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Similarity Search and HNSW in Chroma DB",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 22,
+              "id": "c03-m01-t22"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Cheat Sheet: Introduction to Vector Databases and Chroma DB",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 23,
+              "id": "c03-m01-t23"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Vector Databases for Recommendation Systems and RAG",
+          "estimated_hours": 5,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Essential Database Operations in Chroma DB",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 1,
+              "id": "c03-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "How Vector Databases Power RAG",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 2,
+              "id": "c03-m02-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 3,
+              "id": "c03-m02-t03"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Vector Databases for Recommendation Systems and RAG",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 4,
+              "id": "c03-m02-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "What's Next: Explore watsonx.data",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 5,
+              "id": "c03-m02-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 6,
+              "id": "c03-m02-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgments",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c03-m02-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Chroma DB Database Operations",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 8,
+              "id": "c03-m02-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Develop a Recommendation System and Connect Learned Concepts to RAG",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c03-m02-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Assignment: Graded Quiz: Vector Databases for Recommendation Systems and RAG",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 10,
+              "id": "c03-m02-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Similarity Search on Employee Records using Python and Chroma DB",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 11,
+              "id": "c03-m02-t11"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 12,
+              "id": "c03-m02-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Practice Project: Food Recommendation System Using Chroma DB",
+              "duration_minutes": 120,
+              "optional": false,
+              "task_order": 13,
+              "id": "c03-m02-t13"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 14,
+              "id": "c03-m02-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Vector Databases for Recommendation Systems and RAG Cheat Sheet",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 15,
+              "id": "c03-m02-t15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 4,
+      "title": "Advanced RAG with Vector Databases and Retrievers",
+      "estimated_hours": 8,
+      "url": "https://www.coursera.org/learn/advanced-rag-with-vector-databases-and-retrievers?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Advanced Retrievers for RAG",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 1,
+              "id": "c04-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c04-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Explore Advanced Retrievers in Langchain: Part 1",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 3,
+              "id": "c04-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Explore Advanced Retrievers in Langchain - Part 2",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 4,
+              "id": "c04-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Advanced Retrievers in LlamaIndex",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 5,
+              "id": "c04-m01-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 6,
+              "id": "c04-m01-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Advanced Retrievers for RAG",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 7,
+              "id": "c04-m01-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Work with Advanced Retrievers in LangChain",
+              "duration_minutes": 14,
+              "optional": false,
+              "task_order": 8,
+              "id": "c04-m01-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Work with Advanced Retrievers in LlamaIndex",
+              "duration_minutes": 14,
+              "optional": false,
+              "task_order": 9,
+              "id": "c04-m01-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Advanced Retrievers for RAG",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 10,
+              "id": "c04-m01-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Smarter Search with LangChain Context Retrieval",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 11,
+              "id": "c04-m01-t11"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive LangChain Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 12,
+              "id": "c04-m01-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Explore Advanced Retrievers in LlamaIndex",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 13,
+              "id": "c04-m01-t13"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive LlamaIndex Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 14,
+              "id": "c04-m01-t14"
+            },
+            {
+              "task_type": "discussion",
+              "title": "[Optional] Meet and Greet",
+              "duration_minutes": 2,
+              "optional": true,
+              "task_order": 15,
+              "id": "c04-m01-t15"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Helpful Tips for Course Completion",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 16,
+              "id": "c04-m01-t16"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Cheat Sheet: Advanced Retrievers for RAG",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 17,
+              "id": "c04-m01-t17"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Build a Comprehensive RAG Application",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Introduction to FAISS and How It compares to ChromaDB",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 1,
+              "id": "c04-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 2,
+              "id": "c04-m02-t02"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Build a Comprehensive RAG Application",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 3,
+              "id": "c04-m02-t03"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 4,
+              "id": "c04-m02-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgements",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 5,
+              "id": "c04-m02-t05"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to FAISS for RAG",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 6,
+              "id": "c04-m02-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Build a Comprehensive RAG Application",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 7,
+              "id": "c04-m02-t07"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Semantic Similarity with FAISS",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 8,
+              "id": "c04-m02-t08"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: AI-Powered YouTube Summarizer, QA Tool with RAG, LangChain, FAISS",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 9,
+              "id": "c04-m02-t09"
+            },
+            {
+              "task_type": "app_item",
+              "title": "[Optional] Interactive FAISS/HNSW Lesson Recap Podcast (AI-Powered)",
+              "duration_minutes": 10,
+              "optional": true,
+              "task_order": 10,
+              "id": "c04-m02-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Hierarchical Navigable Small World (HNSW)",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 11,
+              "id": "c04-m02-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Build a Comprehensive RAG Application",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 12,
+              "id": "c04-m02-t12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 5,
+      "title": "Build Multimodal Generative AI Applications",
+      "estimated_hours": 8,
+      "url": "https://www.coursera.org/learn/build-multimodal-generative-ai-applications?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Foundations of Multimodal AI",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Video: Course Introduction",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 1,
+              "id": "c05-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c05-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Introduction to Multimodal AI",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 3,
+              "id": "c05-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Text-to-Speech Technologies",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 4,
+              "id": "c05-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Speech-to-Text Technologies",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 5,
+              "id": "c05-m01-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Course Overview",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 6,
+              "id": "c05-m01-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Summary and Highlights",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c05-m01-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Foundations of Multimodal AI",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 8,
+              "id": "c05-m01-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to Multimodal AI: Text and Speech Processing",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 9,
+              "id": "c05-m01-t09"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Use Mistral and gTTS to Create Your Personal Storyteller",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 10,
+              "id": "c05-m01-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Meeting Assistant with Whisper, LangChain, & Gradio",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 11,
+              "id": "c05-m01-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "Helpful Tips for Course Completion",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 12,
+              "id": "c05-m01-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: What is Multimodal Generative AI and Why Does It Matter?",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 13,
+              "id": "c05-m01-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: What is Computer Vision?",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 14,
+              "id": "c05-m01-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Text Processing, Speech Processing, and Text-to-Speech",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 15,
+              "id": "c05-m01-t15"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Challenges in Multimodal AI Integration",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 16,
+              "id": "c05-m01-t16"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Foundations of Multimodal AI",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 17,
+              "id": "c05-m01-t17"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Integrating Visual and Video Modalities",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Understanding Image Captioning with Meta's Llama",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 1,
+              "id": "c05-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Demo: Text-to-Video Generation with OpenAI's Sora",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 2,
+              "id": "c05-m02-t02"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Summary and Highlights",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 3,
+              "id": "c05-m02-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Integrating Visual and Video Modalities",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 4,
+              "id": "c05-m02-t04"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Image Generation and Captioning",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 5,
+              "id": "c05-m02-t05"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: DALL·E Image Generation Guide for Beginners",
+              "duration_minutes": 20,
+              "optional": false,
+              "task_order": 6,
+              "id": "c05-m02-t06"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an Image Captioning System with watsonx and IBM's Granite",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 7,
+              "id": "c05-m02-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Introduction to Text-to-Video and Image-to-Video Technologies",
+              "duration_minutes": 12,
+              "optional": false,
+              "task_order": 8,
+              "id": "c05-m02-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Strengths, Limitations, and Practical Applications of Multimodal Vision Models in Real World Scenarios",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 9,
+              "id": "c05-m02-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Integrating Visual and Video Modalities",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 10,
+              "id": "c05-m02-t10"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Advanced Multimodal Applications",
+          "estimated_hours": 2,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Introduction to Multimodal Retrieval-Augmented Generation (MM-RAG)",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 1,
+              "id": "c05-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Multimodal Chatbots and QA Systems",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 2,
+              "id": "c05-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-up",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 3,
+              "id": "c05-m03-t03"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 4,
+              "id": "c05-m03-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Congratulations and Next Steps",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 5,
+              "id": "c05-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Thanks from the Course Team",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 6,
+              "id": "c05-m03-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Advanced Multimodal Applications",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 7,
+              "id": "c05-m03-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Build Advanced Multimodal Applications",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 8,
+              "id": "c05-m03-t08"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Style Finder Using Multimodal Retrieval and Search",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 9,
+              "id": "c05-m03-t09"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Building Your First GenAI-Powered Image-Based Web Application: AI Nutrition Coach",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 10,
+              "id": "c05-m03-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Advanced Multimodal Applications",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 11,
+              "id": "c05-m03-t11"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 6,
+      "title": "Fundamentals of Building AI Agents",
+      "estimated_hours": 11,
+      "url": "https://www.coursera.org/learn/fundamentals-of-building-ai-agents?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Foundations of Tool Calling and Chaining",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c06-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c06-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "What are AI Agents?",
+              "duration_minutes": 12,
+              "optional": false,
+              "task_order": 3,
+              "id": "c06-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Tool Calling for LLMs",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 4,
+              "id": "c06-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Why AI Needs Tools: From Guessing to Real-World Action",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 5,
+              "id": "c06-m01-t05"
+            },
+            {
+              "task_type": "video",
+              "title": "Build Effective AI Tools for Advanced LLMs",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 6,
+              "id": "c06-m01-t06"
+            },
+            {
+              "task_type": "video",
+              "title": "Build Intelligent Agents for Dynamic LLM Tool Use",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 7,
+              "id": "c06-m01-t07"
+            },
+            {
+              "task_type": "video",
+              "title": "Build a Custom Math Toolkit Agent with LangChain",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 8,
+              "id": "c06-m01-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 9,
+              "id": "c06-m01-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Comparing AI System Designs",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 10,
+              "id": "c06-m01-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "When to (and not to) use AI Agents",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 11,
+              "id": "c06-m01-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "Tools, Agents, and Function Calling in LangChain",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 12,
+              "id": "c06-m01-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Popular Built-in Tools in LangChain",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 13,
+              "id": "c06-m01-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Foundations of Tool Calling and Chaining",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 14,
+              "id": "c06-m01-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Foundations of Function Calling and Chaining",
+              "duration_minutes": 20,
+              "optional": false,
+              "task_order": 15,
+              "id": "c06-m01-t15"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to AI Agents",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 16,
+              "id": "c06-m01-t16"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Getting Started with Tool Calling",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 17,
+              "id": "c06-m01-t17"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Building and Orchestrating Tools",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 18,
+              "id": "c06-m01-t18"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Foundations of Tool Calling and Chaining",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 19,
+              "id": "c06-m01-t19"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an AI Math Assistant with LangChain Tool Calling",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 20,
+              "id": "c06-m01-t20"
+            },
+            {
+              "task_type": "reading",
+              "title": "Helpful Tips for Course Completion",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 21,
+              "id": "c06-m01-t21"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "LCEL and Manual Tool Calling in LangChain",
+          "estimated_hours": 5,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "LangChain LCEL Chaining Method",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 1,
+              "id": "c06-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "When to Call Tools Manually",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 2,
+              "id": "c06-m02-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Build LLM Agents with Tools",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 3,
+              "id": "c06-m02-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Build Interactive LLM Agents",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 4,
+              "id": "c06-m02-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: LangChain Expression Language (LCEL)",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 5,
+              "id": "c06-m02-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Structured Outputs for Tool Calling",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 6,
+              "id": "c06-m02-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Introduction to Chaining and LCEL Basics",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c06-m02-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to Chaining & LCEL Basics",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 8,
+              "id": "c06-m02-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Manual Tool Calling Basics",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c06-m02-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Parsing and Validating Tool Calls",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 10,
+              "id": "c06-m02-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Manual Tool Calling in LangChain",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 11,
+              "id": "c06-m02-t11"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: AI Powered Data Analysis with LCEL",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 12,
+              "id": "c06-m02-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build Interactive LLM Agents with Tools",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 13,
+              "id": "c06-m02-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Tool Calling Agent",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 14,
+              "id": "c06-m02-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Manual Tool Calling in LangChain",
+              "duration_minutes": 20,
+              "optional": false,
+              "task_order": 15,
+              "id": "c06-m02-t15"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Using Built-in Agents in LangChain",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "From Natural Language to Data Visualizations with LangChain",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 1,
+              "id": "c06-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "An Introduction to AI-Powered SQL Agents",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 2,
+              "id": "c06-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Implementing LangChain’s AI-Powered SQL Agent",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 3,
+              "id": "c06-m03-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 4,
+              "id": "c06-m03-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Bridging Language and Data: How AI Transforms Analytics",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 5,
+              "id": "c06-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Natural Language Interfaces for Data Systems",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 6,
+              "id": "c06-m03-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Using Built-in Agents in LangChain",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c06-m03-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Using Built-in Agents in LangChain",
+              "duration_minutes": 20,
+              "optional": false,
+              "task_order": 8,
+              "id": "c06-m03-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c06-m03-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgement",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 10,
+              "id": "c06-m03-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Natural Language Data Visualization",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 11,
+              "id": "c06-m03-t11"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Conversational Database Access",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 12,
+              "id": "c06-m03-t12"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Using Built-in Agents in LangChain",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 13,
+              "id": "c06-m03-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build Your Own Data Visualization Agent",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 14,
+              "id": "c06-m03-t14"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Natural Language SQL Agent",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 15,
+              "id": "c06-m03-t15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 7,
+      "title": "Agentic AI with LangChain and LangGraph",
+      "estimated_hours": 11,
+      "url": "https://www.coursera.org/learn/agentic-ai-with-langchain-and-langgraph?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Introduction to LangGraph",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c07-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "RAG and Agentic AI Professional Certificate Overview",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 2,
+              "id": "c07-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Generative versus Agentic AI",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 3,
+              "id": "c07-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Core Components of LangGraph",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 4,
+              "id": "c07-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "LangGraph versus LangChain: When to Use What",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 5,
+              "id": "c07-m01-t05"
+            },
+            {
+              "task_type": "video",
+              "title": "Getting Started with LangGraph 101",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 6,
+              "id": "c07-m01-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 7,
+              "id": "c07-m01-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Helpful Tips for Course Completion",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 8,
+              "id": "c07-m01-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Agentic AI",
+              "duration_minutes": 12,
+              "optional": false,
+              "task_order": 9,
+              "id": "c07-m01-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "LangGraph Architecture: Designing Effective Workflows",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 10,
+              "id": "c07-m01-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "LangGraph versus LangChain: Pros, Cons, and Practical Considerations",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 11,
+              "id": "c07-m01-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 12,
+              "id": "c07-m01-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Introduction to LangGraph",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 13,
+              "id": "c07-m01-t13"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Introduction to Agentic AI",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 14,
+              "id": "c07-m01-t14"
+            },
+            {
+              "task_type": "assignment",
+              "title": "LangGraph versus LangChain",
+              "duration_minutes": 20,
+              "optional": false,
+              "task_order": 15,
+              "id": "c07-m01-t15"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Build a LangGraph Workflow",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 16,
+              "id": "c07-m01-t16"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Introduction to LangGraph",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 17,
+              "id": "c07-m01-t17"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: LangGraph 101: Building Stateful AI Workflows",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 18,
+              "id": "c07-m01-t18"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Build Self-Improving Agents with LangGraph",
+          "estimated_hours": 5,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Overview: Types of AI Agents",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 1,
+              "id": "c07-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "The Art of AI Self-Improvement: Building Reflection Agents",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 2,
+              "id": "c07-m02-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Understanding Reflexion Agents",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 3,
+              "id": "c07-m02-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Building Reflexion Agents",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 4,
+              "id": "c07-m02-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "ReAct: Building Agents that Reason Before Acting",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 5,
+              "id": "c07-m02-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Structuring LLM Tool Calls with Pydantic and JSON Serialization",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 6,
+              "id": "c07-m02-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 7,
+              "id": "c07-m02-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Build Self-Improving Agents with LangGraph",
+              "duration_minutes": 20,
+              "optional": false,
+              "task_order": 8,
+              "id": "c07-m02-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Build Reflection Agents",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 9,
+              "id": "c07-m02-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Advanced Self-Improvement with Reflexion Agents",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 10,
+              "id": "c07-m02-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: ReAct: Integrating Reasoning and Action",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 11,
+              "id": "c07-m02-t11"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Build Self-Improving Agents with LangGraph",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 12,
+              "id": "c07-m02-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Building a Reflection Agent with LangGraph",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 13,
+              "id": "c07-m02-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Building a Reflexion Agent with External Knowledge Integration",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 14,
+              "id": "c07-m02-t14"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: ReAct: Build Reasoning and Acting AI Agents with LangGraph",
+              "duration_minutes": 90,
+              "optional": false,
+              "task_order": 15,
+              "id": "c07-m02-t15"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Multi-Agent Systems and Agentic RAG with LangGraph",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Introduction to Multi-Agent Systems",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 1,
+              "id": "c07-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Risks of Agentic AI: What You Need to Know About Autonomous AI",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 2,
+              "id": "c07-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Agentic RAG: Enhance Retrieval with Multi-Agent Systems",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 3,
+              "id": "c07-m03-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-up",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 4,
+              "id": "c07-m03-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Multi-Agent LLM Systems Fundamentals",
+              "duration_minutes": 12,
+              "optional": false,
+              "task_order": 5,
+              "id": "c07-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Building Multi-Agent Systems with LangGraph",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 6,
+              "id": "c07-m03-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 7,
+              "id": "c07-m03-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Multi-Agent Systems and Agentic RAG with LangGraph",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 8,
+              "id": "c07-m03-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 9,
+              "id": "c07-m03-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "A Message from the Course Team",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 10,
+              "id": "c07-m03-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: The Evolution from Single to Multi-Agent Systems",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 11,
+              "id": "c07-m03-t11"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Build Multi-Agent Applications",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 12,
+              "id": "c07-m03-t12"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Multi-Agent Systems and Agentic RAG with LangGraph",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 13,
+              "id": "c07-m03-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: DocChat: Build a Multi-Agent RAG System",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 14,
+              "id": "c07-m03-t14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 8,
+      "title": "Agentic AI with LangGraph, CrewAI, AutoGen and BeeAI",
+      "estimated_hours": 13,
+      "url": "https://www.coursera.org/learn/agentic-ai-with-langgraph-crewai-autogen-and-beeai?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Agentic Frameworks and LangGraph Design Patterns for Effective AI Systems",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c08-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Understanding Agentic AI and Open Source Frameworks",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 2,
+              "id": "c08-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Building AI Agents with Open Source Frameworks",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 3,
+              "id": "c08-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Essential Design Patterns for AI Systems",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 4,
+              "id": "c08-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Orchestrator Design Pattern",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 5,
+              "id": "c08-m01-t05"
+            },
+            {
+              "task_type": "video",
+              "title": "Evaluator-Optimizer Design Pattern",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 6,
+              "id": "c08-m01-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 7,
+              "id": "c08-m01-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to Agentic Frameworks",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 8,
+              "id": "c08-m01-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Understand AI System Design Patterns",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c08-m01-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Agentic Frameworks and Design Patterns for Effective AI Systems",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 10,
+              "id": "c08-m01-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Implement Workflow Patterns with LangGraph",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 11,
+              "id": "c08-m01-t11"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build LangGraph Design Patterns: Orchestration & Evaluation",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 12,
+              "id": "c08-m01-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Helpful Tips for Course Completion",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 13,
+              "id": "c08-m01-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Agentic Frameworks and Design Patterns for Effective AI Systems",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 14,
+              "id": "c08-m01-t14"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "CrewAI Fundamentals and Advanced Applications",
+          "estimated_hours": 5,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Design AI Agent Workflows with CrewAI",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 1,
+              "id": "c08-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "CrewAI with Structured Outputs, YAML, and CrewBase Classes",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 2,
+              "id": "c08-m02-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Extending CrewAI with Custom Functions",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 3,
+              "id": "c08-m02-t03"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 4,
+              "id": "c08-m02-t04"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to CrewAI",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 5,
+              "id": "c08-m02-t05"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Structured Outputs in CrewAI",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 6,
+              "id": "c08-m02-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Functions and CrewAI",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 7,
+              "id": "c08-m02-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: CrewAI Fundamentals and Advanced Applications",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 8,
+              "id": "c08-m02-t08"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: CrewAI 101: Building Multi-Agent AI Systems",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 9,
+              "id": "c08-m02-t09"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Create a Structured Meal & Grocery Planner with CrewAI",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 10,
+              "id": "c08-m02-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Agents with Tools vs. Tasks with Tools in CrewAI",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 11,
+              "id": "c08-m02-t11"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Building your own AI Nutrition Coach using a Multi-Agent System and Multimodal AI",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 12,
+              "id": "c08-m02-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Structured Outputs in CrewAI",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 13,
+              "id": "c08-m02-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: CrewAI Fundamentals and Advanced Applications",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 14,
+              "id": "c08-m02-t14"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Alternative Agentic Frameworks: BeeAI and AG2 (AutoGen)",
+          "estimated_hours": 5,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "BeeAI: Introduction and Core Components",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 1,
+              "id": "c08-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Building Agents with the BeeAI Framework",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 2,
+              "id": "c08-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Introduction to AG2 (AutoGen) and its Key Elements",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 3,
+              "id": "c08-m03-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Extending AG2 with Tools and Structured Outputs",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 4,
+              "id": "c08-m03-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 5,
+              "id": "c08-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 6,
+              "id": "c08-m03-t06"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 7,
+              "id": "c08-m03-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgments",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 8,
+              "id": "c08-m03-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "BeeAI Core Concepts and Architecture",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c08-m03-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: AG2 (AutoGen) Core Concepts, Architecture, and Conversation Patterns",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 10,
+              "id": "c08-m03-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Alternative Agentic Frameworks: BeeAI and AG2 (AutoGen)",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 11,
+              "id": "c08-m03-t11"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Building Agentic AI Systems with the BeeAI Framework",
+              "duration_minutes": 120,
+              "optional": false,
+              "task_order": 12,
+              "id": "c08-m03-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: AG2 101 (AutoGen): Complete Tutorial",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 13,
+              "id": "c08-m03-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build Multi-Agent Chatbot with AG2 (AutoGen) for Healthcare",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 14,
+              "id": "c08-m03-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Agent Orchestration and Design Patterns in AG2",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 15,
+              "id": "c08-m03-t15"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: BeeAI & AG2 (AutoGen) Frameworks for Building Agentic AI Systems",
+              "duration_minutes": 15,
+              "optional": false,
+              "task_order": 16,
+              "id": "c08-m03-t16"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 9,
+      "title": "Build AI Agents using MCP",
+      "estimated_hours": 10,
+      "url": "https://www.coursera.org/learn/build-ai-agents-using-mcp?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Getting Started with MCP",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c09-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "What is MCP?",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 2,
+              "id": "c09-m01-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "Why MCP?",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 3,
+              "id": "c09-m01-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "MCP vs API: Simplifying AI Agent Integration with External Data",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 4,
+              "id": "c09-m01-t04"
+            },
+            {
+              "task_type": "video",
+              "title": "MCP Application Demo",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 5,
+              "id": "c09-m01-t05"
+            },
+            {
+              "task_type": "video",
+              "title": "MCP Architecture",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 6,
+              "id": "c09-m01-t06"
+            },
+            {
+              "task_type": "video",
+              "title": "MCP in Action",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 7,
+              "id": "c09-m01-t07"
+            },
+            {
+              "task_type": "video",
+              "title": "Run Existing MCP Servers",
+              "duration_minutes": 11,
+              "optional": false,
+              "task_order": 8,
+              "id": "c09-m01-t08"
+            },
+            {
+              "task_type": "video",
+              "title": "Build an MCP Application with Python",
+              "duration_minutes": 7,
+              "optional": false,
+              "task_order": 9,
+              "id": "c09-m01-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 10,
+              "id": "c09-m01-t10"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Introduction to MCP",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 11,
+              "id": "c09-m01-t11"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: MCP in Action",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 12,
+              "id": "c09-m01-t12"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Getting Started with MCP",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 13,
+              "id": "c09-m01-t13"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Run Existing MCP Servers",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 14,
+              "id": "c09-m01-t14"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an MCP Application",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 15,
+              "id": "c09-m01-t15"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Helpful Tips for Course Completion",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 16,
+              "id": "c09-m01-t16"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Agentic AI Protocols",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 17,
+              "id": "c09-m01-t17"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: Getting Started with MCP",
+              "duration_minutes": 4,
+              "optional": false,
+              "task_order": 18,
+              "id": "c09-m01-t18"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: Getting Started with MCP",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 19,
+              "id": "c09-m01-t19"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "MCP Server",
+          "estimated_hours": 2,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Hello World of MCP Servers",
+              "duration_minutes": 11,
+              "optional": false,
+              "task_order": 1,
+              "id": "c09-m02-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Build an Enhanced MCP Server",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 2,
+              "id": "c09-m02-t02"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: MCP Server Basics",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 3,
+              "id": "c09-m02-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Building Enhanced MCP Servers",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 4,
+              "id": "c09-m02-t04"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: MCP Server",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 5,
+              "id": "c09-m02-t05"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Hello World of MCP Servers",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 6,
+              "id": "c09-m02-t06"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an Enhanced MCP Server",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 7,
+              "id": "c09-m02-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: MCP Server",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 8,
+              "id": "c09-m02-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: MCP Server",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c09-m02-t09"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "MCP Hosts and Clients",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "MCP Client Architecture and Fundamentals",
+              "duration_minutes": 8,
+              "optional": false,
+              "task_order": 1,
+              "id": "c09-m03-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Streamable HTTP, Roots, and Sampling",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 2,
+              "id": "c09-m03-t02"
+            },
+            {
+              "task_type": "video",
+              "title": "MCP Security with Permissions and Elicitation",
+              "duration_minutes": 9,
+              "optional": false,
+              "task_order": 3,
+              "id": "c09-m03-t03"
+            },
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 6,
+              "optional": false,
+              "task_order": 4,
+              "id": "c09-m03-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 5,
+              "id": "c09-m03-t05"
+            },
+            {
+              "task_type": "reading",
+              "title": "Team and Acknowledgments",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 6,
+              "id": "c09-m03-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: MCP Client Implementation Patterns",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 7,
+              "id": "c09-m03-t07"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: Advanced MCP Features: Sampling and Roots",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 8,
+              "id": "c09-m03-t08"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Practice Quiz: User Interaction Patterns: Elicitation and Permissions",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 9,
+              "id": "c09-m03-t09"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: MCP Hosts and Clients",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 10,
+              "id": "c09-m03-t10"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Custom MCP Client with Python",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 11,
+              "id": "c09-m03-t11"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Advanced MCP Applications with Streamable HTTP, Roots, and Sampling",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 12,
+              "id": "c09-m03-t12"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: MCP Security with Permissions and Elicitation",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 13,
+              "id": "c09-m03-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "Summary and Highlights: MCP Hosts and Clients",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 14,
+              "id": "c09-m03-t14"
+            },
+            {
+              "task_type": "reading",
+              "title": "Cheat Sheet: MCP Hosts and Clients",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 15,
+              "id": "c09-m03-t15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 10,
+      "title": "RAG and Agentic AI Capstone Project",
+      "estimated_hours": 14,
+      "url": "https://www.coursera.org/learn/rag-and-agentic-ai-capstone-project?specialization=ibm-rag-and-agentic-ai",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Module 1: Build a Structured Generative AI Application",
+          "estimated_hours": 4,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Introduction",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c10-m01-t01"
+            },
+            {
+              "task_type": "video",
+              "title": "Project Overview",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 2,
+              "id": "c10-m01-t02"
+            },
+            {
+              "task_type": "reading",
+              "title": "Course Overview",
+              "duration_minutes": 2,
+              "optional": false,
+              "task_order": 3,
+              "id": "c10-m01-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Structure Text Data with LLMs",
+              "duration_minutes": 16,
+              "optional": false,
+              "task_order": 4,
+              "id": "c10-m01-t04"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Process Multimodal Customer Data with LLMs",
+              "duration_minutes": 16,
+              "optional": false,
+              "task_order": 5,
+              "id": "c10-m01-t05"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Build a Simple Interactive User Interface",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 6,
+              "id": "c10-m01-t06"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Build a Structured Generative AI Application",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 7,
+              "id": "c10-m01-t07"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Structure Unstructured Restaurant Data with an LLM",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 8,
+              "id": "c10-m01-t08"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Process Multimodal Data with LLMs",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 9,
+              "id": "c10-m01-t09"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Command-Line Data Management UI for Restaurant Data",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 10,
+              "id": "c10-m01-t10"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Helpful Tips for Course Completion",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 11,
+              "id": "c10-m01-t11"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Structure Unstructured Restaurant Data with an LLM",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 12,
+              "id": "c10-m01-t12"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Process Multimodal Data with LLMs",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 13,
+              "id": "c10-m01-t13"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Build a Command-Line Data Management UI for Restaurant Data",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 14,
+              "id": "c10-m01-t14"
+            },
+            {
+              "task_type": "podcast",
+              "title": "Podcast: Recap: Build a Structured Generative AI Application",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 15,
+              "id": "c10-m01-t15"
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Module 2: Design a Multimodal RAG System",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Multimodal Vector Index Construction",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 1,
+              "id": "c10-m02-t01"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Similarity Retrieval with Metadata Filtering",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 2,
+              "id": "c10-m02-t02"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Multimodal Similarity Fusion and Ranking",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 3,
+              "id": "c10-m02-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Design a Multimodal RAG System",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 4,
+              "id": "c10-m02-t04"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Construct a Multimodal Vector Index",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 5,
+              "id": "c10-m02-t05"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Similarity Retrieval with Metadata Filtering",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 6,
+              "id": "c10-m02-t06"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Multimodal Similarity Fusion and Retrieval Ranking",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 7,
+              "id": "c10-m02-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Construct a Multimodal Vector Index",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 8,
+              "id": "c10-m02-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Similarity Retrieval with Metadata Filtering",
+              "duration_minutes": 0,
+              "optional": false,
+              "task_order": 9,
+              "id": "c10-m02-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Multimodal Similarity Fusion and Retrieval Ranking",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 10,
+              "id": "c10-m02-t10"
+            },
+            {
+              "task_type": "podcast",
+              "title": "Podcast: Recap: Design a Multimodal RAG System",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 11,
+              "id": "c10-m02-t11"
+            }
+          ]
+        },
+        {
+          "module_order": 3,
+          "title": "Module 3: Combine Agents into a Multi-Agent System",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Define Agents and Their Roles",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 1,
+              "id": "c10-m03-t01"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Integrate Agents into a Multi-Agent System",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 2,
+              "id": "c10-m03-t02"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Build a Chatbot Interface for the Recommendation System",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 3,
+              "id": "c10-m03-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Combine Agents into a Multi-Agent System",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 4,
+              "id": "c10-m03-t04"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Design Specialized Agents for a Recommendation System",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 5,
+              "id": "c10-m03-t05"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Implement and Test a Multi-Agent Recommendation System",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 6,
+              "id": "c10-m03-t06"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Chatbot Interface for the Recommendation System",
+              "duration_minutes": 45,
+              "optional": false,
+              "task_order": 7,
+              "id": "c10-m03-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Design Specialized Agents for a Recommendation System",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 8,
+              "id": "c10-m03-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Implement and Test a Multi-Agent Recommendation System",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 9,
+              "id": "c10-m03-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Build a Chatbot Interface for the Recommendation System",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 10,
+              "id": "c10-m03-t10"
+            },
+            {
+              "task_type": "podcast",
+              "title": "Podcast: Recap: Combine Agents into a Multi-Agent System",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 11,
+              "id": "c10-m03-t11"
+            }
+          ]
+        },
+        {
+          "module_order": 4,
+          "title": "Module 4: Integrate Agents, RAG, and Tools with MCP",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Organize Tools and Data in an MCP Server",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 1,
+              "id": "c10-m04-t01"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Implement an MCP Client for Server Communication",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 2,
+              "id": "c10-m04-t02"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Checklist: Design an LLM-based MCP Host",
+              "duration_minutes": 10,
+              "optional": false,
+              "task_order": 3,
+              "id": "c10-m04-t03"
+            },
+            {
+              "task_type": "assignment",
+              "title": "Graded Quiz: Integrate Agents, RAG, and Tools with MCP",
+              "duration_minutes": 21,
+              "optional": false,
+              "task_order": 4,
+              "id": "c10-m04-t04"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an MCP Server",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 5,
+              "id": "c10-m04-t05"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build an MCP Client",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 6,
+              "id": "c10-m04-t06"
+            },
+            {
+              "task_type": "lab",
+              "title": "Lab: Build a Full MCP Application",
+              "duration_minutes": 30,
+              "optional": false,
+              "task_order": 7,
+              "id": "c10-m04-t07"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Build an MCP Server",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 8,
+              "id": "c10-m04-t08"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Build an MCP Client",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 9,
+              "id": "c10-m04-t09"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Assignment Overview: Build a Full MCP Application",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 10,
+              "id": "c10-m04-t10"
+            },
+            {
+              "task_type": "podcast",
+              "title": "Podcast: Summary: Integrate Agents, RAG, and Tools with MCP",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 11,
+              "id": "c10-m04-t11"
+            }
+          ]
+        },
+        {
+          "module_order": 5,
+          "title": "Module 5: Final Project and Course Wrap-Up",
+          "estimated_hours": 1,
+          "tasks": [
+            {
+              "task_type": "video",
+              "title": "Course Wrap-Up",
+              "duration_minutes": 3,
+              "optional": false,
+              "task_order": 1,
+              "id": "c10-m05-t01"
+            },
+            {
+              "task_type": "reading",
+              "title": "Congratulations and Next Steps",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 2,
+              "id": "c10-m05-t02"
+            },
+            {
+              "task_type": "reading",
+              "title": "Thanks from the Course Team",
+              "duration_minutes": 1,
+              "optional": false,
+              "task_order": 3,
+              "id": "c10-m05-t03"
+            },
+            {
+              "task_type": "project",
+              "title": "Project: Final Project Submission and Evaluation",
+              "duration_minutes": 60,
+              "optional": false,
+              "task_order": 4,
+              "id": "c10-m05-t04"
+            },
+            {
+              "task_type": "reading",
+              "title": "Reading: Prepare to Submit Your Project",
+              "duration_minutes": 5,
+              "optional": false,
+              "task_order": 5,
+              "id": "c10-m05-t05"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
