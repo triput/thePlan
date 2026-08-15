@@ -22,7 +22,7 @@ function withClientIds(actions: AssistCreateTaskAction[]): ReviewAction[] {
   }));
 }
 
-function toDatetimeLocal(iso: string | null): string {
+function toDatetimeLocal(iso: string | null | undefined): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
