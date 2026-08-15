@@ -27,6 +27,7 @@ Rules:
 - description must be null unless the user clearly asked for notes/details beyond the task name. NEVER copy the whole user request into description.
 - priority if set must be one of: p1, p2, p3, p4.
 - due_at if the user gave a time/date: ISO-8601 datetime WITH timezone offset, resolved against Current local time below (e.g. "tonight at 9PM" → today's date at 21:00 in that timezone).
+- estimated_duration_minutes if the user gave a duration (e.g. "60m", "for an hour", "duration 60 minutes").
 - project_name / section_name / label_names are human names to resolve later; omit or null when unknown.
 - Prefer multiple actions when the user listed multiple distinct tasks.
 - Do not invent unrelated work. If nothing actionable, return {"actions":[]}.
@@ -81,10 +82,18 @@ def enrich_actions_from_quick_add(
     *,
     timezone_name: str,
 ) -> list[AssistCreateTaskAction]:
-    """Fill gaps with the deterministic quick-add parser; scrub prompt-as-description dumps."""
+    """Fill gaps with the deterministic quick-add parser; scrub prompt-as-description dumps.
+
+    Parser owns due_at and estimated_duration_minutes when it can parse them from the
+    prompt (honesty cut / DEF-006, DEF-007). Structure (titles, labels) stays model-led.
+    """
     draft = parse_quick_add(text, timezone_name=timezone_name)
     prompt = text.strip()
     enriched: list[AssistCreateTaskAction] = []
+
+    draft_duration = draft.estimated_duration_minutes
+    if draft_duration is not None:
+        draft_duration = max(1, min(int(draft_duration), 24 * 60))
 
     source = actions
     if not source and draft.title.strip():
@@ -93,7 +102,7 @@ def enrich_actions_from_quick_add(
                 title=draft.title,
                 priority=draft.priority,
                 due_at=draft.due_at,
-                estimated_duration_minutes=draft.estimated_duration_minutes,
+                estimated_duration_minutes=draft_duration,
                 project_name=draft.project_name,
                 section_name=draft.section_name,
             )
@@ -101,15 +110,13 @@ def enrich_actions_from_quick_add(
 
     for action in source:
         updates: dict[str, Any] = {}
-        if action.due_at is None and draft.due_at is not None:
+        # Parser wins on time/duration when it extracted cues from the prompt.
+        if draft.due_at is not None:
             updates["due_at"] = draft.due_at
+        if draft_duration is not None:
+            updates["estimated_duration_minutes"] = draft_duration
         if action.priority is None and draft.priority is not None:
             updates["priority"] = draft.priority
-        if (
-            action.estimated_duration_minutes is None
-            and draft.estimated_duration_minutes is not None
-        ):
-            updates["estimated_duration_minutes"] = draft.estimated_duration_minutes
         if not action.project_name and draft.project_name:
             updates["project_name"] = draft.project_name
         if not action.section_name and draft.section_name:

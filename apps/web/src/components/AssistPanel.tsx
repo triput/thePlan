@@ -22,6 +22,21 @@ function withClientIds(actions: AssistCreateTaskAction[]): ReviewAction[] {
   }));
 }
 
+function toDatetimeLocal(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDatetimeLocal(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
 function ActionReviewRow({
   action,
   index,
@@ -33,6 +48,9 @@ function ActionReviewRow({
   onChange: (index: number, next: ReviewAction) => void;
   onRemove: (index: number) => void;
 }) {
+  const durationValue =
+    action.estimated_duration_minutes != null ? String(action.estimated_duration_minutes) : "";
+
   return (
     <li className="assist-action">
       <div className="assist-action-main">
@@ -60,13 +78,51 @@ function ActionReviewRow({
           Remove
         </button>
       </div>
+      <div className="assist-action-fields">
+        <label className="field">
+          <span>Due</span>
+          <input
+            type="datetime-local"
+            className="field-datetime"
+            value={toDatetimeLocal(action.due_at)}
+            aria-label={`Proposed task ${index + 1} due`}
+            onChange={(e) =>
+              onChange(index, { ...action, due_at: fromDatetimeLocal(e.target.value) })
+            }
+          />
+        </label>
+        <label className="field">
+          <span>Duration (minutes)</span>
+          <input
+            type="number"
+            className="field-number"
+            min={1}
+            max={24 * 60}
+            step={5}
+            value={durationValue}
+            placeholder="settings default"
+            aria-label={`Proposed task ${index + 1} duration`}
+            onChange={(e) => {
+              const raw = e.target.value.trim();
+              if (!raw) {
+                onChange(index, { ...action, estimated_duration_minutes: null });
+                return;
+              }
+              const n = Number(raw);
+              onChange(index, {
+                ...action,
+                estimated_duration_minutes: Number.isFinite(n) && n >= 1 ? Math.floor(n) : null,
+              });
+            }}
+          />
+        </label>
+      </div>
       <div className="assist-action-meta muted small">
         {action.project_name ? <span>Project: {action.project_name}</span> : <span>Inbox</span>}
         {action.section_name ? <span> · Section: {action.section_name}</span> : null}
         {action.label_names && action.label_names.length > 0 ? (
           <span> · Labels: {action.label_names.join(", ")}</span>
         ) : null}
-        {action.due_at ? <span> · Due: {new Date(action.due_at).toLocaleString()}</span> : null}
       </div>
     </li>
   );
@@ -165,8 +221,9 @@ export function AssistPanel() {
       </button>
       <Modal open={open} title="Assist" onClose={() => setOpen(false)} className="assist-modal">
         <p className="assist-help muted small">
-          Describe what you need. Review proposed tasks, then approve. Ollama down never blocks
-          normal CRUD.
+          Describe what you need. Review proposed tasks (including due and duration), then approve.
+          Ollama down never blocks normal CRUD. “Schedule at …” means task due time, not a calendar
+          block.
         </p>
         {statusQuery.data && (
           <p className="assist-status muted small">
@@ -222,26 +279,26 @@ export function AssistPanel() {
         </form>
         {model && actions && (
           <p className="muted small">
-            Proposal from <code>{model}</code> — edit or remove before approve.
+            Proposal from <code>{model}</code> — edit due, duration, or remove before approve.
           </p>
         )}
-          {actions && actions.length > 0 && (
-            <ul className="assist-action-list">
-              {actions.map((action, index) => (
-                <ActionReviewRow
-                  key={action.clientId}
-                  action={action}
-                  index={index}
-                  onChange={(i, next) =>
-                    setActions((prev) => (prev ? prev.map((a, j) => (j === i ? next : a)) : prev))
-                  }
-                  onRemove={(i) =>
-                    setActions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))
-                  }
-                />
-              ))}
-            </ul>
-          )}
+        {actions && actions.length > 0 && (
+          <ul className="assist-action-list">
+            {actions.map((action, index) => (
+              <ActionReviewRow
+                key={action.clientId}
+                action={action}
+                index={index}
+                onChange={(i, next) =>
+                  setActions((prev) => (prev ? prev.map((a, j) => (j === i ? next : a)) : prev))
+                }
+                onRemove={(i) =>
+                  setActions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))
+                }
+              />
+            ))}
+          </ul>
+        )}
         {error && <p className="form-error">{error}</p>}
       </Modal>
     </div>

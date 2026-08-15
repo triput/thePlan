@@ -123,10 +123,10 @@ Arrows swap sibling/`sort_order` with adjacent visible rows (same behavior as ot
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (required eventually; not blocking daily driver) |
-| **Status** | Open — backlog |
+| **Status** | Closed — Assist honesty cut 2026-08-14 |
 | **Found** | 2026-08-14 |
 | **Surface** | Quick-add + Assist enrich (`apps/api/app/services/quick_add.py`; Assist uses same parser) |
-| **Wave** | Bug bash / NL polish — shared by quick-add and W3+ Assist |
+| **Wave** | Assist honesty cut (DEF-006 + DEF-007 + review UI) |
 
 ### Symptom / gap
 
@@ -154,10 +154,10 @@ Non-urgent but **required** before treating Assist time understanding as “done
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (required eventually; wrong estimates train bad habits) |
-| **Status** | Open — backlog |
+| **Status** | Closed — Assist honesty cut 2026-08-14 |
 | **Found** | 2026-08-14 |
 | **Surface** | Quick-add duration tokens + Assist propose/enrich/apply |
-| **Wave** | Bug bash / NL polish (pair with DEF-006) |
+| **Wave** | Assist honesty cut (pair with DEF-006) |
 
 ### Symptom
 

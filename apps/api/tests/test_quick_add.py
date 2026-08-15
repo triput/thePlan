@@ -91,3 +91,92 @@ def test_duration_work_days() -> None:
     draft = parse_quick_add("Big chunk 2d")
     assert draft.estimated_duration_minutes == 960
     assert draft.title == "Big chunk"
+
+
+def test_duration_prose_duration_n_minutes() -> None:
+    draft = parse_quick_add("Deep work duration 60 minutes")
+    assert draft.estimated_duration_minutes == 60
+    assert draft.title == "Deep work"
+
+
+def test_duration_prose_for_an_hour() -> None:
+    draft = parse_quick_add("Focus block for an hour")
+    assert draft.estimated_duration_minutes == 60
+    assert draft.title == "Focus block"
+
+
+def test_duration_prose_for_n_hours() -> None:
+    draft = parse_quick_add("Workshop for 2 hours p2")
+    assert draft.estimated_duration_minutes == 120
+    assert draft.priority == TaskPriority.p2
+    assert draft.title == "Workshop"
+
+
+def test_at_24h_colon() -> None:
+    now = datetime(2026, 8, 14, 12, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    draft = parse_quick_add(
+        "Ship notes tonight at 21:00",
+        now=now,
+        timezone_name="America/Los_Angeles",
+    )
+    assert draft.title == "Ship notes"
+    assert draft.due_at is not None
+    local = draft.due_at.astimezone(ZoneInfo("America/Los_Angeles"))
+    assert local.hour == 21
+    assert local.minute == 0
+
+
+def test_bare_meridiem_time() -> None:
+    now = datetime(2026, 8, 14, 12, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    draft = parse_quick_add(
+        "Call dentist tomorrow 8pm",
+        now=now,
+        timezone_name="America/Los_Angeles",
+    )
+    assert draft.title == "Call dentist"
+    local = draft.due_at.astimezone(ZoneInfo("America/Los_Angeles"))
+    assert local.hour == 20
+    assert local.date().isoformat() == "2026-08-15"
+
+
+def test_bare_24h_colon() -> None:
+    now = datetime(2026, 8, 14, 12, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    draft = parse_quick_add(
+        "Standup tomorrow 14:30",
+        now=now,
+        timezone_name="America/Los_Angeles",
+    )
+    local = draft.due_at.astimezone(ZoneInfo("America/Los_Angeles"))
+    assert local.hour == 14
+    assert local.minute == 30
+    assert draft.title == "Standup"
+
+
+def test_military_time_at_and_bare() -> None:
+    now = datetime(2026, 8, 14, 12, 0, tzinfo=ZoneInfo("UTC"))
+    with_at = parse_quick_add("Deploy tonight at 2100", now=now, timezone_name="UTC")
+    bare = parse_quick_add("Deploy tonight 2100", now=now, timezone_name="UTC")
+    assert with_at.due_at is not None and with_at.due_at.hour == 21
+    assert bare.due_at is not None and bare.due_at.hour == 21
+    assert with_at.title == "Deploy"
+    assert bare.title == "Deploy"
+
+
+def test_military_does_not_eat_year_token() -> None:
+    draft = parse_quick_add("Write 2026 goals")
+    assert draft.due_at is None
+    assert draft.title == "Write 2026 goals"
+
+
+def test_combined_due_and_duration_prose() -> None:
+    now = datetime(2026, 8, 14, 12, 0, tzinfo=ZoneInfo("America/Los_Angeles"))
+    draft = parse_quick_add(
+        "Study session tonight at 20:00 duration 60 minutes",
+        now=now,
+        timezone_name="America/Los_Angeles",
+    )
+    assert draft.estimated_duration_minutes == 60
+    local = draft.due_at.astimezone(ZoneInfo("America/Los_Angeles"))
+    assert local.hour == 20
+    assert draft.title == "Study session"
+

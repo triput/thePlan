@@ -537,7 +537,7 @@
   padding: 0;
   display: grid;
   gap: 0.5rem;
-  max-height: min(40vh, 20rem);
+  max-height: min(50vh, 28rem);
   overflow-y: auto;
 }
 
@@ -568,6 +568,35 @@
 .assist-action-priority {
   flex: 0 0 auto;
   padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.assist-action-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.45rem;
+}
+
+.assist-action-fields .field {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.assist-action-fields .field > span {
+  color: var(--muted, #6b7280);
+}
+
+.assist-action-fields .field-datetime,
+.assist-action-fields .field-number {
+  width: 100%;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--panel);

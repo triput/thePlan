@@ -56,6 +56,20 @@
 - CI must mock the model HTTP — never require a live Ollama daemon.
 - Tunnel operators need Ollama up on the API host for Assist; thePlan without Assist stays fully usable.
 
+## Addendum — Assist honesty cut (2026-08-14)
+
+**Status:** Accepted with ADR-010  
+**Scope:** DEF-006 + DEF-007 + review UI for due/duration.
+
+| Lock | Detail |
+|------|--------|
+| Ownership | Deterministic `parse_quick_add` owns **due_at** and **estimated_duration_minutes** when the prompt contains parseable cues. Assist enrich prefers those values over model guesses. |
+| Duration NL | Compact tokens (`60m`, `1h`) plus prose (`duration 60 minutes`, `for an hour`, `for 2 hours`, `lasting …`). |
+| Due/time NL | `at 9pm` / `at 21:00` / `at 2100`; bare `9pm`, bare `21:00`, bare `2100` (year-like `19xx`/`20xx` tokens excluded). Relative dates unchanged. |
+| Review | Assist review rows show **editable** due (`datetime-local`) and duration (minutes). Empty duration → apply uses settings default. |
+| Semantics | “Schedule at …” in this cut means task **due_at** (+ estimate), **not** a `scheduled_block`. Block creation stays later vocabulary. |
+| Out | Theme F templates, voice, cloud Settings, auto-apply, schedule mutations |
+
 ## Related
 
 - [ADR-001-tech-stack.md](./ADR-001-tech-stack.md)

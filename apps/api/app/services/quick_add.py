@@ -16,18 +16,35 @@ PROJECT_SECTION_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PRIORITY_PATTERN = re.compile(r"(?<=\s)(?:p|P|!)(1|2|3|4)(?=\s|$)")
-DURATION_PATTERN = re.compile(
-    r"(?<=\s)(\d+(?:\.\d+)?)\s*"
+_DURATION_UNIT = (
     r"(m|min|mins|minute|minutes|h|hr|hrs|hour|hours|d|day|days|"
     r"w|wk|wks|week|weeks|mo|mon|mth|month|months|y|yr|yrs|year|years)"
-    r"(?=\s|$)",
+)
+# Prose first: "duration 60 minutes", "for an hour", "lasting 2 hours"
+DURATION_PROSE_PATTERN = re.compile(
+    rf"(?<=\s)(?:(?:for|lasting)\s+(?:an?\s+)?|(?:duration(?:\s+of)?)\s+)"
+    rf"(?:(\d+(?:\.\d+)?)\s*)?{_DURATION_UNIT}(?=\s|$)",
+    re.IGNORECASE,
+)
+DURATION_PATTERN = re.compile(
+    rf"(?<=\s)(\d+(?:\.\d+)?)\s*{_DURATION_UNIT}(?=\s|$)",
     re.IGNORECASE,
 )
 TIME_WINDOW_PATTERN = re.compile(r"(?<=\s)@(morning|afternoon|evening)(?=\s|$)", re.IGNORECASE)
+# "at 9pm", "at 21:00", "at 2100"
 TIME_AT_PATTERN = re.compile(
-    r"(?<=\s)at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?(?=\s|$)",
+    r"(?<=\s)at\s+(?:(\d{1,2})(?::(\d{2}))?\s*(am|pm)?|([01]\d|2[0-3])([0-5]\d))(?=\s|$)",
     re.IGNORECASE,
 )
+# Bare "9pm" / "9:30am" (meridiem required so bare "9" is not a clock)
+TIME_MERIDIEM_PATTERN = re.compile(
+    r"(?<=\s)(\d{1,2})(?::(\d{2}))?\s*(am|pm)(?=\s|$)",
+    re.IGNORECASE,
+)
+# Bare 24h with colon: "21:00"
+TIME_24H_COLON_PATTERN = re.compile(r"(?<=\s)([01]?\d|2[0-3]):([0-5]\d)(?=\s|$)")
+# Bare military HHMM, excluding year-like 19xx/20xx: "2100", "0930"
+TIME_MILITARY_PATTERN = re.compile(r"(?<=\s)((?:[01]\d|2[0-3])[0-5]\d)(?=\s|$)")
 RELATIVE_DATE_PATTERN = re.compile(
     r"(?<=\s)(today|tonight|tomorrow|tom|yesterday)(?=\s|$)",
     re.IGNORECASE,
@@ -163,15 +180,45 @@ def _combine_date_time(
     return local_dt.astimezone(ZoneInfo("UTC"))
 
 
-def _parse_at_time(match: re.Match[str]) -> time:
-    hour = int(match.group(1))
-    minute = int(match.group(2) or 0)
-    meridiem = (match.group(3) or "").lower()
-    if meridiem == "pm" and hour != 12:
-        hour += 12
-    if meridiem == "am" and hour == 12:
-        hour = 0
+def _parse_clock_time(
+    hour: int,
+    minute: int,
+    meridiem: str | None = None,
+) -> time | None:
+    if minute < 0 or minute > 59:
+        return None
+    meridiem_l = (meridiem or "").lower()
+    if meridiem_l:
+        if hour < 1 or hour > 12:
+            return None
+        if meridiem_l == "pm" and hour != 12:
+            hour += 12
+        if meridiem_l == "am" and hour == 12:
+            hour = 0
+    elif hour < 0 or hour > 23:
+        return None
     return time(hour, minute)
+
+
+def _parse_at_time(match: re.Match[str]) -> time | None:
+    # Groups: 1=hour, 2=minute, 3=meridiem OR 4+5=military HHMM
+    if match.group(4) is not None:
+        return _parse_clock_time(int(match.group(4)), int(match.group(5)))
+    return _parse_clock_time(
+        int(match.group(1)),
+        int(match.group(2) or 0),
+        match.group(3),
+    )
+
+
+def _parse_military_hhmm(token: str) -> time | None:
+    if len(token) != 4 or not token.isdigit():
+        return None
+    value = int(token)
+    # Avoid treating calendar years as clock times.
+    if 1900 <= value <= 2099:
+        return None
+    return _parse_clock_time(int(token[:2]), int(token[2:]))
 
 
 def parse_quick_add(text: str, *, now: datetime | None = None, timezone_name: str = "UTC") -> QuickAddDraft:
@@ -216,13 +263,22 @@ def parse_quick_add(text: str, *, now: datetime | None = None, timezone_name: st
         draft.priority = TaskPriority(f"p{priority_match.group(1)}")
         working = _remove_match(working, priority_match)
 
-    duration_match = DURATION_PATTERN.search(working)
-    if duration_match:
+    duration_prose_match = DURATION_PROSE_PATTERN.search(working)
+    if duration_prose_match:
+        amount = duration_prose_match.group(1) or "1"
         draft.estimated_duration_minutes = _parse_duration_minutes(
-            duration_match.group(1),
-            duration_match.group(2),
+            amount,
+            duration_prose_match.group(2),
         )
-        working = _remove_match(working, duration_match)
+        working = _remove_match(working, duration_prose_match)
+    else:
+        duration_match = DURATION_PATTERN.search(working)
+        if duration_match:
+            draft.estimated_duration_minutes = _parse_duration_minutes(
+                duration_match.group(1),
+                duration_match.group(2),
+            )
+            working = _remove_match(working, duration_match)
 
     window_match = TIME_WINDOW_PATTERN.search(working)
     if window_match:
@@ -231,8 +287,35 @@ def parse_quick_add(text: str, *, now: datetime | None = None, timezone_name: st
 
     time_match = TIME_AT_PATTERN.search(working)
     if time_match:
-        due_time = _parse_at_time(time_match)
-        working = _remove_match(working, time_match)
+        parsed = _parse_at_time(time_match)
+        if parsed is not None:
+            due_time = parsed
+            working = _remove_match(working, time_match)
+    if due_time is None:
+        meridiem_match = TIME_MERIDIEM_PATTERN.search(working)
+        if meridiem_match:
+            parsed = _parse_clock_time(
+                int(meridiem_match.group(1)),
+                int(meridiem_match.group(2) or 0),
+                meridiem_match.group(3),
+            )
+            if parsed is not None:
+                due_time = parsed
+                working = _remove_match(working, meridiem_match)
+    if due_time is None:
+        colon_match = TIME_24H_COLON_PATTERN.search(working)
+        if colon_match:
+            parsed = _parse_clock_time(int(colon_match.group(1)), int(colon_match.group(2)))
+            if parsed is not None:
+                due_time = parsed
+                working = _remove_match(working, colon_match)
+    if due_time is None:
+        military_match = TIME_MILITARY_PATTERN.search(working)
+        if military_match:
+            parsed = _parse_military_hhmm(military_match.group(1))
+            if parsed is not None:
+                due_time = parsed
+                working = _remove_match(working, military_match)
 
     relative_match = RELATIVE_DATE_PATTERN.search(working)
     if relative_match:

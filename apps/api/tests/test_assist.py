@@ -119,6 +119,45 @@ def test_propose_enriches_tonight_due(
     assert "coursera" in action["title"].lower()
 
 
+def test_propose_enriches_duration_and_overrides_wrong_due(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    get_settings.cache_clear()
+    prompt = "Study session tonight at 20:00 duration 60 minutes"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "actions": [
+                                    {
+                                        "type": "create_task",
+                                        "title": "Study session",
+                                        "due_at": "2099-01-01T09:00:00Z",
+                                        "estimated_duration_minutes": 30,
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+        return httpx.Response(200, json=payload)
+
+    _patch_assist_httpx(monkeypatch, handler)
+    res = client.post("/api/v1/assist/propose", json={"text": prompt})
+    assert res.status_code == 200, res.text
+    action = res.json()["actions"][0]
+    assert action["estimated_duration_minutes"] == 60
+    due = datetime.fromisoformat(action["due_at"].replace("Z", "+00:00"))
+    assert due.astimezone(ZoneInfo("America/Los_Angeles")).hour == 20
+    assert due.year == 2026
+
+
 def test_propose_unavailable_when_ollama_down(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
