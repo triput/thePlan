@@ -212,7 +212,7 @@
 
 .top-bar {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
   column-gap: 1rem;
   row-gap: 0.35rem;
   align-items: center;
@@ -235,7 +235,7 @@
 }
 
 .help-btn {
-  grid-column: 4;
+  grid-column: 5;
   grid-row: 1;
   width: 1.75rem;
   height: 1.75rem;
@@ -249,7 +249,7 @@
 }
 
 .user-area {
-  grid-column: 5;
+  grid-column: 6;
   grid-row: 1;
   display: flex;
   align-items: center;
@@ -294,7 +294,7 @@
   position: relative;
   width: 220px;
   flex-shrink: 0;
-  grid-column: 3;
+  grid-column: 4;
   grid-row: 1;
 }
 
@@ -488,7 +488,8 @@
 }
 
 .assist {
-  position: relative;
+  grid-column: 3;
+  grid-row: 1;
   flex: 0 0 auto;
 }
 
@@ -496,22 +497,13 @@
   white-space: nowrap;
 }
 
-.assist-panel {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  z-index: 40;
-  width: min(28rem, calc(100vw - 2rem));
-  padding: 0.75rem 0.85rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface, var(--panel));
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--text) 18%, transparent);
+.modal.assist-modal {
+  max-width: 36rem;
 }
 
 .assist-help,
 .assist-status {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
 }
 
 .assist-form {
@@ -521,8 +513,10 @@
 
 .assist-input {
   width: 100%;
+  box-sizing: border-box;
   resize: vertical;
-  min-height: 4.5rem;
+  min-height: 5rem;
+  max-height: 40vh;
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -539,10 +533,12 @@
 
 .assist-action-list {
   list-style: none;
-  margin: 0.6rem 0 0;
+  margin: 0.75rem 0 0;
   padding: 0;
   display: grid;
   gap: 0.5rem;
+  max-height: min(40vh, 20rem);
+  overflow-y: auto;
 }
 
 .assist-action {
@@ -1502,7 +1498,7 @@
   }
 
   .top-bar {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     padding: 0.55rem 0.75rem;
     column-gap: 0.5rem;
     row-gap: 0.45rem;
@@ -1511,6 +1507,11 @@
   .quick-add-primary {
     grid-column: 2;
     max-width: none;
+  }
+
+  .assist {
+    grid-column: 3;
+    grid-row: 1;
   }
 
   .search-box {
@@ -1524,7 +1525,7 @@
   }
 
   .user-area {
-    grid-column: 3;
+    grid-column: 4;
     grid-row: 1;
   }
 

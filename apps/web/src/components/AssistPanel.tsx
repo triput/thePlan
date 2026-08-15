@@ -8,6 +8,7 @@ import {
   type AssistCreateTaskAction,
   type TaskPriority,
 } from "../api";
+import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
@@ -141,96 +142,96 @@ export function AssistPanel() {
   };
 
   return (
-    <div className={`assist${open ? " is-open" : ""}`}>
+    <div className="assist">
       <button
         type="button"
         className="btn secondary small assist-toggle"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
       >
         Assist
       </button>
-      {open && (
-        <div className="assist-panel" role="region" aria-label="SLM Assist">
-          <p className="assist-help muted small">
-            Describe what you need. Review proposed tasks, then approve. Ollama down never blocks
-            normal CRUD.
+      <Modal open={open} title="Assist" onClose={() => setOpen(false)} className="assist-modal">
+        <p className="assist-help muted small">
+          Describe what you need. Review proposed tasks, then approve. Ollama down never blocks
+          normal CRUD.
+        </p>
+        {statusQuery.data && (
+          <p className="assist-status muted small">
+            Model: <code>{statusQuery.data.model}</code>
+            {" · "}
+            {statusQuery.data.reachable ? "reachable" : "unreachable"}
+            {statusQuery.data.detail ? ` (${statusQuery.data.detail})` : null}
           </p>
-          {statusQuery.data && (
-            <p className="assist-status muted small">
-              Model: <code>{statusQuery.data.model}</code>
-              {" · "}
-              {statusQuery.data.reachable ? "reachable" : "unreachable"}
-              {statusQuery.data.detail ? ` (${statusQuery.data.detail})` : null}
-            </p>
-          )}
-          <form className="assist-form" onSubmit={handlePropose}>
-            <textarea
-              className="assist-input"
-              rows={3}
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                setError(null);
-              }}
-              placeholder="e.g. Add buy oat milk as p3 with label errands, and schedule dog walk tomorrow"
-              aria-label="Assist request"
-            />
-            <div className="assist-actions-bar">
+        )}
+        <form className="assist-form" onSubmit={handlePropose}>
+          <textarea
+            className="assist-input"
+            rows={4}
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              setError(null);
+            }}
+            placeholder="e.g. Add buy oat milk as p3 with label errands, and schedule dog walk tomorrow"
+            aria-label="Assist request"
+          />
+          <div className="assist-actions-bar">
+            <button
+              type="submit"
+              className="btn primary small"
+              disabled={proposeMutation.isPending || !text.trim()}
+            >
+              {proposeMutation.isPending ? "Proposing…" : "Propose"}
+            </button>
+            {actions && actions.length > 0 && (
               <button
-                type="submit"
+                type="button"
                 className="btn primary small"
-                disabled={proposeMutation.isPending || !text.trim()}
+                disabled={applyMutation.isPending}
+                onClick={handleApprove}
               >
-                {proposeMutation.isPending ? "Proposing…" : "Propose"}
+                {applyMutation.isPending ? "Applying…" : "Approve"}
               </button>
-              {actions && actions.length > 0 && (
-                <button
-                  type="button"
-                  className="btn primary small"
-                  disabled={applyMutation.isPending}
-                  onClick={handleApprove}
-                >
-                  {applyMutation.isPending ? "Applying…" : "Approve"}
-                </button>
-              )}
-              {actions && (
-                <button
-                  type="button"
-                  className="btn secondary small"
-                  onClick={() => {
-                    setActions(null);
-                    setModel(null);
-                  }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </form>
-          {model && actions && (
-            <p className="muted small">
-              Proposal from <code>{model}</code> — edit or remove before approve.
-            </p>
-          )}
-          {actions && actions.length > 0 && (
-            <ul className="assist-action-list">
-              {actions.map((action, index) => (
-                <ActionReviewRow
-                  key={`${action.title}-${index}`}
-                  action={action}
-                  index={index}
-                  onChange={(i, next) =>
-                    setActions((prev) => (prev ? prev.map((a, j) => (j === i ? next : a)) : prev))
-                  }
-                  onRemove={(i) => setActions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))}
-                />
-              ))}
-            </ul>
-          )}
-          {error && <p className="form-error">{error}</p>}
-        </div>
-      )}
+            )}
+            {actions && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={() => {
+                  setActions(null);
+                  setModel(null);
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </form>
+        {model && actions && (
+          <p className="muted small">
+            Proposal from <code>{model}</code> — edit or remove before approve.
+          </p>
+        )}
+        {actions && actions.length > 0 && (
+          <ul className="assist-action-list">
+            {actions.map((action, index) => (
+              <ActionReviewRow
+                key={`${action.title}-${index}`}
+                action={action}
+                index={index}
+                onChange={(i, next) =>
+                  setActions((prev) => (prev ? prev.map((a, j) => (j === i ? next : a)) : prev))
+                }
+                onRemove={(i) =>
+                  setActions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))
+                }
+              />
+            ))}
+          </ul>
+        )}
+        {error && <p className="form-error">{error}</p>}
+      </Modal>
     </div>
   );
 }
