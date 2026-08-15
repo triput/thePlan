@@ -283,5 +283,33 @@ Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **c
 
 Does **not** require W4 template CRUD. First-class user-authored template catalog remains W4 ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)).
 
+---
+
+## DEF-011 — Refactor assessment (modularize / de-mix layers)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (gut-check hygiene; not a known break) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-14 |
+| **Surface** | Cross-cutting — API services vs routes vs web components (esp. large files) |
+| **Wave** | After Theme F prove-it settled; pair with or after a Dependency Hygiene-style pause when booking the next feature pile |
+
+### Symptom / ask
+
+Operator gut: some files may house **too many vectors** (UI + orchestration + domain rules), and **business logic may be showing up where it doesn’t belong**. Want a deliberate **refactor assessment** — not a blind rewrite — to see if modularization or layer cleanup is warranted.
+
+### Expected (when run)
+
+1. Inventory hotspots (oversized modules, mixed concerns: e.g. fat `TaskList` / `App.css` / route handlers doing domain work).
+2. Classify: keep / extract service / extract component / leave alone.
+3. Propose a short ordered cut list (if any) with risk notes — **no drive-by mega-refactor**.
+4. Operator reviews before any mutating refactor wave.
+
+### Notes
+
+Triggered by intuition after rapid Theme F / Assist growth, not by a concrete defect. Assessment first; code moves only after explicit greenlight. Separate from feature DEF-008–010.
+
+
 
 

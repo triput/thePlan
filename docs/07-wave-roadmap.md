@@ -268,6 +268,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 |--------|----------|-----|
 | **W3** | **1. Account polish** → **2. Microsoft Calendar** → **3. Tauri desktop** | Small auth delta first; reuse GCal patterns while fresh; package desktop last so it wraps a richer app |
 | **W3+** | Local SLM (Ollama) **shipped**; **Theme F** outline ingest **shipped** ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)); Theme F polish ([DEF-009](./DEFECTS.md)/[010](./DEFECTS.md) lower-level + blank template); Todoist import; intraday/`BYHOUR` habits; optional Kanban | Useful; not required to close account/calendar/desktop wave |
+| **Hygiene / quality pauses** | Dependency Hygiene between version freezes; **refactor assessment** ([DEF-011](./DEFECTS.md)) when booking the next feature pile after Theme F | Assessment before mega-refactors; confirm before mutating |
 | **W4 / candidates** | Voice, email-to-task, location reminders, full template catalog, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
 | **Parked** | **W2c** | After W3 as polish + W3 fallout bucket |
 | **V.Later** | Tauri single-installer / bundled Postgres / zero-Docker desktop daily driver | Tabled 2026-08-14; tunnel is the daily driver |
