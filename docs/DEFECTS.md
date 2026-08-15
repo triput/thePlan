@@ -257,4 +257,31 @@ Current outline import always proposes a **full** certificate → epic → cours
 
 Severity sits between P2 and P3 on purpose: not blocking daily driver while the full-tree path works, but it will feel like P2 the first time a second course needs to join an epic already in thePlan. Acceptable outline shapes: full certificate JSON with “attach under epic X”, or a course-/module-scoped JSON fragment.
 
+---
+
+## DEF-010 — Blank / generic outline template (non-Coursera bulk adds)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (Coursera fixture proves the path; blank template is operator courtesy) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-14 |
+| **Surface** | Theme F outline ingest — docs + fixture under `testdata/outlines/`; pack id in API |
+| **Wave** | Theme F polish (before or with full W4 template catalog) |
+
+### Symptom / ask
+
+Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **clear, fillable template** (and docs) for other bulk hierarchy adds that are not Coursera — so Theme F is not “half the job” ending at one specialization.
+
+### Expected (when built)
+
+- Blank outline JSON (and short fill guide) matching the v1 contract: root → children → modules/sections → tasks with `task_type` / `duration_minutes` / `optional` / order.
+- Either document that `coursera_specialization` already accepts any JSON in that shape, or add a neutral pack alias (e.g. `hierarchy_v1`) that shares the same mapper.
+- Point to it from [OUTLINE-INGEST.md](./OUTLINE-INGEST.md) and `testdata/outlines/README.md`.
+
+### Notes
+
+Does **not** require W4 template CRUD. First-class user-authored template catalog remains W4 ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)).
+
+
 

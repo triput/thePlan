@@ -69,7 +69,9 @@ Reuse Assist’s review→confirm UX pattern; do **not** route syllabus JSON thr
 - Deduping re-imports (prove-it may duplicate if applied twice)  
 - Markdown/CSV outline variants (JSON first; other formats later adapters)  
 - General template marketplace or user-authored template editor  
-- Extending Assist vocabulary (`create_project` from free text) — separate Theme B cut
+- Extending Assist vocabulary (`create_project` from free text) — separate Theme B cut  
+
+**Follow-ons (backlog, not prove-it blockers):** blank/generic fillable outline template ([DEF-010](../DEFECTS.md#def-010--blank--generic-outline-template-non-coursera-bulk-adds)); import under existing epic/project ([DEF-009](../DEFECTS.md#def-009--outline-import-into-existing-hierarchy-partial--lower-level)).
 
 ## Consequences
 

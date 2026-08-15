@@ -31,7 +31,7 @@ Durations come from `duration_minutes`. Optional items are included by default; 
 
 Re-importing the same outline **will duplicate** entities in prove-it (no dedupe yet).
 
-**Backlog:** import under an existing epic/project ([DEF-009](./DEFECTS.md#def-009--outline-import-into-existing-hierarchy-partial--lower-level)); re-import dedupe still unscheduled.
+**Backlog:** import under an existing epic/project ([DEF-009](./DEFECTS.md#def-009--outline-import-into-existing-hierarchy-partial--lower-level)); blank/generic outline template for non-Coursera bulk adds ([DEF-010](./DEFECTS.md#def-010--blank--generic-outline-template-non-coursera-bulk-adds)); re-import dedupe still unscheduled.
 
 ## Related
 

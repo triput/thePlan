@@ -267,7 +267,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Bucket | Contents | Why |
 |--------|----------|-----|
 | **W3** | **1. Account polish** → **2. Microsoft Calendar** → **3. Tauri desktop** | Small auth delta first; reuse GCal patterns while fresh; package desktop last so it wraps a richer app |
-| **W3+** | Local SLM (Ollama) **shipped**; **Theme F** templates + outline ingest ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)) **← next**; Todoist import; intraday/`BYHOUR` habits; optional Kanban | Useful; not required to close account/calendar/desktop wave |
+| **W3+** | Local SLM (Ollama) **shipped**; **Theme F** outline ingest **shipped** ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)); Theme F polish ([DEF-009](./DEFECTS.md)/[010](./DEFECTS.md) lower-level + blank template); Todoist import; intraday/`BYHOUR` habits; optional Kanban | Useful; not required to close account/calendar/desktop wave |
 | **W4 / candidates** | Voice, email-to-task, location reminders, full template catalog, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
 | **Parked** | **W2c** | After W3 as polish + W3 fallout bucket |
 | **V.Later** | Tauri single-installer / bundled Postgres / zero-Docker desktop daily driver | Tabled 2026-08-14; tunnel is the daily driver |
@@ -290,7 +290,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Microsoft Calendar | **W3 Slice 2** |
 | Tauri 2 desktop | **W3 Slice 3** |
 | Local SLM (Ollama) | **W3+** — shipped prove-it; [ADR-010](./adr/ADR-010-slm-assist.md); [SLM-ASSIST.md](./SLM-ASSIST.md) |
-| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) **Accepted**; fixture in `testdata/outlines/` |
+| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) **Accepted** / prove-it shipped; polish [DEF-009](./DEFECTS.md) (import under existing parent), [DEF-010](./DEFECTS.md) (blank/generic outline template) |
 | Todoist import | **W3+** |
 | Intraday / multi-occurrence habits | **W3+** |
 | Board / Kanban view | **W3+** (optional) |
