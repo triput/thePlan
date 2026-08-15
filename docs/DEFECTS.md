@@ -204,3 +204,30 @@ W1.6 touch-target rule applied `min-width/min-height: 2.75rem` to **all** `.icon
 ### Fix
 
 Scope large touch targets to chrome (header/nav); keep smaller targets on task-row icons; stack calendar account rows and wrap subscription Primary under the label on narrow viewports.
+
+---
+
+## DEF-008 — Resizable task detail (right) panel
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (useful polish; fixed ~340px is workable) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-14 |
+| **Surface** | Task detail panel (`.task-detail-panel` / sheet) — desktop/wide layout |
+| **Wave** | Bug bash / UX polish (not wave-blocking) |
+
+### Symptom / ask
+
+Operator wants to **drag the left edge** of the right-hand task detail sidebar to widen/narrow it when needed (long descriptions, dense forms). Fixed width (~340px in `App.css`) is fine as default but not adjustable.
+
+### Expected
+
+- Grab handle / edge drag on the panel’s inner (left) border.
+- Persist preferred width (e.g. `localStorage`) with sensible min/max clamps.
+- Narrow/mobile sheet behavior unchanged (full-bleed / overlay stays as today).
+
+### Notes
+
+Not urgent. Drag-resize only — no need for dual-panel fancy layouts in this item.
+
