@@ -732,6 +732,7 @@ function SchedulingDefaultsSection({ enabled }: { enabled: boolean }) {
               <option value="standalone">Standalone (default)</option>
               <option value="time_block">Time block (opt-in)</option>
               <option value="bundle">Bundle (opt-in)</option>
+              <option value="manual">Manual / backlog</option>
             </select>
           </label>
           <label className="time-map-hard-check">

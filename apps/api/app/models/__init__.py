@@ -119,6 +119,10 @@ class Epic(Base, TimestampMixin):
     preferred_time_window_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="SET NULL")
     )
+    schedule_style: Mapped[ScheduleStyle | None] = mapped_column(
+        SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
+        nullable=True,
+    )
 
     projects: Mapped[list["Project"]] = relationship(back_populates="epic")
 
@@ -145,6 +149,10 @@ class Project(Base, TimestampMixin):
     is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     preferred_time_window_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="SET NULL")
+    )
+    schedule_style: Mapped[ScheduleStyle | None] = mapped_column(
+        SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
+        nullable=True,
     )
 
     epic: Mapped["Epic | None"] = relationship(back_populates="projects")

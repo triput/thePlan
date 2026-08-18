@@ -95,7 +95,12 @@ def test_replan_places_task_end_to_end(
 ) -> None:
     _patch_schedule_clock(monkeypatch)
     _prepare_settings(client)
-    task = _create_task(client, estimated_duration_minutes=30)
+    task = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        priority="p1",
+            deadline_at=_iso(FIXED_NOW + timedelta(days=6)),
+    )
 
     run = _replan_sync(client, db_session, monkeypatch)
     assert run["status"] == "completed"
@@ -152,7 +157,12 @@ def test_pinned_block_avoided(
     _patch_schedule_clock(monkeypatch)
     _prepare_settings(client)
     # Pin covers 60m of a 120m task so remaining work still needs auto placement.
-    task = _create_task(client, estimated_duration_minutes=120)
+    task = _create_task(
+        client,
+        estimated_duration_minutes=120,
+        priority="p1",
+            deadline_at=_iso(FIXED_NOW + timedelta(days=6)),
+    )
 
     pin_start = datetime(2026, 8, 11, 13, 0, tzinfo=UTC)
     pin_end = pin_start + timedelta(hours=1)
@@ -245,6 +255,29 @@ def test_per_task_bundle_override_skips_auto_placement(
     _patch_schedule_clock(monkeypatch)
     _prepare_settings(client)
     task = _create_task(client, estimated_duration_minutes=30, schedule_style="bundle")
+    _replan_sync(client, db_session, monkeypatch)
+
+    horizon_start = FIXED_NOW
+    horizon_end = FIXED_NOW + timedelta(days=7)
+    blocks = client.get(
+        "/api/v1/scheduled-blocks",
+        params={"start": _iso(horizon_start), "end": _iso(horizon_end)},
+    ).json()["items"]
+    task_blocks = [row for row in blocks if row["task_id"] == task["id"]]
+    assert task_blocks == []
+
+    refreshed = client.get(f"/api/v1/tasks/{task['id']}").json()
+    assert refreshed["status"] in {"unscheduled", "overbooked"}
+
+
+def test_per_task_manual_override_skips_auto_placement(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    task = _create_task(client, estimated_duration_minutes=30, schedule_style="manual")
     _replan_sync(client, db_session, monkeypatch)
 
     horizon_start = FIXED_NOW

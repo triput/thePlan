@@ -178,12 +178,13 @@ No full Update Schedule / UPS pipeline in 2a.
 | Auto-scheduler worker | Decoupled from CRUD |
 | UPS scoring + slice/fit | U = 100·e^(-k·max(Slack,0)), k=0.5 |
 | Pins, soft vs hard | `deadline_at` enforced; pinned blocks immovable until unpin |
-| Bundled vs formal blocks | Knockout lists → blocks on replan (**post–v1**; v1 excludes bundle auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
+| Bundled vs formal blocks | Knockout lists → blocks on replan (**post–v1**; v1 excludes `bundle` **and** `manual` auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
 | Scoped bundles | → **[W2c](#wave-2c--scheduler-polish--catch-all)** — bundle constrained to one epic or project |
 | Settings expansion | W2b — **shipped** | API + Scheduling defaults UI; timezone still free-text ([DEF-002](./DEFECTS.md)) |
 | **Painted Time Maps (SkedPal-class)** | **Shipped (2026-08-12)** — one named map with **multiple painted bands**; preference tiers **green → yellow → never red**; scheduler fills green first, overflow to yellow, neutral workday minus red when not strict; `strict_mode` forbids neutral spill. Settings multi-band editor + week calendar color overlay. Tasks bind via `preferred_time_window_id`; epics/projects may bind too — scheduler uses **effective** id ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall), 2026-08-17). |
 | Temporary Time Map overrides | → **W2c** — day/week dated windows that auto-expire (vacation/conference) |
 | Time Map live inherit | **Shipped (2026-08-17)** — parent window on epic/project; live resolution task → project → epic ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)). Plan inherit still parked. |
+| Schedule-style live inherit | **Shipped (2026-08-18)** — `manual` plus parent style on epic/project; live resolution task → project → epic → user default ([DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)). `bundle` still excluded too. |
 | Plan inheritance | → **W2c** — parent → child plan bind still parked |
 | Overbook UI | → **W2c** (or W3 fallout) — `schedule_status.overbooked` |
 | deadline_at UI | **shipped** (Plans A) — hard commit surfaced in task detail + list |
@@ -203,7 +204,7 @@ No full Update Schedule / UPS pipeline in 2a.
 
 | Decision | Lock |
 |----------|------|
-| Default schedule style for new tasks | **Standalone** — Time Block / Bundle are opt-in only |
+| Default schedule style for new tasks | **Standalone** — Time Block / Bundle / Manual are opt-in only |
 | Min block length (MBL) | **Use user/default** unless task overrides (override UI later) |
 | Auto-defer | **On by default** — missed plan windows may slide; surface a one-time / Settings warning, not a nag modal per task |
 | Time Map preference tiers | **In force** — green preferred → yellow overflow OK → red forbidden; scheduler honors tiers for bound maps ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)) |
@@ -221,7 +222,7 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 
 **Goal:** Finish the W2b leftovers that were intentionally parked after Painted Time Maps, without blocking (or being blocked by) core Wave 3 feature work.
 
-**Status:** **Defined 2026-08-12** — not started as a wave. Time Map live inherit **shipped 2026-08-17** ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) steal); rest of seed backlog still parked. Timing vs W3 is **operator choice**.
+**Status:** **Defined 2026-08-12** — not started as a wave. Time Map live inherit **shipped 2026-08-17** ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) steal); schedule-style live inherit **shipped 2026-08-18** ([DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) steal); rest of seed backlog still parked. Timing vs W3 is **operator choice**.
 
 **Ordering (flexible):**
 
@@ -237,7 +238,7 @@ Either order is fine. Do not treat W2c as a hard gate for starting W3.
 | Item | Notes |
 |------|-------|
 | Temporary Time Map overrides | Dated day/week windows that auto-expire (vacation/conference) |
-| Plan inheritance | Parent → child plan bind still parked. Time Map live inherit **shipped 2026-08-17** — [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) closed. |
+| Plan inheritance | Parent → child plan bind still parked. Time Map live inherit **shipped 2026-08-17** — [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) closed. Schedule-style live inherit **shipped 2026-08-18** — [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) closed. |
 | Scoped bundles | Bundle constrained to one epic or project |
 | Task soft-delete + session restore | `deleted_at` + restore path; see [04-data-schema.md](./04-data-schema.md) |
 | Sidebar → calendar drag | Desktop drag-to-slot → `scheduled_block`; phone stays tap/slot |

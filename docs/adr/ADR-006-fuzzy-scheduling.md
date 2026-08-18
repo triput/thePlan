@@ -22,7 +22,7 @@ Update Schedule is **explicit user action only** ([ADR-005](./ADR-005-scheduler-
 ### Candidate set
 
 - Open incomplete tasks with **remaining duration > 0**
-- Include `standalone` and `time_block` schedule styles; **exclude `bundle` from auto-placement in v1** (manual blocks for bundle tasks remain OK)
+- Include `standalone` and `time_block` schedule styles; **exclude `manual` as well as `bundle` from auto-placement** (manual/pinned blocks for those tasks remain OK)
 - Honor `task_dependencies` **topological order** in v1
 
 ### Slack / urgency
@@ -72,6 +72,8 @@ When fit fails, apply in order:
 
 **Time Map addendum (2026-08-17):** Live parent → child Time Map resolution **shipped** ([DEF-018](../DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)). Scheduler uses the **effective** id: `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound. Not stamp-on-create. Plan inheritance remains out of v1.
 
+**Schedule-style addendum (2026-08-18):** Live parent → child schedule-style resolution **shipped** ([DEF-014](../DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)), parallel to Time Map inherit (DEF-018). Effective style: `task.schedule_style` → else `project.schedule_style` → else `epic.schedule_style` → else `user_settings.default_schedule_style`. Inbox (no project) is task or user default only. Enum value is `manual` (UI: Manual / backlog); not a magic `backlog` label.
+
 ## UPS
 
 Priority queue ordering uses the existing UPS formula in [02-functional-spec.md §9](../02-functional-spec.md#ups-formula). Weights come from `user_settings.ups_weights`. **No formula change** in this ADR.
@@ -81,9 +83,10 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 - **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
 - **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
 - **Shipped (2026-08-17):** Time Map live inherit — `preferred_time_window_id` on epics/projects; replan uses `effective_preferred_time_window_id` (DEF-018). Plan inherit still parked.
+- **Shipped (2026-08-18):** Schedule-style live inherit — `schedule_style` `manual` plus nullable columns on epics/projects; replan uses `effective_schedule_style` and excludes `manual` and `bundle` (DEF-014).
 - **Next:** W3 Slice 1 after [ADR-007](./ADR-007-account-self-service.md) accept; W2c parked
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
-- Bundled tasks stay manual until a later slice; roadmap “knockout → blocks on replan” applies post–v1
+- Bundled tasks stay off auto-placement until a later slice; roadmap “knockout → blocks on replan” applies post–v1. `manual` is the same exclusion, different intent (don’t schedule yet).
 - Functional spec §9 retains product-level SkedPal semantics; worker implementers treat this ADR as the v1 source of truth for fit and replan
 
 ## Related

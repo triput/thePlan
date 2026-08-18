@@ -222,6 +222,23 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     return null;
   }, [preferredTimeWindowId, projectId, projects, epics]);
 
+  const inheritScheduleStyleHint = useMemo(() => {
+    if (scheduleStyle !== "") return null;
+    if (!projectId) return null;
+    const selectedProject = projects.find((p) => p.id === projectId);
+    if (!selectedProject) return null;
+    if (selectedProject.schedule_style) {
+      return `from project ${selectedProject.title}`;
+    }
+    if (selectedProject.epic_id) {
+      const epic = epics.find((e) => e.id === selectedProject.epic_id);
+      if (epic?.schedule_style) {
+        return `from epic ${epic.title}`;
+      }
+    }
+    return null;
+  }, [scheduleStyle, projectId, projects, epics]);
+
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
   const updateMutation = useMutation({
@@ -663,13 +680,17 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               value={scheduleStyle}
               onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
             >
-              <option value="">Inherit user default</option>
+              <option value="">Inherit</option>
               <option value="standalone">Standalone</option>
               <option value="time_block">Time block</option>
               <option value="bundle">Bundle</option>
+              <option value="manual">Manual / backlog</option>
             </select>
+            {inheritScheduleStyleHint && (
+              <span className="field-hint muted small">{inheritScheduleStyleHint}</span>
+            )}
             <span className="field-hint muted small">
-              Bundle tasks are excluded from auto-placement
+              Manual / backlog and bundle tasks are excluded from Update Schedule auto-placement
             </span>
           </label>
           <label className="field">

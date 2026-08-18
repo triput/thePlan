@@ -54,6 +54,7 @@ def create_epic(
         start_date=body.start_date,
         target_date=body.target_date,
         preferred_time_window_id=body.preferred_time_window_id,
+        schedule_style=body.schedule_style,
     )
     db.add(epic)
     db.commit()

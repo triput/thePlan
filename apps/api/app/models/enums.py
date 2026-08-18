@@ -36,6 +36,7 @@ class ScheduleStyle(str, enum.Enum):
     standalone = "standalone"
     time_block = "time_block"
     bundle = "bundle"
+    manual = "manual"
 
 
 class TimeMapBandTier(str, enum.Enum):

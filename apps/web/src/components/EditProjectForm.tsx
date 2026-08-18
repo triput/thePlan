@@ -8,6 +8,7 @@ import {
   updateProject,
   type FocusWindow,
   type Project,
+  type ScheduleStyle,
 } from "../api";
 import { ColorPicker } from "./ColorPicker";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -27,6 +28,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
   const [colorHex, setColorHex] = useState("");
   const [epicId, setEpicId] = useState<string | "">("");
   const [preferredTimeWindowId, setPreferredTimeWindowId] = useState("");
+  const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const queryClient = useQueryClient();
@@ -48,6 +50,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
       setColorHex(project.color_hex);
       setEpicId(project.epic_id ?? "");
       setPreferredTimeWindowId(project.preferred_time_window_id ?? "");
+      setScheduleStyle(project.schedule_style ?? "");
     }
   }, [project]);
 
@@ -63,6 +66,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
       color_hex: string;
       epic_id: string | null;
       preferred_time_window_id: string | null;
+      schedule_style: ScheduleStyle | null;
     }) => updateProject(project!.id, body),
     onSuccess: () => {
       invalidate();
@@ -104,6 +108,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
       color_hex: colorHex,
       epic_id: epicId || null,
       preferred_time_window_id: preferredTimeWindowId || null,
+      schedule_style: scheduleStyle || null,
     });
   };
 
@@ -160,6 +165,20 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
                   {window.name}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Schedule style</span>
+            <select
+              className="field-select"
+              value={scheduleStyle}
+              onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
+            >
+              <option value="">Inherit</option>
+              <option value="standalone">Standalone</option>
+              <option value="time_block">Time block</option>
+              <option value="bundle">Bundle</option>
+              <option value="manual">Manual / backlog</option>
             </select>
           </label>
           <fieldset className="field">

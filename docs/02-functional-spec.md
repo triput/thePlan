@@ -310,7 +310,11 @@ These behaviors are **not in MVP** but are locked for W2 design. Schema and API 
 
 ### Rule Inheritance
 
-Child tasks inherit scheduling constraints from parent (time window, plan binding) unless explicitly overridden. Reduces per-task configuration.
+Child tasks inherit scheduling constraints from parent unless explicitly overridden.
+
+- **Time Map (shipped):** `task.preferred_time_window_id` → else project → else epic → else unbound ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)).
+- **Schedule style (shipped):** `task.schedule_style` → else project → else epic → else `user_settings.default_schedule_style` ([DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)). Inbox is task or user default only. Enum includes `manual` (UI: Manual / backlog); effective `manual` and `bundle` stay off auto-placement.
+- **Plan bind:** still parked (not stamped from parent).
 
 ### Scheduling Pipeline (Async Worker)
 
@@ -347,7 +351,7 @@ Insert `inter_block_buffer_minutes` (default **5**) between back-to-back auto-sc
 
 ### Fuzzy Fit Rules
 
-See [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) for the v1 relaxation ladder, horizon wipe/rewrite rules, bundle exclusion, auto-defer slide-only behavior, and leftover slice rule. Summary: prefer contiguous blocks within a focus window; relax soft constraints before failing; pins and external busy are immovable.
+See [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) for the v1 relaxation ladder, horizon wipe/rewrite rules, bundle **and** manual exclusion, auto-defer slide-only behavior, and leftover slice rule. Summary: prefer contiguous blocks within a focus window; relax soft constraints before failing; pins and external busy are immovable.
 
 ### GCal Conflict (W2)
 

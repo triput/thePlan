@@ -49,11 +49,14 @@ All list endpoints scope to authenticated `owner_id`.
   "color_hex": "#6D3FC9",
   "start_date": "2026-07-01",
   "target_date": "2026-09-30",
-  "preferred_time_window_id": "uuid-or-null"
+  "preferred_time_window_id": "uuid-or-null",
+  "schedule_style": null
 }
 ```
 
 `preferred_time_window_id` optional on create/PATCH: owned focus window, or `null`. Omit on PATCH leaves the current value; `null` clears. Parent bind is **not** copied onto tasks — scheduler uses the **effective** id at replan (task → project → epic → unbound).
+
+`schedule_style` optional on create/PATCH: `standalone`, `time_block`, `bundle`, `manual`, or `null`. Omit on PATCH leaves the current value; `null` clears (inherit user default). Parent style is **not** copied onto tasks — scheduler uses the **effective** style at replan (task → project → epic → user default). Effective `manual` and `bundle` are excluded from auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md).
 
 ---
 
@@ -71,6 +74,8 @@ All list endpoints scope to authenticated `owner_id`.
 | PATCH | `/projects/reorder` | Batch `{ "items": [{"id": "...", "sort_order": 0}] }` |
 
 `preferred_time_window_id` optional on create/PATCH: owned focus window, or `null`. Omit on PATCH leaves the current value; `null` clears. Same live-inherit semantics as epics (task override wins; parent id is not stamped onto tasks).
+
+`schedule_style` optional on create/PATCH: `standalone`, `time_block`, `bundle`, `manual`, or `null`. Omit on PATCH leaves the current value; `null` clears (inherit epic, else user default). Same live-inherit semantics as Time Maps (task override wins; parent style is not stamped onto tasks).
 
 ---
 
@@ -127,6 +132,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
   "estimated_duration_minutes": 90,
   "preferred_time_window_id": "uuid-or-null",
   "plan_id": "uuid-or-null",
+  "schedule_style": null,
   "label_ids": ["uuid"]
 }
 ```
@@ -137,7 +143,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 `plan_id` optional on create/update; must reference an owned plan; cleared with `null`. **Plan bind:** setting `plan_id` copies the plan's `soft_target_at` onto the task when the plan has one; clearing `plan_id` leaves `soft_target_at` unchanged; patching `soft_target_at` alone does not clear `plan_id`. When both `plan_id` and `soft_target_at` appear in the same request, explicit `soft_target_at` wins after bind.
 
-`schedule_style` optional on create/update: omit or `null` → inherit `user_settings.default_schedule_style`; explicit `standalone`, `time_block`, or `bundle` overrides. Bundle (effective or default) excludes the task from auto-placement per ADR-006.
+`schedule_style` optional on create/update: omit or `null` → inherit live (`task` → `project` → `epic` → `user_settings.default_schedule_style`); inbox is task or user default only. Explicit `standalone`, `time_block`, `bundle`, or `manual` overrides. Effective **bundle** and **manual** exclude the task from auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md).
 
 `TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), and `schedule_style` (null when inheriting).
 
@@ -392,7 +398,7 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
 | upcoming_horizon_days | int | 7 | >= 1 |
 | default_estimated_duration_minutes | int | 30 | > 0 |
 | default_min_block_duration_minutes | int | 15 | > 0 |
-| default_schedule_style | enum | standalone | `standalone`, `time_block`, `bundle` |
+| default_schedule_style | enum | standalone | `standalone`, `time_block`, `bundle`, `manual` |
 | auto_defer_enabled | bool | true | |
 
 **Task create duration:** `estimated_duration_minutes` on `POST /tasks` is optional. Omit or send `null` to use `user_settings.default_estimated_duration_minutes`; an explicit value (including `30`) is stored as-is.
@@ -593,7 +599,7 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 **`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
 
-Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Placement uses the **effective** Time Map id (task → project → epic → unbound). Bound maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
+Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Placement uses the **effective** Time Map id (task → project → epic → unbound) and **effective** schedule style (task → project → epic → user default). Effective `manual` and `bundle` are excluded from auto-placement. Bound maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
 
 ### Reserved (W2c / W3+)
 

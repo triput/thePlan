@@ -75,7 +75,7 @@ users ──┬── user_settings
 
 ### schedule_style
 
-`standalone` (default for new tasks), `time_block`, `bundle` — W2b scheduler; nullable on tasks inherits `user_settings.default_schedule_style`.
+`standalone` (default for new tasks), `time_block`, `bundle`, `manual` — W2b scheduler + DEF-014. Nullable on **tasks**, **projects**, and **epics**. Null inherits live at schedule time: `task.schedule_style` → else `project.schedule_style` → else `epic.schedule_style` → else `user_settings.default_schedule_style`. Inbox (no project) is task or user default only. Effective `manual` and `bundle` are excluded from Update Schedule auto-placement ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Alembic `013_schedule_style_manual` adds the enum value and the epic/project columns. Postgres cannot cheaply drop an enum value; downgrade drops the columns only and leaves `manual` on the type.
 
 ### time_map_band_tier
 
@@ -118,7 +118,7 @@ One row per user.
 | upcoming_horizon_days | INT | 7 | Upcoming view |
 | default_estimated_duration_minutes | INT | 30 | Task create default when omitted |
 | default_min_block_duration_minutes | INT | 15 | MBL default (matches task min_block) |
-| default_schedule_style | schedule_style | standalone | Block/bundle opt-in |
+| default_schedule_style | schedule_style | standalone | Block / bundle / manual opt-in |
 | auto_defer_enabled | BOOLEAN | true | Missed plan windows may slide |
 
 **Checks:** `workday_minutes > 0`, `workweek_days` 1–7, `inter_block_buffer_minutes >= 0`, `upcoming_horizon_days > 0`, duration defaults `> 0`.
@@ -134,6 +134,7 @@ One row per user.
 | sort_order | INT | |
 | is_archived | BOOLEAN | |
 | preferred_time_window_id | UUID FK nullable | focus_windows; ON DELETE SET NULL. Alembic `012_hierarchy_time_maps` |
+| schedule_style | schedule_style nullable | NULL = inherit user default. Alembic `013_schedule_style_manual` |
 
 **Indexes:** `(owner_id)`, `(owner_id, is_archived)`
 
@@ -146,10 +147,13 @@ One row per user.
 | title, description | | |
 | color_hex | VARCHAR(7) | Default `#0A8558` |
 | preferred_time_window_id | UUID FK nullable | focus_windows; ON DELETE SET NULL. Alembic `012_hierarchy_time_maps` |
+| schedule_style | schedule_style nullable | NULL = inherit epic, else user default. Alembic `013_schedule_style_manual` |
 
 **Indexes:** `(owner_id)`, `(epic_id)`, `(owner_id, is_archived)`
 
 **Hierarchy Time Maps:** Parent window is **not** copied onto tasks. Scheduler resolves live at replan: `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound.
+
+**Hierarchy schedule style:** Parent style is **not** copied onto tasks. Scheduler resolves live at replan: `task.schedule_style` → else `project.schedule_style` → else `epic.schedule_style` → else `user_settings.default_schedule_style`. Inbox (no project) is task or user default only.
 
 ### sections
 
@@ -226,7 +230,7 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 | deadline_at | TIMESTAMPTZ nullable | Hard commit; **W2 UI** |
 | soft_target_at | TIMESTAMPTZ nullable | Flexible target; may copy from bound plan |
 | plan_id | UUID FK nullable | plans; ON DELETE SET NULL |
-| schedule_style | schedule_style nullable | NULL = inherit `user_settings.default_schedule_style` |
+| schedule_style | schedule_style nullable | NULL = inherit project → epic → `user_settings.default_schedule_style` |
 | preferred_time_window_id | UUID FK nullable | focus_windows (map header; bands resolved at schedule time) |
 | status | schedule_status | |
 | is_completed | BOOLEAN | |

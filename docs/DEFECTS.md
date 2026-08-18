@@ -369,22 +369,27 @@ Starter set applied with the convention doc (`busy_map`, `deps`, outline/Assist 
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (daily annoyance when outline/import dumps hundreds of tasks into replan) |
-| **Status** | Open — backlog |
+| **Status** | Closed — shipped 2026-08-18 |
 | **Found** | 2026-08-17 |
-| **Surface** | Scheduler (`candidates.load_candidates`), task detail, quick-add / outline defaults |
-| **Wave** | W2c polish or W3+ scheduling UX |
+| **Surface** | Scheduler (`candidates.py` / `style.py`); epic/project schedule-style pickers; task detail **Manual / backlog**; Settings `default_schedule_style` |
+| **Wave** | W2c steal — `manual` + live inherit shipped; bulk edit still [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) |
 
 ### Symptom / ask
 
 Operator wants tasks that are **not ready to plan** to stay off the calendar when running **Update Schedule** — e.g. imported course modules sitting in a backlog until she picks what to work on. A **`backlog` label** is one idea; open to better designs.
 
-### Current behavior (2026-08-17)
+### Current behavior (shipped 2026-08-18)
 
-- `load_candidates` includes every incomplete task with remaining duration > 0 except **`schedule_style == bundle`** ([`candidates.py`](../apps/api/app/scheduler/candidates.py), [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)).
-- Task detail already has **Schedule style → Bundle** with hint “excluded from auto-placement” — functionally close, but **name/semantics are wrong** for “don’t schedule this yet.”
-- Default user setting is **`standalone`**, so new/imported tasks **do** enter replan unless overridden.
+- New `schedule_style` value **`manual`** (Alembic `013_schedule_style_manual`). UI label is **Manual / backlog** — **not** a magic `backlog` label.
+- `load_candidates` excludes effective **`manual` and `bundle`** ([`candidates.py`](../apps/api/app/scheduler/candidates.py), [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Manual/pinned blocks remain OK. Bundle is still a distinct style and still stays off auto-placement.
+- Live resolution at schedule time, **not** stamp-on-create: `task.schedule_style` → else `project.schedule_style` → else `epic.schedule_style` → else `user_settings.default_schedule_style`. Inbox (no project) is **task override or user default only**.
+- Task override always wins. Saving Inherit keeps the task column **null** (does not copy the parent value).
+- Outline import does **not** default every imported task to `manual`.
+- UI: schedule-style picker on epic/project create + edit; task detail empty = inherit; hint `from project {title}` / `from epic {title}`. Settings default enum includes `manual`.
 
-### Design options (pick one in implementation)
+Tunnel ops (not run in this docs pass): operator still needs `docker compose --build api web` for the live stack.
+
+### Design options (kept)
 
 | Approach | Pros | Cons |
 |----------|------|------|
@@ -394,18 +399,34 @@ Operator wants tasks that are **not ready to plan** to stay off the calendar whe
 | **D. User setting: labels or tag that exclude from replan** | Flexible | Settings UI + config surface |
 | **E. Default new tasks to excluded** (global or per-project) | Import-friendly | Easy to forget to “promote” tasks into schedulable pool |
 
-**Recommendation:** **B or A-short-term** — operator-facing **“Backlog / manual only”** toggle beats a label convention. If shipping fast: document **Bundle = excluded today**, then rename UI before W2c scoped-bundle work lands.
+**Shipped:** **B** — enum value `manual` plus 018-style live inherit on epics/projects. Not C (no magic `backlog` label). Bundle stays its own style.
 
-### Expected (when built)
+### Design (what landed)
 
-- Clear per-task (and optionally bulk — see DEF-015) way to mark **exclude from Update Schedule**.
-- Imported / quick-added tasks optionally land excluded by default (setting or parent inherit).
-- Today / Upcoming views unchanged — exclusion is about **auto-placement**, not hiding tasks.
-- Tests in `test_schedule_replan.py` for whichever rule wins.
+**Live resolution at schedule time**, not stamp-on-create:
+
+`task.schedule_style` → else `project.schedule_style` → else `epic.schedule_style` → else `user_settings.default_schedule_style`.
+
+- Task override always wins (one module that *is* ready to plan).
+- Set Coursera epic (or a course project) to **Manual / backlog** → Update Schedule skips that tree without 147 clicks.
+- Inbox has no project/epic parent; inherit is task or user default only.
+- Outline ingest does not stamp `manual` onto every imported row.
+
+**Not a substitute for:** [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) (labels/due/recurrence/multi-select) or [DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination) (mix vs cap). This is **whether** a domain is even a candidate.
+
+### Expected (met)
+
+- Clear per-task (and parent) way to mark **exclude from Update Schedule**: **Manual / backlog**.
+- Bind style on epic or project; replan skips inheriting descendants without per-task edits.
+- Explicit task style overrides parent. Clearing the project/epic style unbinds inheritors; explicit task values stay put.
+- Today / Upcoming views unchanged — exclusion is **auto-placement**, not hiding tasks.
+- Quality GREEN 2026-08-18: targeted pytest `tests/test_schedule_replan.py tests/test_scheduler_style.py tests/test_schedule_style_inherit.py` — `25 passed`.
 
 ### Notes
 
-Related: outline ingest (Theme F) makes this feel P2. Not the same as **pinned blocks** (hard time lock) or **due/deadline** (constraints when schedulable).
+Related: outline ingest (Theme F) made this P2. Not the same as **pinned blocks** (hard time lock) or **due/deadline** (constraints when schedulable).
+
+**Message to future Trish (2026-08-18):** Set the Coursera **epic** (or project) to **Manual / backlog** **once**. You did **not** rage-click 147 modules. You had the good sense to stop at the thought experiment and yell at the agent instead. If you’re reading this after actually rage-clicking anyway — hi, yes, we knew. Ship DEF-014 before you do it again. :D
 
 ---
 
@@ -502,7 +523,7 @@ Orthogonal to **DEF-008** (wider panel). If panel grows, scroll pain lessens but
 | **Status** | Open — backlog; design / ADR candidate |
 | **Found** | 2026-08-17 |
 | **Surface** | Scheduler ordering + placement (`ups.py`, `dependencies.py`, `placement.py`, `replan.py`); optional project/epic settings |
-| **Wave** | W2c polish or W3+ scheduling UX; **after** DEF-014 (backlog exclusion) for immediate relief |
+| **Wave** | W2c polish or W3+ scheduling UX; **DEF-014 shipped** (manual inherit) — fairness still open |
 
 ### Symptom / ask
 
@@ -528,7 +549,7 @@ Time maps constrain **tier/window**; they do not **interleave** across projects.
 | **E. Scoped pools (W2c)** | “Only schedule tasks from epic X this run” / inverse “exclude epic X” | Operator control per replan | Doesn’t auto-mix; manual |
 | **F. Refine epic alignment E** | Cap, decay, or per-project share of E — stop blanket +10 for all tasks in hot epic | Targets Coursera-with-target-date case | Doesn’t help equal-priority different epics with no target |
 
-**Recommendation:** Ship **A + B** as v1 fairness pair — round-robin among same-priority band fixes the greedy bug; optional daily cap gives operator a knob. Document in **ADR-006 addendum** or new **ADR-012 scheduling fairness**. **DEF-014** (backlog) remains the right short-term lever for unplanned import bulk.
+**Recommendation:** Ship **A + B** as v1 fairness pair — round-robin among same-priority band fixes the greedy bug; optional daily cap gives operator a knob. Document in **ADR-006 addendum** or new **ADR-012 scheduling fairness**. [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) (`manual` inherit) is the short-term lever for unplanned import bulk — **shipped 2026-08-18**.
 
 ### Expected (when built)
 
@@ -539,7 +560,7 @@ Time maps constrain **tier/window**; they do not **interleave** across projects.
 
 ### Notes
 
-Related: [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) (don’t schedule backlog at all), [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) (bind a whole project to a window — cap *when*, not mix), W2c **scoped bundles** (opt-in grouping — different problem). Not the same as **dependency ordering** within one course — that stays; fairness is **across** projects at equal priority.
+Related: [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) (**shipped** — set epic/project to Manual / backlog so the tree stays off replan), [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) (bind a whole project to a window — cap *when*, not mix), W2c **scoped bundles** (opt-in grouping — different problem). Not the same as **dependency ordering** within one course — that stays; fairness is **across** projects at equal priority.
 
 ---
 

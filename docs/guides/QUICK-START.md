@@ -240,7 +240,7 @@ Use **Sync now** after changing subscriptions. Pick calendars, mark one **primar
 
 Calendar header → **Update Schedule**. Triggers an explicit replan ([ADR-006](../adr/ADR-006-fuzzy-scheduling.md)): the worker places open tasks into free slots inside your horizon, respects pins and Google busy, and rewrites **unpinned** blocks in range. Button shows **Updating…** while the run finishes (polls in the background).
 
-**What it does today:** standalone/time-block tasks get auto-placed; dependencies honored; bound Time Maps respect green/yellow/red tiers; overbooked tasks flagged in run stats. **What it doesn't:** bundle auto-placement, Time Map temporary overrides, sidebar drag-to-schedule, or background/cron replan — you press the button when you want a fresh layout.
+**What it does today:** standalone/time-block tasks get auto-placed; **manual** and **bundle** stay off auto-placement (set **Manual / backlog** on an epic or project once to keep a whole tree off Update Schedule); dependencies honored; bound Time Maps respect green/yellow/red tiers; overbooked tasks flagged in run stats. **What it doesn't:** bundle auto-placement, Time Map temporary overrides, sidebar drag-to-schedule, or background/cron replan — you press the button when you want a fresh layout.
 
 ---
 
@@ -393,7 +393,7 @@ Press **?** for the overlay. Highlights:
 
 Don't go hunting for these — they're real roadmap, not hidden beta:
 
-- **Bundle auto-placement** — bundled tasks stay manual; knockout→blocks on replan is post–v1
+- **Bundle auto-placement** — bundled (and **manual / backlog**) tasks stay off auto-placement; knockout→blocks on replan is post–v1
 - **Time Map temporary overrides** — vacation/conference dated exceptions
 - **Sidebar → calendar drag** — drop a task from the list onto a slot to block time
 - **Custom saved filters / query language** — only fixed smart views today

@@ -139,6 +139,7 @@ class EpicCreate(BaseModel):
     start_date: date | None = None
     target_date: date | None = None
     preferred_time_window_id: UUID | None = None
+    schedule_style: ScheduleStyle | None = None
 
 
 class EpicUpdate(BaseModel):
@@ -150,6 +151,7 @@ class EpicUpdate(BaseModel):
     sort_order: int | None = None
     is_archived: bool | None = None
     preferred_time_window_id: UUID | None = None
+    schedule_style: ScheduleStyle | None = None
 
 
 class EpicOut(BaseModel):
@@ -164,6 +166,7 @@ class EpicOut(BaseModel):
     sort_order: int
     is_archived: bool
     preferred_time_window_id: UUID | None
+    schedule_style: ScheduleStyle | None
 
 
 class ProjectCreate(BaseModel):
@@ -172,6 +175,7 @@ class ProjectCreate(BaseModel):
     epic_id: UUID | None = None
     color_hex: str = "#0A8558"
     preferred_time_window_id: UUID | None = None
+    schedule_style: ScheduleStyle | None = None
 
 
 class ProjectUpdate(BaseModel):
@@ -182,6 +186,7 @@ class ProjectUpdate(BaseModel):
     sort_order: int | None = None
     is_archived: bool | None = None
     preferred_time_window_id: UUID | None = None
+    schedule_style: ScheduleStyle | None = None
 
 
 class ProjectOut(BaseModel):
@@ -195,6 +200,7 @@ class ProjectOut(BaseModel):
     sort_order: int
     is_archived: bool
     preferred_time_window_id: UUID | None
+    schedule_style: ScheduleStyle | None
 
 
 class SectionCreate(BaseModel):

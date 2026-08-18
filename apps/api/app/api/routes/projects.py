@@ -59,6 +59,7 @@ def create_project(
         epic_id=body.epic_id,
         color_hex=body.color_hex,
         preferred_time_window_id=body.preferred_time_window_id,
+        schedule_style=body.schedule_style,
     )
     db.add(project)
     db.commit()

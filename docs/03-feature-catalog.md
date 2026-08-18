@@ -120,7 +120,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | 24×7 calendar viewport | W2a Slice 2 | Default 6A–10P; Settings/chrome toggle for full day |
 | Time Map temporary overrides | W2b | Day/week dated windows that auto-expire |
 | Scoped bundles | W2b late / W3 | Bundle constrained to epic or project |
-| Scheduling settings expansion | W2b | Buffers, default duration, default block vs bundle style |
+| Scheduling settings expansion | W2b | Buffers, default duration, default `standalone` / `time_block` / `bundle` / `manual` style |
 | Fuzzy scheduling depth | W2b session | Deferral, MBL overrides, soft plans — dedicated plan first |
 | Microsoft Calendar sync | W3 | Slice 2 — after account polish |
 | iCloud calendar | Out | Unless reopened |
@@ -184,7 +184,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Plans (flexible time frames) | W2b | CRUD + task bind + Settings UI — **shipped** (Plans B) |
 | soft_target_at on tasks | W2b UI | Task detail + list badges; copied on plan bind — **shipped** |
 | Soft vs hard constraint semantics | W2b | Soft=plan/window; hard=deadline/pin/busy |
-| Rule inheritance from parent | W2c | Time Map live inherit **shipped** (2026-08-17, [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)): task → project → epic at schedule time. Plan inheritance still parked. |
+| Rule inheritance from parent | W2c | Time Map live inherit **shipped** (2026-08-17, [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)): task → project → epic at schedule time. Schedule-style live inherit **shipped** (2026-08-18, [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)): `task.schedule_style` → project → epic → user default; `manual` + `bundle` excluded from replan. Plan inheritance still parked. |
 
 ### Scheduling Engine
 

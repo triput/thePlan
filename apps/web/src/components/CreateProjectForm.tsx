@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProject, fetchFocusWindows, type FocusWindow } from "../api";
+import { createProject, fetchFocusWindows, type FocusWindow, type ScheduleStyle } from "../api";
 import { DEFAULT_PROJECT_COLOR } from "../colors";
 import { ColorPicker } from "./ColorPicker";
 import { Modal } from "./Modal";
@@ -15,6 +15,7 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
   const [title, setTitle] = useState("");
   const [colorHex, setColorHex] = useState(DEFAULT_PROJECT_COLOR);
   const [preferredTimeWindowId, setPreferredTimeWindowId] = useState("");
+  const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const queryClient = useQueryClient();
 
   const focusWindowsQuery = useQuery({
@@ -31,6 +32,7 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
       setTitle("");
       setColorHex(DEFAULT_PROJECT_COLOR);
       setPreferredTimeWindowId("");
+      setScheduleStyle("");
       onClose();
     },
   });
@@ -44,6 +46,7 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
       epic_id: epicId,
       color_hex: colorHex,
       preferred_time_window_id: preferredTimeWindowId || null,
+      schedule_style: scheduleStyle || null,
     });
   };
 
@@ -77,6 +80,20 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
                 {window.name}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="field">
+          <span>Schedule style</span>
+          <select
+            className="field-select"
+            value={scheduleStyle}
+            onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
+          >
+            <option value="">Inherit</option>
+            <option value="standalone">Standalone</option>
+            <option value="time_block">Time block</option>
+            <option value="bundle">Bundle</option>
+            <option value="manual">Manual / backlog</option>
           </select>
         </label>
         {mutation.isError && (

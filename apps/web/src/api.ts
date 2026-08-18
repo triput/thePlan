@@ -71,6 +71,7 @@ export interface Epic {
   sort_order: number;
   is_archived: boolean;
   preferred_time_window_id: string | null;
+  schedule_style: ScheduleStyle | null;
 }
 
 export interface Project {
@@ -82,6 +83,7 @@ export interface Project {
   sort_order: number;
   is_archived: boolean;
   preferred_time_window_id: string | null;
+  schedule_style: ScheduleStyle | null;
 }
 
 export interface Section {
@@ -196,6 +198,7 @@ export interface EpicCreate {
   description?: string | null;
   color_hex?: string;
   preferred_time_window_id?: string | null;
+  schedule_style?: ScheduleStyle | null;
 }
 
 export interface EpicUpdate {
@@ -203,6 +206,7 @@ export interface EpicUpdate {
   description?: string | null;
   color_hex?: string;
   preferred_time_window_id?: string | null;
+  schedule_style?: ScheduleStyle | null;
 }
 
 export interface ProjectCreate {
@@ -211,6 +215,7 @@ export interface ProjectCreate {
   epic_id?: string | null;
   color_hex?: string;
   preferred_time_window_id?: string | null;
+  schedule_style?: ScheduleStyle | null;
 }
 
 export interface ProjectUpdate {
@@ -219,6 +224,7 @@ export interface ProjectUpdate {
   epic_id?: string | null;
   color_hex?: string;
   preferred_time_window_id?: string | null;
+  schedule_style?: ScheduleStyle | null;
 }
 
 export interface SectionCreate {
@@ -285,7 +291,7 @@ export interface PlanUpdate {
   soft_target_at?: string | null;
 }
 
-export type ScheduleStyle = "standalone" | "time_block" | "bundle";
+export type ScheduleStyle = "standalone" | "time_block" | "bundle" | "manual";
 
 export interface UserSettings {
   timezone: string;

@@ -7,6 +7,7 @@ import {
   updateEpic,
   type Epic,
   type FocusWindow,
+  type ScheduleStyle,
 } from "../api";
 import { ColorPicker } from "./ColorPicker";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -21,6 +22,7 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
   const [title, setTitle] = useState("");
   const [colorHex, setColorHex] = useState("");
   const [preferredTimeWindowId, setPreferredTimeWindowId] = useState("");
+  const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const queryClient = useQueryClient();
@@ -37,6 +39,7 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
       setTitle(epic.title);
       setColorHex(epic.color_hex);
       setPreferredTimeWindowId(epic.preferred_time_window_id ?? "");
+      setScheduleStyle(epic.schedule_style ?? "");
     }
   }, [epic]);
 
@@ -47,6 +50,7 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
       title: string;
       color_hex: string;
       preferred_time_window_id: string | null;
+      schedule_style: ScheduleStyle | null;
     }) => updateEpic(epic!.id, body),
     onSuccess: () => {
       invalidate();
@@ -81,6 +85,7 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
       title: trimmed,
       color_hex: colorHex,
       preferred_time_window_id: preferredTimeWindowId || null,
+      schedule_style: scheduleStyle || null,
     });
   };
 
@@ -116,6 +121,20 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
                   {window.name}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Schedule style</span>
+            <select
+              className="field-select"
+              value={scheduleStyle}
+              onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
+            >
+              <option value="">Inherit</option>
+              <option value="standalone">Standalone</option>
+              <option value="time_block">Time block</option>
+              <option value="bundle">Bundle</option>
+              <option value="manual">Manual / backlog</option>
             </select>
           </label>
           {error && <p className="form-error">{(error as Error).message}</p>}

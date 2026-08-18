@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased] — W2c steal (scheduler polish)
+
+- **DEF-014 (shipped 2026-08-18):** `schedule_style` value `manual` (UI: Manual / backlog) plus live inherit on epics/projects; Update Schedule excludes `manual` and `bundle`. Outline import does not stamp imported tasks as manual. Tunnel ops: operator still needs `docker compose --build api web` (not run in this docs pass).
+
 ## [Unreleased] — Wave 3+ (SLM)
 
 - **ADR-010 accepted (2026-08-14):** Local SLM Assist — Ollama default, OpenAI-compatible client, review→confirm→apply; CRUD never blocked ([docs/adr/ADR-010-slm-assist.md](docs/adr/ADR-010-slm-assist.md), [docs/SLM-ASSIST.md](docs/SLM-ASSIST.md))
