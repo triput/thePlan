@@ -48,9 +48,12 @@ All list endpoints scope to authenticated `owner_id`.
   "description": "Platform hardening",
   "color_hex": "#6D3FC9",
   "start_date": "2026-07-01",
-  "target_date": "2026-09-30"
+  "target_date": "2026-09-30",
+  "preferred_time_window_id": "uuid-or-null"
 }
 ```
+
+`preferred_time_window_id` optional on create/PATCH: owned focus window, or `null`. Omit on PATCH leaves the current value; `null` clears. Parent bind is **not** copied onto tasks — scheduler uses the **effective** id at replan (task → project → epic → unbound).
 
 ---
 
@@ -66,6 +69,8 @@ All list endpoints scope to authenticated `owner_id`.
 | POST | `/projects/{id}/archive` | Archive |
 | POST | `/projects/{id}/unarchive` | Unarchive |
 | PATCH | `/projects/reorder` | Batch `{ "items": [{"id": "...", "sort_order": 0}] }` |
+
+`preferred_time_window_id` optional on create/PATCH: owned focus window, or `null`. Omit on PATCH leaves the current value; `null` clears. Same live-inherit semantics as epics (task override wins; parent id is not stamped onto tasks).
 
 ---
 
@@ -169,7 +174,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 | POST | `/focus-windows` | Create |
 | GET | `/focus-windows/{id}` | Get |
 | PATCH | `/focus-windows/{id}` | Update |
-| DELETE | `/focus-windows/{id}` | Delete (204); `tasks.preferred_time_window_id` SET NULL via FK |
+| DELETE | `/focus-windows/{id}` | Delete (204); SET NULL via FK on `tasks.preferred_time_window_id`, `epics.preferred_time_window_id`, and `projects.preferred_time_window_id` |
 
 **Default seeds** (inserted on user provision / bootstrap when user has zero windows): Morning 08:00–12:00, Afternoon 12:00–17:00, Evening 17:00–21:00 — each one **green** band, `strict_mode=false`, Mon–Sun (`days_of_week=127`).
 
@@ -225,7 +230,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 **Scheduler placement (bound map):** green bands first, then yellow, then neutral workday minus red bands — unless `strict_mode=true`, in which case neutral spill is forbidden. Red bands are never auto-placement targets.
 
-Tasks bind to the **map** via `preferred_time_window_id`; tier selection is resolved from the map's bands at replan time.
+Scheduler uses the **effective** Time Map id at replan — `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound — not the task column alone. Tier selection is resolved from that map's bands.
 
 Quick-add `@morning`, `@afternoon`, `@evening` resolve to the seeded window IDs by case-insensitive name match; unknown token → `unresolved` entry `time_window:{token}`.
 
@@ -588,7 +593,7 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 **`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
 
-Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Bound Time Maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
+Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Placement uses the **effective** Time Map id (task → project → epic → unbound). Bound maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
 
 ### Reserved (W2c / W3+)
 

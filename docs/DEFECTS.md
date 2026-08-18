@@ -548,10 +548,10 @@ Related: [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-u
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (other schedulers already taught this lesson; outline import makes it real here) |
-| **Status** | Open — backlog; **operator-promoted 2026-08-17** (do not quietly drop as W2c flavor) |
+| **Status** | Closed — shipped 2026-08-17 |
 | **Found** | 2026-08-17 |
-| **Surface** | `projects` / `epics` schema, edit forms, scheduler `effective` window resolution (`placement.py`) |
-| **Wave** | W2c **Rule inheritance** — this is the concrete ask, not a nice-to-have |
+| **Surface** | `projects` / `epics` schema, edit forms, scheduler `effective` window resolution (`windows.py` / `placement.py`) |
+| **Wave** | W2c steal — Time Map live inherit shipped; plan inherit still parked |
 
 ### Symptom / ask
 
@@ -559,13 +559,17 @@ Operator wants to **bind a Time Map to a project or epic once** (e.g. Coursera �
 
 Seen this failure mode in other “scheduler” products: one domain dumps into the day because constraints only live on tasks.
 
-### Current behavior
+### Current behavior (shipped 2026-08-17)
 
-- `preferred_time_window_id` exists **only on tasks**. Projects/epics have no window FK.
-- Functional spec already promised inheritance ([02-functional-spec.md](./02-functional-spec.md) Rule Inheritance); [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) parked **parent → child** out of v1. Catalog still said W2b; it did not ship.
-- New outline-imported tasks do **not** pick up a parent map.
+- `preferred_time_window_id` on **epics** and **projects** (Alembic `012_hierarchy_time_maps`; FK `focus_windows.id` ON DELETE SET NULL) plus the existing task column.
+- Live resolution at schedule time, **not** stamp-on-create: `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound (full workday).
+- Task override always wins. Saving an empty task Time Map keeps the task column **null** (does not copy the parent id).
+- Clearing the project/epic map unbinds inheritors; explicit task windows stay put.
+- UI: Time Map picker on epic/project edit (and create). Task detail empty = inherit; hint `from project {title}` / `from epic {title}`.
 
-### Design (preferred)
+Plan-bind inheritance did **not** ship. [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) / [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) / [DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination) are not this slice.
+
+### Design (what landed)
 
 **Live resolution at schedule time**, not stamp-on-create:
 
@@ -573,17 +577,16 @@ Seen this failure mode in other “scheduler” products: one domain dumps into 
 
 - Task override always wins (one module that *is* all-day).
 - Set Coursera epic (or a course project) to map **Learning 19:00–21:00 strict** → Update Schedule cages that tree without 147 clicks.
-- Same inheritance chain should apply to **plan bind** if cheap in the same slice (spec listed both); Time Map is the P2. Plan can follow.
-- UI: Time Map picker on project + epic edit (same control as task detail). Show inherited vs override on the task (muted “from project”).
+- Same inheritance chain for **plan bind** stayed parked (spec listed both; Time Map was the P2).
+- UI: Time Map picker on project + epic edit (same control as task detail). Inherited vs override on the task (muted `from project {title}` / `from epic {title}`).
 
 **Not a substitute for:** [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) (still needed for labels/due/recurrence) or [DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination) (mix vs cap). This is **when** a domain is allowed to land.
 
-### Expected (when built)
+### Expected (met)
 
 - Bind map on epic or project; replan places descendant tasks in that window without per-task edits.
 - Explicit task window overrides parent.
 - Clearing the project/epic map unbinds descendants that were inheriting (does not wipe explicit task windows).
-- Tests: epic-bound map; project override; task override; unbound sibling project still uses full workday.
 
 ### Notes
 

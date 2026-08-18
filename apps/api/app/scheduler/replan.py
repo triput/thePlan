@@ -18,6 +18,7 @@ from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon, wipe_unpinned_blocks_in_horizon
 from app.scheduler.placement import place_task
 from app.scheduler.ups import score_tasks
+from app.scheduler.windows import effective_preferred_time_window_id
 from app.services import google_calendar, microsoft_calendar
 
 logger = logging.getLogger(__name__)
@@ -103,11 +104,16 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
         ordered, dep_stats = order_candidates(candidates, dependencies, ups_scores)
         stats.update(dep_stats)
 
-        preferred_ids = {
-            item.task.preferred_time_window_id
-            for item in ordered
-            if item.task.preferred_time_window_id
-        }
+        effective_by_task: dict[UUID, UUID | None] = {}
+        for item in ordered:
+            task = item.task
+            project = projects.get(task.project_id) if task.project_id else None
+            epic = epics.get(project.epic_id) if project and project.epic_id else None
+            effective_by_task[task.id] = effective_preferred_time_window_id(
+                task, project, epic
+            )
+
+        preferred_ids = {wid for wid in effective_by_task.values() if wid}
         preferred_windows: dict[UUID, FocusWindow] = {}
         if preferred_ids:
             for window in (
@@ -135,6 +141,7 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
                 horizon_end=horizon_end,
                 preferred_windows=preferred_windows,
                 now_utc=now_utc,
+                preferred_window_id=effective_by_task[candidate.task.id],
             )
             if result.blocks_created > 0:
                 tasks_scheduled += 1

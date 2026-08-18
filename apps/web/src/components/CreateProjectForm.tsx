@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createProject } from "../api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createProject, fetchFocusWindows, type FocusWindow } from "../api";
 import { DEFAULT_PROJECT_COLOR } from "../colors";
 import { ColorPicker } from "./ColorPicker";
 import { Modal } from "./Modal";
@@ -14,7 +14,15 @@ interface CreateProjectFormProps {
 export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormProps) {
   const [title, setTitle] = useState("");
   const [colorHex, setColorHex] = useState(DEFAULT_PROJECT_COLOR);
+  const [preferredTimeWindowId, setPreferredTimeWindowId] = useState("");
   const queryClient = useQueryClient();
+
+  const focusWindowsQuery = useQuery({
+    queryKey: ["focus-windows"],
+    queryFn: fetchFocusWindows,
+    enabled: open,
+  });
+  const focusWindows: FocusWindow[] = focusWindowsQuery.data ?? [];
 
   const mutation = useMutation({
     mutationFn: createProject,
@@ -22,6 +30,7 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       setTitle("");
       setColorHex(DEFAULT_PROJECT_COLOR);
+      setPreferredTimeWindowId("");
       onClose();
     },
   });
@@ -34,6 +43,7 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
       title: trimmed,
       epic_id: epicId,
       color_hex: colorHex,
+      preferred_time_window_id: preferredTimeWindowId || null,
     });
   };
 
@@ -54,6 +64,21 @@ export function CreateProjectForm({ open, epicId, onClose }: CreateProjectFormPr
           <legend>Color</legend>
           <ColorPicker value={colorHex} onChange={setColorHex} />
         </fieldset>
+        <label className="field">
+          <span>Time Map</span>
+          <select
+            className="field-select"
+            value={preferredTimeWindowId}
+            onChange={(e) => setPreferredTimeWindowId(e.target.value)}
+          >
+            <option value="">None</option>
+            {focusWindows.map((window) => (
+              <option key={window.id} value={window.id}>
+                {window.name}
+              </option>
+            ))}
+          </select>
+        </label>
         {mutation.isError && (
           <p className="form-error">{(mutation.error as Error).message}</p>
         )}

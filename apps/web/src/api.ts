@@ -70,6 +70,7 @@ export interface Epic {
   target_date: string | null;
   sort_order: number;
   is_archived: boolean;
+  preferred_time_window_id: string | null;
 }
 
 export interface Project {
@@ -80,6 +81,7 @@ export interface Project {
   color_hex: string;
   sort_order: number;
   is_archived: boolean;
+  preferred_time_window_id: string | null;
 }
 
 export interface Section {
@@ -193,12 +195,14 @@ export interface EpicCreate {
   title: string;
   description?: string | null;
   color_hex?: string;
+  preferred_time_window_id?: string | null;
 }
 
 export interface EpicUpdate {
   title?: string;
   description?: string | null;
   color_hex?: string;
+  preferred_time_window_id?: string | null;
 }
 
 export interface ProjectCreate {
@@ -206,6 +210,7 @@ export interface ProjectCreate {
   description?: string | null;
   epic_id?: string | null;
   color_hex?: string;
+  preferred_time_window_id?: string | null;
 }
 
 export interface ProjectUpdate {
@@ -213,6 +218,7 @@ export interface ProjectUpdate {
   description?: string | null;
   epic_id?: string | null;
   color_hex?: string;
+  preferred_time_window_id?: string | null;
 }
 
 export interface SectionCreate {

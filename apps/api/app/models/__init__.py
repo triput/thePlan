@@ -116,6 +116,9 @@ class Epic(Base, TimestampMixin):
     target_date: Mapped[date | None] = mapped_column(Date)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    preferred_time_window_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="SET NULL")
+    )
 
     projects: Mapped[list["Project"]] = relationship(back_populates="epic")
 
@@ -140,6 +143,9 @@ class Project(Base, TimestampMixin):
     color_hex: Mapped[str] = mapped_column(String(7), nullable=False, server_default="#0A8558")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    preferred_time_window_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="SET NULL")
+    )
 
     epic: Mapped["Epic | None"] = relationship(back_populates="projects")
     sections: Mapped[list["Section"]] = relationship(back_populates="project")

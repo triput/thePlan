@@ -4,7 +4,9 @@ import {
   archiveProject,
   deleteProject,
   fetchEpics,
+  fetchFocusWindows,
   updateProject,
+  type FocusWindow,
   type Project,
 } from "../api";
 import { ColorPicker } from "./ColorPicker";
@@ -24,6 +26,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
   const [description, setDescription] = useState("");
   const [colorHex, setColorHex] = useState("");
   const [epicId, setEpicId] = useState<string | "">("");
+  const [preferredTimeWindowId, setPreferredTimeWindowId] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const queryClient = useQueryClient();
@@ -31,12 +34,20 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
   const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
   const epics = epicsQuery.data?.items ?? [];
 
+  const focusWindowsQuery = useQuery({
+    queryKey: ["focus-windows"],
+    queryFn: fetchFocusWindows,
+    enabled: project !== null,
+  });
+  const focusWindows: FocusWindow[] = focusWindowsQuery.data ?? [];
+
   useEffect(() => {
     if (project) {
       setTitle(project.title);
       setDescription(project.description ?? "");
       setColorHex(project.color_hex);
       setEpicId(project.epic_id ?? "");
+      setPreferredTimeWindowId(project.preferred_time_window_id ?? "");
     }
   }, [project]);
 
@@ -51,6 +62,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
       description: string | null;
       color_hex: string;
       epic_id: string | null;
+      preferred_time_window_id: string | null;
     }) => updateProject(project!.id, body),
     onSuccess: () => {
       invalidate();
@@ -91,6 +103,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
       description: description.trim() || null,
       color_hex: colorHex,
       epic_id: epicId || null,
+      preferred_time_window_id: preferredTimeWindowId || null,
     });
   };
 
@@ -130,6 +143,21 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
               {epics.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Time Map</span>
+            <select
+              className="field-select"
+              value={preferredTimeWindowId}
+              onChange={(e) => setPreferredTimeWindowId(e.target.value)}
+            >
+              <option value="">None</option>
+              {focusWindows.map((window) => (
+                <option key={window.id} value={window.id}>
+                  {window.name}
                 </option>
               ))}
             </select>

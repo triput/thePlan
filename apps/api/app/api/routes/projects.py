@@ -7,7 +7,7 @@ from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Epic, Project, User
 from app.schemas import PaginatedResponse, ProjectCreate, ProjectOut, ProjectUpdate, ReorderRequest
-from app.services.ownership import verify_owned_epic
+from app.services.ownership import verify_owned_epic, verify_owned_focus_window
 from app.services.reorder import batch_reorder_sort_order
 
 router = APIRouter(prefix="/projects", tags=["projects"])
@@ -50,12 +50,15 @@ def create_project(
 ) -> ProjectOut:
     if body.epic_id is not None:
         verify_owned_epic(db, body.epic_id, user)
+    if body.preferred_time_window_id is not None:
+        verify_owned_focus_window(db, body.preferred_time_window_id, user)
     project = Project(
         owner_id=user.id,
         title=body.title.strip(),
         description=body.description,
         epic_id=body.epic_id,
         color_hex=body.color_hex,
+        preferred_time_window_id=body.preferred_time_window_id,
     )
     db.add(project)
     db.commit()
@@ -99,6 +102,8 @@ def update_project(
     updates = body.model_dump(exclude_unset=True)
     if "epic_id" in updates and updates["epic_id"] is not None:
         verify_owned_epic(db, updates["epic_id"], user)
+    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
+        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
     for field, value in updates.items():

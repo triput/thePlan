@@ -7,6 +7,7 @@ from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Epic, User
 from app.schemas import EpicCreate, EpicOut, EpicUpdate, PaginatedResponse
+from app.services.ownership import verify_owned_focus_window
 
 router = APIRouter(prefix="/epics", tags=["epics"])
 
@@ -43,6 +44,8 @@ def create_epic(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> EpicOut:
+    if body.preferred_time_window_id is not None:
+        verify_owned_focus_window(db, body.preferred_time_window_id, user)
     epic = Epic(
         owner_id=user.id,
         title=body.title.strip(),
@@ -50,6 +53,7 @@ def create_epic(
         color_hex=body.color_hex,
         start_date=body.start_date,
         target_date=body.target_date,
+        preferred_time_window_id=body.preferred_time_window_id,
     )
     db.add(epic)
     db.commit()
@@ -76,6 +80,8 @@ def update_epic(
 ) -> EpicOut:
     epic = _get_owned_epic(db, epic_id, user)
     updates = body.model_dump(exclude_unset=True)
+    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
+        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
     for field, value in updates.items():

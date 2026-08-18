@@ -206,12 +206,14 @@ def place_task(
     horizon_end: datetime,
     preferred_windows: dict[UUID, FocusWindow],
     now_utc: datetime,
+    preferred_window_id: UUID | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     tz = ZoneInfo(settings.timezone)
     mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
     max_block = task.max_block_duration_minutes
     buffer_minutes = settings.inter_block_buffer_minutes
-    preferred = preferred_windows.get(task.preferred_time_window_id) if task.preferred_time_window_id else None
+    window_id = preferred_window_id if preferred_window_id is not None else task.preferred_time_window_id
+    preferred = preferred_windows.get(window_id) if window_id else None
 
     deadline = _ensure_utc(task.deadline_at) if task.deadline_at else None
     soft_target = effective_soft_target(task, settings, horizon_start, horizon_end)

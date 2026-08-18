@@ -5,6 +5,7 @@ import {
   deleteReminder,
   deleteTask,
   deleteTaskRecurrence,
+  fetchEpics,
   fetchFocusWindows,
   fetchLabels,
   fetchPlans,
@@ -14,6 +15,7 @@ import {
   fetchTasks,
   putTaskRecurrence,
   updateTask,
+  type Epic,
   type FocusWindow,
   type Label,
   type Plan,
@@ -117,6 +119,13 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const projects: Project[] = projectsQuery.data?.items ?? [];
 
+  const epicsQuery = useQuery({
+    queryKey: ["epics"],
+    queryFn: () => fetchEpics(),
+    enabled: task !== null,
+  });
+  const epics: Epic[] = epicsQuery.data?.items ?? [];
+
   const labelsQuery = useQuery({ queryKey: ["labels"], queryFn: () => fetchLabels({ limit: 200 }) });
   const allLabels: Label[] = labelsQuery.data?.items ?? [];
 
@@ -195,6 +204,23 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
         t.nesting_level < 2,
     );
   }, [parentCandidates, task, byId]);
+
+  const inheritTimeMapHint = useMemo(() => {
+    if (preferredTimeWindowId) return null;
+    if (!projectId) return null;
+    const selectedProject = projects.find((p) => p.id === projectId);
+    if (!selectedProject) return null;
+    if (selectedProject.preferred_time_window_id) {
+      return `from project ${selectedProject.title}`;
+    }
+    if (selectedProject.epic_id) {
+      const epic = epics.find((e) => e.id === selectedProject.epic_id);
+      if (epic?.preferred_time_window_id) {
+        return `from epic ${epic.title}`;
+      }
+    }
+    return null;
+  }, [preferredTimeWindowId, projectId, projects, epics]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
@@ -619,13 +645,16 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               value={preferredTimeWindowId}
               onChange={(e) => setPreferredTimeWindowId(e.target.value)}
             >
-              <option value="">None</option>
+              <option value="">None (inherit)</option>
               {focusWindows.map((window) => (
                 <option key={window.id} value={window.id}>
                   {window.name}
                 </option>
               ))}
             </select>
+            {inheritTimeMapHint && (
+              <span className="field-hint muted small">{inheritTimeMapHint}</span>
+            )}
           </label>
           <label className="field">
             <span>Schedule style</span>

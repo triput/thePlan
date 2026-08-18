@@ -133,6 +133,7 @@ One row per user.
 | color_hex | VARCHAR(7) | Default `#6D3FC9` — see [08-color-palette.md](./08-color-palette.md) |
 | sort_order | INT | |
 | is_archived | BOOLEAN | |
+| preferred_time_window_id | UUID FK nullable | focus_windows; ON DELETE SET NULL. Alembic `012_hierarchy_time_maps` |
 
 **Indexes:** `(owner_id)`, `(owner_id, is_archived)`
 
@@ -144,8 +145,11 @@ One row per user.
 | epic_id | UUID FK nullable | ON DELETE SET NULL |
 | title, description | | |
 | color_hex | VARCHAR(7) | Default `#0A8558` |
+| preferred_time_window_id | UUID FK nullable | focus_windows; ON DELETE SET NULL. Alembic `012_hierarchy_time_maps` |
 
 **Indexes:** `(owner_id)`, `(epic_id)`, `(owner_id, is_archived)`
+
+**Hierarchy Time Maps:** Parent window is **not** copied onto tasks. Scheduler resolves live at replan: `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound.
 
 ### sections
 

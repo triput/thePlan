@@ -184,7 +184,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Plans (flexible time frames) | W2b | CRUD + task bind + Settings UI — **shipped** (Plans B) |
 | soft_target_at on tasks | W2b UI | Task detail + list badges; copied on plan bind — **shipped** |
 | Soft vs hard constraint semantics | W2b | Soft=plan/window; hard=deadline/pin/busy |
-| Rule inheritance from parent | W2b | Window/plan propagation |
+| Rule inheritance from parent | W2c | Time Map live inherit **shipped** (2026-08-17, [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)): task → project → epic at schedule time. Plan inheritance still parked. |
 
 ### Scheduling Engine
 

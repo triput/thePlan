@@ -65,10 +65,12 @@ When fit fails, apply in order:
 ## Explicitly out of v1
 
 - Bundle → block conversion on replan
-- Rule inheritance parent → child
+- Plan inheritance parent → child
 - Sidebar → calendar drag
 - Background / cron replan
 - Writing slid soft targets back to DB
+
+**Time Map addendum (2026-08-17):** Live parent → child Time Map resolution **shipped** ([DEF-018](../DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)). Scheduler uses the **effective** id: `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound. Not stamp-on-create. Plan inheritance remains out of v1.
 
 ## UPS
 
@@ -78,6 +80,7 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 
 - **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
 - **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
+- **Shipped (2026-08-17):** Time Map live inherit — `preferred_time_window_id` on epics/projects; replan uses `effective_preferred_time_window_id` (DEF-018). Plan inherit still parked.
 - **Next:** W3 Slice 1 after [ADR-007](./ADR-007-account-self-service.md) accept; W2c parked
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay manual until a later slice; roadmap “knockout → blocks on replan” applies post–v1

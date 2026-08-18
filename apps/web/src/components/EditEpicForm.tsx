@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { archiveEpic, deleteEpic, updateEpic, type Epic } from "../api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  archiveEpic,
+  deleteEpic,
+  fetchFocusWindows,
+  updateEpic,
+  type Epic,
+  type FocusWindow,
+} from "../api";
 import { ColorPicker } from "./ColorPicker";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Modal } from "./Modal";
@@ -13,22 +20,34 @@ interface EditEpicFormProps {
 export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
   const [title, setTitle] = useState("");
   const [colorHex, setColorHex] = useState("");
+  const [preferredTimeWindowId, setPreferredTimeWindowId] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const queryClient = useQueryClient();
+
+  const focusWindowsQuery = useQuery({
+    queryKey: ["focus-windows"],
+    queryFn: fetchFocusWindows,
+    enabled: epic !== null,
+  });
+  const focusWindows: FocusWindow[] = focusWindowsQuery.data ?? [];
 
   useEffect(() => {
     if (epic) {
       setTitle(epic.title);
       setColorHex(epic.color_hex);
+      setPreferredTimeWindowId(epic.preferred_time_window_id ?? "");
     }
   }, [epic]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["epics"] });
 
   const updateMutation = useMutation({
-    mutationFn: (body: { title: string; color_hex: string }) =>
-      updateEpic(epic!.id, body),
+    mutationFn: (body: {
+      title: string;
+      color_hex: string;
+      preferred_time_window_id: string | null;
+    }) => updateEpic(epic!.id, body),
     onSuccess: () => {
       invalidate();
       onClose();
@@ -58,7 +77,11 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
     e.preventDefault();
     const trimmed = title.trim();
     if (!trimmed || !epic) return;
-    updateMutation.mutate({ title: trimmed, color_hex: colorHex });
+    updateMutation.mutate({
+      title: trimmed,
+      color_hex: colorHex,
+      preferred_time_window_id: preferredTimeWindowId || null,
+    });
   };
 
   const error = updateMutation.error ?? archiveMutation.error ?? deleteMutation.error;
@@ -80,6 +103,21 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
             <legend>Color</legend>
             <ColorPicker value={colorHex} onChange={setColorHex} />
           </fieldset>
+          <label className="field">
+            <span>Time Map</span>
+            <select
+              className="field-select"
+              value={preferredTimeWindowId}
+              onChange={(e) => setPreferredTimeWindowId(e.target.value)}
+            >
+              <option value="">None</option>
+              {focusWindows.map((window) => (
+                <option key={window.id} value={window.id}>
+                  {window.name}
+                </option>
+              ))}
+            </select>
+          </label>
           {error && <p className="form-error">{(error as Error).message}</p>}
           <div className="form-actions">
             <button type="button" className="btn secondary" onClick={onClose}>
