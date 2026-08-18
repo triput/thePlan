@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: theplan
       POSTGRES_PASSWORD: theplan
@@ -43,6 +44,7 @@ services:
       ASSIST_ENABLED: ${ASSIST_ENABLED:-true}
     volumes:
       - ../../.secrets-backup:/secrets:ro
+    restart: unless-stopped
     ports:
       - "8000:8000"
     depends_on:
@@ -61,6 +63,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ""
+    restart: unless-stopped
     ports:
       - "8080:80"
     depends_on:
@@ -76,6 +79,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:8
     profiles: ["tools"]
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: theplan
