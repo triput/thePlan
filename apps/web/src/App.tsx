@@ -252,7 +252,9 @@ function AppInner() {
                     ×
                   </button>
                 </header>
-                <p className="muted">Loading task…</p>
+                <div className="detail-shell-body">
+                  <p className="muted">Loading task…</p>
+                </div>
               </aside>
             ) : selectedTaskQuery.isError ? (
               <aside className="task-detail-panel task-detail-sheet">
@@ -267,12 +269,14 @@ function AppInner() {
                     ×
                   </button>
                 </header>
-                <p className="form-error">
-                  Failed to load task: {(selectedTaskQuery.error as Error).message}
-                </p>
-                <button type="button" className="btn secondary" onClick={() => setSelectedTaskId(null)}>
-                  Close
-                </button>
+                <div className="detail-shell-body">
+                  <p className="form-error">
+                    Failed to load task: {(selectedTaskQuery.error as Error).message}
+                  </p>
+                  <button type="button" className="btn secondary" onClick={() => setSelectedTaskId(null)}>
+                    Close
+                  </button>
+                </div>
               </aside>
             ) : (
               <TaskDetailPanel

@@ -378,11 +378,22 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       <aside className="task-detail-panel task-detail-sheet" aria-label="Task details">
         <header className="detail-header">
           <h2>Task details</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close panel">
-            ×
-          </button>
+          <div className="detail-header-actions">
+            <button
+              type="submit"
+              form="task-detail-form"
+              className="btn primary small"
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "Saving…" : "Save"}
+            </button>
+            <button type="button" className="icon-btn" onClick={onClose} aria-label="Close panel">
+              ×
+            </button>
+          </div>
         </header>
-        <form className="entity-form detail-form" onSubmit={handleSubmit}>
+        <form id="task-detail-form" className="entity-form detail-form" onSubmit={handleSubmit}>
+          <div className="detail-form-body">
           <label className="field">
             <span>Title</span>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
@@ -718,14 +729,6 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
           {updateMutation.isError && (
             <p className="form-error">{(updateMutation.error as Error).message}</p>
           )}
-          <div className="form-actions">
-            <button type="button" className="btn secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn primary" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Saving…" : "Save"}
-            </button>
-          </div>
           <div className="form-actions destructive-row">
             <button
               type="button"
@@ -733,6 +736,15 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
               onClick={() => setConfirmDelete(true)}
             >
               Delete task
+            </button>
+          </div>
+          </div>
+          <div className="form-actions detail-form-footer">
+            <button type="button" className="btn secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn primary" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Saving…" : "Save"}
             </button>
           </div>
         </form>

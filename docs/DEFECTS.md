@@ -362,3 +362,232 @@ Operator wants proper module/file headers (short info blocks) as a house quirk. 
 
 Starter set applied with the convention doc (`busy_map`, `deps`, outline/Assist services, `OutlineImportPanel`). Rest is opportunistic or a dedicated P3 pass.
 
+---
+
+## DEF-014 — Exclude unplanned / backlog tasks from Update Schedule
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (daily annoyance when outline/import dumps hundreds of tasks into replan) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-17 |
+| **Surface** | Scheduler (`candidates.load_candidates`), task detail, quick-add / outline defaults |
+| **Wave** | W2c polish or W3+ scheduling UX |
+
+### Symptom / ask
+
+Operator wants tasks that are **not ready to plan** to stay off the calendar when running **Update Schedule** — e.g. imported course modules sitting in a backlog until she picks what to work on. A **`backlog` label** is one idea; open to better designs.
+
+### Current behavior (2026-08-17)
+
+- `load_candidates` includes every incomplete task with remaining duration > 0 except **`schedule_style == bundle`** ([`candidates.py`](../apps/api/app/scheduler/candidates.py), [ADR-006](./adr/ADR-006-fuzzy-scheduling.md)).
+- Task detail already has **Schedule style → Bundle** with hint “excluded from auto-placement” — functionally close, but **name/semantics are wrong** for “don’t schedule this yet.”
+- Default user setting is **`standalone`**, so new/imported tasks **do** enter replan unless overridden.
+
+### Design options (pick one in implementation)
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **A. Rename/clarify `bundle` → `manual` / `backlog` in UI** (+ maybe alias enum later) | Zero schema change; behavior exists today | “Bundle” v2 semantics (scoped bundles) may collide ([W2c scoped bundles](./07-wave-roadmap.md#wave-2c--scheduler-polish--catch-all)) |
+| **B. New `schedule_style` value** (e.g. `manual`, `backlog`) | Explicit, queryable, testable | Migration + ADR-006 amend |
+| **C. Reserved **`backlog`** label** filtered in `load_candidates` | Visible in lists; no enum | Magic string; label delete/rename breaks rule unless system-reserved |
+| **D. User setting: labels or tag that exclude from replan** | Flexible | Settings UI + config surface |
+| **E. Default new tasks to excluded** (global or per-project) | Import-friendly | Easy to forget to “promote” tasks into schedulable pool |
+
+**Recommendation:** **B or A-short-term** — operator-facing **“Backlog / manual only”** toggle beats a label convention. If shipping fast: document **Bundle = excluded today**, then rename UI before W2c scoped-bundle work lands.
+
+### Expected (when built)
+
+- Clear per-task (and optionally bulk — see DEF-015) way to mark **exclude from Update Schedule**.
+- Imported / quick-added tasks optionally land excluded by default (setting or parent inherit).
+- Today / Upcoming views unchanged — exclusion is about **auto-placement**, not hiding tasks.
+- Tests in `test_schedule_replan.py` for whichever rule wins.
+
+### Notes
+
+Related: outline ingest (Theme F) makes this feel P2. Not the same as **pinned blocks** (hard time lock) or **due/deadline** (constraints when schedulable).
+
+---
+
+## DEF-015 — Bulk edit on task lists (subtree / selection)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (high leverage for project/epic housekeeping) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-17 |
+| **Surface** | Task list UI, `PATCH /tasks`, labels, recurrence, scheduler fields |
+| **Wave** | W3+ productivity UX (after DEF-014 if shared batch API) |
+
+### Symptom / ask
+
+Bulk operations on a list context, e.g.:
+
+- Schedule **all subtasks under a parent** on the same day (due, soft target, or manual blocks).
+- Apply a **label** to everything under a project (or epic subtree).
+- Set **recurrence** on a group of tasks.
+- Likely also: bulk **schedule style / backlog** (DEF-014), priority, section move.
+
+### Current behavior
+
+- Only **bulk complete** exists (`bulk_children` on complete API + dialog in `TaskList`).
+- No multi-select row model; no batch PATCH endpoint.
+
+### Expected (when built)
+
+**Phase 1 — selection + batch PATCH**
+
+- Multi-select in list (checkbox mode or shift-click); “Select all under …” for parent row / section header / project scope.
+- Batch actions bar: labels, due date, schedule style, priority, delete (with confirm).
+- API: `POST /tasks/batch` or `PATCH` with `{ task_ids, patch }` — single transaction, partial failure reporting optional.
+
+**Phase 2 — subtree semantics**
+
+- “This task and all descendants” without manual select-all.
+- “All tasks in project X matching filter” defers to saved filters / W2c query language unless a minimal project scope is enough for v1.
+
+**Phase 3 — schedule same day**
+
+- Clarify product: set **due_at** / **soft_target_at** vs create **manual `scheduled_blocks`** vs run mini-replan for subset — probably separate actions in the batch bar.
+
+### Notes
+
+Keep Assist / outline paths propose→confirm; bulk edit is **operator-driven** on existing rows. Consider undo stack parity (`bulk_complete` pattern in `undoStack.tsx`).
+
+---
+
+## DEF-016 — Task detail Save affordance (scroll fatigue)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (paper cut; worse during heavy editing sessions) |
+| **Status** | Closed — shipped 2026-08-17 |
+| **Found** | 2026-08-17 |
+| **Surface** | `TaskDetailPanel.tsx`, `.task-detail-panel` layout in `App.css` |
+| **Wave** | Bug bash / polish; can ship independently of DEF-008 (resize) |
+
+### Symptom / ask
+
+Save / Cancel live at the **bottom** of a long form inside a scrollable right panel (`max-height` + `overflow-y: auto`). Editing title + dates + labels means scrolling to commit — annoying at volume.
+
+### Design options (pick one or combine)
+
+| Approach | Effort | Notes |
+|----------|--------|-------|
+| **Sticky footer** inside panel — Save/Cancel pinned to bottom of viewport while form scrolls | Low | CSS + maybe split scroll container |
+| **Header actions** — Save next to × close; Cancel optional | Low | Always visible; matches mobile sheet patterns |
+| **Unsaved indicator + keyboard** — dot on header, Ctrl+S submits | Low | Still need visible button for discoverability |
+| **Auto-save debounced** | Medium | Bigger behavior change; recurrence/destructive fields need care |
+| **Collapsible sections** — fold recurrence/deps/advanced | Medium | Reduces scroll but doesn’t fix root affordance |
+
+**Recommendation:** **Sticky footer + Save in header** (duplicate submit is fine). Unsaved dot if dirty state is already tracked.
+
+### Expected (when built)
+
+- Save reachable without scrolling for typical edit flows.
+- Delete stays separated (destructive row) — don’t sticky the delete button next to Save.
+- No regression on mobile sheet / narrow widths.
+
+### Notes
+
+Orthogonal to **DEF-008** (wider panel). If panel grows, scroll pain lessens but header/sticky save still wins.
+
+---
+
+## DEF-017 — Cross-project / epic scheduling fairness (day domination)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (visible with one large epic — e.g. Coursera import — even when other work exists) |
+| **Status** | Open — backlog; design / ADR candidate |
+| **Found** | 2026-08-17 |
+| **Surface** | Scheduler ordering + placement (`ups.py`, `dependencies.py`, `placement.py`, `replan.py`); optional project/epic settings |
+| **Wave** | W2c polish or W3+ scheduling UX; **after** DEF-014 (backlog exclusion) for immediate relief |
+
+### Symptom / ask
+
+One **epic or project** (e.g. Coursera certificate tree) can **consume an entire workday** on Update Schedule even when other tasks share the same priority. Adjacency or volume in one project should **not** let its P2s beat equally-ranked P2s elsewhere. Time maps help bound *when* work happens; they do **not** solve *mix* across domains.
+
+### Root cause (current v1 behavior)
+
+1. **UPS ties at same priority** — `PRIORITY_SCORES` is per task; two P2s both get 75. With no due/soft/deadline, **urgency U = 0** for all. Epic alignment **E** is binary per epic (`target_date` within 30 days → +10 for *every* task in that epic). Dependency **D** favors blockers in dense subgraphs (e.g. sequential modules).
+2. **Order then greedy exhaust** — `order_candidates` → topo + UPS tie-break; then `replan` loops candidates and **`place_task` fills as much horizon as possible for each task before the next** ([`replan.py`](../apps/api/app/scheduler/replan.py), [`placement.py`](../apps/api/app/scheduler/placement.py)). First high-enough task wins the day; no round-robin, no per-project cap.
+3. **No project/epic dimension in UPS** — project identity affects only **E** (via epic `target_date`), not fairness or daily budget.
+4. **Outline import** — many sibling tasks, default **P4** unless changed; `sort_order` follows curriculum order; module/task chains can inflate **D** locally. (Operator may promote to P2 — same mechanics apply.)
+
+Time maps constrain **tier/window**; they do not **interleave** across projects.
+
+### Design options (pick in ADR / implementation)
+
+| Approach | What it does | Pros | Cons |
+|----------|--------------|------|------|
+| **A. Round-robin slice placement** | Among tasks within ε UPS (or same priority band), place **one block** then rotate to next task | No schema change; fixes “first task eats day” | Need tier/band rules; long single tasks still chunky |
+| **B. Daily minutes cap per project/epic** | Setting: max auto-scheduled minutes per project (or epic) per local day; overflow deferred | Explicit operator control | Caps need UI + edge cases (P1 override?) |
+| **C. Diversity penalty in score** | New UPS term (or post-score): reduce task score if its project/epic already has ≥ N minutes scheduled **today** | Smooth, global | Tunable weights; harder to explain |
+| **D. Project / epic scheduling weight** | Nullable `scheduling_weight` or priority on `projects` / `epics` | Matches mental model (“Coursera is P3 *effort*”) | More config surface |
+| **E. Scoped pools (W2c)** | “Only schedule tasks from epic X this run” / inverse “exclude epic X” | Operator control per replan | Doesn’t auto-mix; manual |
+| **F. Refine epic alignment E** | Cap, decay, or per-project share of E — stop blanket +10 for all tasks in hot epic | Targets Coursera-with-target-date case | Doesn’t help equal-priority different epics with no target |
+
+**Recommendation:** Ship **A + B** as v1 fairness pair — round-robin among same-priority band fixes the greedy bug; optional daily cap gives operator a knob. Document in **ADR-006 addendum** or new **ADR-012 scheduling fairness**. **DEF-014** (backlog) remains the right short-term lever for unplanned import bulk.
+
+### Expected (when built)
+
+- Update Schedule produces a **mixed day** when multiple projects have schedulable same-priority work (unless operator caps or excludes).
+- Settings (or project fields) for at least one fairness control — cap and/or weight.
+- Tests: two projects, equal P2, no dates → neither monopolizes first day; P1 still wins when configured.
+- Replan stats optionally report minutes per project/epic for debugging.
+
+### Notes
+
+Related: [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) (don’t schedule backlog at all), [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) (bind a whole project to a window — cap *when*, not mix), W2c **scoped bundles** (opt-in grouping — different problem). Not the same as **dependency ordering** within one course — that stays; fairness is **across** projects at equal priority.
+
+---
+
+## DEF-018 — Project / epic Time Map binding (no click-wall)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (other schedulers already taught this lesson; outline import makes it real here) |
+| **Status** | Open — backlog; **operator-promoted 2026-08-17** (do not quietly drop as W2c flavor) |
+| **Found** | 2026-08-17 |
+| **Surface** | `projects` / `epics` schema, edit forms, scheduler `effective` window resolution (`placement.py`) |
+| **Wave** | W2c **Rule inheritance** — this is the concrete ask, not a nice-to-have |
+
+### Symptom / ask
+
+Operator wants to **bind a Time Map to a project or epic once** (e.g. Coursera → 2h evening window, `strict_mode`) and have **all current and future tasks** in that tree honor it. Per-task `preferred_time_window_id` plus no bulk edit is a click-wall. Scope creep is accepted; a wall of one-project blocks is worse.
+
+Seen this failure mode in other “scheduler” products: one domain dumps into the day because constraints only live on tasks.
+
+### Current behavior
+
+- `preferred_time_window_id` exists **only on tasks**. Projects/epics have no window FK.
+- Functional spec already promised inheritance ([02-functional-spec.md](./02-functional-spec.md) Rule Inheritance); [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) parked **parent → child** out of v1. Catalog still said W2b; it did not ship.
+- New outline-imported tasks do **not** pick up a parent map.
+
+### Design (preferred)
+
+**Live resolution at schedule time**, not stamp-on-create:
+
+`task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound (full workday / default map).
+
+- Task override always wins (one module that *is* all-day).
+- Set Coursera epic (or a course project) to map **Learning 19:00–21:00 strict** → Update Schedule cages that tree without 147 clicks.
+- Same inheritance chain should apply to **plan bind** if cheap in the same slice (spec listed both); Time Map is the P2. Plan can follow.
+- UI: Time Map picker on project + epic edit (same control as task detail). Show inherited vs override on the task (muted “from project”).
+
+**Not a substitute for:** [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) (still needed for labels/due/recurrence) or [DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination) (mix vs cap). This is **when** a domain is allowed to land.
+
+### Expected (when built)
+
+- Bind map on epic or project; replan places descendant tasks in that window without per-task edits.
+- Explicit task window overrides parent.
+- Clearing the project/epic map unbinds descendants that were inheriting (does not wipe explicit task windows).
+- Tests: epic-bound map; project override; task override; unbound sibling project still uses full workday.
+
+### Notes
+
+Operator: “DARE me to not have something added to do that.” Added. Pair with a 2h strict map for learning; greedy fill still owns *that* slot ([DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination)) — inheritance stops the click-wall, not the mixer.
+
+**Message to future Trish (2026-08-17):** You did **not** rage-click 147 Coursera modules. You had the good sense to stop at the thought experiment and yell at the agent instead. If you’re reading this after actually rage-clicking anyway — hi, yes, we knew. Ship DEF-018 before you do it again. :D
+
