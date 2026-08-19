@@ -400,6 +400,7 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
 | default_min_block_duration_minutes | int | 15 | > 0 |
 | default_schedule_style | enum | standalone | `standalone`, `time_block`, `bundle`, `manual` |
 | auto_defer_enabled | bool | true | |
+| max_auto_schedule_minutes_per_project_per_day | int \| null | null | > 0 when set; NULL = no daily cap per project during auto-schedule |
 
 **Task create duration:** `estimated_duration_minutes` on `POST /tasks` is optional. Omit or send `null` to use `user_settings.default_estimated_duration_minutes`; an explicit value (including `30`) is stored as-is.
 

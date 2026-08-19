@@ -111,6 +111,7 @@ class UserSettingsOut(BaseModel):
     default_min_block_duration_minutes: int
     default_schedule_style: ScheduleStyle
     auto_defer_enabled: bool
+    max_auto_schedule_minutes_per_project_per_day: int | None = None
 
     @field_serializer("workday_start_local")
     def serialize_workday_start(self, value: time) -> str:
@@ -130,6 +131,7 @@ class UserSettingsUpdate(BaseModel):
     default_min_block_duration_minutes: int | None = Field(default=None, gt=0)
     default_schedule_style: ScheduleStyle | None = None
     auto_defer_enabled: bool | None = None
+    max_auto_schedule_minutes_per_project_per_day: int | None = Field(default=None, gt=0)
 
 
 class EpicCreate(BaseModel):

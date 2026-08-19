@@ -120,8 +120,9 @@ One row per user.
 | default_min_block_duration_minutes | INT | 15 | MBL default (matches task min_block) |
 | default_schedule_style | schedule_style | standalone | Block / bundle / manual opt-in |
 | auto_defer_enabled | BOOLEAN | true | Missed plan windows may slide |
+| max_auto_schedule_minutes_per_project_per_day | INT NULL | NULL | Optional daily auto-schedule cap per project (NULL = unlimited). Alembic `014_project_daily_schedule_cap` |
 
-**Checks:** `workday_minutes > 0`, `workweek_days` 1–7, `inter_block_buffer_minutes >= 0`, `upcoming_horizon_days > 0`, duration defaults `> 0`.
+**Checks:** `workday_minutes > 0`, `workweek_days` 1–7, `inter_block_buffer_minutes >= 0`, `upcoming_horizon_days > 0`, duration defaults `> 0`, `max_auto_schedule_minutes_per_project_per_day IS NULL OR > 0`.
 
 ### epics
 

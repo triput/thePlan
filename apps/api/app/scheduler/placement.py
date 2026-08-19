@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
+from typing import TypeAlias
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -15,10 +16,39 @@ from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_ove
 from app.services.busy_intervals import TimeInterval, ranges_overlap, subtract_intervals_from_range
 
 
+ProjectDailyUsage: TypeAlias = dict[tuple[date, UUID | None], int]
+
+
 @dataclass
 class PlacementResult:
     blocks_created: int
     overbooked: bool
+    remaining_minutes: int = 0
+
+
+def _day_cap_allows(
+    day: date,
+    project_id: UUID | None,
+    slice_minutes: int,
+    usage: ProjectDailyUsage | None,
+    cap: int | None,
+) -> bool:
+    if cap is None or usage is None:
+        return True
+    used = usage.get((day, project_id), 0)
+    return used + slice_minutes <= cap
+
+
+def _record_project_minutes(
+    day: date,
+    project_id: UUID | None,
+    minutes: int,
+    usage: ProjectDailyUsage | None,
+) -> None:
+    if usage is None:
+        return
+    key = (day, project_id)
+    usage[key] = usage.get(key, 0) + minutes
 
 
 def _ensure_utc(value: datetime) -> datetime:
@@ -207,6 +237,10 @@ def place_task(
     preferred_windows: dict[UUID, FocusWindow],
     now_utc: datetime,
     preferred_window_id: UUID | None = None,
+    max_blocks: int | None = None,
+    finalize_status: bool = True,
+    project_daily_usage: ProjectDailyUsage | None = None,
+    daily_cap: int | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     tz = ZoneInfo(settings.timezone)
     mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
@@ -226,9 +260,14 @@ def place_task(
     day = now_utc.astimezone(tz).date()
     end_day = horizon_end.astimezone(tz).date()
 
+    blocks_limit = max_blocks if max_blocks is not None else None
+
     while remaining > 0 and day <= end_day:
+        if blocks_limit is not None and blocks_created >= blocks_limit:
+            break
         windows = _search_windows_for_day(day, settings, tz, preferred)
         placed_today = False
+        day_cap_blocked = False
         for window_start, window_end in windows:
             if window_end <= horizon_start or window_start >= horizon_end:
                 continue
@@ -236,8 +275,15 @@ def place_task(
             search_end = min(window_end, horizon_end)
 
             while remaining > 0:
+                if blocks_limit is not None and blocks_created >= blocks_limit:
+                    break
                 slice_minutes = _slice_size(remaining, mbl, max_block)
                 if slice_minutes is None:
+                    break
+                if not _day_cap_allows(
+                    day, task.project_id, slice_minutes, project_daily_usage, daily_cap
+                ):
+                    day_cap_blocked = True
                     break
                 slot = find_slot(
                     busy,
@@ -268,15 +314,24 @@ def place_task(
                 remaining -= slice_minutes
                 not_before = end
                 busy = add_busy_interval(busy, start, end, buffer_minutes)
+                _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
                 placed_today = True
 
+                if blocks_limit is not None and blocks_created >= blocks_limit:
+                    break
+
                 if remaining > 0 and remaining < mbl:
-                    slice_minutes = remaining
+                    tail_minutes = remaining
+                    if not _day_cap_allows(
+                        day, task.project_id, tail_minutes, project_daily_usage, daily_cap
+                    ):
+                        day_cap_blocked = True
+                        break
                     slot = find_slot(
                         busy,
                         search_start,
                         search_end,
-                        slice_minutes,
+                        tail_minutes,
                         not_before,
                         deadline,
                     )
@@ -295,11 +350,16 @@ def place_task(
                     blocks_created += 1
                     remaining = 0
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
+                    _record_project_minutes(day, task.project_id, tail_minutes, project_daily_usage)
                 break
 
-            if remaining <= 0:
+            if remaining <= 0 or (blocks_limit is not None and blocks_created >= blocks_limit):
+                break
+            if day_cap_blocked:
                 break
         day += timedelta(days=1)
+        if blocks_limit is not None and blocks_created >= blocks_limit:
+            break
         if not placed_today and remaining > 0:
             continue
 
@@ -307,15 +367,59 @@ def place_task(
     if deadline is not None and remaining > 0:
         overbooked = True
 
-    if overbooked:
-        task.status = ScheduleStatus.overbooked
-    elif blocks_created > 0:
-        task.status = ScheduleStatus.scheduled
-    else:
-        if deadline is not None and not_before >= deadline:
+    if finalize_status:
+        if overbooked:
             task.status = ScheduleStatus.overbooked
-        elif remaining > 0:
-            task.status = ScheduleStatus.overbooked
+        elif blocks_created > 0:
+            task.status = ScheduleStatus.scheduled
+        else:
+            if deadline is not None and not_before >= deadline:
+                task.status = ScheduleStatus.overbooked
+            elif remaining > 0:
+                task.status = ScheduleStatus.overbooked
 
     db.flush()
-    return PlacementResult(blocks_created=blocks_created, overbooked=overbooked), busy
+    return (
+        PlacementResult(
+            blocks_created=blocks_created,
+            overbooked=overbooked if finalize_status else False,
+            remaining_minutes=remaining,
+        ),
+        busy,
+    )
+
+
+def place_one_block(
+    db: Session,
+    *,
+    task: Task,
+    owner_id: UUID,
+    settings: UserSettings,
+    remaining_minutes: int,
+    busy: list[BusyInterval],
+    horizon_start: datetime,
+    horizon_end: datetime,
+    preferred_windows: dict[UUID, FocusWindow],
+    now_utc: datetime,
+    preferred_window_id: UUID | None = None,
+    project_daily_usage: ProjectDailyUsage | None = None,
+    daily_cap: int | None = None,
+) -> tuple[PlacementResult, list[BusyInterval]]:
+    """Place at most one scheduled block for round-robin replan sweeps."""
+    return place_task(
+        db,
+        task=task,
+        owner_id=owner_id,
+        settings=settings,
+        remaining_minutes=remaining_minutes,
+        busy=busy,
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
+        preferred_windows=preferred_windows,
+        now_utc=now_utc,
+        preferred_window_id=preferred_window_id,
+        max_blocks=1,
+        finalize_status=False,
+        project_daily_usage=project_daily_usage,
+        daily_cap=daily_cap,
+    )

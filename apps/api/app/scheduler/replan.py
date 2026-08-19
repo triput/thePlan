@@ -12,16 +12,33 @@ from sqlalchemy.orm import Session, joinedload
 from app.config import get_settings
 from app.db import SessionLocal
 from app.models import Epic, FocusWindow, Project, ScheduleRun, ScheduledBlock, TaskDependency, UserSettings
+from app.models.enums import ScheduleStatus, TaskPriority
 from app.scheduler.busy_map import build_busy_map
-from app.scheduler.candidates import load_candidates
+from app.scheduler.candidates import TaskCandidate, load_candidates
 from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon, wipe_unpinned_blocks_in_horizon
-from app.scheduler.placement import place_task
+from app.scheduler.placement import ProjectDailyUsage, place_one_block
 from app.scheduler.ups import score_tasks
 from app.scheduler.windows import effective_preferred_time_window_id
 from app.services import google_calendar, microsoft_calendar
 
 logger = logging.getLogger(__name__)
+
+PRIORITY_ORDER = [
+    TaskPriority.p1,
+    TaskPriority.p2,
+    TaskPriority.p3,
+    TaskPriority.p4,
+]
+
+
+def _group_by_priority(
+    ordered: list[TaskCandidate],
+) -> list[tuple[TaskPriority, list[TaskCandidate]]]:
+    groups: dict[TaskPriority, list[TaskCandidate]] = {p: [] for p in PRIORITY_ORDER}
+    for candidate in ordered:
+        groups[candidate.task.priority].append(candidate)
+    return [(priority, groups[priority]) for priority in PRIORITY_ORDER if groups[priority]]
 
 
 def _push_mirrored_block(db: Session, settings, block: ScheduledBlock) -> None:
@@ -129,25 +146,64 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
         overbooked_count = 0
         app_settings = get_settings()
 
+        project_daily_usage: ProjectDailyUsage = {}
+        daily_cap = user_settings.max_auto_schedule_minutes_per_project_per_day
+        minutes_by_project: dict[str, int] = {}
+        task_had_blocks: dict[UUID, bool] = {}
+
+        for _priority, group in _group_by_priority(ordered):
+            placed_in_sweep = True
+            while placed_in_sweep:
+                placed_in_sweep = False
+                for candidate in group:
+                    task_id = candidate.task.id
+                    remaining = remaining_by_task.get(task_id, 0)
+                    if remaining <= 0:
+                        continue
+                    result, busy = place_one_block(
+                        db,
+                        task=candidate.task,
+                        owner_id=owner_id,
+                        settings=user_settings,
+                        remaining_minutes=remaining,
+                        busy=busy,
+                        horizon_start=horizon_start,
+                        horizon_end=horizon_end,
+                        preferred_windows=preferred_windows,
+                        now_utc=now_utc,
+                        preferred_window_id=effective_by_task[task_id],
+                        project_daily_usage=project_daily_usage,
+                        daily_cap=daily_cap,
+                    )
+                    remaining_by_task[task_id] = result.remaining_minutes
+                    if result.blocks_created <= 0:
+                        continue
+                    placed_in_sweep = True
+                    task_had_blocks[task_id] = True
+                    blocks_created += result.blocks_created
+                    minutes_placed = remaining - result.remaining_minutes
+                    project_key = (
+                        str(candidate.task.project_id)
+                        if candidate.task.project_id
+                        else "inbox"
+                    )
+                    minutes_by_project[project_key] = (
+                        minutes_by_project.get(project_key, 0) + minutes_placed
+                    )
+
         for candidate in ordered:
-            result, busy = place_task(
-                db,
-                task=candidate.task,
-                owner_id=owner_id,
-                settings=user_settings,
-                remaining_minutes=candidate.remaining_minutes,
-                busy=busy,
-                horizon_start=horizon_start,
-                horizon_end=horizon_end,
-                preferred_windows=preferred_windows,
-                now_utc=now_utc,
-                preferred_window_id=effective_by_task[candidate.task.id],
-            )
-            if result.blocks_created > 0:
-                tasks_scheduled += 1
-            blocks_created += result.blocks_created
-            if result.overbooked:
+            task_id = candidate.task.id
+            task = candidate.task
+            remaining = remaining_by_task.get(task_id, 0)
+            if remaining <= 0 and task_had_blocks.get(task_id):
+                task.status = ScheduleStatus.scheduled
+            elif remaining > 0:
+                task.status = ScheduleStatus.overbooked
                 overbooked_count += 1
+
+        tasks_scheduled = len(task_had_blocks)
+        if minutes_by_project:
+            stats["minutes_by_project"] = minutes_by_project
 
         db.flush()
 

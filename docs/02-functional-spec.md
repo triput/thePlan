@@ -293,6 +293,8 @@ These behaviors are **not in MVP** but are locked for W2 design. Schema and API 
 2. **Plans** — flexible time frames (e.g. "Thursday morning", "by Friday afternoon") stored as plan entities linked to tasks; `soft_target_at` on tasks holds Plan-bound soft targets.
 3. **Update Schedule** — explicit user-triggered replan action; async worker recomputes `scheduled_blocks` without blocking CRUD.
 
+**Cross-project fairness (shipped 2026-08-19, DEF-017):** Within each priority band, replan places at most one auto block per candidate task per sweep (round-robin in topo/UPS order) so one project cannot exhaust the workday before equal-priority work elsewhere gets a slice. Optional **max minutes per project per day** in Settings caps auto-scheduled minutes per project per local day ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)).
+
 ### Bundling vs Blocks
 
 - **Formal time blocks** — discrete `scheduled_blocks` rows on the calendar.

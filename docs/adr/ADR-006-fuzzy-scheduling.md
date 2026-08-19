@@ -74,6 +74,15 @@ When fit fails, apply in order:
 
 **Schedule-style addendum (2026-08-18):** Live parent → child schedule-style resolution **shipped** ([DEF-014](../DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)), parallel to Time Map inherit (DEF-018). Effective style: `task.schedule_style` → else `project.schedule_style` → else `epic.schedule_style` → else `user_settings.default_schedule_style`. Inbox (no project) is task or user default only. Enum value is `manual` (UI: Manual / backlog); not a magic `backlog` label.
 
+**Scheduling fairness addendum (2026-08-19):** Cross-project day domination fix **shipped** ([DEF-017](../DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination)).
+
+| Rule | v1 lock |
+|------|---------|
+| **Round-robin placement** | After UPS/topo ordering, group candidates by `task.priority` (p1 → p4). Within each group, each replan sweep calls `place_one_block` (at most one auto block per task), rotating in topo/UPS order until the group quiesces, then proceed to the next priority band. |
+| **Daily project cap** | Optional `user_settings.max_auto_schedule_minutes_per_project_per_day` (NULL = unlimited). During a replan run, track auto-scheduled minutes per `(local_date, project_id)`; inbox tasks use `project_id = NULL`. Before placing a slice on day D, skip D when `used + slice_minutes > cap`. Cap applies equally to all priorities in v1 (no P1 override). |
+| **Stats** | `run.stats_json.minutes_by_project` maps project id (or `"inbox"`) → minutes scheduled in that run. |
+| **UI** | Settings → Scheduling: **Max minutes per project per day** (empty = no cap). Alembic `014_project_daily_schedule_cap`. |
+
 ## UPS
 
 Priority queue ordering uses the existing UPS formula in [02-functional-spec.md §9](../02-functional-spec.md#ups-formula). Weights come from `user_settings.ups_weights`. **No formula change** in this ADR.
@@ -84,6 +93,7 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 - **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
 - **Shipped (2026-08-17):** Time Map live inherit — `preferred_time_window_id` on epics/projects; replan uses `effective_preferred_time_window_id` (DEF-018). Plan inherit still parked.
 - **Shipped (2026-08-18):** Schedule-style live inherit — `schedule_style` `manual` plus nullable columns on epics/projects; replan uses `effective_schedule_style` and excludes `manual` and `bundle` (DEF-014).
+- **Shipped (2026-08-19):** Scheduling fairness — round-robin slice placement within priority bands plus optional per-project daily auto-schedule cap (DEF-017).
 - **Next:** W3 Slice 1 after [ADR-007](./ADR-007-account-self-service.md) accept; W2c parked
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay off auto-placement until a later slice; roadmap “knockout → blocks on replan” applies post–v1. `manual` is the same exclusion, different intent (don’t schedule yet).

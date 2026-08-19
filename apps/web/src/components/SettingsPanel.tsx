@@ -438,6 +438,7 @@ type SchedulingDraft = {
   default_min_block_duration_minutes: string;
   default_schedule_style: ScheduleStyle;
   auto_defer_enabled: boolean;
+  max_auto_schedule_minutes_per_project_per_day: string;
 };
 
 function settingsToDraft(settings: UserSettings): SchedulingDraft {
@@ -453,6 +454,10 @@ function settingsToDraft(settings: UserSettings): SchedulingDraft {
     default_min_block_duration_minutes: String(settings.default_min_block_duration_minutes),
     default_schedule_style: settings.default_schedule_style,
     auto_defer_enabled: settings.auto_defer_enabled,
+    max_auto_schedule_minutes_per_project_per_day:
+      settings.max_auto_schedule_minutes_per_project_per_day == null
+        ? ""
+        : String(settings.max_auto_schedule_minutes_per_project_per_day),
   };
 }
 
@@ -527,6 +532,21 @@ function buildSettingsPatch(saved: UserSettings, draft: SchedulingDraft): UserSe
   }
   if (draft.auto_defer_enabled !== saved.auto_defer_enabled) {
     patch.auto_defer_enabled = draft.auto_defer_enabled;
+  }
+
+  const capRaw = draft.max_auto_schedule_minutes_per_project_per_day.trim();
+  if (capRaw === "") {
+    if (saved.max_auto_schedule_minutes_per_project_per_day != null) {
+      patch.max_auto_schedule_minutes_per_project_per_day = null;
+    }
+  } else {
+    const projectDailyCap = parsePositiveInt(capRaw);
+    if (projectDailyCap === null) {
+      throw new Error("Max minutes per project per day must be a positive number or empty");
+    }
+    if (projectDailyCap !== saved.max_auto_schedule_minutes_per_project_per_day) {
+      patch.max_auto_schedule_minutes_per_project_per_day = projectDailyCap;
+    }
   }
 
   return Object.keys(patch).length > 0 ? patch : null;
@@ -735,6 +755,27 @@ function SchedulingDefaultsSection({ enabled }: { enabled: boolean }) {
               <option value="manual">Manual / backlog</option>
             </select>
           </label>
+          <label className="field">
+            <span>Max minutes per project per day</span>
+            <input
+              type="number"
+              className="field-number"
+              min={1}
+              step={1}
+              placeholder="No cap"
+              value={draft.max_auto_schedule_minutes_per_project_per_day}
+              onChange={(e) =>
+                setDraft((prev) => prev && {
+                  ...prev,
+                  max_auto_schedule_minutes_per_project_per_day: e.target.value,
+                })
+              }
+            />
+          </label>
+          <p className="settings-help muted small">
+            Leave empty for no daily cap. Limits auto-scheduled minutes per project on each local
+            day during Update Schedule.
+          </p>
           <label className="time-map-hard-check">
             <input
               type="checkbox"

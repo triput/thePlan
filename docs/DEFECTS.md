@@ -520,7 +520,7 @@ Orthogonal to **DEF-008** (wider panel). If panel grows, scroll pain lessens but
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (visible with one large epic — e.g. Coursera import — even when other work exists) |
-| **Status** | Open — backlog; design / ADR candidate |
+| **Status** | Closed — shipped 2026-08-19 |
 | **Found** | 2026-08-17 |
 | **Surface** | Scheduler ordering + placement (`ups.py`, `dependencies.py`, `placement.py`, `replan.py`); optional project/epic settings |
 | **Wave** | W2c polish or W3+ scheduling UX; **DEF-014 shipped** (manual inherit) — fairness still open |

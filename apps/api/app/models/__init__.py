@@ -94,6 +94,9 @@ class UserSettings(Base, TimestampMixin):
         server_default="standalone",
     )
     auto_defer_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    max_auto_schedule_minutes_per_project_per_day: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )
 
     owner: Mapped["User"] = relationship(back_populates="settings")
 

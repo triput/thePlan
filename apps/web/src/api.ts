@@ -305,6 +305,7 @@ export interface UserSettings {
   default_min_block_duration_minutes: number;
   default_schedule_style: ScheduleStyle;
   auto_defer_enabled: boolean;
+  max_auto_schedule_minutes_per_project_per_day: number | null;
   ups_weights?: Record<string, unknown>;
   id?: string;
   owner_id?: string;
@@ -326,6 +327,7 @@ export type UserSettingsUpdate = Partial<
     | "default_min_block_duration_minutes"
     | "default_schedule_style"
     | "auto_defer_enabled"
+    | "max_auto_schedule_minutes_per_project_per_day"
   >
 >;
 
