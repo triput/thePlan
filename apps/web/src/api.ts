@@ -164,6 +164,7 @@ export interface Task {
   preferred_time_window_id: string | null;
   is_completed: boolean;
   completed_at: string | null;
+  deleted_at?: string | null;
   status: string;
   sort_order: number;
   label_ids: string[];
@@ -637,6 +638,7 @@ export function fetchTasks(params?: {
   epic_id?: string;
   is_completed?: boolean;
   inbox?: boolean;
+  trashed?: boolean;
   due_from?: string;
   due_to?: string;
   ids?: string[];
@@ -725,8 +727,29 @@ export function updateTask(taskId: string, body: TaskUpdate) {
   });
 }
 
+export interface TaskBatchUpdateBody {
+  task_ids: string[];
+  patch?: TaskUpdate;
+  add_label_ids?: string[];
+}
+
+export interface TaskBatchUpdateResponse {
+  items: Task[];
+}
+
+export function batchUpdateTasks(body: TaskBatchUpdateBody) {
+  return apiFetch<TaskBatchUpdateResponse>("/api/v1/tasks/batch", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
 export function deleteTask(taskId: string) {
   return apiFetch<void>(`/api/v1/tasks/${taskId}`, { method: "DELETE" });
+}
+
+export function restoreTask(taskId: string) {
+  return apiFetch<Task>(`/api/v1/tasks/${taskId}/restore`, { method: "POST" });
 }
 
 export function completeTask(taskId: string, body: TaskCompleteBody = {}) {

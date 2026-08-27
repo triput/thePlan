@@ -96,11 +96,13 @@ All list endpoints scope to authenticated `owner_id`.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/tasks` | List with filters (see Smart Views); also `?ids=` comma UUID list for hydrate |
+| GET | `/tasks` | List with filters (see Smart Views); `?ids=`; `?trashed=true` for soft-deleted only. Default excludes trashed. |
 | POST | `/tasks` | Create |
-| GET | `/tasks/{id}` | Get with labels, subtasks summary |
+| PATCH | `/tasks/batch` | Batch patch / add labels (`task_ids` + `patch` and/or `add_label_ids`) |
+| GET | `/tasks/{id}` | Get with labels, subtasks summary (includes trashed) |
 | PATCH | `/tasks/{id}` | Update |
-| DELETE | `/tasks/{id}` | Delete (cascade subtasks) |
+| DELETE | `/tasks/{id}` | Soft-delete task + live descendants (`deleted_at`); unpinned blocks removed |
+| POST | `/tasks/{id}/restore` | Clear `deleted_at` for same delete-wave subtree |
 | POST | `/tasks/{id}/complete` | Mark complete |
 | POST | `/tasks/{id}/uncomplete` | Mark incomplete |
 | PATCH | `/tasks/reorder` | Batch reorder |

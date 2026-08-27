@@ -410,6 +410,7 @@ class TaskOut(BaseModel):
     schedule_style: ScheduleStyle | None = None
     is_completed: bool
     completed_at: datetime | None
+    deleted_at: datetime | None = None
     status: ScheduleStatus
     sort_order: int
     label_ids: list[UUID] = Field(default_factory=list)
@@ -417,6 +418,24 @@ class TaskOut(BaseModel):
     recurrence: RecurrenceOut | None = None
     recurrence_advanced: bool = False
     previous_due_at: datetime | None = None
+
+
+class TaskBatchUpdate(BaseModel):
+    """Apply the same partial patch (and/or attach labels) to many owned tasks."""
+
+    task_ids: list[UUID] = Field(min_length=1, max_length=500)
+    patch: TaskUpdate = Field(default_factory=TaskUpdate)
+    add_label_ids: list[UUID] | None = None
+
+    @model_validator(mode="after")
+    def require_patch_or_labels(self) -> "TaskBatchUpdate":
+        if not self.patch.model_dump(exclude_unset=True) and not self.add_label_ids:
+            raise ValueError("Provide patch fields and/or add_label_ids")
+        return self
+
+
+class TaskBatchUpdateResponse(BaseModel):
+    items: list[TaskOut]
 
 
 class LabelCreate(BaseModel):

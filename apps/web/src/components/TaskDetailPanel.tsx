@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createLabel,
   createTaskReminder,
   deleteReminder,
   deleteTask,
@@ -26,6 +27,7 @@ import {
   type TaskPriority,
   type TaskUpdate,
 } from "../api";
+import { DEFAULT_EPIC_COLOR } from "../colors";
 import { collectDeleteTree, useUndoStack } from "../undoStack";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { emitToast } from "./ToastHost";
@@ -189,6 +191,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     typeof Notification === "undefined" ? "unsupported" : Notification.permission,
   );
   const [sectionOpen, setSectionOpen] = useState<Record<DetailSectionId, boolean>>(readSectionOpenState);
+  const [labelFilter, setLabelFilter] = useState("");
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
 
@@ -267,6 +270,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setEndsOn(task.recurrence?.ends_on ?? "");
     setReminderAtLocal("");
     setReminderChannel("in_app");
+    setLabelFilter("");
   }, [task]);
 
   const remindersQuery = useQuery({
@@ -438,6 +442,18 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     onError: (err: Error) => emitToast(err.message || "Couldn't delete reminder"),
   });
 
+  const createLabelMutation = useMutation({
+    mutationFn: (name: string) =>
+      createLabel({ name: name.trim().toLowerCase(), color_hex: DEFAULT_EPIC_COLOR }),
+    onSuccess: (label) => {
+      setLabelIds((prev) => (prev.includes(label.id) ? prev : [...prev, label.id]));
+      setLabelFilter("");
+      queryClient.invalidateQueries({ queryKey: ["labels"] });
+      emitToast(`Created label “${label.name}”`);
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't create label"),
+  });
+
   const requestBrowserNotifications = async () => {
     if (typeof Notification === "undefined") {
       setNotifPermission("unsupported");
@@ -463,6 +479,18 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       prev.includes(labelId) ? prev.filter((id) => id !== labelId) : [...prev, labelId],
     );
   };
+
+  const labelFilterTrimmed = labelFilter.trim();
+  const labelFilterLower = labelFilterTrimmed.toLowerCase();
+  const filteredLabels = useMemo(() => {
+    if (!labelFilterLower) return allLabels;
+    return allLabels.filter((label) => label.name.toLowerCase().includes(labelFilterLower));
+  }, [allLabels, labelFilterLower]);
+  const exactLabelMatch = useMemo(
+    () => allLabels.some((label) => label.name.toLowerCase() === labelFilterLower),
+    [allLabels, labelFilterLower],
+  );
+  const canCreateLabel = labelFilterTrimmed.length > 0 && !exactLabelMatch;
 
   const handlePlanChange = (value: string) => {
     setPlanId(value);
@@ -784,11 +812,30 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
           >
             <fieldset className="field">
               <legend className="sr-only">Labels</legend>
-              {allLabels.length === 0 && (
-                <p className="muted small">No labels yet. Create labels from the sidebar.</p>
+              <label className="field label-filter-field">
+                <span className="sr-only">Filter or create labels</span>
+                <input
+                  type="text"
+                  value={labelFilter}
+                  onChange={(e) => setLabelFilter(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    if (!canCreateLabel || createLabelMutation.isPending) return;
+                    createLabelMutation.mutate(labelFilterTrimmed);
+                  }}
+                  placeholder="Filter or create…"
+                  autoComplete="off"
+                />
+              </label>
+              {allLabels.length === 0 && !canCreateLabel && (
+                <p className="muted small">No labels yet. Type a name above to create one.</p>
+              )}
+              {allLabels.length > 0 && filteredLabels.length === 0 && !canCreateLabel && (
+                <p className="muted small">No labels match.</p>
               )}
               <div className="label-toggle-group" role="group" aria-label="Task labels">
-                {allLabels.map((label) => {
+                {filteredLabels.map((label) => {
                   const selected = labelIds.includes(label.id);
                   return (
                     <button
@@ -816,6 +863,18 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
                     </button>
                   );
                 })}
+                {canCreateLabel && (
+                  <button
+                    type="button"
+                    className="label-toggle label-create-toggle"
+                    disabled={createLabelMutation.isPending}
+                    onClick={() => createLabelMutation.mutate(labelFilterTrimmed)}
+                  >
+                    {createLabelMutation.isPending
+                      ? "Creating…"
+                      : `+ Create “${labelFilterTrimmed}”`}
+                  </button>
+                )}
               </div>
             </fieldset>
           </DetailSection>

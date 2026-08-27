@@ -44,6 +44,7 @@ def load_candidates(
         .filter(
             Task.owner_id == owner_id,
             Task.is_completed.is_(False),
+            Task.deleted_at.is_(None),
         )
         .order_by(Task.sort_order, Task.created_at)
         .all()

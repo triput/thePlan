@@ -51,6 +51,7 @@ def search_tasks(
         )
         .filter(
             Task.owner_id == user.id,
+            Task.deleted_at.is_(None),
             or_(
                 Task.title.ilike(pattern, escape="\\"),
                 Task.description.ilike(pattern, escape="\\"),

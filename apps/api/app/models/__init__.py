@@ -301,6 +301,7 @@ class Task(Base, TimestampMixin):
     )
     is_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     completed_at: Mapped[datetime | None] = mapped_column()
+    deleted_at: Mapped[datetime | None] = mapped_column()
 
     project: Mapped["Project | None"] = relationship(back_populates="tasks")
     section: Mapped["Section | None"] = relationship(back_populates="tasks")

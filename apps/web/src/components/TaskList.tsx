@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
+  batchUpdateTasks,
   completeTask,
   createTask,
+  deleteTask,
   fetchLabels,
   fetchPlans,
   fetchProjects,
@@ -14,6 +16,7 @@ import {
   reorderTasks,
   uncompleteTask,
   type Label,
+  type ScheduleStyle,
   type Section,
   type Task,
 } from "../api";
@@ -121,6 +124,9 @@ export function TaskList({
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(readShowCompleted);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
+  const selectAllRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
   const setShowCompletedPersisted = useCallback((next: boolean) => {
@@ -277,6 +283,61 @@ export function TaskList({
     return orderTasksForest(items);
   }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted]);
 
+  const visibleTaskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [viewKey(view)]);
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(visibleTaskIds);
+      let changed = false;
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (visible.has(id)) next.add(id);
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [visibleTaskIds]);
+
+  const selectedCount = selectedIds.size;
+  const allVisibleSelected =
+    visibleTaskIds.length > 0 && visibleTaskIds.every((id) => selectedIds.has(id));
+  const someVisibleSelected = visibleTaskIds.some((id) => selectedIds.has(id));
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someVisibleSelected && !allVisibleSelected;
+    }
+  }, [someVisibleSelected, allVisibleSelected]);
+
+  const toggleSelectTask = (taskId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((prev) => {
+      if (allVisibleSelected) {
+        const next = new Set(prev);
+        for (const id of visibleTaskIds) next.delete(id);
+        return next;
+      }
+      const next = new Set(prev);
+      for (const id of visibleTaskIds) next.add(id);
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
   };
@@ -407,6 +468,73 @@ export function TaskList({
       queryClient.invalidateQueries({ queryKey: ["sections"] });
     },
   });
+
+  const runBatch = async (
+    action: () => Promise<void>,
+    successMessage: string,
+  ) => {
+    setBatchBusy(true);
+    try {
+      await action();
+      clearSelection();
+      invalidateTasks();
+      emitToast(successMessage);
+    } catch (err) {
+      emitToast(err instanceof Error ? err.message : "Batch action failed");
+      invalidateTasks();
+    } finally {
+      setBatchBusy(false);
+    }
+  };
+
+  const handleBatchScheduleStyle = (style: ScheduleStyle) => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    void runBatch(
+      async () => {
+        await batchUpdateTasks({
+          task_ids: ids,
+          patch: { schedule_style: style },
+        });
+      },
+      `Set schedule style on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
+    );
+  };
+
+  const handleBatchApplyLabel = (labelId: string) => {
+    const ids = [...selectedIds];
+    if (ids.length === 0 || !labelId) return;
+    void runBatch(
+      async () => {
+        await batchUpdateTasks({
+          task_ids: ids,
+          add_label_ids: [labelId],
+        });
+      },
+      `Applied label to ${ids.length} task${ids.length === 1 ? "" : "s"}`,
+    );
+  };
+
+  const handleBatchDelete = () => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    const ok = window.confirm(
+      `Delete ${ids.length} selected task${ids.length === 1 ? "" : "s"}? This cannot be undone from here.`,
+    );
+    if (!ok) return;
+    void runBatch(
+      async () => {
+        const results = await Promise.allSettled(ids.map((id) => deleteTask(id)));
+        const failed = results.filter((r) => r.status === "rejected").length;
+        if (failed > 0) {
+          throw new Error(
+            `Deleted ${ids.length - failed} of ${ids.length}; ${failed} failed`,
+          );
+        }
+      },
+      `Deleted ${ids.length} task${ids.length === 1 ? "" : "s"}`,
+    );
+  };
 
   const sections = useMemo(
     () =>
@@ -557,6 +685,7 @@ export function TaskList({
 
   const renderTaskRow = (task: Task) => {
     const siblings = getTaskSiblings(task);
+    const isMultiSelected = selectedIds.has(task.id);
     return (
       <li
         key={task.id}
@@ -564,10 +693,17 @@ export function TaskList({
           if (el) rowRefs.current.set(task.id, el);
           else rowRefs.current.delete(task.id);
         }}
-        className={`task-row${task.is_completed ? " completed" : ""}${selectedTaskId === task.id ? " selected" : ""}${focusedTaskId === task.id ? " focused" : ""}`}
+        className={`task-row${task.is_completed ? " completed" : ""}${selectedTaskId === task.id ? " selected" : ""}${focusedTaskId === task.id ? " focused" : ""}${isMultiSelected ? " multi-selected" : ""}`}
         style={{ paddingLeft: `${12 + task.nesting_level * 20}px` }}
         onClick={(e) => handleTaskRowClick(task, e)}
       >
+        <input
+          type="checkbox"
+          className="task-select"
+          checked={isMultiSelected}
+          onChange={() => toggleSelectTask(task.id)}
+          aria-label={`Select "${task.title}"`}
+        />
         <input
           type="checkbox"
           className="task-check"
@@ -676,6 +812,86 @@ export function TaskList({
           <p className="form-error">
             Failed to load tasks: {(tasksQuery.error as Error).message}
           </p>
+        )}
+
+        {visibleTaskIds.length > 0 && (
+          <div className="task-select-toolbar">
+            <label className="task-select-all">
+              <input
+                ref={selectAllRef}
+                type="checkbox"
+                checked={allVisibleSelected}
+                onChange={toggleSelectAllVisible}
+                aria-label="Select all visible tasks"
+              />
+              <span>Select all</span>
+            </label>
+            {selectedCount > 0 && (
+              <span className="muted small">{selectedCount} selected</span>
+            )}
+          </div>
+        )}
+
+        {selectedCount > 0 && (
+          <div className="task-batch-bar" role="toolbar" aria-label="Batch actions">
+            <select
+              className="task-batch-select"
+              defaultValue=""
+              disabled={batchBusy}
+              aria-label="Set schedule style"
+              onChange={(e) => {
+                const value = e.target.value as ScheduleStyle | "";
+                e.target.value = "";
+                if (value === "manual" || value === "standalone") {
+                  handleBatchScheduleStyle(value);
+                }
+              }}
+            >
+              <option value="" disabled>
+                Schedule style…
+              </option>
+              <option value="manual">Manual</option>
+              <option value="standalone">Standalone</option>
+            </select>
+            <select
+              className="task-batch-select"
+              defaultValue=""
+              disabled={batchBusy || (labelsQuery.data?.items.length ?? 0) === 0}
+              aria-label="Apply label"
+              onChange={(e) => {
+                const value = e.target.value;
+                e.target.value = "";
+                if (value) handleBatchApplyLabel(value);
+              }}
+            >
+              <option value="" disabled>
+                Apply label…
+              </option>
+              {[...(labelsQuery.data?.items ?? [])]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((label) => (
+                  <option key={label.id} value={label.id}>
+                    {label.name}
+                  </option>
+                ))}
+            </select>
+            <button
+              type="button"
+              className="btn danger small"
+              disabled={batchBusy}
+              onClick={handleBatchDelete}
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              className="btn ghost small"
+              disabled={batchBusy}
+              onClick={clearSelection}
+            >
+              Clear
+            </button>
+          </div>
         )}
 
         {view.type === "epic" ? (

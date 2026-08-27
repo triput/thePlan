@@ -6,6 +6,7 @@ import { CalendarView } from "./components/CalendarView";
 import { HelpOverlay } from "./components/HelpOverlay";
 import { ArchivedView } from "./components/ArchivedView";
 import { LabelsManagement } from "./components/LabelsManagement";
+import { TrashView } from "./components/TrashView";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
 import { AssistPanel } from "./components/AssistPanel";
 import { OutlineImportPanel } from "./components/OutlineImportPanel";
@@ -57,6 +58,7 @@ function AppInner() {
 
   const showCalendar = view.type === "calendar";
   const showArchived = view.type === "archived";
+  const showTrash = view.type === "trash";
   const showLabels = view.type === "labels";
 
   const selectedTaskQuery = useQuery({
@@ -231,6 +233,8 @@ function AppInner() {
               <CalendarView />
             ) : showArchived ? (
               <ArchivedView />
+            ) : showTrash ? (
+              <TrashView />
             ) : showLabels ? (
               <LabelsManagement />
             ) : (

@@ -15,6 +15,8 @@ from app.schemas import (
     ReminderCreate,
     ReminderOut,
     ReorderRequest,
+    TaskBatchUpdate,
+    TaskBatchUpdateResponse,
     TaskCompleteBody,
     TaskCreate,
     TaskOut,
@@ -35,7 +37,13 @@ from app.services.recurrence import (
     validate_frame,
 )
 from app.services.reorder import batch_reorder_sort_order
-from app.services.task_helpers import complete_task, mark_task_complete, resolve_nesting_level
+from app.services.task_helpers import (
+    complete_task,
+    mark_task_complete,
+    resolve_nesting_level,
+    restore_task_subtree,
+    soft_delete_task_subtree,
+)
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -118,6 +126,7 @@ def task_to_out(
             Task.owner_id == task.owner_id,
             Task.parent_task_id == task.id,
             Task.is_completed.is_(False),
+            Task.deleted_at.is_(None),
         )
         .count()
     )
@@ -149,8 +158,72 @@ def _sync_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Labels not found: {', '.join(missing)}")
 
     db.query(TaskLabel).filter(TaskLabel.task_id == task.id).delete(synchronize_session=False)
+    db.expire(task, ["label_links"])
     for label in labels:
         db.add(TaskLabel(task_id=task.id, label_id=label.id))
+
+
+def _add_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]) -> None:
+    if not label_ids:
+        return
+    labels = db.query(Label).filter(Label.owner_id == user.id, Label.id.in_(label_ids)).all()
+    found_ids = {label.id for label in labels}
+    missing = [str(label_id) for label_id in label_ids if label_id not in found_ids]
+    if missing:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Labels not found: {', '.join(missing)}")
+    # Task is loaded with joinedload(label_links). Adding a TaskLabel only via
+    # db.add(task_id=...) leaves it out of that collection; SQLAlchemy then
+    # disassociates it and tries to NULL task_labels.task_id (a PK).
+    existing = {link.label_id for link in task.label_links}
+    for label in labels:
+        if label.id not in existing:
+            task.label_links.append(TaskLabel(task_id=task.id, label_id=label.id))
+    db.expire(task, ["label_links"])
+
+
+def _apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> None:
+    updates = body.model_dump(exclude_unset=True)
+    label_ids = updates.pop("label_ids", None)
+    soft_target_at = updates.pop("soft_target_at", _MISSING)
+    plan_id = updates.pop("plan_id", _MISSING)
+
+    if "title" in updates and updates["title"] is not None:
+        updates["title"] = updates["title"].strip()
+
+    if "project_id" in updates and updates["project_id"] is not None:
+        verify_owned_project(db, updates["project_id"], user)
+    if "section_id" in updates and updates["section_id"] is not None:
+        verify_owned_section(db, updates["section_id"], user)
+    if "parent_task_id" in updates and updates["parent_task_id"] is not None:
+        verify_owned_task(db, updates["parent_task_id"], user)
+
+    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
+        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
+
+    if "parent_task_id" in updates:
+        try:
+            updates["nesting_level"] = resolve_nesting_level(db, user.id, updates["parent_task_id"])
+        except ApiError as exc:
+            raise exc
+
+    if plan_id is not _MISSING:
+        if plan_id is not None:
+            verify_owned_plan(db, plan_id, user)
+            task.plan_id = plan_id
+            bound_soft_target = _resolve_plan_bind(db, user, plan_id)
+            if bound_soft_target is not None:
+                task.soft_target_at = bound_soft_target
+        else:
+            task.plan_id = None
+
+    for field, value in updates.items():
+        setattr(task, field, value)
+
+    if soft_target_at is not _MISSING:
+        task.soft_target_at = soft_target_at
+
+    if label_ids is not None:
+        _sync_task_labels(db, task, user, label_ids)
 
 
 def _upsert_recurrence(
@@ -215,6 +288,10 @@ def list_tasks(
     due_to: datetime | None = None,
     ids: list[UUID] | None = Query(default=None),
     inbox: bool = Query(default=False),
+    trashed: bool = Query(
+        default=False,
+        description="When true, return only soft-deleted tasks (trash). Default excludes trash.",
+    ),
     limit: int = Query(default=50, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
@@ -225,6 +302,10 @@ def list_tasks(
         .options(joinedload(Task.recurrence_rule), joinedload(Task.label_links))
         .filter(Task.owner_id == user.id)
     )
+    if trashed:
+        query = query.filter(Task.deleted_at.isnot(None))
+    else:
+        query = query.filter(Task.deleted_at.is_(None))
     if inbox:
         query = query.filter(Task.project_id.is_(None))
     elif project_id is not None:
@@ -345,6 +426,27 @@ def reorder_tasks(
     )
 
 
+@router.patch("/batch", response_model=TaskBatchUpdateResponse)
+def batch_update_tasks(
+    body: TaskBatchUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TaskBatchUpdateResponse:
+    patch_fields = body.patch.model_dump(exclude_unset=True)
+    updated_ids: list[UUID] = []
+    for task_id in body.task_ids:
+        task = _get_owned_task(db, task_id, user)
+        if patch_fields:
+            _apply_task_patch(db, task, user, body.patch)
+        if body.add_label_ids:
+            _add_task_labels(db, task, user, body.add_label_ids)
+        updated_ids.append(task.id)
+    db.commit()
+    return TaskBatchUpdateResponse(
+        items=[task_to_out(_get_owned_task(db, task_id, user), db) for task_id in updated_ids]
+    )
+
+
 @router.get("/{task_id}", response_model=TaskOut)
 def get_task(
     task_id: UUID,
@@ -363,49 +465,7 @@ def update_task(
     user: User = Depends(get_current_user),
 ) -> TaskOut:
     task = _get_owned_task(db, task_id, user)
-    updates = body.model_dump(exclude_unset=True)
-    label_ids = updates.pop("label_ids", None)
-    soft_target_at = updates.pop("soft_target_at", _MISSING)
-    plan_id = updates.pop("plan_id", _MISSING)
-
-    if "title" in updates and updates["title"] is not None:
-        updates["title"] = updates["title"].strip()
-
-    if "project_id" in updates and updates["project_id"] is not None:
-        verify_owned_project(db, updates["project_id"], user)
-    if "section_id" in updates and updates["section_id"] is not None:
-        verify_owned_section(db, updates["section_id"], user)
-    if "parent_task_id" in updates and updates["parent_task_id"] is not None:
-        verify_owned_task(db, updates["parent_task_id"], user)
-
-    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
-        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
-
-    if "parent_task_id" in updates:
-        try:
-            updates["nesting_level"] = resolve_nesting_level(db, user.id, updates["parent_task_id"])
-        except ApiError as exc:
-            raise exc
-
-    if plan_id is not _MISSING:
-        if plan_id is not None:
-            verify_owned_plan(db, plan_id, user)
-            task.plan_id = plan_id
-            bound_soft_target = _resolve_plan_bind(db, user, plan_id)
-            if bound_soft_target is not None:
-                task.soft_target_at = bound_soft_target
-        else:
-            task.plan_id = None
-
-    for field, value in updates.items():
-        setattr(task, field, value)
-
-    if soft_target_at is not _MISSING:
-        task.soft_target_at = soft_target_at
-
-    if label_ids is not None:
-        _sync_task_labels(db, task, user, label_ids)
-
+    _apply_task_patch(db, task, user, body)
     db.commit()
     return task_to_out(_get_owned_task(db, task.id, user), db)
 
@@ -416,9 +476,31 @@ def delete_task(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> None:
+    """Soft-delete task + live descendants (same ``deleted_at`` wave).
+
+    Unpinned ``scheduled_blocks`` for those tasks are hard-deleted (no block
+    soft-delete column). Pinned blocks are left. Idempotent if already trashed.
+    """
     task = _get_owned_task(db, task_id, user)
-    db.delete(task)
+    if task.deleted_at is None:
+        soft_delete_task_subtree(db, task)
+        db.commit()
+
+
+@router.post("/{task_id}/restore", response_model=TaskOut)
+def restore_task(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TaskOut:
+    """Restore a soft-deleted task and descendants stamped in the same delete wave."""
+    task = _get_owned_task(db, task_id, user)
+    try:
+        restore_task_subtree(db, task)
+    except ApiError as exc:
+        raise exc
     db.commit()
+    return task_to_out(_get_owned_task(db, task.id, user), db)
 
 
 @router.post("/{task_id}/complete", response_model=TaskOut)

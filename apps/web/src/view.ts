@@ -7,7 +7,8 @@ export type ViewSelection =
   | { type: "epic"; epicId: string }
   | { type: "labels" }
   | { type: "label"; labelId: string }
-  | { type: "archived" };
+  | { type: "archived" }
+  | { type: "trash" };
 
 export function viewKey(view: ViewSelection): string {
   switch (view.type) {
@@ -29,6 +30,8 @@ export function viewKey(view: ViewSelection): string {
       return `label:${view.labelId}`;
     case "archived":
       return "archived";
+    case "trash":
+      return "trash";
   }
 }
 
@@ -55,6 +58,8 @@ export function viewTitle(
       return options?.labelName ?? "Label";
     case "archived":
       return "Archived";
+    case "trash":
+      return "Trash";
   }
 }
 

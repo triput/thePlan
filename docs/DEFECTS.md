@@ -422,10 +422,10 @@ Related: outline ingest (Theme F) made this P2. Not the same as **pinned blocks*
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (high leverage for project/epic housekeeping) |
-| **Status** | Open — backlog |
+| **Status** | Closed — Phase 1 thin shipped 2026-08-27 (Phases 2–3 deferred) |
 | **Found** | 2026-08-17 |
 | **Surface** | Task list UI, `PATCH /tasks`, labels, recurrence, scheduler fields |
-| **Wave** | W3+ productivity UX (after DEF-014 if shared batch API) |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom / ask
 
@@ -437,34 +437,13 @@ Bulk operations on a list context, e.g.:
 - Set **recurrence** on a group of tasks.
 - Likely also: bulk **schedule style / backlog** (DEF-014), priority, section move, delete, archive.
 
-### Current behavior
+### Current behavior (Phase 1 shipped)
 
-- Only **bulk complete** exists (`bulk_children` on complete API + dialog in `TaskList`).
-- No multi-select row model; no batch PATCH endpoint.
+- Multi-select checkboxes + Select all (visible rows) in `TaskList`; batch bar: schedule style, apply label, delete (confirm).
+- `PATCH /tasks/batch` with `{ task_ids, patch?, add_label_ids? }`.
+- Batch delete uses soft-delete ([DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention)).
 
-### Expected (when built)
-
-**Phase 1 — selection + batch PATCH**
-
-- Multi-select in list (checkbox mode or shift-click).
-- **Select all** in current list context: project page, epic aggregate view, parent’s descendants (visible rows or full subtree — pick one for v1).
-- Header checkbox with **indeterminate** state when partially selected.
-- Batch actions bar: labels, due date, schedule style, priority, delete (with confirm), move, archive.
-- API: `POST /tasks/batch` or `PATCH` with `{ task_ids, patch }` — single transaction, partial failure reporting optional.
-
-**Phase 2 — subtree semantics**
-
-- “This task and all descendants” without manual select-all.
-- “All tasks in project X matching filter” defers to saved filters / W2c query language unless a minimal project scope is enough for v1.
-
-**Phase 3 — schedule same day**
-
-- Clarify product: set **due_at** / **soft_target_at** vs create **manual `scheduled_blocks`** vs run mini-replan for subset — probably separate actions in the batch bar.
-
-### Notes
-
-Keep Assist / outline paths propose→confirm; bulk edit is **operator-driven** on existing rows. Consider undo stack parity (`bulk_complete` pattern in `undoStack.tsx`). Do not ship multi-select without **Select all** in scoped lists. Bulk delete should land in trash once [DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention) exists, not hard delete.
-
+**Still deferred:** Phase 2 subtree semantics, Phase 3 schedule-same-day / recurrence / move / archive.
 ---
 
 ## DEF-016 — Task detail Save affordance (scroll fatigue)
@@ -757,32 +736,20 @@ Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (accidental delete — operator has *never* done this, obviously) |
-| **Status** | Open — backlog |
+| **Status** | Closed — thin shipped 2026-08-27 (no auto-purge yet) |
 | **Found** | 2026-08-25 |
 | **Surface** | Tasks (and optionally blocks/projects), schema `deleted_at`, Trash UI |
-| **Wave** | W2c per [04-data-schema.md](./04-data-schema.md#future-task-soft-delete-w2c) |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom / ask
 
 **Hard delete** is immediate and scary. Operator wants a **trash** holding deleted items for a **retention period** (e.g. 30 days) with **restore** — same UUID, children if applicable.
 
-### Current behavior
+### Current behavior (shipped thin)
 
-- Tasks: **hard delete**; client undo may recreate from cache (MVP) — not durable across sessions/devices.
-- Epics/projects: archive, not trash.
-- Schema doc already targets nullable `deleted_at` on tasks (W2c).
-
-### Expected (when built)
-
-- Delete → soft-set `deleted_at`; lists exclude trashed rows.
-- **Trash** view: browse, restore, empty trash (hard purge after retention).
-- Retention policy: setting or fixed N days; optional auto-purge job.
-- Cascade: soft-delete descendants + linked unpinned blocks (per schema doc).
-
-### Notes
-
-Archive ([DEF-021](./DEFECTS.md#def-021--browse-archived-epicsprojects-and-reactivate)) is “put away”; trash is “oops”. [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) bulk delete should land in trash, not hard delete, once this exists.
-
+- Alembic `015_task_deleted_at`; `DELETE /tasks/{id}` soft-sets subtree `deleted_at`; lists exclude trashed; `GET /tasks?trashed=true`; `POST /tasks/{id}/restore` (same delete wave).
+- Sidebar **Trash** view + Restore. Unpinned blocks for trashed tasks hard-deleted; pinned left.
+- **Deferred:** auto-purge / 30d retention job, empty-trash hard purge UI.
 ---
 
 ## DEF-025 — Inline create parent / child / labels in detail drawer
@@ -790,10 +757,10 @@ Archive ([DEF-021](./DEFECTS.md#def-021--browse-archived-epicsprojects-and-react
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (context switch fatigue — leave drawer to create related entities) |
-| **Status** | Open — backlog |
+| **Status** | Closed — label-only thin 2026-08-27 (parent/child create deferred) |
 | **Found** | 2026-08-25 |
 | **Surface** | `TaskDetailPanel`, project/epic edit forms, labels picker |
-| **Wave** | W3+ productivity UX |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom / ask
 
@@ -803,21 +770,10 @@ While editing a task or project in the detail drawer:
 - **Create new child** (subtask or nested project) without closing the drawer.
 - **Create new label** inline in the label picker instead of navigating to Labels view first.
 
-### Current behavior
+### Current behavior (label thin shipped)
 
-- Parent/project pickers list existing entities only.
-- Labels: manage on separate Labels page; picker selects existing labels.
-- **+** on sidebar creates sibling entities, not inline from detail context.
-
-### Expected (when built)
-
-- Pickers offer **+ New project…**, **+ New epic…**, **+ New subtask…** (context-appropriate).
-- Label field: **+ Create “foo”** when no match.
-- Created entity selected immediately; drawer stays open.
-
-### Notes
-
-Reduces round-trips; pairs with [DEF-023](./DEFECTS.md#def-023--promote--demote-hierarchy-task--project--epic) for hierarchy fixes after the fact.
+- Labels section: filter + **Create “foo”** via `createLabel`; new label selected on the task.
+- **Deferred:** inline create parent / child from detail drawer.
 
 ---
 

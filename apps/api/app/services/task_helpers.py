@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
-from app.models import Reminder, Task
+from app.models import Reminder, ScheduledBlock, Task
 from app.models.enums import ScheduleStatus
 
 
@@ -15,7 +15,7 @@ def resolve_nesting_level(db: Session, owner_id: uuid.UUID, parent_task_id: uuid
     if parent_task_id is None:
         return 0
     parent = db.get(Task, parent_task_id)
-    if parent is None or parent.owner_id != owner_id:
+    if parent is None or parent.owner_id != owner_id or parent.deleted_at is not None:
         raise ApiError(404, "Parent task not found", "PARENT_NOT_FOUND")
     next_level = parent.nesting_level + 1
     if next_level > 2:
@@ -34,6 +34,7 @@ def count_open_children(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID) ->
             Task.owner_id == owner_id,
             Task.parent_task_id == task_id,
             Task.is_completed.is_(False),
+            Task.deleted_at.is_(None),
         )
         .count()
     )
@@ -50,6 +51,7 @@ def collect_open_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.
                 Task.owner_id == owner_id,
                 Task.parent_task_id == current_id,
                 Task.is_completed.is_(False),
+                Task.deleted_at.is_(None),
             )
             .all()
         )
@@ -57,6 +59,80 @@ def collect_open_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.
             descendant_ids.append(child_id)
             queue.append(child_id)
     return descendant_ids
+
+
+def collect_live_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID) -> list[uuid.UUID]:
+    """BFS over non-trashed descendants (any completion state)."""
+    descendant_ids: list[uuid.UUID] = []
+    queue: deque[uuid.UUID] = deque([task_id])
+    while queue:
+        current_id = queue.popleft()
+        children = (
+            db.query(Task.id)
+            .filter(
+                Task.owner_id == owner_id,
+                Task.parent_task_id == current_id,
+                Task.deleted_at.is_(None),
+            )
+            .all()
+        )
+        for (child_id,) in children:
+            descendant_ids.append(child_id)
+            queue.append(child_id)
+    return descendant_ids
+
+
+def collect_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID) -> list[uuid.UUID]:
+    """BFS over all descendants including already-trashed rows."""
+    descendant_ids: list[uuid.UUID] = []
+    queue: deque[uuid.UUID] = deque([task_id])
+    while queue:
+        current_id = queue.popleft()
+        children = (
+            db.query(Task.id)
+            .filter(
+                Task.owner_id == owner_id,
+                Task.parent_task_id == current_id,
+            )
+            .all()
+        )
+        for (child_id,) in children:
+            descendant_ids.append(child_id)
+            queue.append(child_id)
+    return descendant_ids
+
+
+def soft_delete_task_subtree(db: Session, task: Task) -> datetime:
+    """Soft-delete task + live descendants with one UTC stamp; hard-drop unpinned blocks.
+
+    ``scheduled_blocks`` has no ``deleted_at`` column, so unpinned blocks for the
+    stamped task ids are hard-deleted. Pinned blocks are left in place.
+    """
+    now = datetime.now(timezone.utc)
+    ids = [task.id, *collect_live_descendant_ids(db, task.id, task.owner_id)]
+    db.query(Task).filter(Task.id.in_(ids)).update(
+        {Task.deleted_at: now},
+        synchronize_session=False,
+    )
+    db.query(ScheduledBlock).filter(
+        ScheduledBlock.task_id.in_(ids),
+        ScheduledBlock.is_pinned.is_(False),
+    ).delete(synchronize_session=False)
+    task.deleted_at = now
+    return now
+
+
+def restore_task_subtree(db: Session, task: Task) -> None:
+    """Clear ``deleted_at`` on this task and descendants stamped in the same wave."""
+    if task.deleted_at is None:
+        raise ApiError(409, "Task is not in trash", "NOT_TRASHED")
+    wave = task.deleted_at
+    ids = [task.id, *collect_descendant_ids(db, task.id, task.owner_id)]
+    db.query(Task).filter(Task.id.in_(ids), Task.deleted_at == wave).update(
+        {Task.deleted_at: None},
+        synchronize_session=False,
+    )
+    task.deleted_at = None
 
 
 def mark_task_complete(task: Task, *, completed: bool) -> None:

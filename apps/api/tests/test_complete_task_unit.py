@@ -77,7 +77,13 @@ class _OpenChildrenQuery:
         return [(c.id,) for c in children]
 
     def update(self, values, synchronize_session=False):  # noqa: ANN001
-        # bulk update path uses id.in_(descendant_ids) — mark all known open kids
+        # Only apply Task bulk-complete updates; ignore Reminder.is_fired etc.
+        keys = {
+            getattr(key, "key", None) or getattr(key, "name", None)
+            for key in values
+        }
+        if "is_completed" not in keys:
+            return 0
         updated = 0
         for kids in self.session.children_by_parent.values():
             for kid in kids:
@@ -86,7 +92,6 @@ class _OpenChildrenQuery:
                 kid.status = ScheduleStatus.completed
                 updated += 1
         return updated
-
 
 def _task(*, nesting_level: int = 0, completed: bool = False) -> SimpleNamespace:
     return SimpleNamespace(
