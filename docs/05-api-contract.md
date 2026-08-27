@@ -99,9 +99,10 @@ All list endpoints scope to authenticated `owner_id`.
 | GET | `/tasks` | List with filters (see Smart Views); `?ids=`; `?trashed=true` for soft-deleted only. Default excludes trashed. |
 | POST | `/tasks` | Create |
 | PATCH | `/tasks/batch` | Batch patch / add labels (`task_ids` + `patch` and/or `add_label_ids`) |
+| DELETE | `/tasks/trash` | Hard-purge **all** trashed tasks for the current user (empty trash). 204 even if empty. |
 | GET | `/tasks/{id}` | Get with labels, subtasks summary (includes trashed) |
 | PATCH | `/tasks/{id}` | Update |
-| DELETE | `/tasks/{id}` | Soft-delete task + live descendants (`deleted_at`); unpinned blocks removed |
+| DELETE | `/tasks/{id}` | Soft-delete task + live descendants (`deleted_at`); unpinned blocks removed. `?hard=true` permanently purges an **already trashed** subtree (409 `NOT_TRASHED` if live). |
 | POST | `/tasks/{id}/restore` | Clear `deleted_at` for same delete-wave subtree |
 | POST | `/tasks/{id}/complete` | Mark complete |
 | POST | `/tasks/{id}/uncomplete` | Mark incomplete |
@@ -368,10 +369,10 @@ Does not replace `/quick-add/parse`. Voice/STT out of cut.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/outlines/propose` | Validate outline JSON + template pack → structured create actions (no DB writes) |
-| POST | `/outlines/apply` | Apply **approved** epic/project/section/task (+ label) actions |
+| POST | `/outlines/propose` | Validate outline JSON + template pack → structured create actions (no DB writes). Optional `attach_under: { kind, id }` grafts under an existing epic/project/section. |
+| POST | `/outlines/apply` | Apply **approved** epic/project/section/task (+ label) actions (may reference existing parent ids when grafting) |
 
-Default template: `coursera_specialization`. Deterministic (no LLM). Operator-owned file only — no Coursera client. See [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [09-technical-architecture.md](./09-technical-architecture.md).
+Templates: `coursera_specialization` (default) and `hierarchy_v1` (same mapper). Deterministic (no LLM). Operator-owned file only — no Coursera client. Unknown/unowned attach target → 404 `OUTLINE_ATTACH_NOT_FOUND`. See [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [09-technical-architecture.md](./09-technical-architecture.md).
 
 ---
 
