@@ -4,6 +4,7 @@ import {
   ApiError,
   batchUpdateTasks,
   completeTask,
+  createScheduledBlockBundle,
   createTask,
   deleteTask,
   fetchLabels,
@@ -20,6 +21,7 @@ import {
   type Section,
   type Task,
 } from "../api";
+import { toISO } from "../calendarUtils";
 import { fetchOpenDescendantIds, useUndoStack } from "../undoStack";
 import { PRIORITY_COLORS } from "../colors";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
@@ -536,6 +538,46 @@ export function TaskList({
     );
   };
 
+  const snapBundleStart = () => {
+    const start = new Date();
+    start.setSeconds(0, 0);
+    const mins = start.getMinutes();
+    const step = 15;
+    const snapped = Math.ceil(mins / step) * step;
+    if (snapped >= 60) {
+      start.setHours(start.getHours() + 1, 0, 0, 0);
+    } else {
+      start.setMinutes(snapped, 0, 0);
+    }
+    return start;
+  };
+
+  const handleBlockAsBundle = () => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+
+    const byId = new Map(tasks.map((t) => [t.id, t]));
+    let body:
+      | { member_task_ids: string[]; start_time: string }
+      | { parent_task_id: string; start_time: string };
+
+    if (ids.length === 1) {
+      const task = byId.get(ids[0]);
+      if (!task || task.open_subtask_count <= 0) {
+        emitToast("Select 2+ tasks, or one parent with subtasks");
+        return;
+      }
+      body = { parent_task_id: task.id, start_time: toISO(snapBundleStart()) };
+    } else {
+      body = { member_task_ids: ids, start_time: toISO(snapBundleStart()) };
+    }
+
+    void runBatch(async () => {
+      await createScheduledBlockBundle(body);
+      void queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
+    }, "Blocked as bundle on calendar");
+  };
+
   const sections = useMemo(
     () =>
       [...(sectionsQuery.data?.items ?? [])].sort((a, b) => a.sort_order - b.sort_order),
@@ -551,7 +593,10 @@ export function TaskList({
       groups.set(key, group);
     }
     for (const group of groups.values()) {
-      group.sort((a, b) => a.sort_order - b.sort_order);
+      group.sort((a, b) => {
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+        return a.id.localeCompare(b.id);
+      });
     }
     return groups;
   }, [tasks]);
@@ -875,6 +920,15 @@ export function TaskList({
                   </option>
                 ))}
             </select>
+            <button
+              type="button"
+              className="btn secondary small"
+              disabled={batchBusy}
+              onClick={handleBlockAsBundle}
+              title="One calendar block for the selection (or parent subtree)"
+            >
+              Block as bundle
+            </button>
             <button
               type="button"
               className="btn danger small"

@@ -1,7 +1,16 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createLabel,
+  createProject,
+  createTask,
   createTaskReminder,
   deleteReminder,
   deleteTask,
@@ -14,6 +23,7 @@ import {
   fetchSections,
   fetchTaskReminders,
   fetchTasks,
+  promoteTaskToProject,
   putTaskRecurrence,
   updateTask,
   type Epic,
@@ -27,9 +37,11 @@ import {
   type TaskPriority,
   type TaskUpdate,
 } from "../api";
-import { DEFAULT_EPIC_COLOR } from "../colors";
+import { DEFAULT_EPIC_COLOR, DEFAULT_PROJECT_COLOR } from "../colors";
+import { NARROW_QUERY } from "../hooks/useMediaQuery";
 import { collectDeleteTree, useUndoStack } from "../undoStack";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
 
 interface TaskDetailPanelProps {
@@ -48,6 +60,11 @@ type DetailSectionId =
   | "advanced";
 
 const SECTION_STORAGE_KEY = "theplan.taskDetail.sections";
+const WIDTH_STORAGE_KEY = "theplan.taskDetail.width";
+const DEFAULT_PANEL_WIDTH = 340;
+const MIN_PANEL_WIDTH = 280;
+const MAX_PANEL_WIDTH = 720;
+const MOBILE_LAYOUT_MQ = NARROW_QUERY;
 
 const DEFAULT_SECTION_OPEN: Record<DetailSectionId, boolean> = {
   scheduling: false,
@@ -74,6 +91,38 @@ function writeSectionOpenState(state: Record<DetailSectionId, boolean>) {
   } catch {
     /* ignore quota / private mode */
   }
+}
+
+function clampPanelWidth(value: number): number {
+  return Math.min(MAX_PANEL_WIDTH, Math.max(MIN_PANEL_WIDTH, Math.round(value)));
+}
+
+function readStoredPanelWidth(): number {
+  try {
+    const raw = localStorage.getItem(WIDTH_STORAGE_KEY);
+    if (!raw) return DEFAULT_PANEL_WIDTH;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return DEFAULT_PANEL_WIDTH;
+    return clampPanelWidth(parsed);
+  } catch {
+    return DEFAULT_PANEL_WIDTH;
+  }
+}
+
+function writeStoredPanelWidth(width: number) {
+  try {
+    localStorage.setItem(WIDTH_STORAGE_KEY, String(clampPanelWidth(width)));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function applyPanelWidthCssVar(width: number) {
+  document.documentElement.style.setProperty("--task-detail-width", `${clampPanelWidth(width)}px`);
+}
+
+function isMobileTaskDetailLayout(): boolean {
+  return typeof window !== "undefined" && window.matchMedia(MOBILE_LAYOUT_MQ).matches;
 }
 
 function DetailSection({
@@ -182,6 +231,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const [planId, setPlanId] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmPromote, setConfirmPromote] = useState(false);
   const [recurrenceText, setRecurrenceText] = useState("");
   const [startsOn, setStartsOn] = useState("");
   const [endsOn, setEndsOn] = useState("");
@@ -192,8 +242,18 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   );
   const [sectionOpen, setSectionOpen] = useState<Record<DetailSectionId, boolean>>(readSectionOpenState);
   const [labelFilter, setLabelFilter] = useState("");
+  const [panelWidth, setPanelWidth] = useState(readStoredPanelWidth);
+  const [childTitle, setChildTitle] = useState("");
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [newProjectTitle, setNewProjectTitle] = useState("");
+  const [newProjectEpicId, setNewProjectEpicId] = useState("");
+  const resizeDragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
+
+  useEffect(() => {
+    applyPanelWidthCssVar(panelWidth);
+  }, [panelWidth]);
 
   const toggleSection = (id: DetailSectionId) => {
     setSectionOpen((prev) => {
@@ -201,6 +261,46 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       writeSectionOpenState(next);
       return next;
     });
+  };
+
+  const handleResizePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (isMobileTaskDetailLayout()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const handle = e.currentTarget;
+    resizeDragRef.current = { startX: e.clientX, startWidth: panelWidth };
+    handle.setPointerCapture(e.pointerId);
+    document.body.classList.add("is-resizing-task-detail");
+
+    const onMove = (ev: PointerEvent) => {
+      const drag = resizeDragRef.current;
+      if (!drag) return;
+      // Left edge: drag left → wider panel
+      const next = clampPanelWidth(drag.startWidth + (drag.startX - ev.clientX));
+      setPanelWidth(next);
+    };
+
+    const onUp = (ev: PointerEvent) => {
+      resizeDragRef.current = null;
+      document.body.classList.remove("is-resizing-task-detail");
+      try {
+        handle.releasePointerCapture(ev.pointerId);
+      } catch {
+        /* already released */
+      }
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onUp);
+      handle.removeEventListener("pointercancel", onUp);
+      setPanelWidth((w) => {
+        writeStoredPanelWidth(w);
+        applyPanelWidthCssVar(w);
+        return w;
+      });
+    };
+
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp);
+    handle.addEventListener("pointercancel", onUp);
   };
 
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
@@ -271,6 +371,10 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     setReminderAtLocal("");
     setReminderChannel("in_app");
     setLabelFilter("");
+    setChildTitle("");
+    setCreateProjectOpen(false);
+    setNewProjectTitle("");
+    setNewProjectEpicId("");
   }, [task]);
 
   const remindersQuery = useQuery({
@@ -387,6 +491,20 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     },
   });
 
+  const promoteMutation = useMutation({
+    mutationFn: () =>
+      promoteTaskToProject(task!.id, { include_descendants: true }),
+    onSuccess: (result) => {
+      setConfirmPromote(false);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["epics"] });
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
+      emitToast(`Promoted to project “${result.project.title}”`);
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't promote to project"),
+  });
+
   const recurrenceMutation = useMutation({
     mutationFn: async () => {
       const trimmed = recurrenceText.trim();
@@ -453,6 +571,68 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     },
     onError: (err: Error) => emitToast(err.message || "Couldn't create label"),
   });
+
+  const canCreateChild = task != null && task.nesting_level < 2;
+
+  const createChildMutation = useMutation({
+    mutationFn: (title: string) =>
+      createTask({
+        title: title.trim(),
+        parent_task_id: task!.id,
+        project_id: task!.project_id,
+        section_id: task!.section_id,
+        priority: task!.priority,
+      }),
+    onSuccess: (created) => {
+      setChildTitle("");
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["tasks", "parents"] });
+      emitToast(`Created subtask “${created.title}”`);
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't create subtask"),
+  });
+
+  const createProjectMutation = useMutation({
+    mutationFn: (vars: { title: string; epic_id: string | null }) =>
+      createProject({
+        title: vars.title.trim(),
+        epic_id: vars.epic_id,
+        color_hex: DEFAULT_PROJECT_COLOR,
+      }),
+    onSuccess: (project) => {
+      setProjectId(project.id);
+      setSectionId("");
+      setCreateProjectOpen(false);
+      setNewProjectTitle("");
+      setNewProjectEpicId("");
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      emitToast(`Created project “${project.title}” — selected`);
+    },
+    onError: (err: Error) => emitToast(err.message || "Couldn't create project"),
+  });
+
+  const openCreateProject = () => {
+    const currentProject = projects.find((p) => p.id === projectId);
+    setNewProjectEpicId(currentProject?.epic_id ?? "");
+    setNewProjectTitle("");
+    setCreateProjectOpen(true);
+  };
+
+  const handleCreateChild = () => {
+    const trimmed = childTitle.trim();
+    if (!trimmed || !canCreateChild || createChildMutation.isPending) return;
+    createChildMutation.mutate(trimmed);
+  };
+
+  const handleCreateProjectSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newProjectTitle.trim();
+    if (!trimmed || createProjectMutation.isPending) return;
+    createProjectMutation.mutate({
+      title: trimmed,
+      epic_id: newProjectEpicId || null,
+    });
+  };
 
   const requestBrowserNotifications = async () => {
     if (typeof Notification === "undefined") {
@@ -530,7 +710,49 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
 
   return (
     <>
-      <aside className="task-detail-panel task-detail-sheet" aria-label="Task details">
+      <aside
+        className="task-detail-panel task-detail-sheet"
+        aria-label="Task details"
+        style={{ ["--task-detail-width" as string]: `${panelWidth}px` }}
+      >
+        <div
+          className="task-detail-resize-handle"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize task detail panel"
+          aria-valuemin={MIN_PANEL_WIDTH}
+          aria-valuemax={MAX_PANEL_WIDTH}
+          aria-valuenow={panelWidth}
+          tabIndex={0}
+          onPointerDown={handleResizePointerDown}
+          onKeyDown={(e) => {
+            if (isMobileTaskDetailLayout()) return;
+            const step = e.shiftKey ? 40 : 16;
+            if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              setPanelWidth((w) => {
+                const next = clampPanelWidth(w + step);
+                writeStoredPanelWidth(next);
+                return next;
+              });
+            } else if (e.key === "ArrowRight") {
+              e.preventDefault();
+              setPanelWidth((w) => {
+                const next = clampPanelWidth(w - step);
+                writeStoredPanelWidth(next);
+                return next;
+              });
+            } else if (e.key === "Home") {
+              e.preventDefault();
+              setPanelWidth(MIN_PANEL_WIDTH);
+              writeStoredPanelWidth(MIN_PANEL_WIDTH);
+            } else if (e.key === "End") {
+              e.preventDefault();
+              setPanelWidth(MAX_PANEL_WIDTH);
+              writeStoredPanelWidth(MAX_PANEL_WIDTH);
+            }
+          }}
+        />
         <header className="detail-header">
           <h2>Task details</h2>
           <div className="detail-header-actions">
@@ -755,12 +977,13 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             open={sectionOpen.dependencies}
             onToggle={toggleSection}
           >
-            <label className="field">
+            <div className="field detail-project-field">
               <span>Project</span>
               <select
                 className="field-select"
                 value={projectId}
                 onChange={(e) => handleProjectChange(e.target.value)}
+                aria-label="Project"
               >
                 <option value="">Inbox</option>
                 {projects.map((p) => (
@@ -769,7 +992,17 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
                   </option>
                 ))}
               </select>
-            </label>
+              <button
+                type="button"
+                className="btn secondary small detail-inline-create-btn"
+                onClick={openCreateProject}
+              >
+                + New project
+              </button>
+              <span className="field-hint muted small">
+                Creates a project and selects it for this task (save to keep)
+              </span>
+            </div>
             {projectId && (
               <label className="field">
                 <span>Section</span>
@@ -802,6 +1035,35 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
                 ))}
               </select>
             </label>
+            {canCreateChild ? (
+              <div className="inline-form detail-child-form">
+                <label className="field detail-child-field">
+                  <span>New subtask</span>
+                  <input
+                    type="text"
+                    value={childTitle}
+                    onChange={(e) => setChildTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      e.preventDefault();
+                      handleCreateChild();
+                    }}
+                    placeholder="Subtask title"
+                    autoComplete="off"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="btn primary small"
+                  disabled={!childTitle.trim() || createChildMutation.isPending}
+                  onClick={handleCreateChild}
+                >
+                  {createChildMutation.isPending ? "Creating…" : "Add subtask"}
+                </button>
+              </div>
+            ) : (
+              <p className="muted small">Max nesting depth — can’t add a subtask here.</p>
+            )}
           </DetailSection>
 
           <DetailSection
@@ -965,6 +1227,14 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
           <div className="form-actions destructive-row">
             <button
               type="button"
+              className="btn secondary small"
+              onClick={() => setConfirmPromote(true)}
+              disabled={promoteMutation.isPending}
+            >
+              Promote to project
+            </button>
+            <button
+              type="button"
               className="btn ghost danger-text"
               onClick={() => setConfirmDelete(true)}
             >
@@ -984,6 +1254,16 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       </aside>
 
       <ConfirmDialog
+        open={confirmPromote}
+        title="Promote to project?"
+        message={`Create a new project from “${task.title}” and move this task (and its subtasks) into it?`}
+        confirmLabel="Promote"
+        pending={promoteMutation.isPending}
+        onClose={() => setConfirmPromote(false)}
+        onConfirm={() => promoteMutation.mutate()}
+      />
+
+      <ConfirmDialog
         open={confirmDelete}
         title="Delete task?"
         message={`Permanently delete "${task.title}"? Subtasks may be affected.`}
@@ -995,6 +1275,63 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
           deleteMutation.mutate();
         }}
       />
+
+      <Modal
+        open={createProjectOpen}
+        title="New project"
+        onClose={() => {
+          if (createProjectMutation.isPending) return;
+          setCreateProjectOpen(false);
+        }}
+      >
+        <form className="entity-form" onSubmit={handleCreateProjectSubmit}>
+          <label className="field">
+            <span>Title</span>
+            <input
+              type="text"
+              value={newProjectTitle}
+              onChange={(e) => setNewProjectTitle(e.target.value)}
+              placeholder="Project title"
+              autoFocus
+            />
+          </label>
+          <label className="field">
+            <span>Epic</span>
+            <select
+              className="field-select"
+              value={newProjectEpicId}
+              onChange={(e) => setNewProjectEpicId(e.target.value)}
+            >
+              <option value="">Standalone (no epic)</option>
+              {epics.map((epic) => (
+                <option key={epic.id} value={epic.id}>
+                  {epic.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          {createProjectMutation.isError && (
+            <p className="form-error">{(createProjectMutation.error as Error).message}</p>
+          )}
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() => setCreateProjectOpen(false)}
+              disabled={createProjectMutation.isPending}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn primary"
+              disabled={!newProjectTitle.trim() || createProjectMutation.isPending}
+            >
+              {createProjectMutation.isPending ? "Creating…" : "Create & select"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

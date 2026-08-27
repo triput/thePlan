@@ -125,11 +125,9 @@ def test_reorder_tasks_updates_sort_order(client: TestClient) -> None:
     )
     assert response.status_code == 204, response.text
 
-    listed = client.get("/api/v1/tasks")
-    assert listed.status_code == 200
-    by_id = {item["id"]: item for item in listed.json()["items"]}
-    assert by_id[first["id"]]["sort_order"] == 7
-    assert by_id[second["id"]]["sort_order"] == 4
+    # Fetch by id — list pagination / filters can omit rows in a dirty shared DB.
+    assert client.get(f"/api/v1/tasks/{first['id']}").json()["sort_order"] == 7
+    assert client.get(f"/api/v1/tasks/{second['id']}").json()["sort_order"] == 4
 
 
 def test_reorder_tasks_missing_id_404(client: TestClient) -> None:

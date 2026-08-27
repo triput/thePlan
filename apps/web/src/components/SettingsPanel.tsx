@@ -65,6 +65,7 @@ import { useAuth } from "../auth";
 import { emitToast } from "./ToastHost";
 import { HouseholdPanel } from "./HouseholdPanel";
 import { Modal } from "./Modal";
+import { TimezonePicker } from "./TimezonePicker";
 
 const CALENDAR_HOURS_EVENT = "theplan:calendar-hours";
 const PASSWORD_HINT = "12+ characters; spaces OK for passphrases";
@@ -616,13 +617,11 @@ function SchedulingDefaultsSection({ enabled }: { enabled: boolean }) {
         >
           <label className="field">
             <span>Timezone</span>
-            <input
-              type="text"
+            <TimezonePicker
               value={draft.timezone}
-              onChange={(e) => setDraft((prev) => prev && { ...prev, timezone: e.target.value })}
-              placeholder="America/Los_Angeles"
-              spellCheck={false}
-              autoComplete="off"
+              onChange={(timezone) =>
+                setDraft((prev) => prev && { ...prev, timezone })
+              }
             />
           </label>
           <label className="field">

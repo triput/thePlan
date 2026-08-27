@@ -116,6 +116,19 @@ function AppInner() {
   };
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem("theplan.taskDetail.width");
+      if (!raw) return;
+      const parsed = Number(raw);
+      if (!Number.isFinite(parsed)) return;
+      const clamped = Math.min(720, Math.max(280, Math.round(parsed)));
+      document.documentElement.style.setProperty("--task-detail-width", `${clamped}px`);
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && navOpen) {
         e.preventDefault();
