@@ -5,9 +5,15 @@ from app.services.task_helpers import resolve_nesting_level
 
 
 class FakeTask:
-    def __init__(self, owner_id: uuid.UUID, nesting_level: int) -> None:
+    def __init__(
+        self,
+        owner_id: uuid.UUID,
+        nesting_level: int,
+        deleted_at=None,
+    ) -> None:
         self.owner_id = owner_id
         self.nesting_level = nesting_level
+        self.deleted_at = deleted_at
 
 
 class FakeSession:
