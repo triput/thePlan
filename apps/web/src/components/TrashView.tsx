@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchTasks, restoreTask, type Task } from "../api";
+import { useState } from "react";
+import { emptyTrash, fetchTasks, restoreTask, type Task } from "../api";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { emitToast } from "./ToastHost";
 
 function formatDeletedAt(iso: string | null | undefined): string {
@@ -16,6 +18,7 @@ function formatDeletedAt(iso: string | null | undefined): string {
 
 export function TrashView() {
   const queryClient = useQueryClient();
+  const [confirmEmpty, setConfirmEmpty] = useState(false);
 
   const trashQuery = useQuery({
     queryKey: ["tasks", "trash"],
@@ -32,6 +35,15 @@ export function TrashView() {
     },
   });
 
+  const emptyMutation = useMutation({
+    mutationFn: () => emptyTrash(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setConfirmEmpty(false);
+      emitToast("Trash emptied");
+    },
+  });
+
   const loading = trashQuery.isLoading;
   const loadError = trashQuery.isError ? (trashQuery.error as Error).message : null;
   const empty = !loading && !loadError && items.length === 0;
@@ -40,9 +52,21 @@ export function TrashView() {
     <div className="archived-view trash-view">
       <header className="pane-header">
         <h1>Trash</h1>
+        {items.length > 0 && (
+          <div className="pane-header-actions">
+            <button
+              type="button"
+              className="btn danger small"
+              onClick={() => setConfirmEmpty(true)}
+              disabled={emptyMutation.isPending}
+            >
+              Empty trash
+            </button>
+          </div>
+        )}
       </header>
       <p className="muted small trash-hint">
-        Soft-deleted tasks stay here until restored. Retention / auto-purge not enabled yet.
+        Soft-deleted tasks stay here until you restore or empty trash. No auto-purge — empty manually.
       </p>
 
       {loading && <p className="muted">Loading trash…</p>}
@@ -79,6 +103,20 @@ export function TrashView() {
             </li>
           ))}
         </ul>
+      )}
+
+      <ConfirmDialog
+        open={confirmEmpty}
+        title="Empty trash?"
+        message={`Permanently delete all ${items.length} item${items.length === 1 ? "" : "s"} in trash? This cannot be undone.`}
+        confirmLabel="Empty trash"
+        destructive
+        pending={emptyMutation.isPending}
+        onClose={() => setConfirmEmpty(false)}
+        onConfirm={() => emptyMutation.mutate()}
+      />
+      {emptyMutation.isError && confirmEmpty && (
+        <p className="form-error">{(emptyMutation.error as Error).message}</p>
       )}
     </div>
   );

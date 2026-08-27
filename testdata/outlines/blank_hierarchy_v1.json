@@ -1,0 +1,86 @@
+{
+  "certificate": {
+    "title": "Your program or learning path title",
+    "provider": "Your org or author (optional)",
+    "platform": "Any platform name (optional)",
+    "source_url": "https://example.com/your-source (optional)",
+    "notes": "Short operator note — not shown as task text"
+  },
+  "courses": [
+    {
+      "course_order": 1,
+      "title": "First course or phase",
+      "estimated_hours": 4,
+      "url": "https://example.com/course-1 (optional)",
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Week 1 — Introduction",
+          "estimated_hours": 2,
+          "tasks": [
+            {
+              "id": "c01-m01-t01",
+              "task_order": 1,
+              "task_type": "video",
+              "title": "Video: Welcome and overview",
+              "duration_minutes": 12,
+              "optional": false
+            },
+            {
+              "id": "c01-m01-t02",
+              "task_order": 2,
+              "task_type": "reading",
+              "title": "Reading: Syllabus and setup guide",
+              "duration_minutes": 20,
+              "optional": false
+            },
+            {
+              "id": "c01-m01-t03",
+              "task_order": 3,
+              "task_type": "assignment",
+              "title": "(Optional) Practice quiz",
+              "duration_minutes": 15,
+              "optional": true
+            }
+          ]
+        },
+        {
+          "module_order": 2,
+          "title": "Week 2 — Core concepts",
+          "estimated_hours": 3,
+          "tasks": [
+            {
+              "id": "c01-m02-t01",
+              "task_order": 1,
+              "task_type": "lab",
+              "title": "Lab: Hands-on exercise",
+              "duration_minutes": 45,
+              "optional": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "course_order": 2,
+      "title": "Second course or phase (optional)",
+      "estimated_hours": 6,
+      "modules": [
+        {
+          "module_order": 1,
+          "title": "Capstone module",
+          "tasks": [
+            {
+              "id": "c02-m01-t01",
+              "task_order": 1,
+              "task_type": "project",
+              "title": "Project: Final deliverable",
+              "duration_minutes": 120,
+              "optional": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

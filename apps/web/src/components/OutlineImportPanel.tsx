@@ -1,20 +1,29 @@
 /**
  * Outline import UI — propose → review → apply (Theme F / ADR-011).
- * Entry surface for Coursera specialization pack ingest.
+ * Coursera specialization + generic hierarchy_v1; graft under existing parents.
  */
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   applyOutline,
+  fetchEpics,
+  fetchProjects,
+  fetchSections,
   proposeOutline,
   type OutlineAction,
+  type OutlineAttachKind,
+  type OutlineAttachUnder,
   type OutlineProposeSummary,
+  type OutlineTemplateId,
 } from "../api";
 import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
 
-const TEMPLATE_ID = "coursera_specialization";
+const TEMPLATE_OPTIONS: { id: OutlineTemplateId; label: string }[] = [
+  { id: "coursera_specialization", label: "Coursera specialization" },
+  { id: "hierarchy_v1", label: "Generic hierarchy (v1)" },
+];
 
 type ReviewAction = OutlineAction & { clientId: string };
 
@@ -90,20 +99,75 @@ export function OutlineImportPanel({
 }) {
   const [open, setOpen] = useState(false);
   const [jsonText, setJsonText] = useState("");
+  const [templateId, setTemplateId] = useState<OutlineTemplateId>("coursera_specialization");
   const [skipOptional, setSkipOptional] = useState(false);
+  const [attachKind, setAttachKind] = useState<OutlineAttachKind | "new">("new");
+  const [attachEpicId, setAttachEpicId] = useState("");
+  const [attachProjectId, setAttachProjectId] = useState("");
+  const [attachSectionId, setAttachSectionId] = useState("");
   const [actions, setActions] = useState<ReviewAction[] | null>(null);
   const [summary, setSummary] = useState<OutlineProposeSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
+  const epicsQuery = useQuery({
+    queryKey: ["epics", "outline-import"],
+    queryFn: () => fetchEpics({ archived: false, limit: 200 }),
+    enabled: open && attachKind !== "new",
+  });
+
+  const projectsQuery = useQuery({
+    queryKey: ["projects", "outline-import", attachEpicId],
+    queryFn: () =>
+      fetchProjects({
+        archived: false,
+        limit: 200,
+        epic_id: attachKind === "project" || attachKind === "section" ? attachEpicId || undefined : undefined,
+      }),
+    enabled: open && (attachKind === "project" || attachKind === "section"),
+  });
+
+  const sectionsQuery = useQuery({
+    queryKey: ["sections", "outline-import", attachProjectId],
+    queryFn: () => fetchSections(attachProjectId),
+    enabled: open && attachKind === "section" && Boolean(attachProjectId),
+  });
+
+  const buildAttachUnder = (): OutlineAttachUnder | null => {
+    if (attachKind === "new") return null;
+    if (attachKind === "epic") {
+      if (!attachEpicId) return null;
+      return { kind: "epic", id: attachEpicId };
+    }
+    if (attachKind === "project") {
+      if (!attachProjectId) return null;
+      return { kind: "project", id: attachProjectId };
+    }
+    if (!attachSectionId) return null;
+    return { kind: "section", id: attachSectionId };
+  };
+
+  const navigateEpicId = (): string | null => {
+    if (attachKind === "epic" && attachEpicId) return attachEpicId;
+    if (attachKind === "project" && attachEpicId) return attachEpicId;
+    if (attachKind === "section" && attachEpicId) return attachEpicId;
+    return null;
+  };
+
   const proposeMutation = useMutation({
-    mutationFn: (outline: Record<string, unknown>) =>
-      proposeOutline({
-        template_id: TEMPLATE_ID,
+    mutationFn: (outline: Record<string, unknown>) => {
+      const attach_under = buildAttachUnder();
+      if (attachKind !== "new" && !attach_under) {
+        throw new Error("Pick a target parent before proposing");
+      }
+      return proposeOutline({
+        template_id: templateId,
         outline,
         skip_optional: skipOptional,
-      }),
+        attach_under,
+      });
+    },
     onSuccess: (data) => {
       setActions(withClientIds(data.actions));
       setSummary(data.summary);
@@ -125,9 +189,10 @@ export function OutlineImportPanel({
     onSuccess: (data) => {
       const okCount = data.results.filter((r) => r.ok).length;
       const failCount = data.results.length - okCount;
-      const epicId =
-        data.results.find((r) => r.ok && r.action_type === "create_epic" && r.entity_id)
-          ?.entity_id ?? null;
+      const createdEpicId =
+        data.results.find((r) => r.ok && r.action_type === "create_epic" && r.entity_id)?.entity_id ??
+        null;
+      const epicId = createdEpicId ?? navigateEpicId();
       emitToast(
         failCount === 0
           ? `Applied ${okCount} action${okCount === 1 ? "" : "s"}`
@@ -197,6 +262,19 @@ export function OutlineImportPanel({
     applyMutation.mutate(cleaned);
   };
 
+  const epics = epicsQuery.data?.items ?? [];
+  const projects = projectsQuery.data?.items ?? [];
+  const sections = sectionsQuery.data?.items ?? [];
+
+  const attachHelp =
+    attachKind === "new"
+      ? "Creates a new epic from certificate.title."
+      : attachKind === "epic"
+        ? "Imports course(s) as projects under the selected epic. Use full certificate JSON or a course fragment."
+        : attachKind === "project"
+          ? "Imports modules as sections under the selected project. Use modules[] or a single-course fragment."
+          : "Imports tasks into the selected section. Use tasks[] or a single-module fragment.";
+
   return (
     <div className="outline">
       <button
@@ -215,8 +293,109 @@ export function OutlineImportPanel({
       >
         <p className="outline-help muted small">
           Paste or upload an operator-owned outline JSON file. No Coursera sync — local file only.
-          Template: <code>{TEMPLATE_ID}</code>.
         </p>
+        <div className="outline-options">
+          <label className="outline-option">
+            <span className="outline-option-label">Template</span>
+            <select
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value as OutlineTemplateId)}
+              aria-label="Outline template"
+            >
+              {TEMPLATE_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="outline-option">
+            <span className="outline-option-label">Attach under</span>
+            <select
+              value={attachKind}
+              onChange={(e) => {
+                const next = e.target.value as OutlineAttachKind | "new";
+                setAttachKind(next);
+                setAttachEpicId("");
+                setAttachProjectId("");
+                setAttachSectionId("");
+                setActions(null);
+                setSummary(null);
+              }}
+              aria-label="Attach import under"
+            >
+              <option value="new">New epic (full tree)</option>
+              <option value="epic">Existing epic</option>
+              <option value="project">Existing project</option>
+              <option value="section">Existing section</option>
+            </select>
+          </label>
+        </div>
+        {attachKind !== "new" && (
+          <div className="outline-attach-targets">
+            {(attachKind === "epic" || attachKind === "project" || attachKind === "section") && (
+              <label className="outline-option">
+                <span className="outline-option-label">Epic</span>
+                <select
+                  value={attachEpicId}
+                  onChange={(e) => {
+                    setAttachEpicId(e.target.value);
+                    setAttachProjectId("");
+                    setAttachSectionId("");
+                  }}
+                  aria-label="Target epic"
+                >
+                  <option value="">Select epic…</option>
+                  {epics.map((epic) => (
+                    <option key={epic.id} value={epic.id}>
+                      {epic.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {(attachKind === "project" || attachKind === "section") && (
+              <label className="outline-option">
+                <span className="outline-option-label">Project</span>
+                <select
+                  value={attachProjectId}
+                  onChange={(e) => {
+                    setAttachProjectId(e.target.value);
+                    setAttachSectionId("");
+                  }}
+                  disabled={!attachEpicId}
+                  aria-label="Target project"
+                >
+                  <option value="">Select project…</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {attachKind === "section" && (
+              <label className="outline-option">
+                <span className="outline-option-label">Section</span>
+                <select
+                  value={attachSectionId}
+                  onChange={(e) => setAttachSectionId(e.target.value)}
+                  disabled={!attachProjectId}
+                  aria-label="Target section"
+                >
+                  <option value="">Select section…</option>
+                  {sections.map((section) => (
+                    <option key={section.id} value={section.id}>
+                      {section.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <p className="outline-help muted small">{attachHelp}</p>
+          </div>
+        )}
         <form className="outline-form" onSubmit={handlePropose}>
           <textarea
             className="outline-input"
@@ -226,7 +405,15 @@ export function OutlineImportPanel({
               setJsonText(e.target.value);
               setError(null);
             }}
-            placeholder='Paste outline JSON (certificate → courses → modules → tasks)'
+            placeholder={
+              attachKind === "new"
+                ? "Paste outline JSON (certificate → courses → modules → tasks)"
+                : attachKind === "epic"
+                  ? "Paste certificate JSON or a course / courses[] fragment"
+                  : attachKind === "project"
+                    ? "Paste modules[] or course.modules fragment"
+                    : "Paste tasks[] or module.tasks fragment"
+            }
             aria-label="Outline JSON"
           />
           <div className="outline-upload-row">

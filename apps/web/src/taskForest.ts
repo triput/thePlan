@@ -63,3 +63,51 @@ export function orderTasksForest<T extends ForestTask>(tasks: T[]): T[] {
 
   return result;
 }
+
+/** Parent id → direct children present in `tasks` (parent may be outside the set). */
+export function buildChildrenByParent<T extends ForestTask>(
+  tasks: T[],
+): Map<string, T[]> {
+  const byParent = new Map<string, T[]>();
+  for (const task of tasks) {
+    if (!task.parent_task_id) continue;
+    const list = byParent.get(task.parent_task_id) ?? [];
+    list.push(task);
+    byParent.set(task.parent_task_id, list);
+  }
+  return byParent;
+}
+
+/** Descendant task ids reachable from `rootId` within the loaded `tasks` set. */
+export function collectLoadedDescendantIds<T extends ForestTask>(
+  tasks: T[],
+  rootId: string,
+): string[] {
+  const byParent = buildChildrenByParent(tasks);
+  const ids: string[] = [];
+  const stack = [rootId];
+  while (stack.length > 0) {
+    const id = stack.pop()!;
+    for (const child of byParent.get(id) ?? []) {
+      ids.push(child.id);
+      stack.push(child.id);
+    }
+  }
+  return ids;
+}
+
+/** `rootId` plus all loaded descendants (empty when root is not in `tasks`). */
+export function collectLoadedSubtreeIds<T extends ForestTask>(
+  tasks: T[],
+  rootId: string,
+): string[] {
+  if (!tasks.some((t) => t.id === rootId)) return [];
+  return [rootId, ...collectLoadedDescendantIds(tasks, rootId)];
+}
+
+export function hasLoadedDescendants<T extends ForestTask>(
+  tasks: T[],
+  rootId: string,
+): boolean {
+  return collectLoadedDescendantIds(tasks, rootId).length > 0;
+}

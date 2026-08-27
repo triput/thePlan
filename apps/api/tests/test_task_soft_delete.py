@@ -136,3 +136,97 @@ def test_restore_non_trashed_returns_409(client: TestClient) -> None:
     response = client.post(f"/api/v1/tasks/{task['id']}/restore")
     assert response.status_code == 409
     assert response.json()["code"] == "NOT_TRASHED"
+
+
+def test_empty_trash_hard_deletes_trashed_only(client: TestClient, db_session: Session) -> None:
+    trashed_a = _create_task(client, f"trash-a-{_uid()}")
+    trashed_b = _create_task(client, f"trash-b-{_uid()}")
+    live = _create_task(client, f"live-{_uid()}")
+
+    assert client.delete(f"/api/v1/tasks/{trashed_a['id']}").status_code == 204
+    assert client.delete(f"/api/v1/tasks/{trashed_b['id']}").status_code == 204
+
+    trash_before = client.get("/api/v1/tasks", params={"trashed": True}).json()["items"]
+    assert len(trash_before) == 2
+
+    emptied = client.delete("/api/v1/tasks/trash")
+    assert emptied.status_code == 204
+
+    trash_after = client.get("/api/v1/tasks", params={"trashed": True}).json()["items"]
+    assert trash_after == []
+
+    assert client.get(f"/api/v1/tasks/{trashed_a['id']}").status_code == 404
+    assert client.get(f"/api/v1/tasks/{trashed_b['id']}").status_code == 404
+    assert db_session.get(Task, uuid.UUID(trashed_a["id"])) is None
+    assert db_session.get(Task, uuid.UUID(trashed_b["id"])) is None
+
+    live_list = client.get("/api/v1/tasks", params={"ids": [live["id"]]}).json()["items"]
+    assert any(item["id"] == live["id"] for item in live_list)
+    assert client.get(f"/api/v1/tasks/{live['id']}").status_code == 200
+
+
+def test_empty_trash_leaves_live_tasks_when_trash_empty(client: TestClient) -> None:
+    live = _create_task(client, f"still-live-{_uid()}")
+    assert client.delete("/api/v1/tasks/trash").status_code == 204
+    assert client.get(f"/api/v1/tasks/{live['id']}").status_code == 200
+
+
+def test_empty_trash_purges_subtree_and_blocks(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    parent = _create_task(client, f"purge-parent-{_uid()}")
+    child = _create_task(client, f"purge-child-{_uid()}", parent_task_id=parent["id"])
+    sibling = _create_task(client, f"purge-sibling-{_uid()}")
+
+    task_uuid = uuid.UUID(parent["id"])
+    owner_id = db_session.get(Task, task_uuid).owner_id
+    start = datetime.now(timezone.utc).replace(microsecond=0) + timedelta(hours=1)
+    pinned = ScheduledBlock(
+        owner_id=owner_id,
+        task_id=task_uuid,
+        start_time=start,
+        end_time=start + timedelta(minutes=30),
+        is_pinned=True,
+    )
+    db_session.add(pinned)
+    db_session.flush()
+    pinned_id = pinned.id
+
+    assert client.delete(f"/api/v1/tasks/{parent['id']}").status_code == 204
+    assert client.delete("/api/v1/tasks/trash").status_code == 204
+
+    assert db_session.get(Task, uuid.UUID(parent["id"])) is None
+    assert db_session.get(Task, uuid.UUID(child["id"])) is None
+    assert db_session.get(ScheduledBlock, pinned_id) is None
+    assert client.get(f"/api/v1/tasks/{sibling['id']}").status_code == 200
+
+
+def test_hard_purge_single_trashed_task(client: TestClient, db_session: Session) -> None:
+    task = _create_task(client, f"hard-one-{_uid()}")
+    assert client.delete(f"/api/v1/tasks/{task['id']}").status_code == 204
+
+    purged = client.delete(f"/api/v1/tasks/{task['id']}", params={"hard": True})
+    assert purged.status_code == 204
+    assert client.get(f"/api/v1/tasks/{task['id']}").status_code == 404
+    assert db_session.get(Task, uuid.UUID(task["id"])) is None
+
+
+def test_hard_purge_live_task_rejected(client: TestClient) -> None:
+    task = _create_task(client, f"hard-live-{_uid()}")
+    response = client.delete(f"/api/v1/tasks/{task['id']}", params={"hard": True})
+    assert response.status_code == 409
+    assert response.json()["code"] == "NOT_TRASHED"
+    assert client.get(f"/api/v1/tasks/{task['id']}").status_code == 200
+
+
+def test_restore_after_empty_trash_other_items(client: TestClient) -> None:
+    keep = _create_task(client, f"keep-restore-{_uid()}")
+    toss = _create_task(client, f"toss-{_uid()}")
+
+    assert client.delete(f"/api/v1/tasks/{toss['id']}").status_code == 204
+    assert client.delete("/api/v1/tasks/trash").status_code == 204
+
+    restored = client.post(f"/api/v1/tasks/{keep['id']}/restore")
+    assert restored.status_code == 409
+    assert client.get(f"/api/v1/tasks/{keep['id']}").status_code == 200

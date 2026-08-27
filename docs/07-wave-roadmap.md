@@ -269,7 +269,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Bucket | Contents | Why |
 |--------|----------|-----|
 | **W3** | **1. Account polish** → **2. Microsoft Calendar** → **3. Tauri desktop** | Small auth delta first; reuse GCal patterns while fresh; package desktop last so it wraps a richer app |
-| **W3+** | Local SLM (Ollama) **shipped**; **Theme F** outline ingest **shipped** ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)); Theme F polish ([DEF-009](./DEFECTS.md)/[010](./DEFECTS.md) lower-level + blank template); Todoist import; intraday/`BYHOUR` habits; optional Kanban | Useful; not required to close account/calendar/desktop wave |
+| **W3+** | Local SLM (Ollama) **shipped**; **Theme F** outline ingest **shipped** ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)); Theme F polish **shipped** ([DEF-009](./DEFECTS.md)/[010](./DEFECTS.md) — `attach_under` graft + `hierarchy_v1` / blank template); Todoist import; intraday/`BYHOUR` habits; optional Kanban | Useful; not required to close account/calendar/desktop wave |
 | **Hygiene / quality pauses** | Dependency Hygiene between version freezes; **refactor assessment** ([DEF-011](./DEFECTS.md)); **living tech architecture** ([09-technical-architecture.md](./09-technical-architecture.md), [DEF-012](./DEFECTS.md)) | Assessment before mega-refactors; confirm before mutating |
 | **W4 / candidates** | Voice, email-to-task, location reminders, full template catalog, hosted Postgres, saved filter query language | Explicitly deferred; not W3 exit |
 | **Parked** | **W2c** | After W3 as polish + W3 fallout bucket |
@@ -293,7 +293,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Microsoft Calendar | **W3 Slice 2** |
 | Tauri 2 desktop | **W3 Slice 3** |
 | Local SLM (Ollama) | **W3+** — shipped prove-it; [ADR-010](./adr/ADR-010-slm-assist.md); [SLM-ASSIST.md](./SLM-ASSIST.md) |
-| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) **Accepted** / prove-it shipped; polish [DEF-009](./DEFECTS.md) (import under existing parent), [DEF-010](./DEFECTS.md) (blank/generic outline template) |
+| Templates + outline ingest (Theme F) | **W3+** — [ADR-011](./adr/ADR-011-templates-outline-ingest.md) **Accepted** / prove-it + polish **shipped** ([DEF-009](./DEFECTS.md) graft under existing parent, [DEF-010](./DEFECTS.md) `hierarchy_v1` + blank template) |
 | Todoist import | **W3+** |
 | Intraday / multi-occurrence habits | **W3+** |
 | Board / Kanban view | **W3+** (optional) |

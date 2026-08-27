@@ -73,6 +73,27 @@ def apply_outline_actions(
     return results
 
 
+def _owned_epic(db: Session, user: User, epic_id: UUID) -> Epic:
+    epic = db.get(Epic, epic_id)
+    if epic is None or epic.owner_id != user.id:
+        raise ValueError("epic not found or not owned")
+    return epic
+
+
+def _owned_project(db: Session, user: User, project_id: UUID) -> Project:
+    project = db.get(Project, project_id)
+    if project is None or project.owner_id != user.id:
+        raise ValueError("project not found or not owned")
+    return project
+
+
+def _owned_section(db: Session, user: User, section_id: UUID) -> Section:
+    section = db.get(Section, section_id)
+    if section is None or section.owner_id != user.id:
+        raise ValueError("section not found or not owned")
+    return section
+
+
 def _apply_one(
     db: Session,
     user: User,
@@ -93,9 +114,12 @@ def _apply_one(
         return epic.id, []
 
     if isinstance(action, OutlineCreateProjectAction):
-        epic_id = key_map.get(action.epic_key)
-        if epic_id is None:
-            raise ValueError(f"epic key not found: {action.epic_key}")
+        if action.epic_id is not None:
+            epic_id = _owned_epic(db, user, action.epic_id).id
+        else:
+            epic_id = key_map.get(action.epic_key)  # type: ignore[arg-type]
+            if epic_id is None:
+                raise ValueError(f"epic key not found: {action.epic_key}")
         project = Project(
             owner_id=user.id,
             epic_id=epic_id,
@@ -109,9 +133,12 @@ def _apply_one(
         return project.id, []
 
     if isinstance(action, OutlineCreateSectionAction):
-        project_id = key_map.get(action.project_key)
-        if project_id is None:
-            raise ValueError(f"project key not found: {action.project_key}")
+        if action.project_id is not None:
+            project_id = _owned_project(db, user, action.project_id).id
+        else:
+            project_id = key_map.get(action.project_key)  # type: ignore[arg-type]
+            if project_id is None:
+                raise ValueError(f"project key not found: {action.project_key}")
         section = Section(
             owner_id=user.id,
             project_id=project_id,
@@ -124,11 +151,20 @@ def _apply_one(
         return section.id, []
 
     if isinstance(action, OutlineCreateTaskAction):
-        project_id = key_map.get(action.project_key)
-        if project_id is None:
-            raise ValueError(f"project key not found: {action.project_key}")
+        if action.project_id is not None:
+            project_id = _owned_project(db, user, action.project_id).id
+        else:
+            project_id = key_map.get(action.project_key)  # type: ignore[arg-type]
+            if project_id is None:
+                raise ValueError(f"project key not found: {action.project_key}")
+
         section_id: UUID | None = None
-        if action.section_key:
+        if action.section_id is not None:
+            section = _owned_section(db, user, action.section_id)
+            if section.project_id != project_id:
+                raise ValueError("section does not belong to project")
+            section_id = section.id
+        elif action.section_key:
             section_id = key_map.get(action.section_key)
             if section_id is None:
                 raise ValueError(f"section key not found: {action.section_key}")

@@ -71,7 +71,7 @@ Reuse Assist’s review→confirm UX pattern; do **not** route syllabus JSON thr
 - General template marketplace or user-authored template editor  
 - Extending Assist vocabulary (`create_project` from free text) — separate Theme B cut  
 
-**Follow-ons (backlog, not prove-it blockers):** blank/generic fillable outline template ([DEF-010](../DEFECTS.md#def-010--blank--generic-outline-template-non-coursera-bulk-adds)); import under existing epic/project ([DEF-009](../DEFECTS.md#def-009--outline-import-into-existing-hierarchy-partial--lower-level)).
+**Follow-ons (shipped 2026-08-27 — Theme F polish / Round 3):** blank/generic fillable outline template ([DEF-010](../DEFECTS.md#def-010--blank--generic-outline-template-non-coursera-bulk-adds) — `hierarchy_v1` + [`blank_hierarchy_v1.json`](../testdata/outlines/blank_hierarchy_v1.json)); import under existing epic/project/section ([DEF-009](../DEFECTS.md#def-009--outline-import-into-existing-hierarchy-partial--lower-level) — `attach_under` on propose).
 
 ## Consequences
 

@@ -21,13 +21,16 @@ router = APIRouter(prefix="/outlines", tags=["outlines"])
 @router.post("/propose", response_model=OutlineProposeResponse)
 def outlines_propose(
     body: OutlineProposeRequest,
+    db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> OutlineProposeResponse:
-    _ = user
     actions, summary = propose_outline_actions(
         body.outline,
         template_id=body.template_id,
         skip_optional=body.skip_optional,
+        attach_under=body.attach_under,
+        db=db,
+        user=user,
     )
     return OutlineProposeResponse(
         actions=actions,

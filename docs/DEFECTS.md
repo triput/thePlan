@@ -118,7 +118,7 @@ Equal sibling `sort_order` values (common Inbox default `0`) made swaps no-ops. 
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (required eventually; not blocking daily driver) |
-| **Status** | Closed — Assist honesty cut 2026-08-14 |
+| **Status** | Closed — Assist honesty cut 2026-08-14; **Round 3 verified 2026-08-27** (no reopen) |
 | **Found** | 2026-08-14 |
 | **Surface** | Quick-add + Assist enrich (`apps/api/app/services/quick_add.py`; Assist uses same parser) |
 | **Wave** | Assist honesty cut (DEF-006 + DEF-007 + review UI) |
@@ -149,7 +149,7 @@ Non-urgent but **required** before treating Assist time understanding as “done
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (required eventually; wrong estimates train bad habits) |
-| **Status** | Closed — Assist honesty cut 2026-08-14 |
+| **Status** | Closed — Assist honesty cut 2026-08-14; **Round 3 verified 2026-08-27** (no reopen) |
 | **Found** | 2026-08-14 |
 | **Surface** | Quick-add duration tokens + Assist propose/enrich/apply |
 | **Wave** | Assist honesty cut (pair with DEF-006) |
@@ -237,7 +237,7 @@ Not urgent. Drag-resize only — no need for dual-panel fancy layouts in this it
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (prove-it full-tree import covers first land; grafting is the next real pain) |
-| **Status** | Open — backlog |
+| **Status** | **Closed** — shipped 2026-08-27 (Theme F polish) |
 | **Found** | 2026-08-14 |
 | **Surface** | Outline ingest (`/outlines/propose|apply`, Outline UI) — Theme F follow-on |
 | **Wave** | Theme F polish / bug bash (after ADR-011 prove-it) |
@@ -252,9 +252,12 @@ Current outline import always proposes a **full** certificate → epic → cours
 - UI: pick target epic/project (or paste outline that is a course/module subtree) before Propose.
 - Same review → confirm → apply; still no Coursera client; dedupe remains separate ([ADR-011](./adr/ADR-011-templates-outline-ingest.md) non-goal until booked).
 
-### Notes
+### Fix / current behavior
 
-Severity sits between P2 and P3 on purpose: not blocking daily driver while the full-tree path works, but it will feel like P2 the first time a second course needs to join an epic already in thePlan. Acceptable outline shapes: full certificate JSON with “attach under epic X”, or a course-/module-scoped JSON fragment.
+- `POST /outlines/propose` accepts `attach_under: { kind, id }` (`epic` | `project` | `section`). Apply reuses existing parent ids on actions (`epic_id`, `project_id`, `section_id`) instead of always minting a new epic tree.
+- Fragment shapes: `course` / `courses` → projects + sections + tasks under an **epic**; `modules` → sections + tasks under a **project**; task list → tasks under a **section**. Full `certificate` import still creates a new epic when `attach_under` is omitted.
+- Outline UI: **Attach under** picker (new epic vs existing epic/project/section) + template selector; after graft apply, navigates to the target epic when applicable.
+- Tests: `tests/test_outlines.py` (graft propose/apply under epic, project, section).
 
 ---
 
@@ -263,7 +266,7 @@ Severity sits between P2 and P3 on purpose: not blocking daily driver while the 
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (Coursera fixture proves the path; blank template is operator courtesy) |
-| **Status** | Open — backlog |
+| **Status** | **Closed** — shipped 2026-08-27 (Theme F polish) |
 | **Found** | 2026-08-14 |
 | **Surface** | Theme F outline ingest — docs + fixture under `testdata/outlines/`; pack id in API |
 | **Wave** | Theme F polish (before or with full W4 template catalog) |
@@ -278,9 +281,12 @@ Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **c
 - Either document that `coursera_specialization` already accepts any JSON in that shape, or add a neutral pack alias (e.g. `hierarchy_v1`) that shares the same mapper.
 - Point to it from [OUTLINE-INGEST.md](./OUTLINE-INGEST.md) and `testdata/outlines/README.md`.
 
-### Notes
+### Fix / current behavior
 
-Does **not** require W4 template CRUD. First-class user-authored template catalog remains W4 ([ADR-011](./adr/ADR-011-templates-outline-ingest.md)).
+- [`blank_hierarchy_v1.json`](../testdata/outlines/blank_hierarchy_v1.json) — fillable v1 contract (certificate → courses → modules → tasks); fill guide in [`testdata/outlines/README.md`](../testdata/outlines/README.md).
+- Template pack **`hierarchy_v1`** — neutral alias sharing the same mapper/validator as `coursera_specialization` (Coursera-specific label cleanup only on the Coursera pack id).
+- Outline UI template selector lists **Generic hierarchy (v1)** and **Coursera specialization**; either pack accepts the same JSON shape.
+- Operator docs: [OUTLINE-INGEST.md](./OUTLINE-INGEST.md); tests include `test_propose_hierarchy_v1_alias`.
 
 ---
 
@@ -434,10 +440,10 @@ Related: outline ingest (Theme F) made this P2. Not the same as **pinned blocks*
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (high leverage for project/epic housekeeping) |
-| **Status** | Closed — Phase 1 thin shipped 2026-08-27 (Phases 2–3 deferred) |
+| **Status** | Closed — Phase 1+2 shipped 2026-08-27 (Phase 3 deferred) |
 | **Found** | 2026-08-17 |
-| **Surface** | Task list UI, `PATCH /tasks`, labels, recurrence, scheduler fields |
-| **Wave** | Afternoon smash 2026-08-27 |
+| **Surface** | Task list UI, `PATCH /tasks/batch`, labels, recurrence, scheduler fields |
+| **Wave** | Afternoon smash + Round 3 2026-08-27 |
 
 ### Symptom / ask
 
@@ -449,13 +455,21 @@ Bulk operations on a list context, e.g.:
 - Set **recurrence** on a group of tasks.
 - Likely also: bulk **schedule style / backlog** (DEF-014), priority, section move, delete, archive.
 
-### Current behavior (Phase 1 shipped)
+### Current behavior (Phase 1+2 shipped)
 
-- Multi-select checkboxes + Select all (visible rows) in `TaskList`; batch bar: schedule style, apply label, delete (confirm).
+**Phase 1 — multi-select + batch bar**
+
+- Multi-select checkboxes + **Select all** (visible rows) in `TaskList`; batch bar: schedule style, apply label, delete (confirm).
 - `PATCH /tasks/batch` with `{ task_ids, patch?, add_label_ids? }`.
 - Batch delete uses soft-delete ([DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention)).
 
-**Still deferred:** Phase 2 subtree semantics, Phase 3 schedule-same-day / recurrence / move / archive.
+**Phase 2 — loaded subtree selection (client-side)**
+
+- **⊞** button on rows with loaded descendants — selects the row plus all **visible/loaded** subtasks via `collectLoadedSubtreeIds` (`taskForest.ts`).
+- **Alt+click** the row select checkbox — same subtree add (when descendants are loaded).
+- Scope is the in-memory task list only (not server-side “whole epic” fetch); expand/collapse or list filters affect what ⊞ / Alt+click includes.
+
+**Phase 3 deferred:** schedule-same-day, bulk recurrence, bulk move/reparent, bulk archive.
 ---
 
 ## DEF-016 — Task detail Save affordance (scroll fatigue)
@@ -742,20 +756,22 @@ Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (accidental delete — operator has *never* done this, obviously) |
-| **Status** | Closed — thin shipped 2026-08-27 (no auto-purge yet) |
+| **Status** | Closed — shipped 2026-08-27 (soft-delete, restore, empty trash; no auto-purge) |
 | **Found** | 2026-08-25 |
-| **Surface** | Tasks (and optionally blocks/projects), schema `deleted_at`, Trash UI |
-| **Wave** | Afternoon smash 2026-08-27 |
+| **Surface** | Tasks, schema `deleted_at`, Trash UI, `DELETE /tasks/trash` |
+| **Wave** | Afternoon smash + Round 3 2026-08-27 |
 
 ### Symptom / ask
 
 **Hard delete** is immediate and scary. Operator wants a **trash** holding deleted items for a **retention period** (e.g. 30 days) with **restore** — same UUID, children if applicable.
 
-### Current behavior (shipped thin)
+### Current behavior (shipped)
 
 - Alembic `015_task_deleted_at`; `DELETE /tasks/{id}` soft-sets subtree `deleted_at`; lists exclude trashed; `GET /tasks?trashed=true`; `POST /tasks/{id}/restore` (same delete wave).
-- Sidebar **Trash** view + Restore. Unpinned blocks for trashed tasks hard-deleted; pinned left.
-- **Deferred:** auto-purge / 30d retention job, empty-trash hard purge UI.
+- Sidebar **Trash** view + per-row **Restore**.
+- **`DELETE /api/v1/tasks/trash`** — hard-purge all trashed tasks for the user (`empty_trash_for_user`); unpinned blocks for those tasks removed; pinned blocks left.
+- Trash UI **Empty trash** button + confirm dialog; hint copy states no auto-purge — empty manually.
+- **Deferred:** scheduled auto-purge / 30-day retention job (no cron).
 ---
 
 ## DEF-025 — Inline create parent / child / labels in detail drawer

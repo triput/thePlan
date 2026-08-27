@@ -25,7 +25,11 @@ import { toISO } from "../calendarUtils";
 import { fetchOpenDescendantIds, useUndoStack } from "../undoStack";
 import { PRIORITY_COLORS } from "../colors";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
-import { orderTasksForest } from "../taskForest";
+import {
+  collectLoadedSubtreeIds,
+  hasLoadedDescendants,
+  orderTasksForest,
+} from "../taskForest";
 import {
   endOfLocalDay,
   formatDue,
@@ -321,6 +325,16 @@ export function TaskList({
       const next = new Set(prev);
       if (next.has(taskId)) next.delete(taskId);
       else next.add(taskId);
+      return next;
+    });
+  };
+
+  const selectLoadedSubtree = (rootId: string) => {
+    const ids = collectLoadedSubtreeIds(tasks, rootId);
+    if (ids.length === 0) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) next.add(id);
       return next;
     });
   };
@@ -746,9 +760,36 @@ export function TaskList({
           type="checkbox"
           className="task-select"
           checked={isMultiSelected}
-          onChange={() => toggleSelectTask(task.id)}
+          readOnly
+          onClick={(e) => {
+            e.stopPropagation();
+            if (e.altKey && hasLoadedDescendants(tasks, task.id)) {
+              selectLoadedSubtree(task.id);
+              return;
+            }
+            toggleSelectTask(task.id);
+          }}
           aria-label={`Select "${task.title}"`}
+          title={
+            hasLoadedDescendants(tasks, task.id)
+              ? "Select task (Alt+click to include visible subtasks)"
+              : undefined
+          }
         />
+        {hasLoadedDescendants(tasks, task.id) && (
+          <button
+            type="button"
+            className="icon-btn tiny select-subtree-btn"
+            title="Select this task and all visible subtasks"
+            aria-label={`Select "${task.title}" and all visible subtasks`}
+            onClick={(e) => {
+              e.stopPropagation();
+              selectLoadedSubtree(task.id);
+            }}
+          >
+            ⊞
+          </button>
+        )}
         <input
           type="checkbox"
           className="task-check"

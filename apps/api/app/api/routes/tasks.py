@@ -43,6 +43,8 @@ from app.services.recurrence import (
 from app.services.reorder import batch_reorder_sort_order
 from app.services.task_helpers import (
     complete_task,
+    empty_trash_for_user,
+    hard_purge_trashed_task_subtree,
     mark_task_complete,
     resolve_nesting_level,
     restore_task_subtree,
@@ -451,6 +453,16 @@ def batch_update_tasks(
     )
 
 
+@router.delete("/trash", status_code=status.HTTP_204_NO_CONTENT)
+def empty_trash(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    """Permanently delete all soft-deleted tasks for the current user."""
+    empty_trash_for_user(db, user.id)
+    db.commit()
+
+
 @router.get("/{task_id}", response_model=TaskOut)
 def get_task(
     task_id: UUID,
@@ -477,6 +489,10 @@ def update_task(
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(
     task_id: UUID,
+    hard: bool = Query(
+        default=False,
+        description="When true, permanently delete a task already in trash.",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> None:
@@ -484,8 +500,17 @@ def delete_task(
 
     Unpinned ``scheduled_blocks`` for those tasks are hard-deleted (no block
     soft-delete column). Pinned blocks are left. Idempotent if already trashed.
+
+    With ``hard=true``, permanently purge a trashed task subtree (409 if not trashed).
     """
     task = _get_owned_task(db, task_id, user)
+    if hard:
+        try:
+            hard_purge_trashed_task_subtree(db, task)
+        except ApiError as exc:
+            raise exc
+        db.commit()
+        return
     if task.deleted_at is None:
         soft_delete_task_subtree(db, task)
         db.commit()

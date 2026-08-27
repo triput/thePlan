@@ -815,6 +815,14 @@ export function restoreTask(taskId: string) {
   return apiFetch<Task>(`/api/v1/tasks/${taskId}/restore`, { method: "POST" });
 }
 
+export function emptyTrash() {
+  return apiFetch<void>("/api/v1/tasks/trash", { method: "DELETE" });
+}
+
+export function hardPurgeTask(taskId: string) {
+  return apiFetch<void>(`/api/v1/tasks/${taskId}?hard=true`, { method: "DELETE" });
+}
+
 export function completeTask(taskId: string, body: TaskCompleteBody = {}) {
   return apiFetch<Task>(`/api/v1/tasks/${taskId}/complete`, {
     method: "POST",
@@ -952,7 +960,8 @@ export interface OutlineCreateProjectAction {
   title: string;
   description?: string | null;
   sort_order: number;
-  epic_key: string;
+  epic_key?: string | null;
+  epic_id?: string | null;
 }
 
 export interface OutlineCreateSectionAction {
@@ -961,7 +970,8 @@ export interface OutlineCreateSectionAction {
   title: string;
   description?: string | null;
   sort_order: number;
-  project_key: string;
+  project_key?: string | null;
+  project_id?: string | null;
 }
 
 export interface OutlineCreateTaskAction {
@@ -970,8 +980,10 @@ export interface OutlineCreateTaskAction {
   title: string;
   description?: string | null;
   sort_order: number;
-  project_key: string;
+  project_key?: string | null;
+  project_id?: string | null;
   section_key?: string | null;
+  section_id?: string | null;
   label_names: string[];
   estimated_duration_minutes?: number | null;
   optional: boolean;
@@ -990,6 +1002,15 @@ export interface OutlineProposeSummary {
   section_count: number;
   task_count: number;
   optional_skipped: number;
+}
+
+export type OutlineTemplateId = "coursera_specialization" | "hierarchy_v1";
+
+export type OutlineAttachKind = "epic" | "project" | "section";
+
+export interface OutlineAttachUnder {
+  kind: OutlineAttachKind;
+  id: string;
 }
 
 export interface OutlineProposeResponse {
@@ -1016,6 +1037,7 @@ export function proposeOutline(body: {
   template_id: string;
   outline: Record<string, unknown>;
   skip_optional?: boolean;
+  attach_under?: OutlineAttachUnder | null;
 }) {
   return apiFetch<OutlineProposeResponse>("/api/v1/outlines/propose", {
     method: "POST",

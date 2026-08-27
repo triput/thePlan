@@ -1,18 +1,22 @@
 """Built-in outline template packs — Theme F / ADR-011.
 
-Service layer — map outline JSON → propose actions (coursera_specialization).
+Service layer — map outline JSON → propose actions (coursera_specialization / hierarchy_v1).
 """
 
 from __future__ import annotations
 
 import re
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
+from app.models import Epic, Project, Section, User
 from app.schemas import (
     OutlineAction,
+    OutlineAttachUnder,
     OutlineCreateEpicAction,
     OutlineCreateProjectAction,
     OutlineCreateSectionAction,
@@ -21,7 +25,8 @@ from app.schemas import (
 )
 
 TEMPLATE_COURSERA_SPECIALIZATION = "coursera_specialization"
-_KNOWN_TEMPLATES = frozenset({TEMPLATE_COURSERA_SPECIALIZATION})
+TEMPLATE_HIERARCHY_V1 = "hierarchy_v1"
+_KNOWN_TEMPLATES = frozenset({TEMPLATE_COURSERA_SPECIALIZATION, TEMPLATE_HIERARCHY_V1})
 
 _OPTIONAL_PREFIX = re.compile(r"^(?:\(\s*Optional\s*\)|\[\s*Optional\s*\])\s*", re.IGNORECASE)
 _TYPE_PREFIXES = (
@@ -139,6 +144,10 @@ def _invalid(detail: str) -> None:
     raise ApiError(400, detail, "OUTLINE_INVALID")
 
 
+def _attach_not_found(detail: str) -> None:
+    raise ApiError(404, detail, "OUTLINE_ATTACH_NOT_FOUND")
+
+
 def _parse_coursera(outline: dict[str, Any]) -> _CourseraSpecializationOutline:
     try:
         return _CourseraSpecializationOutline.model_validate(outline)
@@ -147,22 +156,163 @@ def _parse_coursera(outline: dict[str, Any]) -> _CourseraSpecializationOutline:
         raise  # pragma: no cover — unreachable; satisfies type checkers
 
 
-def propose_outline_actions(
-    outline: dict[str, Any],
+def _parse_course(raw: dict[str, Any]) -> _OutlineCourse:
+    try:
+        return _OutlineCourse.model_validate(raw)
+    except ValidationError as exc:
+        _invalid(f"Invalid course shape: {exc.errors()[0].get('msg', 'validation failed')}")
+        raise  # pragma: no cover
+
+
+def _parse_module(raw: dict[str, Any]) -> _OutlineModule:
+    try:
+        return _OutlineModule.model_validate(raw)
+    except ValidationError as exc:
+        _invalid(f"Invalid module shape: {exc.errors()[0].get('msg', 'validation failed')}")
+        raise  # pragma: no cover
+
+
+def _parse_task_list(raw: list[Any]) -> list[_OutlineTask]:
+    tasks: list[_OutlineTask] = []
+    for item in raw:
+        try:
+            tasks.append(_OutlineTask.model_validate(item))
+        except ValidationError as exc:
+            _invalid(f"Invalid task shape: {exc.errors()[0].get('msg', 'validation failed')}")
+            raise  # pragma: no cover
+    return tasks
+
+
+def _extract_courses(outline: dict[str, Any]) -> list[_OutlineCourse]:
+    if "certificate" in outline:
+        return _parse_coursera(outline).courses
+    if "course" in outline and isinstance(outline["course"], dict):
+        return [_parse_course(outline["course"])]
+    if "courses" in outline:
+        raw = outline["courses"]
+        if not isinstance(raw, list):
+            _invalid("courses must be an array")
+        if not raw:
+            _invalid("courses array is empty")
+        return [_parse_course(item) for item in raw if isinstance(item, dict)]
+    _invalid("Expected certificate+courses, course, or courses[] for this attach target")
+
+
+def _extract_modules(outline: dict[str, Any]) -> list[_OutlineModule]:
+    if "module" in outline and isinstance(outline["module"], dict):
+        return [_parse_module(outline["module"])]
+    if "modules" in outline:
+        raw = outline["modules"]
+        if not isinstance(raw, list):
+            _invalid("modules must be an array")
+        if not raw:
+            _invalid("modules array is empty")
+        return [_parse_module(item) for item in raw if isinstance(item, dict)]
+    if "course" in outline and isinstance(outline["course"], dict):
+        course = _parse_course(outline["course"])
+        if not course.modules:
+            _invalid("course has no modules")
+        return course.modules
+    courses = _extract_courses(outline)
+    if len(courses) != 1:
+        _invalid("Attach under project requires one course or a modules[] fragment")
+    if not courses[0].modules:
+        _invalid("course has no modules")
+    return courses[0].modules
+
+
+def _extract_tasks(outline: dict[str, Any]) -> list[_OutlineTask]:
+    if "tasks" in outline:
+        raw = outline["tasks"]
+        if not isinstance(raw, list):
+            _invalid("tasks must be an array")
+        if not raw:
+            _invalid("tasks array is empty")
+        return _parse_task_list(raw)
+    if "module" in outline and isinstance(outline["module"], dict):
+        module = _parse_module(outline["module"])
+        if not module.tasks:
+            _invalid("module has no tasks")
+        return module.tasks
+    modules = _extract_modules(outline)
+    if len(modules) != 1:
+        _invalid("Attach under section requires one module or a tasks[] fragment")
+    if not modules[0].tasks:
+        _invalid("module has no tasks")
+    return modules[0].tasks
+
+
+def _resolve_attach_target(
+    db: Session,
+    user: User,
+    attach: OutlineAttachUnder,
+) -> tuple[UUID | None, UUID | None, UUID | None]:
+    if attach.kind == "epic":
+        epic = db.get(Epic, attach.id)
+        if epic is None or epic.owner_id != user.id:
+            _attach_not_found("Epic not found")
+        return epic.id, None, None
+
+    if attach.kind == "project":
+        project = db.get(Project, attach.id)
+        if project is None or project.owner_id != user.id:
+            _attach_not_found("Project not found")
+        return project.epic_id, project.id, None
+
+    section = db.get(Section, attach.id)
+    if section is None or section.owner_id != user.id:
+        _attach_not_found("Section not found")
+    return None, section.project_id, section.id
+
+
+def _append_task_actions(
+    actions: list[OutlineAction],
     *,
-    template_id: str = TEMPLATE_COURSERA_SPECIALIZATION,
-    skip_optional: bool = False,
-) -> tuple[list[OutlineAction], OutlineProposeSummary]:
-    if template_id not in _KNOWN_TEMPLATES:
-        _invalid(f"Unknown template_id: {template_id}")
+    tasks: list[_OutlineTask],
+    skip_optional: bool,
+    project_key: str | None,
+    project_id: UUID | None,
+    section_key: str | None,
+    section_id: UUID | None,
+    key_prefix: str,
+    optional_skipped: int,
+) -> int:
+    for task in tasks:
+        if skip_optional and task.optional:
+            optional_skipped += 1
+            continue
 
-    if not isinstance(outline, dict):
-        _invalid("outline must be an object")
+        outline_id = (task.id or "").strip() or None
+        task_key = outline_id or f"{key_prefix}-task-{task.task_order}"
+        duration = _clamp_duration(task.duration_minutes)
+        desc = f"outline_id: {outline_id}" if outline_id else None
 
-    parsed = _parse_coursera(outline)
+        actions.append(
+            OutlineCreateTaskAction(
+                key=task_key,
+                title=_clean_task_title(task.title, task.task_type),
+                description=desc,
+                sort_order=task.task_order,
+                project_key=project_key,
+                project_id=project_id,
+                section_key=section_key,
+                section_id=section_id,
+                label_names=_task_labels(task),
+                estimated_duration_minutes=duration,
+                optional=bool(task.optional),
+                outline_id=outline_id,
+            )
+        )
+    return optional_skipped
+
+
+def _propose_full_tree(
+    parsed: _CourseraSpecializationOutline,
+    *,
+    skip_optional: bool,
+) -> tuple[list[OutlineAction], int]:
     actions: list[OutlineAction] = []
     optional_skipped = 0
-
     epic_key = "epic"
     actions.append(
         OutlineCreateEpicAction(
@@ -198,30 +348,173 @@ def propose_outline_actions(
                 )
             )
 
-            for task in module.tasks:
-                if skip_optional and task.optional:
-                    optional_skipped += 1
-                    continue
+            optional_skipped = _append_task_actions(
+                actions,
+                tasks=module.tasks,
+                skip_optional=skip_optional,
+                project_key=project_key,
+                project_id=None,
+                section_key=section_key,
+                section_id=None,
+                key_prefix=f"{course_n}-{module_n}",
+                optional_skipped=optional_skipped,
+            )
 
-                outline_id = (task.id or "").strip() or None
-                task_key = outline_id or f"task-{course_n}-{module_n}-{task.task_order}"
-                duration = _clamp_duration(task.duration_minutes)
-                desc = f"outline_id: {outline_id}" if outline_id else None
+    return actions, optional_skipped
 
-                actions.append(
-                    OutlineCreateTaskAction(
-                        key=task_key,
-                        title=_clean_task_title(task.title, task.task_type),
-                        description=desc,
-                        sort_order=task.task_order,
-                        project_key=project_key,
-                        section_key=section_key,
-                        label_names=_task_labels(task),
-                        estimated_duration_minutes=duration,
-                        optional=bool(task.optional),
-                        outline_id=outline_id,
-                    )
+
+def _propose_under_epic(
+    outline: dict[str, Any],
+    epic_id: UUID,
+    *,
+    skip_optional: bool,
+) -> tuple[list[OutlineAction], int]:
+    actions: list[OutlineAction] = []
+    optional_skipped = 0
+    courses = _extract_courses(outline)
+
+    for course in courses:
+        course_n = course.course_order
+        project_key = f"course-{course_n}"
+        actions.append(
+            OutlineCreateProjectAction(
+                key=project_key,
+                title=course.title.strip(),
+                description=_project_description(course) or None,
+                sort_order=course_n,
+                epic_id=epic_id,
+            )
+        )
+
+        for module in course.modules:
+            module_n = module.module_order
+            section_key = f"section-{course_n}-{module_n}"
+            actions.append(
+                OutlineCreateSectionAction(
+                    key=section_key,
+                    title=module.title.strip(),
+                    sort_order=module_n,
+                    project_key=project_key,
                 )
+            )
+
+            optional_skipped = _append_task_actions(
+                actions,
+                tasks=module.tasks,
+                skip_optional=skip_optional,
+                project_key=project_key,
+                project_id=None,
+                section_key=section_key,
+                section_id=None,
+                key_prefix=f"{course_n}-{module_n}",
+                optional_skipped=optional_skipped,
+            )
+
+    return actions, optional_skipped
+
+
+def _propose_under_project(
+    outline: dict[str, Any],
+    project_id: UUID,
+    *,
+    skip_optional: bool,
+) -> tuple[list[OutlineAction], int]:
+    actions: list[OutlineAction] = []
+    optional_skipped = 0
+    modules = _extract_modules(outline)
+
+    for module in modules:
+        module_n = module.module_order
+        section_key = f"section-{module_n}"
+        actions.append(
+            OutlineCreateSectionAction(
+                key=section_key,
+                title=module.title.strip(),
+                sort_order=module_n,
+                project_id=project_id,
+            )
+        )
+
+        optional_skipped = _append_task_actions(
+            actions,
+            tasks=module.tasks,
+            skip_optional=skip_optional,
+            project_key=None,
+            project_id=project_id,
+            section_key=section_key,
+            section_id=None,
+            key_prefix=str(module_n),
+            optional_skipped=optional_skipped,
+        )
+
+    return actions, optional_skipped
+
+
+def _propose_under_section(
+    outline: dict[str, Any],
+    project_id: UUID,
+    section_id: UUID,
+    *,
+    skip_optional: bool,
+) -> tuple[list[OutlineAction], int]:
+    actions: list[OutlineAction] = []
+    optional_skipped = 0
+    tasks = _extract_tasks(outline)
+
+    optional_skipped = _append_task_actions(
+        actions,
+        tasks=tasks,
+        skip_optional=skip_optional,
+        project_key=None,
+        project_id=project_id,
+        section_key=None,
+        section_id=section_id,
+        key_prefix="section",
+        optional_skipped=optional_skipped,
+    )
+
+    return actions, optional_skipped
+
+
+def propose_outline_actions(
+    outline: dict[str, Any],
+    *,
+    template_id: str = TEMPLATE_COURSERA_SPECIALIZATION,
+    skip_optional: bool = False,
+    attach_under: OutlineAttachUnder | None = None,
+    db: Session | None = None,
+    user: User | None = None,
+) -> tuple[list[OutlineAction], OutlineProposeSummary]:
+    if template_id not in _KNOWN_TEMPLATES:
+        _invalid(f"Unknown template_id: {template_id}")
+
+    if not isinstance(outline, dict):
+        _invalid("outline must be an object")
+
+    if attach_under is not None:
+        if db is None or user is None:
+            _invalid("attach_under requires authenticated propose context")
+        _, project_id, section_id = _resolve_attach_target(db, user, attach_under)
+
+        if attach_under.kind == "epic":
+            actions, optional_skipped = _propose_under_epic(
+                outline, attach_under.id, skip_optional=skip_optional
+            )
+        elif attach_under.kind == "project":
+            assert project_id is not None
+            actions, optional_skipped = _propose_under_project(
+                outline, project_id, skip_optional=skip_optional
+            )
+        else:
+            assert project_id is not None and section_id is not None
+            actions, optional_skipped = _propose_under_section(
+                outline, project_id, section_id, skip_optional=skip_optional
+            )
+    else:
+        if "certificate" not in outline:
+            _invalid("Full import requires certificate; use attach_under for course/module fragments")
+        parsed = _parse_coursera(outline)
+        actions, optional_skipped = _propose_full_tree(parsed, skip_optional=skip_optional)
 
     summary = OutlineProposeSummary(
         epic_count=sum(1 for a in actions if a.type == "create_epic"),

@@ -135,6 +135,48 @@ def restore_task_subtree(db: Session, task: Task) -> None:
     task.deleted_at = None
 
 
+def _hard_delete_task_blocks(db: Session, task_ids: list[uuid.UUID]) -> None:
+    """Permanently remove all scheduled blocks for the given task ids (pinned included)."""
+    if not task_ids:
+        return
+    db.query(ScheduledBlock).filter(ScheduledBlock.task_id.in_(task_ids)).delete(
+        synchronize_session=False,
+    )
+
+
+def hard_purge_trashed_task_subtree(db: Session, task: Task) -> int:
+    """Permanently delete a trashed task and all descendants. Returns rows removed."""
+    if task.deleted_at is None:
+        raise ApiError(409, "Task is not in trash", "NOT_TRASHED")
+    ids = [task.id, *collect_descendant_ids(db, task.id, task.owner_id)]
+    _hard_delete_task_blocks(db, ids)
+    db.delete(task)
+    return len(ids)
+
+
+def empty_trash_for_user(db: Session, owner_id: uuid.UUID) -> int:
+    """Permanently delete every trashed task for ``owner_id``. Returns rows removed."""
+    trashed = (
+        db.query(Task)
+        .filter(Task.owner_id == owner_id, Task.deleted_at.isnot(None))
+        .all()
+    )
+    if not trashed:
+        return 0
+
+    trashed_ids = {task.id for task in trashed}
+    root_tasks = [
+        task
+        for task in trashed
+        if task.parent_task_id is None or task.parent_task_id not in trashed_ids
+    ]
+
+    _hard_delete_task_blocks(db, list(trashed_ids))
+    for task in root_tasks:
+        db.delete(task)
+    return len(trashed_ids)
+
+
 def mark_task_complete(task: Task, *, completed: bool) -> None:
     task.is_completed = completed
     if completed:

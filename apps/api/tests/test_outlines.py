@@ -15,10 +15,15 @@ _FIXTURE = (
     Path(__file__).resolve().parents[3]
     / "testdata/outlines/ibm_rag_agentic_ai_professional_certificate_curriculum.json"
 )
+_BLANK = Path(__file__).resolve().parents[3] / "testdata/outlines/blank_hierarchy_v1.json"
 
 
 def _load_fixture() -> dict:
     return json.loads(_FIXTURE.read_text(encoding="utf-8"))
+
+
+def _load_blank() -> dict:
+    return json.loads(_BLANK.read_text(encoding="utf-8"))
 
 
 def _current_user(client: TestClient, db_session: Session) -> User:
@@ -34,6 +39,97 @@ def _count_by_type(actions: list[dict]) -> dict[str, int]:
     for action in actions:
         counts[action["type"]] = counts.get(action["type"], 0) + 1
     return counts
+
+
+def _tiny_outline() -> dict:
+    return {
+        "certificate": {
+            "title": "Tiny Certificate",
+            "provider": "TestCo",
+            "platform": "Coursera",
+            "source_url": "https://example.com/cert",
+            "notes": "fixture",
+        },
+        "courses": [
+            {
+                "course_order": 1,
+                "title": "Course One",
+                "estimated_hours": 2,
+                "url": "https://example.com/course",
+                "modules": [
+                    {
+                        "module_order": 1,
+                        "title": "Module A",
+                        "estimated_hours": 1,
+                        "tasks": [
+                            {
+                                "task_type": "video",
+                                "title": "Video: Hello",
+                                "duration_minutes": 5,
+                                "optional": False,
+                                "task_order": 1,
+                                "id": "c01-m01-t01",
+                            },
+                            {
+                                "task_type": "reading",
+                                "title": "(Optional) Reading: Extra",
+                                "duration_minutes": 3,
+                                "optional": True,
+                                "task_order": 2,
+                                "id": "c01-m01-t02",
+                            },
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+
+def _course_fragment() -> dict:
+    return {
+        "course": {
+            "course_order": 2,
+            "title": "Grafted Course",
+            "modules": [
+                {
+                    "module_order": 1,
+                    "title": "Graft Module",
+                    "tasks": [
+                        {
+                            "task_type": "video",
+                            "title": "Video: Graft task",
+                            "duration_minutes": 10,
+                            "optional": False,
+                            "task_order": 1,
+                            "id": "g01-m01-t01",
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+
+
+def _modules_fragment() -> dict:
+    return {
+        "modules": [
+            {
+                "module_order": 1,
+                "title": "Graft Section",
+                "tasks": [
+                    {
+                        "task_type": "reading",
+                        "title": "Reading: Under project",
+                        "duration_minutes": 8,
+                        "optional": False,
+                        "task_order": 1,
+                        "id": "p01-m01-t01",
+                    }
+                ],
+            }
+        ]
+    }
 
 
 def test_propose_full_fixture(client: TestClient) -> None:
@@ -106,48 +202,7 @@ def test_propose_invalid_outline(client: TestClient) -> None:
 
 def test_apply_small_outline(client: TestClient, db_session: Session) -> None:
     user = _current_user(client, db_session)
-    outline = {
-        "certificate": {
-            "title": "Tiny Certificate",
-            "provider": "TestCo",
-            "platform": "Coursera",
-            "source_url": "https://example.com/cert",
-            "notes": "fixture",
-        },
-        "courses": [
-            {
-                "course_order": 1,
-                "title": "Course One",
-                "estimated_hours": 2,
-                "url": "https://example.com/course",
-                "modules": [
-                    {
-                        "module_order": 1,
-                        "title": "Module A",
-                        "estimated_hours": 1,
-                        "tasks": [
-                            {
-                                "task_type": "video",
-                                "title": "Video: Hello",
-                                "duration_minutes": 5,
-                                "optional": False,
-                                "task_order": 1,
-                                "id": "c01-m01-t01",
-                            },
-                            {
-                                "task_type": "reading",
-                                "title": "(Optional) Reading: Extra",
-                                "duration_minutes": 3,
-                                "optional": True,
-                                "task_order": 2,
-                                "id": "c01-m01-t02",
-                            },
-                        ],
-                    }
-                ],
-            }
-        ],
-    }
+    outline = _tiny_outline()
 
     propose = client.post("/api/v1/outlines/propose", json={"outline": outline})
     assert propose.status_code == 200, propose.text
@@ -204,3 +259,154 @@ def test_apply_small_outline(client: TestClient, db_session: Session) -> None:
     }
     assert "reading" in task_label_names
     assert "optional" in task_label_names
+
+
+def test_propose_hierarchy_v1_alias(client: TestClient) -> None:
+    outline = _load_blank()
+    res = client.post(
+        "/api/v1/outlines/propose",
+        json={"template_id": "hierarchy_v1", "outline": outline},
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["template_id"] == "hierarchy_v1"
+    counts = _count_by_type(body["actions"])
+    assert counts.get("create_epic") == 1
+    assert counts.get("create_project") == 2
+    assert counts.get("create_section") == 3
+    assert counts.get("create_task") == 5
+
+
+def test_propose_graft_under_epic(client: TestClient, db_session: Session) -> None:
+    user = _current_user(client, db_session)
+    epic = Epic(owner_id=user.id, title="Existing Epic", sort_order=0)
+    db_session.add(epic)
+    db_session.flush()
+
+    res = client.post(
+        "/api/v1/outlines/propose",
+        json={
+            "outline": _course_fragment(),
+            "attach_under": {"kind": "epic", "id": str(epic.id)},
+        },
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    counts = _count_by_type(body["actions"])
+    assert counts.get("create_epic", 0) == 0
+    assert counts.get("create_project") == 1
+    assert counts.get("create_section") == 1
+    assert counts.get("create_task") == 1
+
+    project = next(a for a in body["actions"] if a["type"] == "create_project")
+    assert project["epic_id"] == str(epic.id)
+    assert project.get("epic_key") is None
+
+
+def test_propose_graft_under_project(client: TestClient, db_session: Session) -> None:
+    user = _current_user(client, db_session)
+    epic = Epic(owner_id=user.id, title="Parent Epic", sort_order=0)
+    db_session.add(epic)
+    db_session.flush()
+    project = Project(owner_id=user.id, epic_id=epic.id, title="Existing Project", sort_order=0)
+    db_session.add(project)
+    db_session.flush()
+
+    res = client.post(
+        "/api/v1/outlines/propose",
+        json={
+            "outline": _modules_fragment(),
+            "attach_under": {"kind": "project", "id": str(project.id)},
+        },
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    counts = _count_by_type(body["actions"])
+    assert counts.get("create_epic", 0) == 0
+    assert counts.get("create_project", 0) == 0
+    assert counts.get("create_section") == 1
+    assert counts.get("create_task") == 1
+
+    section = next(a for a in body["actions"] if a["type"] == "create_section")
+    assert section["project_id"] == str(project.id)
+    assert section.get("project_key") is None
+
+    task = next(a for a in body["actions"] if a["type"] == "create_task")
+    assert task["project_id"] == str(project.id)
+
+
+def test_apply_graft_under_epic(client: TestClient, db_session: Session) -> None:
+    user = _current_user(client, db_session)
+    epic = Epic(owner_id=user.id, title="Target Epic", sort_order=0)
+    db_session.add(epic)
+    db_session.flush()
+
+    propose = client.post(
+        "/api/v1/outlines/propose",
+        json={
+            "outline": _course_fragment(),
+            "attach_under": {"kind": "epic", "id": str(epic.id)},
+        },
+    )
+    assert propose.status_code == 200, propose.text
+    actions = propose.json()["actions"]
+
+    apply = client.post("/api/v1/outlines/apply", json={"actions": actions})
+    assert apply.status_code == 200, apply.text
+    assert all(r["ok"] for r in apply.json()["results"])
+
+    grafted = (
+        db_session.query(Project)
+        .filter(Project.owner_id == user.id, Project.title == "Grafted Course")
+        .one()
+    )
+    assert grafted.epic_id == epic.id
+    assert (
+        db_session.query(Epic)
+        .filter(Epic.owner_id == user.id, Epic.title == "Grafted Course")
+        .count()
+        == 0
+    )
+
+
+def test_apply_graft_under_project(client: TestClient, db_session: Session) -> None:
+    user = _current_user(client, db_session)
+    epic = Epic(owner_id=user.id, title="Parent Epic", sort_order=0)
+    db_session.add(epic)
+    db_session.flush()
+    project = Project(owner_id=user.id, epic_id=epic.id, title="Target Project", sort_order=0)
+    db_session.add(project)
+    db_session.flush()
+
+    propose = client.post(
+        "/api/v1/outlines/propose",
+        json={
+            "outline": _modules_fragment(),
+            "attach_under": {"kind": "project", "id": str(project.id)},
+        },
+    )
+    assert propose.status_code == 200, propose.text
+    actions = propose.json()["actions"]
+
+    apply = client.post("/api/v1/outlines/apply", json={"actions": actions})
+    assert apply.status_code == 200, apply.text
+    assert all(r["ok"] for r in apply.json()["results"])
+
+    section = (
+        db_session.query(Section)
+        .filter(Section.owner_id == user.id, Section.title == "Graft Section")
+        .one()
+    )
+    assert section.project_id == project.id
+
+
+def test_propose_attach_not_found(client: TestClient) -> None:
+    res = client.post(
+        "/api/v1/outlines/propose",
+        json={
+            "outline": _course_fragment(),
+            "attach_under": {"kind": "epic", "id": str(uuid.uuid4())},
+        },
+    )
+    assert res.status_code == 404
+    assert res.json()["code"] == "OUTLINE_ATTACH_NOT_FOUND"
