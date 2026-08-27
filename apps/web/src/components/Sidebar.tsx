@@ -267,6 +267,11 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
           label="Labels"
           onClick={() => onSelectView({ type: "labels" })}
         />
+        <NavItem
+          active={view.type === "archived"}
+          label="Archived"
+          onClick={() => onSelectView({ type: "archived" })}
+        />
 
         {labels.length > 0 && (
           <>

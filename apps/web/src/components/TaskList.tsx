@@ -20,6 +20,7 @@ import {
 import { fetchOpenDescendantIds, useUndoStack } from "../undoStack";
 import { PRIORITY_COLORS } from "../colors";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
+import { orderTasksForest } from "../taskForest";
 import {
   endOfLocalDay,
   formatDue,
@@ -268,13 +269,12 @@ export function TaskList({
           .filter((b) => rangeOverlapsLocalDay(b.start_time, b.end_time, new Date()))
           .map((b) => b.task_id),
       );
-      return items.filter((t) => isToday(t.due_at) || scheduledIds.has(t.id));
-    }
-    if (view.type === "upcoming") {
+      items = items.filter((t) => isToday(t.due_at) || scheduledIds.has(t.id));
+    } else if (view.type === "upcoming") {
       const scheduledIds = new Set((blocksQuery.data?.items ?? []).map((b) => b.task_id));
-      return items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
+      items = items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
     }
-    return items;
+    return orderTasksForest(items);
   }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted]);
 
   const invalidateTasks = () => {
@@ -684,7 +684,9 @@ export function TaskList({
               <p className="empty-state">No tasks here yet.</p>
             )}
             {epicProjects.map((project) => {
-              const projectTasks = tasks.filter((t) => t.project_id === project.id);
+              const projectTasks = orderTasksForest(
+                tasks.filter((t) => t.project_id === project.id),
+              );
               if (projectTasks.length === 0) return null;
               const projectSections = epicSections
                 .filter((s) => s.project_id === project.id)
@@ -694,9 +696,9 @@ export function TaskList({
                   <h2 className="epic-project-heading">{project.title}</h2>
                   {projectSections.length > 0 ? (
                     projectSections.map((section) => {
-                      const sectionTasks = projectTasks
-                        .filter((t) => t.section_id === section.id)
-                        .sort((a, b) => a.sort_order - b.sort_order);
+                      const sectionTasks = orderTasksForest(
+                        projectTasks.filter((t) => t.section_id === section.id),
+                      );
                       if (sectionTasks.length === 0) return null;
                       return (
                         <div key={section.id} className="epic-section-group">
@@ -715,9 +717,9 @@ export function TaskList({
               <section className="epic-project-group">
                 <h2 className="epic-project-heading">Other</h2>
                 <ul className="task-list">
-                  {tasks
-                    .filter((t) => !t.project_id || !projectById.has(t.project_id))
-                    .map(renderTaskRow)}
+                  {orderTasksForest(
+                    tasks.filter((t) => !t.project_id || !projectById.has(t.project_id)),
+                  ).map(renderTaskRow)}
                 </ul>
               </section>
             )}
@@ -728,9 +730,9 @@ export function TaskList({
               <p className="empty-state">No tasks here yet.</p>
             )}
             {sections.map((section) => {
-              const sectionTasks = tasks
-                .filter((t) => t.section_id === section.id)
-                .sort((a, b) => a.sort_order - b.sort_order);
+              const sectionTasks = orderTasksForest(
+                tasks.filter((t) => t.section_id === section.id),
+              );
               return (
                 <section key={section.id} className="project-section-group">
                   <div className="project-section-heading-row">
@@ -768,10 +770,7 @@ export function TaskList({
                   <h2 className="project-section-heading">No section</h2>
                 </div>
                 <ul className="task-list">
-                  {tasks
-                    .filter((t) => !t.section_id)
-                    .sort((a, b) => a.sort_order - b.sort_order)
-                    .map(renderTaskRow)}
+                  {orderTasksForest(tasks.filter((t) => !t.section_id)).map(renderTaskRow)}
                 </ul>
               </section>
             )}

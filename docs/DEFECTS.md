@@ -9,10 +9,10 @@ Open product defects that are not wave exit blockers. Priority here is **product
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (mental tax / hierarchy trust; not data loss) |
-| **Status** | Open |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-10 |
 | **Surface** | Project / Inbox task lists (`TaskList`) |
-| **Wave** | Deferred to **bug bash** (not W2a); fix when convenient |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom
 
@@ -33,21 +33,9 @@ Screenshot evidence: out-of-order children named like “Spec 2 b.1” / “Spec
 
 Reorder controls can assign distinct `sort_order` values, which is why in-order entry *looks* fine until you insert under an earlier parent.
 
-### Expected
+### Fix (shipped)
 
-List shows a depth-first tree: each parent’s children (by sibling `sort_order`) immediately under that parent, regardless of when those children were created.
-
-### Fix direction
-
-1. **Client (sufficient for display):** Before render, order `tasks` as a forest DFS keyed by `parent_task_id`, siblings by `sort_order` then `created_at`/`id`.
-2. **Optional API:** On create under a parent, assign `sort_order` among siblings (e.g. max sibling + gap) so flat sort stays coherent for exports/other clients.
-
-### Out of scope for this defect
-
-- Drag-and-drop reparent
-- Section-grouped project layout polish
-- Soft-delete
-
+Client forest DFS in `taskForest.ts` / `TaskList`: parent then children by sibling `sort_order` then `id`. Optional API sibling `sort_order` on create still deferred.
 ---
 
 ## DEF-002 — Timezone setting is free-text, not a picker
@@ -79,10 +67,10 @@ Bundle with other small Settings/UI fixes when convenient. Not a Settings expans
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (detail unusable on phone for long tasks) |
-| **Status** | Open |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-14 |
 | **Surface** | Task detail sheet / panel on narrow (mobile) viewport |
-| **Wave** | Bug bash / cleanup — do **not** derail W3 |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom
 
@@ -92,10 +80,9 @@ On mobile web, opening a task’s detail view shows content through **deadline**
 
 Detail sheet scrolls so fields below deadline (notes, Time Map, Plan, reminders, etc.) are reachable.
 
-### Notes
+### Fix (shipped)
 
-Likely overflow / flex / `100dvh` sheet layout; check W1.6 detail-sheet CSS vs nested scroll containers.
-
+Mobile `.task-detail-panel` / sheet: `100dvh` flex column, `min-height: 0` + `overflow-y: auto` on `.detail-form-body`; sticky Save footer preserved (DEF-016).
 ---
 
 ## DEF-004 — Inbox up/down reorder arrows do nothing
@@ -706,30 +693,19 @@ Pair with [DEF-019](./DEFECTS.md#def-019--calendar-bundles-for-micro-task-course
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (archive works; find-and-restore does not) |
-| **Status** | Open — backlog |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-25 |
 | **Surface** | Sidebar, epic/project lists, `GET /epics?archived=`, `POST …/unarchive` |
-| **Wave** | W3+ productivity UX |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom / ask
 
 Operator can **archive** epics and projects, but there is **no UI to view archived items** or **reactivate** them once hidden. “Where did that go?” and “bring it back” are both blocked.
 
-### Current behavior
+### Current behavior (shipped)
 
-- API: `GET /epics?archived=true`, `GET /projects?archived=true`, `POST …/archive`, `POST …/unarchive` exist.
-- Sidebar lists default `archived=false` only ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md) — browse archived deferred).
-
-### Expected (when built)
-
-- Sidebar or Settings link: **Archived** view (epics + projects, or tabs).
-- Row action: **Unarchive** / **Restore** — calls existing unarchive endpoints.
-- Optional: archive date, search/filter.
-
-### Notes
-
-Archive ≠ delete. [DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention) covers task trash.
-
+- Sidebar **Archived** nav → `ArchivedView` lists `GET …?archived=true` epics + projects.
+- **Unarchive** calls existing `POST …/unarchive`; invalidates sidebar caches.
 ---
 
 ## DEF-023 — Promote / demote hierarchy (task ↔ project ↔ epic)
@@ -850,27 +826,16 @@ Reduces round-trips; pairs with [DEF-023](./DEFECTS.md#def-023--promote--demote-
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (scroll fatigue; drawer keeps growing) |
-| **Status** | Open — backlog |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-25 |
 | **Surface** | `TaskDetailPanel`, project/epic edit panels, `App.css` |
-| **Wave** | Bug bash / polish |
+| **Wave** | Afternoon smash 2026-08-27 |
 
 ### Symptom / ask
 
 Detail drawer is **long** (recurrence, deps, scheduling, labels, Time Map, …). Operator wants **collapsible sections** — collapsed by default, expand when needed — similar to Settings accordion pattern.
 
-### Current behavior
+### Current behavior (shipped)
 
-- [DEF-016](./DEFECTS.md#def-016--task-detail-save-affordance-scroll-fatigue) shipped sticky Save — helps commit, not scan.
-- All sections expanded in one scroll column.
-
-### Expected (when built)
-
-- Section headers: Scheduling, Recurrence, Dependencies, Labels, Advanced (names TBD).
-- Remember expanded state per section (localStorage optional).
-- Mobile sheet: same pattern; no regression on Save affordance.
-
-### Notes
-
-Orthogonal to [DEF-008](./DEFECTS.md#def-008--resizable-task-detail-right-panel) (wider panel). Mentioned as option in DEF-016 design table — now its own track at P3.
-
+- Collapsible sections: Scheduling, Recurrence, Dependencies, Labels, Advanced — collapsed by default; expand state in `localStorage` (`theplan.taskDetail.sections`).
+- Title / description / priority / dates / delete stay always visible; sticky Save unchanged.

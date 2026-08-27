@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTaskReminder,
@@ -37,6 +37,81 @@ interface TaskDetailPanelProps {
 }
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
+
+type DetailSectionId =
+  | "scheduling"
+  | "recurrence"
+  | "dependencies"
+  | "labels"
+  | "advanced";
+
+const SECTION_STORAGE_KEY = "theplan.taskDetail.sections";
+
+const DEFAULT_SECTION_OPEN: Record<DetailSectionId, boolean> = {
+  scheduling: false,
+  recurrence: false,
+  dependencies: false,
+  labels: false,
+  advanced: false,
+};
+
+function readSectionOpenState(): Record<DetailSectionId, boolean> {
+  try {
+    const raw = localStorage.getItem(SECTION_STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_SECTION_OPEN };
+    const parsed = JSON.parse(raw) as Partial<Record<DetailSectionId, boolean>>;
+    return { ...DEFAULT_SECTION_OPEN, ...parsed };
+  } catch {
+    return { ...DEFAULT_SECTION_OPEN };
+  }
+}
+
+function writeSectionOpenState(state: Record<DetailSectionId, boolean>) {
+  try {
+    localStorage.setItem(SECTION_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function DetailSection({
+  id,
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  id: DetailSectionId;
+  title: string;
+  open: boolean;
+  onToggle: (id: DetailSectionId) => void;
+  children: ReactNode;
+}) {
+  const toggleId = `detail-section-toggle-${id}`;
+  const bodyId = `detail-section-${id}`;
+  return (
+    <section className={`detail-section${open ? " is-open" : ""}`}>
+      <button
+        type="button"
+        className="detail-section-toggle"
+        id={toggleId}
+        aria-expanded={open}
+        aria-controls={bodyId}
+        onClick={() => onToggle(id)}
+      >
+        <span className="detail-section-chevron" aria-hidden>
+          {open ? "▾" : "▸"}
+        </span>
+        <span className="detail-section-title">{title}</span>
+      </button>
+      {open ? (
+        <div className="detail-section-body" id={bodyId} role="region" aria-labelledby={toggleId}>
+          {children}
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 function toDatetimeLocal(iso: string | null): string {
   if (!iso) return "";
@@ -113,8 +188,17 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof Notification === "undefined" ? "unsupported" : Notification.permission,
   );
+  const [sectionOpen, setSectionOpen] = useState<Record<DetailSectionId, boolean>>(readSectionOpenState);
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
+
+  const toggleSection = (id: DetailSectionId) => {
+    setSectionOpen((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      writeSectionOpenState(next);
+      return next;
+    });
+  };
 
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const projects: Project[] = projectsQuery.data?.items ?? [];
@@ -499,283 +583,323 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             </span>
           </label>
 
-          <label className="field">
-            <span>Plan</span>
-            <select
-              className="field-select"
-              value={planId}
-              onChange={(e) => handlePlanChange(e.target.value)}
-            >
-              <option value="">None</option>
-              {plans.map((plan) => (
-                <option key={plan.id} value={plan.id}>
-                  {plan.name}
-                </option>
-              ))}
-            </select>
-            <span className="field-hint muted small">
-              Assigning a plan may copy its soft target onto this task
-            </span>
-          </label>
-
-          <fieldset className="field recurrence-fieldset">
-            <legend>Recurrence</legend>
-            {task.recurrence?.display && (
-              <p className="muted small recurrence-current">{task.recurrence.display}</p>
-            )}
+          <DetailSection
+            id="scheduling"
+            title="Scheduling"
+            open={sectionOpen.scheduling}
+            onToggle={toggleSection}
+          >
             <label className="field">
-              <span>Pattern</span>
-              <input
-                type="text"
-                value={recurrenceText}
-                onChange={(e) => setRecurrenceText(e.target.value)}
-                placeholder="every monday, wednesday"
-              />
-              <span className="field-hint muted small">
-                Use every / every! plus day, week, or weekdays. Optional frame below.
-              </span>
-            </label>
-            <div className="recurrence-frame-row">
-              <label className="field">
-                <span>From</span>
-                <input
-                  type="date"
-                  value={startsOn}
-                  onChange={(e) => setStartsOn(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>Until</span>
-                <input
-                  type="date"
-                  value={endsOn}
-                  onChange={(e) => setEndsOn(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn secondary small"
-                disabled={!task.recurrence || clearRecurrenceMutation.isPending}
-                onClick={() => clearRecurrenceMutation.mutate()}
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                className="btn primary small"
-                disabled={recurrenceMutation.isPending}
-                onClick={() => recurrenceMutation.mutate()}
-              >
-                {recurrenceMutation.isPending ? "Saving…" : "Save recurrence"}
-              </button>
-            </div>
-          </fieldset>
-
-          <fieldset className="field recurrence-fieldset">
-            <legend>Reminders</legend>
-            {upcomingReminders.length > 0 ? (
-              <ul className="reminder-list">
-                {upcomingReminders.map((reminder) => (
-                  <li key={reminder.id} className="reminder-row">
-                    <span>
-                      {new Date(reminder.fire_at).toLocaleString(undefined, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                      <span className="muted small"> · {reminder.channel === "browser" ? "browser" : "in-app"}</span>
-                    </span>
-                    <button
-                      type="button"
-                      className="btn secondary small"
-                      disabled={deleteReminderMutation.isPending}
-                      onClick={() => deleteReminderMutation.mutate(reminder.id)}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted small">No upcoming reminders</p>
-            )}
-            <div className="reminder-add-row">
-              <label className="field">
-                <span>When</span>
-                <input
-                  type="datetime-local"
-                  className="field-datetime"
-                  value={reminderAtLocal}
-                  onChange={(e) => setReminderAtLocal(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>Channel</span>
-                <select
-                  className="field-select"
-                  value={reminderChannel}
-                  onChange={(e) => setReminderChannel(e.target.value as ReminderChannel)}
-                >
-                  <option value="in_app">In-app toast</option>
-                  <option value="browser">Browser notification</option>
-                </select>
-              </label>
-            </div>
-            {notifPermission !== "unsupported" && notifPermission !== "granted" && (
-              <button
-                type="button"
-                className="btn secondary small reminder-notif-btn"
-                onClick={() => void requestBrowserNotifications()}
-              >
-                Enable browser notifications
-              </button>
-            )}
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn primary small"
-                disabled={!reminderAtLocal || createReminderMutation.isPending}
-                onClick={() => createReminderMutation.mutate()}
-              >
-                {createReminderMutation.isPending ? "Adding…" : "Add reminder"}
-              </button>
-            </div>
-          </fieldset>
-
-          <label className="field">
-            <span>Duration (minutes)</span>
-            <input
-              type="number"
-              className="field-number"
-              min={0}
-              step={5}
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              placeholder="30"
-            />
-          </label>
-          <label className="field">
-            <span>Time Map</span>
-            <select
-              className="field-select"
-              value={preferredTimeWindowId}
-              onChange={(e) => setPreferredTimeWindowId(e.target.value)}
-            >
-              <option value="">None (inherit)</option>
-              {focusWindows.map((window) => (
-                <option key={window.id} value={window.id}>
-                  {window.name}
-                </option>
-              ))}
-            </select>
-            {inheritTimeMapHint && (
-              <span className="field-hint muted small">{inheritTimeMapHint}</span>
-            )}
-          </label>
-          <label className="field">
-            <span>Schedule style</span>
-            <select
-              className="field-select"
-              value={scheduleStyle}
-              onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
-            >
-              <option value="">Inherit</option>
-              <option value="standalone">Standalone</option>
-              <option value="time_block">Time block</option>
-              <option value="bundle">Bundle</option>
-              <option value="manual">Manual / backlog</option>
-            </select>
-            {inheritScheduleStyleHint && (
-              <span className="field-hint muted small">{inheritScheduleStyleHint}</span>
-            )}
-            <span className="field-hint muted small">
-              Manual / backlog and bundle tasks are excluded from Update Schedule auto-placement
-            </span>
-          </label>
-          <label className="field">
-            <span>Project</span>
-            <select
-              className="field-select"
-              value={projectId}
-              onChange={(e) => handleProjectChange(e.target.value)}
-            >
-              <option value="">Inbox</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          {projectId && (
-            <label className="field">
-              <span>Section</span>
+              <span>Plan</span>
               <select
                 className="field-select"
-                value={sectionId}
-                onChange={(e) => setSectionId(e.target.value)}
+                value={planId}
+                onChange={(e) => handlePlanChange(e.target.value)}
               >
                 <option value="">None</option>
-                {sections.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.title}
+                {plans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <span className="field-hint muted small">
+                Assigning a plan may copy its soft target onto this task
+              </span>
+            </label>
+            <label className="field">
+              <span>Duration (minutes)</span>
+              <input
+                type="number"
+                className="field-number"
+                min={0}
+                step={5}
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="30"
+              />
+            </label>
+            <label className="field">
+              <span>Time Map</span>
+              <select
+                className="field-select"
+                value={preferredTimeWindowId}
+                onChange={(e) => setPreferredTimeWindowId(e.target.value)}
+              >
+                <option value="">None (inherit)</option>
+                {focusWindows.map((window) => (
+                  <option key={window.id} value={window.id}>
+                    {window.name}
+                  </option>
+                ))}
+              </select>
+              {inheritTimeMapHint && (
+                <span className="field-hint muted small">{inheritTimeMapHint}</span>
+              )}
+            </label>
+            <label className="field">
+              <span>Schedule style</span>
+              <select
+                className="field-select"
+                value={scheduleStyle}
+                onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
+              >
+                <option value="">Inherit</option>
+                <option value="standalone">Standalone</option>
+                <option value="time_block">Time block</option>
+                <option value="bundle">Bundle</option>
+                <option value="manual">Manual / backlog</option>
+              </select>
+              {inheritScheduleStyleHint && (
+                <span className="field-hint muted small">{inheritScheduleStyleHint}</span>
+              )}
+              <span className="field-hint muted small">
+                Manual / backlog and bundle tasks are excluded from Update Schedule auto-placement
+              </span>
+            </label>
+          </DetailSection>
+
+          <DetailSection
+            id="recurrence"
+            title="Recurrence"
+            open={sectionOpen.recurrence}
+            onToggle={toggleSection}
+          >
+            <fieldset className="field recurrence-fieldset">
+              <legend className="sr-only">Recurrence</legend>
+              {task.recurrence?.display && (
+                <p className="muted small recurrence-current">{task.recurrence.display}</p>
+              )}
+              <label className="field">
+                <span>Pattern</span>
+                <input
+                  type="text"
+                  value={recurrenceText}
+                  onChange={(e) => setRecurrenceText(e.target.value)}
+                  placeholder="every monday, wednesday"
+                />
+                <span className="field-hint muted small">
+                  Use every / every! plus day, week, or weekdays. Optional frame below.
+                </span>
+              </label>
+              <div className="recurrence-frame-row">
+                <label className="field">
+                  <span>From</span>
+                  <input
+                    type="date"
+                    value={startsOn}
+                    onChange={(e) => setStartsOn(e.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span>Until</span>
+                  <input
+                    type="date"
+                    value={endsOn}
+                    onChange={(e) => setEndsOn(e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="btn secondary small"
+                  disabled={!task.recurrence || clearRecurrenceMutation.isPending}
+                  onClick={() => clearRecurrenceMutation.mutate()}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  className="btn primary small"
+                  disabled={recurrenceMutation.isPending}
+                  onClick={() => recurrenceMutation.mutate()}
+                >
+                  {recurrenceMutation.isPending ? "Saving…" : "Save recurrence"}
+                </button>
+              </div>
+            </fieldset>
+          </DetailSection>
+
+          <DetailSection
+            id="dependencies"
+            title="Dependencies"
+            open={sectionOpen.dependencies}
+            onToggle={toggleSection}
+          >
+            <label className="field">
+              <span>Project</span>
+              <select
+                className="field-select"
+                value={projectId}
+                onChange={(e) => handleProjectChange(e.target.value)}
+              >
+                <option value="">Inbox</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
                   </option>
                 ))}
               </select>
             </label>
-          )}
-          <label className="field">
-            <span>Parent task</span>
-            <select
-              className="field-select"
-              value={parentTaskId}
-              onChange={(e) => setParentTaskId(e.target.value)}
-            >
-              <option value="">None (top-level)</option>
-              {parentOptions.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <fieldset className="field">
-            <legend>Labels</legend>
-            {allLabels.length === 0 && (
-              <p className="muted small">No labels yet. Create labels from the sidebar.</p>
+            {projectId && (
+              <label className="field">
+                <span>Section</span>
+                <select
+                  className="field-select"
+                  value={sectionId}
+                  onChange={(e) => setSectionId(e.target.value)}
+                >
+                  <option value="">None</option>
+                  {sections.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
             )}
-            <div className="label-toggle-group" role="group" aria-label="Task labels">
-              {allLabels.map((label) => {
-                const selected = labelIds.includes(label.id);
-                return (
-                  <button
-                    key={label.id}
-                    type="button"
-                    className={`label-toggle${selected ? " selected" : ""}`}
-                    style={
-                      selected
-                        ? {
-                            backgroundColor: `color-mix(in srgb, ${label.color_hex} 22%, transparent)`,
-                            borderColor: label.color_hex,
-                            color: label.color_hex,
-                          }
-                        : { borderColor: label.color_hex, color: label.color_hex }
-                    }
-                    aria-pressed={selected}
-                    onClick={() => toggleLabel(label.id)}
+            <label className="field">
+              <span>Parent task</span>
+              <select
+                className="field-select"
+                value={parentTaskId}
+                onChange={(e) => setParentTaskId(e.target.value)}
+              >
+                <option value="">None (top-level)</option>
+                {parentOptions.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </DetailSection>
+
+          <DetailSection
+            id="labels"
+            title="Labels"
+            open={sectionOpen.labels}
+            onToggle={toggleSection}
+          >
+            <fieldset className="field">
+              <legend className="sr-only">Labels</legend>
+              {allLabels.length === 0 && (
+                <p className="muted small">No labels yet. Create labels from the sidebar.</p>
+              )}
+              <div className="label-toggle-group" role="group" aria-label="Task labels">
+                {allLabels.map((label) => {
+                  const selected = labelIds.includes(label.id);
+                  return (
+                    <button
+                      key={label.id}
+                      type="button"
+                      className={`label-toggle${selected ? " selected" : ""}`}
+                      style={
+                        selected
+                          ? {
+                              backgroundColor: `color-mix(in srgb, ${label.color_hex} 22%, transparent)`,
+                              borderColor: label.color_hex,
+                              color: label.color_hex,
+                            }
+                          : { borderColor: label.color_hex, color: label.color_hex }
+                      }
+                      aria-pressed={selected}
+                      onClick={() => toggleLabel(label.id)}
+                    >
+                      <span
+                        className="label-swatch tiny"
+                        style={{ backgroundColor: label.color_hex }}
+                        aria-hidden
+                      />
+                      {label.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          </DetailSection>
+
+          <DetailSection
+            id="advanced"
+            title="Advanced"
+            open={sectionOpen.advanced}
+            onToggle={toggleSection}
+          >
+            <fieldset className="field recurrence-fieldset">
+              <legend>Reminders</legend>
+              {upcomingReminders.length > 0 ? (
+                <ul className="reminder-list">
+                  {upcomingReminders.map((reminder) => (
+                    <li key={reminder.id} className="reminder-row">
+                      <span>
+                        {new Date(reminder.fire_at).toLocaleString(undefined, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                        <span className="muted small">
+                          {" "}
+                          · {reminder.channel === "browser" ? "browser" : "in-app"}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        className="btn secondary small"
+                        disabled={deleteReminderMutation.isPending}
+                        onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted small">No upcoming reminders</p>
+              )}
+              <div className="reminder-add-row">
+                <label className="field">
+                  <span>When</span>
+                  <input
+                    type="datetime-local"
+                    className="field-datetime"
+                    value={reminderAtLocal}
+                    onChange={(e) => setReminderAtLocal(e.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span>Channel</span>
+                  <select
+                    className="field-select"
+                    value={reminderChannel}
+                    onChange={(e) => setReminderChannel(e.target.value as ReminderChannel)}
                   >
-                    <span
-                      className="label-swatch tiny"
-                      style={{ backgroundColor: label.color_hex }}
-                      aria-hidden
-                    />
-                    {label.name}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+                    <option value="in_app">In-app toast</option>
+                    <option value="browser">Browser notification</option>
+                  </select>
+                </label>
+              </div>
+              {notifPermission !== "unsupported" && notifPermission !== "granted" && (
+                <button
+                  type="button"
+                  className="btn secondary small reminder-notif-btn"
+                  onClick={() => void requestBrowserNotifications()}
+                >
+                  Enable browser notifications
+                </button>
+              )}
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="btn primary small"
+                  disabled={!reminderAtLocal || createReminderMutation.isPending}
+                  onClick={() => createReminderMutation.mutate()}
+                >
+                  {createReminderMutation.isPending ? "Adding…" : "Add reminder"}
+                </button>
+              </div>
+            </fieldset>
+          </DetailSection>
+
           {updateMutation.isError && (
             <p className="form-error">{(updateMutation.error as Error).message}</p>
           )}

@@ -6,7 +6,8 @@ export type ViewSelection =
   | { type: "project"; projectId: string }
   | { type: "epic"; epicId: string }
   | { type: "labels" }
-  | { type: "label"; labelId: string };
+  | { type: "label"; labelId: string }
+  | { type: "archived" };
 
 export function viewKey(view: ViewSelection): string {
   switch (view.type) {
@@ -26,6 +27,8 @@ export function viewKey(view: ViewSelection): string {
       return "labels";
     case "label":
       return `label:${view.labelId}`;
+    case "archived":
+      return "archived";
   }
 }
 
@@ -50,6 +53,8 @@ export function viewTitle(
       return "Labels";
     case "label":
       return options?.labelName ?? "Label";
+    case "archived":
+      return "Archived";
   }
 }
 

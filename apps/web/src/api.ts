@@ -557,6 +557,10 @@ export function archiveEpic(epicId: string) {
   return apiFetch<Epic>(`/api/v1/epics/${epicId}/archive`, { method: "POST" });
 }
 
+export function unarchiveEpic(epicId: string) {
+  return apiFetch<Epic>(`/api/v1/epics/${epicId}/unarchive`, { method: "POST" });
+}
+
 export function fetchProjects(params?: {
   epic_id?: string;
   archived?: boolean;
@@ -583,6 +587,10 @@ export function deleteProject(projectId: string) {
 
 export function archiveProject(projectId: string) {
   return apiFetch<Project>(`/api/v1/projects/${projectId}/archive`, { method: "POST" });
+}
+
+export function unarchiveProject(projectId: string) {
+  return apiFetch<Project>(`/api/v1/projects/${projectId}/unarchive`, { method: "POST" });
 }
 
 export function fetchSections(projectId: string) {

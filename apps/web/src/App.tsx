@@ -4,6 +4,7 @@ import { fetchEpics, fetchProjects, fetchTask } from "./api";
 import { useAuth } from "./auth";
 import { CalendarView } from "./components/CalendarView";
 import { HelpOverlay } from "./components/HelpOverlay";
+import { ArchivedView } from "./components/ArchivedView";
 import { LabelsManagement } from "./components/LabelsManagement";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
 import { AssistPanel } from "./components/AssistPanel";
@@ -54,8 +55,9 @@ function AppInner() {
         ? epics.find((e) => e.id === view.epicId)?.title
         : undefined;
 
-  const showTaskList = view.type !== "labels" && view.type !== "calendar";
   const showCalendar = view.type === "calendar";
+  const showArchived = view.type === "archived";
+  const showLabels = view.type === "labels";
 
   const selectedTaskQuery = useQuery({
     queryKey: ["task", selectedTaskId],
@@ -227,15 +229,17 @@ function AppInner() {
           <main className="main-content">
             {showCalendar ? (
               <CalendarView />
-            ) : showTaskList ? (
+            ) : showArchived ? (
+              <ArchivedView />
+            ) : showLabels ? (
+              <LabelsManagement />
+            ) : (
               <TaskList
                 view={view}
                 projectTitle={projectTitle}
                 selectedTaskId={selectedTaskId}
                 onSelectTask={setSelectedTaskId}
               />
-            ) : (
-              <LabelsManagement />
             )}
           </main>
           {selectedTaskId && (
