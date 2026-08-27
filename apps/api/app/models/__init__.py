@@ -399,6 +399,8 @@ class ScheduledBlock(Base, TimestampMixin):
     start_time: Mapped[datetime] = mapped_column(nullable=False)
     end_time: Mapped[datetime] = mapped_column(nullable=False)
     is_pinned: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    # ADR-012 / DEF-019: nullable JSONB aggregate membership; null = ordinary block.
+    bundle_meta: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     task: Mapped["Task"] = relationship(back_populates="scheduled_blocks")
 

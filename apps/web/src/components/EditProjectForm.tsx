@@ -5,6 +5,7 @@ import {
   deleteProject,
   fetchEpics,
   fetchFocusWindows,
+  promoteProjectToEpic,
   updateProject,
   type FocusWindow,
   type Project,
@@ -31,6 +32,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
   const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmPromote, setConfirmPromote] = useState(false);
   const queryClient = useQueryClient();
 
   const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics() });
@@ -56,6 +58,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["projects"] });
+    queryClient.invalidateQueries({ queryKey: ["epics"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
   };
 
@@ -98,6 +101,16 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
     },
   });
 
+  const promoteMutation = useMutation({
+    mutationFn: () => promoteProjectToEpic(project!.id),
+    onSuccess: (result) => {
+      invalidate();
+      onSelectView({ type: "epic", epicId: result.epic.id });
+      setConfirmPromote(false);
+      onClose();
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = title.trim();
@@ -112,7 +125,11 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
     });
   };
 
-  const error = updateMutation.error ?? archiveMutation.error ?? deleteMutation.error;
+  const error =
+    updateMutation.error ??
+    archiveMutation.error ??
+    deleteMutation.error ??
+    promoteMutation.error;
 
   return (
     <>
@@ -197,6 +214,13 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
           <div className="form-actions destructive-row">
             <button
               type="button"
+              className="btn ghost"
+              onClick={() => setConfirmPromote(true)}
+            >
+              Promote to epic
+            </button>
+            <button
+              type="button"
               className="btn ghost danger-text"
               onClick={() => setConfirmArchive(true)}
             >
@@ -212,6 +236,16 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={confirmPromote}
+        title="Promote to epic?"
+        message={`Create an epic from "${project?.title}" and keep this project (same id, all tasks) as its child. You can rename the project afterward if you want a "General" bucket.`}
+        confirmLabel="Promote"
+        pending={promoteMutation.isPending}
+        onClose={() => setConfirmPromote(false)}
+        onConfirm={() => promoteMutation.mutate()}
+      />
 
       <ConfirmDialog
         open={confirmArchive}

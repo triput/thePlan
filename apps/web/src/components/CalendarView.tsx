@@ -76,6 +76,9 @@ interface BlockFormState {
   endLocal: string;
   isPinned: boolean;
   blockId?: string;
+  isBundle?: boolean;
+  memberCount?: number;
+  bundleInactive?: boolean;
 }
 
 type ActiveDrag =
@@ -168,21 +171,36 @@ function BlockFormModal({
   const endDate = fromDatetimeLocalValue(form.endLocal);
   const canReleaseRemainder =
     Boolean(onReleaseRemainder) && endDate.getTime() > Date.now();
+  const deleteLabel = form.bundleInactive
+    ? "Remove bundle"
+    : form.isBundle
+      ? "Delete bundle"
+      : "Delete";
 
   return (
     <Modal open={open} title={title} onClose={onClose}>
       <div className="entity-form">
-        {blockTask?.is_completed && (
+        {form.isBundle && (
+          <p className="muted small" role="status">
+            Calendar bundle
+            {form.memberCount != null ? ` · ${form.memberCount} members` : ""}
+            {form.bundleInactive
+              ? " — members done or gone; safe to remove (tasks stay)."
+              : " — one block on the calendar; members stay individual in lists."}
+          </p>
+        )}
+        {blockTask?.is_completed && !form.isBundle && (
           <p className="muted small" role="status">
             Task completed — release unused time so replan can use the rest of this slot.
           </p>
         )}
         <label className="field">
-          <span>Task</span>
+          <span>{form.isBundle ? "Anchor task" : "Task"}</span>
           <select
             className="field-select"
             value={form.taskId}
             onChange={(e) => onChange({ ...form, taskId: e.target.value })}
+            disabled={form.isBundle}
           >
             <option value="">Select a task…</option>
             {tasks.map((t) => (
@@ -233,7 +251,7 @@ function BlockFormModal({
           )}
           {onDelete && (
             <button type="button" className="btn danger" onClick={onDelete} disabled={deleting || saving}>
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? "Deleting…" : deleteLabel}
             </button>
           )}
           <button type="button" className="btn ghost" onClick={onClose}>
@@ -385,12 +403,16 @@ function ScheduledBlockItem({
   const top = topPercentForTime(start, bounds);
   const height = heightPercentForDuration(blockDurationMinutes(start, end), bounds);
   const dragging = Boolean(previewStart || previewEnd);
+  const isBundle = Boolean(block.bundle_meta?.kind === "bundle");
+  const inactive = Boolean(block.bundle_inactive) || Boolean(isCompleted);
+  const titleBase = task?.title ?? "Scheduled block";
+  const displayTitle = isBundle ? `${titleBase} · bundle` : titleBase;
 
   return (
     <div
       role="button"
       tabIndex={0}
-      className={`cal-block${block.is_pinned ? " pinned" : ""}${hasConflict ? " conflict" : ""}${isCompleted ? " completed" : ""}${dragging ? " dragging" : ""}`}
+      className={`cal-block${block.is_pinned ? " pinned" : ""}${hasConflict ? " conflict" : ""}${inactive ? " completed" : ""}${isBundle ? " bundle" : ""}${dragging ? " dragging" : ""}`}
       style={{
         top: `${top}%`,
         height: `${height}%`,
@@ -399,10 +421,10 @@ function ScheduledBlockItem({
       }}
       title={
         hasConflict
-          ? `${task?.title ?? "Scheduled block"} — schedule conflict`
+          ? `${displayTitle} — schedule conflict`
           : dragEnabled
-            ? `${task?.title ?? "Scheduled block"} — drag to move, bottom edge to resize`
-            : (task?.title ?? "Scheduled block")
+            ? `${displayTitle} — drag to move, bottom edge to resize`
+            : displayTitle
       }
       onClick={(e) => {
         e.stopPropagation();
@@ -422,7 +444,7 @@ function ScheduledBlockItem({
         onMoveStart(block, e.clientY);
       }}
     >
-      <span className="cal-block-title">{task?.title ?? "Block"}</span>
+      <span className="cal-block-title">{displayTitle}</span>
       {block.is_pinned && <span className="cal-block-pin" aria-label="Pinned">📌</span>}
       {dragEnabled && (
         <span
@@ -579,7 +601,7 @@ function DayColumn({
                 previewEnd={preview?.previewEnd}
                 dragEnabled={dragEnabled}
                 hasConflict={conflictingBlockIds.has(block.id)}
-                isCompleted={task?.is_completed}
+                isCompleted={Boolean(block.bundle_inactive) || Boolean(task?.is_completed)}
                 onClick={() => onBlockClick(block)}
                 onMoveStart={onBlockMoveStart}
                 onResizeStart={onBlockResizeStart}
@@ -999,12 +1021,16 @@ export function CalendarView() {
   const openEdit = (block: ScheduledBlock) => {
     if (suppressClickRef.current) return;
     setFormMode("edit");
+    const memberCount = block.bundle_meta?.member_task_ids?.length;
     setBlockForm({
       blockId: block.id,
       taskId: block.task_id,
       startLocal: toDatetimeLocalValue(new Date(block.start_time)),
       endLocal: toDatetimeLocalValue(new Date(block.end_time)),
       isPinned: block.is_pinned,
+      isBundle: block.bundle_meta?.kind === "bundle",
+      memberCount,
+      bundleInactive: Boolean(block.bundle_inactive),
     });
   };
 
@@ -1284,7 +1310,13 @@ export function CalendarView() {
 
       <BlockFormModal
         open={blockForm !== null}
-        title={formMode === "edit" ? "Edit scheduled block" : "Schedule task"}
+        title={
+          formMode === "edit"
+            ? blockForm?.isBundle
+              ? "Edit calendar bundle"
+              : "Edit scheduled block"
+            : "Schedule task"
+        }
         form={blockForm}
         tasks={formTasks}
         blockTask={blockFormTask}

@@ -4,9 +4,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.api.errors import ApiError
 from app.db import get_db
 from app.models import Epic, User
-from app.schemas import EpicCreate, EpicOut, EpicUpdate, PaginatedResponse
+from app.schemas import (
+    EpicCreate,
+    EpicDemoteToProjectBody,
+    EpicDemoteToProjectOut,
+    EpicOut,
+    EpicUpdate,
+    PaginatedResponse,
+    ProjectOut,
+)
+from app.services.hierarchy_promote import demote_epic_to_project
 from app.services.ownership import verify_owned_focus_window
 
 router = APIRouter(prefix="/epics", tags=["epics"])
@@ -127,3 +137,30 @@ def unarchive_epic(
     db.commit()
     db.refresh(epic)
     return EpicOut.model_validate(epic)
+
+
+@router.post("/{epic_id}/demote-to-project", response_model=EpicDemoteToProjectOut)
+def demote_epic_to_project_endpoint(
+    epic_id: UUID,
+    body: EpicDemoteToProjectBody | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> EpicDemoteToProjectOut:
+    """DEF-023: fold epic into a new project; orphan former child projects."""
+    epic = _get_owned_epic(db, epic_id, user)
+    payload = body or EpicDemoteToProjectBody()
+    try:
+        project, orphaned_ids = demote_epic_to_project(
+            db,
+            epic,
+            user.id,
+            target_epic_id=payload.target_epic_id,
+        )
+    except ApiError as exc:
+        raise exc
+    db.commit()
+    db.refresh(project)
+    return EpicDemoteToProjectOut(
+        project=ProjectOut.model_validate(project),
+        orphaned_project_ids=orphaned_ids,
+    )

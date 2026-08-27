@@ -379,6 +379,12 @@ export interface LabelUpdate {
   color_hex?: string;
 }
 
+export interface BundleMeta {
+  kind: "bundle";
+  member_task_ids: string[];
+  source: "selection" | "parent_subtree";
+}
+
 export interface ScheduledBlock {
   id: string;
   task_id: string;
@@ -387,6 +393,8 @@ export interface ScheduledBlock {
   is_pinned: boolean;
   created_at: string;
   updated_at: string;
+  bundle_meta?: BundleMeta | null;
+  bundle_inactive?: boolean;
 }
 
 export interface ScheduledBlockCreate {
@@ -394,6 +402,14 @@ export interface ScheduledBlockCreate {
   start_time: string;
   end_time: string;
   is_pinned?: boolean;
+}
+
+export interface ScheduledBlockBundleCreate {
+  start_time: string;
+  end_time?: string | null;
+  is_pinned?: boolean;
+  member_task_ids?: string[];
+  parent_task_id?: string;
 }
 
 export interface ScheduledBlockUpdate {
@@ -562,6 +578,23 @@ export function unarchiveEpic(epicId: string) {
   return apiFetch<Epic>(`/api/v1/epics/${epicId}/unarchive`, { method: "POST" });
 }
 
+export interface EpicDemoteToProjectBody {
+  target_epic_id?: string | null;
+}
+
+export interface EpicDemoteToProjectResult {
+  project: Project;
+  orphaned_project_ids: string[];
+}
+
+/** DEF-023: fold epic into a new project; former child projects become standalone. */
+export function demoteEpicToProject(epicId: string, body?: EpicDemoteToProjectBody) {
+  return apiFetch<EpicDemoteToProjectResult>(`/api/v1/epics/${epicId}/demote-to-project`, {
+    method: "POST",
+    body: JSON.stringify(body ?? {}),
+  });
+}
+
 export function fetchProjects(params?: {
   epic_id?: string;
   archived?: boolean;
@@ -592,6 +625,36 @@ export function archiveProject(projectId: string) {
 
 export function unarchiveProject(projectId: string) {
   return apiFetch<Project>(`/api/v1/projects/${projectId}/unarchive`, { method: "POST" });
+}
+
+export interface ProjectPromoteToEpicResult {
+  epic: Epic;
+  project: Project;
+}
+
+/** DEF-023: create epic from project meta; keep project UUID under the new epic. */
+export function promoteProjectToEpic(projectId: string) {
+  return apiFetch<ProjectPromoteToEpicResult>(`/api/v1/projects/${projectId}/promote-to-epic`, {
+    method: "POST",
+  });
+}
+
+export interface TaskPromoteToProjectBody {
+  include_descendants?: boolean;
+  epic_id?: string | null;
+}
+
+export interface TaskPromoteToProjectResult {
+  project: Project;
+  task: Task;
+}
+
+/** DEF-023: create a project from a task; move task (+ descendants by default) into it. */
+export function promoteTaskToProject(taskId: string, body?: TaskPromoteToProjectBody) {
+  return apiFetch<TaskPromoteToProjectResult>(`/api/v1/tasks/${taskId}/promote-to-project`, {
+    method: "POST",
+    body: JSON.stringify(body ?? { include_descendants: true }),
+  });
 }
 
 export function fetchSections(projectId: string) {
@@ -1009,6 +1072,13 @@ export function fetchScheduledBlock(blockId: string) {
 
 export function createScheduledBlock(body: ScheduledBlockCreate) {
   return apiFetch<ScheduledBlock>("/api/v1/scheduled-blocks", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function createScheduledBlockBundle(body: ScheduledBlockBundleCreate) {
+  return apiFetch<ScheduledBlock>("/api/v1/scheduled-blocks/bundle", {
     method: "POST",
     body: JSON.stringify(body),
   });

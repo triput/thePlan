@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   archiveEpic,
   deleteEpic,
+  demoteEpicToProject,
   fetchFocusWindows,
   updateEpic,
   type Epic,
@@ -25,6 +26,7 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
   const [scheduleStyle, setScheduleStyle] = useState<"" | ScheduleStyle>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmDemote, setConfirmDemote] = useState(false);
   const queryClient = useQueryClient();
 
   const focusWindowsQuery = useQuery({
@@ -43,7 +45,10 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
     }
   }, [epic]);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["epics"] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["epics"] });
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+  };
 
   const updateMutation = useMutation({
     mutationFn: (body: {
@@ -77,6 +82,15 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
     },
   });
 
+  const demoteMutation = useMutation({
+    mutationFn: () => demoteEpicToProject(epic!.id),
+    onSuccess: () => {
+      invalidate();
+      setConfirmDemote(false);
+      onClose();
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = title.trim();
@@ -89,7 +103,11 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
     });
   };
 
-  const error = updateMutation.error ?? archiveMutation.error ?? deleteMutation.error;
+  const error =
+    updateMutation.error ??
+    archiveMutation.error ??
+    deleteMutation.error ??
+    demoteMutation.error;
 
   return (
     <>
@@ -149,6 +167,13 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
           <div className="form-actions destructive-row">
             <button
               type="button"
+              className="btn ghost"
+              onClick={() => setConfirmDemote(true)}
+            >
+              Demote to project
+            </button>
+            <button
+              type="button"
               className="btn ghost danger-text"
               onClick={() => setConfirmArchive(true)}
             >
@@ -164,6 +189,17 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={confirmDemote}
+        title="Demote to project?"
+        message={`Turn "${epic?.title}" into a standalone project and remove the epic. Child projects become standalone (orphaned). Tasks stay on those projects — the new project shell starts empty.`}
+        confirmLabel="Demote"
+        destructive
+        pending={demoteMutation.isPending}
+        onClose={() => setConfirmDemote(false)}
+        onConfirm={() => demoteMutation.mutate()}
+      />
 
       <ConfirmDialog
         open={confirmArchive}

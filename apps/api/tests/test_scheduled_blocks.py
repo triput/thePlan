@@ -254,6 +254,140 @@ def test_clear_unpinned_blocks_in_range(client: TestClient) -> None:
     assert client.get(f"/api/v1/scheduled-blocks/{outside['id']}").status_code == 200
 
 
+def test_create_bundle_from_selection_sums_estimates(client: TestClient) -> None:
+    a = client.post(
+        "/api/v1/tasks",
+        json={"title": f"bundle-a-{_uid()}", "estimated_duration_minutes": 20},
+    ).json()
+    b = client.post(
+        "/api/v1/tasks",
+        json={"title": f"bundle-b-{_uid()}", "estimated_duration_minutes": 40},
+    ).json()
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+
+    created = client.post(
+        "/api/v1/scheduled-blocks/bundle",
+        json={
+            "member_task_ids": [a["id"], b["id"]],
+            "start_time": _iso(start),
+        },
+    )
+    assert created.status_code == 201, created.text
+    block = created.json()
+    assert block["task_id"] == a["id"]
+    assert block["bundle_meta"]["kind"] == "bundle"
+    assert block["bundle_meta"]["source"] == "selection"
+    assert set(block["bundle_meta"]["member_task_ids"]) == {a["id"], b["id"]}
+    assert block["bundle_inactive"] is False
+    assert block["end_time"].startswith("2026-08-11T10:00:00")
+
+    # DEF-020: release-remainder works on aggregate rows like ordinary blocks
+    released = client.post(
+        f"/api/v1/scheduled-blocks/{block['id']}/release-remainder",
+        json={"at": _iso(start + timedelta(minutes=15))},
+    )
+    assert released.status_code == 200, released.text
+    assert released.json()["deleted"] is False
+    assert released.json()["block"]["bundle_meta"]["kind"] == "bundle"
+
+
+def test_create_bundle_from_parent_subtree(client: TestClient) -> None:
+    parent = client.post(
+        "/api/v1/tasks",
+        json={"title": f"bundle-parent-{_uid()}", "estimated_duration_minutes": 10},
+    ).json()
+    child = client.post(
+        "/api/v1/tasks",
+        json={
+            "title": f"bundle-child-{_uid()}",
+            "parent_task_id": parent["id"],
+            "estimated_duration_minutes": 45,
+        },
+    ).json()
+    start = datetime(2026, 8, 11, 14, 0, tzinfo=UTC)
+
+    created = client.post(
+        "/api/v1/scheduled-blocks/bundle",
+        json={"parent_task_id": parent["id"], "start_time": _iso(start)},
+    )
+    assert created.status_code == 201, created.text
+    block = created.json()
+    assert block["task_id"] == parent["id"]
+    assert block["bundle_meta"]["source"] == "parent_subtree"
+    assert block["bundle_meta"]["member_task_ids"] == [child["id"]]
+    assert block["end_time"].startswith("2026-08-11T14:45:00")
+
+
+def test_bundle_grays_when_members_complete_and_delete_keeps_tasks(client: TestClient) -> None:
+    a = client.post(
+        "/api/v1/tasks",
+        json={"title": f"gray-a-{_uid()}", "estimated_duration_minutes": 30},
+    ).json()
+    b = client.post(
+        "/api/v1/tasks",
+        json={"title": f"gray-b-{_uid()}", "estimated_duration_minutes": 30},
+    ).json()
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    block = client.post(
+        "/api/v1/scheduled-blocks/bundle",
+        json={
+            "member_task_ids": [a["id"], b["id"]],
+            "start_time": _iso(start),
+            "end_time": _iso(start + timedelta(hours=1)),
+        },
+    ).json()
+    assert block["bundle_inactive"] is False
+
+    assert (
+        client.post(f"/api/v1/tasks/{a['id']}/complete", json={"bulk_children": False}).status_code
+        == 200
+    )
+    mid = client.get(f"/api/v1/scheduled-blocks/{block['id']}")
+    assert mid.status_code == 200
+    assert mid.json()["bundle_inactive"] is False
+
+    assert (
+        client.post(f"/api/v1/tasks/{b['id']}/complete", json={"bulk_children": False}).status_code
+        == 200
+    )
+    done = client.get(f"/api/v1/scheduled-blocks/{block['id']}")
+    assert done.status_code == 200
+    assert done.json()["bundle_inactive"] is True
+
+    deleted = client.delete(f"/api/v1/scheduled-blocks/{block['id']}")
+    assert deleted.status_code == 204
+    assert client.get(f"/api/v1/scheduled-blocks/{block['id']}").status_code == 404
+    assert client.get(f"/api/v1/tasks/{a['id']}").status_code == 200
+    assert client.get(f"/api/v1/tasks/{b['id']}").status_code == 200
+    assert client.get(f"/api/v1/tasks/{a['id']}").json()["is_completed"] is True
+
+
+def test_clear_unpinned_deletes_bundle_row(client: TestClient) -> None:
+    a = _create_task(client)
+    b = _create_task(client)
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    block = client.post(
+        "/api/v1/scheduled-blocks/bundle",
+        json={
+            "member_task_ids": [a["id"], b["id"]],
+            "start_time": _iso(start),
+            "end_time": _iso(start + timedelta(hours=1)),
+        },
+    ).json()
+
+    cleared = client.post(
+        "/api/v1/scheduled-blocks/clear-unpinned",
+        json={
+            "start": _iso(datetime(2026, 8, 11, 0, 0, tzinfo=UTC)),
+            "end": _iso(datetime(2026, 8, 12, 0, 0, tzinfo=UTC)),
+        },
+    )
+    assert cleared.status_code == 200
+    assert cleared.json()["deleted_count"] >= 1
+    assert client.get(f"/api/v1/scheduled-blocks/{block['id']}").status_code == 404
+    assert client.get(f"/api/v1/tasks/{a['id']}").status_code == 200
+
+
 def test_list_tasks_by_ids(client: TestClient) -> None:
     a = _create_task(client, "alpha")
     b = _create_task(client, "beta")

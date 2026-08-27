@@ -10,6 +10,7 @@ from app.db import get_db
 from app.models import Label, Plan, Project, RecurrenceRule, Reminder, Task, TaskLabel, User
 from app.schemas import (
     PaginatedResponse,
+    ProjectOut,
     RecurrenceOut,
     RecurrenceUpsert,
     ReminderCreate,
@@ -20,9 +21,12 @@ from app.schemas import (
     TaskCompleteBody,
     TaskCreate,
     TaskOut,
+    TaskPromoteToProjectBody,
+    TaskPromoteToProjectOut,
     TaskUpdate,
 )
 from app.services.auth_users import get_or_provision_user_settings
+from app.services.hierarchy_promote import promote_task_to_project
 from app.services.ownership import (
     verify_owned_focus_window,
     verify_owned_plan,
@@ -501,6 +505,34 @@ def restore_task(
         raise exc
     db.commit()
     return task_to_out(_get_owned_task(db, task.id, user), db)
+
+
+@router.post("/{task_id}/promote-to-project", response_model=TaskPromoteToProjectOut)
+def promote_task_to_project_endpoint(
+    task_id: UUID,
+    body: TaskPromoteToProjectBody | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TaskPromoteToProjectOut:
+    """DEF-023: create project from task; move task (+ descendants by default) into it."""
+    task = _get_owned_task(db, task_id, user)
+    payload = body or TaskPromoteToProjectBody()
+    try:
+        project, task = promote_task_to_project(
+            db,
+            task,
+            user.id,
+            include_descendants=payload.include_descendants,
+            epic_id=payload.epic_id,
+        )
+    except ApiError as exc:
+        raise exc
+    db.commit()
+    db.refresh(project)
+    return TaskPromoteToProjectOut(
+        project=ProjectOut.model_validate(project),
+        task=task_to_out(_get_owned_task(db, task.id, user), db),
+    )
 
 
 @router.post("/{task_id}/complete", response_model=TaskOut)

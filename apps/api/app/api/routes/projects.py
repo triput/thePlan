@@ -5,8 +5,17 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db import get_db
-from app.models import Epic, Project, User
-from app.schemas import PaginatedResponse, ProjectCreate, ProjectOut, ProjectUpdate, ReorderRequest
+from app.models import Project, User
+from app.schemas import (
+    EpicOut,
+    PaginatedResponse,
+    ProjectCreate,
+    ProjectOut,
+    ProjectPromoteToEpicOut,
+    ProjectUpdate,
+    ReorderRequest,
+)
+from app.services.hierarchy_promote import promote_project_to_epic
 from app.services.ownership import verify_owned_epic, verify_owned_focus_window
 from app.services.reorder import batch_reorder_sort_order
 
@@ -149,3 +158,21 @@ def unarchive_project(
     db.commit()
     db.refresh(project)
     return ProjectOut.model_validate(project)
+
+
+@router.post("/{project_id}/promote-to-epic", response_model=ProjectPromoteToEpicOut)
+def promote_project_to_epic_endpoint(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ProjectPromoteToEpicOut:
+    """DEF-023: create epic from project meta; keep project UUID under the new epic."""
+    project = _get_owned_project(db, project_id, user)
+    epic, project = promote_project_to_epic(db, project, user.id)
+    db.commit()
+    db.refresh(epic)
+    db.refresh(project)
+    return ProjectPromoteToEpicOut(
+        epic=EpicOut.model_validate(epic),
+        project=ProjectOut.model_validate(project),
+    )

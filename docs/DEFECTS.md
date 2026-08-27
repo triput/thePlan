@@ -43,10 +43,10 @@ Client forest DFS in `taskForest.ts` / `TaskList`: parent then children by sibli
 | Field | Value |
 |-------|--------|
 | **Severity** | **P4** (UX polish; IANA text works) |
-| **Status** | Open |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-11 |
 | **Surface** | Settings → Scheduling defaults → Timezone |
-| **Wave** | Bug bash / polish bundle — non-urgent |
+| **Wave** | Round 2 smash 2026-08-27 |
 
 ### Symptom
 
@@ -55,6 +55,10 @@ Timezone is a free-text field. Easy to typo; no discoverability of valid IANA zo
 ### Expected
 
 Dropdown (searchable preferred) of common/valid IANA timezones; still store the same string on `user_settings.timezone`.
+
+### Fix (shipped)
+
+Searchable `TimezonePicker` combobox (`Intl.supportedValuesOf('timeZone')` + fallback list); still PATCHes `user_settings.timezone`.
 
 ### Notes
 
@@ -90,10 +94,10 @@ Mobile `.task-detail-panel` / sheet: `100dvh` flex column, `min-height: 0` + `ov
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (controls present but inert; workarounds exist) |
-| **Status** | Open |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-14 |
 | **Surface** | Inbox task list reorder arrows |
-| **Wave** | Bug bash / cleanup — do **not** derail W3 |
+| **Wave** | Round 2 smash 2026-08-27 |
 
 ### Symptom
 
@@ -102,6 +106,10 @@ Up/down move arrows in the **Inbox** view do not change task order (no visible r
 ### Expected
 
 Arrows swap sibling/`sort_order` with adjacent visible rows (same behavior as other list views that reorder correctly), or arrows are hidden if Inbox intentionally has no reorder.
+
+### Fix (shipped)
+
+Equal sibling `sort_order` values (common Inbox default `0`) made swaps no-ops. `buildReorderSwap` now renumbers the sibling group `0..n-1` after a move when adjacent values are equal; display order ties broken by id.
 
 ---
 
@@ -199,10 +207,10 @@ Scope large touch targets to chrome (header/nav); keep smaller targets on task-r
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (useful polish; fixed ~340px is workable) |
-| **Status** | Open — backlog |
+| **Status** | Closed — shipped 2026-08-27 |
 | **Found** | 2026-08-14 |
 | **Surface** | Task detail panel (`.task-detail-panel` / sheet) — desktop/wide layout |
-| **Wave** | Bug bash / UX polish (not wave-blocking) |
+| **Wave** | Round 2 smash 2026-08-27 |
 
 ### Symptom / ask
 
@@ -213,6 +221,10 @@ Operator wants to **drag the left edge** of the right-hand task detail sidebar t
 - Grab handle / edge drag on the panel’s inner (left) border.
 - Persist preferred width (e.g. `localStorage`) with sensible min/max clamps.
 - Narrow/mobile sheet behavior unchanged (full-bleed / overlay stays as today).
+
+### Fix (shipped)
+
+Left-edge resize handle; width in `localStorage` (`theplan.taskDetail.width`) + CSS var `--task-detail-width`; clamps; mobile sheet ignores resize.
 
 ### Notes
 
@@ -591,10 +603,10 @@ Operator: “DARE me to not have something added to do that.” Added. Pair with
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (Coursera-style 2m/7m/10m tasks clutter the calendar; operator wants one “study for an hour” block) |
-| **Status** | Open — backlog; ADR candidate |
+| **Status** | Closed — thin shipped 2026-08-27 ([ADR-012](./adr/ADR-012-calendar-bundles.md)) |
 | **Found** | 2026-08-25 |
 | **Surface** | `schedule_style.bundle`, `scheduled_blocks`, calendar UI, Update Schedule / manual bundle creation |
-| **Wave** | W2c scoped bundles or W3+ calendar UX |
+| **Wave** | Round 2 smash 2026-08-27 |
 
 ### Symptom / ask
 
@@ -602,30 +614,14 @@ Coursework often decomposes into **many short tasks** (2m, 7m, 10m, …). Operat
 
 When tasks in the bundle are **completed** or **moved/rescheduled** out of the bundle scope, the aggregate calendar block should **gray out and become removable** (or auto-shrink / dissolve when empty).
 
-### Current behavior
+### Current behavior (thin shipped)
 
-- Enum `schedule_style.bundle` exists but **bundle tasks are excluded from Update Schedule** auto-placement ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md), [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)).
-- Replan writes **one `scheduled_block` per task** for standalone/time_block styles — no knockout / materialization layer.
-- No operator-facing “create bundle block for these N tasks” flow on the calendar.
+- Alembic `016_scheduled_block_bundle_meta` — nullable JSONB `bundle_meta` on `scheduled_blocks`.
+- `POST /scheduled-blocks/bundle` — selection or parent subtree → one block; duration sum of estimates (or explicit range).
+- Task list multi-select **Block as bundle**; calendar grays when `bundle_inactive` (all members complete); delete removes block only.
+- DEF-020 release-remainder applies to aggregate rows.
 
-### Design direction (pick in ADR)
-
-| Piece | Notes |
-|-------|--------|
-| **Bundle entity or block group** | One calendar-facing block linked to member task ids (or parent + subtree); members keep their own rows in task views |
-| **Manual + auto paths** | Manual: drag/select tasks → “Block as bundle”; auto: scoped bundle replan for a project/epic session (W2c roadmap) |
-| **Lifecycle** | Block grays when all members complete; removable when members moved/completed; partial complete → shrink label or split remainder |
-| **Not** | Replacing per-task tracking; not the same as [DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination) fairness |
-
-### Expected (when built)
-
-- Operator can schedule **one hour** for a course without N calendar stripes.
-- Completing or moving bundled tasks updates calendar affordance (gray / remove / shrink).
-- List/detail views unchanged — still per-task complete and edit.
-
-### Notes
-
-Related: W2c **scoped bundles** in [07-wave-roadmap.md](./07-wave-roadmap.md); existing `bundle` enum is a placeholder, not this UX.
+**Deferred:** auto scoped bundle replan, shrink-on-partial, `bundle_blocks` join table.
 
 ---
 
@@ -692,10 +688,10 @@ Operator can **archive** epics and projects, but there is **no UI to view archiv
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (wrong initial scope — fix without recreate) |
-| **Status** | Open — backlog; ADR candidate |
+| **Status** | Closed — thin shipped 2026-08-27 |
 | **Found** | 2026-08-25 |
 | **Surface** | Tasks, projects, epics — detail drawer + API |
-| **Wave** | W3+ hierarchy UX |
+| **Wave** | Round 2 smash 2026-08-27 |
 
 ### Symptom / ask
 
@@ -711,15 +707,25 @@ Should preserve tasks, labels, and history where possible — not export/reimpor
 - Fixed hierarchy: epic → project → task → subtask.
 - Move task between projects exists; no promote/demote entity operations.
 
-### Design direction
+### Thin ship (2026-08-27)
 
-| Operation | Open questions |
-|-----------|----------------|
-| Task → project | New project from task subtree; task becomes project root or first row? |
-| Project → epic | Project becomes epic; former epic children? |
-| Epic → project | Epic title → project under inbox epic or standalone; descendant projects become… |
+Locked semantics — **no schema / Alembic**. Transactional create + FK rewire (+ delete epic on demote). Confirm dialogs on UI actions.
 
-### Expected (when built)
+| Direction | Semantics |
+|-----------|-----------|
+| **Project → epic** | New epic cloned from project title/description/color/time map/schedule style. **Same project UUID** becomes the (only) child of that epic (`epic_id` rewired). Tasks/sections stay put. Prior parent epic (if any) simply loses the project. UI: Edit project → Promote to epic. |
+| **Epic → project** | New **standalone** project shell cloned from epic meta; former child projects get `epic_id = NULL` (orphans); epic row deleted. Tasks stay on orphaned projects — the shell starts empty. Optional body `target_epic_id` places the shell under another epic. UI: Edit epic → Demote to project. |
+| **Task → project** | New project from task title/description; epic = body `epic_id` else current project's epic else standalone. Task becomes root; descendants move with nesting renorm (default). `include_descendants=false` with live kids → 400. UI: Task detail → Promote to project. |
+
+**API**
+
+- `POST /api/v1/projects/{id}/promote-to-epic` → `{ epic, project }`
+- `POST /api/v1/epics/{id}/demote-to-project` → `{ project, orphaned_project_ids }`
+- `POST /api/v1/tasks/{id}/promote-to-project` → `{ project, task }`
+
+**Deferred:** Undo; demote target-epic picker in UI.
+
+### Expected (when fully built)
 
 - Detail drawer actions: **Promote to…** / **Demote to…** with confirm + preview of side effects.
 - API: structured move with validation (no cycles, orphan rules).
@@ -757,10 +763,10 @@ Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (context switch fatigue — leave drawer to create related entities) |
-| **Status** | Closed — label-only thin 2026-08-27 (parent/child create deferred) |
+| **Status** | Closed — shipped 2026-08-27 (labels + parent/child create) |
 | **Found** | 2026-08-25 |
 | **Surface** | `TaskDetailPanel`, project/epic edit forms, labels picker |
-| **Wave** | Afternoon smash 2026-08-27 |
+| **Wave** | Round 2 smash 2026-08-27 |
 
 ### Symptom / ask
 
@@ -770,10 +776,11 @@ While editing a task or project in the detail drawer:
 - **Create new child** (subtask or nested project) without closing the drawer.
 - **Create new label** inline in the label picker instead of navigating to Labels view first.
 
-### Current behavior (label thin shipped)
+### Current behavior (shipped)
 
 - Labels section: filter + **Create “foo”** via `createLabel`; new label selected on the task.
-- **Deferred:** inline create parent / child from detail drawer.
+- **+ New project** modal from Dependencies → selects the new project on the open task.
+- Inline **Add subtask** form (respects nesting limit).
 
 ---
 

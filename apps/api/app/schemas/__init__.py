@@ -205,6 +205,31 @@ class ProjectOut(BaseModel):
     schedule_style: ScheduleStyle | None
 
 
+class ProjectPromoteToEpicOut(BaseModel):
+    """DEF-023: project kept as sole child under a new epic cloned from its meta."""
+
+    epic: EpicOut
+    project: ProjectOut
+
+
+class EpicDemoteToProjectBody(BaseModel):
+    """Optional parent for the new project shell after demoting an epic."""
+
+    target_epic_id: UUID | None = None
+
+
+class EpicDemoteToProjectOut(BaseModel):
+    """DEF-023: epic folded into a project; former child projects orphaned."""
+
+    project: ProjectOut
+    orphaned_project_ids: list[UUID]
+
+
+class TaskPromoteToProjectBody(BaseModel):
+    include_descendants: bool = True
+    epic_id: UUID | None = None
+
+
 class SectionCreate(BaseModel):
     project_id: UUID
     title: str = Field(min_length=1, max_length=255)
@@ -420,6 +445,13 @@ class TaskOut(BaseModel):
     previous_due_at: datetime | None = None
 
 
+class TaskPromoteToProjectOut(BaseModel):
+    """DEF-023: task (+ optional subtree) moved into a new project."""
+
+    project: ProjectOut
+    task: TaskOut
+
+
 class TaskBatchUpdate(BaseModel):
     """Apply the same partial patch (and/or attach labels) to many owned tasks."""
 
@@ -513,6 +545,30 @@ class ScheduledBlockCreate(BaseModel):
     is_pinned: bool = False
 
 
+class ScheduledBlockBundleCreate(BaseModel):
+    """Manual calendar bundle (ADR-012). Duration = sum of member estimates when end omitted."""
+
+    start_time: datetime
+    end_time: datetime | None = None
+    is_pinned: bool = False
+    member_task_ids: list[UUID] | None = None
+    parent_task_id: UUID | None = None
+
+    @model_validator(mode="after")
+    def _require_source(self) -> "ScheduledBlockBundleCreate":
+        if self.parent_task_id is not None and self.member_task_ids:
+            raise ValueError("Provide either parent_task_id or member_task_ids, not both")
+        if self.parent_task_id is None and not self.member_task_ids:
+            raise ValueError("Provide parent_task_id or member_task_ids")
+        return self
+
+
+class BundleMetaOut(BaseModel):
+    kind: Literal["bundle"] = "bundle"
+    member_task_ids: list[UUID]
+    source: Literal["selection", "parent_subtree"]
+
+
 class ScheduledBlockUpdate(BaseModel):
     task_id: UUID | None = None
     start_time: datetime | None = None
@@ -530,6 +586,8 @@ class ScheduledBlockOut(BaseModel):
     is_pinned: bool
     created_at: datetime
     updated_at: datetime
+    bundle_meta: BundleMetaOut | None = None
+    bundle_inactive: bool = False
 
 
 class ReleaseRemainderBody(BaseModel):
