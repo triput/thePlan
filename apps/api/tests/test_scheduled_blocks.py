@@ -160,6 +160,109 @@ def test_patch_block_can_change_task(client: TestClient) -> None:
     assert patched.json()["task_id"] == task_b["id"]
 
 
+def test_release_remainder_truncates_block(client: TestClient) -> None:
+    task = _create_task(client)
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    end = start + timedelta(hours=2)
+    block = client.post(
+        "/api/v1/scheduled-blocks",
+        json=_block_payload(task["id"], start, end),
+    ).json()
+
+    at = start + timedelta(minutes=30)
+    response = client.post(
+        f"/api/v1/scheduled-blocks/{block['id']}/release-remainder",
+        json={"at": _iso(at)},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["deleted"] is False
+    assert body["block"]["end_time"].startswith("2026-08-11T09:30:00")
+
+    got = client.get(f"/api/v1/scheduled-blocks/{block['id']}")
+    assert got.status_code == 200
+    assert got.json()["end_time"].startswith("2026-08-11T09:30:00")
+
+
+def test_release_remainder_deletes_tiny_tail(client: TestClient) -> None:
+    task = _create_task(client)
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    end = start + timedelta(hours=1)
+    block = client.post(
+        "/api/v1/scheduled-blocks",
+        json=_block_payload(task["id"], start, end),
+    ).json()
+
+    at = start + timedelta(seconds=30)
+    response = client.post(
+        f"/api/v1/scheduled-blocks/{block['id']}/release-remainder",
+        json={"at": _iso(at)},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["deleted"] is True
+    assert client.get(f"/api/v1/scheduled-blocks/{block['id']}").status_code == 404
+
+
+def test_release_remainder_nothing_to_release(client: TestClient) -> None:
+    task = _create_task(client)
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    end = start + timedelta(hours=1)
+    block = client.post(
+        "/api/v1/scheduled-blocks",
+        json=_block_payload(task["id"], start, end),
+    ).json()
+
+    response = client.post(
+        f"/api/v1/scheduled-blocks/{block['id']}/release-remainder",
+        json={"at": _iso(end)},
+    )
+    assert response.status_code == 422
+    assert response.json()["code"] == "NOTHING_TO_RELEASE"
+
+
+def test_clear_unpinned_blocks_in_range(client: TestClient) -> None:
+    task = _create_task(client)
+    pinned_start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    unpinned_start = datetime(2026, 8, 11, 11, 0, tzinfo=UTC)
+    outside_start = datetime(2026, 8, 12, 9, 0, tzinfo=UTC)
+    one_hour = timedelta(hours=1)
+
+    pinned = client.post(
+        "/api/v1/scheduled-blocks",
+        json=_block_payload(task["id"], pinned_start, pinned_start + one_hour, is_pinned=True),
+    ).json()
+    unpinned = client.post(
+        "/api/v1/scheduled-blocks",
+        json=_block_payload(task["id"], unpinned_start, unpinned_start + one_hour),
+    ).json()
+    outside = client.post(
+        "/api/v1/scheduled-blocks",
+        json=_block_payload(task["id"], outside_start, outside_start + one_hour),
+    ).json()
+
+    window_start = datetime(2026, 8, 11, 0, 0, tzinfo=UTC)
+    window_end = datetime(2026, 8, 12, 0, 0, tzinfo=UTC)
+    response = client.post(
+        "/api/v1/scheduled-blocks/clear-unpinned",
+        json={"start": _iso(window_start), "end": _iso(window_end)},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["deleted_count"] == 1
+
+    assert client.get(f"/api/v1/scheduled-blocks/{pinned['id']}").status_code == 200
+    assert client.get(f"/api/v1/scheduled-blocks/{unpinned['id']}").status_code == 404
+    assert client.get(f"/api/v1/scheduled-blocks/{outside['id']}").status_code == 200
+
+
+def test_list_tasks_by_ids(client: TestClient) -> None:
+    a = _create_task(client, "alpha")
+    b = _create_task(client, "beta")
+    response = client.get("/api/v1/tasks", params={"ids": [a["id"], b["id"]], "limit": 10})
+    assert response.status_code == 200, response.text
+    titles = {item["title"] for item in response.json()["items"]}
+    assert titles == {"alpha", "beta"}
+
+
 def test_list_tasks_due_from_due_to(client: TestClient) -> None:
     uid = _uid()
     due_in = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)

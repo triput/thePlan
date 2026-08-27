@@ -96,7 +96,7 @@ All list endpoints scope to authenticated `owner_id`.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/tasks` | List with filters (see Smart Views) |
+| GET | `/tasks` | List with filters (see Smart Views); also `?ids=` comma UUID list for hydrate |
 | POST | `/tasks` | Create |
 | GET | `/tasks/{id}` | Get with labels, subtasks summary |
 | PATCH | `/tasks/{id}` | Update |
@@ -265,8 +265,10 @@ Quick-add `@morning`, `@afternoon`, `@evening` resolve to the seeded window IDs 
 |--------|------|-------------|
 | GET | `/scheduled-blocks` | List (`?start=`, `?end=` ISO range) |
 | POST | `/scheduled-blocks` | Create manual block |
+| POST | `/scheduled-blocks/clear-unpinned` | Delete unpinned blocks overlapping `{ start, end }` (DEF-020) |
 | GET | `/scheduled-blocks/{id}` | Get |
 | PATCH | `/scheduled-blocks/{id}` | Update times / pin |
+| POST | `/scheduled-blocks/{id}/release-remainder` | Truncate unused tail to `at` (default now); delete if &lt; 1m left (DEF-020) |
 | DELETE | `/scheduled-blocks/{id}` | Delete |
 
 **Create body:**
@@ -280,7 +282,11 @@ Quick-add `@morning`, `@afternoon`, `@evening` resolve to the seeded window IDs 
 }
 ```
 
-Calendar view uses range query: `GET /scheduled-blocks?start=2026-08-11T00:00:00Z&end=2026-08-18T00:00:00Z`.
+**Clear unpinned body:** `{ "start": ISO, "end": ISO }` → `{ "deleted_count": n }`. Pinned blocks are never removed.
+
+**Release remainder body (optional):** `{ "at": ISO }` → `{ "block": ScheduledBlock | null, "deleted": bool }`.
+
+Calendar view uses range query: `GET /scheduled-blocks?start=2026-08-11T00:00:00Z&end=2026-08-18T00:00:00Z`. Task hydrate for calendar labels: `GET /tasks?ids=uuid,uuid`.
 
 ---
 

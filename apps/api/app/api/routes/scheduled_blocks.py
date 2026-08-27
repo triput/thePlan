@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import logging
 from uuid import UUID
 
@@ -11,7 +11,11 @@ from app.config import get_settings
 from app.db import get_db
 from app.models import ScheduledBlock, Task, User
 from app.schemas import (
+    ClearUnpinnedBlocksBody,
+    ClearUnpinnedBlocksOut,
     PaginatedResponse,
+    ReleaseRemainderBody,
+    ReleaseRemainderOut,
     ScheduledBlockCreate,
     ScheduledBlockOut,
     ScheduledBlockUpdate,
@@ -29,6 +33,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/scheduled-blocks", tags=["scheduled-blocks"])
 
+_MIN_BLOCK_AFTER_TRUNCATE = timedelta(minutes=1)
+
 
 def push_scheduled_block(db: Session, settings, block: ScheduledBlock) -> None:
     """Push to Google and Microsoft; each provider no-ops when not configured/mirrored."""
@@ -40,6 +46,12 @@ def delete_mirrored_block(db: Session, settings, block: ScheduledBlock) -> None:
     """Delete Google and Microsoft mirrors; each provider no-ops when none exists."""
     delete_mirrored_block_google(db, settings, block)
     delete_mirrored_block_microsoft(db, settings, block)
+
+
+def _ensure_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def _validate_time_range(start_time: datetime, end_time: datetime) -> None:
@@ -59,6 +71,18 @@ def _get_owned_block(db: Session, block_id: UUID, user: User) -> ScheduledBlock:
     if block is None or block.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scheduled block not found")
     return block
+
+
+def _delete_block(db: Session, settings, block: ScheduledBlock) -> None:
+    block_id = block.id
+    try:
+        delete_mirrored_block(db, settings, block)
+        db.commit()
+    except Exception:
+        logger.exception("Failed to delete mirrored calendar event for block %s", block_id)
+        db.rollback()
+    db.delete(block)
+    db.commit()
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -92,6 +116,33 @@ def list_scheduled_blocks(
     )
 
 
+@router.post("/clear-unpinned", response_model=ClearUnpinnedBlocksOut)
+def clear_unpinned_blocks(
+    body: ClearUnpinnedBlocksBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ClearUnpinnedBlocksOut:
+    if body.end <= body.start:
+        raise ApiError(422, "end must be after start", "INVALID_TIME_RANGE")
+
+    blocks = (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == user.id,
+            ScheduledBlock.is_pinned.is_(False),
+            ScheduledBlock.start_time < body.end,
+            ScheduledBlock.end_time > body.start,
+        )
+        .all()
+    )
+    settings = get_settings()
+    deleted_count = 0
+    for block in blocks:
+        _delete_block(db, settings, block)
+        deleted_count += 1
+    return ClearUnpinnedBlocksOut(deleted_count=deleted_count)
+
+
 @router.post("", response_model=ScheduledBlockOut, status_code=status.HTTP_201_CREATED)
 def create_scheduled_block(
     body: ScheduledBlockCreate,
@@ -123,6 +174,42 @@ def create_scheduled_block(
         if block is None:
             raise
     return ScheduledBlockOut.model_validate(block)
+
+
+@router.post("/{block_id}/release-remainder", response_model=ReleaseRemainderOut)
+def release_block_remainder(
+    block_id: UUID,
+    body: ReleaseRemainderBody | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ReleaseRemainderOut:
+    block = _get_owned_block(db, block_id, user)
+    at = _ensure_utc(body.at if body and body.at is not None else datetime.now(timezone.utc))
+    start = _ensure_utc(block.start_time)
+    end = _ensure_utc(block.end_time)
+
+    if end <= at:
+        raise ApiError(422, "Nothing to release — block already ended", "NOTHING_TO_RELEASE")
+
+    settings = get_settings()
+
+    if at <= start or (at - start) < _MIN_BLOCK_AFTER_TRUNCATE:
+        _delete_block(db, settings, block)
+        return ReleaseRemainderOut(block=None, deleted=True)
+
+    block.end_time = at
+    db.commit()
+    db.refresh(block)
+    try:
+        push_scheduled_block(db, settings, block)
+        db.commit()
+    except Exception:
+        logger.exception("Failed to mirror scheduled block %s to calendar", block.id)
+        db.rollback()
+        block = db.get(ScheduledBlock, block.id)
+        if block is None:
+            raise
+    return ReleaseRemainderOut(block=ScheduledBlockOut.model_validate(block), deleted=False)
 
 
 @router.get("/{block_id}", response_model=ScheduledBlockOut)
@@ -179,11 +266,4 @@ def delete_scheduled_block(
 ) -> None:
     block = _get_owned_block(db, block_id, user)
     settings = get_settings()
-    try:
-        delete_mirrored_block(db, settings, block)
-        db.commit()
-    except Exception:
-        logger.exception("Failed to delete mirrored calendar event for block %s", block.id)
-        db.rollback()
-    db.delete(block)
-    db.commit()
+    _delete_block(db, settings, block)

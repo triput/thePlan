@@ -513,6 +513,24 @@ class ScheduledBlockOut(BaseModel):
     updated_at: datetime
 
 
+class ReleaseRemainderBody(BaseModel):
+    at: datetime | None = None
+
+
+class ReleaseRemainderOut(BaseModel):
+    block: ScheduledBlockOut | None = None
+    deleted: bool = False
+
+
+class ClearUnpinnedBlocksBody(BaseModel):
+    start: datetime
+    end: datetime
+
+
+class ClearUnpinnedBlocksOut(BaseModel):
+    deleted_count: int
+
+
 class ScheduleRunOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

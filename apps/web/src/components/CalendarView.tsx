@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
   createScheduledBlock,
+  clearUnpinnedScheduledBlocks,
   deleteScheduledBlock,
   fetchCalendarConflicts,
   fetchExternalCalendarEvents,
@@ -12,6 +13,7 @@ import {
   fetchScheduledBlocks,
   fetchTasks,
   postScheduleReplan,
+  releaseScheduledBlockRemainder,
   updateScheduledBlock,
   updateTask,
   type ExternalCalendarEvent,
@@ -137,29 +139,44 @@ function BlockFormModal({
   title,
   form,
   tasks,
+  blockTask,
   onChange,
   onClose,
   onSave,
   onDelete,
+  onReleaseRemainder,
   saving,
   deleting,
+  releasing,
 }: {
   open: boolean;
   title: string;
   form: BlockFormState | null;
   tasks: Task[];
+  blockTask?: Task;
   onChange: (next: BlockFormState) => void;
   onClose: () => void;
   onSave: () => void;
   onDelete?: () => void;
+  onReleaseRemainder?: () => void;
   saving: boolean;
   deleting: boolean;
+  releasing?: boolean;
 }) {
   if (!form) return null;
+
+  const endDate = fromDatetimeLocalValue(form.endLocal);
+  const canReleaseRemainder =
+    Boolean(onReleaseRemainder) && endDate.getTime() > Date.now();
 
   return (
     <Modal open={open} title={title} onClose={onClose}>
       <div className="entity-form">
+        {blockTask?.is_completed && (
+          <p className="muted small" role="status">
+            Task completed — release unused time so replan can use the rest of this slot.
+          </p>
+        )}
         <label className="field">
           <span>Task</span>
           <select
@@ -204,6 +221,16 @@ function BlockFormModal({
           </span>
         </label>
         <div className="form-actions">
+          {onReleaseRemainder && canReleaseRemainder && (
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={onReleaseRemainder}
+              disabled={releasing || saving || deleting}
+            >
+              {releasing ? "Releasing…" : "Release remainder"}
+            </button>
+          )}
           {onDelete && (
             <button type="button" className="btn danger" onClick={onDelete} disabled={deleting || saving}>
               {deleting ? "Deleting…" : "Delete"}
@@ -335,6 +362,7 @@ function ScheduledBlockItem({
   previewEnd,
   dragEnabled,
   hasConflict,
+  isCompleted,
   onClick,
   onMoveStart,
   onResizeStart,
@@ -347,6 +375,7 @@ function ScheduledBlockItem({
   previewEnd?: Date;
   dragEnabled: boolean;
   hasConflict?: boolean;
+  isCompleted?: boolean;
   onClick: () => void;
   onMoveStart: (block: ScheduledBlock, clientY: number) => void;
   onResizeStart: (block: ScheduledBlock, clientY: number) => void;
@@ -361,7 +390,7 @@ function ScheduledBlockItem({
     <div
       role="button"
       tabIndex={0}
-      className={`cal-block${block.is_pinned ? " pinned" : ""}${hasConflict ? " conflict" : ""}${dragging ? " dragging" : ""}`}
+      className={`cal-block${block.is_pinned ? " pinned" : ""}${hasConflict ? " conflict" : ""}${isCompleted ? " completed" : ""}${dragging ? " dragging" : ""}`}
       style={{
         top: `${top}%`,
         height: `${height}%`,
@@ -550,6 +579,7 @@ function DayColumn({
                 previewEnd={preview?.previewEnd}
                 dragEnabled={dragEnabled}
                 hasConflict={conflictingBlockIds.has(block.id)}
+                isCompleted={task?.is_completed}
                 onClick={() => onBlockClick(block)}
                 onMoveStart={onBlockMoveStart}
                 onResizeStart={onBlockResizeStart}
@@ -657,6 +687,17 @@ export function CalendarView() {
   });
 
   const blocks = blocksQuery.data?.items ?? [];
+  const blockTaskIds = useMemo(
+    () => [...new Set(blocks.map((block) => block.task_id))].sort(),
+    [blocks],
+  );
+
+  const blockTasksQuery = useQuery({
+    queryKey: ["tasks", "calendar-blocks", blockTaskIds.join(",")],
+    queryFn: () => fetchTasks({ ids: blockTaskIds, limit: Math.max(blockTaskIds.length, 1) }),
+    enabled: blockTaskIds.length > 0,
+  });
+
   const busyEvents = busyQuery.data?.items ?? [];
   const conflicts = conflictsQuery.data?.items ?? [];
   const conflictCount = conflictsQuery.data?.count ?? 0;
@@ -676,11 +717,11 @@ export function CalendarView() {
 
   const tasksById = useMemo(() => {
     const map = new Map<string, Task>();
-    for (const t of [...dueTasks, ...incompleteTasks]) {
+    for (const t of [...dueTasks, ...incompleteTasks, ...(blockTasksQuery.data?.items ?? [])]) {
       map.set(t.id, t);
     }
     return map;
-  }, [dueTasks, incompleteTasks]);
+  }, [dueTasks, incompleteTasks, blockTasksQuery.data?.items]);
 
   const allTasksById = tasksById;
 
@@ -795,6 +836,24 @@ export function CalendarView() {
   const deleteMutation = useMutation({
     mutationFn: deleteScheduledBlock,
     onSuccess: invalidateCalendar,
+  });
+
+  const releaseMutation = useMutation({
+    mutationFn: (blockId: string) => releaseScheduledBlockRemainder(blockId),
+    onSuccess: invalidateCalendar,
+  });
+
+  const clearUnpinnedMutation = useMutation({
+    mutationFn: () =>
+      clearUnpinnedScheduledBlocks({ start: toISO(range.start), end: toISO(range.end) }),
+    onSuccess: (result) => {
+      invalidateCalendar();
+      emitToast(
+        result.deleted_count > 0
+          ? `Cleared ${result.deleted_count} unpinned block${result.deleted_count === 1 ? "" : "s"}`
+          : "No unpinned blocks to clear in this range",
+      );
+    },
   });
 
   const updateDueMutation = useMutation({
@@ -1038,6 +1097,33 @@ export function CalendarView() {
     closeForm();
   };
 
+  const handleReleaseRemainder = async () => {
+    if (!blockForm?.blockId) return;
+    try {
+      const result = await releaseMutation.mutateAsync(blockForm.blockId);
+      if (result.deleted) {
+        emitToast("Block removed — no time left after release");
+      } else {
+        emitToast("Unused time released");
+      }
+      closeForm();
+    } catch (err) {
+      emitToast(err instanceof Error ? err.message : "Couldn't release remainder");
+    }
+  };
+
+  const handleClearUnpinned = () => {
+    const label = mode === "day" ? "today" : "this week";
+    if (
+      !window.confirm(
+        `Remove all unpinned scheduled blocks for ${label}? Pinned blocks stay on the calendar.`,
+      )
+    ) {
+      return;
+    }
+    void clearUnpinnedMutation.mutateAsync();
+  };
+
   const headerTitle = mode === "day" ? dayViewTitle(anchor) : weekViewTitle(anchor);
   const days = mode === "day" ? [anchor] : weekDays(anchor);
 
@@ -1056,6 +1142,8 @@ export function CalendarView() {
     }
     return list;
   }, [incompleteTasks, blockForm?.taskId, allTasksById]);
+
+  const blockFormTask = blockForm?.taskId ? allTasksById.get(blockForm.taskId) : undefined;
 
   const blockDrag =
     drag && (drag.kind === "block-move" || drag.kind === "block-resize") ? drag : null;
@@ -1082,6 +1170,15 @@ export function CalendarView() {
           </p>
         )}
         <div className="cal-mode-toggle">
+          <button
+            type="button"
+            className="btn small ghost cal-clear-btn"
+            onClick={handleClearUnpinned}
+            disabled={clearUnpinnedMutation.isPending || replanPolling}
+            title="Remove unpinned blocks in the visible day or week"
+          >
+            {clearUnpinnedMutation.isPending ? "Clearing…" : "Clear unpinned"}
+          </button>
           <button
             type="button"
             className="btn small primary cal-replan-btn"
@@ -1190,12 +1287,15 @@ export function CalendarView() {
         title={formMode === "edit" ? "Edit scheduled block" : "Schedule task"}
         form={blockForm}
         tasks={formTasks}
+        blockTask={blockFormTask}
         onChange={setBlockForm}
         onClose={closeForm}
         onSave={handleSave}
         onDelete={formMode === "edit" ? handleDelete : undefined}
+        onReleaseRemainder={formMode === "edit" ? handleReleaseRemainder : undefined}
         saving={createMutation.isPending || updateMutation.isPending}
         deleting={deleteMutation.isPending}
+        releasing={releaseMutation.isPending}
       />
     </div>
   );

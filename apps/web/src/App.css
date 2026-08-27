@@ -2556,6 +2556,14 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
+.cal-block.completed {
+  opacity: 0.55;
+}
+
+.cal-block.completed .cal-block-title {
+  text-decoration: line-through;
+}
+
 .cal-block-title {
   flex: 1;
   overflow: hidden;

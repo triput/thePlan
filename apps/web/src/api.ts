@@ -631,10 +631,26 @@ export function fetchTasks(params?: {
   inbox?: boolean;
   due_from?: string;
   due_to?: string;
+  ids?: string[];
   limit?: number;
   offset?: number;
 }) {
-  return apiFetchUrl<PaginatedResponse<Task>>(buildUrl("/api/v1/tasks", params));
+  const { ids, ...rest } = params ?? {};
+  const url = API_URL
+    ? new URL(`${API_URL.replace(/\/$/, "")}/api/v1/tasks`)
+    : new URL("/api/v1/tasks", typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1");
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== undefined && value !== null) {
+      url.searchParams.set(key, String(value));
+    }
+  }
+  if (ids) {
+    for (const id of ids) {
+      url.searchParams.append("ids", id);
+    }
+  }
+  const path = API_URL ? url.toString() : `${url.pathname}${url.search}`;
+  return apiFetchUrl<PaginatedResponse<Task>>(path);
 }
 
 export function fetchLabels(params?: { limit?: number; offset?: number }) {
@@ -976,6 +992,29 @@ export function updateScheduledBlock(blockId: string, body: ScheduledBlockUpdate
 
 export function deleteScheduledBlock(blockId: string) {
   return apiFetch<void>(`/api/v1/scheduled-blocks/${blockId}`, { method: "DELETE" });
+}
+
+export interface ReleaseRemainderOut {
+  block: ScheduledBlock | null;
+  deleted: boolean;
+}
+
+export function releaseScheduledBlockRemainder(blockId: string, at?: string) {
+  return apiFetch<ReleaseRemainderOut>(`/api/v1/scheduled-blocks/${blockId}/release-remainder`, {
+    method: "POST",
+    body: JSON.stringify(at ? { at } : {}),
+  });
+}
+
+export interface ClearUnpinnedBlocksOut {
+  deleted_count: number;
+}
+
+export function clearUnpinnedScheduledBlocks(body: { start: string; end: string }) {
+  return apiFetch<ClearUnpinnedBlocksOut>("/api/v1/scheduled-blocks/clear-unpinned", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function fetchSettings() {

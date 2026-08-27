@@ -444,10 +444,11 @@ Related: outline ingest (Theme F) made this P2. Not the same as **pinned blocks*
 
 Bulk operations on a list context, e.g.:
 
+- **Select all** in current scope (epic, project, or parent’s subtasks) — “make everything go away or move” without shift-clicking dozens of micro-modules.
 - Schedule **all subtasks under a parent** on the same day (due, soft target, or manual blocks).
 - Apply a **label** to everything under a project (or epic subtree).
 - Set **recurrence** on a group of tasks.
-- Likely also: bulk **schedule style / backlog** (DEF-014), priority, section move.
+- Likely also: bulk **schedule style / backlog** (DEF-014), priority, section move, delete, archive.
 
 ### Current behavior
 
@@ -458,8 +459,10 @@ Bulk operations on a list context, e.g.:
 
 **Phase 1 — selection + batch PATCH**
 
-- Multi-select in list (checkbox mode or shift-click); “Select all under …” for parent row / section header / project scope.
-- Batch actions bar: labels, due date, schedule style, priority, delete (with confirm).
+- Multi-select in list (checkbox mode or shift-click).
+- **Select all** in current list context: project page, epic aggregate view, parent’s descendants (visible rows or full subtree — pick one for v1).
+- Header checkbox with **indeterminate** state when partially selected.
+- Batch actions bar: labels, due date, schedule style, priority, delete (with confirm), move, archive.
 - API: `POST /tasks/batch` or `PATCH` with `{ task_ids, patch }` — single transaction, partial failure reporting optional.
 
 **Phase 2 — subtree semantics**
@@ -473,7 +476,7 @@ Bulk operations on a list context, e.g.:
 
 ### Notes
 
-Keep Assist / outline paths propose→confirm; bulk edit is **operator-driven** on existing rows. Consider undo stack parity (`bulk_complete` pattern in `undoStack.tsx`).
+Keep Assist / outline paths propose→confirm; bulk edit is **operator-driven** on existing rows. Consider undo stack parity (`bulk_complete` pattern in `undoStack.tsx`). Do not ship multi-select without **Select all** in scoped lists. Bulk delete should land in trash once [DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention) exists, not hard delete.
 
 ---
 
@@ -614,4 +617,260 @@ Plan-bind inheritance did **not** ship. [DEF-014](./DEFECTS.md#def-014--exclude-
 Operator: “DARE me to not have something added to do that.” Added. Pair with a 2h strict map for learning; greedy fill still owns *that* slot ([DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination)) — inheritance stops the click-wall, not the mixer.
 
 **Message to future Trish (2026-08-17):** You did **not** rage-click 147 Coursera modules. You had the good sense to stop at the thought experiment and yell at the agent instead. If you’re reading this after actually rage-clicking anyway — hi, yes, we knew. Ship DEF-018 before you do it again. :D
+
+---
+
+## DEF-019 — Calendar bundles for micro-task coursework (aggregate block, keep task rows)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (Coursera-style 2m/7m/10m tasks clutter the calendar; operator wants one “study for an hour” block) |
+| **Status** | Open — backlog; ADR candidate |
+| **Found** | 2026-08-25 |
+| **Surface** | `schedule_style.bundle`, `scheduled_blocks`, calendar UI, Update Schedule / manual bundle creation |
+| **Wave** | W2c scoped bundles or W3+ calendar UX |
+
+### Symptom / ask
+
+Coursework often decomposes into **many short tasks** (2m, 7m, 10m, …). Operator wants to **block calendar time once** — e.g. “work on this course for an hour” — without **each micro-task** appearing as its own calendar row. Tasks must **stay individual in lists** (complete, reorder, dependencies, labels).
+
+When tasks in the bundle are **completed** or **moved/rescheduled** out of the bundle scope, the aggregate calendar block should **gray out and become removable** (or auto-shrink / dissolve when empty).
+
+### Current behavior
+
+- Enum `schedule_style.bundle` exists but **bundle tasks are excluded from Update Schedule** auto-placement ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md), [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)).
+- Replan writes **one `scheduled_block` per task** for standalone/time_block styles — no knockout / materialization layer.
+- No operator-facing “create bundle block for these N tasks” flow on the calendar.
+
+### Design direction (pick in ADR)
+
+| Piece | Notes |
+|-------|--------|
+| **Bundle entity or block group** | One calendar-facing block linked to member task ids (or parent + subtree); members keep their own rows in task views |
+| **Manual + auto paths** | Manual: drag/select tasks → “Block as bundle”; auto: scoped bundle replan for a project/epic session (W2c roadmap) |
+| **Lifecycle** | Block grays when all members complete; removable when members moved/completed; partial complete → shrink label or split remainder |
+| **Not** | Replacing per-task tracking; not the same as [DEF-017](./DEFECTS.md#def-017--cross-project--epic-scheduling-fairness-day-domination) fairness |
+
+### Expected (when built)
+
+- Operator can schedule **one hour** for a course without N calendar stripes.
+- Completing or moving bundled tasks updates calendar affordance (gray / remove / shrink).
+- List/detail views unchanged — still per-task complete and edit.
+
+### Notes
+
+Related: W2c **scoped bundles** in [07-wave-roadmap.md](./07-wave-roadmap.md); existing `bundle` enum is a placeholder, not this UX.
+
+---
+
+## DEF-020 — Calendar capacity release (early complete + bulk clear)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (finished early or emergency replan — calendar should give time back) |
+| **Status** | Closed — shipped 2026-08-27 |
+| **Found** | 2026-08-25 |
+| **Surface** | Calendar UI, `scheduled_blocks`, optional replan hook |
+| **Wave** | Afternoon smash 2026-08-27 |
+
+### Symptom / ask
+
+Two related junctures:
+
+**a. Early finish — release remainder**
+
+Completed tasks **gray out** on the calendar (good). When work finishes **faster than the block**, operator wants the **unused tail removed** so Update Schedule (or manual placement) can use the rest of the slot — not leave a gray tomb occupying capacity.
+
+**b. Emergency clear**
+
+Sometimes **many blocks** must come off the calendar at once because urgent work arrived — faster than unpin/delete one-by-one.
+
+### Current behavior (shipped)
+
+- **Release remainder:** `POST /scheduled-blocks/{id}/release-remainder` with optional `{ "at": ISO }` truncates `end_time` to `at` (default now). Deletes the block when the leftover would be &lt; 1 minute. Calendar block menu exposes the action.
+- **Clear unpinned:** `POST /scheduled-blocks/clear-unpinned` with `{ start, end }` deletes unpinned blocks overlapping the range (pinned untouched). Calendar toolbar confirm action for visible range.
+- `GET /tasks?ids=` supports bulk hydrate for calendar labels after clear/release.
+
+### Quality
+
+Targeted pytest `tests/test_scheduled_blocks.py` — **12 passed** (2026-08-27, Windows venv + local Postgres).
+
+### Notes
+
+Pair with [DEF-019](./DEFECTS.md#def-019--calendar-bundles-for-micro-task-coursework-aggregate-block-keep-task-rows) when bundle blocks exist — release semantics must apply to aggregate blocks too. Distinct from wiping horizon inside Update Schedule (that already wipes unpinned in horizon on replan).
+
+---
+
+## DEF-021 — Browse archived epics/projects and reactivate
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (archive works; find-and-restore does not) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-25 |
+| **Surface** | Sidebar, epic/project lists, `GET /epics?archived=`, `POST …/unarchive` |
+| **Wave** | W3+ productivity UX |
+
+### Symptom / ask
+
+Operator can **archive** epics and projects, but there is **no UI to view archived items** or **reactivate** them once hidden. “Where did that go?” and “bring it back” are both blocked.
+
+### Current behavior
+
+- API: `GET /epics?archived=true`, `GET /projects?archived=true`, `POST …/archive`, `POST …/unarchive` exist.
+- Sidebar lists default `archived=false` only ([WAVE-1-EXIT.md](./WAVE-1-EXIT.md) — browse archived deferred).
+
+### Expected (when built)
+
+- Sidebar or Settings link: **Archived** view (epics + projects, or tabs).
+- Row action: **Unarchive** / **Restore** — calls existing unarchive endpoints.
+- Optional: archive date, search/filter.
+
+### Notes
+
+Archive ≠ delete. [DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention) covers task trash.
+
+---
+
+## DEF-023 — Promote / demote hierarchy (task ↔ project ↔ epic)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (wrong initial scope — fix without recreate) |
+| **Status** | Open — backlog; ADR candidate |
+| **Found** | 2026-08-25 |
+| **Surface** | Tasks, projects, epics — detail drawer + API |
+| **Wave** | W3+ hierarchy UX |
+
+### Symptom / ask
+
+Operator sometimes picks the **wrong container level**:
+
+- **Promote** project → epic; task → project (new project under epic or standalone).
+- **Demote** epic → project (children become projects? or epic folds into a project — pick semantics).
+
+Should preserve tasks, labels, and history where possible — not export/reimport.
+
+### Current behavior
+
+- Fixed hierarchy: epic → project → task → subtask.
+- Move task between projects exists; no promote/demote entity operations.
+
+### Design direction
+
+| Operation | Open questions |
+|-----------|----------------|
+| Task → project | New project from task subtree; task becomes project root or first row? |
+| Project → epic | Project becomes epic; former epic children? |
+| Epic → project | Epic title → project under inbox epic or standalone; descendant projects become… |
+
+### Expected (when built)
+
+- Detail drawer actions: **Promote to…** / **Demote to…** with confirm + preview of side effects.
+- API: structured move with validation (no cycles, orphan rules).
+- Undo or explicit confirm — destructive-ish.
+
+### Notes
+
+Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-of-sequence-appear-at-list-bottom)). Pair with [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) Select all for “demote whole subtree” flows.
+
+---
+
+## DEF-024 — Trash can (soft delete with retention)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (accidental delete — operator has *never* done this, obviously) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-25 |
+| **Surface** | Tasks (and optionally blocks/projects), schema `deleted_at`, Trash UI |
+| **Wave** | W2c per [04-data-schema.md](./04-data-schema.md#future-task-soft-delete-w2c) |
+
+### Symptom / ask
+
+**Hard delete** is immediate and scary. Operator wants a **trash** holding deleted items for a **retention period** (e.g. 30 days) with **restore** — same UUID, children if applicable.
+
+### Current behavior
+
+- Tasks: **hard delete**; client undo may recreate from cache (MVP) — not durable across sessions/devices.
+- Epics/projects: archive, not trash.
+- Schema doc already targets nullable `deleted_at` on tasks (W2c).
+
+### Expected (when built)
+
+- Delete → soft-set `deleted_at`; lists exclude trashed rows.
+- **Trash** view: browse, restore, empty trash (hard purge after retention).
+- Retention policy: setting or fixed N days; optional auto-purge job.
+- Cascade: soft-delete descendants + linked unpinned blocks (per schema doc).
+
+### Notes
+
+Archive ([DEF-021](./DEFECTS.md#def-021--browse-archived-epicsprojects-and-reactivate)) is “put away”; trash is “oops”. [DEF-015](./DEFECTS.md#def-015--bulk-edit-on-task-lists-subtree--selection) bulk delete should land in trash, not hard delete, once this exists.
+
+---
+
+## DEF-025 — Inline create parent / child / labels in detail drawer
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (context switch fatigue — leave drawer to create related entities) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-25 |
+| **Surface** | `TaskDetailPanel`, project/epic edit forms, labels picker |
+| **Wave** | W3+ productivity UX |
+
+### Symptom / ask
+
+While editing a task or project in the detail drawer:
+
+- **Create new parent** (e.g. new project under epic, re-parent on the fly).
+- **Create new child** (subtask or nested project) without closing the drawer.
+- **Create new label** inline in the label picker instead of navigating to Labels view first.
+
+### Current behavior
+
+- Parent/project pickers list existing entities only.
+- Labels: manage on separate Labels page; picker selects existing labels.
+- **+** on sidebar creates sibling entities, not inline from detail context.
+
+### Expected (when built)
+
+- Pickers offer **+ New project…**, **+ New epic…**, **+ New subtask…** (context-appropriate).
+- Label field: **+ Create “foo”** when no match.
+- Created entity selected immediately; drawer stays open.
+
+### Notes
+
+Reduces round-trips; pairs with [DEF-023](./DEFECTS.md#def-023--promote--demote-hierarchy-task--project--epic) for hierarchy fixes after the fact.
+
+---
+
+## DEF-026 — Collapsible sections in task/project detail drawer
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (scroll fatigue; drawer keeps growing) |
+| **Status** | Open — backlog |
+| **Found** | 2026-08-25 |
+| **Surface** | `TaskDetailPanel`, project/epic edit panels, `App.css` |
+| **Wave** | Bug bash / polish |
+
+### Symptom / ask
+
+Detail drawer is **long** (recurrence, deps, scheduling, labels, Time Map, …). Operator wants **collapsible sections** — collapsed by default, expand when needed — similar to Settings accordion pattern.
+
+### Current behavior
+
+- [DEF-016](./DEFECTS.md#def-016--task-detail-save-affordance-scroll-fatigue) shipped sticky Save — helps commit, not scan.
+- All sections expanded in one scroll column.
+
+### Expected (when built)
+
+- Section headers: Scheduling, Recurrence, Dependencies, Labels, Advanced (names TBD).
+- Remember expanded state per section (localStorage optional).
+- Mobile sheet: same pattern; no regression on Save affordance.
+
+### Notes
+
+Orthogonal to [DEF-008](./DEFECTS.md#def-008--resizable-task-detail-right-panel) (wider panel). Mentioned as option in DEF-016 design table — now its own track at P3.
 

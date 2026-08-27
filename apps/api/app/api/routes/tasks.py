@@ -213,6 +213,7 @@ def list_tasks(
     is_completed: bool | None = None,
     due_from: datetime | None = None,
     due_to: datetime | None = None,
+    ids: list[UUID] | None = Query(default=None),
     inbox: bool = Query(default=False),
     limit: int = Query(default=50, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
@@ -245,6 +246,8 @@ def list_tasks(
         query = query.filter(Task.due_at.isnot(None), Task.due_at >= due_from)
     if due_to is not None:
         query = query.filter(Task.due_at.isnot(None), Task.due_at < due_to)
+    if ids:
+        query = query.filter(Task.id.in_(ids))
     total = query.count()
     items = query.order_by(Task.sort_order, Task.created_at).offset(offset).limit(limit).all()
     plan_ids = {item.plan_id for item in items if item.plan_id is not None}
