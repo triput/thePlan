@@ -128,3 +128,63 @@ def test_batch_move_project_clears_orphan_section(client: TestClient) -> None:
         got = client.get(f"/api/v1/tasks/{task_id}").json()
         assert got["project_id"] == target["id"]
         assert got["section_id"] is None
+
+
+def test_batch_add_label_missing_label_404(client: TestClient) -> None:
+    task = _create_task(client)
+    missing_id = "00000000-0000-4000-8000-000000000001"
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={
+            "task_ids": [task["id"]],
+            "add_label_ids": [missing_id],
+        },
+    )
+    assert response.status_code == 404
+
+
+def test_batch_move_to_inbox_clears_section(client: TestClient) -> None:
+    project = client.post(
+        "/api/v1/projects",
+        json={"title": f"proj-{_uid()}", "color_hex": "#0A8558"},
+    ).json()
+    section = client.post(
+        "/api/v1/sections",
+        json={"project_id": project["id"], "title": f"sec-{_uid()}", "sort_order": 0},
+    ).json()
+    task = _create_task(client, project_id=project["id"], section_id=section["id"])
+
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={
+            "task_ids": [task["id"]],
+            "patch": {"project_id": None},
+        },
+    )
+    assert response.status_code == 200, response.text
+    item = response.json()["items"][0]
+    assert item["project_id"] is None
+    assert item["section_id"] is None
+
+    got = client.get(f"/api/v1/tasks/{task['id']}").json()
+    assert got["project_id"] is None
+    assert got["section_id"] is None
+
+
+def test_batch_patch_and_add_labels_combined(client: TestClient) -> None:
+    uid = _uid()
+    label = client.post("/api/v1/labels", json={"name": f"combo-{uid}"}).json()
+    task = _create_task(client)
+
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={
+            "task_ids": [task["id"]],
+            "patch": {"schedule_style": "manual"},
+            "add_label_ids": [label["id"]],
+        },
+    )
+    assert response.status_code == 200, response.text
+    item = response.json()["items"][0]
+    assert item["schedule_style"] == "manual"
+    assert label["id"] in item["label_ids"]

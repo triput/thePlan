@@ -51,17 +51,37 @@ def apply_plan_bind_soft_target(
     return soft_target_at
 
 
-def sync_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]) -> None:
+def _load_owned_labels(db: Session, user: User, label_ids: list[UUID]) -> list[Label]:
     labels = db.query(Label).filter(Label.owner_id == user.id, Label.id.in_(label_ids)).all()
     found_ids = {label.id for label in labels}
     missing = [str(label_id) for label_id in label_ids if label_id not in found_ids]
     if missing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Labels not found: {', '.join(missing)}")
+    return labels
+
+
+def sync_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]) -> None:
+    labels = _load_owned_labels(db, user, label_ids)
 
     db.query(TaskLabel).filter(TaskLabel.task_id == task.id).delete(synchronize_session=False)
     db.expire(task, ["label_links"])
     for label in labels:
         db.add(TaskLabel(task_id=task.id, label_id=label.id))
+
+
+def add_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]) -> None:
+    """Merge labels onto a task without replacing existing links (batch add_label_ids)."""
+    if not label_ids:
+        return
+    labels = _load_owned_labels(db, user, label_ids)
+    # Task is loaded with joinedload(label_links). Adding a TaskLabel only via
+    # db.add(task_id=...) leaves it out of that collection; SQLAlchemy then
+    # disassociates it and tries to NULL task_labels.task_id (a PK).
+    existing = {link.label_id for link in task.label_links}
+    for label in labels:
+        if label.id not in existing:
+            task.label_links.append(TaskLabel(task_id=task.id, label_id=label.id))
+    db.expire(task, ["label_links"])
 
 
 def section_belongs_to_project(

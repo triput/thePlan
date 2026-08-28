@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
-from app.models import Label, Plan, Project, RecurrenceRule, Reminder, Task, TaskLabel, User
+from app.models import Plan, Project, RecurrenceRule, Reminder, Task, User
 from app.schemas import (
     PaginatedResponse,
     ProjectOut,
@@ -52,6 +52,7 @@ from app.services.task_helpers import (
     soft_delete_task_subtree,
 )
 from app.services.task_patch import (
+    add_task_labels,
     apply_plan_bind_soft_target,
     apply_task_patch,
     resolve_plan_bind,
@@ -132,24 +133,6 @@ def task_to_out(
             "plan_name": plan_name,
         }
     )
-
-
-def _add_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID]) -> None:
-    if not label_ids:
-        return
-    labels = db.query(Label).filter(Label.owner_id == user.id, Label.id.in_(label_ids)).all()
-    found_ids = {label.id for label in labels}
-    missing = [str(label_id) for label_id in label_ids if label_id not in found_ids]
-    if missing:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Labels not found: {', '.join(missing)}")
-    # Task is loaded with joinedload(label_links). Adding a TaskLabel only via
-    # db.add(task_id=...) leaves it out of that collection; SQLAlchemy then
-    # disassociates it and tries to NULL task_labels.task_id (a PK).
-    existing = {link.label_id for link in task.label_links}
-    for label in labels:
-        if label.id not in existing:
-            task.label_links.append(TaskLabel(task_id=task.id, label_id=label.id))
-    db.expire(task, ["label_links"])
 
 
 def _upsert_recurrence(
@@ -365,7 +348,7 @@ def batch_update_tasks(
         if patch_fields:
             apply_task_patch(db, task, user, body.patch)
         if body.add_label_ids:
-            _add_task_labels(db, task, user, body.add_label_ids)
+            add_task_labels(db, task, user, body.add_label_ids)
         updated_ids.append(task.id)
     db.commit()
     return TaskBatchUpdateResponse(

@@ -2,11 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
-  batchUpdateTasks,
   completeTask,
-  createScheduledBlockBundle,
   createTask,
-  deleteTask,
   fetchLabels,
   fetchPlans,
   fetchProjects,
@@ -17,13 +14,12 @@ import {
   reorderTasks,
   uncompleteTask,
   type Label,
-  type ScheduleStyle,
   type Section,
   type Task,
 } from "../api";
-import { toISO } from "../calendarUtils";
 import { fetchOpenDescendantIds, useUndoStack } from "../undoStack";
 import { PRIORITY_COLORS } from "../colors";
+import { useTaskBatchActions } from "../hooks/useTaskBatchActions";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
 import {
   collectLoadedSubtreeIds,
@@ -132,7 +128,6 @@ export function TaskList({
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(readShowCompleted);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
-  const [batchBusy, setBatchBusy] = useState(false);
   const selectAllRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
@@ -359,6 +354,22 @@ export function TaskList({
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
   };
 
+  const {
+    batchBusy,
+    handleBatchScheduleStyle,
+    handleBatchApplyLabel,
+    handleBatchDueDate,
+    handleBatchClearDue,
+    handleBatchMoveToProject,
+    handleBatchDelete,
+    handleBlockAsBundle,
+  } = useTaskBatchActions({
+    selectedIds,
+    tasks,
+    clearSelection,
+    invalidateTasks,
+  });
+
   const createMutation = useMutation({
     mutationFn: createTask,
     onMutate: async (body) => {
@@ -485,165 +496,6 @@ export function TaskList({
       queryClient.invalidateQueries({ queryKey: ["sections"] });
     },
   });
-
-  const runBatch = async (
-    action: () => Promise<void>,
-    successMessage: string,
-  ) => {
-    setBatchBusy(true);
-    try {
-      await action();
-      clearSelection();
-      invalidateTasks();
-      emitToast(successMessage);
-    } catch (err) {
-      emitToast(err instanceof Error ? err.message : "Batch action failed");
-      invalidateTasks();
-    } finally {
-      setBatchBusy(false);
-    }
-  };
-
-  const handleBatchScheduleStyle = (style: ScheduleStyle) => {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-    void runBatch(
-      async () => {
-        await batchUpdateTasks({
-          task_ids: ids,
-          patch: { schedule_style: style },
-        });
-      },
-      `Set schedule style on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
-    );
-  };
-
-  const handleBatchApplyLabel = (labelId: string) => {
-    const ids = [...selectedIds];
-    if (ids.length === 0 || !labelId) return;
-    void runBatch(
-      async () => {
-        await batchUpdateTasks({
-          task_ids: ids,
-          add_label_ids: [labelId],
-        });
-      },
-      `Applied label to ${ids.length} task${ids.length === 1 ? "" : "s"}`,
-    );
-  };
-
-  const handleBatchDueDate = (dateValue: string) => {
-    const ids = [...selectedIds];
-    if (ids.length === 0 || !dateValue) return;
-    const [y, m, d] = dateValue.split("-").map(Number);
-    if (!y || !m || !d) return;
-    const localEnd = new Date(y, m - 1, d, 23, 59, 0, 0);
-    const dueAt = localEnd.toISOString();
-    void runBatch(
-      async () => {
-        await batchUpdateTasks({
-          task_ids: ids,
-          patch: { due_at: dueAt },
-        });
-      },
-      `Set due date on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
-    );
-  };
-
-  const handleBatchClearDue = () => {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-    void runBatch(
-      async () => {
-        await batchUpdateTasks({
-          task_ids: ids,
-          patch: { due_at: null },
-        });
-      },
-      `Cleared due date on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
-    );
-  };
-
-  const handleBatchMoveToProject = (projectId: string | null) => {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-    void runBatch(
-      async () => {
-        await batchUpdateTasks({
-          task_ids: ids,
-          patch: {
-            project_id: projectId,
-            section_id: null,
-            parent_task_id: null,
-          },
-        });
-      },
-      projectId
-        ? `Moved ${ids.length} task${ids.length === 1 ? "" : "s"} to project`
-        : `Moved ${ids.length} task${ids.length === 1 ? "" : "s"} to Inbox`,
-    );
-  };
-
-  const handleBatchDelete = () => {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-    const ok = window.confirm(
-      `Delete ${ids.length} selected task${ids.length === 1 ? "" : "s"}? This cannot be undone from here.`,
-    );
-    if (!ok) return;
-    void runBatch(
-      async () => {
-        const results = await Promise.allSettled(ids.map((id) => deleteTask(id)));
-        const failed = results.filter((r) => r.status === "rejected").length;
-        if (failed > 0) {
-          throw new Error(
-            `Deleted ${ids.length - failed} of ${ids.length}; ${failed} failed`,
-          );
-        }
-      },
-      `Deleted ${ids.length} task${ids.length === 1 ? "" : "s"}`,
-    );
-  };
-
-  const snapBundleStart = () => {
-    const start = new Date();
-    start.setSeconds(0, 0);
-    const mins = start.getMinutes();
-    const step = 15;
-    const snapped = Math.ceil(mins / step) * step;
-    if (snapped >= 60) {
-      start.setHours(start.getHours() + 1, 0, 0, 0);
-    } else {
-      start.setMinutes(snapped, 0, 0);
-    }
-    return start;
-  };
-
-  const handleBlockAsBundle = () => {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-
-    const byId = new Map(tasks.map((t) => [t.id, t]));
-    let body:
-      | { member_task_ids: string[]; start_time: string }
-      | { parent_task_id: string; start_time: string };
-
-    if (ids.length === 1) {
-      const task = byId.get(ids[0]);
-      if (!task || task.open_subtask_count <= 0) {
-        emitToast("Select 2+ tasks, or one parent with subtasks");
-        return;
-      }
-      body = { parent_task_id: task.id, start_time: toISO(snapBundleStart()) };
-    } else {
-      body = { member_task_ids: ids, start_time: toISO(snapBundleStart()) };
-    }
-
-    void runBatch(async () => {
-      await createScheduledBlockBundle(body);
-      void queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
-    }, "Blocked as bundle on calendar");
-  };
 
   const sections = useMemo(
     () =>

@@ -1,6 +1,6 @@
 /**
- * Settings modal shell — composes domain sections; owns user-settings query/mutation.
- * Cut #5 / DEF-011: section bodies live under ./settings/.
+ * Parent owns user-settings query/mutation + draft; scheduling PATCH shape lives in
+ * `schedulingDraft.ts` (single source of truth for `updateSettings`).
  */
 import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27 (Round 4)  
 **Mode:** Assessment + **greenlit cut wave** — structure-only extracts (#1–#5); no mega-rewrite  
-**Status:** Cuts **#1–#5 implemented** 2026-08-27; Cuts **#6–#8 held** (not started)  
+**Status:** Cuts **#1–#5 implemented** 2026-08-27; **hardening wave** on **#1, #3, #4, #5** 2026-08-27 (Cut #2 skipped); Cuts **#6–#8 held**  
 **Pairs with:** [09-technical-architecture.md](./09-technical-architecture.md), [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers), [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up)
 
 Operator gut after Theme F / Assist / smash rounds: some modules hold too many vectors (UI + orchestration + domain), and business rules may be leaking into the wrong layer. This doc inventories real hotspots, classifies them, and proposes an **ordered cut list**. It is not a rewrite ticket.
@@ -57,9 +57,11 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 | `microsoft_calendar.py` / `google_calendar.py` | **leave alone** | Dense but correctly layered as services; Tesla territory if touched |
 | `models/__init__.py` | **split module** (optional) | Classic monolith; extract per-entity files when next schema wave needs it |
 | `schemas/__init__.py` | **split module** (optional) | Same story as models |
-| `routes/tasks.py` | **extract service** ✓ Cut #3 (partial) | PATCH/batch field rules in `task_patch.py`; complete/shrink hooks still in route/helpers |
+| `routes/tasks.py` | **extract service** ✓ Cut #3 | Thin CRUD orchestration; PATCH/batch/labels in `task_patch.py` |
 | `task_helpers.py` | **keep** | Soft-delete / complete / subtree; right layer |
-| `task_patch.py` | **keep** (new) | PATCH/batch section-project, plan bind, label merge rules |
+| `task_patch.py` | **keep** | PATCH/batch section-project, plan bind, `sync_task_labels` + `add_task_labels` |
+| `useTaskBatchActions.ts` | **keep** (new) | Cut #1 hardening — batch mutations out of `TaskList` |
+| `CalendarDayColumn.tsx` | **keep** (new) | Cut #4 hardening — day/week grid column; drag state stays in `CalendarView` |
 | `OutlineImportPanel.tsx` | **keep** | Large but single pipeline (propose → review → apply) |
 | `outline_templates.py` | **keep** | Service-layer correct |
 | `placement.py` / `replan.py` | **keep** | Scheduler package already modular |
@@ -77,11 +79,11 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 
 | # | Cut | Status | Risk | Effort | Evidence / notes |
 |---|-----|--------|------|--------|------------------|
-| 1 | Extract **TaskList batch bar** (+ due/move/label/style) into `TaskBatchBar.tsx` | **Implemented** 2026-08-27 | **Low** | S | `TaskBatchBar.tsx`; `npx tsc -b` PASS; **manual smoke operator-owned** |
+| 1 | Extract **TaskList batch bar** (+ due/move/label/style) into `TaskBatchBar.tsx` | **Hardened** 2026-08-27 | **Low** | S | `TaskBatchBar.tsx` + `useTaskBatchActions.ts`; `npx tsc -b` PASS; smoke: multi-select → due/move/label/style/delete/bundle |
 | 2 | Extract **TaskDetail** collapsible sections into child components | **Implemented** 2026-08-27 | **Low–Med** | M | `TaskDetailSection.tsx` + domain sections (`Scheduling`, `Recurrence`, `Deps`, `Labels`, `Advanced`, `Promote`, `CreateProject`); tsc PASS; **manual smoke operator-owned** |
-| 3 | Peel `_apply_task_patch` / batch section-project rules from `routes/tasks.py` → `task_patch.py` | **Implemented** 2026-08-27 | **Med** | S–M | `services/task_patch.py`; pytest **41/41 PASS** (batch, soft-delete, complete, plans) |
-| 4 | Split **CalendarView** toolbar + block menu from grid | **Implemented** 2026-08-27 | **Med** | M | `CalendarToolbar.tsx`, `CalendarBlockMenu.tsx`; tsc PASS; **manual smoke operator-owned** (drag/release/bundle gray) |
-| 5 | Split **SettingsPanel** by domain tabs/sections | **Implemented** 2026-08-27 | **Med** | M | `components/settings/*` section files; tsc PASS; **manual smoke operator-owned** (settings PATCH shape) |
+| 3 | Peel `_apply_task_patch` / batch section-project rules from `routes/tasks.py` → `task_patch.py` | **Hardened** 2026-08-27 | **Med** | S–M | `add_task_labels` + `sync_task_labels` in `task_patch.py`; batch pytest **9/9** (+ inbox move, missing label 404, patch+labels combo) |
+| 4 | Split **CalendarView** toolbar + block menu from grid | **Hardened** 2026-08-27 | **Med** | M | `CalendarToolbar`, `CalendarBlockMenu`, **`CalendarDayColumn`**; tsc PASS; smoke: drag block, resize, due-marker move, bundle gray, release/clear |
+| 5 | Split **SettingsPanel** by domain tabs/sections | **Hardened** 2026-08-27 | **Med** | M | `components/settings/*`; scheduling PATCH via `schedulingDraft.ts` documented in shell; smoke: save scheduling defaults + calendar display |
 | 6 | Split `schemas/__init__.py` into domain modules | **Held** | **Med–High** | M | Import churn across API; do with a quiet week |
 | 7 | Split `models/__init__.py` similarly | **Held** | **High** | M–L | Alembic/relationship imports; pair with schema wave |
 | 8 | Carve `App.css` into feature CSS modules / files | **Held** | **High** | L | Visual regression risk; defer unless design-system pass |
@@ -92,7 +94,7 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 
 ## Recommendation
 
-1. Cuts **#1–#5** are **done** for structure-only scope; operator manual smoke still owns UI regression checks on #1, #2, #4, #5.
+1. Cuts **#1–#5** structure + **#1/#3/#4/#5 hardening** landed; operator manual smoke still owns UI regression on #1, #2, #4, #5.
 2. Do **not** book Cuts **#6–#8** as smash work until explicitly greenlit.
 3. Next quiet week: consider **Cut #6** (schemas) before **#7** (models); **#8** (CSS) stays last.
 4. Keep [09-technical-architecture.md](./09-technical-architecture.md) current when further cuts land (DEF-012 living rule).
