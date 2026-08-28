@@ -51,8 +51,8 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 | `SettingsPanel.tsx` | **extract component** ✓ Cut #5 | Domain sections now in `components/settings/*`; shell remains |
 | `App.css` | **leave alone** (or light section files later) | Painful to navigate; splitting CSS without a design-system plan is high-churn / low product value — **Cut #8 held** |
 | `TaskDetailPanel.tsx` | **extract component** ✓ Cut #2 | Section bodies extracted; panel owns shell + save flow |
-| `CalendarView.tsx` | **extract component** ✓ Cut #4 | Toolbar + block menu in `CalendarToolbar` / `CalendarBlockMenu` |
-| `TaskList.tsx` | **extract component** ✓ Cut #1 | Batch bar in `TaskBatchBar.tsx`; forest render stays in list |
+| `CalendarView.tsx` | **extract component** ✓ Cut #4 | Toolbar + block menu + **day grid** (`CalendarDayColumn.tsx`); orchestrator keeps drag/replan |
+| `TaskList.tsx` | **extract component** ✓ Cut #1 | Batch bar in `TaskBatchBar.tsx`; batch handlers in `useTaskBatchActions` hook |
 | `api.ts` | **keep** / optional **split module** | Client kit; section comments already help; barrel-split only if import friction hurts |
 | `microsoft_calendar.py` / `google_calendar.py` | **leave alone** | Dense but correctly layered as services; Tesla territory if touched |
 | `models/__init__.py` | **split module** (optional) | Classic monolith; extract per-entity files when next schema wave needs it |
