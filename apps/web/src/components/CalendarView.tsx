@@ -62,24 +62,19 @@ import {
 import { DEFAULT_PROJECT_COLOR } from "../colors";
 import { NARROW_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
 import { emitToast } from "./ToastHost";
-import { Modal } from "./Modal";
+import {
+  CalendarBlockMenu,
+  fromDatetimeLocalValue,
+  toDatetimeLocalValue,
+  type BlockFormState,
+} from "./CalendarBlockMenu";
+import { CalendarToolbar } from "./CalendarToolbar";
 
 const ROW_HEIGHT_PX = 48;
 const DRAG_THRESHOLD_PX = 5;
 const CALENDAR_HOURS_EVENT = "theplan:calendar-hours";
 const REPLAN_POLL_MS = 500;
 const REPLAN_TIMEOUT_MS = 60_000;
-
-interface BlockFormState {
-  taskId: string;
-  startLocal: string;
-  endLocal: string;
-  isPinned: boolean;
-  blockId?: string;
-  isBundle?: boolean;
-  memberCount?: number;
-  bundleInactive?: boolean;
-}
 
 type ActiveDrag =
   | {
@@ -111,15 +106,6 @@ type ActiveDrag =
       moved: boolean;
     };
 
-function toDatetimeLocalValue(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDatetimeLocalValue(value: string): Date {
-  return new Date(value);
-}
-
 function blockDurationMinutes(start: Date, end: Date): number {
   return Math.max(1, (end.getTime() - start.getTime()) / 60_000);
 }
@@ -135,140 +121,6 @@ function dayFromPoint(clientX: number, clientY: number): Date | null {
   const raw = host?.dataset.calDay;
   if (!raw) return null;
   return new Date(raw);
-}
-
-function BlockFormModal({
-  open,
-  title,
-  form,
-  tasks,
-  blockTask,
-  onChange,
-  onClose,
-  onSave,
-  onDelete,
-  onReleaseRemainder,
-  saving,
-  deleting,
-  releasing,
-}: {
-  open: boolean;
-  title: string;
-  form: BlockFormState | null;
-  tasks: Task[];
-  blockTask?: Task;
-  onChange: (next: BlockFormState) => void;
-  onClose: () => void;
-  onSave: () => void;
-  onDelete?: () => void;
-  onReleaseRemainder?: () => void;
-  saving: boolean;
-  deleting: boolean;
-  releasing?: boolean;
-}) {
-  if (!form) return null;
-
-  const endDate = fromDatetimeLocalValue(form.endLocal);
-  const canReleaseRemainder =
-    Boolean(onReleaseRemainder) && endDate.getTime() > Date.now();
-  const deleteLabel = form.bundleInactive
-    ? "Remove bundle"
-    : form.isBundle
-      ? "Delete bundle"
-      : "Delete";
-
-  return (
-    <Modal open={open} title={title} onClose={onClose}>
-      <div className="entity-form">
-        {form.isBundle && (
-          <p className="muted small" role="status">
-            Calendar bundle
-            {form.memberCount != null ? ` · ${form.memberCount} members` : ""}
-            {form.bundleInactive
-              ? " — members done or gone; safe to remove (tasks stay)."
-              : " — one block on the calendar; members stay individual in lists."}
-          </p>
-        )}
-        {blockTask?.is_completed && !form.isBundle && (
-          <p className="muted small" role="status">
-            Task completed — release unused time so replan can use the rest of this slot.
-          </p>
-        )}
-        <label className="field">
-          <span>{form.isBundle ? "Anchor task" : "Task"}</span>
-          <select
-            className="field-select"
-            value={form.taskId}
-            onChange={(e) => onChange({ ...form, taskId: e.target.value })}
-            disabled={form.isBundle}
-          >
-            <option value="">Select a task…</option>
-            {tasks.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          <span>Start</span>
-          <input
-            type="datetime-local"
-            className="field-datetime"
-            value={form.startLocal}
-            onChange={(e) => onChange({ ...form, startLocal: e.target.value })}
-          />
-        </label>
-        <label className="field">
-          <span>End</span>
-          <input
-            type="datetime-local"
-            className="field-datetime"
-            value={form.endLocal}
-            onChange={(e) => onChange({ ...form, endLocal: e.target.value })}
-          />
-        </label>
-        <label className="field cal-pin-field">
-          <span>
-            <input
-              type="checkbox"
-              checked={form.isPinned}
-              onChange={(e) => onChange({ ...form, isPinned: e.target.checked })}
-            />{" "}
-            Pinned (won&apos;t move on replan)
-          </span>
-        </label>
-        <div className="form-actions">
-          {onReleaseRemainder && canReleaseRemainder && (
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={onReleaseRemainder}
-              disabled={releasing || saving || deleting}
-            >
-              {releasing ? "Releasing…" : "Release remainder"}
-            </button>
-          )}
-          {onDelete && (
-            <button type="button" className="btn danger" onClick={onDelete} disabled={deleting || saving}>
-              {deleting ? "Deleting…" : deleteLabel}
-            </button>
-          )}
-          <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="btn primary"
-            onClick={onSave}
-            disabled={!form.taskId || saving || deleting}
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
 }
 
 function TimeMapBandOverlay({
@@ -783,7 +635,9 @@ export function CalendarView() {
   const setTimeMapOverlay = (mapId: string) => {
     setOverlayMapId(mapId);
     saveTimeMapOverlayId(mapId);
-  };  const invalidateCalendar = useCallback(() => {
+  };
+
+  const invalidateCalendar = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
     queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
     queryClient.invalidateQueries({ queryKey: ["calendar-conflicts"] });
@@ -1177,86 +1031,25 @@ export function CalendarView() {
 
   return (
     <div className={`calendar-view${drag ? " is-dragging" : ""}`}>
-      <header className="cal-header">
-        <div className="cal-nav">
-          <button type="button" className="btn ghost small" onClick={goPrev} aria-label="Previous">
-            ‹
-          </button>
-          <button type="button" className="btn secondary small" onClick={goToday}>
-            Today
-          </button>
-          <button type="button" className="btn ghost small" onClick={goNext} aria-label="Next">
-            ›
-          </button>
-        </div>
-        <h1 className="cal-title">{headerTitle}</h1>
-        {conflictCount > 0 && (
-          <p className="cal-conflict-banner muted small" role="status">
-            {conflictCount} schedule conflict{conflictCount === 1 ? "" : "s"}
-          </p>
-        )}
-        <div className="cal-mode-toggle">
-          <button
-            type="button"
-            className="btn small ghost cal-clear-btn"
-            onClick={handleClearUnpinned}
-            disabled={clearUnpinnedMutation.isPending || replanPolling}
-            title="Remove unpinned blocks in the visible day or week"
-          >
-            {clearUnpinnedMutation.isPending ? "Clearing…" : "Clear unpinned"}
-          </button>
-          <button
-            type="button"
-            className="btn small primary cal-replan-btn"
-            onClick={handleUpdateSchedule}
-            disabled={replanPolling}
-          >
-            {replanPolling ? "Updating…" : "Update Schedule"}
-          </button>
-          <button
-            type="button"
-            className="btn small cal-hours-toggle ghost"
-            onClick={toggleShow24h}
-            aria-pressed={show24h}
-            title={show24h ? "Showing 24 hours — click for 6 AM–10 PM" : "Showing 6 AM–10 PM — click for 24 hours"}
-          >
-            {show24h ? "24h" : "6A–10P"}
-          </button>
-          {mode === "week" && (
-            <label className="cal-time-map-overlay">
-              <span className="cal-time-map-overlay-label">Time Map</span>
-              <select
-                className="cal-time-map-overlay-select"
-                value={effectiveOverlayMapId}
-                onChange={(e) => setTimeMapOverlay(e.target.value)}
-                aria-label="Time Map overlay — visual only; does not change scheduling"
-                title="Visual prompt only — does not change scheduling"
-              >
-                <option value="">Neutral</option>
-                {focusWindows.map((window) => (
-                  <option key={window.id} value={window.id}>
-                    {window.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <button
-            type="button"
-            className={`btn small${mode === "day" ? " primary" : " ghost"}`}
-            onClick={() => setMode("day")}
-          >
-            Day
-          </button>          <button
-            type="button"
-            className={`btn small cal-week-btn${mode === "week" ? " primary" : " ghost"}`}
-            onClick={() => setMode("week")}
-            hidden={isNarrow}
-          >
-            Week
-          </button>
-        </div>
-      </header>
+      <CalendarToolbar
+        headerTitle={headerTitle}
+        conflictCount={conflictCount}
+        mode={mode}
+        isNarrow={isNarrow}
+        show24h={show24h}
+        replanPolling={replanPolling}
+        clearUnpinnedPending={clearUnpinnedMutation.isPending}
+        focusWindows={focusWindows}
+        effectiveOverlayMapId={effectiveOverlayMapId}
+        onPrev={goPrev}
+        onNext={goNext}
+        onToday={goToday}
+        onClearUnpinned={handleClearUnpinned}
+        onUpdateSchedule={handleUpdateSchedule}
+        onToggleShow24h={toggleShow24h}
+        onSetTimeMapOverlay={setTimeMapOverlay}
+        onSetMode={setMode}
+      />
 
       {(blocksQuery.isLoading || dueTasksQuery.isLoading) && (
         <p className="muted small cal-loading">Loading calendar…</p>
@@ -1278,26 +1071,26 @@ export function CalendarView() {
                 key={day.toISOString()}
                 day={day}
                 bounds={hours}
-              blocks={blocks}
-              busyEvents={busyEvents}
-              dueTasks={dueTasks}
-              tasksById={allTasksById}
-              projects={projects}
-              dragEnabled={dragEnabled}
-              blockPreview={blockDrag}
-              duePreview={dueDrag}
-              conflictingBlockIds={conflictingBlockIds}
-              conflictingBusyEventIds={conflictingBusyEventIds}
-              onSlotClick={handleSlotClick}
-              onBlockClick={openEdit}
-              onDueClick={handleDueClick}
-              onBlockMoveStart={handleBlockMoveStart}
-              onBlockResizeStart={handleBlockResizeStart}
-              onDueDragStart={handleDueDragStart}
-              showDayLabel={mode === "week"}
-              timeMapBands={timeMapBands}
-            />
-          ))}
+                blocks={blocks}
+                busyEvents={busyEvents}
+                dueTasks={dueTasks}
+                tasksById={allTasksById}
+                projects={projects}
+                dragEnabled={dragEnabled}
+                blockPreview={blockDrag}
+                duePreview={dueDrag}
+                conflictingBlockIds={conflictingBlockIds}
+                conflictingBusyEventIds={conflictingBusyEventIds}
+                onSlotClick={handleSlotClick}
+                onBlockClick={openEdit}
+                onDueClick={handleDueClick}
+                onBlockMoveStart={handleBlockMoveStart}
+                onBlockResizeStart={handleBlockResizeStart}
+                onDueDragStart={handleDueDragStart}
+                showDayLabel={mode === "week"}
+                timeMapBands={timeMapBands}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -1308,7 +1101,7 @@ export function CalendarView() {
           : "Tap a time slot to schedule a task. Tap a due dot or block to edit."}
       </p>
 
-      <BlockFormModal
+      <CalendarBlockMenu
         open={blockForm !== null}
         title={
           formMode === "edit"

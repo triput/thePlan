@@ -46,6 +46,7 @@ import { CreateSectionForm } from "./CreateSectionForm";
 import { EditSectionForm } from "./EditSectionForm";
 import { emitToast } from "./ToastHost";
 import { ReorderButtons } from "./ReorderButtons";
+import { TaskBatchBar } from "./TaskBatchBar";
 
 interface TaskListProps {
   view: ViewSelection;
@@ -970,128 +971,21 @@ export function TaskList({
           </div>
         )}
 
-        {selectedCount > 0 && (
-          <div className="task-batch-bar" role="toolbar" aria-label="Batch actions">
-            <select
-              className="task-batch-select"
-              defaultValue=""
-              disabled={batchBusy}
-              aria-label="Set schedule style"
-              onChange={(e) => {
-                const value = e.target.value as ScheduleStyle | "";
-                e.target.value = "";
-                if (value === "manual" || value === "standalone") {
-                  handleBatchScheduleStyle(value);
-                }
-              }}
-            >
-              <option value="" disabled>
-                Schedule style…
-              </option>
-              <option value="manual">Manual</option>
-              <option value="standalone">Standalone</option>
-            </select>
-            <select
-              className="task-batch-select"
-              defaultValue=""
-              disabled={batchBusy || (labelsQuery.data?.items.length ?? 0) === 0}
-              aria-label="Apply label"
-              onChange={(e) => {
-                const value = e.target.value;
-                e.target.value = "";
-                if (value) handleBatchApplyLabel(value);
-              }}
-            >
-              <option value="" disabled>
-                Apply label…
-              </option>
-              {[...(labelsQuery.data?.items ?? [])]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((label) => (
-                  <option key={label.id} value={label.id}>
-                    {label.name}
-                  </option>
-                ))}
-            </select>
-            <label className="task-batch-due">
-              <span className="sr-only">Set due date</span>
-              <input
-                type="date"
-                className="task-batch-date"
-                disabled={batchBusy}
-                aria-label="Set due date for selected tasks"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  e.target.value = "";
-                  if (value) handleBatchDueDate(value);
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              className="btn ghost small"
-              disabled={batchBusy}
-              onClick={handleBatchClearDue}
-              title="Clear due date on selected tasks"
-            >
-              Clear due
-            </button>
-            <select
-              className="task-batch-select"
-              defaultValue=""
-              disabled={batchBusy || projectsQuery.isLoading}
-              aria-label="Move to project"
-              onChange={(e) => {
-                const value = e.target.value;
-                e.target.value = "";
-                if (value === "") return;
-                if (value === "__inbox__") {
-                  handleBatchMoveToProject(null);
-                } else {
-                  handleBatchMoveToProject(value);
-                }
-              }}
-            >
-              <option value="" disabled>
-                Move to project…
-              </option>
-              <option value="__inbox__">Inbox</option>
-              {[...projects]
-                .filter((p) => !p.is_archived)
-                .sort((a, b) => a.title.localeCompare(b.title))
-                .map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.title}
-                  </option>
-                ))}
-            </select>
-            <button
-              type="button"
-              className="btn secondary small"
-              disabled={batchBusy}
-              onClick={handleBlockAsBundle}
-              title="One calendar block for the selection (or parent subtree)"
-            >
-              Block as bundle
-            </button>
-            <button
-              type="button"
-              className="btn danger small"
-              disabled={batchBusy}
-              onClick={handleBatchDelete}
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              className="btn ghost small"
-              disabled={batchBusy}
-              onClick={clearSelection}
-            >
-              Clear
-            </button>
-          </div>
-        )}
+        <TaskBatchBar
+          selectedCount={selectedCount}
+          busy={batchBusy}
+          labels={labelsQuery.data?.items ?? []}
+          projects={projects}
+          projectsLoading={projectsQuery.isLoading}
+          onScheduleStyle={handleBatchScheduleStyle}
+          onApplyLabel={handleBatchApplyLabel}
+          onDueDate={handleBatchDueDate}
+          onClearDue={handleBatchClearDue}
+          onMoveToProject={handleBatchMoveToProject}
+          onBlockAsBundle={handleBlockAsBundle}
+          onDelete={handleBatchDelete}
+          onClearSelection={clearSelection}
+        />
 
         {view.type === "epic" ? (
           <div className="epic-task-groups" aria-label={`Tasks in ${heading}`}>

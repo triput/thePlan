@@ -1,8 +1,8 @@
 # Refactor assessment (DEF-011)
 
 **Date:** 2026-08-27 (Round 4)  
-**Mode:** Assessment only — **no mega-refactor code moves**  
-**Status:** Shipped for operator review; mutating extracts need **Trish greenlight**  
+**Mode:** Assessment + **greenlit cut wave** — structure-only extracts (#1–#5); no mega-rewrite  
+**Status:** Cuts **#1–#5 implemented** 2026-08-27; Cuts **#6–#8 held** (not started)  
 **Pairs with:** [09-technical-architecture.md](./09-technical-architecture.md), [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers), [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up)
 
 Operator gut after Theme F / Assist / smash rounds: some modules hold too many vectors (UI + orchestration + domain), and business rules may be leaking into the wrong layer. This doc inventories real hotspots, classifies them, and proposes an **ordered cut list**. It is not a rewrite ticket.
@@ -11,7 +11,7 @@ Operator gut after Theme F / Assist / smash rounds: some modules hold too many v
 
 ## Size inventory (approx bytes, 2026-08-27)
 
-Measured under `apps/web/src` and `apps/api/app` (excluding `__pycache__` / `node_modules`).
+Measured under `apps/web/src` and `apps/api/app` (excluding `__pycache__` / `node_modules`). **Pre-cut baseline** — parent files shrank after Cut wave #1–#5 (2026-08-27); exact re-measure deferred.
 
 | Bytes | Path | Notes |
 |------:|------|-------|
@@ -48,55 +48,54 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 
 | Hotspot | Classify | Why |
 |---------|----------|-----|
-| `SettingsPanel.tsx` | **extract component** | Multiple settings domains (timezone, calendars, Assist, schedule defaults) share one scroll monster |
-| `App.css` | **leave alone** (or light section files later) | Painful to navigate; splitting CSS without a design-system plan is high-churn / low product value |
-| `TaskDetailPanel.tsx` | **extract component** | Promote / labels / recurrence / deps / inline create can be section components |
-| `CalendarView.tsx` | **extract component** | Block chrome vs day/week grid vs toolbar capacity actions |
-| `TaskList.tsx` | **extract component** (+ maybe tiny hooks) | Batch bar + forest render + complete/bundle actions — UI orchestration, not stolen domain |
+| `SettingsPanel.tsx` | **extract component** ✓ Cut #5 | Domain sections now in `components/settings/*`; shell remains |
+| `App.css` | **leave alone** (or light section files later) | Painful to navigate; splitting CSS without a design-system plan is high-churn / low product value — **Cut #8 held** |
+| `TaskDetailPanel.tsx` | **extract component** ✓ Cut #2 | Section bodies extracted; panel owns shell + save flow |
+| `CalendarView.tsx` | **extract component** ✓ Cut #4 | Toolbar + block menu in `CalendarToolbar` / `CalendarBlockMenu` |
+| `TaskList.tsx` | **extract component** ✓ Cut #1 | Batch bar in `TaskBatchBar.tsx`; forest render stays in list |
 | `api.ts` | **keep** / optional **split module** | Client kit; section comments already help; barrel-split only if import friction hurts |
 | `microsoft_calendar.py` / `google_calendar.py` | **leave alone** | Dense but correctly layered as services; Tesla territory if touched |
 | `models/__init__.py` | **split module** (optional) | Classic monolith; extract per-entity files when next schema wave needs it |
 | `schemas/__init__.py` | **split module** (optional) | Same story as models |
-| `routes/tasks.py` | **extract service** (incremental) | Patch/batch/section-project rules + complete/shrink hooks belong in helpers/services already growing |
+| `routes/tasks.py` | **extract service** ✓ Cut #3 (partial) | PATCH/batch field rules in `task_patch.py`; complete/shrink hooks still in route/helpers |
+| `task_helpers.py` | **keep** | Soft-delete / complete / subtree; right layer |
+| `task_patch.py` | **keep** (new) | PATCH/batch section-project, plan bind, label merge rules |
 | `OutlineImportPanel.tsx` | **keep** | Large but single pipeline (propose → review → apply) |
 | `outline_templates.py` | **keep** | Service-layer correct |
 | `placement.py` / `replan.py` | **keep** | Scheduler package already modular |
-| `task_helpers.py` | **keep** | Right layer; grow carefully |
 | `bundle_blocks.py` | **keep** | New Round 2/4 service — good boundary |
 | `Sidebar.tsx` / `App.tsx` | **leave alone** | Shell size is fine |
 | `AssistPanel.tsx` | **leave alone** | Bounded |
 
-**Layer verdict:** Domain mostly still lives in API services. Worst smell is **fat React surfaces** (Settings / TaskDetail / TaskList / Calendar) and **monolith models/schemas**, not “scheduler math in the browser.” Routes `tasks.py` is the main backend candidate for peeling helpers when batch/trash/complete keep growing.
+**Layer verdict:** Domain mostly still lives in API services. Cut wave #1–#5 peeled fat React surfaces and `task_patch.py` off routes; **monolith models/schemas** and **App.css** remain (Cuts **#6–#8 held**).
 
 ---
 
-## Ordered cut list (for Trish greenlight)
+## Ordered cut list
 
-Do **not** start these until explicitly approved. Prefer one cut per wave.
+Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero behavior change intent). Cuts **#6–#8** remain **held** — do not start without explicit greenlight.
 
-| # | Cut | Risk | Effort | Notes |
-|---|-----|------|--------|-------|
-| 1 | Extract **TaskList batch bar** (+ due/move/label/style) into `TaskBatchBar.tsx` | **Low** | S | Pure presentational + callbacks; Round 4 just grew this bar |
-| 2 | Extract **TaskDetail** collapsible sections into child components | **Low–Med** | M | Watch mutation/cache invalidation ownership |
-| 3 | Peel `_apply_task_patch` / batch section-project rules from `routes/tasks.py` → `task_helpers` or `task_patch.py` | **Med** | S–M | Tests already cover batch move/due; keep pytest green |
-| 4 | Split **CalendarView** toolbar + block menu from grid | **Med** | M | Easy to break drag/release/bundle gray |
-| 5 | Split **SettingsPanel** by domain tabs/sections | **Med** | M | Highest byte win; careful with settings PATCH shape |
-| 6 | Split `schemas/__init__.py` into domain modules | **Med–High** | M | Import churn across API; do with a quiet week |
-| 7 | Split `models/__init__.py` similarly | **High** | M–L | Alembic/relationship imports; pair with schema wave |
-| 8 | Carve `App.css` into feature CSS modules / files | **High** | L | Visual regression risk; defer unless design-system pass |
+| # | Cut | Status | Risk | Effort | Evidence / notes |
+|---|-----|--------|------|--------|------------------|
+| 1 | Extract **TaskList batch bar** (+ due/move/label/style) into `TaskBatchBar.tsx` | **Implemented** 2026-08-27 | **Low** | S | `TaskBatchBar.tsx`; `npx tsc -b` PASS; **manual smoke operator-owned** |
+| 2 | Extract **TaskDetail** collapsible sections into child components | **Implemented** 2026-08-27 | **Low–Med** | M | `TaskDetailSection.tsx` + domain sections (`Scheduling`, `Recurrence`, `Deps`, `Labels`, `Advanced`, `Promote`, `CreateProject`); tsc PASS; **manual smoke operator-owned** |
+| 3 | Peel `_apply_task_patch` / batch section-project rules from `routes/tasks.py` → `task_patch.py` | **Implemented** 2026-08-27 | **Med** | S–M | `services/task_patch.py`; pytest **41/41 PASS** (batch, soft-delete, complete, plans) |
+| 4 | Split **CalendarView** toolbar + block menu from grid | **Implemented** 2026-08-27 | **Med** | M | `CalendarToolbar.tsx`, `CalendarBlockMenu.tsx`; tsc PASS; **manual smoke operator-owned** (drag/release/bundle gray) |
+| 5 | Split **SettingsPanel** by domain tabs/sections | **Implemented** 2026-08-27 | **Med** | M | `components/settings/*` section files; tsc PASS; **manual smoke operator-owned** (settings PATCH shape) |
+| 6 | Split `schemas/__init__.py` into domain modules | **Held** | **Med–High** | M | Import churn across API; do with a quiet week |
+| 7 | Split `models/__init__.py` similarly | **Held** | **High** | M–L | Alembic/relationship imports; pair with schema wave |
+| 8 | Carve `App.css` into feature CSS modules / files | **Held** | **High** | L | Visual regression risk; defer unless design-system pass |
 
-**Explicitly out of scope until greenlight:** mega-rewrite of calendar sync, moving domain into the web client, “clean architecture” folder reshuffles, apps/desktop refactors.
-
-**5-minute safe extracts (optional, still ask):** Cut #1 only — batch bar file extract with zero behavior change. Not done in Round 4 (assessment-first).
+**Explicitly out of scope:** mega-rewrite of calendar sync, moving domain into the web client, “clean architecture” folder reshuffles, apps/desktop refactors.
 
 ---
 
 ## Recommendation
 
-1. Accept this assessment as the DEF-011 exit for **docs**.
-2. Next feature pile: prefer **Cut #1 or #3** if a wave already touches TaskList / tasks routes.
-3. Do **not** book Cuts #6–#8 as smash work.
-4. Keep [09-technical-architecture.md](./09-technical-architecture.md) updated when cuts land (DEF-012 living rule).
+1. Cuts **#1–#5** are **done** for structure-only scope; operator manual smoke still owns UI regression checks on #1, #2, #4, #5.
+2. Do **not** book Cuts **#6–#8** as smash work until explicitly greenlit.
+3. Next quiet week: consider **Cut #6** (schemas) before **#7** (models); **#8** (CSS) stays last.
+4. Keep [09-technical-architecture.md](./09-technical-architecture.md) current when further cuts land (DEF-012 living rule).
 
 ---
 

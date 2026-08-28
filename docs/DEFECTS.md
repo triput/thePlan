@@ -295,7 +295,7 @@ Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **c
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (gut-check hygiene; not a known break) |
-| **Status** | Closed — assessment shipped 2026-08-27 ([REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)); **code moves parked** pending Trish greenlight |
+| **Status** | Closed — assessment shipped 2026-08-27; **greenlit Cut wave:** #1–#5 **implemented** 2026-08-27; **#6–#8 held** ([REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)) |
 | **Found** | 2026-08-14 |
 | **Surface** | Cross-cutting — API services vs routes vs web components (esp. large files) |
 | **Wave** | Round 4 docs — after smash rounds; paired with [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) |
@@ -304,16 +304,30 @@ Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **c
 
 Operator gut: some files may house **too many vectors** (UI + orchestration + domain rules), and **business logic may be showing up where it doesn’t belong**. Want a deliberate **refactor assessment** — not a blind rewrite — to see if modularization or layer cleanup is warranted.
 
-### Current behavior (assessment shipped)
+### Current behavior (assessment + Cut wave #1–#5)
 
-Durable inventory + classification + ordered cut list: **[REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)**. Hotspots sized (SettingsPanel / App.css / TaskDetail / Calendar / TaskList tops). Verdict: fat React surfaces + monolith models/schemas; domain mostly still in API services. **No mega-refactor code moves** in Round 4.
+Durable inventory + classification + ordered cut list: **[REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)**. Hotspots sized (SettingsPanel / App.css / TaskDetail / Calendar / TaskList tops). Verdict: fat React surfaces + monolith models/schemas; domain mostly still in API services.
+
+**Greenlit structure-only wave (2026-08-27):**
+
+| Cut | Landed | Evidence |
+|-----|--------|----------|
+| #1 TaskList batch bar → `TaskBatchBar.tsx` | Yes | `npx tsc -b` PASS |
+| #2 TaskDetail sections → child components | Yes | tsc PASS |
+| #3 PATCH/batch rules → `task_patch.py` | Yes | pytest **41/41 PASS** |
+| #4 Calendar toolbar + block menu extract | Yes | tsc PASS |
+| #5 SettingsPanel → `components/settings/*` | Yes | tsc PASS |
+
+UI cuts (#1, #2, #4, #5): **manual smoke still operator-owned** — not claimed Closed on visual regression.
+
+**Still held (not started):** Cuts **#6–#8** (schemas split, models split, App.css carve).
 
 ### Expected (when run)
 
 1. Inventory hotspots (oversized modules, mixed concerns: e.g. fat `TaskList` / `App.css` / route handlers doing domain work). **Done.**
 2. Classify: keep / extract service / extract component / leave alone. **Done.**
 3. Propose a short ordered cut list (if any) with risk notes — **no drive-by mega-refactor**. **Done.**
-4. Operator reviews before any mutating refactor wave. **Awaiting greenlight** (cuts #1–#8 in assessment).
+4. Operator greenlight before mutating refactor wave. **Done for #1–#5**; **#6–#8 await greenlight.**
 
 ### Notes
 

@@ -4,7 +4,6 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type ReactNode,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -41,8 +40,15 @@ import { DEFAULT_EPIC_COLOR, DEFAULT_PROJECT_COLOR } from "../colors";
 import { NARROW_QUERY } from "../hooks/useMediaQuery";
 import { collectDeleteTree, useUndoStack } from "../undoStack";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
+import { TaskDetailAdvanced } from "./TaskDetailAdvanced";
+import { TaskDetailCreateProject } from "./TaskDetailCreateProject";
+import { TaskDetailDeps } from "./TaskDetailDeps";
+import { TaskDetailLabels } from "./TaskDetailLabels";
+import { TaskDetailPromote } from "./TaskDetailPromote";
+import { TaskDetailRecurrence } from "./TaskDetailRecurrence";
+import { TaskDetailScheduling } from "./TaskDetailScheduling";
+import type { DetailSectionId } from "./TaskDetailSection";
 
 interface TaskDetailPanelProps {
   task: Task | null;
@@ -51,13 +57,6 @@ interface TaskDetailPanelProps {
 }
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
-
-type DetailSectionId =
-  | "scheduling"
-  | "recurrence"
-  | "dependencies"
-  | "labels"
-  | "advanced";
 
 const SECTION_STORAGE_KEY = "theplan.taskDetail.sections";
 const WIDTH_STORAGE_KEY = "theplan.taskDetail.width";
@@ -123,45 +122,6 @@ function applyPanelWidthCssVar(width: number) {
 
 function isMobileTaskDetailLayout(): boolean {
   return typeof window !== "undefined" && window.matchMedia(MOBILE_LAYOUT_MQ).matches;
-}
-
-function DetailSection({
-  id,
-  title,
-  open,
-  onToggle,
-  children,
-}: {
-  id: DetailSectionId;
-  title: string;
-  open: boolean;
-  onToggle: (id: DetailSectionId) => void;
-  children: ReactNode;
-}) {
-  const toggleId = `detail-section-toggle-${id}`;
-  const bodyId = `detail-section-${id}`;
-  return (
-    <section className={`detail-section${open ? " is-open" : ""}`}>
-      <button
-        type="button"
-        className="detail-section-toggle"
-        id={toggleId}
-        aria-expanded={open}
-        aria-controls={bodyId}
-        onClick={() => onToggle(id)}
-      >
-        <span className="detail-section-chevron" aria-hidden>
-          {open ? "▾" : "▸"}
-        </span>
-        <span className="detail-section-title">{title}</span>
-      </button>
-      {open ? (
-        <div className="detail-section-body" id={bodyId} role="region" aria-labelledby={toggleId}>
-          {children}
-        </div>
-      ) : null}
-    </section>
-  );
 }
 
 function toDatetimeLocal(iso: string | null): string {
@@ -660,18 +620,6 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     );
   };
 
-  const labelFilterTrimmed = labelFilter.trim();
-  const labelFilterLower = labelFilterTrimmed.toLowerCase();
-  const filteredLabels = useMemo(() => {
-    if (!labelFilterLower) return allLabels;
-    return allLabels.filter((label) => label.name.toLowerCase().includes(labelFilterLower));
-  }, [allLabels, labelFilterLower]);
-  const exactLabelMatch = useMemo(
-    () => allLabels.some((label) => label.name.toLowerCase() === labelFilterLower),
-    [allLabels, labelFilterLower],
-  );
-  const canCreateLabel = labelFilterTrimmed.length > 0 && !exactLabelMatch;
-
   const handlePlanChange = (value: string) => {
     setPlanId(value);
     if (value) {
@@ -833,406 +781,95 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             </span>
           </label>
 
-          <DetailSection
-            id="scheduling"
-            title="Scheduling"
+          <TaskDetailScheduling
             open={sectionOpen.scheduling}
             onToggle={toggleSection}
-          >
-            <label className="field">
-              <span>Plan</span>
-              <select
-                className="field-select"
-                value={planId}
-                onChange={(e) => handlePlanChange(e.target.value)}
-              >
-                <option value="">None</option>
-                {plans.map((plan) => (
-                  <option key={plan.id} value={plan.id}>
-                    {plan.name}
-                  </option>
-                ))}
-              </select>
-              <span className="field-hint muted small">
-                Assigning a plan may copy its soft target onto this task
-              </span>
-            </label>
-            <label className="field">
-              <span>Duration (minutes)</span>
-              <input
-                type="number"
-                className="field-number"
-                min={0}
-                step={5}
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="30"
-              />
-            </label>
-            <label className="field">
-              <span>Time Map</span>
-              <select
-                className="field-select"
-                value={preferredTimeWindowId}
-                onChange={(e) => setPreferredTimeWindowId(e.target.value)}
-              >
-                <option value="">None (inherit)</option>
-                {focusWindows.map((window) => (
-                  <option key={window.id} value={window.id}>
-                    {window.name}
-                  </option>
-                ))}
-              </select>
-              {inheritTimeMapHint && (
-                <span className="field-hint muted small">{inheritTimeMapHint}</span>
-              )}
-            </label>
-            <label className="field">
-              <span>Schedule style</span>
-              <select
-                className="field-select"
-                value={scheduleStyle}
-                onChange={(e) => setScheduleStyle(e.target.value as "" | ScheduleStyle)}
-              >
-                <option value="">Inherit</option>
-                <option value="standalone">Standalone</option>
-                <option value="time_block">Time block</option>
-                <option value="bundle">Bundle</option>
-                <option value="manual">Manual / backlog</option>
-              </select>
-              {inheritScheduleStyleHint && (
-                <span className="field-hint muted small">{inheritScheduleStyleHint}</span>
-              )}
-              <span className="field-hint muted small">
-                Manual / backlog and bundle tasks are excluded from Update Schedule auto-placement
-              </span>
-            </label>
-          </DetailSection>
+            planId={planId}
+            plans={plans}
+            onPlanChange={handlePlanChange}
+            duration={duration}
+            onDurationChange={setDuration}
+            preferredTimeWindowId={preferredTimeWindowId}
+            onPreferredTimeWindowIdChange={setPreferredTimeWindowId}
+            focusWindows={focusWindows}
+            inheritTimeMapHint={inheritTimeMapHint}
+            scheduleStyle={scheduleStyle}
+            onScheduleStyleChange={setScheduleStyle}
+            inheritScheduleStyleHint={inheritScheduleStyleHint}
+          />
 
-          <DetailSection
-            id="recurrence"
-            title="Recurrence"
+          <TaskDetailRecurrence
             open={sectionOpen.recurrence}
             onToggle={toggleSection}
-          >
-            <fieldset className="field recurrence-fieldset">
-              <legend className="sr-only">Recurrence</legend>
-              {task.recurrence?.display && (
-                <p className="muted small recurrence-current">{task.recurrence.display}</p>
-              )}
-              <label className="field">
-                <span>Pattern</span>
-                <input
-                  type="text"
-                  value={recurrenceText}
-                  onChange={(e) => setRecurrenceText(e.target.value)}
-                  placeholder="every monday, wednesday"
-                />
-                <span className="field-hint muted small">
-                  Use every / every! plus day, week, or weekdays. Optional frame below.
-                </span>
-              </label>
-              <div className="recurrence-frame-row">
-                <label className="field">
-                  <span>From</span>
-                  <input
-                    type="date"
-                    value={startsOn}
-                    onChange={(e) => setStartsOn(e.target.value)}
-                  />
-                </label>
-                <label className="field">
-                  <span>Until</span>
-                  <input
-                    type="date"
-                    value={endsOn}
-                    onChange={(e) => setEndsOn(e.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn secondary small"
-                  disabled={!task.recurrence || clearRecurrenceMutation.isPending}
-                  onClick={() => clearRecurrenceMutation.mutate()}
-                >
-                  Clear
-                </button>
-                <button
-                  type="button"
-                  className="btn primary small"
-                  disabled={recurrenceMutation.isPending}
-                  onClick={() => recurrenceMutation.mutate()}
-                >
-                  {recurrenceMutation.isPending ? "Saving…" : "Save recurrence"}
-                </button>
-              </div>
-            </fieldset>
-          </DetailSection>
+            task={task}
+            recurrenceText={recurrenceText}
+            onRecurrenceTextChange={setRecurrenceText}
+            startsOn={startsOn}
+            onStartsOnChange={setStartsOn}
+            endsOn={endsOn}
+            onEndsOnChange={setEndsOn}
+            savePending={recurrenceMutation.isPending}
+            clearPending={clearRecurrenceMutation.isPending}
+            onSave={() => recurrenceMutation.mutate()}
+            onClear={() => clearRecurrenceMutation.mutate()}
+          />
 
-          <DetailSection
-            id="dependencies"
-            title="Dependencies"
+          <TaskDetailDeps
             open={sectionOpen.dependencies}
             onToggle={toggleSection}
-          >
-            <div className="field detail-project-field">
-              <span>Project</span>
-              <select
-                className="field-select"
-                value={projectId}
-                onChange={(e) => handleProjectChange(e.target.value)}
-                aria-label="Project"
-              >
-                <option value="">Inbox</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className="btn secondary small detail-inline-create-btn"
-                onClick={openCreateProject}
-              >
-                + New project
-              </button>
-              <span className="field-hint muted small">
-                Creates a project and selects it for this task (save to keep)
-              </span>
-            </div>
-            {projectId && (
-              <label className="field">
-                <span>Section</span>
-                <select
-                  className="field-select"
-                  value={sectionId}
-                  onChange={(e) => setSectionId(e.target.value)}
-                >
-                  <option value="">None</option>
-                  {sections.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <label className="field">
-              <span>Parent task</span>
-              <select
-                className="field-select"
-                value={parentTaskId}
-                onChange={(e) => setParentTaskId(e.target.value)}
-              >
-                <option value="">None (top-level)</option>
-                {parentOptions.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {canCreateChild ? (
-              <div className="inline-form detail-child-form">
-                <label className="field detail-child-field">
-                  <span>New subtask</span>
-                  <input
-                    type="text"
-                    value={childTitle}
-                    onChange={(e) => setChildTitle(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key !== "Enter") return;
-                      e.preventDefault();
-                      handleCreateChild();
-                    }}
-                    placeholder="Subtask title"
-                    autoComplete="off"
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="btn primary small"
-                  disabled={!childTitle.trim() || createChildMutation.isPending}
-                  onClick={handleCreateChild}
-                >
-                  {createChildMutation.isPending ? "Creating…" : "Add subtask"}
-                </button>
-              </div>
-            ) : (
-              <p className="muted small">Max nesting depth — can’t add a subtask here.</p>
-            )}
-          </DetailSection>
+            projectId={projectId}
+            projects={projects}
+            onProjectChange={handleProjectChange}
+            onOpenCreateProject={openCreateProject}
+            sectionId={sectionId}
+            sections={sections}
+            onSectionChange={setSectionId}
+            parentTaskId={parentTaskId}
+            parentOptions={parentOptions}
+            onParentTaskIdChange={setParentTaskId}
+            canCreateChild={canCreateChild}
+            childTitle={childTitle}
+            onChildTitleChange={setChildTitle}
+            createChildPending={createChildMutation.isPending}
+            onCreateChild={handleCreateChild}
+          />
 
-          <DetailSection
-            id="labels"
-            title="Labels"
+          <TaskDetailLabels
             open={sectionOpen.labels}
             onToggle={toggleSection}
-          >
-            <fieldset className="field">
-              <legend className="sr-only">Labels</legend>
-              <label className="field label-filter-field">
-                <span className="sr-only">Filter or create labels</span>
-                <input
-                  type="text"
-                  value={labelFilter}
-                  onChange={(e) => setLabelFilter(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter") return;
-                    e.preventDefault();
-                    if (!canCreateLabel || createLabelMutation.isPending) return;
-                    createLabelMutation.mutate(labelFilterTrimmed);
-                  }}
-                  placeholder="Filter or create…"
-                  autoComplete="off"
-                />
-              </label>
-              {allLabels.length === 0 && !canCreateLabel && (
-                <p className="muted small">No labels yet. Type a name above to create one.</p>
-              )}
-              {allLabels.length > 0 && filteredLabels.length === 0 && !canCreateLabel && (
-                <p className="muted small">No labels match.</p>
-              )}
-              <div className="label-toggle-group" role="group" aria-label="Task labels">
-                {filteredLabels.map((label) => {
-                  const selected = labelIds.includes(label.id);
-                  return (
-                    <button
-                      key={label.id}
-                      type="button"
-                      className={`label-toggle${selected ? " selected" : ""}`}
-                      style={
-                        selected
-                          ? {
-                              backgroundColor: `color-mix(in srgb, ${label.color_hex} 22%, transparent)`,
-                              borderColor: label.color_hex,
-                              color: label.color_hex,
-                            }
-                          : { borderColor: label.color_hex, color: label.color_hex }
-                      }
-                      aria-pressed={selected}
-                      onClick={() => toggleLabel(label.id)}
-                    >
-                      <span
-                        className="label-swatch tiny"
-                        style={{ backgroundColor: label.color_hex }}
-                        aria-hidden
-                      />
-                      {label.name}
-                    </button>
-                  );
-                })}
-                {canCreateLabel && (
-                  <button
-                    type="button"
-                    className="label-toggle label-create-toggle"
-                    disabled={createLabelMutation.isPending}
-                    onClick={() => createLabelMutation.mutate(labelFilterTrimmed)}
-                  >
-                    {createLabelMutation.isPending
-                      ? "Creating…"
-                      : `+ Create “${labelFilterTrimmed}”`}
-                  </button>
-                )}
-              </div>
-            </fieldset>
-          </DetailSection>
+            allLabels={allLabels}
+            labelIds={labelIds}
+            onToggleLabel={toggleLabel}
+            labelFilter={labelFilter}
+            onLabelFilterChange={setLabelFilter}
+            createPending={createLabelMutation.isPending}
+            onCreateLabel={(name) => createLabelMutation.mutate(name)}
+          />
 
-          <DetailSection
-            id="advanced"
-            title="Advanced"
+          <TaskDetailAdvanced
             open={sectionOpen.advanced}
             onToggle={toggleSection}
-          >
-            <fieldset className="field recurrence-fieldset">
-              <legend>Reminders</legend>
-              {upcomingReminders.length > 0 ? (
-                <ul className="reminder-list">
-                  {upcomingReminders.map((reminder) => (
-                    <li key={reminder.id} className="reminder-row">
-                      <span>
-                        {new Date(reminder.fire_at).toLocaleString(undefined, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
-                        <span className="muted small">
-                          {" "}
-                          · {reminder.channel === "browser" ? "browser" : "in-app"}
-                        </span>
-                      </span>
-                      <button
-                        type="button"
-                        className="btn secondary small"
-                        disabled={deleteReminderMutation.isPending}
-                        onClick={() => deleteReminderMutation.mutate(reminder.id)}
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="muted small">No upcoming reminders</p>
-              )}
-              <div className="reminder-add-row">
-                <label className="field">
-                  <span>When</span>
-                  <input
-                    type="datetime-local"
-                    className="field-datetime"
-                    value={reminderAtLocal}
-                    onChange={(e) => setReminderAtLocal(e.target.value)}
-                  />
-                </label>
-                <label className="field">
-                  <span>Channel</span>
-                  <select
-                    className="field-select"
-                    value={reminderChannel}
-                    onChange={(e) => setReminderChannel(e.target.value as ReminderChannel)}
-                  >
-                    <option value="in_app">In-app toast</option>
-                    <option value="browser">Browser notification</option>
-                  </select>
-                </label>
-              </div>
-              {notifPermission !== "unsupported" && notifPermission !== "granted" && (
-                <button
-                  type="button"
-                  className="btn secondary small reminder-notif-btn"
-                  onClick={() => void requestBrowserNotifications()}
-                >
-                  Enable browser notifications
-                </button>
-              )}
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn primary small"
-                  disabled={!reminderAtLocal || createReminderMutation.isPending}
-                  onClick={() => createReminderMutation.mutate()}
-                >
-                  {createReminderMutation.isPending ? "Adding…" : "Add reminder"}
-                </button>
-              </div>
-            </fieldset>
-          </DetailSection>
+            upcomingReminders={upcomingReminders}
+            reminderAtLocal={reminderAtLocal}
+            onReminderAtLocalChange={setReminderAtLocal}
+            reminderChannel={reminderChannel}
+            onReminderChannelChange={setReminderChannel}
+            notifPermission={notifPermission}
+            onRequestBrowserNotifications={() => void requestBrowserNotifications()}
+            createPending={createReminderMutation.isPending}
+            deletePending={deleteReminderMutation.isPending}
+            onAddReminder={() => createReminderMutation.mutate()}
+            onDeleteReminder={(id) => deleteReminderMutation.mutate(id)}
+          />
 
           {updateMutation.isError && (
             <p className="form-error">{(updateMutation.error as Error).message}</p>
           )}
           <div className="form-actions destructive-row">
-            <button
-              type="button"
-              className="btn secondary small"
-              onClick={() => setConfirmPromote(true)}
-              disabled={promoteMutation.isPending}
-            >
-              Promote to project
-            </button>
+            <TaskDetailPromote
+              promotePending={promoteMutation.isPending}
+              onRequestPromote={() => setConfirmPromote(true)}
+            />
             <button
               type="button"
               className="btn ghost danger-text"
@@ -1276,62 +913,22 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
         }}
       />
 
-      <Modal
+      <TaskDetailCreateProject
         open={createProjectOpen}
-        title="New project"
-        onClose={() => {
-          if (createProjectMutation.isPending) return;
-          setCreateProjectOpen(false);
-        }}
-      >
-        <form className="entity-form" onSubmit={handleCreateProjectSubmit}>
-          <label className="field">
-            <span>Title</span>
-            <input
-              type="text"
-              value={newProjectTitle}
-              onChange={(e) => setNewProjectTitle(e.target.value)}
-              placeholder="Project title"
-              autoFocus
-            />
-          </label>
-          <label className="field">
-            <span>Epic</span>
-            <select
-              className="field-select"
-              value={newProjectEpicId}
-              onChange={(e) => setNewProjectEpicId(e.target.value)}
-            >
-              <option value="">Standalone (no epic)</option>
-              {epics.map((epic) => (
-                <option key={epic.id} value={epic.id}>
-                  {epic.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          {createProjectMutation.isError && (
-            <p className="form-error">{(createProjectMutation.error as Error).message}</p>
-          )}
-          <div className="form-actions">
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={() => setCreateProjectOpen(false)}
-              disabled={createProjectMutation.isPending}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn primary"
-              disabled={!newProjectTitle.trim() || createProjectMutation.isPending}
-            >
-              {createProjectMutation.isPending ? "Creating…" : "Create & select"}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        epics={epics}
+        title={newProjectTitle}
+        onTitleChange={setNewProjectTitle}
+        epicId={newProjectEpicId}
+        onEpicIdChange={setNewProjectEpicId}
+        pending={createProjectMutation.isPending}
+        errorMessage={
+          createProjectMutation.isError
+            ? (createProjectMutation.error as Error).message
+            : null
+        }
+        onClose={() => setCreateProjectOpen(false)}
+        onSubmit={handleCreateProjectSubmit}
+      />
     </>
   );
 }

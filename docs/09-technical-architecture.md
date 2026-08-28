@@ -183,15 +183,15 @@ flowchart LR
 | Area | Primary homes |
 |------|----------------|
 | Shell / nav | `App.tsx`, `Sidebar.tsx` |
-| Task list / section grouping | `TaskList.tsx` (project + epic grouping; multi-select batch bar; ⊞ subtree select) |
-| Task detail (right panel) | `TaskDetailPanel.tsx` — resizable ([DEF-008](./DEFECTS.md)); promote/demote actions |
+| Task list / section grouping | `TaskList.tsx` (project + epic grouping; ⊞ subtree select); batch chrome in `TaskBatchBar.tsx` |
+| Task detail (right panel) | `TaskDetailPanel.tsx` — resizable ([DEF-008](./DEFECTS.md)); section bodies in `TaskDetailSection.tsx` + `TaskDetailScheduling` / `Recurrence` / `Deps` / `Labels` / `Advanced` / `Promote` / `CreateProject` |
 | Trash | `TrashView.tsx` — soft-delete restore, empty all, purge older than N days |
 | Archived | `ArchivedView.tsx` — archived epics/projects + unarchive |
 | Quick-add | `QuickAdd.tsx` |
 | Assist | `AssistPanel.tsx` |
 | Outline import | `OutlineImportPanel.tsx` (Theme F; attach_under / blank hierarchy pack) |
-| Calendar | `CalendarView.tsx` — day/week; bundles; release-remainder; clear-unpinned |
-| Settings | `SettingsPanel.tsx` |
+| Calendar | `CalendarView.tsx` (grid); `CalendarToolbar.tsx` + `CalendarBlockMenu.tsx` (capacity + block actions); bundles; release-remainder; clear-unpinned |
+| Settings | `SettingsPanel.tsx` (shell); domain sections under `components/settings/*` |
 | HTTP DTOs | `api.ts` |
 
 ---
@@ -206,6 +206,7 @@ flowchart LR
 | Outline | `services/outline_templates.py`, `outline_apply.py` |
 | Quick-add NL | `services/quick_add.py` |
 | Soft-delete / trash | `services/task_helpers.py` + `DELETE /tasks/trash?older_than_days=` |
+| Task PATCH / batch field rules | `services/task_patch.py` (section-project, plan bind, label merge); route in `routes/tasks.py` |
 | Batch patch | `PATCH /tasks/batch` in `routes/tasks.py` |
 | Calendar bundles | `services/bundle_blocks.py` + `POST /scheduled-blocks/bundle` ([ADR-012](./adr/ADR-012-calendar-bundles.md)) |
 | Promote / demote | `services/hierarchy_promote.py` ([DEF-023](./DEFECTS.md)) |
@@ -279,7 +280,7 @@ flowchart TB
 
 - Functional spec / feature catalog still carry some **pre–Theme F** wording; trust ADRs + this map + DEFECTS for newest surfaces until a doc sync pass.
 - API contract may lag newest smash endpoints slightly—OpenAPI from the running API is authoritative for exact shapes.
-- Service boundaries are **assessed** (DEF-011) but not yet extracted — see ordered cut list in [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
+- Service boundaries: DEF-011 Cut wave **#1–#5 landed** (2026-08-27); monolith **models/schemas** and **App.css** still open — Cuts **#6–#8 held** in [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
 - This file will grow: calendar sync sequence diagrams, auth sequence, Update Schedule pipeline detail, etc.
 
 ---
