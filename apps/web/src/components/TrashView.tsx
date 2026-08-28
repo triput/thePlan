@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { emptyTrash, fetchTasks, restoreTask, type Task } from "../api";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
 
 function formatDeletedAt(iso: string | null | undefined): string {
@@ -19,6 +20,8 @@ function formatDeletedAt(iso: string | null | undefined): string {
 export function TrashView() {
   const queryClient = useQueryClient();
   const [confirmEmpty, setConfirmEmpty] = useState(false);
+  const [confirmPurgeOlder, setConfirmPurgeOlder] = useState(false);
+  const [purgeDays, setPurgeDays] = useState(30);
 
   const trashQuery = useQuery({
     queryKey: ["tasks", "trash"],
@@ -44,9 +47,20 @@ export function TrashView() {
     },
   });
 
+  const purgeOlderMutation = useMutation({
+    mutationFn: (days: number) => emptyTrash({ older_than_days: days }),
+    onSuccess: (_data, days) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setConfirmPurgeOlder(false);
+      emitToast(`Purged trash older than ${days} days`);
+    },
+  });
+
   const loading = trashQuery.isLoading;
   const loadError = trashQuery.isError ? (trashQuery.error as Error).message : null;
   const empty = !loading && !loadError && items.length === 0;
+  const purgeBusy = emptyMutation.isPending || purgeOlderMutation.isPending;
+  const purgeDaysValid = Number.isFinite(purgeDays) && purgeDays >= 1;
 
   return (
     <div className="archived-view trash-view">
@@ -56,9 +70,20 @@ export function TrashView() {
           <div className="pane-header-actions">
             <button
               type="button"
+              className="btn secondary small"
+              onClick={() => {
+                setPurgeDays(30);
+                setConfirmPurgeOlder(true);
+              }}
+              disabled={purgeBusy}
+            >
+              Purge older than 30 days…
+            </button>
+            <button
+              type="button"
               className="btn danger small"
               onClick={() => setConfirmEmpty(true)}
-              disabled={emptyMutation.isPending}
+              disabled={purgeBusy}
             >
               Empty trash
             </button>
@@ -66,7 +91,8 @@ export function TrashView() {
         )}
       </header>
       <p className="muted small trash-hint">
-        Soft-deleted tasks stay here until you restore or empty trash. No auto-purge — empty manually.
+        Soft-deleted tasks stay here until you restore, purge older items, or empty trash. No
+        background auto-purge — clean up manually.
       </p>
 
       {loading && <p className="muted">Loading trash…</p>}
@@ -118,6 +144,57 @@ export function TrashView() {
       {emptyMutation.isError && confirmEmpty && (
         <p className="form-error">{(emptyMutation.error as Error).message}</p>
       )}
+
+      <Modal
+        open={confirmPurgeOlder}
+        title="Purge older trash?"
+        onClose={() => {
+          if (!purgeOlderMutation.isPending) setConfirmPurgeOlder(false);
+        }}
+      >
+        <div className="entity-form">
+          <p className="dialog-text">
+            Permanently delete trashed tasks older than the number of days below. Newer trash items
+            stay. This cannot be undone.
+          </p>
+          <label className="field">
+            <span>Older than (days)</span>
+            <input
+              type="number"
+              className="field-number"
+              min={1}
+              step={1}
+              value={purgeDays}
+              disabled={purgeOlderMutation.isPending}
+              onChange={(e) => setPurgeDays(Number(e.target.value))}
+              aria-label="Purge items older than this many days"
+            />
+          </label>
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() => setConfirmPurgeOlder(false)}
+              disabled={purgeOlderMutation.isPending}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn danger"
+              disabled={purgeOlderMutation.isPending || !purgeDaysValid}
+              onClick={() => purgeOlderMutation.mutate(Math.floor(purgeDays))}
+            >
+              {purgeOlderMutation.isPending
+                ? "Working…"
+                : `Purge older than ${purgeDaysValid ? Math.floor(purgeDays) : "…"} days`}
+            </button>
+          </div>
+          {purgeOlderMutation.isError && (
+            <p className="form-error">{(purgeOlderMutation.error as Error).message}</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

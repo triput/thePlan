@@ -230,3 +230,38 @@ def test_restore_after_empty_trash_other_items(client: TestClient) -> None:
     restored = client.post(f"/api/v1/tasks/{keep['id']}/restore")
     assert restored.status_code == 409
     assert client.get(f"/api/v1/tasks/{keep['id']}").status_code == 200
+
+
+def test_empty_trash_older_than_days_selective(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    old = _create_task(client, f"old-trash-{_uid()}")
+    recent = _create_task(client, f"recent-trash-{_uid()}")
+    live = _create_task(client, f"live-keep-{_uid()}")
+
+    assert client.delete(f"/api/v1/tasks/{old['id']}").status_code == 204
+    assert client.delete(f"/api/v1/tasks/{recent['id']}").status_code == 204
+
+    old_row = db_session.get(Task, uuid.UUID(old["id"]))
+    assert old_row is not None
+    old_row.deleted_at = datetime.now(timezone.utc) - timedelta(days=45)
+    db_session.commit()
+
+    purged = client.delete("/api/v1/tasks/trash", params={"older_than_days": 30})
+    assert purged.status_code == 204
+
+    assert db_session.get(Task, uuid.UUID(old["id"])) is None
+    assert client.get(f"/api/v1/tasks/{recent['id']}").status_code == 200
+    assert client.get(f"/api/v1/tasks/{recent['id']}").json()["deleted_at"] is not None
+    assert client.get(f"/api/v1/tasks/{live['id']}").status_code == 200
+
+    trash = client.get("/api/v1/tasks", params={"trashed": True}).json()["items"]
+    trash_ids = {item["id"] for item in trash}
+    assert recent["id"] in trash_ids
+    assert old["id"] not in trash_ids
+
+
+def test_empty_trash_older_than_days_rejects_zero(client: TestClient) -> None:
+    response = client.delete("/api/v1/tasks/trash", params={"older_than_days": 0})
+    assert response.status_code == 422

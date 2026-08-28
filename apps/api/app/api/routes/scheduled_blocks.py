@@ -1,3 +1,8 @@
+"""Scheduled blocks CRUD, capacity tools, and manual calendar bundles.
+
+Route layer — DEF-019/020; bundle create via services.bundle_blocks (ADR-012).
+"""
+
 from datetime import datetime, timedelta, timezone
 import logging
 from uuid import UUID

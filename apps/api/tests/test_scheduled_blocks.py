@@ -344,7 +344,8 @@ def test_bundle_grays_when_members_complete_and_delete_keeps_tasks(client: TestC
     )
     mid = client.get(f"/api/v1/scheduled-blocks/{block['id']}")
     assert mid.status_code == 200
-    assert mid.json()["bundle_inactive"] is False
+    # ADR-012: any completed live member → gray (partial progress)
+    assert mid.json()["bundle_inactive"] is True
 
     assert (
         client.post(f"/api/v1/tasks/{b['id']}/complete", json={"bulk_children": False}).status_code
@@ -360,6 +361,46 @@ def test_bundle_grays_when_members_complete_and_delete_keeps_tasks(client: TestC
     assert client.get(f"/api/v1/tasks/{a['id']}").status_code == 200
     assert client.get(f"/api/v1/tasks/{b['id']}").status_code == 200
     assert client.get(f"/api/v1/tasks/{a['id']}").json()["is_completed"] is True
+
+
+def test_bundle_shrinks_on_partial_complete(client: TestClient) -> None:
+    a = client.post(
+        "/api/v1/tasks",
+        json={"title": f"shrink-a-{_uid()}", "estimated_duration_minutes": 30},
+    ).json()
+    b = client.post(
+        "/api/v1/tasks",
+        json={"title": f"shrink-b-{_uid()}", "estimated_duration_minutes": 45},
+    ).json()
+    start = datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    block = client.post(
+        "/api/v1/scheduled-blocks/bundle",
+        json={
+            "member_task_ids": [a["id"], b["id"]],
+            "start_time": _iso(start),
+        },
+    ).json()
+    # 30 + 45 = 75 → end 10:15
+    assert block["end_time"].startswith("2026-08-11T10:15:00")
+
+    assert (
+        client.post(f"/api/v1/tasks/{a['id']}/complete", json={"bulk_children": False}).status_code
+        == 200
+    )
+    shrunk = client.get(f"/api/v1/scheduled-blocks/{block['id']}")
+    assert shrunk.status_code == 200
+    body = shrunk.json()
+    assert body["bundle_inactive"] is True
+    # Remaining incomplete estimate = 45
+    assert body["end_time"].startswith("2026-08-11T09:45:00")
+
+    assert (
+        client.post(f"/api/v1/tasks/{b['id']}/complete", json={"bulk_children": False}).status_code
+        == 200
+    )
+    done = client.get(f"/api/v1/scheduled-blocks/{block['id']}").json()
+    # Floor at 15 min when no incomplete members remain
+    assert done["end_time"].startswith("2026-08-11T09:15:00")
 
 
 def test_clear_unpinned_deletes_bundle_row(client: TestClient) -> None:

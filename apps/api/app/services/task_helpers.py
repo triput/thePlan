@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -154,13 +154,22 @@ def hard_purge_trashed_task_subtree(db: Session, task: Task) -> int:
     return len(ids)
 
 
-def empty_trash_for_user(db: Session, owner_id: uuid.UUID) -> int:
-    """Permanently delete every trashed task for ``owner_id``. Returns rows removed."""
-    trashed = (
-        db.query(Task)
-        .filter(Task.owner_id == owner_id, Task.deleted_at.isnot(None))
-        .all()
-    )
+def empty_trash_for_user(
+    db: Session,
+    owner_id: uuid.UUID,
+    *,
+    older_than_days: int | None = None,
+) -> int:
+    """Permanently delete trashed tasks for ``owner_id``. Returns rows removed.
+
+    When ``older_than_days`` is set, only purge tasks whose ``deleted_at`` is
+    strictly older than that many days (UTC). When omitted, empty all trash.
+    """
+    query = db.query(Task).filter(Task.owner_id == owner_id, Task.deleted_at.isnot(None))
+    if older_than_days is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
+        query = query.filter(Task.deleted_at < cutoff)
+    trashed = query.all()
     if not trashed:
         return 0
 

@@ -25,13 +25,15 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [06-mvp-backlog.md](./06-mvp-backlog.md) | Wave 1 (MVP) user stories and exit criteria |
 | [07-wave-roadmap.md](./07-wave-roadmap.md) | MVP → W1.5 → W1.6 → W2a → W2b → W2c (parked) ↔ W3 / W3+ / W4 |
 | [08-color-palette.md](./08-color-palette.md) | Entity presets + status accents (Synesis/Phronesis-aligned) |
-| [09-technical-architecture.md](./09-technical-architecture.md) | **Living** system map + diagrams (topology, layers, pipelines) — catch-up 2026-08-14 |
+| [09-technical-architecture.md](./09-technical-architecture.md) | **Living** system map + diagrams (topology, layers, pipelines) — Round 4 catch-up 2026-08-27 |
+| [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md) | DEF-011 refactor inventory + ordered cut list (assessment only; greenlight before code moves) |
 | [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | Wave 1 exit record — delivered epics, criteria met, known gaps |
 | [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) | Wave 1.5 exit record — auth, recurrence, reminders, ops, closeout UI |
 | [DEFECTS.md](./DEFECTS.md) | Open product defects (non-wave-blocker) |
 | [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) | W1.5 dependency hygiene quick scan (gate exited) |
 | [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) | W2 dependency hygiene quick scan (gate exited) |
 | [HYGIENE-W3.md](./HYGIENE-W3.md) | W3 entry full hygiene (gate exited 2026-08-12) |
+| [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) | Round 4 dependency hygiene quick scan (2026-08-27) |
 | [USER-GUIDE.md](./USER-GUIDE.md) | Operator guide — run stack, sign in, household admin, tasks, calendar |
 | [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest quick start — live instance UI tour (no ops/setup) |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |

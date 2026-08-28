@@ -108,6 +108,39 @@ def duration_minutes_for_members(db: Session, member_ids: list[uuid.UUID], user:
     return max(_MIN_BUNDLE_MINUTES, total if total > 0 else _MIN_BUNDLE_MINUTES)
 
 
+def duration_minutes_for_incomplete_members(
+    db: Session,
+    member_ids: list[uuid.UUID],
+    user: User,
+    *,
+    exclude_ids: set[uuid.UUID] | None = None,
+) -> int:
+    """Sum estimates of live incomplete members; floor at ``_MIN_BUNDLE_MINUTES``.
+
+    ``exclude_ids`` covers same-session completions that may not be visible to a
+    fresh SELECT yet (unflushed ORM state or bulk UPDATE).
+    """
+    if not member_ids:
+        return _MIN_BUNDLE_MINUTES
+    skip = exclude_ids or set()
+    rows = (
+        db.query(Task)
+        .filter(
+            Task.owner_id == user.id,
+            Task.id.in_(member_ids),
+            Task.deleted_at.is_(None),
+            Task.is_completed.is_(False),
+        )
+        .all()
+    )
+    total = sum(
+        max(0, int(t.estimated_duration_minutes or 0))
+        for t in rows
+        if t.id not in skip
+    )
+    return max(_MIN_BUNDLE_MINUTES, total if total > 0 else _MIN_BUNDLE_MINUTES)
+
+
 def create_bundle_block(
     db: Session,
     user: User,
@@ -161,7 +194,12 @@ def parse_member_ids(meta: dict[str, Any] | None) -> list[uuid.UUID]:
 
 
 def is_bundle_inactive(db: Session, block: ScheduledBlock, user: User) -> bool:
-    """True when every member is completed, trashed, or missing (gray + easy delete)."""
+    """True when the aggregate should gray (ADR-012).
+
+    Grays when **any** live member is completed, or when no live incomplete
+    members remain (all completed / trashed / missing). Calendar delete UX
+    stays the same — gray is styling, not a gate.
+    """
     member_ids = parse_member_ids(block.bundle_meta if isinstance(block.bundle_meta, dict) else None)
     if not member_ids:
         return bool(block.bundle_meta)
@@ -171,10 +209,48 @@ def is_bundle_inactive(db: Session, block: ScheduledBlock, user: User) -> bool:
         .all()
     )
     by_id = {row.id: row for row in rows}
+    has_live_incomplete = False
     for tid in member_ids:
         task = by_id.get(tid)
         if task is None or task.deleted_at is not None:
             continue
-        if not task.is_completed:
-            return False
-    return True
+        if task.is_completed:
+            return True
+        has_live_incomplete = True
+    return not has_live_incomplete
+
+
+def shrink_bundle_blocks_for_completed_members(
+    db: Session,
+    user: User,
+    completed_task_ids: list[uuid.UUID],
+) -> None:
+    """Shrink bundle ``end_time`` to remaining incomplete members' estimate sum.
+
+    Only shortens (never expands). Floor is ``_MIN_BUNDLE_MINUTES``. No-op when
+    none of the completed ids appear in a block's membership.
+    """
+    if not completed_task_ids:
+        return
+    completed_set = set(completed_task_ids)
+    blocks = (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == user.id,
+            ScheduledBlock.bundle_meta.isnot(None),
+        )
+        .all()
+    )
+    for block in blocks:
+        meta = block.bundle_meta if isinstance(block.bundle_meta, dict) else None
+        member_ids = parse_member_ids(meta)
+        if not member_ids or completed_set.isdisjoint(member_ids):
+            continue
+        minutes = duration_minutes_for_incomplete_members(
+            db, member_ids, user, exclude_ids=completed_set
+        )
+        start = _ensure_utc(block.start_time)
+        old_end = _ensure_utc(block.end_time)
+        new_end = start + timedelta(minutes=minutes)
+        if new_end < old_end:
+            block.end_time = new_end

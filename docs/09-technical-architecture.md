@@ -1,9 +1,9 @@
 # Technical Architecture (living)
 
-**Status:** Catch-up draft — 2026-08-14  
+**Status:** Catch-up — Round 4 (2026-08-27); initial draft 2026-08-14  
 **Purpose:** One place to hang “how thePlan is put together *now*” after organic growth from a small planner. Product behavior stays in [02-functional-spec.md](./02-functional-spec.md); decisions stay in [adr/](./adr/); this doc is the **system map**.
 
-**Update when:** topology, major pipelines, or layering rules change. Track gaps as [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up). Pair deep cleanup with [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers).
+**Update when:** topology, major pipelines, or layering rules change. Track gaps as [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up). Pair deep cleanup with [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers) / [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
 
 ---
 
@@ -183,12 +183,14 @@ flowchart LR
 | Area | Primary homes |
 |------|----------------|
 | Shell / nav | `App.tsx`, `Sidebar.tsx` |
-| Task list / section grouping | `TaskList.tsx` (project + epic grouping) |
-| Task detail (right panel) | `TaskDetailPanel.tsx` — fixed width today; resize = [DEF-008](./DEFECTS.md) |
+| Task list / section grouping | `TaskList.tsx` (project + epic grouping; multi-select batch bar; ⊞ subtree select) |
+| Task detail (right panel) | `TaskDetailPanel.tsx` — resizable ([DEF-008](./DEFECTS.md)); promote/demote actions |
+| Trash | `TrashView.tsx` — soft-delete restore, empty all, purge older than N days |
+| Archived | `ArchivedView.tsx` — archived epics/projects + unarchive |
 | Quick-add | `QuickAdd.tsx` |
 | Assist | `AssistPanel.tsx` |
-| Outline import | `OutlineImportPanel.tsx` |
-| Calendar | `CalendarView.tsx` |
+| Outline import | `OutlineImportPanel.tsx` (Theme F; attach_under / blank hierarchy pack) |
+| Calendar | `CalendarView.tsx` — day/week; bundles; release-remainder; clear-unpinned |
 | Settings | `SettingsPanel.tsx` |
 | HTTP DTOs | `api.ts` |
 
@@ -203,9 +205,56 @@ flowchart LR
 | Assist | `services/assist_llm.py`, `assist_apply.py` |
 | Outline | `services/outline_templates.py`, `outline_apply.py` |
 | Quick-add NL | `services/quick_add.py` |
-| Schedule / fuzzy | schedule services + [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) |
-| Models | `apps/api/app/models/` |
+| Soft-delete / trash | `services/task_helpers.py` + `DELETE /tasks/trash?older_than_days=` |
+| Batch patch | `PATCH /tasks/batch` in `routes/tasks.py` |
+| Calendar bundles | `services/bundle_blocks.py` + `POST /scheduled-blocks/bundle` ([ADR-012](./adr/ADR-012-calendar-bundles.md)) |
+| Promote / demote | `services/hierarchy_promote.py` ([DEF-023](./DEFECTS.md)) |
+| Schedule / fuzzy | `scheduler/*` + [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) |
+| Models | `apps/api/app/models/` (Alembic head **016** bundle_meta) |
 | Schemas | `apps/api/app/schemas/` |
+
+---
+
+## 9b. Smash-shipped surfaces (Round 2–4) — quick map
+
+```mermaid
+flowchart TB
+  subgraph lists [Lists]
+    Batch[PATCH /tasks/batch]
+    SoftDel[deleted_at soft-delete]
+    Trash[TrashView restore / purge]
+  end
+
+  subgraph cal [Calendar]
+    Bundle[POST /scheduled-blocks/bundle]
+    Gray[bundle_inactive partial gray]
+    Shrink[shrink on member complete]
+    Cap[release-remainder / clear-unpinned]
+  end
+
+  subgraph hier [Hierarchy]
+    Promote[promote/demote entity ops]
+    Outline[outline attach_under / graft]
+  end
+
+  TaskList --> Batch
+  TaskList --> SoftDel --> Trash
+  TaskList --> Bundle
+  Bundle --> Gray
+  Complete[POST /tasks/id/complete] --> Shrink
+  CalendarView --> Cap
+  Detail[TaskDetail / Edit forms] --> Promote
+  OutlineUI[OutlineImportPanel] --> Outline
+```
+
+| Surface | Contract / ADR | Notes |
+|---------|----------------|-------|
+| Bulk edit | `PATCH /tasks/batch` | Style, labels, due, move project, delete→soft |
+| Soft-delete | Alembic `015`, trash list/restore, empty + older-than purge | No background cron |
+| Bundles | [ADR-012](./adr/ADR-012-calendar-bundles.md), Alembic `016` | Manual create; partial gray + shrink-on-complete (R4) |
+| Capacity | DEF-020 | Release remainder + clear unpinned |
+| Promote/demote | DEF-023 | No schema change — transactional rewire |
+| Outline graft | [ADR-011](./adr/ADR-011-templates-outline-ingest.md) | `attach_under`, blank `hierarchy_v1` |
 
 ---
 
@@ -219,6 +268,8 @@ flowchart LR
 | Tables | [04-data-schema.md](./04-data-schema.md) |
 | REST | [05-api-contract.md](./05-api-contract.md) |
 | Decisions | [adr/](./adr/) |
+| Refactor cut list | [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md) |
+| Dependency hygiene | [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md), [HYGIENE-W3.md](./HYGIENE-W3.md) |
 | Ops | [USER-GUIDE.md](./USER-GUIDE.md), [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md), [SLM-ASSIST.md](./SLM-ASSIST.md), [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [DESKTOP.md](./DESKTOP.md) |
 | Open polish | [DEFECTS.md](./DEFECTS.md) |
 
@@ -227,8 +278,8 @@ flowchart LR
 ## 11. Known gaps (honest)
 
 - Functional spec / feature catalog still carry some **pre–Theme F** wording; trust ADRs + this map + DEFECTS for newest surfaces until a doc sync pass.
-- API contract may lag Outline endpoints slightly—OpenAPI from the running API is authoritative for exact shapes.
-- No claim that every service boundary is clean (DEF-011).
+- API contract may lag newest smash endpoints slightly—OpenAPI from the running API is authoritative for exact shapes.
+- Service boundaries are **assessed** (DEF-011) but not yet extracted — see ordered cut list in [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
 - This file will grow: calendar sync sequence diagrams, auth sequence, Update Schedule pipeline detail, etc.
 
 ---
@@ -237,4 +288,5 @@ flowchart LR
 
 - [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up) — keep this map current  
 - [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers) — modularize assessment  
-- [ADR-001](./adr/ADR-001-tech-stack.md) · [ADR-010](./adr/ADR-010-slm-assist.md) · [ADR-011](./adr/ADR-011-templates-outline-ingest.md)
+- [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md) · [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md)  
+- [ADR-001](./adr/ADR-001-tech-stack.md) · [ADR-010](./adr/ADR-010-slm-assist.md) · [ADR-011](./adr/ADR-011-templates-outline-ingest.md) · [ADR-012](./adr/ADR-012-calendar-bundles.md)

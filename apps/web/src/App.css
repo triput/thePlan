@@ -1256,6 +1256,28 @@
   max-width: 11rem;
 }
 
+.task-batch-due {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
+.task-batch-date {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg, var(--panel));
+  color: var(--text);
+  max-width: 10.5rem;
+}
+
+.task-batch-date:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .task-title {
   flex: 1;
   min-width: 0;

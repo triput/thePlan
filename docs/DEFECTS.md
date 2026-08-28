@@ -295,21 +295,25 @@ Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **c
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (gut-check hygiene; not a known break) |
-| **Status** | Open — backlog |
+| **Status** | Closed — assessment shipped 2026-08-27 ([REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)); **code moves parked** pending Trish greenlight |
 | **Found** | 2026-08-14 |
 | **Surface** | Cross-cutting — API services vs routes vs web components (esp. large files) |
-| **Wave** | After Theme F prove-it settled; pair with or after a Dependency Hygiene-style pause when booking the next feature pile |
+| **Wave** | Round 4 docs — after smash rounds; paired with [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) |
 
 ### Symptom / ask
 
 Operator gut: some files may house **too many vectors** (UI + orchestration + domain rules), and **business logic may be showing up where it doesn’t belong**. Want a deliberate **refactor assessment** — not a blind rewrite — to see if modularization or layer cleanup is warranted.
 
+### Current behavior (assessment shipped)
+
+Durable inventory + classification + ordered cut list: **[REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)**. Hotspots sized (SettingsPanel / App.css / TaskDetail / Calendar / TaskList tops). Verdict: fat React surfaces + monolith models/schemas; domain mostly still in API services. **No mega-refactor code moves** in Round 4.
+
 ### Expected (when run)
 
-1. Inventory hotspots (oversized modules, mixed concerns: e.g. fat `TaskList` / `App.css` / route handlers doing domain work).
-2. Classify: keep / extract service / extract component / leave alone.
-3. Propose a short ordered cut list (if any) with risk notes — **no drive-by mega-refactor**.
-4. Operator reviews before any mutating refactor wave.
+1. Inventory hotspots (oversized modules, mixed concerns: e.g. fat `TaskList` / `App.css` / route handlers doing domain work). **Done.**
+2. Classify: keep / extract service / extract component / leave alone. **Done.**
+3. Propose a short ordered cut list (if any) with risk notes — **no drive-by mega-refactor**. **Done.**
+4. Operator reviews before any mutating refactor wave. **Awaiting greenlight** (cuts #1–#8 in assessment).
 
 ### Notes
 
@@ -322,14 +326,18 @@ Triggered by intuition after rapid Theme F / Assist growth, not by a concrete de
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (docs debt; product works without it) |
-| **Status** | Open — living doc; **initial catch-up drafted 2026-08-14** |
+| **Status** | Closed — Round 4 catch-up 2026-08-27 (living doc; update on topology change) |
 | **Found** | 2026-08-14 |
 | **Surface** | [09-technical-architecture.md](./09-technical-architecture.md) (+ index in [README.md](./README.md)) |
-| **Wave** | Docs hygiene; update when topology/pipelines/layering change |
+| **Wave** | Round 4 docs hygiene |
 
 ### Symptom / ask
 
 Wave 1 doc package + ADRs existed, but organic growth (W2/W3/Assist/Theme F) left no single **current** system map. Operator wants a hangable architecture page with **diagrams**, knowing it will keep growing.
+
+### Current behavior (Round 4)
+
+[09-technical-architecture.md](./09-technical-architecture.md) updated for smash surfaces: bundles (ADR-012), soft-delete/trash + purge-older, batch edit, promote/demote, outline graft; Mermaid quick map §9b; links to [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md) + hygiene.
 
 ### Expected
 
@@ -339,7 +347,7 @@ Wave 1 doc package + ADRs existed, but organic growth (W2/W3/Assist/Theme F) lef
 
 ### Notes
 
-Initial draft shipped with Mermaid: topology, layers, hierarchy, capture pipelines. Not a substitute for ADRs or the functional spec.
+Initial draft shipped with Mermaid: topology, layers, hierarchy, capture pipelines. Not a substitute for ADRs or the functional spec. Reopen when topology/pipelines drift again.
 
 ---
 
@@ -348,14 +356,18 @@ Initial draft shipped with Mermaid: topology, layers, hierarchy, capture pipelin
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (convention / readability; product works without it) |
-| **Status** | Open — backlog; **initial convention shipped 2026-08-14** |
+| **Status** | Closed — Round 4 opportunistic pass 2026-08-27; convention remains for future touches |
 | **Found** | 2026-08-14 |
 | **Surface** | Source modules under `apps/api`, `apps/web` — see [dev/FILE-HEADERS.md](./dev/FILE-HEADERS.md) |
-| **Wave** | Docs / hygiene chore; sprinkle while touching files or as a short pass |
+| **Wave** | Round 4 hygiene chore |
 
 ### Symptom / ask
 
 Operator wants proper module/file headers (short info blocks) as a house quirk. Not huge yet, but the convention should be real — not vaporware.
+
+### Current behavior
+
+Convention in [dev/FILE-HEADERS.md](./dev/FILE-HEADERS.md). Starter set + Round 4 headers on remaining quiet hotspots (`Sidebar`, settings route already had purpose lines; Wave A files kept existing/ADR headers). Not a mass rewrite of every file.
 
 ### Expected
 
@@ -365,7 +377,7 @@ Operator wants proper module/file headers (short info blocks) as a house quirk. 
 
 ### Notes
 
-Starter set applied with the convention doc (`busy_map`, `deps`, outline/Assist services, `OutlineImportPanel`). Rest is opportunistic or a dedicated P3 pass.
+Starter set applied with the convention doc (`busy_map`, `deps`, outline/Assist services, `OutlineImportPanel`). Opportunistic thereafter.
 
 ---
 
@@ -440,10 +452,10 @@ Related: outline ingest (Theme F) made this P2. Not the same as **pinned blocks*
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (high leverage for project/epic housekeeping) |
-| **Status** | Closed — Phase 1+2 shipped 2026-08-27 (Phase 3 deferred) |
+| **Status** | Closed — Phase 1–3 thin shipped 2026-08-27 (Round 4: due + move/project) |
 | **Found** | 2026-08-17 |
 | **Surface** | Task list UI, `PATCH /tasks/batch`, labels, recurrence, scheduler fields |
-| **Wave** | Afternoon smash + Round 3 2026-08-27 |
+| **Wave** | Afternoon smash + Round 3–4 2026-08-27 |
 
 ### Symptom / ask
 
@@ -469,7 +481,8 @@ Bulk operations on a list context, e.g.:
 - **Alt+click** the row select checkbox — same subtree add (when descendants are loaded).
 - Scope is the in-memory task list only (not server-side “whole epic” fetch); expand/collapse or list filters affect what ⊞ / Alt+click includes.
 
-**Phase 3 deferred:** schedule-same-day, bulk recurrence, bulk move/reparent, bulk archive.
+**Phase 3 thin (Round 4):** batch **due date** (+ clear due) and **move to project** / Inbox in `TaskList` batch bar; API tests for `due_at` + project move (orphan `section_id` cleared). **Skipped:** bulk archive (tasks have no archive), bulk recurrence (not on `TaskUpdate`). Still deferred: schedule-same-day blocks, bulk recurrence UI.
+
 ---
 
 ## DEF-016 — Task detail Save affordance (scroll fatigue)
@@ -617,10 +630,10 @@ Operator: “DARE me to not have something added to do that.” Added. Pair with
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (Coursera-style 2m/7m/10m tasks clutter the calendar; operator wants one “study for an hour” block) |
-| **Status** | Closed — thin shipped 2026-08-27 ([ADR-012](./adr/ADR-012-calendar-bundles.md)) |
+| **Status** | Closed — thin + Round 4 follow-on (partial gray + shrink) 2026-08-27 ([ADR-012](./adr/ADR-012-calendar-bundles.md)) |
 | **Found** | 2026-08-25 |
 | **Surface** | `schedule_style.bundle`, `scheduled_blocks`, calendar UI, Update Schedule / manual bundle creation |
-| **Wave** | Round 2 smash 2026-08-27 |
+| **Wave** | Round 2 smash + Round 4 follow-on 2026-08-27 |
 
 ### Symptom / ask
 
@@ -635,7 +648,9 @@ When tasks in the bundle are **completed** or **moved/rescheduled** out of the b
 - Task list multi-select **Block as bundle**; calendar grays when `bundle_inactive` (all members complete); delete removes block only.
 - DEF-020 release-remainder applies to aggregate rows.
 
-**Deferred:** auto scoped bundle replan, shrink-on-partial, `bundle_blocks` join table.
+**Round 4 follow-on:** `bundle_inactive` when **any** live member is completed; shrink `end_time` to remaining incomplete estimates (15m floor) on complete. ADR-012 addendum.
+
+**Deferred:** auto scoped bundle replan, auto-dissolve / expand-on-uncomplete, `bundle_blocks` join table.
 
 ---
 
@@ -756,10 +771,10 @@ Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (accidental delete — operator has *never* done this, obviously) |
-| **Status** | Closed — shipped 2026-08-27 (soft-delete, restore, empty trash; no auto-purge) |
+| **Status** | Closed — shipped 2026-08-27 (soft-delete, restore, empty trash, purge-older-than; no cron) |
 | **Found** | 2026-08-25 |
 | **Surface** | Tasks, schema `deleted_at`, Trash UI, `DELETE /tasks/trash` |
-| **Wave** | Afternoon smash + Round 3 2026-08-27 |
+| **Wave** | Afternoon smash + Round 3–4 2026-08-27 |
 
 ### Symptom / ask
 
@@ -770,8 +785,8 @@ Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-
 - Alembic `015_task_deleted_at`; `DELETE /tasks/{id}` soft-sets subtree `deleted_at`; lists exclude trashed; `GET /tasks?trashed=true`; `POST /tasks/{id}/restore` (same delete wave).
 - Sidebar **Trash** view + per-row **Restore**.
 - **`DELETE /api/v1/tasks/trash`** — hard-purge all trashed tasks for the user (`empty_trash_for_user`); unpinned blocks for those tasks removed; pinned blocks left.
-- Trash UI **Empty trash** button + confirm dialog; hint copy states no auto-purge — empty manually.
-- **Deferred:** scheduled auto-purge / 30-day retention job (no cron).
+- **Round 4:** `DELETE /tasks/trash?older_than_days=N` selective purge; Trash UI **Purge older than…** modal (default 30). Still **no** background cron / Settings retention job.
+- Trash UI **Empty trash** button + confirm dialog.
 ---
 
 ## DEF-025 — Inline create parent / child / labels in detail drawer

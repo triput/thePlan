@@ -98,8 +98,8 @@ All list endpoints scope to authenticated `owner_id`.
 |--------|------|-------------|
 | GET | `/tasks` | List with filters (see Smart Views); `?ids=`; `?trashed=true` for soft-deleted only. Default excludes trashed. |
 | POST | `/tasks` | Create |
-| PATCH | `/tasks/batch` | Batch patch / add labels (`task_ids` + `patch` and/or `add_label_ids`) |
-| DELETE | `/tasks/trash` | Hard-purge **all** trashed tasks for the current user (empty trash). 204 even if empty. |
+| PATCH | `/tasks/batch` | Batch patch / add labels (`task_ids` + `patch` and/or `add_label_ids`). Patch may include `due_at`, `project_id` (move clears orphan `section_id`), schedule style, etc. |
+| DELETE | `/tasks/trash` | Hard-purge trashed tasks. Optional `?older_than_days=N` (N≥1) — only rows with `deleted_at` older than N days. Omit to empty all. 204 even if nothing matched. |
 | GET | `/tasks/{id}` | Get with labels, subtasks summary (includes trashed) |
 | PATCH | `/tasks/{id}` | Update |
 | DELETE | `/tasks/{id}` | Soft-delete task + live descendants (`deleted_at`); unpinned blocks removed. `?hard=true` permanently purges an **already trashed** subtree (409 `NOT_TRASHED` if live). |

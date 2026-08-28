@@ -1,3 +1,7 @@
+/**
+ * App shell navigation — epics/projects, smart views, Trash/Archived entry.
+ * Owns sidebar expand/collapse and epic tree; settings opens as a panel.
+ */
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchEpics, fetchLabels, fetchProjects, reorderProjects, type Epic, type Project } from "../api";

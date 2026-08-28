@@ -63,3 +63,68 @@ def test_batch_requires_patch_or_labels(client: TestClient) -> None:
         json={"task_ids": [task["id"]], "patch": {}},
     )
     assert response.status_code == 422
+
+
+def test_batch_patch_due_at(client: TestClient) -> None:
+    a = _create_task(client)
+    b = _create_task(client)
+    due = "2026-09-01T17:00:00Z"
+
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={"task_ids": [a["id"], b["id"]], "patch": {"due_at": due}},
+    )
+    assert response.status_code == 200, response.text
+    items = response.json()["items"]
+    assert len(items) == 2
+    assert all(item["due_at"].startswith("2026-09-01T17:00:00") for item in items)
+    assert client.get(f"/api/v1/tasks/{a['id']}").json()["due_at"].startswith("2026-09-01T17:00:00")
+    assert client.get(f"/api/v1/tasks/{b['id']}").json()["due_at"].startswith("2026-09-01T17:00:00")
+
+
+def test_batch_clear_due_at(client: TestClient) -> None:
+    a = _create_task(client, due_at="2026-09-01T17:00:00Z")
+    b = _create_task(client, due_at="2026-09-02T12:00:00Z")
+
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={"task_ids": [a["id"], b["id"]], "patch": {"due_at": None}},
+    )
+    assert response.status_code == 200, response.text
+    assert all(item["due_at"] is None for item in response.json()["items"])
+    assert client.get(f"/api/v1/tasks/{a['id']}").json()["due_at"] is None
+    assert client.get(f"/api/v1/tasks/{b['id']}").json()["due_at"] is None
+
+
+def test_batch_move_project_clears_orphan_section(client: TestClient) -> None:
+    source = client.post(
+        "/api/v1/projects",
+        json={"title": f"src-{_uid()}", "color_hex": "#0A8558"},
+    ).json()
+    target = client.post(
+        "/api/v1/projects",
+        json={"title": f"dst-{_uid()}", "color_hex": "#1B6CA8"},
+    ).json()
+    section = client.post(
+        "/api/v1/sections",
+        json={"project_id": source["id"], "title": f"sec-{_uid()}", "sort_order": 0},
+    ).json()
+    a = _create_task(client, project_id=source["id"], section_id=section["id"])
+    b = _create_task(client, project_id=source["id"], section_id=section["id"])
+
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={
+            "task_ids": [a["id"], b["id"]],
+            "patch": {"project_id": target["id"]},
+        },
+    )
+    assert response.status_code == 200, response.text
+    for item in response.json()["items"]:
+        assert item["project_id"] == target["id"]
+        assert item["section_id"] is None
+
+    for task_id in (a["id"], b["id"]):
+        got = client.get(f"/api/v1/tasks/{task_id}").json()
+        assert got["project_id"] == target["id"]
+        assert got["section_id"] is None

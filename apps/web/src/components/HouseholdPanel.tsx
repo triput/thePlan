@@ -1,3 +1,7 @@
+/**
+ * Household admin — list/create/update local users (ADR-007).
+ * Settings sub-panel; not the primary task surface.
+ */
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {

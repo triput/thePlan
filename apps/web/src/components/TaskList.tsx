@@ -531,6 +531,58 @@ export function TaskList({
     );
   };
 
+  const handleBatchDueDate = (dateValue: string) => {
+    const ids = [...selectedIds];
+    if (ids.length === 0 || !dateValue) return;
+    const [y, m, d] = dateValue.split("-").map(Number);
+    if (!y || !m || !d) return;
+    const localEnd = new Date(y, m - 1, d, 23, 59, 0, 0);
+    const dueAt = localEnd.toISOString();
+    void runBatch(
+      async () => {
+        await batchUpdateTasks({
+          task_ids: ids,
+          patch: { due_at: dueAt },
+        });
+      },
+      `Set due date on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
+    );
+  };
+
+  const handleBatchClearDue = () => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    void runBatch(
+      async () => {
+        await batchUpdateTasks({
+          task_ids: ids,
+          patch: { due_at: null },
+        });
+      },
+      `Cleared due date on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
+    );
+  };
+
+  const handleBatchMoveToProject = (projectId: string | null) => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    void runBatch(
+      async () => {
+        await batchUpdateTasks({
+          task_ids: ids,
+          patch: {
+            project_id: projectId,
+            section_id: null,
+            parent_task_id: null,
+          },
+        });
+      },
+      projectId
+        ? `Moved ${ids.length} task${ids.length === 1 ? "" : "s"} to project`
+        : `Moved ${ids.length} task${ids.length === 1 ? "" : "s"} to Inbox`,
+    );
+  };
+
   const handleBatchDelete = () => {
     const ids = [...selectedIds];
     if (ids.length === 0) return;
@@ -958,6 +1010,58 @@ export function TaskList({
                 .map((label) => (
                   <option key={label.id} value={label.id}>
                     {label.name}
+                  </option>
+                ))}
+            </select>
+            <label className="task-batch-due">
+              <span className="sr-only">Set due date</span>
+              <input
+                type="date"
+                className="task-batch-date"
+                disabled={batchBusy}
+                aria-label="Set due date for selected tasks"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  e.target.value = "";
+                  if (value) handleBatchDueDate(value);
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn ghost small"
+              disabled={batchBusy}
+              onClick={handleBatchClearDue}
+              title="Clear due date on selected tasks"
+            >
+              Clear due
+            </button>
+            <select
+              className="task-batch-select"
+              defaultValue=""
+              disabled={batchBusy || projectsQuery.isLoading}
+              aria-label="Move to project"
+              onChange={(e) => {
+                const value = e.target.value;
+                e.target.value = "";
+                if (value === "") return;
+                if (value === "__inbox__") {
+                  handleBatchMoveToProject(null);
+                } else {
+                  handleBatchMoveToProject(value);
+                }
+              }}
+            >
+              <option value="" disabled>
+                Move to project…
+              </option>
+              <option value="__inbox__">Inbox</option>
+              {[...projects]
+                .filter((p) => !p.is_archived)
+                .sort((a, b) => a.title.localeCompare(b.title))
+                .map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.title}
                   </option>
                 ))}
             </select>

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
-from app.models import Label, Plan, Project, RecurrenceRule, Reminder, Task, TaskLabel, User
+from app.models import Label, Plan, Project, RecurrenceRule, Reminder, Section, Task, TaskLabel, User
 from app.schemas import (
     PaginatedResponse,
     ProjectOut,
@@ -26,6 +26,7 @@ from app.schemas import (
     TaskUpdate,
 )
 from app.services.auth_users import get_or_provision_user_settings
+from app.services.bundle_blocks import shrink_bundle_blocks_for_completed_members
 from app.services.hierarchy_promote import promote_task_to_project
 from app.services.ownership import (
     verify_owned_focus_window,
@@ -42,6 +43,7 @@ from app.services.recurrence import (
 )
 from app.services.reorder import batch_reorder_sort_order
 from app.services.task_helpers import (
+    collect_open_descendant_ids,
     complete_task,
     empty_trash_for_user,
     hard_purge_trashed_task_subtree,
@@ -187,11 +189,21 @@ def _add_task_labels(db: Session, task: Task, user: User, label_ids: list[UUID])
     db.expire(task, ["label_links"])
 
 
+def _section_belongs_to_project(
+    db: Session, section_id: UUID, project_id: UUID | None
+) -> bool:
+    if project_id is None:
+        return False
+    section = db.get(Section, section_id)
+    return section is not None and section.project_id == project_id
+
+
 def _apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> None:
     updates = body.model_dump(exclude_unset=True)
     label_ids = updates.pop("label_ids", None)
     soft_target_at = updates.pop("soft_target_at", _MISSING)
     plan_id = updates.pop("plan_id", _MISSING)
+    section_explicit = "section_id" in updates
 
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
@@ -211,6 +223,24 @@ def _apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> 
             updates["nesting_level"] = resolve_nesting_level(db, user.id, updates["parent_task_id"])
         except ApiError as exc:
             raise exc
+
+    # Sections are project-scoped. Moving project without an explicit section clears
+    # an orphaned section_id (constraint: section requires project; wrong-project FK is worse).
+    if "project_id" in updates and not section_explicit:
+        new_project_id = updates["project_id"]
+        effective_section = task.section_id
+        if effective_section is not None and not _section_belongs_to_project(
+            db, effective_section, new_project_id
+        ):
+            updates["section_id"] = None
+    elif section_explicit and updates.get("section_id") is not None:
+        target_project = updates["project_id"] if "project_id" in updates else task.project_id
+        if not _section_belongs_to_project(db, updates["section_id"], target_project):
+            raise ApiError(
+                422,
+                "Section does not belong to the task project",
+                "SECTION_PROJECT_MISMATCH",
+            )
 
     if plan_id is not _MISSING:
         if plan_id is not None:
@@ -455,11 +485,19 @@ def batch_update_tasks(
 
 @router.delete("/trash", status_code=status.HTTP_204_NO_CONTENT)
 def empty_trash(
+    older_than_days: int | None = Query(
+        None,
+        ge=1,
+        description=(
+            "When set, only permanently delete trashed tasks whose deleted_at "
+            "is older than this many days. When omitted, empty all trash."
+        ),
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> None:
-    """Permanently delete all soft-deleted tasks for the current user."""
-    empty_trash_for_user(db, user.id)
+    """Permanently delete soft-deleted tasks for the current user."""
+    empty_trash_for_user(db, user.id, older_than_days=older_than_days)
     db.commit()
 
 
@@ -568,6 +606,10 @@ def complete_task_endpoint(
     user: User = Depends(get_current_user),
 ) -> TaskOut:
     task = _get_owned_task(db, task_id, user)
+    # Capture open descendants before complete mutates them (bulk path).
+    bulk_descendant_ids: list[UUID] = []
+    if body.bulk_children is True:
+        bulk_descendant_ids = collect_open_descendant_ids(db, task.id, user.id)
     try:
         previous_due, advanced = complete_task(
             db,
@@ -577,6 +619,12 @@ def complete_task_endpoint(
         )
     except ApiError as exc:
         raise exc
+    # DEF-019: shrink calendar bundles when members complete (skip recurrence rollover —
+    # member stays incomplete after advance).
+    if not advanced:
+        db.flush()
+        completed_ids = [task.id, *bulk_descendant_ids]
+        shrink_bundle_blocks_for_completed_members(db, user, completed_ids)
     db.commit()
     refreshed = _get_owned_task(db, task.id, user)
     return task_to_out(

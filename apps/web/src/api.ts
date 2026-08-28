@@ -815,8 +815,10 @@ export function restoreTask(taskId: string) {
   return apiFetch<Task>(`/api/v1/tasks/${taskId}/restore`, { method: "POST" });
 }
 
-export function emptyTrash() {
-  return apiFetch<void>("/api/v1/tasks/trash", { method: "DELETE" });
+export function emptyTrash(params?: { older_than_days?: number }) {
+  return apiFetchUrl<void>(buildUrl("/api/v1/tasks/trash", params), {
+    method: "DELETE",
+  });
 }
 
 export function hardPurgeTask(taskId: string) {
