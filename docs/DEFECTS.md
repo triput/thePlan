@@ -847,3 +847,58 @@ Detail drawer is **long** (recurrence, deps, scheduling, labels, Time Map, …).
 
 - Collapsible sections: Scheduling, Recurrence, Dependencies, Labels, Advanced — collapsed by default; expand state in `localStorage` (`theplan.taskDetail.sections`).
 - Title / description / priority / dates / delete stay always visible; sticky Save unchanged.
+
+---
+
+## DEF-027 — Locked-out account recovery / forgotten password
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (operator can lose access to the product; data remains intact) |
+| **Status** | Open |
+| **Found** | 2026-09-18 |
+| **Surface** | Sign-in, auth service, operator tooling, session management |
+| **Wave** | Backlog — account recovery |
+
+### Symptom / ask
+
+An authenticated user can change their own password, and an administrator can assign a
+temporary password to another household user. Neither path helps when the sole operator
+has forgotten the password and cannot sign in.
+
+The product needs a recovery path that fits its local-first deployment model. Recovery
+must not assume outbound email is configured or available.
+
+### Current behavior
+
+- `PATCH /auth/me` changes the current user's password after sign-in.
+- An administrator can set another user's password and force `must_change_password`.
+- There is no supported recovery flow for a locked-out sole operator.
+
+### Recommended first cut
+
+Provide an operator-controlled host command or script that:
+
+1. Selects a local account by username or email.
+2. Generates or accepts a temporary secret without writing it to application logs.
+3. Sets `must_change_password = true`.
+4. Revokes existing sessions for that account.
+5. Leaves the user at the existing blocking change-password gate after sign-in.
+
+An expiring one-time recovery link can be considered later. Email-based recovery should
+remain optional and must not become a dependency for a local installation.
+
+### Security boundaries
+
+- Do not expose account existence through a public unauthenticated response.
+- Rate-limit any network-accessible recovery request surface.
+- Do not log passwords, temporary secrets, or recovery tokens.
+- Recovery authority belongs to the host operator or an authenticated administrator.
+- Record the recovery event without recording the secret.
+
+### Expected
+
+- A sole operator can recover a local account without editing PostgreSQL by hand.
+- The temporary credential is immediately replaced through the existing forced-change flow.
+- Existing sessions are invalidated after recovery.
+- The path works without an email provider and has automated auth tests.
