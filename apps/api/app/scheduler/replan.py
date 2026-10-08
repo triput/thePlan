@@ -31,14 +31,93 @@ PRIORITY_ORDER = [
     TaskPriority.p4,
 ]
 
+_PRIORITY_RANK = {priority: index for index, priority in enumerate(PRIORITY_ORDER)}
 
-def _group_by_priority(
+
+def _blockers_by_dependent(
+    dependencies: list[TaskDependency],
+    candidate_ids: set[UUID],
+) -> dict[UUID, list[UUID]]:
+    blockers: dict[UUID, list[UUID]] = {task_id: [] for task_id in candidate_ids}
+    for dep in dependencies:
+        blocker = dep.blocking_task_id
+        dependent = dep.dependent_task_id
+        if blocker not in candidate_ids or dependent not in candidate_ids:
+            continue
+        blockers[dependent].append(blocker)
+    return blockers
+
+
+def _dependencies_ready(
+    task_id: UUID,
+    remaining_by_task: dict[UUID, int],
+    blockers_by_dependent: dict[UUID, list[UUID]],
+) -> bool:
+    for blocker_id in blockers_by_dependent.get(task_id, []):
+        if remaining_by_task.get(blocker_id, 0) > 0:
+            return False
+    return True
+
+
+def _prerequisite_not_before(
+    task_id: UUID,
+    blockers_by_dependent: dict[UUID, list[UUID]],
+    latest_block_end_by_task: dict[UUID, datetime],
+    horizon_start: datetime,
+) -> datetime:
+    not_before = horizon_start
+    for blocker_id in blockers_by_dependent.get(task_id, []):
+        blocker_end = latest_block_end_by_task.get(blocker_id)
+        if blocker_end is not None and blocker_end > not_before:
+            not_before = blocker_end
+    return not_before
+
+
+def _placement_pass_order(
+    candidates: list[TaskCandidate],
     ordered: list[TaskCandidate],
-) -> list[tuple[TaskPriority, list[TaskCandidate]]]:
-    groups: dict[TaskPriority, list[TaskCandidate]] = {p: [] for p in PRIORITY_ORDER}
-    for candidate in ordered:
-        groups[candidate.task.priority].append(candidate)
-    return [(priority, groups[priority]) for priority in PRIORITY_ORDER if groups[priority]]
+    ups_scores: dict[UUID, float],
+) -> list[TaskCandidate]:
+    """Priority and UPS among tasks ready this sweep; topo index breaks ties (deps win)."""
+    topo_index = {item.task.id: index for index, item in enumerate(ordered)}
+    return sorted(
+        candidates,
+        key=lambda item: (
+            _PRIORITY_RANK.get(item.task.priority, len(PRIORITY_ORDER)),
+            -ups_scores.get(item.task.id, 0.0),
+            topo_index.get(item.task.id, len(ordered)),
+        ),
+    )
+
+
+def _seed_prerequisite_block_ends(
+    db: Session,
+    owner_id: UUID,
+    candidate_ids: set[UUID],
+    horizon_start: datetime,
+    horizon_end: datetime,
+) -> dict[UUID, datetime]:
+    """Latest pinned (or other pre-existing) block end per task in the replan horizon."""
+    latest: dict[UUID, datetime] = {}
+    if not candidate_ids:
+        return latest
+    blocks = (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == owner_id,
+            ScheduledBlock.task_id.in_(candidate_ids),
+            ScheduledBlock.start_time < horizon_end,
+            ScheduledBlock.end_time > horizon_start,
+        )
+        .all()
+    )
+    for block in blocks:
+        if block.task_id is None:
+            continue
+        prev = latest.get(block.task_id)
+        if prev is None or block.end_time > prev:
+            latest[block.task_id] = block.end_time
+    return latest
 
 
 def _push_mirrored_block(db: Session, settings, block: ScheduledBlock) -> None:
@@ -151,45 +230,81 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
         minutes_by_project: dict[str, int] = {}
         task_had_blocks: dict[UUID, bool] = {}
 
-        for _priority, group in _group_by_priority(ordered):
-            placed_in_sweep = True
-            while placed_in_sweep:
-                placed_in_sweep = False
-                for candidate in group:
-                    task_id = candidate.task.id
-                    remaining = remaining_by_task.get(task_id, 0)
-                    if remaining <= 0:
-                        continue
-                    result, busy = place_one_block(
-                        db,
-                        task=candidate.task,
-                        owner_id=owner_id,
-                        settings=user_settings,
-                        remaining_minutes=remaining,
-                        busy=busy,
-                        horizon_start=horizon_start,
-                        horizon_end=horizon_end,
-                        preferred_windows=preferred_windows,
-                        now_utc=now_utc,
-                        preferred_window_id=effective_by_task[task_id],
-                        project_daily_usage=project_daily_usage,
-                        daily_cap=daily_cap,
-                    )
-                    remaining_by_task[task_id] = result.remaining_minutes
-                    if result.blocks_created <= 0:
-                        continue
-                    placed_in_sweep = True
-                    task_had_blocks[task_id] = True
-                    blocks_created += result.blocks_created
-                    minutes_placed = remaining - result.remaining_minutes
-                    project_key = (
-                        str(candidate.task.project_id)
-                        if candidate.task.project_id
-                        else "inbox"
-                    )
-                    minutes_by_project[project_key] = (
-                        minutes_by_project.get(project_key, 0) + minutes_placed
-                    )
+        candidate_ids = {item.task.id for item in candidates}
+        blockers_by_dependent = _blockers_by_dependent(dependencies, candidate_ids)
+        latest_block_end_by_task = _seed_prerequisite_block_ends(
+            db,
+            owner_id,
+            candidate_ids,
+            horizon_start,
+            horizon_end,
+        )
+
+        placed_in_sweep = True
+        while placed_in_sweep:
+            placed_in_sweep = False
+            ready = [
+                candidate
+                for candidate in ordered
+                if remaining_by_task.get(candidate.task.id, 0) > 0
+                and _dependencies_ready(
+                    candidate.task.id,
+                    remaining_by_task,
+                    blockers_by_dependent,
+                )
+            ]
+            if not ready:
+                break
+            for candidate in _placement_pass_order(ready, ordered, ups_scores):
+                task_id = candidate.task.id
+                remaining = remaining_by_task.get(task_id, 0)
+                if remaining <= 0:
+                    continue
+                if not _dependencies_ready(
+                    task_id, remaining_by_task, blockers_by_dependent
+                ):
+                    continue
+                prereq_not_before = _prerequisite_not_before(
+                    task_id,
+                    blockers_by_dependent,
+                    latest_block_end_by_task,
+                    horizon_start,
+                )
+                result, busy = place_one_block(
+                    db,
+                    task=candidate.task,
+                    owner_id=owner_id,
+                    settings=user_settings,
+                    remaining_minutes=remaining,
+                    busy=busy,
+                    horizon_start=horizon_start,
+                    horizon_end=horizon_end,
+                    preferred_windows=preferred_windows,
+                    now_utc=now_utc,
+                    preferred_window_id=effective_by_task[task_id],
+                    project_daily_usage=project_daily_usage,
+                    daily_cap=daily_cap,
+                    prerequisite_not_before=prereq_not_before,
+                )
+                remaining_by_task[task_id] = result.remaining_minutes
+                if result.blocks_created <= 0:
+                    continue
+                placed_in_sweep = True
+                task_had_blocks[task_id] = True
+                blocks_created += result.blocks_created
+                if result.last_block_end is not None:
+                    prev_end = latest_block_end_by_task.get(task_id)
+                    if prev_end is None or result.last_block_end > prev_end:
+                        latest_block_end_by_task[task_id] = result.last_block_end
+                minutes_placed = remaining - result.remaining_minutes
+                project_key = (
+                    str(candidate.task.project_id)
+                    if candidate.task.project_id
+                    else "inbox"
+                )
+                minutes_by_project[project_key] = (
+                    minutes_by_project.get(project_key, 0) + minutes_placed
+                )
 
         for candidate in ordered:
             task_id = candidate.task.id

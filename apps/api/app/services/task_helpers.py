@@ -43,6 +43,7 @@ def count_open_children(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID) ->
 def collect_open_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID) -> list[uuid.UUID]:
     descendant_ids: list[uuid.UUID] = []
     queue: deque[uuid.UUID] = deque([task_id])
+    visited: set[uuid.UUID] = {task_id}
     while queue:
         current_id = queue.popleft()
         children = (
@@ -56,6 +57,9 @@ def collect_open_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.
             .all()
         )
         for (child_id,) in children:
+            if child_id in visited:
+                continue
+            visited.add(child_id)
             descendant_ids.append(child_id)
             queue.append(child_id)
     return descendant_ids
@@ -65,6 +69,7 @@ def collect_live_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.
     """BFS over non-trashed descendants (any completion state)."""
     descendant_ids: list[uuid.UUID] = []
     queue: deque[uuid.UUID] = deque([task_id])
+    visited: set[uuid.UUID] = {task_id}
     while queue:
         current_id = queue.popleft()
         children = (
@@ -77,6 +82,9 @@ def collect_live_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.
             .all()
         )
         for (child_id,) in children:
+            if child_id in visited:
+                continue
+            visited.add(child_id)
             descendant_ids.append(child_id)
             queue.append(child_id)
     return descendant_ids
@@ -86,6 +94,7 @@ def collect_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID)
     """BFS over all descendants including already-trashed rows."""
     descendant_ids: list[uuid.UUID] = []
     queue: deque[uuid.UUID] = deque([task_id])
+    visited: set[uuid.UUID] = {task_id}
     while queue:
         current_id = queue.popleft()
         children = (
@@ -97,9 +106,80 @@ def collect_descendant_ids(db: Session, task_id: uuid.UUID, owner_id: uuid.UUID)
             .all()
         )
         for (child_id,) in children:
+            if child_id in visited:
+                continue
+            visited.add(child_id)
             descendant_ids.append(child_id)
             queue.append(child_id)
     return descendant_ids
+
+
+def nearest_live_ancestor_id(
+    db: Session,
+    owner_id: uuid.UUID,
+    start_parent_id: uuid.UUID | None,
+) -> uuid.UUID | None:
+    """Walk up from ``start_parent_id``; return the nearest non-trashed ancestor, or inbox root."""
+    current = start_parent_id
+    visited: set[uuid.UUID] = set()
+    while current is not None:
+        if current in visited:
+            return None
+        visited.add(current)
+        row = db.get(Task, current)
+        if row is None or row.owner_id != owner_id:
+            return None
+        if row.deleted_at is None:
+            return row.id
+        current = row.parent_task_id
+    return None
+
+
+def _parent_is_live(db: Session, owner_id: uuid.UUID, parent_task_id: uuid.UUID | None) -> bool:
+    if parent_task_id is None:
+        return True
+    parent = db.get(Task, parent_task_id)
+    return parent is not None and parent.owner_id == owner_id and parent.deleted_at is None
+
+
+def reparent_live_tasks_with_invalid_parent(
+    db: Session,
+    owner_id: uuid.UUID,
+    task_ids: list[uuid.UUID],
+) -> None:
+    """Point live tasks at the nearest live ancestor when parent is missing or trashed."""
+    for task_id in task_ids:
+        row = db.get(Task, task_id)
+        if row is None or row.deleted_at is not None:
+            continue
+        if _parent_is_live(db, owner_id, row.parent_task_id):
+            continue
+        new_parent = nearest_live_ancestor_id(db, owner_id, row.parent_task_id)
+        row.parent_task_id = new_parent
+        row.nesting_level = resolve_nesting_level(db, owner_id, new_parent)
+
+
+def detach_live_children_before_purge(
+    db: Session,
+    owner_id: uuid.UUID,
+    purge_ids: set[uuid.UUID],
+) -> None:
+    """Reparent live rows that would CASCADE-delete when a trashed parent is hard-deleted."""
+    if not purge_ids:
+        return
+    live_children = (
+        db.query(Task)
+        .filter(
+            Task.owner_id == owner_id,
+            Task.deleted_at.is_(None),
+            Task.parent_task_id.in_(purge_ids),
+        )
+        .all()
+    )
+    for child in live_children:
+        new_parent = nearest_live_ancestor_id(db, owner_id, child.parent_task_id)
+        child.parent_task_id = new_parent
+        child.nesting_level = resolve_nesting_level(db, owner_id, new_parent)
 
 
 def soft_delete_task_subtree(db: Session, task: Task) -> datetime:
@@ -128,11 +208,18 @@ def restore_task_subtree(db: Session, task: Task) -> None:
         raise ApiError(409, "Task is not in trash", "NOT_TRASHED")
     wave = task.deleted_at
     ids = [task.id, *collect_descendant_ids(db, task.id, task.owner_id)]
-    db.query(Task).filter(Task.id.in_(ids), Task.deleted_at == wave).update(
+    restored_ids = [
+        row_id
+        for (row_id,) in db.query(Task.id)
+        .filter(Task.id.in_(ids), Task.deleted_at == wave)
+        .all()
+    ]
+    db.query(Task).filter(Task.id.in_(restored_ids)).update(
         {Task.deleted_at: None},
         synchronize_session=False,
     )
     task.deleted_at = None
+    reparent_live_tasks_with_invalid_parent(db, task.owner_id, restored_ids)
 
 
 def _hard_delete_task_blocks(db: Session, task_ids: list[uuid.UUID]) -> None:
@@ -145,13 +232,22 @@ def _hard_delete_task_blocks(db: Session, task_ids: list[uuid.UUID]) -> None:
 
 
 def hard_purge_trashed_task_subtree(db: Session, task: Task) -> int:
-    """Permanently delete a trashed task and all descendants. Returns rows removed."""
+    """Permanently delete a trashed task and trashed descendants only. Returns rows removed."""
     if task.deleted_at is None:
         raise ApiError(409, "Task is not in trash", "NOT_TRASHED")
-    ids = [task.id, *collect_descendant_ids(db, task.id, task.owner_id)]
-    _hard_delete_task_blocks(db, ids)
-    db.delete(task)
-    return len(ids)
+    subtree_ids = {task.id, *collect_descendant_ids(db, task.id, task.owner_id)}
+    purge_ids = {
+        row_id
+        for (row_id,) in db.query(Task.id)
+        .filter(Task.id.in_(subtree_ids), Task.deleted_at.isnot(None))
+        .all()
+    }
+    if not purge_ids:
+        return 0
+    detach_live_children_before_purge(db, task.owner_id, purge_ids)
+    _hard_delete_task_blocks(db, list(purge_ids))
+    db.query(Task).filter(Task.id.in_(purge_ids)).delete(synchronize_session=False)
+    return len(purge_ids)
 
 
 def empty_trash_for_user(
@@ -174,15 +270,12 @@ def empty_trash_for_user(
         return 0
 
     trashed_ids = {task.id for task in trashed}
-    root_tasks = [
-        task
-        for task in trashed
-        if task.parent_task_id is None or task.parent_task_id not in trashed_ids
-    ]
 
+    detach_live_children_before_purge(db, owner_id, trashed_ids)
     _hard_delete_task_blocks(db, list(trashed_ids))
-    for task in root_tasks:
-        db.delete(task)
+    db.query(Task).filter(Task.id.in_(trashed_ids), Task.deleted_at.isnot(None)).delete(
+        synchronize_session=False,
+    )
     return len(trashed_ids)
 
 

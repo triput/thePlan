@@ -43,6 +43,7 @@ def list_due_reminders(
             Reminder.owner_id == user.id,
             Reminder.is_fired.is_(False),
             Reminder.fire_at <= now,
+            Task.deleted_at.is_(None),
         )
         .order_by(Reminder.fire_at.asc())
         .all()

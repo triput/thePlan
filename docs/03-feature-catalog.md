@@ -94,7 +94,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 |---------|------|-------|
 | Global search | MVP | Title + description |
 | Undo last action | MVP | Session stack; delete undo recreates (new IDs) |
-| Task soft-delete + restore | W2c | `deleted_at` on tasks; true undelete same UUID |
+| Task soft-delete + restore | **Shipped** (DEF-024, 2026-08-27; restore/reparent 2026-10-08) | `deleted_at`; Trash restore same UUID |
 | Activity log / audit trail | W2b | schedule_runs + task history lite |
 | Completed task history | W1.5 closeout | Show/hide completed toggle — **shipped** |
 | Smart view by Epic | W1.5 closeout | Click epic in sidebar; `?epic_id=` — **shipped** |
@@ -103,7 +103,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Time-based reminders | W1.5 | Absolute `fire_at`; in-app toast + optional browser Notification |
+| Time-based reminders | W1.5 | Absolute `fire_at`; in-app toast + optional browser Notification; due poll skips trashed tasks (2026-10-08) |
 | Location reminders | W4 | Candidate |
 | In-app notifications | W1.5 | Toast via client poll + ack |
 | Browser Notification API | W1.5 | Optional; channel=`browser` + permission |
@@ -195,7 +195,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 | Slice & fit algorithm | W2b | Min/max block splitting |
 | UPS priority scoring | W2b | Configurable weights |
 | Urgency decay (exponential) | W2b | k=0.5 default |
-| Dependency-aware ordering | W2b | Topological sort |
+| Dependency-aware ordering | W2b | Kahn topo + max-UPS ready queue; prerequisite `not_before` (2026-10-08) |
 | Inter-block buffer | W2b | Default 5 min, configurable |
 | Overbook detection & flag | W2a Slice 3 / W2b | W2a: visual conflict flags via `GET /calendar/conflicts` (no status mutation). W2b: `schedule_status.overbooked` |
 | Contiguity optimization | W2b | Prefer back-to-back slices |
@@ -235,7 +235,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 | Feature | Wave | Notes |
 |---------|------|-------|
-| Local Docker Compose stack | MVP | postgres + api + web |
+| Local Docker Compose stack | MVP | postgres + api + web + **scheduler** replan worker (W2c, 2026-10-08) |
 | Docker Desktop (Windows default) | MVP | ADR-004 |
 | Podman-compatible Compose | MVP | Alternate runtime |
 | Local-only auth | MVP | ADR-003 |
@@ -274,7 +274,7 @@ Todoist + SkedPal feature harvest with wave tags. This catalog formalizes parity
 
 **Defer to W4 / candidates:** Location reminders, voice, email-to-task, full template catalog/CRUD, hosted Postgres, saved filter query language.
 
-**Parked W2c:** Soft-delete, Time Map overrides, scoped bundles, sidebar drag, compose worker (after W3 or as fallout).
+**Parked W2c:** Time Map overrides, scoped bundles, plan inherit, status tracker. **Shipped W2c steals:** soft-delete/trash, sidebar drag, compose replan worker (2026-10-08). **Residual:** desktop/Tauri needs scheduler poller or thread dispatch.
 
 **Post-W3 backlog:** Zapier / IFTTT / automation-hub connectors; Notion / Obsidian deep links; task handoff between household accounts (discussion only).
 

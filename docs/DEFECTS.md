@@ -327,7 +327,7 @@ UI cuts (#1, #2, #4, #5): **manual smoke still operator-owned** — not claimed 
 1. Inventory hotspots (oversized modules, mixed concerns: e.g. fat `TaskList` / `App.css` / route handlers doing domain work). **Done.**
 2. Classify: keep / extract service / extract component / leave alone. **Done.**
 3. Propose a short ordered cut list (if any) with risk notes — **no drive-by mega-refactor**. **Done.**
-4. Operator greenlight before mutating refactor wave. **Done for #1–#5**; **#6–#8 await greenlight.**
+4. Operator greenlight before mutating refactor wave. **Done for #1–#8** (operator smoke on #1–#5 and **#8** checked **2026-10-08** — [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)).
 
 ### Notes
 
@@ -805,6 +805,7 @@ Distinct from drag reparent ([DEF-001](./DEFECTS.md#def-001--subtasks-added-out-
 - **`DELETE /api/v1/tasks/trash`** — hard-purge all trashed tasks for the user (`empty_trash_for_user`); unpinned blocks for those tasks removed; pinned blocks left.
 - **Round 4:** `DELETE /tasks/trash?older_than_days=N` selective purge; Trash UI **Purge older than…** modal (default 30). Still **no** background cron / Settings retention job.
 - Trash UI **Empty trash** button + confirm dialog.
+- **Correctness (2026-10-08):** restore child while parent still trashed → reparent to nearest live ancestor or inbox; empty trash does not hard-delete live descendants of a purged parent. Reparent cycles rejected with **422** `PARENT_CYCLE` on task PATCH.
 ---
 
 ## DEF-025 — Inline create parent / child / labels in detail drawer

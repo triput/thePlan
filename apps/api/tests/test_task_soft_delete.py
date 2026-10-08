@@ -265,3 +265,29 @@ def test_empty_trash_older_than_days_selective(
 def test_empty_trash_older_than_days_rejects_zero(client: TestClient) -> None:
     response = client.delete("/api/v1/tasks/trash", params={"older_than_days": 0})
     assert response.status_code == 422
+
+
+def test_restore_child_only_survives_empty_trash(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """Restored subtask must not CASCADE-delete when trashed parent is purged."""
+    parent = _create_task(client, f"trash-parent-{_uid()}")
+    child = _create_task(client, f"trash-child-{_uid()}", parent_task_id=parent["id"])
+
+    assert client.delete(f"/api/v1/tasks/{parent['id']}").status_code == 204
+
+    restored = client.post(f"/api/v1/tasks/{child['id']}/restore")
+    assert restored.status_code == 200, restored.text
+    body = restored.json()
+    assert body["deleted_at"] is None
+    assert body["parent_task_id"] is None
+
+    assert client.delete("/api/v1/tasks/trash").status_code == 204
+
+    live = client.get(f"/api/v1/tasks/{child['id']}")
+    assert live.status_code == 200
+    assert live.json()["deleted_at"] is None
+    assert db_session.get(Task, uuid.UUID(child["id"])) is not None
+
+    assert client.get(f"/api/v1/tasks/{parent['id']}").status_code == 404

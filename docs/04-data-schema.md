@@ -12,7 +12,7 @@ PostgreSQL relational schema for the application. Executable DDL: [sql/001_basel
 | Timestamps | `TIMESTAMPTZ`, stored UTC |
 | Durations | Integer minutes |
 | Ownership | `owner_id UUID NOT NULL` on all domain tables |
-| Soft delete | MVP: `is_archived` (epics/projects) or status flags only; **tasks** hard-delete. **W2c** target: nullable `deleted_at` on `tasks` (+ optional on `scheduled_blocks`) for session restore fidelity — see [Future: task soft-delete](#future-task-soft-delete-w2c) |
+| Soft delete | `is_archived` on epics/projects. **Tasks:** nullable `deleted_at` (Alembic `015`) — soft-delete + Trash restore ([DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention)); hard purge via `DELETE /tasks/trash` |
 | Naming | snake_case tables and columns |
 | Colors | `#RRGGBB` hex strings, 7 chars; presets in [08-color-palette.md](./08-color-palette.md) |
 
@@ -236,6 +236,7 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 | status | schedule_status | |
 | is_completed | BOOLEAN | |
 | completed_at | TIMESTAMPTZ nullable | |
+| deleted_at | TIMESTAMPTZ nullable | Soft-delete; NULL = live. Alembic `015_task_deleted_at` |
 
 **Nesting invariant:** Application validates `nesting_level = parent.nesting_level + 1` when parent exists; root tasks have `nesting_level = 0`.
 
@@ -250,17 +251,12 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 - `(owner_id, project_id, sort_order)` — Project views
 - `(project_id)`, `(section_id)`, `(parent_task_id)`
 
-### Future: task soft-delete (W2c)
+### Task soft-delete (shipped — DEF-024)
 
-**Target:** **W2c** (scheduler polish & catch-all). Not MVP.
-
-**Recommended approach:** Add nullable `deleted_at TIMESTAMPTZ` on `tasks` (or boolean `is_deleted`). Optionally same on `scheduled_blocks`. `DELETE` becomes soft-set; list/search queries filter `deleted_at IS NULL`. Restore/undo clears the flag and returns the same UUID with children if soft-cascade is applied.
-
-**Cascade policy:** On parent soft-delete, soft-delete descendant tasks and linked `scheduled_blocks` in one transaction (or defer via application logic). Prefer soft-delete over forever-hard-delete for session restore fidelity.
-
-**Alternative:** `deleted_tasks` staging table holding serialized task trees — heavier; prefer column on `tasks` unless audit retention needs differ.
-
-**Client impact:** MVP undo stack remains useful for complete/uncomplete; delete undo becomes a restore API call instead of recreate-via-POST.
+- **`deleted_at`** on `tasks` (Alembic `015`). `DELETE /tasks/{id}` soft-sets the subtree; lists default to `deleted_at IS NULL`.
+- **Restore:** `POST /tasks/{id}/restore` clears the same delete-wave subtree. If the parent is still trashed, restored children **reparent** to the nearest live ancestor or inbox root (**2026-10-08**).
+- **Empty trash:** `DELETE /tasks/trash` hard-purges trashed rows only; does not cascade-delete live descendants of a purged parent (**2026-10-08**).
+- **Client undo** still recreates via POST (new IDs); Trash restore is the true same-UUID undelete path.
 
 ### labels / task_labels
 
@@ -276,7 +272,7 @@ Central entity. Supports nesting via `parent_task_id` and `nesting_level`.
 
 Directed edges: `blocking_task_id` must complete before `dependent_task_id`.
 
-Constraints: no self-edge; unique pair. Cycle prevention in application layer (optional DB trigger W2).
+Constraints: no self-edge; unique pair. **Reparent cycle prevention:** PATCH `parent_task_id` that would make a task its own descendant returns **422** `PARENT_CYCLE` (application layer).
 
 ### scheduled_blocks
 
@@ -350,6 +346,22 @@ Mirrored busy events from providers. Linked optionally to `task_id` or `schedule
 
 Audit log for W2 scheduler passes: timing, counts, errors, `stats_json`.
 
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| owner_id | UUID FK | |
+| started_at, finished_at | TIMESTAMPTZ | |
+| status | VARCHAR(32) | `running`, `completed`, `failed` |
+| tasks_scheduled, blocks_created, overbooked_count | INT | Run counters |
+| error_message | TEXT nullable | |
+| stats_json | JSONB nullable | e.g. `minutes_by_project` (DEF-017) |
+
+**Indexes:** `(owner_id, started_at DESC)` — list/history per owner.
+
+**Concurrency (Alembic `018_one_running_schedule_run`, 2026-10-08):** partial unique index **`uq_schedule_runs_one_running_per_owner`** on `(owner_id) WHERE status = 'running'` — at most one active replan per owner. API returns **409** `SCHEDULE_RUN_IN_PROGRESS` when a non-stale run is already active. Stale `running` rows older than **15 minutes** are reclaimed as `failed` before admit.
+
+Greenfield [001_baseline.sql](./sql/001_baseline.sql) predates migration-only indexes; Alembic `018` is the source of truth for the partial unique index.
+
 ---
 
 ## Smart Views vs Code-Named Predicates
@@ -362,7 +374,7 @@ Smart views are **not** hard-coded only in application logic. They are persisted
 
 1. **Nesting depth:** `nesting_level <= 2`; must match parent chain.
 2. **Section consistency:** `section_id` implies non-null `project_id` matching section's project.
-3. **Dependency DAG:** No cycles (validated on insert).
+3. **Dependency DAG:** No cycles on dependency edges (validated on insert). **Parent reparent:** no `parent_task_id` cycles (**422** `PARENT_CYCLE`).
 4. **Owner scoping:** All queries filter by authenticated `owner_id`.
 5. **Completion:** Setting `is_completed = TRUE` sets `completed_at = now()`; uncomplete clears it.
 6. **Timezone:** "Today" and calendar boundaries computed in `user_settings.timezone`.

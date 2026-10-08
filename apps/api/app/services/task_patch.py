@@ -18,7 +18,7 @@ from app.services.ownership import (
     verify_owned_section,
     verify_owned_task,
 )
-from app.services.task_helpers import resolve_nesting_level
+from app.services.task_helpers import collect_descendant_ids, resolve_nesting_level
 
 # Sentinel for "field omitted" vs explicit null on soft_target_at / plan_id.
 MISSING = object()
@@ -114,8 +114,23 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
         verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
 
     if "parent_task_id" in updates:
+        new_parent_id = updates["parent_task_id"]
+        if new_parent_id == task.id:
+            raise ApiError(
+                422,
+                "Task cannot be its own parent",
+                "PARENT_CYCLE",
+            )
+        if new_parent_id is not None:
+            descendant_ids = set(collect_descendant_ids(db, task.id, user.id))
+            if new_parent_id in descendant_ids:
+                raise ApiError(
+                    422,
+                    "Cannot reparent task under its descendant",
+                    "PARENT_CYCLE",
+                )
         try:
-            updates["nesting_level"] = resolve_nesting_level(db, user.id, updates["parent_task_id"])
+            updates["nesting_level"] = resolve_nesting_level(db, user.id, new_parent_id)
         except ApiError as exc:
             raise exc
 

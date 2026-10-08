@@ -321,9 +321,9 @@ Child tasks inherit scheduling constraints from parent unless explicitly overrid
 ### Scheduling Pipeline (Async Worker)
 
 1. **Busy map** — external calendar events + pinned blocks → BUSY/FREE timeline.
-2. **Dependency resolution** — topological sort of `task_dependencies` DAG.
+2. **Dependency resolution** — Kahn topological sort with **max-UPS ready queue** among zero-in-degree tasks; placement honors **`prerequisite_not_before`** from blockers' latest scheduled block end (**2026-10-08**).
 3. **Priority queue** — UPS scoring (below).
-4. **Slice & fit** — split tasks into blocks respecting min/max slice sizes and focus windows.
+4. **Slice & fit** — split tasks into blocks respecting min/max slice sizes and focus windows; try **decreasing slice sizes** (down to MBL) when a day needs multiple slices (**2026-10-08**). Painted tiers: **red bands subtract** from green/yellow before neutral spill.
 5. **Conflict handling** — flag `overbooked` status when task cannot fit before deadline; never auto-move pins or higher-priority hard constraints.
 
 ### UPS Formula

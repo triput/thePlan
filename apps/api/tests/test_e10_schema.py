@@ -60,3 +60,12 @@ def test_reminder_fire_at_index_declared() -> None:
 def test_schedule_runs_owner_index_declared() -> None:
     names = {idx.name for idx in ScheduleRun.__table__.indexes}
     assert "idx_schedule_runs_owner" in names
+
+
+def test_schedule_runs_one_running_per_owner_index_declared() -> None:
+    indexes = {idx.name: idx for idx in ScheduleRun.__table__.indexes}
+    idx = indexes["uq_schedule_runs_one_running_per_owner"]
+    assert idx.unique is True
+    assert [col.name for col in idx.columns] == ["owner_id"]
+    where = idx.dialect_options["postgresql"]["where"]
+    assert "running" in str(where)

@@ -22,6 +22,8 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+psycopg://theplan:theplan@postgres:5432/theplan
+      # W2c: replan runs in the scheduler service, not an API thread.
+      SCHEDULE_DISPATCH: external
       CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:8080","http://127.0.0.1:8080","https://plan.silverhelmet.com"]'
       SESSION_SECRET: ${SESSION_SECRET:-compose-dev-session-secret-change-for-production}
       SESSION_HTTPS_ONLY: ${SESSION_HTTPS_ONLY:-false}
@@ -56,6 +58,37 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+  # W2c: poll schedule_runs and run replans outside the API process.
+  # Same image as api. API owns alembic; this process retries until the table exists.
+  scheduler:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.scheduler.worker", "--poll"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://theplan:theplan@postgres:5432/theplan
+      SCHEDULE_POLL_SECONDS: ${SCHEDULE_POLL_SECONDS:-2}
+      SEED_DEMO_USER: "false"
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:8080}
+      GOOGLE_CLIENT_SECRETS_FILE: ${GOOGLE_CLIENT_SECRETS_FILE:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
+      GOOGLE_OAUTH_SCOPES: ${GOOGLE_OAUTH_SCOPES:-https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+      MICROSOFT_REDIRECT_URI: ${MICROSOFT_REDIRECT_URI:-}
+      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID:-common}
+      MICROSOFT_OAUTH_SCOPES: ${MICROSOFT_OAUTH_SCOPES:-Calendars.ReadWrite offline_access User.Read}
+    volumes:
+      - ../../.secrets-backup:/secrets:ro
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   web:
     build:

@@ -24,6 +24,7 @@ class PlacementResult:
     blocks_created: int
     overbooked: bool
     remaining_minutes: int = 0
+    last_block_end: datetime | None = None
 
 
 def _day_cap_allows(
@@ -92,6 +93,19 @@ def intersect_ranges(
     return None
 
 
+def _subtract_red_from_clips(
+    clips: list[tuple[datetime, datetime]],
+    red_intervals: list[TimeInterval],
+) -> list[tuple[datetime, datetime]]:
+    if not clips or not red_intervals:
+        return clips
+    result: list[tuple[datetime, datetime]] = []
+    for start, end in clips:
+        for piece in subtract_intervals_from_range(start, end, red_intervals):
+            result.append((piece.start, piece.end))
+    return result
+
+
 def _clip_band_to_workday(
     day: date,
     band: TimeMapBand,
@@ -133,10 +147,13 @@ def _search_windows_for_day(
         elif band.tier == TimeMapBandTier.red:
             red_clips.append(clipped)
 
+    red_intervals = [TimeInterval(start, end) for start, end in red_clips]
+    green_clips = _subtract_red_from_clips(green_clips, red_intervals)
+    yellow_clips = _subtract_red_from_clips(yellow_clips, red_intervals)
+
     ordered: list[tuple[datetime, datetime]] = green_clips + yellow_clips
 
     if not preferred.strict_mode:
-        red_intervals = [TimeInterval(start, end) for start, end in red_clips]
         neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
         ordered.extend((item.start, item.end) for item in neutral)
 
@@ -224,6 +241,24 @@ def _slice_size(
     return None
 
 
+def _decreasing_slice_sizes(remaining: int, mbl: int, max_block: int) -> list[int]:
+    """Preferred slice first, then smaller multiples of min block down to mbl."""
+    preferred = _slice_size(remaining, mbl, max_block)
+    if preferred is None:
+        return []
+    sizes: list[int] = []
+    size = preferred
+    while size > mbl:
+        if size <= remaining:
+            sizes.append(size)
+        size -= mbl
+    if mbl <= remaining:
+        sizes.append(mbl)
+    if 0 < remaining < mbl and remaining not in sizes:
+        sizes.append(remaining)
+    return sizes
+
+
 def place_task(
     db: Session,
     *,
@@ -241,6 +276,7 @@ def place_task(
     finalize_status: bool = True,
     project_daily_usage: ProjectDailyUsage | None = None,
     daily_cap: int | None = None,
+    prerequisite_not_before: datetime | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     tz = ZoneInfo(settings.timezone)
     mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
@@ -254,9 +290,14 @@ def place_task(
     not_before = horizon_start
     if soft_target is not None and soft_target > not_before:
         not_before = soft_target
+    if prerequisite_not_before is not None:
+        prerequisite_not_before = _ensure_utc(prerequisite_not_before)
+        if prerequisite_not_before > not_before:
+            not_before = prerequisite_not_before
 
     remaining = remaining_minutes
     blocks_created = 0
+    last_block_end: datetime | None = None
     day = now_utc.astimezone(tz).date()
     end_day = horizon_end.astimezone(tz).date()
 
@@ -277,53 +318,14 @@ def place_task(
             while remaining > 0:
                 if blocks_limit is not None and blocks_created >= blocks_limit:
                     break
-                slice_minutes = _slice_size(remaining, mbl, max_block)
-                if slice_minutes is None:
-                    break
-                if not _day_cap_allows(
-                    day, task.project_id, slice_minutes, project_daily_usage, daily_cap
-                ):
-                    day_cap_blocked = True
-                    break
-                slot = find_slot(
-                    busy,
-                    search_start,
-                    search_end,
-                    slice_minutes,
-                    not_before,
-                    deadline,
-                )
-                if slot is None:
+                slice_candidates = _decreasing_slice_sizes(remaining, mbl, max_block)
+                if not slice_candidates:
                     break
 
-                start, end = slot
-                if interval_overlaps_busy(busy, start, end):
-                    not_before = end
-                    continue
-
-                block = ScheduledBlock(
-                    owner_id=owner_id,
-                    task_id=task.id,
-                    start_time=start,
-                    end_time=end,
-                    is_pinned=False,
-                )
-                db.add(block)
-                db.flush()
-                blocks_created += 1
-                remaining -= slice_minutes
-                not_before = end
-                busy = add_busy_interval(busy, start, end, buffer_minutes)
-                _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
-                placed_today = True
-
-                if blocks_limit is not None and blocks_created >= blocks_limit:
-                    break
-
-                if remaining > 0 and remaining < mbl:
-                    tail_minutes = remaining
+                placed_in_window = False
+                for slice_minutes in slice_candidates:
                     if not _day_cap_allows(
-                        day, task.project_id, tail_minutes, project_daily_usage, daily_cap
+                        day, task.project_id, slice_minutes, project_daily_usage, daily_cap
                     ):
                         day_cap_blocked = True
                         break
@@ -331,13 +333,18 @@ def place_task(
                         busy,
                         search_start,
                         search_end,
-                        tail_minutes,
+                        slice_minutes,
                         not_before,
                         deadline,
                     )
                     if slot is None:
-                        break
+                        continue
+
                     start, end = slot
+                    if interval_overlaps_busy(busy, start, end):
+                        not_before = end
+                        continue
+
                     block = ScheduledBlock(
                         owner_id=owner_id,
                         task_id=task.id,
@@ -348,9 +355,22 @@ def place_task(
                     db.add(block)
                     db.flush()
                     blocks_created += 1
-                    remaining = 0
+                    remaining -= slice_minutes
+                    not_before = end
+                    last_block_end = end
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
-                    _record_project_minutes(day, task.project_id, tail_minutes, project_daily_usage)
+                    _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
+                    placed_today = True
+                    placed_in_window = True
+                    break
+
+                if day_cap_blocked:
+                    break
+                if not placed_in_window:
+                    break
+
+                if blocks_limit is not None and blocks_created >= blocks_limit:
+                    break
                 break
 
             if remaining <= 0 or (blocks_limit is not None and blocks_created >= blocks_limit):
@@ -384,6 +404,7 @@ def place_task(
             blocks_created=blocks_created,
             overbooked=overbooked if finalize_status else False,
             remaining_minutes=remaining,
+            last_block_end=last_block_end,
         ),
         busy,
     )
@@ -404,6 +425,7 @@ def place_one_block(
     preferred_window_id: UUID | None = None,
     project_daily_usage: ProjectDailyUsage | None = None,
     daily_cap: int | None = None,
+    prerequisite_not_before: datetime | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     """Place at most one scheduled block for round-robin replan sweeps."""
     return place_task(
@@ -422,4 +444,5 @@ def place_one_block(
         finalize_status=False,
         project_daily_usage=project_daily_usage,
         daily_cap=daily_cap,
+        prerequisite_not_before=prerequisite_not_before,
     )

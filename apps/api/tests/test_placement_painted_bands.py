@@ -59,6 +59,36 @@ def test_green_preferred_before_yellow() -> None:
     assert len(windows) >= 3
 
 
+def test_red_excluded_from_green_band() -> None:
+    settings = _settings(
+        timezone="UTC",
+        workday_start_local=time(8, 0),
+        workday_minutes=540,
+        workweek_days=7,
+    )
+    tz = ZoneInfo("UTC")
+    day = date(2026, 8, 11)
+    preferred = _map(
+        (TimeMapBandTier.green, time(8, 0), time(12, 0)),
+        (TimeMapBandTier.red, time(9, 0), time(10, 0)),
+    )
+
+    windows = _search_windows_for_day(day, settings, tz, preferred)
+    red_start = datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc)
+    red_end = datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc)
+    assert not any(
+        start < red_end and end > red_start for start, end in windows
+    )
+    assert (
+        datetime(2026, 8, 11, 8, 0, tzinfo=timezone.utc),
+        datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc),
+    ) in windows
+    assert (
+        datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc),
+        datetime(2026, 8, 11, 12, 0, tzinfo=timezone.utc),
+    ) in windows
+
+
 def test_red_excluded_from_neutral() -> None:
     settings = _settings(
         timezone="UTC",
@@ -232,3 +262,64 @@ def test_place_task_uses_green_before_yellow(
     assert result.blocks_created == 1
     block = task.scheduled_blocks[0]
     assert block.start_time == datetime(2026, 8, 11, 14, 0, tzinfo=timezone.utc)
+
+
+def test_place_task_splits_across_small_windows(
+    db_session,
+    client,
+) -> None:
+    from uuid import UUID
+
+    from app.models import Task
+
+    owner_id = UUID(client.get("/api/v1/auth/me").json()["id"])
+    fixed_now = datetime(2026, 8, 11, 7, 0, tzinfo=timezone.utc)
+    settings = _settings(
+        timezone="UTC",
+        workday_start_local=time(8, 0),
+        workday_minutes=600,
+        workweek_days=7,
+        inter_block_buffer_minutes=0,
+        default_min_block_duration_minutes=15,
+    )
+    preferred = _map(
+        (TimeMapBandTier.green, time(8, 0), time(9, 0)),
+        (TimeMapBandTier.green, time(10, 0), time(11, 0)),
+        strict_mode=True,
+    )
+    preferred.owner_id = owner_id
+    db_session.add(preferred)
+    db_session.flush()
+
+    task = Task(
+        owner_id=owner_id,
+        title="Split task",
+        estimated_duration_minutes=120,
+        min_block_duration_minutes=15,
+        max_block_duration_minutes=120,
+        preferred_time_window_id=preferred.id,
+    )
+    db_session.add(task)
+    db_session.flush()
+
+    horizon_start = fixed_now
+    horizon_end = fixed_now.replace(hour=23, minute=59)
+
+    result, _ = place_task(
+        db_session,
+        task=task,
+        owner_id=owner_id,
+        settings=settings,
+        remaining_minutes=120,
+        busy=[],
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
+        preferred_windows={preferred.id: preferred},
+        now_utc=fixed_now,
+    )
+    assert result.blocks_created == 2
+    assert result.remaining_minutes == 0
+    assert result.overbooked is False
+    starts = sorted(block.start_time for block in task.scheduled_blocks)
+    assert starts[0] == datetime(2026, 8, 11, 8, 0, tzinfo=timezone.utc)
+    assert starts[1] == datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc)

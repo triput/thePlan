@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased] — W2c + correctness (2026-10-08)
+
+- **Compose replan worker (W2c):** `scheduler` service in `infra/compose/compose.yaml` polls `schedule_runs` and runs replan; API `SCHEDULE_DISPATCH=external` (default); residual `SCHEDULE_DISPATCH=thread` for no-poller setups — [ADR-005](docs/adr/ADR-005-scheduler-decoupling.md), [apps/api/app/scheduler/README.md](apps/api/app/scheduler/README.md)
+- **Schedule concurrency:** Alembic `018_one_running_schedule_run` — partial unique index one `running` row per owner; `POST /schedule/replan` returns **409** `SCHEDULE_RUN_IN_PROGRESS`
+- **Trash restore:** child restored while parent still trashed → reparent to nearest live ancestor or inbox root; empty trash no longer hard-deletes live restored descendants
+- **Task PATCH:** reparent that would create a cycle → **422** `PARENT_CYCLE`
+- **Replan horizon wipe:** cancels Google/MS mirrors for removed unpinned blocks and drops local `ExternalCalendarEvent`; residual stale remote delete may re-import as busy
+- **Scheduler:** dependency max-UPS ready queue + prerequisite `not_before`; red bands cut green/yellow; decreasing placement slice sizes
+- **Reminders:** due poll skips trashed tasks (`deleted_at` set)
+- **Quality:** correctness suite **73/73** green (Renee); scheduler worker tests green
+
 ## [Unreleased] — W2c steal (scheduler polish)
 
 - **DEF-014 (shipped 2026-08-18):** `schedule_style` value `manual` (UI: Manual / backlog) plus live inherit on epics/projects; Update Schedule excludes `manual` and `bundle`. Outline import does not stamp imported tasks as manual. Tunnel ops: operator still needs `docker compose --build api web` (not run in this docs pass).

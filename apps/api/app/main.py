@@ -62,6 +62,17 @@ async def lifespan(_: FastAPI):
             )
     finally:
         db.close()
+    dispatch_mode = settings.schedule_dispatch.strip().lower() or "external"
+    if dispatch_mode == "thread":
+        logger.warning(
+            "SCHEDULE_DISPATCH=thread; replans run inside the API process. "
+            "Do not also run the scheduler worker against this database."
+        )
+    else:
+        logger.info(
+            "SCHEDULE_DISPATCH=%s; replans wait for the scheduler worker",
+            dispatch_mode,
+        )
     yield
 
 

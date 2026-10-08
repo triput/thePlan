@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     assist_timeout_seconds: float = 60.0
     assist_enabled: bool = True
 
+    # W2c scheduler. external: Compose scheduler polls schedule_runs.
+    # thread: residual in-process bridge for API-only dev. Do not combine with the scheduler service.
+    schedule_dispatch: str = "external"
+    schedule_poll_seconds: float = 2.0
+
 
 @lru_cache
 def get_settings() -> Settings:

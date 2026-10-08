@@ -2,17 +2,28 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, Index, Integer, String, Text, desc, func
+from sqlalchemy import ForeignKey, Index, Integer, String, Text, desc, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
 from app.models.mixins import _uuid
 
+# One in-flight replan per owner. Non-running rows stay out of the index.
+ONE_RUNNING_PER_OWNER_INDEX = "uq_schedule_runs_one_running_per_owner"
+
 
 class ScheduleRun(Base):
     __tablename__ = "schedule_runs"
-    __table_args__ = (Index("idx_schedule_runs_owner", "owner_id", desc("started_at")),)
+    __table_args__ = (
+        Index("idx_schedule_runs_owner", "owner_id", desc("started_at")),
+        Index(
+            ONE_RUNNING_PER_OWNER_INDEX,
+            "owner_id",
+            unique=True,
+            postgresql_where=text("status = 'running'"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
     owner_id: Mapped[uuid.UUID] = mapped_column(

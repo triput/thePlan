@@ -86,7 +86,7 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 | 5 | Split **SettingsPanel** by domain tabs/sections | **Hardened** 2026-08-27 | **Med** | M | `components/settings/*`; scheduling PATCH via `schedulingDraft.ts` documented in shell; smoke: save scheduling defaults + calendar display |
 | 6 | Split `schemas/__init__.py` into domain modules | **Implemented** 2026-10-08 | **Med–High** | M | Domain modules + explicit barrel; pytest assist/batch/auth/outlines/scheduled_blocks **61/61** |
 | 7 | Split `models/__init__.py` into domain modules | **Implemented** 2026-10-08 | **High** | M–L | `user`, `hierarchy`, `task`, `label`, `calendar`, `schedule`, `mixins` + barrel; full pytest **273/273** |
-| 8 | Carve `App.css` into feature CSS files | **Implemented** 2026-10-08 | **High** | L | `src/styles/*` (14 files) + barrel; `npm run build` PASS; operator smoke checklist below |
+| 8 | Carve `App.css` into feature CSS files | **Hardened** 2026-10-08 | **High** | L | `src/styles/*` (14 files) + barrel; `npm run build` PASS; operator smoke checklist below **PASS** |
 
 **Explicitly out of scope:** mega-rewrite of calendar sync, moving domain into the web client, “clean architecture” folder reshuffles, apps/desktop refactors.
 
@@ -100,12 +100,14 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 
 ### Cut #8 — operator manual smoke (post-CSS split)
 
-- [ ] Cold load: sidebar nav, epic expand, settings gear opens panel
-- [ ] Task list: multi-select → batch due / move / label / style / delete
-- [ ] Task detail: open task, collapsible sections, save
-- [ ] Calendar: week view, drag block, bundle gray on partial complete, release/clear unpinned
-- [ ] Quick-add bar parse + create
-- [ ] Auth: login/logout (household admin if applicable)
+Checked **2026-10-08** against Compose `localhost:8080` (nebula demo user; not household admin).
+
+- [x] Cold load: sidebar nav, epic expand, settings gear opens panel
+- [x] Task list: multi-select → batch due / move / label / style / delete
+- [x] Task detail: open task, collapsible sections, save
+- [x] Calendar: week view, drag block, bundle gray on partial complete, release/clear unpinned
+- [x] Quick-add bar parse + create
+- [x] Auth: login/logout (household admin if applicable) — login/logout OK; Household N/A for nebula
 
 ---
 

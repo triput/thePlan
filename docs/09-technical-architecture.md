@@ -49,7 +49,8 @@ flowchart LR
 | Piece | Role | Notes |
 |-------|------|--------|
 | `web` | Static SPA (nginx in Compose) | Same-origin or `VITE_API_URL`; cookies/session to API |
-| `api` | FastAPI `/api/v1/*` | Migrations, auth, CRUD, Assist, Outline, calendars, schedule |
+| `api` | FastAPI `/api/v1/*` | Migrations, auth, CRUD, Assist, Outline, calendars; admits `schedule_runs`, returns 202 |
+| `scheduler` | Replan worker (W2c, **2026-10-08**) | Same API image; `python -m app.scheduler.worker --poll`; not started if you only run `api`+`web` |
 | `postgres` | Source of truth | Volume on host; backup is operator responsibility |
 | Tunnel | Remote HTTPS | e.g. `plan.silverhelmet.com` → local Compose |
 | Ollama | Assist model host | Native Windows often; Compose API uses `host.docker.internal:11434` |
@@ -164,7 +165,7 @@ flowchart LR
 | **Outline** | `/outlines/propose` (deterministic pack) | `/outlines/apply` (epic/project/section/task) | No |
 | **CRUD** | n/a | Direct REST | No |
 
-**Scheduler:** CRUD and Assist/Outline must **never block** on Update Schedule / placement ([ADR-005](./adr/ADR-005-scheduler-decoupling.md)). Operator runs schedule when they want a layout.
+**Scheduler:** CRUD and Assist/Outline must **never block** on Update Schedule / placement ([ADR-005](./adr/ADR-005-scheduler-decoupling.md)). Operator runs schedule when they want a layout. **Compose default:** API inserts `schedule_runs`; **`scheduler`** service claims `running` rows and executes replan (`SCHEDULE_DISPATCH=external`). **Desktop/bare API:** needs poller or `SCHEDULE_DISPATCH=thread` ([apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)). One **running** run per owner (Alembic `018`).
 
 **Calendars:** Google (W2a) and Microsoft (W3) sync are separate workers/routes; busy/mirror rules in their ADRs—not mixed into task CRUD.
 
@@ -211,8 +212,9 @@ flowchart LR
 | Batch patch | `PATCH /tasks/batch` in `routes/tasks.py` |
 | Calendar bundles | `services/bundle_blocks.py` + `POST /scheduled-blocks/bundle` ([ADR-012](./adr/ADR-012-calendar-bundles.md)) |
 | Promote / demote | `services/hierarchy_promote.py` ([DEF-023](./DEFECTS.md)) |
-| Schedule / fuzzy | `scheduler/*` + [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) |
-| Models | `apps/api/app/models/` — domain modules (`mixins`, `user`, `hierarchy`, `task`, `label`, `calendar`, `schedule`, `enums`) + barrel `__init__.py` (DEF-011 Cut #7); Alembic head **016** |
+| Schedule / fuzzy | `scheduler/*` (replan, worker poller) + [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) |
+| Schedule dispatch | `services/schedule_dispatch.py` — `external` vs `thread` ([ADR-005](./adr/ADR-005-scheduler-decoupling.md)) |
+| Models | `apps/api/app/models/` — domain modules (`mixins`, `user`, `hierarchy`, `task`, `label`, `calendar`, `schedule`, `enums`) + barrel `__init__.py` (DEF-011 Cut #7); Alembic head **`018_one_running_schedule_run`** |
 | Schemas | `apps/api/app/schemas/` — domain modules (`common`, `auth`, `settings`, `hierarchy`, `tasks`, `labels`, `calendar`, `search`, `assist`, `outlines`) + barrel `__init__.py` (DEF-011 Cut #6) |
 
 ---

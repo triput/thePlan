@@ -398,7 +398,7 @@ Don't go hunting for these — they're real roadmap, not hidden beta:
 - **Sidebar → calendar drag** — drop a task from the list onto a slot to block time
 - **Custom saved filters / query language** — only fixed smart views today
 - **Kanban board**, **voice input**, **email-to-task**, **Todoist import**, **Microsoft Calendar**
-- **True task undelete** — undo recreates; server soft-delete restore is W2c
+- **True task undelete** — use **Trash → Restore** (same UUID); Ctrl+Z delete undo still recreates with new IDs
 - **Markdown** in descriptions, **location reminders**, **mobile app**
 
 Wave status detail: [07-wave-roadmap.md](../07-wave-roadmap.md).

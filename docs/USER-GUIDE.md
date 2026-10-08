@@ -203,6 +203,13 @@ Select a task to edit:
 
 **Ctrl+Z** (Cmd+Z) reverses recent destructive actions in-session (complete, delete, etc.). Delete undo recreates tasks with **new IDs** — not a true undelete from Trash.
 
+### Trash
+
+**Delete task** sends the subtree to **Trash** (soft delete). Open **Trash** in the sidebar to **Restore** (same task IDs) or **Empty trash** / **Purge older than…** for permanent removal.
+
+- Restore a **child** while its parent is still in Trash → the child moves to the **nearest live parent** or **Inbox** (root).
+- After you empty trash, purged items cannot be restored; other live tasks (including children you restored earlier) stay put.
+
 ---
 
 ## Multi-select and batch actions
@@ -300,9 +307,11 @@ Open **Calendar**. **Day** / **Week**, prev/next/**Today**. Titles include day-o
 
 ### Update Schedule
 
-Toolbar **Update Schedule** runs the fuzzy planner: places eligible tasks into open time using Time Maps, workday settings, and task metadata. **Manual**, **bundle**, and pinned blocks are respected per rules in Settings and task schedule style.
+Toolbar **Update Schedule** runs the fuzzy planner: places eligible tasks into open time using Time Maps, workday settings, dependencies, and task metadata. **Manual**, **bundle**, and pinned blocks are respected per rules in Settings and task schedule style.
 
 When replan finishes, a toast summarizes moves and any **overbooked** count.
+
+**Docker Compose (default stack):** a separate **`scheduler`** container polls and runs replan after the API accepts the run. **Tauri desktop / bare API-only uvicorn** does not include that poller unless you start one or enable the in-process thread bridge — if **Update Schedule** spins at “running” for a long time, use full Compose (`scheduler` service) or see [DESKTOP.md](./DESKTOP.md) / [apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md).
 
 ### Scheduler vs calendar conflicts
 
@@ -341,7 +350,7 @@ On complete: **`every`** slides from completion; **`every!`** follows fixed date
 1. **When** (date/time).
 2. **Channel:** in-app toast and/or browser notification (allow permission when prompted).
 
-While signed in, the app polls about every **30 seconds** (and on tab focus). **Remove** clears upcoming rows.
+While signed in, the app polls about every **30 seconds** (and on tab focus). **Remove** clears upcoming rows. Reminders for **trashed** tasks do not fire.
 
 Location/mobile push not shipped.
 

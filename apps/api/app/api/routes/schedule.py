@@ -4,11 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.api.errors import ApiError
 from app.db import get_db
 from app.models import ScheduleRun, User
 from app.schemas import ScheduleRunOut
-from app.services.schedule_dispatch import dispatch_replan, has_running_run, reclaim_stale_runs
+from app.services.schedule_dispatch import admit_replan, dispatch_replan
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
@@ -25,19 +24,7 @@ def replan_schedule(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ScheduleRunOut:
-    reclaim_stale_runs(db, user.id)
-    if has_running_run(db, user.id):
-        raise ApiError(
-            409,
-            "A schedule run is already in progress",
-            "SCHEDULE_RUN_IN_PROGRESS",
-        )
-
-    run = ScheduleRun(owner_id=user.id, status="running")
-    db.add(run)
-    db.commit()
-    db.refresh(run)
-
+    run = admit_replan(db, user.id)
     dispatch_replan(run.id)
     return ScheduleRunOut.model_validate(run)
 

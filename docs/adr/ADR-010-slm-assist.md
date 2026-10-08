@@ -80,7 +80,7 @@
 | Review | Operator must approve in Assist UI; no auto-apply |
 | Project fields | `title` (required), optional `epic_name` / `epic_id`, optional `color_hex` (defaults like CRUD) |
 | Enrich | Quick-add may fill epic/project name tokens only for projects — no due/duration/schedule on project actions |
-| Out | `create_scheduled_block`, delete/bulk reschedule, dedicated compose replan worker |
+| Out | `create_scheduled_block`, delete/bulk reschedule |
 
 ## Related
 

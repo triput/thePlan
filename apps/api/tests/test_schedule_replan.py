@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import ScheduleRun, ScheduledBlock
+from app.models import ExternalCalendarEvent, ScheduleRun, ScheduledBlock, Task, TaskDependency
 from app.scheduler.replan import run_replan
 
 UTC = timezone.utc
@@ -88,6 +88,103 @@ def _current_user_id(client: TestClient) -> uuid.UUID:
     return uuid.UUID(me.json()["id"])
 
 
+def _retire_running(db: Session, owner_id: uuid.UUID) -> None:
+    """Fail visible running rows so a test can insert under the partial unique index."""
+    now = datetime.now(UTC)
+    rows = (
+        db.query(ScheduleRun)
+        .filter(ScheduleRun.owner_id == owner_id, ScheduleRun.status == "running")
+        .all()
+    )
+    for row in rows:
+        row.status = "failed"
+        row.finished_at = now
+    if rows:
+        db.flush()
+
+
+def _isolate_tasks(db_session: Session, client: TestClient, keep_task_ids: set[uuid.UUID]) -> None:
+    """Hide other open tasks and clear busy noise on shared local Postgres."""
+    owner_id = _current_user_id(client)
+    for task in (
+        db_session.query(Task)
+        .filter(Task.owner_id == owner_id, Task.is_completed.is_(False))
+        .all()
+    ):
+        if task.id not in keep_task_ids:
+            task.is_completed = True
+    db_session.query(ExternalCalendarEvent).filter(ExternalCalendarEvent.owner_id == owner_id).delete()
+    db_session.query(ScheduledBlock).filter(ScheduledBlock.owner_id == owner_id).delete()
+    db_session.flush()
+
+
+def test_dependency_higher_priority_dependent_places_after_blocker(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    owner_id = _current_user_id(client)
+    blocker = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        min_block_duration_minutes=30,
+        max_block_duration_minutes=30,
+        priority="p2",
+        deadline_at=_iso(FIXED_NOW + timedelta(days=6)),
+    )
+    dependent = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        min_block_duration_minutes=30,
+        max_block_duration_minutes=30,
+        priority="p1",
+        deadline_at=_iso(FIXED_NOW + timedelta(days=6)),
+    )
+    db_session.add(
+        TaskDependency(
+            owner_id=owner_id,
+            blocking_task_id=uuid.UUID(blocker["id"]),
+            dependent_task_id=uuid.UUID(dependent["id"]),
+        )
+    )
+    keep = {uuid.UUID(blocker["id"]), uuid.UUID(dependent["id"])}
+    _isolate_tasks(db_session, client, keep)
+    db_session.flush()
+
+    monkeypatch.setattr(
+        "app.api.routes.schedule.dispatch_replan",
+        lambda run_id, sync=False: None,
+    )
+    run_row = ScheduleRun(owner_id=owner_id, status="running", started_at=FIXED_NOW)
+    db_session.add(run_row)
+    db_session.flush()
+    run_replan(run_row.id, db=db_session)
+    db_session.flush()
+    assert run_row.status == "completed"
+    assert run_row.blocks_created >= 2
+
+    horizon_start = FIXED_NOW
+    horizon_end = FIXED_NOW + timedelta(days=7)
+    blocks = client.get(
+        "/api/v1/scheduled-blocks",
+        params={"start": _iso(horizon_start), "end": _iso(horizon_end)},
+    ).json()["items"]
+    auto = [row for row in blocks if not row["is_pinned"]]
+    blocker_blocks = [row for row in auto if row["task_id"] == blocker["id"]]
+    dependent_blocks = [row for row in auto if row["task_id"] == dependent["id"]]
+    assert blocker_blocks, "blocker should receive at least one auto block"
+    assert dependent_blocks, "dependent should receive at least one auto block"
+    blocker_end = max(
+        datetime.fromisoformat(row["end_time"].replace("Z", "+00:00")) for row in blocker_blocks
+    )
+    dependent_start = min(
+        datetime.fromisoformat(row["start_time"].replace("Z", "+00:00")) for row in dependent_blocks
+    )
+    assert dependent_start >= blocker_end
+
+
 def test_replan_places_task_end_to_end(
     client: TestClient,
     db_session: Session,
@@ -123,6 +220,7 @@ def test_replan_places_task_end_to_end(
 
 def test_replan_409_when_fresh_run_in_progress(client: TestClient, db_session: Session) -> None:
     owner_id = _current_user_id(client)
+    _retire_running(db_session, owner_id)
     db_session.add(ScheduleRun(owner_id=owner_id, status="running", started_at=datetime.now(UTC)))
     db_session.flush()
 
@@ -131,8 +229,27 @@ def test_replan_409_when_fresh_run_in_progress(client: TestClient, db_session: S
     assert response.json()["code"] == "SCHEDULE_RUN_IN_PROGRESS"
 
 
+def test_double_admit_second_request_conflicts(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Both requests pass the running-row check; the unique index rejects the second insert."""
+    owner_id = _current_user_id(client)
+    _retire_running(db_session, owner_id)
+    monkeypatch.setattr("app.services.schedule_dispatch.has_running_run", lambda _db, _owner_id: False)
+
+    first = client.post("/api/v1/schedule/replan")
+    assert first.status_code == 202, first.text
+    second = client.post("/api/v1/schedule/replan")
+    assert second.status_code == 409, second.text
+    assert second.json()["code"] == "SCHEDULE_RUN_IN_PROGRESS"
+    assert second.json()["detail"] == "A schedule run is already in progress"
+
+
 def test_stale_reclaim_allows_new_run(client: TestClient, db_session: Session) -> None:
     owner_id = _current_user_id(client)
+    _retire_running(db_session, owner_id)
     stale_started = datetime.now(UTC) - timedelta(minutes=20)
     db_session.add(
         ScheduleRun(

@@ -16,14 +16,14 @@ Update Schedule is **explicit user action only** ([ADR-005](./ADR-005-scheduler-
 |------|---------|
 | **Trigger** | Explicit **Update Schedule** only — no CRUD side effects, no background/cron replan |
 | **Horizon** | `upcoming_horizon_days` from `user_settings` (default **7**), starting **now** in user timezone |
-| **Existing blocks** | Wipe all **unpinned** `scheduled_blocks` that **intersect** the horizon and rewrite; leave **pinned** blocks and **past** (pre-horizon) blocks alone |
+| **Existing blocks** | Wipe all **unpinned** `scheduled_blocks` that **intersect** the horizon and rewrite; leave **pinned** blocks and **past** (pre-horizon) blocks alone. For wiped blocks that were mirrored to Google/Microsoft, cancel remote events and drop local `external_calendar_events` rows tied to those blocks (**2026-10-08**). **Residual:** if a provider delete fails, the local mirror row is still removed; a stale remote event may re-import as external busy until the next sync |
 | **Output** | Formal `scheduled_blocks` rows only — **no** knockout/bundle materialization in v1 |
 
 ### Candidate set
 
 - Open incomplete tasks with **remaining duration > 0**
 - Include `standalone` and `time_block` schedule styles; **exclude `manual` as well as `bundle` from auto-placement** (manual/pinned blocks for those tasks remain OK)
-- Honor `task_dependencies` **topological order** in v1
+- Honor `task_dependencies` in v1: **Kahn topological sort** with a **max-UPS ready queue** (among zero-in-degree tasks, highest UPS first). Placement passes **`prerequisite_not_before`** from blocking tasks' latest scheduled block end (or horizon start)
 
 ### Slack / urgency
 
@@ -35,7 +35,7 @@ Update Schedule is **explicit user action only** ([ADR-005](./ADR-005-scheduler-
 
 When fit fails, apply in order:
 
-1. **Preferred Time Map tiers** — try **green** bands first, then **yellow**, then **neutral** workday slots minus **red** bands (painted tiers shipped 2026-08-12)
+1. **Preferred Time Map tiers** — try **green** bands first, then **yellow**, then **neutral** workday slots minus **red** bands (painted tiers shipped 2026-08-12). **Red bands subtract from green/yellow clips** before neutral spill (**2026-10-08**)
 2. **`strict_mode` map** — when the bound map has `strict_mode=true`, **do not** spill to neutral workday; only green/yellow bands apply
 3. **Auto-defer** (`auto_defer_enabled`) — if plan / `soft_target_at` is past or unreachable in horizon, **slide for scheduling behavior only**; **do not** rewrite stored `soft_target_at` in v1
 4. **Never** move pins or external busy; **never** violate `deadline_at`; **never** auto-place into **red** bands
@@ -43,7 +43,7 @@ When fit fails, apply in order:
 ### Slice & fit
 
 - Respect `estimated_duration`, min block length (MBL from task / user settings), and max block
-- Prefer **contiguous** placement in a window over scattered minimum slices
+- Prefer **contiguous** placement in a window over scattered minimum slices; when a day needs multiple slices, try **decreasing slice sizes** (preferred max slice, then smaller MBL multiples down to MBL) (**2026-10-08**)
 - Insert `inter_block_buffer_minutes` between auto-scheduled blocks
 - Do not shrink below MBL **except** leftover rule: if remainder **< MBL** and **> 0** as the last remnant, place one final smaller slice
 
@@ -89,12 +89,13 @@ Priority queue ordering uses the existing UPS formula in [02-functional-spec.md 
 
 ## Consequences
 
-- **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar button with poll
+- **Shipped (2026-08-12):** Update Schedule thin — `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, Calendar button with poll (worker: in-process thread until **2026-10-08** Compose `scheduler` service)
 - **Shipped (2026-08-12):** Painted Time Maps — `time_map_bands` tiers, Settings multi-band editor, calendar color overlay, scheduler tier placement for bound maps
 - **Shipped (2026-08-17):** Time Map live inherit — `preferred_time_window_id` on epics/projects; replan uses `effective_preferred_time_window_id` (DEF-018). Plan inherit still parked.
 - **Shipped (2026-08-18):** Schedule-style live inherit — `schedule_style` `manual` plus nullable columns on epics/projects; replan uses `effective_schedule_style` and excludes `manual` and `bundle` (DEF-014).
 - **Shipped (2026-08-19):** Scheduling fairness — round-robin slice placement within priority bands plus optional per-project daily auto-schedule cap (DEF-017).
-- **Next:** W3 Slice 1 after [ADR-007](./ADR-007-account-self-service.md) accept; W2c parked
+- **Shipped (2026-10-08):** Compose replan worker — API admit + `scheduler` poller ([ADR-005](./ADR-005-scheduler-decoupling.md)); one **running** `schedule_run` per owner (Alembic `018`, API **409** `SCHEDULE_RUN_IN_PROGRESS`); dependency ready-queue + prerequisite `not_before`; red-tier carving; decreasing placement slices; horizon mirror cancel on unpinned wipe.
+- **Next:** W2c seed backlog (Time Map overrides, scoped bundles, plan inherit, status tracker); desktop/Tauri still needs scheduler poller or `SCHEDULE_DISPATCH=thread` unless operator uses full Compose stack
 - CRUD remains decoupled from scheduler ([ADR-005](./ADR-005-scheduler-decoupling.md))
 - Bundled tasks stay off auto-placement until a later slice; roadmap “knockout → blocks on replan” applies post–v1. `manual` is the same exclusion, different intent (don’t schedule yet).
 - Functional spec §9 retains product-level SkedPal semantics; worker implementers treat this ADR as the v1 source of truth for fit and replan

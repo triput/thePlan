@@ -62,7 +62,8 @@ Task management API endpoints (create, update, complete, move, delete) return im
 ## Consequences
 
 - Wave 2 API implementation must not import scheduler modules in CRUD handlers.
-- W2 adds separate worker entrypoint (e.g. `python -m scheduler.worker` or FastAPI background task queue — but never inline in request handler).
+- W2 adds a separate worker entrypoint — **never inline in the request handler**.
+- **Shipped (2026-10-08, W2c):** Docker Compose runs a dedicated **`scheduler`** service (`python -m app.scheduler.worker --poll`) that claims `schedule_runs` with `status=running` and executes replan. The API inserts the row and returns **202**; default **`SCHEDULE_DISPATCH=external`** does not run replan in the API process. Residual **`SCHEDULE_DISPATCH=thread`** is an in-process bridge for bare uvicorn / Tauri sidecar when no poller is running — do not combine thread dispatch with the Compose scheduler on the same database. See [apps/api/app/scheduler/README.md](../../apps/api/app/scheduler/README.md).
 - [05-api-contract.md](../05-api-contract.md) `POST /schedule/replan` is async-accept (202) with poll or WebSocket completion.
 
 ## Related

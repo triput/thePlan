@@ -25,6 +25,7 @@ docker compose -f infra/compose/compose.yaml up --build
 |---------|-----|
 | Web (Compose production build) | http://localhost:8080 |
 | API | http://localhost:8000 |
+| Scheduler (Update Schedule worker) | No HTTP — polls DB; started with default `docker compose up` |
 | API docs | http://localhost:8000/docs |
 | Postgres | `localhost:5432` (user/db/password: `theplan`) |
 | pgAdmin (optional) | http://localhost:5050 — `admin@example.com` / `theplan` |

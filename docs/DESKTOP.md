@@ -9,7 +9,7 @@ Windows Tauri 2 window that starts a **FastAPI uvicorn sidecar** on `127.0.0.1:1
 
 ## Operator steps
 
-1. Start Postgres: `docker compose -f infra/compose/compose.yaml up -d postgres`
+1. Start Postgres (and for **Update Schedule**, the replan poller): `docker compose -f infra/compose/compose.yaml up -d postgres scheduler` — or full stack. The Tauri **sidecar API alone** does not run replan unless you also run `app.scheduler.worker --poll` or set `SCHEDULE_DISPATCH=thread` on that process ([apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)).
 2. Ensure `apps/api/.venv` exists with project deps (sidecar prefers it over PATH `python`); optionally set `THEPLAN_API_PYTHON`
 3. `cd apps/desktop && npm install && npm run tauri:dev` (or `npm run tauri:build`)
 4. WebView2 required on Windows

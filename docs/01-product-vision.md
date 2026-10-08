@@ -61,7 +61,7 @@ Flutter is explicitly rejected. Domain logic lives in the API; web and desktop a
 - Board / Kanban as a project view (not MVP; optional W3 candidate)
 - Flutter or separate mobile-native clients (responsive web until Tauri)
 - AI/SLM in the critical path before Wave 3
-- Row-level task soft-delete (MVP hard-delete + client recreate; target **W2c** restore)
+- Row-level task soft-delete — **shipped** (Trash restore; client undo still recreates with new IDs)
 
 **Post-W3 discussion only:** lightweight task handoff between personal household accounts — not team collaboration.
 

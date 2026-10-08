@@ -8,7 +8,13 @@ effective ``manual`` as well as ``bundle``** from auto-placement
 (``effective_schedule_style``: task → project → epic → user default).
 Manual/pinned blocks for those tasks remain OK. ADR-006 / DEF-014.
 
-**Future:** a dedicated compose worker service could run ``run_replan`` outside
-the API process (same DB contract, poll ``schedule_runs``). v1 uses an
-in-process async thread per ADR-006; no second container yet.
+**Compose worker (W2c):** the ``scheduler`` service runs
+``python -m app.scheduler.worker --poll``. It claims ``schedule_runs`` rows
+with ``status=running`` (Postgres advisory lock) and calls ``run_replan``.
+The API inserts the row and returns 202. Default ``SCHEDULE_DISPATCH=external``
+does not execute in the API. ``SCHEDULE_DISPATCH=thread`` is the residual
+in-process bridge for a process with no scheduler — do not combine it with
+the scheduler service on the same database. Desktop sidecar / bare uvicorn
+need this poller (or the thread bridge) or Update Schedule stays ``running``
+until the 15-minute stale reclaim.
 """

@@ -77,7 +77,7 @@ See [06-mvp-backlog.md](./06-mvp-backlog.md). No calendar sync, no auto-schedule
 | Calendar drag move/resize | Desktop day/week; due-dot drag; narrow modal-only |
 | Epic aggregate smart view | Click epic in sidebar; `GET /tasks?epic_id=` |
 | ~~Todoist import~~ | **Parked at W3** (stale upstream; not needed for daily driver) |
-| Task soft-delete + restore | **Parked at W2c** |
+| Task soft-delete + restore | **Shipped 2026-08-27** ([DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention)); restore/reparent hardening **2026-10-08** |
 
 **Auth notes (W1.5):** Password **or passphrase** (spaces allowed; min ~12 / max ~128). Login by **username or email**. First registration **claims** bootstrap user. Hygiene: [HYGIENE-W1.5-QUICKSCAN.md](./HYGIENE-W1.5-QUICKSCAN.md) (exited 2026-08-10).
 
@@ -169,8 +169,8 @@ No full Update Schedule / UPS pipeline in 2a.
 2. **Settings expansion — complete:** `GET/PATCH /settings` + Scheduling defaults UI; `default_estimated_duration_minutes`, `default_min_block_duration_minutes`, `default_schedule_style` (`standalone`), `auto_defer_enabled`; task create + quick-add inherit default duration when omitted. Verified live 2026-08-11. Polish: timezone dropdown → [DEF-002](./DEFECTS.md).
 3. **Plans A (thin) — complete:** `deadline_at` + `soft_target_at` surfaced in task detail + list badges; API `TaskUpdate` wired.
 4. **Plans B — complete:** `plans` table + CRUD; `tasks.plan_id`; bind copies plan `soft_target_at`; Settings Plans UI; task detail Plan picker; list plan-badge. Out of scope this slice: scheduler worker, rule inheritance, quick-add plan tokens, sidebar plans.
-5. **Update Schedule (thin) — complete:** `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, in-process worker, Calendar **Update Schedule** button with poll. Verified 2026-08-12.
-6. **Schedule refactor (A) — complete:** shared `busy_intervals`; `workday_start_local`; per-task `schedule_style`; scheduler module map + compose-worker note. Verified 2026-08-12.
+5. **Update Schedule (thin) — complete:** `POST /schedule/replan` (202), `GET /schedule/runs/{id}`, Calendar **Update Schedule** button with poll. Verified 2026-08-12. **Compose `scheduler` service (W2c) shipped 2026-10-08** — API admits `schedule_runs` only; worker polls ([apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)).
+6. **Schedule refactor (A) — complete:** shared `busy_intervals`; `workday_start_local`; per-task `schedule_style`; scheduler module map. Verified 2026-08-12.
 7. **Painted Time Maps — complete:** Alembic `009_painted_time_maps`; slim map header + `strict_mode`; `time_map_bands` (green/yellow/red); existing windows backfilled as one green band; scheduler green → yellow → neutral (minus red); strict kills neutral; Settings multi-band editor; week calendar color overlay. Verified 2026-08-12.
 
 | Feature | Notes |
@@ -190,13 +190,13 @@ No full Update Schedule / UPS pipeline in 2a.
 | deadline_at UI | **shipped** (Plans A) — hard commit surfaced in task detail + list |
 | soft_target_at UI | **shipped** (Plans A/B) — task detail + list; copied on plan bind |
 | Plans CRUD + task bind | **shipped** (Plans B) — Settings Plans section; task picker; list badge |
-| Task dependency enforcement | → **W2c** (or W3 fallout) — topological ordering in scheduler |
+| Task dependency enforcement | **Shipped (v1)** — Kahn topo + max-UPS ready queue; placement respects blocker `not_before` (**2026-10-08** correctness pass) |
 | Saved filter query language | User-authored saved_filters — **W3+** unless capacity steals into W2c |
 | WebSocket invalidation | Optional; else keep REST invalidation |
 | Status tracker | → **W2c** (or W3 fallout) — today's blocks done % + overbook count |
-| Task soft-delete + session restore | → **W2c** |
+| Task soft-delete + session restore | **Shipped** — [DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention); restore/reparent **2026-10-08** |
 | Sidebar → calendar drag | **Shipped (thin, 2026-10-08)** — drag handle on task list → calendar slot creates unpinned block (desktop); phone unchanged |
-| Dedicated compose worker | → **W2c** — extract Update Schedule from in-process thread into a Compose service |
+| Dedicated compose worker | **Shipped (2026-10-08)** — Compose `scheduler` service; `SCHEDULE_DISPATCH=external` default; `thread` bridge for no-poller setups only |
 
 **Fuzzy scheduling** — **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)): replan contract, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook locked for v1 Update Schedule worker.
 
@@ -222,7 +222,7 @@ External hard events and pinned blocks are both BUSY. Scheduler never auto-moves
 
 **Goal:** Finish the W2b leftovers that were intentionally parked after Painted Time Maps, without blocking (or being blocked by) core Wave 3 feature work.
 
-**Status:** **Defined 2026-08-12** — not started as a wave. Time Map live inherit **shipped 2026-08-17** ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) steal); schedule-style live inherit **shipped 2026-08-18** ([DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) steal); rest of seed backlog still parked. Timing vs W3 is **operator choice**.
+**Status:** **In progress (partial steals)** — not a formal wave exit. **Shipped steals:** Time Map live inherit **2026-08-17** ([DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall)); schedule-style live inherit **2026-08-18** ([DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule)); soft-delete/trash **2026-08-27** ([DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention)); sidebar drag **2026-10-08**; **Compose replan worker 2026-10-08** ([apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)). Seed backlog below still open. Timing vs W3 is **operator choice**.
 
 **Ordering (flexible):**
 
@@ -240,16 +240,16 @@ Either order is fine. Do not treat W2c as a hard gate for starting W3.
 | Temporary Time Map overrides | Dated day/week windows that auto-expire (vacation/conference) |
 | Plan inheritance | Parent → child plan bind still parked. Time Map live inherit **shipped 2026-08-17** — [DEF-018](./DEFECTS.md#def-018--project--epic-time-map-binding-no-click-wall) closed. Schedule-style live inherit **shipped 2026-08-18** — [DEF-014](./DEFECTS.md#def-014--exclude-unplanned--backlog-tasks-from-update-schedule) closed. |
 | Scoped bundles | Bundle constrained to one epic or project |
-| Task soft-delete + session restore | `deleted_at` + restore path; see [04-data-schema.md](./04-data-schema.md) |
-| Sidebar → calendar drag | Desktop drag-to-slot → `scheduled_block`; phone stays tap/slot |
-| Dedicated compose worker | Separate Compose service for Update Schedule (replace in-process thread) |
+| ~~Task soft-delete + session restore~~ | **Shipped** — see [DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention) |
+| ~~Sidebar → calendar drag~~ | **Shipped (2026-10-08)** |
+| ~~Dedicated compose worker~~ | **Shipped (2026-10-08)** — `infra/compose/compose.yaml` `scheduler` service; desktop/bare API still needs poller or `SCHEDULE_DISPATCH=thread` |
 
 ### May also absorb (capacity / fallout)
 
 | Item | Notes |
 |------|-------|
-| Overbook UI | **Shipped (thin)** — task list badge + scheduling detail note + optional list filter; compose worker still parked |
-| Task dependency enforcement | Topological ordering in scheduler |
+| Overbook UI | **Shipped (thin)** — task list badge + scheduling detail note + optional list filter |
+| ~~Task dependency enforcement~~ | **Shipped (v1 topo + ready queue)** — see [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) addendum 2026-10-08 |
 | Status tracker | Today's blocks done % + overbook count |
 | Bundle auto-place (post–v1) | Knockout → blocks on replan; still out of ADR-006 v1 |
 | W3 fallout | Whatever core W3 explicitly defers when W2c runs after W3 |
@@ -324,7 +324,8 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 | Responsive / phone-friendly web | W1.6 (shipped) |
 | Google Calendar sync | W2a |
 | Auto-scheduler / Update Schedule | W2b |
-| Scheduler polish / catch-all | W2c (before or after core W3) |
+| Compose replan worker (`scheduler` service) | W2c — **shipped 2026-10-08** |
+| Scheduler polish / catch-all | W2c (open seed backlog) |
 | Hosted Postgres | W3+ fallback |
 | Podman alternate runtime | MVP-compatible (ADR-004) |
 
@@ -338,7 +339,7 @@ Saved filter query language stays **W3+** unless capacity clearly steals it into
 - Mobile native apps (responsive web until desktop; **W1.6** is the responsive polish gate)
 - Attachments
 - iCloud calendar (unless reopened)
-- Row-level task soft-delete / true session undelete (MVP hard delete + client recreate; target **W2c**)
+- Row-level task soft-delete — **shipped** ([DEF-024](./DEFECTS.md#def-024--trash-can-soft-delete-with-retention)); client undo stack still recreates with new IDs unless operator uses Trash restore
 
 **Not excluded:** Multiple personal accounts on one deployment (household login) — each operator's data isolated by `owner_id`; see W1.5 auth progression. Lightweight task handoff between personal accounts is a **Post-W3 discussion item**, not W1–W3 scope.
 
@@ -383,7 +384,7 @@ Run before each major version's feature waves:
 | W1.6 | Responsive shell (shipped) |
 | W2a | Google Calendar sync + busy map in 05 |
 | W2b | Scheduler triad expansion in 02 |
-| W2c | Soft-delete; Time Map overrides; scoped bundles; sidebar drag; compose worker |
+| W2c | Time Map overrides; scoped bundles; plan inherit; status tracker; **residual:** desktop poller for Update Schedule |
 | W3 | Account polish ([ADR-007](./adr/ADR-007-account-self-service.md)); MS Calendar; Tauri Desktop ADR |
 | W3+ | SLM; Todoist import; habits; optional Kanban |
 | W4 | Voice, email-to-task, location, templates, hosted Postgres |

@@ -101,9 +101,9 @@ All list endpoints scope to authenticated `owner_id`.
 | PATCH | `/tasks/batch` | Batch patch / add labels (`task_ids` + `patch` and/or `add_label_ids`). Patch may include `due_at`, `project_id` (move clears orphan `section_id`), schedule style, etc. |
 | DELETE | `/tasks/trash` | Hard-purge trashed tasks. Optional `?older_than_days=N` (N≥1) — only rows with `deleted_at` older than N days. Omit to empty all. 204 even if nothing matched. |
 | GET | `/tasks/{id}` | Get with labels, subtasks summary (includes trashed) |
-| PATCH | `/tasks/{id}` | Update |
+| PATCH | `/tasks/{id}` | Update. **`parent_task_id`** that would create a parent/child cycle → **422** `PARENT_CYCLE` |
 | DELETE | `/tasks/{id}` | Soft-delete task + live descendants (`deleted_at`); unpinned blocks removed. `?hard=true` permanently purges an **already trashed** subtree (409 `NOT_TRASHED` if live). |
-| POST | `/tasks/{id}/restore` | Clear `deleted_at` for same delete-wave subtree |
+| POST | `/tasks/{id}/restore` | Clear `deleted_at` for same delete-wave subtree. If the parent is still trashed, live restored tasks **reparent** to nearest live ancestor or inbox root. **409** if task is not trashed |
 | POST | `/tasks/{id}/complete` | Mark complete |
 | POST | `/tasks/{id}/uncomplete` | Mark incomplete |
 | PATCH | `/tasks/reorder` | Batch reorder |
@@ -490,7 +490,7 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 
 **Complete + recurrence:** `POST /tasks/{id}/complete` advances `due_at` when a next occurrence exists (`recurrence_advanced: true`, `previous_due_at` set, task stays open). When the frame is exhausted (or no rule), completes normally and marks that task’s unfired reminders fired.
 
-**Reminders:** Absolute `fire_at` only (no relative-to-due). Channels: `in_app`, `browser`. Web client polls `/reminders/due`, shows toast (and optional Notification), then acks.
+**Reminders:** Absolute `fire_at` only (no relative-to-due). Channels: `in_app`, `browser`. Web client polls `/reminders/due`, shows toast (and optional Notification), then acks. **`/reminders/due` excludes trashed tasks** (`tasks.deleted_at IS NULL`) — **2026-10-08**.
 
 **Register body:**
 
@@ -604,12 +604,12 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/schedule/replan` | Start explicit replan ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Returns **202** with `ScheduleRunOut` (`status: running`). **409** `SCHEDULE_RUN_IN_PROGRESS` if another run is active. Stale `running` rows older than **15 minutes** are reclaimed as `failed` before enqueue. CRUD never waits on the worker ([ADR-005](./adr/ADR-005-scheduler-decoupling.md)). |
+| POST | `/schedule/replan` | Start explicit replan ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Inserts `schedule_runs` and returns **202** with `ScheduleRunOut` (`status: running`). **409** `SCHEDULE_RUN_IN_PROGRESS` if another non-stale run is active (Alembic `018` partial unique index). Stale `running` rows older than **15 minutes** are reclaimed as `failed` before enqueue. **Compose (default):** `SCHEDULE_DISPATCH=external` — replan runs in the **`scheduler`** service ([ADR-005](./adr/ADR-005-scheduler-decoupling.md), [apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)). **Bare uvicorn / Tauri:** poller or `SCHEDULE_DISPATCH=thread`, else run stays `running` until stale reclaim. CRUD never waits on the worker. |
 | GET | `/schedule/runs/{id}` | Poll run status and stats. **404** if missing or not owned. |
 
 **`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
 
-Worker behavior: wipe unpinned blocks intersecting horizon, rewrite from open tasks per ADR-006; pins and external busy immovable. Placement uses the **effective** Time Map id (task → project → epic → unbound) and **effective** schedule style (task → project → epic → user default). Effective `manual` and `bundle` are excluded from auto-placement. Bound maps honor painted tiers (green → yellow → neutral minus red; `strict_mode` forbids neutral spill).
+Worker behavior: wipe unpinned blocks intersecting horizon (cancel Google/MS mirrors + drop local mirror rows for those blocks), rewrite from open tasks per ADR-006; pins and external busy immovable. **Residual:** failed remote delete may leave a provider event that re-imports as busy. Placement uses the **effective** Time Map id (task → project → epic → unbound) and **effective** schedule style (task → project → epic → user default). Effective `manual` and `bundle` are excluded from auto-placement. Bound maps honor painted tiers (green → yellow → neutral minus red; red subtracts from green/yellow clips; `strict_mode` forbids neutral spill). Dependencies: topo order with max-UPS ready queue; **`prerequisite_not_before`** from blockers' latest block end. Slice placement tries decreasing slice sizes down to MBL.
 
 ### Reserved (W2c / W3+)
 

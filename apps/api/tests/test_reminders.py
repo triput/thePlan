@@ -117,6 +117,49 @@ def test_recurrence_advance_leaves_reminders(client: TestClient) -> None:
     assert row["is_fired"] is False
 
 
+def test_due_reminders_skip_trashed_tasks(client: TestClient) -> None:
+    live = client.post("/api/v1/tasks", json={"title": "Still live"})
+    assert live.status_code == 201, live.text
+    trashed = client.post("/api/v1/tasks", json={"title": "Going in the bin"})
+    assert trashed.status_code == 201, trashed.text
+    live_id = live.json()["id"]
+    trashed_id = trashed.json()["id"]
+
+    past = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
+    live_rem = client.post(
+        f"/api/v1/tasks/{live_id}/reminders",
+        json={"fire_at": past, "channel": "in_app"},
+    )
+    assert live_rem.status_code == 201, live_rem.text
+    trashed_rem = client.post(
+        f"/api/v1/tasks/{trashed_id}/reminders",
+        json={"fire_at": past, "channel": "in_app"},
+    )
+    assert trashed_rem.status_code == 201, trashed_rem.text
+    live_rem_id = live_rem.json()["id"]
+    trashed_rem_id = trashed_rem.json()["id"]
+
+    before = client.get("/api/v1/reminders/due")
+    assert before.status_code == 200, before.text
+    before_ids = {row["id"] for row in before.json()}
+    assert live_rem_id in before_ids
+    assert trashed_rem_id in before_ids
+
+    deleted = client.delete(f"/api/v1/tasks/{trashed_id}")
+    assert deleted.status_code == 204
+
+    due = client.get("/api/v1/reminders/due")
+    assert due.status_code == 200, due.text
+    due_ids = {row["id"] for row in due.json()}
+    assert trashed_rem_id not in due_ids
+    assert live_rem_id in due_ids
+
+    kept = client.get(f"/api/v1/tasks/{trashed_id}/reminders")
+    assert kept.status_code == 200, kept.text
+    row = next(item for item in kept.json() if item["id"] == trashed_rem_id)
+    assert row["is_fired"] is False
+
+
 def test_reminder_ownership_404(client: TestClient) -> None:
     missing = "00000000-0000-4000-8000-000000000099"
     assert client.get(f"/api/v1/tasks/{missing}/reminders").status_code == 404
