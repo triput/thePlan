@@ -5,7 +5,9 @@
 
 ## What this is
 
-Optional Assist: you type what you want → thePlan asks a local model (default **Ollama**) for a structured action list → you **review and approve** → existing task/label APIs apply the work. If Ollama is down, Assist fails soft; **all normal CRUD still works**.
+Optional Assist: you type what you want → thePlan asks a local model (default **Ollama**) for a structured action list → you **review and approve** → existing task/project/label ownership rules apply the work. If Ollama is down, Assist fails soft; **all normal CRUD still works**.
+
+**Theme B (W3+):** propose/apply supports **`create_task`** and **`create_project`** (title, optional epic name/id, optional color). Always review → confirm; never auto-apply. Schedule blocks and deletes stay out of scope.
 
 UI: top bar **Assist** button → Propose → edit/remove → Approve. Settings → Assist shows reachability.
 

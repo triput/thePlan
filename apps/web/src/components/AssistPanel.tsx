@@ -5,6 +5,8 @@ import {
   applyAssist,
   fetchAssistStatus,
   proposeAssist,
+  type AssistAction,
+  type AssistCreateProjectAction,
   type AssistCreateTaskAction,
   type TaskPriority,
 } from "../api";
@@ -13,9 +15,9 @@ import { emitToast } from "./ToastHost";
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
 
-type ReviewAction = AssistCreateTaskAction & { clientId: string };
+type ReviewAction = AssistAction & { clientId: string };
 
-function withClientIds(actions: AssistCreateTaskAction[]): ReviewAction[] {
+function withClientIds(actions: AssistAction[]): ReviewAction[] {
   return actions.map((action) => ({
     ...action,
     clientId: crypto.randomUUID(),
@@ -37,13 +39,17 @@ function fromDatetimeLocal(value: string): string | null {
   return d.toISOString();
 }
 
-function ActionReviewRow({
+function actionTypeLabel(type: AssistAction["type"]): string {
+  return type === "create_project" ? "Project" : "Task";
+}
+
+function TaskReviewRow({
   action,
   index,
   onChange,
   onRemove,
 }: {
-  action: ReviewAction;
+  action: ReviewAction & AssistCreateTaskAction;
   index: number;
   onChange: (index: number, next: ReviewAction) => void;
   onRemove: (index: number) => void;
@@ -54,6 +60,7 @@ function ActionReviewRow({
   return (
     <li className="assist-action">
       <div className="assist-action-main">
+        <span className="assist-type-badge">Task</span>
         <input
           className="assist-action-title"
           value={action.title}
@@ -128,6 +135,96 @@ function ActionReviewRow({
   );
 }
 
+function ProjectReviewRow({
+  action,
+  index,
+  onChange,
+  onRemove,
+}: {
+  action: ReviewAction & AssistCreateProjectAction;
+  index: number;
+  onChange: (index: number, next: ReviewAction) => void;
+  onRemove: (index: number) => void;
+}) {
+  return (
+    <li className="assist-action">
+      <div className="assist-action-main">
+        <span className="assist-type-badge">Project</span>
+        <input
+          className="assist-action-title"
+          value={action.title}
+          aria-label={`Proposed project ${index + 1} title`}
+          onChange={(e) => onChange(index, { ...action, title: e.target.value })}
+        />
+        <button type="button" className="btn secondary small" onClick={() => onRemove(index)}>
+          Remove
+        </button>
+      </div>
+      <div className="assist-action-fields">
+        <label className="field">
+          <span>Epic (name)</span>
+          <input
+            type="text"
+            className="field-text"
+            value={action.epic_name ?? ""}
+            placeholder="optional — existing epic"
+            aria-label={`Proposed project ${index + 1} epic`}
+            onChange={(e) => {
+              const raw = e.target.value.trim();
+              onChange(index, {
+                ...action,
+                epic_name: raw || null,
+                epic_id: raw ? null : action.epic_id,
+              });
+            }}
+          />
+        </label>
+        <label className="field">
+          <span>Color</span>
+          <input
+            type="text"
+            className="field-text"
+            value={action.color_hex ?? ""}
+            placeholder="#0A8558 default"
+            aria-label={`Proposed project ${index + 1} color`}
+            onChange={(e) => {
+              const raw = e.target.value.trim();
+              onChange(index, { ...action, color_hex: raw || null });
+            }}
+          />
+        </label>
+      </div>
+      {action.description ? (
+        <div className="assist-action-meta muted small">Notes: {action.description}</div>
+      ) : null}
+    </li>
+  );
+}
+
+function ActionReviewRow(props: {
+  action: ReviewAction;
+  index: number;
+  onChange: (index: number, next: ReviewAction) => void;
+  onRemove: (index: number) => void;
+}) {
+  if (props.action.type === "create_project") {
+    return <ProjectReviewRow {...props} action={props.action} />;
+  }
+  return <TaskReviewRow {...props} action={props.action} />;
+}
+
+function summarizeApplyResults(results: { ok: boolean; action_type: string }[]): string {
+  const tasks = results.filter((r) => r.ok && r.action_type === "create_task").length;
+  const projects = results.filter((r) => r.ok && r.action_type === "create_project").length;
+  const failCount = results.filter((r) => !r.ok).length;
+  const parts: string[] = [];
+  if (tasks > 0) parts.push(`${tasks} task${tasks === 1 ? "" : "s"}`);
+  if (projects > 0) parts.push(`${projects} project${projects === 1 ? "" : "s"}`);
+  const created = parts.length ? `Created ${parts.join(" and ")}` : "Nothing created";
+  if (failCount === 0) return created;
+  return `${created}, ${failCount} failed`;
+}
+
 export function AssistPanel() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -171,15 +268,11 @@ export function AssistPanel() {
         items.map(({ clientId: _clientId, ...action }) => action),
       ),
     onSuccess: (data) => {
-      const okCount = data.results.filter((r) => r.ok).length;
-      const failCount = data.results.length - okCount;
-      emitToast(
-        failCount === 0
-          ? `Created ${okCount} task${okCount === 1 ? "" : "s"}`
-          : `Created ${okCount}, ${failCount} failed`,
-      );
+      emitToast(summarizeApplyResults(data.results));
       void queryClient.invalidateQueries({ queryKey: ["tasks"] });
       void queryClient.invalidateQueries({ queryKey: ["labels"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: ["epics"] });
       setText("");
       setActions(null);
       setModel(null);
@@ -221,9 +314,8 @@ export function AssistPanel() {
       </button>
       <Modal open={open} title="Assist" onClose={() => setOpen(false)} className="assist-modal">
         <p className="assist-help muted small">
-          Describe what you need. Review proposed tasks (including due and duration), then approve.
-          Ollama down never blocks normal CRUD. “Schedule at …” means task due time, not a calendar
-          block.
+          Describe what you need. Review proposed tasks and projects, then approve. Ollama down never
+          blocks normal CRUD. “Schedule at …” on tasks means due time, not a calendar block.
         </p>
         {statusQuery.data && (
           <p className="assist-status muted small">
@@ -242,7 +334,7 @@ export function AssistPanel() {
               setText(e.target.value);
               setError(null);
             }}
-            placeholder="e.g. Add buy oat milk as p3 with label errands, and schedule dog walk tomorrow"
+            placeholder="e.g. Create a project Garden Renovation under epic Home, and add buy oat milk as p3"
             aria-label="Assist request"
           />
           <div className="assist-actions-bar">
@@ -279,7 +371,8 @@ export function AssistPanel() {
         </form>
         {model && actions && (
           <p className="muted small">
-            Proposal from <code>{model}</code> — edit due, duration, or remove before approve.
+            Proposal from <code>{model}</code> — edit or remove rows before approve (
+            {actions.map((a) => actionTypeLabel(a.type)).join(", ")}).
           </p>
         )}
         {actions && actions.length > 0 && (

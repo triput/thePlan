@@ -2,17 +2,51 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import Label, Project, Section, Task, TaskLabel, User
+from app.models import Epic, Label, Project, Section, Task, TaskLabel, User
 from app.models.enums import TaskPriority
-from app.schemas import AssistApplyResultItem, AssistCreateTaskAction
+from app.schemas import (
+    AssistAction,
+    AssistApplyResultItem,
+    AssistCreateProjectAction,
+    AssistCreateTaskAction,
+)
 from app.services.auth_users import get_or_provision_user_settings
+
+_DEFAULT_PROJECT_COLOR = "#0A8558"
 
 
 def _normalize_label_name(name: str) -> str:
     return " ".join(name.strip().split())
+
+
+def _resolve_epic(
+    db: Session,
+    user: User,
+    epic_name: str | None,
+    epic_id: UUID | None,
+) -> tuple[UUID | None, str | None]:
+    if epic_id is not None:
+        epic = db.query(Epic).filter(Epic.owner_id == user.id, Epic.id == epic_id).first()
+        if epic is None:
+            return None, f"epic not found: {epic_id}"
+        return epic.id, None
+
+    if not epic_name:
+        return None, None
+
+    epic = (
+        db.query(Epic)
+        .filter(Epic.owner_id == user.id, func.lower(Epic.title) == epic_name.lower())
+        .first()
+    )
+    if epic is None:
+        return None, f"epic not found: {epic_name}"
+    return epic.id, None
 
 
 def _resolve_project_section(
@@ -76,75 +110,139 @@ def _ensure_labels(
     return label_ids, created
 
 
+def _apply_create_project(
+    db: Session,
+    user: User,
+    action: AssistCreateProjectAction,
+) -> AssistApplyResultItem:
+    title = action.title.strip()
+    if not title:
+        return AssistApplyResultItem(
+            ok=False,
+            action_type=action.type,
+            title=action.title,
+            error="empty title",
+        )
+
+    try:
+        with db.begin_nested():
+            epic_id, resolve_err = _resolve_epic(db, user, action.epic_name, action.epic_id)
+            if resolve_err:
+                return AssistApplyResultItem(
+                    ok=False,
+                    action_type=action.type,
+                    title=title,
+                    error=resolve_err,
+                )
+
+            color = (action.color_hex or _DEFAULT_PROJECT_COLOR).strip()
+            project = Project(
+                owner_id=user.id,
+                title=title,
+                description=action.description,
+                epic_id=epic_id,
+                color_hex=color,
+            )
+            db.add(project)
+            db.flush()
+            return AssistApplyResultItem(
+                ok=True,
+                action_type=action.type,
+                title=title,
+                project_id=project.id,
+            )
+    except Exception as exc:  # noqa: BLE001 — isolate per action
+        return AssistApplyResultItem(
+            ok=False,
+            action_type=action.type,
+            title=title,
+            error=str(exc),
+        )
+
+
+def _apply_create_task(
+    db: Session,
+    user: User,
+    action: AssistCreateTaskAction,
+    *,
+    default_estimated: int,
+) -> AssistApplyResultItem:
+    title = action.title.strip()
+    if not title:
+        return AssistApplyResultItem(
+            ok=False,
+            action_type=action.type,
+            title=action.title,
+            error="empty title",
+        )
+
+    try:
+        with db.begin_nested():
+            project_id, section_id, resolve_err = _resolve_project_section(
+                db, user, action.project_name, action.section_name
+            )
+            if resolve_err and resolve_err.startswith("project "):
+                project_id, section_id = None, None
+
+            label_ids, created_labels = _ensure_labels(db, user, action.label_names)
+            priority = action.priority or TaskPriority.p4
+            estimated = action.estimated_duration_minutes
+            if estimated is None:
+                estimated = default_estimated
+
+            task = Task(
+                owner_id=user.id,
+                title=title,
+                description=action.description,
+                project_id=project_id,
+                section_id=section_id,
+                priority=priority,
+                due_at=action.due_at,
+                estimated_duration_minutes=estimated,
+            )
+            db.add(task)
+            db.flush()
+            for label_id in label_ids:
+                db.add(TaskLabel(task_id=task.id, label_id=label_id))
+            db.flush()
+
+            note = resolve_err if resolve_err and resolve_err.startswith("section ") else None
+            return AssistApplyResultItem(
+                ok=True,
+                action_type=action.type,
+                title=title,
+                task_id=task.id,
+                error=note,
+                created_labels=created_labels,
+            )
+    except Exception as exc:  # noqa: BLE001 — isolate per action
+        return AssistApplyResultItem(
+            ok=False,
+            action_type=action.type,
+            title=title,
+            error=str(exc),
+        )
+
+
 def apply_assist_actions(
     db: Session,
     user: User,
-    actions: list[AssistCreateTaskAction],
+    actions: list[AssistAction],
 ) -> list[AssistApplyResultItem]:
     results: list[AssistApplyResultItem] = []
     settings = get_or_provision_user_settings(db, user)
+    default_estimated = settings.default_estimated_duration_minutes
 
     for action in actions:
-        title = action.title.strip()
-        if not title:
+        if isinstance(action, AssistCreateProjectAction):
+            results.append(_apply_create_project(db, user, action))
+        else:
             results.append(
-                AssistApplyResultItem(
-                    ok=False,
-                    action_type=action.type,
-                    title=action.title,
-                    error="empty title",
-                )
-            )
-            continue
-
-        try:
-            with db.begin_nested():
-                project_id, section_id, resolve_err = _resolve_project_section(
-                    db, user, action.project_name, action.section_name
-                )
-                if resolve_err and resolve_err.startswith("project "):
-                    project_id, section_id = None, None
-
-                label_ids, created_labels = _ensure_labels(db, user, action.label_names)
-                priority = action.priority or TaskPriority.p4
-                estimated = action.estimated_duration_minutes
-                if estimated is None:
-                    estimated = settings.default_estimated_duration_minutes
-
-                task = Task(
-                    owner_id=user.id,
-                    title=title,
-                    description=action.description,
-                    project_id=project_id,
-                    section_id=section_id,
-                    priority=priority,
-                    due_at=action.due_at,
-                    estimated_duration_minutes=estimated,
-                )
-                db.add(task)
-                db.flush()
-                for label_id in label_ids:
-                    db.add(TaskLabel(task_id=task.id, label_id=label_id))
-                db.flush()
-
-                note = resolve_err if resolve_err and resolve_err.startswith("section ") else None
-                results.append(
-                    AssistApplyResultItem(
-                        ok=True,
-                        action_type=action.type,
-                        title=title,
-                        task_id=task.id,
-                        error=note,
-                        created_labels=created_labels,
-                    )
-                )
-        except Exception as exc:  # noqa: BLE001 — isolate per action
-            results.append(
-                AssistApplyResultItem(
-                    ok=False,
-                    action_type=action.type,
-                    title=title,
-                    error=str(exc),
+                _apply_create_task(
+                    db,
+                    user,
+                    action,
+                    default_estimated=default_estimated,
                 )
             )
 

@@ -884,10 +884,10 @@ export function parseQuickAdd(text: string) {
   });
 }
 
-export type AssistActionType = "create_task";
+export type AssistActionType = "create_task" | "create_project";
 
 export interface AssistCreateTaskAction {
-  type: AssistActionType;
+  type: "create_task";
   title: string;
   description?: string | null;
   project_name?: string | null;
@@ -898,8 +898,19 @@ export interface AssistCreateTaskAction {
   estimated_duration_minutes?: number | null;
 }
 
+export interface AssistCreateProjectAction {
+  type: "create_project";
+  title: string;
+  description?: string | null;
+  epic_name?: string | null;
+  epic_id?: string | null;
+  color_hex?: string | null;
+}
+
+export type AssistAction = AssistCreateTaskAction | AssistCreateProjectAction;
+
 export interface AssistProposeResponse {
-  actions: AssistCreateTaskAction[];
+  actions: AssistAction[];
   model: string;
 }
 
@@ -908,6 +919,7 @@ export interface AssistApplyResultItem {
   action_type: string;
   title?: string | null;
   task_id?: string | null;
+  project_id?: string | null;
   error?: string | null;
   created_labels: string[];
 }
@@ -935,7 +947,7 @@ export function proposeAssist(text: string) {
   });
 }
 
-export function applyAssist(actions: AssistCreateTaskAction[]) {
+export function applyAssist(actions: AssistAction[]) {
   return apiFetch<AssistApplyResponse>("/api/v1/assist/apply", {
     method: "POST",
     body: JSON.stringify({ actions }),

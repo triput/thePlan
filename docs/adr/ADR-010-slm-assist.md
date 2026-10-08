@@ -14,7 +14,7 @@
 | **OpenAI-compatible** HTTP client (`base_url` + `model`, Ollama `/v1`) | Voice / STT |
 | `POST /api/v1/assist/propose` → structured action list | Auto-apply / confidence auto-commit |
 | Review UI → operator approve → `POST /api/v1/assist/apply` | Schedule mutation, Update Schedule, calendar write, delete/bulk destroy |
-| Narrow actions: create task(s); optional label attach / create-if-missing | Habits, Kanban, Todoist import |
+| Narrow actions: create task(s); optional label attach / create-if-missing; **create_project** (review→confirm) | Habits, Kanban, Todoist import |
 | Assist optional: Ollama down → soft fail; **CRUD never blocked** | Desktop packaging / MSI / embedded Postgres (V.Later) |
 
 ### Runtime topology
@@ -69,6 +69,18 @@
 | Review | Assist review rows show **editable** due (`datetime-local`) and duration (minutes). Empty duration → apply uses settings default. |
 | Semantics | “Schedule at …” in this cut means task **due_at** (+ estimate), **not** a `scheduled_block`. Block creation stays later vocabulary. |
 | Out | Theme F templates, voice, cloud Settings, auto-apply, schedule mutations |
+
+## Addendum — Assist Theme B create_project (2026-10-08)
+
+**Status:** Accepted with ADR-010  
+**Scope:** Extend propose/apply with `create_project` alongside `create_task`.
+
+| Lock | Detail |
+|------|--------|
+| Review | Operator must approve in Assist UI; no auto-apply |
+| Project fields | `title` (required), optional `epic_name` / `epic_id`, optional `color_hex` (defaults like CRUD) |
+| Enrich | Quick-add may fill epic/project name tokens only for projects — no due/duration/schedule on project actions |
+| Out | `create_scheduled_block`, delete/bulk reschedule, dedicated compose replan worker |
 
 ## Related
 

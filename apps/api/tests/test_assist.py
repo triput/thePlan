@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.models import Label, Project, Task, User
+from app.models import Epic, Label, Project, Task, User
 from app.services import assist_llm
 
 
@@ -222,6 +222,151 @@ def test_apply_resolves_project(client: TestClient, db_session: Session) -> None
     task = db_session.get(Task, uuid.UUID(task_id))
     assert task is not None
     assert task.project_id == project.id
+
+
+def test_propose_create_project(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    get_settings.cache_clear()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "actions": [
+                                    {
+                                        "type": "create_project",
+                                        "title": "Garden Renovation",
+                                        "description": "Create a project Garden Renovation",
+                                        "epic_name": "Home",
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+        return httpx.Response(200, json=payload)
+
+    _patch_assist_httpx(monkeypatch, handler)
+    res = client.post(
+        "/api/v1/assist/propose",
+        json={"text": "Create a project Garden Renovation under epic Home"},
+    )
+    assert res.status_code == 200, res.text
+    action = res.json()["actions"][0]
+    assert action["type"] == "create_project"
+    assert action["title"] == "Garden Renovation"
+    assert action["epic_name"] == "Home"
+    assert action["description"] is None
+
+
+def test_propose_mixed_task_and_project(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    get_settings.cache_clear()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = {
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "actions": [
+                                    {"type": "create_project", "title": "Side Hustle"},
+                                    {
+                                        "type": "create_task",
+                                        "title": "Register domain",
+                                        "project_name": "Side Hustle",
+                                    },
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+        return httpx.Response(200, json=payload)
+
+    _patch_assist_httpx(monkeypatch, handler)
+    res = client.post(
+        "/api/v1/assist/propose",
+        json={"text": "New project Side Hustle and task register domain in it"},
+    )
+    assert res.status_code == 200, res.text
+    types = [a["type"] for a in res.json()["actions"]]
+    assert types == ["create_project", "create_task"]
+
+
+def test_apply_create_project(client: TestClient, db_session: Session) -> None:
+    res = client.post(
+        "/api/v1/assist/apply",
+        json={
+            "actions": [
+                {
+                    "type": "create_project",
+                    "title": "Coursera Track",
+                    "color_hex": "#112233",
+                }
+            ]
+        },
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["results"][0]["ok"] is True
+    project_id = body["results"][0]["project_id"]
+    project = db_session.get(Project, uuid.UUID(project_id))
+    assert project is not None
+    assert project.title == "Coursera Track"
+    assert project.color_hex == "#112233"
+    assert project.epic_id is None
+
+
+def test_apply_create_project_resolves_epic(client: TestClient, db_session: Session) -> None:
+    user = _current_user(client, db_session)
+    epic = Epic(owner_id=user.id, title="Learning", sort_order=0)
+    db_session.add(epic)
+    db_session.flush()
+
+    res = client.post(
+        "/api/v1/assist/apply",
+        json={
+            "actions": [
+                {
+                    "type": "create_project",
+                    "title": "ML Specialization",
+                    "epic_name": "Learning",
+                }
+            ]
+        },
+    )
+    assert res.status_code == 200, res.text
+    project_id = res.json()["results"][0]["project_id"]
+    project = db_session.get(Project, uuid.UUID(project_id))
+    assert project is not None
+    assert project.epic_id == epic.id
+
+
+def test_apply_create_project_epic_missing(client: TestClient) -> None:
+    res = client.post(
+        "/api/v1/assist/apply",
+        json={
+            "actions": [
+                {
+                    "type": "create_project",
+                    "title": "Orphan",
+                    "epic_name": "NoSuchEpic",
+                }
+            ]
+        },
+    )
+    assert res.status_code == 200, res.text
+    result = res.json()["results"][0]
+    assert result["ok"] is False
+    assert "epic not found" in (result["error"] or "")
 
 
 def test_assist_status(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

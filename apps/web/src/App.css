@@ -561,6 +561,30 @@
   align-items: center;
 }
 
+.assist-type-badge {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted, #6b7280);
+}
+
+.assist-action-fields .field-text {
+  width: 100%;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
 .assist-action-title {
   flex: 1;
   min-width: 0;

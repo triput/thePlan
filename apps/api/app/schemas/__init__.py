@@ -746,17 +746,38 @@ class AssistCreateTaskAction(BaseModel):
     estimated_duration_minutes: int | None = Field(default=None, ge=1, le=24 * 60)
 
 
+class AssistCreateProjectAction(BaseModel):
+    type: Literal["create_project"] = "create_project"
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = None
+    epic_name: str | None = None
+    epic_id: UUID | None = None
+    color_hex: str | None = None
+
+    @model_validator(mode="after")
+    def epic_ref_exclusive(self) -> "AssistCreateProjectAction":
+        if self.epic_name and self.epic_id is not None:
+            raise ValueError("create_project accepts epic_name or epic_id, not both")
+        return self
+
+
+AssistAction = Annotated[
+    AssistCreateTaskAction | AssistCreateProjectAction,
+    Field(discriminator="type"),
+]
+
+
 class AssistProposeRequest(BaseModel):
     text: str = Field(min_length=1, max_length=8000)
 
 
 class AssistProposeResponse(BaseModel):
-    actions: list[AssistCreateTaskAction]
+    actions: list[AssistAction]
     model: str
 
 
 class AssistApplyRequest(BaseModel):
-    actions: list[AssistCreateTaskAction] = Field(min_length=1)
+    actions: list[AssistAction] = Field(min_length=1)
 
 
 class AssistApplyResultItem(BaseModel):
@@ -764,6 +785,7 @@ class AssistApplyResultItem(BaseModel):
     action_type: str
     title: str | None = None
     task_id: UUID | None = None
+    project_id: UUID | None = None
     error: str | None = None
     created_labels: list[str] = Field(default_factory=list)
 
