@@ -497,6 +497,8 @@ Bulk operations on a list context, e.g.:
 
 **Phase 3 thin (Round 4):** batch **due date** (+ clear due) and **move to project** / Inbox in `TaskList` batch bar; API tests for `due_at` + project move (orphan `section_id` cleared). **Skipped:** bulk archive (tasks have no archive), bulk recurrence (not on `TaskUpdate`). Still deferred: schedule-same-day blocks, bulk recurrence UI.
 
+**Item 5 leftovers (2026-10-08):** batch **priority** (P1–P4) in `TaskBatchBar` → `PATCH /tasks/batch` `{ priority }`; pytest `test_batch_patch_priority`. Still deferred: bulk recurrence UI, schedule-same-day blocks.
+
 ---
 
 ## DEF-016 — Task detail Save affordance (scroll fatigue)
@@ -665,6 +667,8 @@ When tasks in the bundle are **completed** or **moved/rescheduled** out of the b
 **Round 4 follow-on:** `bundle_inactive` when **any** live member is completed; shrink `end_time` to remaining incomplete estimates (15m floor) on complete. ADR-012 addendum.
 
 **Deferred:** auto scoped bundle replan, auto-dissolve / expand-on-uncomplete, `bundle_blocks` join table.
+
+**Item 5 leftovers (2026-10-08):** batch bar **bundle start** `datetime-local` (default next 15m snap) + optional **Pin** before **Block as bundle**; passes `start_time` / `is_pinned` to `POST /scheduled-blocks/bundle` (duration still API sum of estimates). Still deferred: auto replan, dissolve, join table.
 
 ---
 

@@ -1,4 +1,7 @@
-import type { ScheduleStyle } from "../api";
+import { useEffect, useState } from "react";
+import type { ScheduleStyle, TaskPriority } from "../api";
+import { snapToNext15Minutes } from "../calendarUtils";
+import { toDatetimeLocalValue } from "./CalendarBlockMenu";
 
 export interface TaskBatchLabelOption {
   id: string;
@@ -18,11 +21,12 @@ export interface TaskBatchBarProps {
   projects: ReadonlyArray<TaskBatchProjectOption>;
   projectsLoading?: boolean;
   onScheduleStyle: (style: Extract<ScheduleStyle, "manual" | "standalone">) => void;
+  onPriority: (priority: TaskPriority) => void;
   onApplyLabel: (labelId: string) => void;
   onDueDate: (dateValue: string) => void;
   onClearDue: () => void;
   onMoveToProject: (projectId: string | null) => void;
-  onBlockAsBundle: () => void;
+  onBlockAsBundle: (startLocal: string, isPinned: boolean) => void;
   onDelete: () => void;
   onClearSelection: () => void;
 }
@@ -34,6 +38,7 @@ export function TaskBatchBar({
   projects,
   projectsLoading = false,
   onScheduleStyle,
+  onPriority,
   onApplyLabel,
   onDueDate,
   onClearDue,
@@ -42,6 +47,18 @@ export function TaskBatchBar({
   onDelete,
   onClearSelection,
 }: TaskBatchBarProps) {
+  const [bundleStartLocal, setBundleStartLocal] = useState("");
+  const [bundlePinned, setBundlePinned] = useState(false);
+
+  useEffect(() => {
+    if (selectedCount <= 0) {
+      setBundleStartLocal("");
+      setBundlePinned(false);
+      return;
+    }
+    setBundleStartLocal(toDatetimeLocalValue(snapToNext15Minutes()));
+  }, [selectedCount]);
+
   if (selectedCount <= 0) return null;
 
   return (
@@ -64,6 +81,27 @@ export function TaskBatchBar({
         </option>
         <option value="manual">Manual</option>
         <option value="standalone">Standalone</option>
+      </select>
+      <select
+        className="task-batch-select"
+        defaultValue=""
+        disabled={busy}
+        aria-label="Set priority"
+        onChange={(e) => {
+          const value = e.target.value as TaskPriority | "";
+          e.target.value = "";
+          if (value === "p1" || value === "p2" || value === "p3" || value === "p4") {
+            onPriority(value);
+          }
+        }}
+      >
+        <option value="" disabled>
+          Priority…
+        </option>
+        <option value="p1">P1</option>
+        <option value="p2">P2</option>
+        <option value="p3">P3</option>
+        <option value="p4">P4</option>
       </select>
       <select
         className="task-batch-select"
@@ -139,11 +177,32 @@ export function TaskBatchBar({
             </option>
           ))}
       </select>
+      <label className="task-batch-due">
+        <span className="sr-only">Bundle start time</span>
+        <input
+          type="datetime-local"
+          className="task-batch-date task-batch-datetime"
+          disabled={busy}
+          value={bundleStartLocal}
+          aria-label="Bundle start time on calendar"
+          onChange={(e) => setBundleStartLocal(e.target.value)}
+        />
+      </label>
+      <label className="task-batch-pin">
+        <input
+          type="checkbox"
+          disabled={busy}
+          checked={bundlePinned}
+          aria-label="Pin bundle block on calendar"
+          onChange={(e) => setBundlePinned(e.target.checked)}
+        />
+        <span>Pin</span>
+      </label>
       <button
         type="button"
         className="btn secondary small"
-        disabled={busy}
-        onClick={onBlockAsBundle}
+        disabled={busy || !bundleStartLocal}
+        onClick={() => onBlockAsBundle(bundleStartLocal, bundlePinned)}
         title="One calendar block for the selection (or parent subtree)"
       >
         Block as bundle

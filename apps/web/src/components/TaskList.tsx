@@ -397,6 +397,7 @@ export function TaskList({
     batchBusy,
     handleBatchScheduleStyle,
     handleBatchApplyLabel,
+    handleBatchPriority,
     handleBatchDueDate,
     handleBatchClearDue,
     handleBatchMoveToProject,
@@ -908,6 +909,7 @@ export function TaskList({
           projects={projects}
           projectsLoading={projectsQuery.isLoading}
           onScheduleStyle={handleBatchScheduleStyle}
+          onPriority={handleBatchPriority}
           onApplyLabel={handleBatchApplyLabel}
           onDueDate={handleBatchDueDate}
           onClearDue={handleBatchClearDue}

@@ -17,6 +17,25 @@ def _create_task(client: TestClient, **extra) -> dict:
     return task.json()
 
 
+def test_batch_patch_priority(client: TestClient) -> None:
+    a = _create_task(client)
+    b = _create_task(client)
+
+    response = client.patch(
+        "/api/v1/tasks/batch",
+        json={
+            "task_ids": [a["id"], b["id"]],
+            "patch": {"priority": "p2"},
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["items"]) == 2
+    assert all(item["priority"] == "p2" for item in body["items"])
+    assert client.get(f"/api/v1/tasks/{a['id']}").json()["priority"] == "p2"
+    assert client.get(f"/api/v1/tasks/{b['id']}").json()["priority"] == "p2"
+
+
 def test_batch_patch_schedule_style(client: TestClient) -> None:
     a = _create_task(client)
     b = _create_task(client)

@@ -1302,6 +1302,25 @@
   cursor: not-allowed;
 }
 
+.task-batch-datetime {
+  max-width: 13.5rem;
+}
+
+.task-batch-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-batch-pin input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 .task-title {
   flex: 1;
   min-width: 0;

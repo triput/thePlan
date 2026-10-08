@@ -6,23 +6,11 @@ import {
   deleteTask,
   type ScheduleStyle,
   type Task,
+  type TaskPriority,
 } from "../api";
 import { toISO } from "../calendarUtils";
+import { fromDatetimeLocalValue } from "../components/CalendarBlockMenu";
 import { emitToast } from "../components/ToastHost";
-
-function snapBundleStart(): Date {
-  const start = new Date();
-  start.setSeconds(0, 0);
-  const mins = start.getMinutes();
-  const step = 15;
-  const snapped = Math.ceil(mins / step) * step;
-  if (snapped >= 60) {
-    start.setHours(start.getHours() + 1, 0, 0, 0);
-  } else {
-    start.setMinutes(snapped, 0, 0);
-  }
-  return start;
-}
 
 export interface UseTaskBatchActionsOptions {
   selectedIds: Set<string>;
@@ -113,6 +101,23 @@ export function useTaskBatchActions({
     [runBatch, selectedIds],
   );
 
+  const handleBatchPriority = useCallback(
+    (priority: TaskPriority) => {
+      const ids = [...selectedIds];
+      if (ids.length === 0) return;
+      void runBatch(
+        async () => {
+          await batchUpdateTasks({
+            task_ids: ids,
+            patch: { priority },
+          });
+        },
+        `Set priority on ${ids.length} task${ids.length === 1 ? "" : "s"}`,
+      );
+    },
+    [runBatch, selectedIds],
+  );
+
   const handleBatchClearDue = useCallback(() => {
     const ids = [...selectedIds];
     if (ids.length === 0) return;
@@ -171,36 +176,47 @@ export function useTaskBatchActions({
     );
   }, [runBatch, selectedIds]);
 
-  const handleBlockAsBundle = useCallback(() => {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-
-    const byId = new Map(tasks.map((t) => [t.id, t]));
-    let body:
-      | { member_task_ids: string[]; start_time: string }
-      | { parent_task_id: string; start_time: string };
-
-    if (ids.length === 1) {
-      const task = byId.get(ids[0]);
-      if (!task || task.open_subtask_count <= 0) {
-        emitToast("Select 2+ tasks, or one parent with subtasks");
+  const handleBlockAsBundle = useCallback(
+    (startLocal: string, isPinned: boolean) => {
+      const ids = [...selectedIds];
+      if (ids.length === 0) return;
+      if (!startLocal.trim()) {
+        emitToast("Pick a bundle start time");
         return;
       }
-      body = { parent_task_id: task.id, start_time: toISO(snapBundleStart()) };
-    } else {
-      body = { member_task_ids: ids, start_time: toISO(snapBundleStart()) };
-    }
 
-    void runBatch(async () => {
-      await createScheduledBlockBundle(body);
-      void queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
-    }, "Blocked as bundle on calendar");
-  }, [queryClient, runBatch, selectedIds, tasks]);
+      const byId = new Map(tasks.map((t) => [t.id, t]));
+      const start_time = toISO(fromDatetimeLocalValue(startLocal));
+      const pinFields = isPinned ? { is_pinned: true as const } : {};
+
+      let body:
+        | ({ member_task_ids: string[]; start_time: string } & typeof pinFields)
+        | ({ parent_task_id: string; start_time: string } & typeof pinFields);
+
+      if (ids.length === 1) {
+        const task = byId.get(ids[0]);
+        if (!task || task.open_subtask_count <= 0) {
+          emitToast("Select 2+ tasks, or one parent with subtasks");
+          return;
+        }
+        body = { parent_task_id: task.id, start_time, ...pinFields };
+      } else {
+        body = { member_task_ids: ids, start_time, ...pinFields };
+      }
+
+      void runBatch(async () => {
+        await createScheduledBlockBundle(body);
+        void queryClient.invalidateQueries({ queryKey: ["scheduled-blocks"] });
+      }, "Blocked as bundle on calendar");
+    },
+    [queryClient, runBatch, selectedIds, tasks],
+  );
 
   return {
     batchBusy,
     handleBatchScheduleStyle,
     handleBatchApplyLabel,
+    handleBatchPriority,
     handleBatchDueDate,
     handleBatchClearDue,
     handleBatchMoveToProject,

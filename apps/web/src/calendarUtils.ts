@@ -119,6 +119,21 @@ export function toISO(d: Date): string {
   return d.toISOString();
 }
 
+/** DEF-019 bundle default: now rounded up to the next 15-minute mark (local). */
+export function snapToNext15Minutes(d: Date = new Date()): Date {
+  const start = new Date(d);
+  start.setSeconds(0, 0);
+  const mins = start.getMinutes();
+  const step = 15;
+  const snapped = Math.ceil(mins / step) * step;
+  if (snapped >= 60) {
+    start.setHours(start.getHours() + 1, 0, 0, 0);
+  } else {
+    start.setMinutes(snapped, 0, 0);
+  }
+  return start;
+}
+
 export function visibleRange(anchor: Date, mode: CalendarMode): { start: Date; end: Date } {
   if (mode === "day") {
     const start = startOfDay(anchor);
