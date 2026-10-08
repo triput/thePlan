@@ -2,7 +2,9 @@
  * Calendar day/week grid column — blocks, due markers, busy overlays.
  * Cut #4 hardening: peeled from CalendarView orchestrator (drag state stays in parent).
  */
+import { useState } from "react";
 import type { ExternalCalendarEvent, Project, ScheduledBlock, Task, TimeMapBand } from "../api";
+import { TASK_CALENDAR_DRAG_MIME } from "../taskCalendarDrag";
 import {
   addDays,
   formatShortDate,
@@ -268,6 +270,8 @@ export interface CalendarDayColumnProps {
   onBlockMoveStart: (block: ScheduledBlock, clientY: number) => void;
   onBlockResizeStart: (block: ScheduledBlock, clientY: number) => void;
   onDueDragStart: (task: Task, clientY: number) => void;
+  taskDropEnabled?: boolean;
+  onTaskDrop?: (day: Date, offsetY: number, dataTransfer: DataTransfer) => void;
   showDayLabel?: boolean;
 }
 
@@ -291,8 +295,11 @@ export function CalendarDayColumn({
   onBlockMoveStart,
   onBlockResizeStart,
   onDueDragStart,
+  taskDropEnabled = false,
+  onTaskDrop,
   showDayLabel,
 }: CalendarDayColumnProps) {
+  const [taskDropOver, setTaskDropOver] = useState(false);
   const dayBlocks = blocks.filter((b) => {
     const start =
       blockPreview &&
@@ -328,11 +335,39 @@ export function CalendarDayColumn({
         </div>
       )}
       <div
-        className="cal-slots"
+        className={`cal-slots${taskDropOver ? " task-drop-over" : ""}`}
         data-cal-day={day.toISOString()}
         onClick={(e) => {
           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
           onSlotClick(day, e.clientY - rect.top);
+        }}
+        onDragEnter={(e) => {
+          if (!taskDropEnabled || !onTaskDrop) return;
+          if (!e.dataTransfer.types.includes(TASK_CALENDAR_DRAG_MIME)) return;
+          e.preventDefault();
+          setTaskDropOver(true);
+        }}
+        onDragOver={(e) => {
+          if (!taskDropEnabled || !onTaskDrop) return;
+          if (!e.dataTransfer.types.includes(TASK_CALENDAR_DRAG_MIME)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+          setTaskDropOver(true);
+        }}
+        onDragLeave={(e) => {
+          if (!taskDropEnabled) return;
+          const next = e.relatedTarget as Node | null;
+          if (next && e.currentTarget.contains(next)) return;
+          setTaskDropOver(false);
+        }}
+        onDrop={(e) => {
+          setTaskDropOver(false);
+          if (!taskDropEnabled || !onTaskDrop) return;
+          if (!e.dataTransfer.types.includes(TASK_CALENDAR_DRAG_MIME)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          onTaskDrop(day, e.clientY - rect.top, e.dataTransfer);
         }}
       >
         {Array.from({ length: bounds.hours }, (_, i) => (

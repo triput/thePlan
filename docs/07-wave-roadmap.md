@@ -195,7 +195,7 @@ No full Update Schedule / UPS pipeline in 2a.
 | WebSocket invalidation | Optional; else keep REST invalidation |
 | Status tracker | → **W2c** (or W3 fallout) — today's blocks done % + overbook count |
 | Task soft-delete + session restore | → **W2c** |
-| Sidebar → calendar drag | → **W2c** — drag task from list/sidebar onto day/time → `scheduled_block` (desktop first; phone keeps tap/slot) |
+| Sidebar → calendar drag | **Shipped (thin, 2026-10-08)** — drag handle on task list → calendar slot creates unpinned block (desktop); phone unchanged |
 | Dedicated compose worker | → **W2c** — extract Update Schedule from in-process thread into a Compose service |
 
 **Fuzzy scheduling** — **exited 2026-08-12** ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)): replan contract, candidate set, slack/urgency, relaxation ladder, slice/fit, overbook locked for v1 Update Schedule worker.

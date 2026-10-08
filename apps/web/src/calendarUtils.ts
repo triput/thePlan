@@ -197,6 +197,29 @@ export function slotFromClick(
   return { start, end };
 }
 
+/** Snapped start time from a Y offset within a day column (15-minute grid). */
+export function startTimeFromSlotOffset(
+  day: Date,
+  offsetY: number,
+  rowHeightPx: number,
+  bounds: HourBounds = resolveHourBounds(false),
+): Date {
+  const rawMinutes = (offsetY / rowHeightPx) * 60;
+  const snapped = snapMinutes(rawMinutes);
+  const windowMinutes = bounds.hours * 60;
+  const maxStartOffset = Math.max(0, windowMinutes - CALENDAR_MIN_BLOCK_MINUTES);
+  const clamped = Math.max(0, Math.min(maxStartOffset, snapped));
+  const start = startOfDay(day);
+  const totalMinsFromMidnight = bounds.start * 60 + clamped;
+  start.setHours(
+    Math.floor(totalMinsFromMidnight / 60),
+    totalMinsFromMidnight % 60,
+    0,
+    0,
+  );
+  return start;
+}
+
 export const CALENDAR_SNAP_MINUTES = 15;
 export const CALENDAR_MIN_BLOCK_MINUTES = 15;
 

@@ -11,6 +11,7 @@ import {
   fetchProjects,
   fetchScheduleRun,
   fetchScheduledBlocks,
+  fetchSettings,
   fetchTasks,
   postScheduleReplan,
   releaseScheduledBlockRemainder,
@@ -37,6 +38,7 @@ import {
   SHOW_24H_STORAGE_KEY,
   slotFromClick,
   snapMinutes,
+  startTimeFromSlotOffset,
   toISO,
   type CalendarMode,
   visibleRange,
@@ -60,6 +62,10 @@ import {
   type ActiveDrag,
 } from "./CalendarDayColumn";
 import { CalendarToolbar } from "./CalendarToolbar";
+import {
+  blockDurationMinutesForTask,
+  readTaskCalendarDrag,
+} from "../taskCalendarDrag";
 
 const DRAG_THRESHOLD_PX = 5;
 const CALENDAR_HOURS_EVENT = "theplan:calendar-hours";
@@ -167,6 +173,13 @@ export function CalendarView() {
     queryKey: ["focus-windows"],
     queryFn: fetchFocusWindows,
   });
+
+  const settingsQuery = useQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+  });
+  const defaultEstimatedDuration =
+    settingsQuery.data?.default_estimated_duration_minutes ?? 60;
 
   const blocks = blocksQuery.data?.items ?? [];
   const blockTaskIds = useMemo(
@@ -556,6 +569,34 @@ export function CalendarView() {
     });
   };
 
+  const handleTaskDrop = useCallback(
+    async (day: Date, offsetY: number, dataTransfer: DataTransfer) => {
+      if (!dragEnabled) return;
+      const payload = readTaskCalendarDrag(dataTransfer);
+      if (!payload) return;
+      const durationMinutes = blockDurationMinutesForTask(
+        payload.estimatedDurationMinutes,
+        defaultEstimatedDuration,
+      );
+      let start = startTimeFromSlotOffset(day, offsetY, CALENDAR_ROW_HEIGHT_PX, hours);
+      start = clampToCalendarWindow(start, durationMinutes, hours);
+      const end = addMinutes(start, durationMinutes);
+      try {
+        await createMutation.mutateAsync({
+          task_id: payload.taskId,
+          start_time: toISO(start),
+          end_time: toISO(end),
+          is_pinned: false,
+        });
+        emitToast(`Scheduled "${payload.title}" on the calendar`);
+      } catch {
+        emitToast("Couldn't schedule task — try again");
+        invalidateCalendar();
+      }
+    },
+    [createMutation, defaultEstimatedDuration, dragEnabled, hours, invalidateCalendar],
+  );
+
   const closeForm = () => setBlockForm(null);
 
   const handleSave = async () => {
@@ -695,6 +736,8 @@ export function CalendarView() {
                 onBlockMoveStart={handleBlockMoveStart}
                 onBlockResizeStart={handleBlockResizeStart}
                 onDueDragStart={handleDueDragStart}
+                taskDropEnabled={dragEnabled}
+                onTaskDrop={handleTaskDrop}
                 showDayLabel={mode === "week"}
                 timeMapBands={timeMapBands}
               />
@@ -705,7 +748,7 @@ export function CalendarView() {
 
       <p className="muted small cal-hint">
         {dragEnabled
-          ? "Click a slot to schedule. Drag blocks to move, bottom edge to resize; drag due dots to reschedule. Click a block or due for the editor."
+          ? "Drag a task from the list onto the calendar, or click a slot to schedule. Drag blocks to move, bottom edge to resize; drag due dots to reschedule."
           : "Tap a time slot to schedule a task. Tap a due dot or block to edit."}
       </p>
 

@@ -1488,6 +1488,23 @@
   opacity: 1;
 }
 
+.task-calendar-drag-handle {
+  opacity: 0;
+  cursor: grab;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.task-calendar-drag-handle:active {
+  cursor: grabbing;
+}
+
+.task-row:hover .task-calendar-drag-handle,
+.task-row:focus-within .task-calendar-drag-handle {
+  opacity: 1;
+}
+
 .select-subtree-btn {
   opacity: 0;
   font-size: 0.85rem;
@@ -2629,6 +2646,12 @@ body.is-resizing-task-detail * {
   position: relative;
   cursor: pointer;
   flex: 1;
+}
+
+.cal-slots.task-drop-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .cal-hour-row {

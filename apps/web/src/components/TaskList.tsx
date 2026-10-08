@@ -40,6 +40,11 @@ import {
 import { CompleteDialog } from "./CompleteDialog";
 import { CreateSectionForm } from "./CreateSectionForm";
 import { EditSectionForm } from "./EditSectionForm";
+import { NARROW_QUERY, useMediaQuery } from "../hooks/useMediaQuery";
+import {
+  serializeTaskCalendarDrag,
+  TASK_CALENDAR_DRAG_MIME,
+} from "../taskCalendarDrag";
 import { emitToast } from "./ToastHost";
 import { ReorderButtons } from "./ReorderButtons";
 import { TaskBatchBar } from "./TaskBatchBar";
@@ -124,6 +129,8 @@ export function TaskList({
   onSelectTask,
 }: TaskListProps) {
   const queryClient = useQueryClient();
+  const isNarrow = useMediaQuery(NARROW_QUERY);
+  const taskCalendarDragEnabled = !isNarrow;
   const { push } = useUndoStack();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [subtaskParentId, setSubtaskParentId] = useState<string | null>(null);
@@ -782,6 +789,27 @@ export function TaskList({
           pending={reorderTasksMutation.isPending}
           className="task-reorder-btns"
         />
+        {taskCalendarDragEnabled && !task.is_completed && (
+          <button
+            type="button"
+            className="icon-btn task-calendar-drag-handle"
+            draggable
+            title="Drag to calendar to schedule"
+            aria-label={`Drag "${task.title}" to calendar`}
+            onDragStart={(e) => {
+              const payload = serializeTaskCalendarDrag({
+                taskId: task.id,
+                title: task.title,
+                estimatedDurationMinutes: task.estimated_duration_minutes,
+              });
+              e.dataTransfer.setData(TASK_CALENDAR_DRAG_MIME, payload);
+              e.dataTransfer.effectAllowed = "copy";
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            ⠿
+          </button>
+        )}
         {!task.is_completed && (
           <button
             type="button"
