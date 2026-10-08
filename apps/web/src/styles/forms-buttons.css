@@ -1,0 +1,131 @@
+/* Forms & buttons */
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.inline-form input {
+  flex: 1;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+
+.inline-form input:focus {
+  border-color: var(--accent);
+}
+
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn.secondary {
+  background: var(--panel-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn.small {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+}
+
+.icon-btn:hover {
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.icon-btn.tiny {
+  font-size: 0.95rem;
+}
+
+.subtask-btn {
+  opacity: 0;
+}
+
+.task-row:hover .subtask-btn {
+  opacity: 1;
+}
+
+.task-calendar-drag-handle {
+  opacity: 0;
+  cursor: grab;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.task-calendar-drag-handle:active {
+  cursor: grabbing;
+}
+
+.task-row:hover .task-calendar-drag-handle,
+.task-row:focus-within .task-calendar-drag-handle {
+  opacity: 1;
+}
+
+.select-subtree-btn {
+  opacity: 0;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.25rem;
+  flex-shrink: 0;
+}
+
+.task-row:hover .select-subtree-btn,
+.task-row:focus-within .select-subtree-btn {
+  opacity: 1;
+}
+

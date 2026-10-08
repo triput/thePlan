@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27 (Round 4)  
 **Mode:** Assessment + **greenlit cut wave** — structure-only extracts (#1–#5); no mega-rewrite  
-**Status:** Cuts **#1–#7 implemented** (#6–#7 **2026-10-08**); **hardening wave** on **#1, #3, #4, #5** 2026-08-27 (Cut #2 skipped); Cut **#8** (App.css) **next**  
+**Status:** Cuts **#1–#8 implemented** (#6–#8 **2026-10-08**); **hardening wave** on **#1, #3, #4, #5** 2026-08-27 (Cut #2 skipped)  
 **Pairs with:** [09-technical-architecture.md](./09-technical-architecture.md), [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers), [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up)
 
 Operator gut after Theme F / Assist / smash rounds: some modules hold too many vectors (UI + orchestration + domain), and business rules may be leaking into the wrong layer. This doc inventories real hotspots, classifies them, and proposes an **ordered cut list**. It is not a rewrite ticket.
@@ -16,7 +16,7 @@ Measured under `apps/web/src` and `apps/api/app` (excluding `__pycache__` / `nod
 | Bytes | Path | Notes |
 |------:|------|-------|
 | ~59k | `apps/web/src/components/SettingsPanel.tsx` | Largest UI surface — many settings domains in one file |
-| ~53k | `apps/web/src/App.css` | Global stylesheet; batch/trash/calendar/detail all piled in |
+| ~53k | `apps/web/src/styles/` + barrel `App.css` | Feature CSS files (**Cut #8** 2026-10-08) |
 | ~48k | `apps/web/src/components/TaskDetailPanel.tsx` | Detail form + promote + labels + recurrence + deps |
 | ~43k | `apps/web/src/components/CalendarView.tsx` | Grid + block menus + release/clear + bundle gray |
 | ~40k | `apps/web/src/components/TaskList.tsx` | Forest, batch bar, DnD-ish reorder, complete, bundles |
@@ -49,7 +49,7 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 | Hotspot | Classify | Why |
 |---------|----------|-----|
 | `SettingsPanel.tsx` | **extract component** ✓ Cut #5 | Domain sections now in `components/settings/*`; shell remains |
-| `App.css` | **leave alone** (or light section files later) | Painful to navigate; splitting CSS without a design-system plan is high-churn / low product value — **Cut #8 held** |
+| `App.css` / `styles/*` | **split module** ✓ Cut #8 | Feature files + `@import` barrel; `import "./App.css"` unchanged in `App.tsx` |
 | `TaskDetailPanel.tsx` | **extract component** ✓ Cut #2 | Section bodies extracted; panel owns shell + save flow |
 | `CalendarView.tsx` | **extract component** ✓ Cut #4 | Toolbar + block menu + **day grid** (`CalendarDayColumn.tsx`); orchestrator keeps drag/replan |
 | `TaskList.tsx` | **extract component** ✓ Cut #1 | Batch bar in `TaskBatchBar.tsx`; batch handlers in `useTaskBatchActions` hook |
@@ -69,7 +69,7 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 | `Sidebar.tsx` / `App.tsx` | **leave alone** | Shell size is fine |
 | `AssistPanel.tsx` | **leave alone** | Bounded |
 
-**Layer verdict:** Domain mostly still lives in API services. Cut wave #1–#7 peeled fat React surfaces, `task_patch.py`, **schemas**, and **models** off monolith files; **App.css** remains (**Cut #8**).
+**Layer verdict:** Domain mostly still lives in API services. Cut wave **#1–#8** peeled fat React surfaces, `task_patch.py`, **schemas**, **models**, and **App.css** off monolith files (structure-only; operator smoke on UI cuts).
 
 ---
 
@@ -86,7 +86,7 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 | 5 | Split **SettingsPanel** by domain tabs/sections | **Hardened** 2026-08-27 | **Med** | M | `components/settings/*`; scheduling PATCH via `schedulingDraft.ts` documented in shell; smoke: save scheduling defaults + calendar display |
 | 6 | Split `schemas/__init__.py` into domain modules | **Implemented** 2026-10-08 | **Med–High** | M | Domain modules + explicit barrel; pytest assist/batch/auth/outlines/scheduled_blocks **61/61** |
 | 7 | Split `models/__init__.py` into domain modules | **Implemented** 2026-10-08 | **High** | M–L | `user`, `hierarchy`, `task`, `label`, `calendar`, `schedule`, `mixins` + barrel; full pytest **273/273** |
-| 8 | Carve `App.css` into feature CSS files | **In progress** | **High** | L | Visual regression risk; operator manual smoke after land |
+| 8 | Carve `App.css` into feature CSS files | **Implemented** 2026-10-08 | **High** | L | `src/styles/*` (14 files) + barrel; `npm run build` PASS; operator smoke checklist below |
 
 **Explicitly out of scope:** mega-rewrite of calendar sync, moving domain into the web client, “clean architecture” folder reshuffles, apps/desktop refactors.
 
@@ -94,9 +94,18 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 
 ## Recommendation
 
-1. Cuts **#1–#7** structure + **#1/#3/#4/#5 hardening** landed; operator manual smoke still owns UI regression on #1, #2, #4, #5.
-2. **Cut #8** (App.css) greenlit immediately after #7.
+1. Cuts **#1–#8** structure + **#1/#3/#4/#5 hardening** landed; operator manual smoke owns UI regression on #1, #2, #4, #5, **#8**.
+2. No further DEF-011 cuts booked until next assessment pass.
 3. Keep [09-technical-architecture.md](./09-technical-architecture.md) current when further cuts land (DEF-012 living rule).
+
+### Cut #8 — operator manual smoke (post-CSS split)
+
+- [ ] Cold load: sidebar nav, epic expand, settings gear opens panel
+- [ ] Task list: multi-select → batch due / move / label / style / delete
+- [ ] Task detail: open task, collapsible sections, save
+- [ ] Calendar: week view, drag block, bundle gray on partial complete, release/clear unpinned
+- [ ] Quick-add bar parse + create
+- [ ] Auth: login/logout (household admin if applicable)
 
 ---
 

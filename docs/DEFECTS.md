@@ -295,7 +295,7 @@ Prove-it ships `coursera_specialization` + one golden JSON. Operator wants a **c
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (gut-check hygiene; not a known break) |
-| **Status** | Closed — assessment shipped 2026-08-27; **greenlit Cut wave:** #1–#5 **implemented** 2026-08-27; **#6–#8 held** ([REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)) |
+| **Status** | Closed — assessment shipped 2026-08-27; **greenlit Cut wave:** #1–#8 **implemented** (#6–#8 **2026-10-08**); operator UI smoke on cuts #1–#5, #8 ([REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md)) |
 | **Found** | 2026-08-14 |
 | **Surface** | Cross-cutting — API services vs routes vs web components (esp. large files) |
 | **Wave** | Round 4 docs — after smash rounds; paired with [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) |
@@ -320,7 +320,7 @@ Durable inventory + classification + ordered cut list: **[REFACTOR-ASSESSMENT.md
 
 UI cuts (#1, #2, #4, #5): **manual smoke still operator-owned** — not claimed Closed on visual regression.
 
-**Still held (not started):** Cuts **#6–#8** (schemas split, models split, App.css carve).
+**Also landed (2026-10-08):** Cuts **#6** (schemas), **#7** (models domain modules + barrel), **#8** (`styles/*` + App.css barrel). Full API pytest **273/273** after #7; `npm run build` after #8.
 
 ### Expected (when run)
 

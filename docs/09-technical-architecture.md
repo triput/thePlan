@@ -282,7 +282,7 @@ flowchart TB
 
 - Functional spec / feature catalog still carry some **pre–Theme F** wording; trust ADRs + this map + DEFECTS for newest surfaces until a doc sync pass.
 - API contract may lag newest smash endpoints slightly—OpenAPI from the running API is authoritative for exact shapes.
-- Service boundaries: DEF-011 Cut wave **#1–#7 landed** (#6 schemas, #7 models **2026-10-08**); **App.css** carve (#8) — [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
+- Service boundaries: DEF-011 Cut wave **#1–#8 landed** (#6–#8 **2026-10-08**); web styles in `apps/web/src/styles/` + barrel `App.css` — [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
 - This file will grow: calendar sync sequence diagrams, auth sequence, Update Schedule pipeline detail, etc.
 
 ---

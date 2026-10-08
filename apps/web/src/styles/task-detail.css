@@ -1,0 +1,127 @@
+/* Task detail panel */
+.task-detail-panel,
+.task-detail-sheet {
+  width: var(--task-detail-width, 340px);
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 0;
+  border-left: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 4rem);
+  overflow: hidden;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-detail-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.task-detail-resize-handle:hover,
+.task-detail-resize-handle:focus-visible {
+  background: color-mix(in srgb, var(--accent, #0a7a6e) 40%, transparent);
+  outline: none;
+}
+
+body.is-resizing-task-detail {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.is-resizing-task-detail * {
+  cursor: col-resize !important;
+}
+
+.detail-inline-create-btn {
+  margin-top: 0.4rem;
+  align-self: flex-start;
+}
+
+.detail-child-form {
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.detail-child-form .detail-child-field {
+  flex: 1 1 10rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.detail-child-form .detail-child-field span {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.task-detail-panel .detail-form,
+.task-detail-sheet .detail-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.task-detail-panel .detail-form-body,
+.task-detail-sheet .detail-form-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.task-detail-panel .detail-form-footer,
+.task-detail-sheet .detail-form-footer {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 0.75rem 1.25rem 1rem;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.task-detail-panel .detail-shell-body,
+.task-detail-sheet .detail-shell-body {
+  flex-shrink: 0;
+  padding: 0 1.25rem 1.25rem;
+}
+
