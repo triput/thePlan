@@ -16,6 +16,7 @@ interface TaskDetailSchedulingProps {
   scheduleStyle: "" | ScheduleStyle;
   onScheduleStyleChange: (value: "" | ScheduleStyle) => void;
   inheritScheduleStyleHint: string | null;
+  scheduleStatus: string;
 }
 
 export function TaskDetailScheduling({
@@ -33,9 +34,20 @@ export function TaskDetailScheduling({
   scheduleStyle,
   onScheduleStyleChange,
   inheritScheduleStyleHint,
+  scheduleStatus,
 }: TaskDetailSchedulingProps) {
+  const isOverbooked = scheduleStatus === "overbooked";
+
   return (
     <TaskDetailSection id="scheduling" title="Scheduling" open={open} onToggle={onToggle}>
+      {isOverbooked && (
+        <p className="scheduling-overbook-note" role="status">
+          <strong>Overbooked.</strong> Update Schedule could not fit remaining work before this
+          task&apos;s deadline. Free calendar time, shorten duration, or move the deadline, then
+          run Update Schedule again. This is not the same as overlap conflicts on the Calendar
+          view.
+        </p>
+      )}
       <label className="field">
         <span>Plan</span>
         <select

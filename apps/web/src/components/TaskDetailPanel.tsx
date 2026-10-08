@@ -796,6 +796,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             scheduleStyle={scheduleStyle}
             onScheduleStyleChange={setScheduleStyle}
             inheritScheduleStyleHint={inheritScheduleStyleHint}
+            scheduleStatus={task.status}
           />
 
           <TaskDetailRecurrence

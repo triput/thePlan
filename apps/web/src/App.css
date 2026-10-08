@@ -1338,6 +1338,48 @@
   font-weight: 600;
 }
 
+.overbooked-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #b45309;
+  background: color-mix(in srgb, #b45309 14%, transparent);
+  border: 1px solid color-mix(in srgb, #b45309 40%, transparent);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  flex-shrink: 0;
+}
+
+.overbooked-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.overbooked-filter-chip input {
+  accent-color: #b45309;
+}
+
+.scheduling-overbook-note {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: color-mix(in srgb, #b45309 10%, var(--panel));
+  border: 1px solid color-mix(in srgb, #b45309 35%, var(--border));
+  border-radius: 6px;
+}
+
+.scheduling-overbook-note strong {
+  color: #b45309;
+}
+
 .empty-state {
   padding: 2rem 0.5rem;
   color: var(--text-muted);

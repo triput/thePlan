@@ -248,7 +248,7 @@ Either order is fine. Do not treat W2c as a hard gate for starting W3.
 
 | Item | Notes |
 |------|-------|
-| Overbook UI | Surface `schedule_status.overbooked` |
+| Overbook UI | **Shipped (thin)** — task list badge + scheduling detail note + optional list filter; compose worker still parked |
 | Task dependency enforcement | Topological ordering in scheduler |
 | Status tracker | Today's blocks done % + overbook count |
 | Bundle auto-place (post–v1) | Knockout → blocks on replan; still out of ADR-006 v1 |

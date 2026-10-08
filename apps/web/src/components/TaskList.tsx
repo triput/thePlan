@@ -58,6 +58,11 @@ interface PendingComplete {
 }
 
 const SHOW_COMPLETED_KEY = "theplan.showCompleted";
+const OVERBOOKED_ONLY_KEY = "theplan.overbookedOnly";
+
+function isOverbookedStatus(status: string): boolean {
+  return status === "overbooked";
+}
 
 function readShowCompleted(): boolean {
   try {
@@ -127,6 +132,13 @@ export function TaskList({
   const [editingSection, setEditingSection] = useState<Section | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [showCompleted, setShowCompleted] = useState(readShowCompleted);
+  const [overbookedOnly, setOverbookedOnly] = useState(() => {
+    try {
+      return localStorage.getItem(OVERBOOKED_ONLY_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const selectAllRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
@@ -134,6 +146,15 @@ export function TaskList({
   const setShowCompletedPersisted = useCallback((next: boolean) => {
     setShowCompleted(next);
     writeShowCompleted(next);
+  }, []);
+
+  const setOverbookedOnlyPersisted = useCallback((next: boolean) => {
+    setOverbookedOnly(next);
+    try {
+      localStorage.setItem(OVERBOOKED_ONLY_KEY, next ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const labelsQuery = useQuery({
@@ -266,10 +287,21 @@ export function TaskList({
     enabled: view.type === "project",
   });
 
+  const overbookedTaskCount = useMemo(() => {
+    let items = tasksQuery.data?.items ?? [];
+    if (!showCompleted) {
+      items = items.filter((t) => !t.is_completed);
+    }
+    return items.filter((t) => isOverbookedStatus(t.status)).length;
+  }, [tasksQuery.data, showCompleted]);
+
   const tasks = useMemo(() => {
     let items = tasksQuery.data?.items ?? [];
     if (!showCompleted) {
       items = items.filter((t) => !t.is_completed);
+    }
+    if (overbookedOnly) {
+      items = items.filter((t) => isOverbookedStatus(t.status));
     }
     if (view.type === "today") {
       const scheduledIds = new Set(
@@ -283,7 +315,7 @@ export function TaskList({
       items = items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
     }
     return orderTasksForest(items);
-  }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted]);
+  }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted, overbookedOnly]);
 
   const visibleTaskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
 
@@ -720,6 +752,11 @@ export function TaskList({
         {task.deadline_at && (
           <span className="deadline-badge">Deadline {formatDue(task.deadline_at)}</span>
         )}
+        {isOverbookedStatus(task.status) && (
+          <span className="overbooked-badge" title="Scheduler could not fit this task before its deadline">
+            Overbooked
+          </span>
+        )}
         {task.estimated_duration_minutes > 0 && (
           <span className="duration-badge">{formatDuration(task.estimated_duration_minutes)}</span>
         )}
@@ -790,6 +827,19 @@ export function TaskList({
               />
               <span>Show completed</span>
             </label>
+            {(overbookedTaskCount > 0 || overbookedOnly) && (
+              <label className="overbooked-filter-chip">
+                <input
+                  type="checkbox"
+                  checked={overbookedOnly}
+                  onChange={(e) => setOverbookedOnlyPersisted(e.target.checked)}
+                />
+                <span>
+                  Overbooked only
+                  {overbookedTaskCount > 0 ? ` (${overbookedTaskCount})` : ""}
+                </span>
+              </label>
+            )}
             {view.type === "project" && <CreateSectionForm projectId={view.projectId} />}
           </div>
         </header>
