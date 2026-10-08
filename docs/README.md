@@ -34,7 +34,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) | W2 dependency hygiene quick scan (gate exited) |
 | [HYGIENE-W3.md](./HYGIENE-W3.md) | W3 entry full hygiene (gate exited 2026-08-12) |
 | [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) | Round 4 dependency hygiene quick scan (2026-08-27) |
-| [USER-GUIDE.md](./USER-GUIDE.md) | Operator guide — run stack, sign in, household admin, tasks, calendar |
+| [USER-GUIDE.md](./USER-GUIDE.md) | Operator guide — Compose, auth/recovery CLI, batch & calendar, Assist, trash/archive |
 | [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest quick start — live instance UI tour (no ops/setup) |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md) | Microsoft Calendar Entra app setup (W3 Slice 2) |

@@ -1,25 +1,35 @@
 # thePlan — User Guide
 
-Practical guide for running and using **thePlan** as a household operator. Covers Wave 1 (MVP) plus Wave 1.5 features that are shipped today: login, household accounts, recurrence, and time-based reminders.
+Practical guide for running and using **thePlan** as a household operator. Covers the stack through **W3+** as shipped today: login and recovery, hierarchy and batch edits, calendar blocks and auto-schedule, Assist, outline import, trash/archive, and settings.
 
-For developers and operators setting up the stack, see the root [README](../README.md). For product scope and roadmap, see [docs/README.md](./README.md).
+For developer setup, see the root [README](../README.md). For doc inventory and waves, see [docs/README.md](./README.md). Guests on a live instance can skim [guides/QUICK-START.md](./guides/QUICK-START.md) instead of this runbook.
 
 ---
 
 ## What you get
 
-thePlan is a personal task and calendar app (Todoist + SkedPal style) that runs on your machine or home server:
+thePlan is a personal task and calendar app (Todoist + SkedPal style) on your machine or home server:
 
-- **Hierarchy** — Epic → Project → Section → Task → subtask → nested subtask
-- **Smart views** — Inbox, Today, Upcoming, projects, labels
-- **Calendar** — Day and week views with due markers and manual time blocks
-- **Quick-add** — Natural-language capture with priority, due, duration, project tags, and recurrence
-- **Labels** — Standalone label management and per-task tagging
-- **Household login** — Multiple personal accounts on one deployment; each person’s data is isolated
-- **Recurrence** — `every` / `every!` patterns with optional date frames
-- **Reminders** — In-app toasts and optional browser notifications
+- **Hierarchy** — Epic → Project → Section → Task → subtask (up to two nesting levels below a top-level task)
+- **Smart views** — Inbox, Today, Upcoming, epic aggregate, projects, labels
+- **Batch selection** — Multi-select tasks for priority, due, labels, move, schedule style, delete, or **block as bundle**
+- **Calendar** — Day/week grid, due markers, manual blocks, bundles, drag from lists, drag move/resize on desktop, **Update Schedule** auto-placement, Google/Microsoft busy overlay
+- **Quick-add** — Natural-language capture (priority, due, duration, project, epic, recurrence)
+- **Assist** — Local SLM (Ollama) proposes **create_task** and **create_project**; you review before apply
+- **Outline import (Theme F)** — Paste/upload curriculum JSON → epic/project/section/task tree
+- **Household login** — Multiple accounts; data isolated per user
+- **Recurrence and reminders** — `every` / `every!` patterns; in-app and browser notifications
+- **Trash and archive** — Soft-delete tasks; browse and restore; archive epics/projects
 
-Not shipped yet (do not expect these in the UI): auto-scheduler, Google Calendar sync, filter query language, Kanban board. See [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Deep references (not duplicated here):**
+
+| Topic | Doc |
+|--------|-----|
+| Agent CLI, JSON contract, host recovery commands | [CLI.md](./CLI.md) |
+| Assist topology, Ollama, env vars | [SLM-ASSIST.md](./SLM-ASSIST.md) |
+| Outline JSON shape and attach-under | [OUTLINE-INGEST.md](./OUTLINE-INGEST.md) |
+
+**Not shipped yet:** Kanban board, filter query language, calendar month view, Assist auto-apply or schedule mutations, voice. See [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ---
 
@@ -36,10 +46,10 @@ docker compose -f infra/compose/compose.yaml up --build
 | What | URL |
 |------|-----|
 | **Web app (use this)** | **http://localhost:8080** |
-| API (direct; dev tools only) | http://localhost:8000 |
+| API (direct; dev/CLI only) | http://localhost:8000 |
 | API docs | http://localhost:8000/docs |
 
-**Important:** Open the app at **:8080**, not :8000. The web container proxies `/api` to the API so session cookies stay same-origin. Using :8000 directly breaks login in the browser.
+**Important:** Open the app at **:8080**, not :8000. The web container proxies `/api` so session cookies stay same-origin. Using :8000 in the browser breaks login.
 
 Stop the stack:
 
@@ -55,300 +65,379 @@ One-liner (while Compose is running):
 docker compose -f infra/compose/compose.yaml exec -T postgres pg_dump -U theplan theplan > theplan-backup.sql
 ```
 
-**Scheduled backups:** from the repo root run `.\scripts\backup-postgres.ps1` (Windows) or `./scripts/backup-postgres.sh` (Linux/macOS). Dumps land in `backups/` and older files are pruned after 14 days. See the root [README](../README.md) for Task Scheduler / cron examples.
+**Scheduled backups:** from the repo root run `.\scripts\backup-postgres.ps1` (Windows) or `./scripts/backup-postgres.sh` (Linux/macOS). Dumps land in `backups/`; older files prune after 14 days. See the root [README](../README.md) for Task Scheduler / cron examples.
 
 **Remote access:** optional Cloudflare Tunnel — [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md).
 
 ---
 
-## First sign-in (setup)
+## Sign in, sign out, and account lock
 
-On a fresh database, thePlan shows **Welcome to thePlan** — create the first household account:
+### First account (setup)
 
-1. Choose **username**, **email**, and a **password or passphrase** (12+ characters; spaces allowed).
-2. Optionally set a **display name** (shown in the top bar).
+On a fresh database, thePlan shows **Welcome to thePlan**:
+
+1. Choose **username**, **email**, and **password or passphrase** (12+ characters; spaces allowed).
+2. Optionally set a **display name** (top bar).
 3. Click **Create account**.
 
-The first account **claims** the bootstrap admin row and keeps any existing data tied to that user ID. It is automatically an **admin**.
+The first account claims bootstrap admin and keeps data tied to that user ID.
 
-On later visits you see **Sign in** instead. Use **username or email** plus your password.
+### Everyday sign-in
 
----
+Use **username or email** plus password → **Sign in**.
 
-## Sign in and sign out
+**Sign out:** top-right **Sign out** clears your session.
 
-**Sign in:** Enter username or email and password, then **Sign in**.
+If the server is unreachable, the login screen offers **Retry**.
 
-**Sign out:** Click **Sign out** in the top-right bar (next to your display name or username). You return to the login screen; your session cookie is cleared.
+### Forced password change
 
-If the server is unreachable, the login screen shows a retry button.
+After an admin reset or **host recovery** (below), your account may have **must change password** set. On sign-in you see **Choose a new password** before any other UI. Pick a new 12+ character passphrase → **Update password**, or **Sign out** if you need a different account.
+
+Voluntary password changes: **Settings → Account**.
+
+### Host recovery (CLI)
+
+When email reset is not in scope, an operator with DB access can reset a household password from the host — bumps **session epoch** so old browser sessions stop working. Install steps, env vars, exit codes, and `theplan auth reset-password` flags live in **[CLI.md](./CLI.md)** (not repeated here).
+
+Typical flow: install CLI + API deps → set `DATABASE_URL` → run reset → give the user the temporary password → they sign in and complete **Choose a new password**.
 
 ---
 
 ## Household accounts (admin)
 
-Each person who uses this thePlan instance gets their own account. Tasks, projects, labels, and calendar data are **private to that account** — there is no shared-project or assignee model.
+Each person on this deployment has a **private** task/project/label/calendar space. No shared projects or assignees.
 
-**Admin-only:** Open **Settings** (gear icon, bottom of sidebar) → **Household** section.
+**Settings → Household** (admin only):
 
 | Action | How |
 |--------|-----|
-| Add a member | **Add user** → fill username, email, password, optional display name → **Create user** |
-| Reset a password | **Set password** on any row → enter new passphrase → **Save password** |
-| Disable an account | Uncheck **Active** (you cannot disable your own account while signed in) |
+| Add a member | **Add user** → username, email, password, optional display name → **Create user** |
+| Reset a password | **Set password** on a row → new passphrase → **Save password** (forces change on next login) |
+| Disable an account | Uncheck **Active** (not your own session) |
 
-New users sign in at the same URL with their own credentials.
+New users sign in at the same URL with their credentials.
 
-### Demo account `nebula`
+### Demo user `nebula`
 
-When `SEED_DEMO_USER=true` (default in Compose), a non-admin demo user **nebula** is created after setup completes, with sample epics, projects, and tasks. Credentials are written once to `.secrets-backup/nebula-credentials.txt` (gitignored). Use it to explore without touching your admin data.
+With `SEED_DEMO_USER=true` (Compose default), a non-admin **nebula** user is seeded with sample data after setup. Credentials are written once to `.secrets-backup/nebula-credentials.txt` (gitignored).
 
 ---
 
 ## Layout and navigation
 
 ```
-┌ Sidebar ──────────────┬─ Top bar: Quick-add | Search | ? | You | Sign out ─┐
-│ Views                 ├─ Main: task list, calendar, or labels ─────────────┤
-│  Inbox / Today / …    │                                                  │
-│  Labels               │  [Task detail panel when a task is selected]      │
-│  Epics & projects     │                                                  │
-│ Settings (footer)     └──────────────────────────────────────────────────┘
+┌ Sidebar ──────────────┬─ Top bar: Quick-add | Assist | Outline | Search | ? | You | Sign out ─┐
+│ Views                 ├─ Main: task list, calendar, labels, trash, archived ────────────────┤
+│  Inbox / Today / …    │  [Task detail panel when a task is selected]                      │
+│  Archived / Trash     │                                                                   │
+│  Labels               │                                                                   │
+│  Epics & projects     │                                                                   │
+│ Settings (footer)     └───────────────────────────────────────────────────────────────────┘
 ```
-
-**Sidebar — Views**
 
 | View | Shows |
 |------|--------|
 | **Inbox** | Tasks with no project |
-| **Today** | Incomplete tasks due today or with a scheduled block today |
-| **Upcoming** | Incomplete tasks due or blocked in the next 7 days |
-| **Calendar** | Day/week grid (see below) |
-| **Labels** | Label management screen |
-| **By label** | Quick links to label-filtered lists (when labels exist) |
+| **Today** | Incomplete due today or with a scheduled block today |
+| **Upcoming** | Incomplete due or blocked in the next 7 days |
+| **Calendar** | Day/week scheduling grid |
+| **Labels** | Label CRUD |
+| **Archived** | Archived epics and projects (restore here) |
+| **Trash** | Soft-deleted tasks (restore or purge) |
+| **By label** | Sidebar links when labels exist |
+| **Epic / project** | Filtered task lists; epic view groups by project |
 
-**Sidebar — Structure**
-
-- **Epics** — Expand/collapse; projects live under epics. Use **+** on an epic to add a project.
-- **Projects** — Standalone projects (no epic) and epic children. Click to open the project task list. **✎** edits title/color/archive; reorder arrows change sort order.
+**Phone:** ☰ drawer nav; calendar stays **Day** mode; task detail is full-screen until closed.
 
 ---
 
-## Tasks — create, edit, complete
+## Hierarchy — epics, projects, sections
 
-### Quick-add (fastest)
+| Level | Operator notes |
+|-------|------------------|
+| **Epic** | Sidebar group; **+** adds a project under it. **✎** edit color/title/**archive**. **Demote to project** merges epic down (confirm). |
+| **Project** | Task list + optional **sections** bar. **✎** edit, reorder, archive. **Promote to epic** from project edit. Default **schedule style** can be standalone, manual, or bundle. |
+| **Section** | Subdivide a project; tasks keep section when moved within project. |
+| **Task / subtask** | Detail panel sets parent, project, section. **Promote to project** turns a task subtree into a new project. |
 
-The top-bar input captures tasks from anywhere:
+Archive hides epics/projects from normal lists; open **Archived** to **Unarchive**. Deleting a project/epic has confirm dialogs — read them.
 
-1. Type a title plus optional tokens (see [Quick-add tokens](#quick-add-tokens)).
-2. Press **Enter**.
+---
 
-Shortcuts: **Q** or **Ctrl+K** (Cmd+K on Mac) focuses quick-add.
+## Tasks — create, edit, complete, delete
 
-If you are on a **project** view, new tasks default to that project unless tokens say otherwise. On **Inbox**, tasks stay in the Inbox unless you tag a project.
+### Quick-add
 
-Parsed metadata appears as chips below the box after submit.
+Top-bar input from anywhere:
+
+1. Type title + optional tokens ([Quick-add tokens](#quick-add-tokens)).
+2. **Enter**.
+
+**Q** or **Ctrl+K** (Cmd+K on Mac) focuses quick-add.
+
+On a **project** view, new tasks default to that project unless tokens override. **Inbox** keeps tasks unassigned unless you tag `#Project`.
+
+Parsed metadata shows as chips after submit.
 
 ### Task detail panel
 
-Click a task in any list to open the right-hand **Task details** panel:
+Select a task to edit:
 
-- **Title**, **description**, **priority** (P1–P4), **due** date/time
-- **Duration** (minutes)
-- **Project**, **section**, **parent task** (for subtasks)
-- **Labels** — toggle chips on/off
-- **Recurrence** and **Reminders** (see below)
-- **Save** applies changes; **Delete task** is permanent (use **Ctrl+Z** to undo a recent delete in-session)
+- Title, description, priority (P1–P4), due, duration
+- Project, section, parent (subtasks)
+- Labels, recurrence, reminders
+- Scheduling: plan, soft target, deadline, schedule style, status (including **overbooked** — see [Scheduler vs calendar conflicts](#scheduler-vs-calendar-conflicts))
+- **Save** applies; **Delete task** sends the task to **Trash** (soft delete)
 
 ### Complete and subtasks
 
-- Click the task checkbox, or focus a task and press **X** or **Space**.
-- Completing a **parent** with open subtasks opens a dialog:
-  - **Complete parent only** — children stay open
-  - **Complete all children too** — one-shot cleanup
-- **Recurring tasks:** completing advances **due** to the next occurrence and leaves the task open until the series ends. Clear recurrence first if you want a final completion.
+- Checkbox, or focus + **X** / **Space**.
+- Parent with open subtasks → **Complete parent only** or **Complete all children too**.
+- **Recurring:** completing advances **due** to the next occurrence until the series ends or you clear recurrence.
 
-Completed tasks are hidden by default. Use **Show completed** in the list header to reveal them (preference is remembered in this browser).
-
-### Subtasks
-
-From a project or Inbox list, add subtasks via the list UI (nested up to two levels below a top-level task). Set **Parent task** in the detail panel to move hierarchy.
+**Show completed** in the list header toggles visibility (saved in this browser).
 
 ### Undo
 
-**Ctrl+Z** (Cmd+Z) reverses the last destructive action in this browser session (complete, delete, etc.). Delete undo recreates tasks with new IDs — not a true undelete.
+**Ctrl+Z** (Cmd+Z) reverses recent destructive actions in-session (complete, delete, etc.). Delete undo recreates tasks with **new IDs** — not a true undelete from Trash.
+
+---
+
+## Multi-select and batch actions
+
+In task lists (not Trash/Archived):
+
+1. Use the row **select** checkbox, or **Alt+click** select to include visible subtasks, or the **⊞** control on parents.
+2. Header checkbox selects all visible rows.
+3. The **batch bar** appears above the list.
+
+| Batch action | Effect |
+|--------------|--------|
+| **Schedule style** | Set **Manual** or **Standalone** on selection |
+| **Priority** | P1–P4 |
+| **Apply label** | Adds label to each selected task |
+| **Due date** | Set date; **Clear due** removes due |
+| **Move to project** | Project or **Inbox** |
+| **Block as bundle** | Pick **start** (datetime, snaps to 15 min) and optional **Pin** → one calendar bundle for the selection (or parent subtree rules apply) |
+| **Delete** | Soft-delete to Trash |
+| **Clear** | Clear selection |
+
+Batch operations run against selected IDs; wait for the bar to finish before navigating away.
 
 ---
 
 ## Quick-add tokens
 
-Deterministic parser extracts metadata; leftover text becomes the title.
+Leftover text becomes the title.
 
 | Token type | Examples |
 |------------|----------|
 | Priority | `p1`, `P2`, `!3` (default P4) |
-| Duration | `45m`, `1.5h`, `2d`, `1w`, `2mo` — `m` means minutes, not months |
-| Due date/time | `today`, `tomorrow`, `next monday`, `2026-08-15`, `at 3pm`, `at 14:30` |
+| Duration | `45m`, `1.5h`, `2d`, `1w`, `2mo` — `m` = minutes |
+| Due | `today`, `tomorrow`, `next monday`, `2026-08-15`, `at 3pm`, `at 14:30` |
 | Epic | `!!Organon`, `!!"Q3 Infrastructure"`, `epic:Auth` |
 | Project / section | `#Dev`, `#"Client App"`, `#Dev/Backend` |
 | Recurrence | `every monday, wednesday`, `every! 2 weeks from next week until end of year` |
 
-**Example:**
+Example:
 
 ```text
 Review spec 1.5h p1 next Tue at 9am !!Organon #Dev/Backend
 ```
 
-**Recurrence in quick-add:**
-
-```text
-Standup every monday, wednesday from 8/30 to 9/20
-Pay rent every! month on the 1st
-```
-
-- **`every`** — next due slides from when you complete (flexible).
+- **`every`** — next due from completion time (flexible).
 - **`every!`** — fixed calendar series (strict).
-- Optional frame: `from …` / `to` / `until` / `through …` date bounds.
 
-Label tokens in quick-add are not shipped; assign labels in task detail or the Labels screen.
+Label tokens in quick-add are not shipped; use task detail or Labels.
 
 ---
 
 ## Labels
 
-Open **Labels** in the sidebar.
+**Labels** in the sidebar:
 
 | Task | Steps |
 |------|--------|
-| Create one | Name (stored lowercase) + color → **Create label** |
-| Create many | One name per line, shared color → **Create labels** |
-| Edit / delete | **✎** on a row → rename, recolor, or **Delete label** |
+| Create one | Name (lowercase) + color → **Create label** |
+| Create many | One name per line, shared color |
+| Edit / delete | **✎** → rename, recolor, delete |
 
-Deleting a label removes it from all tasks (confirmation shows task count). If the label is used, you can optionally **check other labels** to apply to those tasks before the pruned label is removed.
+Deleting a label can reassign tasks to other labels you check first.
 
-Sidebar **By label** links filter the task list. Toggle labels on tasks in the detail panel.
+Toggle labels on tasks in the detail panel; **By label** filters lists.
 
 ---
 
 ## Calendar
 
-Open **Calendar** in the sidebar. Switch **Day** / **Week** and move with previous/next controls. Titles include day-of-year and ISO week numbers.
+Open **Calendar**. **Day** / **Week**, prev/next/**Today**. Titles include day-of-year and ISO week numbers.
 
-**Due markers** — Tasks with a due date/time appear as colored ticks on the grid (project color).
+### Due markers and blocks
 
-**Scheduled blocks** — Manual time blocks you place on the calendar:
+- **Due markers** — colored ticks for tasks with due date/time.
+- **Scheduled blocks** — time you (or **Update Schedule**) placed on the grid.
 
-1. **Click an empty time slot** → modal opens with start/end prefilled.
-2. Pick a **task**, adjust times, optionally check **Pinned** (stored for future scheduler; no auto-move today).
-3. **Save** creates the block. Blocks appear in **Today** / **Upcoming** when they overlap those windows.
+**Create a block:**
 
-**Edit or remove:** Click a block or due marker → modal → change times/task or **Delete**.
+1. **Click an empty slot** → modal with start/end.
+2. Choose task, times, optional **Pinned** (replan skips pinned blocks).
+3. **Save**.
 
-Calendar **drag** to move or resize is not shipped — use the modal. Month view is not shipped. No external calendar events yet.
+**Edit/remove:** click block or marker → modal → change or delete.
+
+**Bundles:** multi-task blocks from batch **Block as bundle** or bundle schedule style. Opening a bundle block can **Release remainder** when a task completed early — frees unused time for replan.
+
+**Clear unpinned** (toolbar) removes unpinned blocks in the visible day or week (confirm). Pinned blocks stay.
+
+### Drag and drop
+
+| Gesture | Where |
+|---------|--------|
+| **⠿ handle** on a task row | Drag onto calendar grid → creates a block at drop time (uses task duration) |
+| **Block / due marker** | Drag to move; drag edges to resize (desktop day/week; narrow screens may prefer the modal) |
+
+### Update Schedule
+
+Toolbar **Update Schedule** runs the fuzzy planner: places eligible tasks into open time using Time Maps, workday settings, and task metadata. **Manual**, **bundle**, and pinned blocks are respected per rules in Settings and task schedule style.
+
+When replan finishes, a toast summarizes moves and any **overbooked** count.
+
+### Scheduler vs calendar conflicts
+
+Two different signals — do not conflate them:
+
+| Signal | Meaning | Where |
+|--------|---------|--------|
+| **Overbooked** badge | Planner could not fit remaining work before a **deadline** | Task list row; filter **Overbooked only** in list header; task detail scheduling note |
+| **Schedule conflict** banner | Two or more **blocks/busy events overlap** in the visible range | Calendar toolbar count; conflicting items highlighted on the grid |
+
+Fix overbooking by extending deadline, reducing duration, clearing blocks, or running **Update Schedule** again after changes. Fix overlaps by moving/resizing blocks or clearing one side.
+
+External **busy** time from linked Google or Microsoft calendars appears as read-only busy blocks (configure under **Settings → Calendar accounts**). See [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md) for Entra setup.
 
 ---
 
 ## Recurrence
 
-Set recurrence when creating (quick-add) or in **Task details → Recurrence**:
+In quick-add or **Task details → Recurrence**:
 
 | Field | Purpose |
 |-------|---------|
 | **Pattern** | e.g. `every monday, wednesday` or `every! 2 weeks` |
-| **From / Until** | Optional inclusive date frame |
+| **From / Until** | Optional date frame |
 
-Click **Save recurrence**. **Clear** removes the rule.
+**Save recurrence** / **Clear**.
 
-When you **complete** a recurring task:
-
-- **`every`** — next due is computed from completion time.
-- **`every!`** — next due follows the fixed schedule.
-- When no next occurrence remains inside the frame, completion finishes the task normally.
-
-To stop an unbounded series early: **Clear** recurrence, then complete.
+On complete: **`every`** slides from completion; **`every!`** follows fixed dates. Clear recurrence to finish early.
 
 ---
 
 ## Reminders
 
-In **Task details → Reminders**:
+**Task details → Reminders:**
 
-1. Set **When** (date and time).
-2. Choose **Channel**:
-   - **In-app toast** — banner inside thePlan while you are signed in
-   - **Browser notification** — OS notification (requires permission)
-3. Click **Add reminder**.
+1. **When** (date/time).
+2. **Channel:** in-app toast and/or browser notification (allow permission when prompted).
 
-For browser notifications, click **Enable browser notifications** when prompted (or allow in browser site settings).
+While signed in, the app polls about every **30 seconds** (and on tab focus). **Remove** clears upcoming rows.
 
-While signed in, the app polls for due reminders about every **30 seconds** (and when you refocus the tab). Fired reminders show a toast; browser-channel reminders also raise a system notification, then mark as delivered.
+Location/mobile push not shipped.
 
-Remove upcoming reminders with **Remove** on each row.
+---
 
-Location reminders and push/mobile are not shipped.
+## Assist and Outline import
+
+### Assist
+
+Top bar **Assist** → describe work in plain language → **Propose** → edit/remove rows → **Approve**.
+
+- Supported actions today: **create task**, **create project** (optional epic, color).
+- Always human confirm; never silent apply.
+- Ollama down → Assist errors softly; normal CRUD still works.
+- “Schedule at …” in Assist means task **due**, not a calendar block.
+
+Reachability: **Settings → Assist**. Full setup: [SLM-ASSIST.md](./SLM-ASSIST.md). Agents use [CLI.md](./CLI.md) (`assist propose` / `assist apply`).
+
+### Outline (Theme F)
+
+Top bar **Outline** (beside Assist) → choose template → paste or upload JSON → propose → review → approve. Builds epic → projects → sections → tasks. Details: [OUTLINE-INGEST.md](./OUTLINE-INGEST.md).
 
 ---
 
 ## Search
 
-Press **/** or use the top-bar search box. Results match task title and description; select a row to open task detail.
+**/** or the search box — matches title and description; pick a row to open detail.
 
 ---
 
-## Settings and themes
+## Settings (highlights)
 
-**Settings** (sidebar footer) opens a modal:
+**Settings** (sidebar gear):
 
-### Theme
+| Section | Purpose |
+|---------|---------|
+| **Account** | Display name, email, password (all users) |
+| **Theme / custom colors** | Nine presets + optional hex overrides (browser localStorage) |
+| **Scheduling defaults** | Timezone, locale, workday/workweek, default duration, default schedule style, focus windows hook |
+| **Calendar display** | 24h vs 6–22, overlay preferences |
+| **Time Maps** | When you may be scheduled (tiers for Update Schedule) |
+| **Plans** | Named soft frames with optional soft targets |
+| **Calendar accounts** | Google / Microsoft connect for busy overlay |
+| **Assist** | Status / reachability |
+| **Household** | Admin user management |
 
-Nine presets: Dark, Solarized Dark, Light, Solarized Light, Black, Forest, Midnight, Amethyst, Garnet.
+Save scheduling defaults explicitly when the form shows **Save** (dirty state).
 
-### Custom colors
+---
 
-Optional hex overrides for background, panel, text, muted text, and accent. **Reset overrides** clears them. Choices persist in browser local storage (per browser, not synced across devices).
+## Trash and Archived
 
-### Household
+### Trash
 
-Visible only to **admin** accounts — see [Household accounts](#household-accounts-admin).
+**Sidebar → Trash** lists soft-deleted tasks with deleted timestamp.
 
-Entity color custom hex pickers on epics/projects/labels use preset swatches today; full `#RRGGBB` pickers on entities are deferred.
+| Action | Effect |
+|--------|--------|
+| **Restore** | Returns task to normal lists |
+| **Empty trash** | Hard-delete everything in trash (confirm) |
+| **Purge older than N days** | Hard-delete only items older than threshold |
+
+No background auto-purge — clean up manually. Subtasks deleted with a parent appear in trash together.
+
+### Archived
+
+**Sidebar → Archived** lists archived epics and projects. **Unarchive** returns them to the sidebar. Tasks in archived projects stay in the database; unarchive to work them normally.
 
 ---
 
 ## Keyboard shortcuts
 
-Press **?** anywhere (outside text fields) for the overlay, or use:
+Press **?** (outside text fields) for the overlay:
 
 | Keys | Action |
 |------|--------|
 | **Q** or **Ctrl+K** | Focus quick-add |
 | **/** | Focus search |
-| **Ctrl+Z** | Undo last action |
-| **J** / **K** or **↑** / **↓** | Move task focus in lists |
+| **Ctrl+Z** | Undo |
+| **J** / **K** or **↑** / **↓** | Move focus in lists |
 | **Enter** | Open focused task |
 | **X** or **Space** | Complete / uncomplete focused task |
-| **?** | Toggle shortcuts help |
+| **?** | Shortcuts help |
 | **Esc** | Close modals |
 
 ---
 
 ## Tips for daily use
 
-1. **Use :8080** after Compose starts; bookmark it on each household device.
-2. **Today** is your dashboard — due dates plus anything you blocked on the calendar for today count.
-3. **Inbox** is for capture; move tasks to projects when you know where they belong.
-4. **Passphrases** — a long memorable sentence is fine (12+ characters).
-5. **Back up** before upgrades: run the backup script or pg_dump one-liner above.
-6. **On a phone:** use the tunnel HTTPS URL; open the ☰ menu for views/projects. Task details fill the screen — close with ×. Calendar stays on **Day** mode on small screens.
-7. **Remote access** (Cloudflare Tunnel / Access) is documented for operators in [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md).
-
----
-
-## Wave 1.5 / next (brief)
-
-Wave **1.5 exited 2026-08-10** — [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md). W1.6 phone UI included.
-
-**Next:** Wave **2a** (Google Calendar) is in progress — then Scheduler (W2b). Everything else is W3+.
+1. Bookmark **http://localhost:8080** (or your tunnel URL) on each device — not :8000.
+2. **Today** = due today plus blocks overlapping today.
+3. Capture in **Inbox**; batch-move to projects when ready.
+4. Use **Update Schedule** after changing Time Maps, deadlines, or clearing unpinned blocks.
+5. Watch **Overbooked** in lists vs **conflicts** on Calendar — different problems.
+6. Back up before upgrades (`backup-postgres` script or pg_dump).
+7. Remote tunnel ops: [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md).
 
 ---
 
@@ -356,11 +445,13 @@ Wave **1.5 exited 2026-08-10** — [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md). W1.6 
 
 | Doc | Contents |
 |-----|----------|
-| [README.md](../README.md) | Compose quick start, dev setup, backup, tunnel |
-| [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Remote access via Cloudflare Tunnel / Access |
+| [README.md](../README.md) | Compose, dev setup, backup |
+| [CLI.md](./CLI.md) | Agent CLI and host recovery |
+| [SLM-ASSIST.md](./SLM-ASSIST.md) | Assist / Ollama |
+| [OUTLINE-INGEST.md](./OUTLINE-INGEST.md) | Theme F outlines |
+| [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest UI tour |
+| [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Remote access |
+| [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md) | Microsoft calendar OAuth |
 | [02-functional-spec.md](./02-functional-spec.md) | Full behavior spec |
-| [03-feature-catalog.md](./03-feature-catalog.md) | Feature list by wave |
-| [07-wave-roadmap.md](./07-wave-roadmap.md) | What ships next |
-| [WAVE-1-EXIT.md](./WAVE-1-EXIT.md) | MVP exit record |
-| [WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md) | Wave 1.5 exit record |
+| [07-wave-roadmap.md](./07-wave-roadmap.md) | Roadmap |
 | [CHANGELOG.md](../CHANGELOG.md) | Release notes |
