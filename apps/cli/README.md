@@ -72,13 +72,20 @@ Exactly one password mode is required:
 
 - `--generate` — service generates a temporary password (returned as `temporary_password` in JSON)
 - `--password X` — set explicit password (never logged)
-- `--password-stdin` — read password from stdin (never logged)
+- `--password-stdin` — read from a **pipe/redirect** (not a bare TTY). On a terminal without a pipe it fails fast; use `--interactive` for a hidden prompt, or `--password`.
 
 ```bash
 theplan auth reset-password --user trish --generate
 theplan auth reset-password --user local@localhost --password-stdin <<'EOF'
 MyLongSecurePassphrase!!
 EOF
+```
+
+PowerShell (pipe until EOF — do not type after the command and wait):
+
+```powershell
+"MyLongSecurePassphrase!!" | theplan auth reset-password --user trish --password-stdin
+theplan --interactive auth reset-password --user trish --password-stdin   # hidden prompt
 ```
 
 Example success (`--generate`):

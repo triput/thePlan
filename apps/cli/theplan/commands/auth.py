@@ -34,7 +34,7 @@ def register_auth(sub: argparse._SubParsersAction) -> None:
     mode.add_argument(
         "--password-stdin",
         action="store_true",
-        help="Read new password from stdin (never logged)",
+        help="Read new password from a pipe/redirect (or --interactive prompt)",
     )
 
     login = auth_sub.add_parser("login", help="Log in via API (session cookie file)")
@@ -44,7 +44,7 @@ def register_auth(sub: argparse._SubParsersAction) -> None:
     login_mode.add_argument(
         "--password-stdin",
         action="store_true",
-        help="Read password from stdin",
+        help="Read password from a pipe/redirect (or --interactive prompt)",
     )
 
     auth_sub.add_parser("logout", help="Log out via API and clear session file")

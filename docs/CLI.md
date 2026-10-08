@@ -83,7 +83,7 @@ HTTP status mapping for M2 calls is implemented in the CLI client; see [apps/cli
 | `theplan version` | CLI identity (`version`, `name`) |
 | `theplan auth reset-password` | **Host-local:** DB session via `app.db`, `reset_password_for_recovery` — selects user by username or email, sets password, `must_change_password`, **increments `session_epoch`** to revoke existing sessions |
 
-Password mode (exactly one): `--generate`, `--password`, or `--password-stdin`. Documented examples in [apps/cli/README.md](../apps/cli/README.md).
+Password mode (exactly one): `--generate`, `--password`, or `--password-stdin`. `--password-stdin` requires a pipe/redirect (or global `--interactive` for a hidden prompt); a bare TTY fails fast instead of hanging. Examples in [apps/cli/README.md](../apps/cli/README.md).
 
 ### M2 — HTTP via API (session file)
 

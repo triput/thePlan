@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -8,12 +9,41 @@ from typing import Any
 from theplan.errors import CliError
 
 
-def read_secret_stdin(*, label: str = "password") -> str:
-    raw = sys.stdin.read()
+def _interactive_allowed() -> bool:
+    return os.environ.get("THEPLAN_CLI_INTERACTIVE") == "1"
+
+
+def _strip_one_trailing_newline(raw: str) -> str:
     if raw.endswith("\n"):
         raw = raw[:-1]
     if raw.endswith("\r"):
         raw = raw[:-1]
+    return raw
+
+
+def read_secret_stdin(*, label: str = "password") -> str:
+    """Read a secret from stdin.
+
+    Piped/redirected stdin: read until EOF (agents/scripts).
+    TTY: only with ``--interactive`` (getpass); otherwise fail fast instead of
+    hanging forever waiting for EOF after a typed line + Enter.
+    """
+    if sys.stdin.isatty():
+        if not _interactive_allowed():
+            raise CliError(
+                code="INVALID_USAGE",
+                message=(
+                    f"--password-stdin needs a pipe/redirect, or pass --interactive "
+                    f"for a hidden prompt. PowerShell example: "
+                    f'"your passphrase here" | theplan auth … --password-stdin'
+                ),
+                exit_code=1,
+            )
+        import getpass
+
+        raw = getpass.getpass(f"{label}: ")
+    else:
+        raw = _strip_one_trailing_newline(sys.stdin.read())
     if not raw:
         raise CliError(
             code="INVALID_PASSWORD",

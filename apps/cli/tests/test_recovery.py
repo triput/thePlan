@@ -90,6 +90,31 @@ def test_reset_password_rejects_empty_stdin(monkeypatch: pytest.MonkeyPatch) -> 
     assert exc.value.exit_code == 1
 
 
+def test_reset_password_stdin_tty_without_interactive_fails_fast(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Tty:
+        def isatty(self) -> bool:
+            return True
+
+        def read(self) -> str:
+            raise AssertionError("must not block on TTY read")
+
+    monkeypatch.delenv("THEPLAN_CLI_INTERACTIVE", raising=False)
+    monkeypatch.setattr("sys.stdin", _Tty())
+    with pytest.raises(CliError) as exc:
+        run_reset_password(
+            object(),
+            user="trish",
+            generate=False,
+            password=None,
+            password_stdin=True,
+        )
+    assert exc.value.code == "INVALID_USAGE"
+    assert exc.value.exit_code == 1
+    assert "pipe" in exc.value.message.lower() or "interactive" in exc.value.message.lower()
+
+
 def test_reset_password_stdin_strips_crlf(monkeypatch: pytest.MonkeyPatch) -> None:
     seen: dict[str, object] = {}
 
