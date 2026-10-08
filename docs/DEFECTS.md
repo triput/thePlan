@@ -855,10 +855,10 @@ Detail drawer is **long** (recurrence, deps, scheduling, labels, Time Map, …).
 | Field | Value |
 |-------|--------|
 | **Severity** | **P2** (operator can lose access to the product; data remains intact) |
-| **Status** | Open |
+| **Status** | Closed — shipped 2026-10-08 (Quality green: session_epoch 28 + CLI 22) |
 | **Found** | 2026-09-18 |
-| **Surface** | Sign-in, auth service, operator tooling, session management |
-| **Wave** | Backlog — account recovery |
+| **Surface** | Sign-in, auth service, operator tooling, session management, agent CLI |
+| **Wave** | Account recovery + agent CLI (DEF-027) |
 
 ### Symptom / ask
 
@@ -869,13 +869,22 @@ has forgotten the password and cannot sign in.
 The product needs a recovery path that fits its local-first deployment model. Recovery
 must not assume outbound email is configured or available.
 
-### Current behavior
+### Current behavior (pre-fix)
 
 - `PATCH /auth/me` changes the current user's password after sign-in.
 - An administrator can set another user's password and force `must_change_password`.
-- There is no supported recovery flow for a locked-out sole operator.
+- There was no supported recovery flow for a locked-out sole operator.
 
-### Recommended first cut
+### Fix shipped (2026-10-08)
+
+1. **`users.session_epoch`** — Alembic `017_session_epoch`; integer bumped on password change and host recovery; session cookie stores epoch at login; `get_current_user` and the password-change gate reject stale epochs ([`apps/api/app/api/deps.py`](../apps/api/app/api/deps.py), [`auth_users.bump_session_epoch`](../apps/api/app/services/auth_users.py)).
+2. **Host-local recovery** — `theplan auth reset-password` calls `reset_password_for_recovery` (sets hash, `must_change_password`, bumps epoch). Operator docs: [CLI.md](./CLI.md), [apps/cli/README.md](../apps/cli/README.md).
+3. **Agent CLI M2** — `auth login|logout|me`, `status`, `tasks list|get|create|patch`, `assist propose|apply` (JSON-default HTTP client).
+4. **Automated tests** — [`apps/api/tests/test_session_epoch.py`](../apps/api/tests/test_session_epoch.py); [`apps/cli/tests/`](../apps/cli/tests/) (exit codes, recovery stdin CRLF, API status mapping).
+
+**Quality:** Renee green 2026-10-08 — auth/session_epoch **28/28**, CLI **22/22**.
+
+### Recommended first cut (original spec — largely met)
 
 Provide an operator-controlled host command or script that:
 

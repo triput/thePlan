@@ -16,6 +16,7 @@ from app.models import User
 from app.services.auth_users import get_user_by_id, is_setup_required
 
 SESSION_USER_ID_KEY = "user_id"
+SESSION_EPOCH_KEY = "session_epoch"
 
 
 def _parse_session_user_id(request: Request) -> uuid.UUID | None:
@@ -28,8 +29,25 @@ def _parse_session_user_id(request: Request) -> uuid.UUID | None:
         return None
 
 
-def set_session_user(request: Request, user_id: uuid.UUID) -> None:
+def _parse_session_epoch(request: Request) -> int | None:
+    raw = request.session.get(SESSION_EPOCH_KEY)
+    if raw is None or isinstance(raw, bool):
+        return None
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+def session_epoch_matches(request: Request, user: User) -> bool:
+    epoch = _parse_session_epoch(request)
+    return epoch is not None and epoch == user.session_epoch
+
+
+def set_session_user(request: Request, user_id: uuid.UUID, *, session_epoch: int) -> None:
+    """Store the signed session cookie payload: user id plus epoch."""
     request.session[SESSION_USER_ID_KEY] = str(user_id)
+    request.session[SESSION_EPOCH_KEY] = int(session_epoch)
 
 
 def clear_session_user(request: Request) -> None:
@@ -49,7 +67,7 @@ def get_current_user_optional(
         .filter(User.id == user_id)
         .one_or_none()
     )
-    if user is None or user.is_disabled:
+    if user is None or user.is_disabled or not session_epoch_matches(request, user):
         return None
     return user
 

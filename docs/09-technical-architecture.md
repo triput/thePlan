@@ -175,6 +175,7 @@ flowchart LR
 - Local accounts + session cookies; household admin patterns per W1.5 / ADR-007.
 - **Single-user personal product** tenancy model ([ADR-002](./adr/ADR-002-single-user.md)) with multi-account household capability for family use—not a public multi-tenant SaaS.
 - Ownership checks on every mutating path (`owner_id`).
+- **Session revocation (DEF-027):** each user has a `session_epoch` counter in Postgres; login writes the current epoch into the session cookie, and auth dependencies reject cookies whose epoch no longer matches (password change and host recovery bump the counter). Locked-out operators reset via host-local **`theplan auth reset-password`** ([CLI.md](./CLI.md), package `apps/cli`) without hand-editing SQL or assuming email delivery.
 
 ---
 
@@ -272,6 +273,7 @@ flowchart TB
 | Refactor cut list | [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md) |
 | Dependency hygiene | [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md), [HYGIENE-W3.md](./HYGIENE-W3.md) |
 | Ops | [USER-GUIDE.md](./USER-GUIDE.md), [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md), [SLM-ASSIST.md](./SLM-ASSIST.md), [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [DESKTOP.md](./DESKTOP.md) |
+| Agent / automation CLI | [CLI.md](./CLI.md) — JSON contract, exit codes, M1 recovery + M2 HTTP commands |
 | Open polish | [DEFECTS.md](./DEFECTS.md) |
 
 ---

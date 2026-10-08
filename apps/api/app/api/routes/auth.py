@@ -24,6 +24,7 @@ from app.schemas import (
 from app.services.auth_users import (
     assert_email_available,
     authenticate_user,
+    bump_session_epoch,
     claim_bootstrap_user,
     create_household_user,
     is_setup_required,
@@ -47,7 +48,7 @@ def auth_register(
         password=body.password,
         display_name=body.display_name,
     )
-    set_session_user(request, user.id)
+    set_session_user(request, user.id, session_epoch=user.session_epoch)
     return UserOut.model_validate(user)
 
 
@@ -62,7 +63,7 @@ def auth_login(
     user = authenticate_user(db, body.identifier, body.password)
     if user is None:
         raise ApiError(401, "Invalid credentials", "INVALID_CREDENTIALS")
-    set_session_user(request, user.id)
+    set_session_user(request, user.id, session_epoch=user.session_epoch)
     return UserOut.model_validate(user)
 
 
@@ -89,15 +90,19 @@ def auth_me(
 @router.patch("/me", response_model=UserOut)
 def auth_me_update(
     body: AuthMeUpdate,
+    request: Request,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> UserOut:
     updates = body.model_dump(exclude_unset=True)
+    password_changed = False
 
     if "password" in updates:
         validate_password(updates["password"])
         user.password_hash = hash_password(updates["password"])
         user.must_change_password = False
+        bump_session_epoch(user)
+        password_changed = True
 
     if "email" in updates:
         user.email = assert_email_available(
@@ -111,6 +116,9 @@ def auth_me_update(
 
     db.commit()
     db.refresh(user)
+    if password_changed:
+        # Other devices keep the old epoch and die. This browser stays signed in.
+        set_session_user(request, user.id, session_epoch=user.session_epoch)
     return UserOut.model_validate(user)
 
 
@@ -144,6 +152,7 @@ def create_user(
 def update_user(
     user_id: UUID,
     body: AuthUserAdminUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     admin: User = Depends(get_admin_user),
 ) -> AuthUserAdminOut:
@@ -160,6 +169,7 @@ def update_user(
     if new_password is not None:
         validate_password(new_password)
         user.password_hash = hash_password(new_password)
+        bump_session_epoch(user)
 
     if "email" in updates:
         user.email = assert_email_available(
@@ -179,4 +189,6 @@ def update_user(
 
     db.commit()
     db.refresh(user)
+    if new_password is not None and user.id == admin.id:
+        set_session_user(request, user.id, session_epoch=user.session_epoch)
     return AuthUserAdminOut.model_validate(user)

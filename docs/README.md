@@ -48,6 +48,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 
 | Document | Description |
 |----------|-------------|
+| [CLI.md](./CLI.md) | Agent CLI — install, env vars, JSON/exit codes, M1 reset-password, M2 auth/tasks/assist/status |
 | [dev/FILE-HEADERS.md](./dev/FILE-HEADERS.md) | Module/file header convention (Python docstrings + TS/TSX info blocks) |
 
 ## SQL & ADRs

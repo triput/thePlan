@@ -56,6 +56,10 @@ class User(Base, TimestampMixin):
     must_change_password: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false"
     )
+    # Bumped to revoke every session cookie minted at an older epoch.
+    session_epoch: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0", default=0
+    )
 
     settings: Mapped["UserSettings"] = relationship(back_populates="owner", uselist=False)
     saved_filters: Mapped[list["SavedFilter"]] = relationship(back_populates="owner")

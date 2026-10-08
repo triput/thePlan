@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import logging
 import re
+import secrets
 import uuid
 
 from sqlalchemy.orm import Session
@@ -10,6 +12,8 @@ from app.bootstrap import BOOTSTRAP_USER_ID, SYSTEM_FILTERS
 from app.models import SavedFilter, User, UserSettings
 from app.services.focus_windows import ensure_default_focus_windows
 from app.services.passwords import hash_password
+
+logger = logging.getLogger(__name__)
 
 USERNAME_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,62}[a-z0-9]$|^[a-z0-9]$")
 PASSWORD_MIN_LEN = 12
@@ -190,6 +194,79 @@ def authenticate_user(db: Session, identifier: str, password: str) -> User | Non
 
 def get_user_by_id(db: Session, user_id: uuid.UUID) -> User | None:
     return db.get(User, user_id)
+
+
+def get_user_by_identifier(db: Session, identifier: str) -> User | None:
+    """Username first, then email. Both sides are strip+lowercase."""
+    ident = identifier.strip().lower()
+    if not ident:
+        return None
+    user = db.query(User).filter(User.username == ident).one_or_none()
+    if user is not None:
+        return user
+    return db.query(User).filter(User.email == ident).one_or_none()
+
+
+def bump_session_epoch(user: User) -> int:
+    """Invalidate every session cookie minted for an older epoch.
+
+    Callers that should keep the current browser signed in must then
+    ``set_session_user`` with the returned epoch. Recovery does not.
+    """
+    user.session_epoch = int(user.session_epoch) + 1
+    return user.session_epoch
+
+
+def generate_temporary_password() -> str:
+    """URL-safe secret long enough for validate_password (12–128)."""
+    password = secrets.token_urlsafe(16)
+    if len(password) < PASSWORD_MIN_LEN:
+        password = secrets.token_urlsafe(24)
+    validate_password(password)
+    return password
+
+
+def reset_password_for_recovery(
+    db: Session,
+    identifier: str,
+    *,
+    password: str | None = None,
+    generate: bool = False,
+) -> tuple[User, str | None]:
+    """Host-authority password reset. Revokes sessions via session_epoch.
+
+    Looks up by username or email (normalized). When ``generate`` is true,
+    a temporary password is created and returned and any supplied password
+    is ignored. When ``generate`` is false, ``password`` is required and the
+    temporary return value is None.
+
+    Sets password_hash, must_change_password, and increments session_epoch.
+    Logs the user id only — never the secret or the identifier.
+    Raises ApiError 404 USER_NOT_FOUND when the account does not exist
+    (host CLI authority; this is not a public endpoint).
+    """
+    user = get_user_by_identifier(db, identifier)
+    if user is None:
+        raise ApiError(404, "User not found", "USER_NOT_FOUND")
+
+    temporary_password: str | None
+    if generate:
+        temporary_password = generate_temporary_password()
+        chosen = temporary_password
+    elif password is not None:
+        validate_password(password)
+        chosen = password
+        temporary_password = None
+    else:
+        raise ApiError(422, "Password or generate is required", "INVALID_PASSWORD")
+
+    user.password_hash = hash_password(chosen)
+    user.must_change_password = True
+    bump_session_epoch(user)
+    db.commit()
+    db.refresh(user)
+    logger.info("password recovery for user_id=%s", user.id)
+    return user, temporary_password
 
 
 def assert_email_available(

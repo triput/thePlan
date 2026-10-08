@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from app.api.deps import _parse_session_user_id
+from app.api.deps import _parse_session_user_id, session_epoch_matches
 from app.db import SessionLocal
 from app.models import User
 
@@ -41,7 +41,12 @@ class PasswordChangeGateMiddleware(BaseHTTPMiddleware):
         db = SessionLocal()
         try:
             user = db.get(User, user_id)
-            if user is not None and not user.is_disabled and user.must_change_password:
+            if (
+                user is not None
+                and not user.is_disabled
+                and session_epoch_matches(request, user)
+                and user.must_change_password
+            ):
                 return JSONResponse(
                     status_code=403,
                     content={
