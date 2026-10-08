@@ -1,928 +1,214 @@
-from datetime import date, datetime, time
-from typing import Annotated, Any, Literal
-from uuid import UUID
+"""Pydantic request/response models — domain modules with barrel re-exports."""
 
-from pydantic import (
-    AliasChoices,
-    BaseModel,
-    BeforeValidator,
-    ConfigDict,
-    EmailStr,
-    Field,
-    field_serializer,
-    model_validator,
+from app.schemas.assist import (
+    AssistAction,
+    AssistApplyRequest,
+    AssistApplyResponse,
+    AssistApplyResultItem,
+    AssistCreateProjectAction,
+    AssistCreateTaskAction,
+    AssistProposeRequest,
+    AssistProposeResponse,
+    AssistStatusOut,
+)
+from app.schemas.auth import (
+    AuthLoginBody,
+    AuthMeUpdate,
+    AuthRegisterBody,
+    AuthUserAdminCreate,
+    AuthUserAdminOut,
+    AuthUserAdminUpdate,
+    UserOut,
+)
+from app.schemas.calendar import (
+    BundleMetaOut,
+    CalendarAccountOut,
+    CalendarAccountUpdate,
+    CalendarConflictOut,
+    CalendarConflictsResult,
+    CalendarSubscriptionOut,
+    CalendarSubscriptionPutItem,
+    CalendarSubscriptionsPut,
+    CalendarSyncResult,
+    ClearUnpinnedBlocksBody,
+    ClearUnpinnedBlocksOut,
+    ExternalCalendarEventOut,
+    GoogleCalendarListItem,
+    ReleaseRemainderBody,
+    ReleaseRemainderOut,
+    ScheduleRunOut,
+    ScheduledBlockBundleCreate,
+    ScheduledBlockCreate,
+    ScheduledBlockOut,
+    ScheduledBlockUpdate,
+)
+from app.schemas.common import PaginatedResponse, ReorderItem, ReorderRequest, TimeField
+from app.schemas.hierarchy import (
+    EpicCreate,
+    EpicDemoteToProjectBody,
+    EpicDemoteToProjectOut,
+    EpicOut,
+    EpicUpdate,
+    FocusWindowCreate,
+    FocusWindowOut,
+    FocusWindowUpdate,
+    PlanCreate,
+    PlanOut,
+    PlanUpdate,
+    ProjectCreate,
+    ProjectOut,
+    ProjectPromoteToEpicOut,
+    ProjectUpdate,
+    SectionCreate,
+    SectionOut,
+    SectionUpdate,
+    TaskPromoteToProjectBody,
+    TaskPromoteToProjectOut,
+    TimeMapBandIn,
+    TimeMapBandOut,
+)
+from app.schemas.labels import (
+    LabelBatchCreate,
+    LabelBatchCreateItem,
+    LabelBatchCreateResponse,
+    LabelBatchSkipped,
+    LabelCreate,
+    LabelDeleteBody,
+    LabelOut,
+    LabelUpdate,
+)
+from app.schemas.outlines import (
+    OutlineAction,
+    OutlineApplyRequest,
+    OutlineApplyResponse,
+    OutlineApplyResultItem,
+    OutlineAttachUnder,
+    OutlineCreateEpicAction,
+    OutlineCreateProjectAction,
+    OutlineCreateSectionAction,
+    OutlineCreateTaskAction,
+    OutlineProposeRequest,
+    OutlineProposeResponse,
+    OutlineProposeSummary,
+)
+from app.schemas.search import SearchLabelOut, SearchTaskOut
+from app.schemas.settings import UserSettingsOut, UserSettingsUpdate
+from app.schemas.tasks import (
+    QuickAddParseRequest,
+    QuickAddParseResponse,
+    RecurrenceOut,
+    RecurrenceUpsert,
+    ReminderCreate,
+    ReminderDueOut,
+    ReminderOut,
+    ReminderUpdate,
+    TaskBatchUpdate,
+    TaskBatchUpdateResponse,
+    TaskCompleteBody,
+    TaskCreate,
+    TaskOut,
+    TaskUpdate,
 )
 
-from app.models.enums import CalendarSubscriptionRole, ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority, TimeMapBandTier
-
-
-def _parse_time_value(value: object) -> time:
-    if isinstance(value, time):
-        return value
-    if isinstance(value, str):
-        parts = value.strip().split(":")
-        if len(parts) == 2:
-            hour, minute = int(parts[0]), int(parts[1])
-            return time(hour, minute)
-        if len(parts) == 3:
-            hour, minute, second = int(parts[0]), int(parts[1]), int(parts[2])
-            return time(hour, minute, second)
-    raise ValueError("Invalid time; use HH:MM or HH:MM:SS")
-
-
-TimeField = Annotated[time, BeforeValidator(_parse_time_value)]
-
-
-class UserOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    username: str | None
-    email: str
-    display_name: str | None
-    is_admin: bool = False
-    must_change_password: bool = False
-
-
-class AuthRegisterBody(BaseModel):
-    username: str = Field(min_length=1, max_length=64)
-    email: EmailStr
-    password: str = Field(min_length=12, max_length=128)
-    display_name: str | None = Field(default=None, max_length=255)
-
-
-class AuthLoginBody(BaseModel):
-    identifier: str = Field(min_length=1, max_length=255)
-    password: str = Field(min_length=1, max_length=128)
-
-
-class AuthMeUpdate(BaseModel):
-    password: str | None = Field(default=None, min_length=12, max_length=128)
-    email: EmailStr | None = None
-    display_name: str | None = Field(default=None, max_length=255)
-
-    @model_validator(mode="after")
-    def require_at_least_one_field(self) -> "AuthMeUpdate":
-        if self.password is None and self.email is None and self.display_name is None:
-            raise ValueError("At least one field is required")
-        return self
-
-
-class AuthUserAdminOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    username: str | None
-    email: str
-    display_name: str | None
-    is_admin: bool
-    is_disabled: bool
-    must_change_password: bool = False
-
-
-class AuthUserAdminCreate(BaseModel):
-    username: str = Field(min_length=1, max_length=64)
-    email: EmailStr
-    password: str = Field(min_length=12, max_length=128)
-    display_name: str | None = Field(default=None, max_length=255)
-    is_admin: bool = False
-
-
-class AuthUserAdminUpdate(BaseModel):
-    display_name: str | None = Field(default=None, max_length=255)
-    email: EmailStr | None = None
-    is_disabled: bool | None = None
-    password: str | None = Field(default=None, min_length=12, max_length=128)
-    must_change_password: bool | None = None
-
-
-class UserSettingsOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    timezone: str
-    locale: str
-    workday_minutes: int
-    workday_start_local: time
-    workweek_days: int
-    inter_block_buffer_minutes: int
-    ups_weights: dict[str, Any]
-    upcoming_horizon_days: int
-    default_estimated_duration_minutes: int
-    default_min_block_duration_minutes: int
-    default_schedule_style: ScheduleStyle
-    auto_defer_enabled: bool
-    max_auto_schedule_minutes_per_project_per_day: int | None = None
-
-    @field_serializer("workday_start_local")
-    def serialize_workday_start(self, value: time) -> str:
-        return value.strftime("%H:%M")
-
-
-class UserSettingsUpdate(BaseModel):
-    timezone: str | None = Field(default=None, min_length=1, max_length=64)
-    locale: str | None = Field(default=None, min_length=1, max_length=16)
-    workday_minutes: int | None = Field(default=None, gt=0)
-    workday_start_local: TimeField | None = None
-    workweek_days: int | None = Field(default=None, ge=1, le=7)
-    inter_block_buffer_minutes: int | None = Field(default=None, ge=0)
-    ups_weights: dict[str, Any] | None = None
-    upcoming_horizon_days: int | None = Field(default=None, ge=1)
-    default_estimated_duration_minutes: int | None = Field(default=None, gt=0)
-    default_min_block_duration_minutes: int | None = Field(default=None, gt=0)
-    default_schedule_style: ScheduleStyle | None = None
-    auto_defer_enabled: bool | None = None
-    max_auto_schedule_minutes_per_project_per_day: int | None = Field(default=None, gt=0)
-
-
-class EpicCreate(BaseModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = None
-    color_hex: str = "#6D3FC9"
-    start_date: date | None = None
-    target_date: date | None = None
-    preferred_time_window_id: UUID | None = None
-    schedule_style: ScheduleStyle | None = None
-
-
-class EpicUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    description: str | None = None
-    color_hex: str | None = None
-    start_date: date | None = None
-    target_date: date | None = None
-    sort_order: int | None = None
-    is_archived: bool | None = None
-    preferred_time_window_id: UUID | None = None
-    schedule_style: ScheduleStyle | None = None
-
-
-class EpicOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    title: str
-    description: str | None
-    color_hex: str
-    start_date: date | None
-    target_date: date | None
-    sort_order: int
-    is_archived: bool
-    preferred_time_window_id: UUID | None
-    schedule_style: ScheduleStyle | None
-
-
-class ProjectCreate(BaseModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = None
-    epic_id: UUID | None = None
-    color_hex: str = "#0A8558"
-    preferred_time_window_id: UUID | None = None
-    schedule_style: ScheduleStyle | None = None
-
-
-class ProjectUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    description: str | None = None
-    epic_id: UUID | None = None
-    color_hex: str | None = None
-    sort_order: int | None = None
-    is_archived: bool | None = None
-    preferred_time_window_id: UUID | None = None
-    schedule_style: ScheduleStyle | None = None
-
-
-class ProjectOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    title: str
-    description: str | None
-    epic_id: UUID | None
-    color_hex: str
-    sort_order: int
-    is_archived: bool
-    preferred_time_window_id: UUID | None
-    schedule_style: ScheduleStyle | None
-
-
-class ProjectPromoteToEpicOut(BaseModel):
-    """DEF-023: project kept as sole child under a new epic cloned from its meta."""
-
-    epic: EpicOut
-    project: ProjectOut
-
-
-class EpicDemoteToProjectBody(BaseModel):
-    """Optional parent for the new project shell after demoting an epic."""
-
-    target_epic_id: UUID | None = None
-
-
-class EpicDemoteToProjectOut(BaseModel):
-    """DEF-023: epic folded into a project; former child projects orphaned."""
-
-    project: ProjectOut
-    orphaned_project_ids: list[UUID]
-
-
-class TaskPromoteToProjectBody(BaseModel):
-    include_descendants: bool = True
-    epic_id: UUID | None = None
-
-
-class SectionCreate(BaseModel):
-    project_id: UUID
-    title: str = Field(min_length=1, max_length=255)
-    sort_order: int = 0
-
-
-class SectionUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=255)
-    sort_order: int | None = None
-
-
-class SectionOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    project_id: UUID
-    title: str
-    sort_order: int
-
-
-class TimeMapBandIn(BaseModel):
-    tier: TimeMapBandTier
-    start_time: TimeField
-    end_time: TimeField
-    days_of_week: int = Field(default=127, ge=1, le=127)
-    sort_order: int = 0
-
-
-class TimeMapBandOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    tier: TimeMapBandTier
-    start_time: time
-    end_time: time
-    days_of_week: int
-    sort_order: int
-
-    @field_serializer("start_time", "end_time")
-    def serialize_time(self, value: time) -> str:
-        return value.strftime("%H:%M")
-
-
-class FocusWindowCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    strict_mode: bool = False
-    bands: list[TimeMapBandIn] | None = None
-    # Legacy optional fields — synthesize one green band when bands is omitted.
-    start_time: TimeField | None = None
-    end_time: TimeField | None = None
-    days_of_week: int | None = Field(default=None, ge=1, le=127)
-    is_hard: bool | None = None
-
-
-class FocusWindowUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
-    strict_mode: bool | None = None
-    bands: list[TimeMapBandIn] | None = None
-    # Legacy optional fields for partial band updates via single green band.
-    start_time: TimeField | None = None
-    end_time: TimeField | None = None
-    days_of_week: int | None = Field(default=None, ge=1, le=127)
-    is_hard: bool | None = None
-
-
-class FocusWindowOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    name: str
-    strict_mode: bool
-    bands: list[TimeMapBandOut]
-    created_at: datetime
-    updated_at: datetime
-
-
-class PlanCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    soft_target_at: datetime | None = None
-
-
-class PlanUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
-    soft_target_at: datetime | None = None
-
-
-class PlanOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    name: str
-    soft_target_at: datetime | None
-    created_at: datetime
-    updated_at: datetime
-
-
-class TaskCreate(BaseModel):
-    title: str = Field(min_length=1, max_length=500)
-    description: str | None = None
-    project_id: UUID | None = None
-    section_id: UUID | None = None
-    parent_task_id: UUID | None = None
-    priority: TaskPriority = TaskPriority.p4
-    due_at: datetime | None = None
-    deadline_at: datetime | None = None
-    soft_target_at: datetime | None = None
-    # Omit or null to use user_settings.default_estimated_duration_minutes; explicit value wins.
-    estimated_duration_minutes: int | None = None
-    preferred_time_window_id: UUID | None = None
-    plan_id: UUID | None = None
-    schedule_style: ScheduleStyle | None = None
-    label_ids: list[UUID] = Field(default_factory=list)
-    recurrence: "RecurrenceUpsert | None" = None
-
-
-class RecurrenceOut(BaseModel):
-    rrule: str
-    is_fixed: bool
-    timezone: str
-    starts_on: date | None = None
-    ends_on: date | None = None
-    display: str
-
-
-class RecurrenceUpsert(BaseModel):
-    rrule: str | None = None
-    is_fixed: bool = False
-    timezone: str | None = None
-    starts_on: date | None = None
-    ends_on: date | None = None
-    text: str | None = Field(default=None, min_length=1, max_length=255)
-
-
-class ReminderCreate(BaseModel):
-    fire_at: datetime
-    channel: ReminderChannel = ReminderChannel.in_app
-
-
-class ReminderUpdate(BaseModel):
-    fire_at: datetime | None = None
-    channel: ReminderChannel | None = None
-
-
-class ReminderOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    task_id: UUID
-    fire_at: datetime
-    channel: ReminderChannel
-    is_fired: bool
-    created_at: datetime
-
-
-class ReminderDueOut(ReminderOut):
-    task_title: str
-
-
-class TaskUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=500)
-    description: str | None = None
-    project_id: UUID | None = None
-    section_id: UUID | None = None
-    parent_task_id: UUID | None = None
-    priority: TaskPriority | None = None
-    due_at: datetime | None = None
-    deadline_at: datetime | None = None
-    soft_target_at: datetime | None = None
-    estimated_duration_minutes: int | None = None
-    preferred_time_window_id: UUID | None = None
-    plan_id: UUID | None = None
-    schedule_style: ScheduleStyle | None = None
-    sort_order: int | None = None
-    label_ids: list[UUID] | None = None
-
-
-class TaskCompleteBody(BaseModel):
-    # None = unspecified (409 OPEN_CHILDREN when open kids exist).
-    # False = complete parent only; True = bulk-complete descendants.
-    # force_parent_only remains supported for the current web client.
-    bulk_children: bool | None = None
-    force_parent_only: bool = False
-
-
-class TaskOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    title: str
-    description: str | None
-    project_id: UUID | None
-    section_id: UUID | None
-    parent_task_id: UUID | None
-    nesting_level: int
-    priority: TaskPriority
-    due_at: datetime | None
-    deadline_at: datetime | None
-    soft_target_at: datetime | None
-    estimated_duration_minutes: int
-    preferred_time_window_id: UUID | None = None
-    plan_id: UUID | None = None
-    plan_name: str | None = None
-    schedule_style: ScheduleStyle | None = None
-    is_completed: bool
-    completed_at: datetime | None
-    deleted_at: datetime | None = None
-    status: ScheduleStatus
-    sort_order: int
-    label_ids: list[UUID] = Field(default_factory=list)
-    open_subtask_count: int = 0
-    recurrence: RecurrenceOut | None = None
-    recurrence_advanced: bool = False
-    previous_due_at: datetime | None = None
-
-
-class TaskPromoteToProjectOut(BaseModel):
-    """DEF-023: task (+ optional subtree) moved into a new project."""
-
-    project: ProjectOut
-    task: TaskOut
-
-
-class TaskBatchUpdate(BaseModel):
-    """Apply the same partial patch (and/or attach labels) to many owned tasks."""
-
-    task_ids: list[UUID] = Field(min_length=1, max_length=500)
-    patch: TaskUpdate = Field(default_factory=TaskUpdate)
-    add_label_ids: list[UUID] | None = None
-
-    @model_validator(mode="after")
-    def require_patch_or_labels(self) -> "TaskBatchUpdate":
-        if not self.patch.model_dump(exclude_unset=True) and not self.add_label_ids:
-            raise ValueError("Provide patch fields and/or add_label_ids")
-        return self
-
-
-class TaskBatchUpdateResponse(BaseModel):
-    items: list[TaskOut]
-
-
-class LabelCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    color_hex: str = "#635F75"
-
-
-class LabelUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
-    color_hex: str | None = None
-
-
-class LabelDeleteBody(BaseModel):
-    reassign_to: list[UUID] = Field(default_factory=list)
-
-
-class LabelOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    name: str
-    color_hex: str
-    task_count: int = 0
-
-
-class LabelBatchCreateItem(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    color_hex: str = "#635F75"
-
-
-class LabelBatchCreate(BaseModel):
-    labels: list[LabelBatchCreateItem] = Field(min_length=1)
-
-
-class LabelBatchSkipped(BaseModel):
-    name: str
-    reason: str
-
-
-class LabelBatchCreateResponse(BaseModel):
-    items: list[LabelOut]
-    skipped: list[LabelBatchSkipped] = Field(default_factory=list)
-
-
-class QuickAddParseRequest(BaseModel):
-    text: str = Field(min_length=1)
-
-
-class QuickAddParseResponse(BaseModel):
-    title: str
-    priority: TaskPriority | None = None
-    estimated_duration_minutes: int | None = None
-    due_at: datetime | None = None
-    epic_id: UUID | None = None
-    project_id: UUID | None = None
-    section_id: UUID | None = None
-    preferred_time_window_id: UUID | None = None
-    unresolved: list[str] = Field(default_factory=list)
-    recurrence: RecurrenceOut | None = None
-
-
-class ReorderItem(BaseModel):
-    id: UUID
-    sort_order: int
-
-
-class ReorderRequest(BaseModel):
-    items: list[ReorderItem] = Field(default_factory=list)
-
-
-class ScheduledBlockCreate(BaseModel):
-    task_id: UUID
-    start_time: datetime
-    end_time: datetime
-    is_pinned: bool = False
-
-
-class ScheduledBlockBundleCreate(BaseModel):
-    """Manual calendar bundle (ADR-012). Duration = sum of member estimates when end omitted."""
-
-    start_time: datetime
-    end_time: datetime | None = None
-    is_pinned: bool = False
-    member_task_ids: list[UUID] | None = None
-    parent_task_id: UUID | None = None
-
-    @model_validator(mode="after")
-    def _require_source(self) -> "ScheduledBlockBundleCreate":
-        if self.parent_task_id is not None and self.member_task_ids:
-            raise ValueError("Provide either parent_task_id or member_task_ids, not both")
-        if self.parent_task_id is None and not self.member_task_ids:
-            raise ValueError("Provide parent_task_id or member_task_ids")
-        return self
-
-
-class BundleMetaOut(BaseModel):
-    kind: Literal["bundle"] = "bundle"
-    member_task_ids: list[UUID]
-    source: Literal["selection", "parent_subtree"]
-
-
-class ScheduledBlockUpdate(BaseModel):
-    task_id: UUID | None = None
-    start_time: datetime | None = None
-    end_time: datetime | None = None
-    is_pinned: bool | None = None
-
-
-class ScheduledBlockOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    task_id: UUID
-    start_time: datetime
-    end_time: datetime
-    is_pinned: bool
-    created_at: datetime
-    updated_at: datetime
-    bundle_meta: BundleMetaOut | None = None
-    bundle_inactive: bool = False
-
-
-class ReleaseRemainderBody(BaseModel):
-    at: datetime | None = None
-
-
-class ReleaseRemainderOut(BaseModel):
-    block: ScheduledBlockOut | None = None
-    deleted: bool = False
-
-
-class ClearUnpinnedBlocksBody(BaseModel):
-    start: datetime
-    end: datetime
-
-
-class ClearUnpinnedBlocksOut(BaseModel):
-    deleted_count: int
-
-
-class ScheduleRunOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    status: str
-    started_at: datetime
-    finished_at: datetime | None
-    tasks_scheduled: int
-    blocks_created: int
-    overbooked_count: int
-    error_message: str | None
-    stats_json: dict[str, Any] | None
-
-
-class CalendarAccountOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    provider: str
-    account_email: str | None
-    is_enabled: bool
-    mirror_blocks: bool
-    sync_cursor: str | None
-    last_synced_at: datetime | None
-    token_expires_at: datetime | None
-    created_at: datetime
-    updated_at: datetime
-
-
-class CalendarAccountUpdate(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    mirror_blocks: bool | None = Field(
-        default=None,
-        validation_alias=AliasChoices("mirror_blocks", "mirror_blocks_to_google"),
-    )
-    is_enabled: bool | None = None
-
-
-class GoogleCalendarListItem(BaseModel):
-    id: str
-    summary: str | None = None
-    primary: bool = False
-    access_role: str | None = None
-
-
-class CalendarSubscriptionOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    calendar_account_id: UUID
-    external_calendar_id: str
-    summary: str | None
-    role: CalendarSubscriptionRole
-    is_enabled: bool
-    sync_cursor: str | None = None
-
-
-class CalendarSubscriptionPutItem(BaseModel):
-    external_calendar_id: str = Field(min_length=1, max_length=255)
-    summary: str | None = Field(default=None, max_length=255)
-    role: CalendarSubscriptionRole
-    is_enabled: bool = True
-
-
-class CalendarSubscriptionsPut(BaseModel):
-    items: list[CalendarSubscriptionPutItem] = Field(min_length=1)
-
-
-class ExternalCalendarEventOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    calendar_account_id: UUID
-    provider: str
-    external_event_id: str
-    calendar_id: str
-    title: str | None
-    start_time: datetime
-    end_time: datetime
-    is_all_day: bool
-    last_synced_at: datetime
-
-
-class CalendarSyncResult(BaseModel):
-    account_id: UUID
-    upserted: int
-
-
-class CalendarConflictOut(BaseModel):
-    kind: Literal["block_busy", "block_block"]
-    block_id: UUID
-    other_block_id: UUID | None = None
-    external_event_id: UUID | None = None
-    external_title: str | None = None
-    start_time: datetime
-    end_time: datetime
-    is_pinned: bool
-
-
-class CalendarConflictsResult(BaseModel):
-    items: list[CalendarConflictOut]
-    count: int
-
-
-class SearchLabelOut(BaseModel):
-    id: UUID
-    name: str
-    color_hex: str
-
-
-class SearchTaskOut(TaskOut):
-    project_title: str | None = None
-    labels: list[SearchLabelOut] = Field(default_factory=list)
-
-
-class PaginatedResponse(BaseModel):
-    items: list
-    total: int
-    limit: int
-    offset: int
-
-
-# --- W3+ SLM Assist (ADR-010) ---
-
-
-class AssistCreateTaskAction(BaseModel):
-    type: Literal["create_task"] = "create_task"
-    title: str = Field(min_length=1, max_length=500)
-    description: str | None = None
-    project_name: str | None = None
-    section_name: str | None = None
-    priority: TaskPriority | None = None
-    due_at: datetime | None = None
-    label_names: list[str] = Field(default_factory=list)
-    estimated_duration_minutes: int | None = Field(default=None, ge=1, le=24 * 60)
-
-
-class AssistCreateProjectAction(BaseModel):
-    type: Literal["create_project"] = "create_project"
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = None
-    epic_name: str | None = None
-    epic_id: UUID | None = None
-    color_hex: str | None = None
-
-    @model_validator(mode="after")
-    def epic_ref_exclusive(self) -> "AssistCreateProjectAction":
-        if self.epic_name and self.epic_id is not None:
-            raise ValueError("create_project accepts epic_name or epic_id, not both")
-        return self
-
-
-AssistAction = Annotated[
-    AssistCreateTaskAction | AssistCreateProjectAction,
-    Field(discriminator="type"),
+__all__ = [
+    "AssistAction",
+    "AssistApplyRequest",
+    "AssistApplyResponse",
+    "AssistApplyResultItem",
+    "AssistCreateProjectAction",
+    "AssistCreateTaskAction",
+    "AssistProposeRequest",
+    "AssistProposeResponse",
+    "AssistStatusOut",
+    "AuthLoginBody",
+    "AuthMeUpdate",
+    "AuthRegisterBody",
+    "AuthUserAdminCreate",
+    "AuthUserAdminOut",
+    "AuthUserAdminUpdate",
+    "BundleMetaOut",
+    "CalendarAccountOut",
+    "CalendarAccountUpdate",
+    "CalendarConflictOut",
+    "CalendarConflictsResult",
+    "CalendarSubscriptionOut",
+    "CalendarSubscriptionPutItem",
+    "CalendarSubscriptionsPut",
+    "CalendarSyncResult",
+    "ClearUnpinnedBlocksBody",
+    "ClearUnpinnedBlocksOut",
+    "EpicCreate",
+    "EpicDemoteToProjectBody",
+    "EpicDemoteToProjectOut",
+    "EpicOut",
+    "EpicUpdate",
+    "ExternalCalendarEventOut",
+    "FocusWindowCreate",
+    "FocusWindowOut",
+    "FocusWindowUpdate",
+    "GoogleCalendarListItem",
+    "LabelBatchCreate",
+    "LabelBatchCreateItem",
+    "LabelBatchCreateResponse",
+    "LabelBatchSkipped",
+    "LabelCreate",
+    "LabelDeleteBody",
+    "LabelOut",
+    "LabelUpdate",
+    "OutlineAction",
+    "OutlineApplyRequest",
+    "OutlineApplyResponse",
+    "OutlineApplyResultItem",
+    "OutlineAttachUnder",
+    "OutlineCreateEpicAction",
+    "OutlineCreateProjectAction",
+    "OutlineCreateSectionAction",
+    "OutlineCreateTaskAction",
+    "OutlineProposeRequest",
+    "OutlineProposeResponse",
+    "OutlineProposeSummary",
+    "PaginatedResponse",
+    "PlanCreate",
+    "PlanOut",
+    "PlanUpdate",
+    "ProjectCreate",
+    "ProjectOut",
+    "ProjectPromoteToEpicOut",
+    "ProjectUpdate",
+    "QuickAddParseRequest",
+    "QuickAddParseResponse",
+    "RecurrenceOut",
+    "RecurrenceUpsert",
+    "ReleaseRemainderBody",
+    "ReleaseRemainderOut",
+    "ReminderCreate",
+    "ReminderDueOut",
+    "ReminderOut",
+    "ReminderUpdate",
+    "ReorderItem",
+    "ReorderRequest",
+    "ScheduleRunOut",
+    "ScheduledBlockBundleCreate",
+    "ScheduledBlockCreate",
+    "ScheduledBlockOut",
+    "ScheduledBlockUpdate",
+    "SearchLabelOut",
+    "SearchTaskOut",
+    "SectionCreate",
+    "SectionOut",
+    "SectionUpdate",
+    "TaskBatchUpdate",
+    "TaskBatchUpdateResponse",
+    "TaskCompleteBody",
+    "TaskCreate",
+    "TaskOut",
+    "TaskPromoteToProjectBody",
+    "TaskPromoteToProjectOut",
+    "TaskUpdate",
+    "TimeField",
+    "TimeMapBandIn",
+    "TimeMapBandOut",
+    "UserOut",
+    "UserSettingsOut",
+    "UserSettingsUpdate",
 ]
-
-
-class AssistProposeRequest(BaseModel):
-    text: str = Field(min_length=1, max_length=8000)
-
-
-class AssistProposeResponse(BaseModel):
-    actions: list[AssistAction]
-    model: str
-
-
-class AssistApplyRequest(BaseModel):
-    actions: list[AssistAction] = Field(min_length=1)
-
-
-class AssistApplyResultItem(BaseModel):
-    ok: bool
-    action_type: str
-    title: str | None = None
-    task_id: UUID | None = None
-    project_id: UUID | None = None
-    error: str | None = None
-    created_labels: list[str] = Field(default_factory=list)
-
-
-class AssistApplyResponse(BaseModel):
-    results: list[AssistApplyResultItem]
-
-
-class AssistStatusOut(BaseModel):
-    reachable: bool
-    base_url: str
-    model: str
-    detail: str | None = None
-    enabled: bool = True
-
-
-# --- W3+ Theme F outline ingest (ADR-011) ---
-
-
-class OutlineCreateEpicAction(BaseModel):
-    type: Literal["create_epic"] = "create_epic"
-    key: str = Field(min_length=1, max_length=200)
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = None
-    sort_order: int = 0
-
-
-class OutlineCreateProjectAction(BaseModel):
-    type: Literal["create_project"] = "create_project"
-    key: str = Field(min_length=1, max_length=200)
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = None
-    sort_order: int = 0
-    epic_key: str | None = Field(default=None, min_length=1, max_length=200)
-    epic_id: UUID | None = None
-
-    @model_validator(mode="after")
-    def _epic_parent(self) -> "OutlineCreateProjectAction":
-        if self.epic_key is None and self.epic_id is None:
-            raise ValueError("create_project requires epic_key or epic_id")
-        if self.epic_key is not None and self.epic_id is not None:
-            raise ValueError("create_project accepts epic_key or epic_id, not both")
-        return self
-
-
-class OutlineCreateSectionAction(BaseModel):
-    type: Literal["create_section"] = "create_section"
-    key: str = Field(min_length=1, max_length=200)
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = None
-    sort_order: int = 0
-    project_key: str | None = Field(default=None, min_length=1, max_length=200)
-    project_id: UUID | None = None
-
-    @model_validator(mode="after")
-    def _project_parent(self) -> "OutlineCreateSectionAction":
-        if self.project_key is None and self.project_id is None:
-            raise ValueError("create_section requires project_key or project_id")
-        if self.project_key is not None and self.project_id is not None:
-            raise ValueError("create_section accepts project_key or project_id, not both")
-        return self
-
-
-class OutlineCreateTaskAction(BaseModel):
-    type: Literal["create_task"] = "create_task"
-    key: str = Field(min_length=1, max_length=200)
-    title: str = Field(min_length=1, max_length=500)
-    description: str | None = None
-    sort_order: int = 0
-    project_key: str | None = Field(default=None, min_length=1, max_length=200)
-    project_id: UUID | None = None
-    section_key: str | None = None
-    section_id: UUID | None = None
-    label_names: list[str] = Field(default_factory=list)
-    estimated_duration_minutes: int | None = Field(default=None, ge=1, le=24 * 60)
-    optional: bool = False
-    outline_id: str | None = None
-
-    @model_validator(mode="after")
-    def _task_parents(self) -> "OutlineCreateTaskAction":
-        if self.project_key is None and self.project_id is None:
-            raise ValueError("create_task requires project_key or project_id")
-        if self.project_key is not None and self.project_id is not None:
-            raise ValueError("create_task accepts project_key or project_id, not both")
-        if self.section_key is not None and self.section_id is not None:
-            raise ValueError("create_task accepts section_key or section_id, not both")
-        return self
-
-
-OutlineAction = Annotated[
-    OutlineCreateEpicAction
-    | OutlineCreateProjectAction
-    | OutlineCreateSectionAction
-    | OutlineCreateTaskAction,
-    Field(discriminator="type"),
-]
-
-
-class OutlineProposeSummary(BaseModel):
-    epic_count: int = 0
-    project_count: int = 0
-    section_count: int = 0
-    task_count: int = 0
-    optional_skipped: int = 0
-
-
-class OutlineAttachUnder(BaseModel):
-    kind: Literal["epic", "project", "section"]
-    id: UUID
-
-
-class OutlineProposeRequest(BaseModel):
-    template_id: str = "coursera_specialization"
-    outline: dict[str, Any]
-    skip_optional: bool = False
-    attach_under: OutlineAttachUnder | None = None
-
-
-class OutlineProposeResponse(BaseModel):
-    actions: list[OutlineAction]
-    template_id: str
-    summary: OutlineProposeSummary
-
-
-class OutlineApplyRequest(BaseModel):
-    actions: list[OutlineAction] = Field(min_length=1)
-
-
-class OutlineApplyResultItem(BaseModel):
-    ok: bool
-    action_type: str
-    title: str | None = None
-    key: str | None = None
-    entity_id: UUID | None = None
-    error: str | None = None
-    created_labels: list[str] = Field(default_factory=list)
-
-
-class OutlineApplyResponse(BaseModel):
-    results: list[OutlineApplyResultItem]

@@ -213,7 +213,7 @@ flowchart LR
 | Promote / demote | `services/hierarchy_promote.py` ([DEF-023](./DEFECTS.md)) |
 | Schedule / fuzzy | `scheduler/*` + [ADR-006](./adr/ADR-006-fuzzy-scheduling.md) |
 | Models | `apps/api/app/models/` (Alembic head **016** bundle_meta) |
-| Schemas | `apps/api/app/schemas/` |
+| Schemas | `apps/api/app/schemas/` — domain modules (`common`, `auth`, `settings`, `hierarchy`, `tasks`, `labels`, `calendar`, `search`, `assist`, `outlines`) + barrel `__init__.py` (DEF-011 Cut #6) |
 
 ---
 
@@ -282,7 +282,7 @@ flowchart TB
 
 - Functional spec / feature catalog still carry some **pre–Theme F** wording; trust ADRs + this map + DEFECTS for newest surfaces until a doc sync pass.
 - API contract may lag newest smash endpoints slightly—OpenAPI from the running API is authoritative for exact shapes.
-- Service boundaries: DEF-011 Cut wave **#1–#5 landed** (2026-08-27); monolith **models/schemas** and **App.css** still open — Cuts **#6–#8 held** in [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
+- Service boundaries: DEF-011 Cut wave **#1–#6 landed** (#6 schemas **2026-10-08**); monolith **models** and **App.css** still open — Cuts **#7–#8 held** in [REFACTOR-ASSESSMENT.md](./REFACTOR-ASSESSMENT.md).
 - This file will grow: calendar sync sequence diagrams, auth sequence, Update Schedule pipeline detail, etc.
 
 ---

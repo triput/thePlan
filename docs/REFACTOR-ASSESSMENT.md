@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27 (Round 4)  
 **Mode:** Assessment + **greenlit cut wave** — structure-only extracts (#1–#5); no mega-rewrite  
-**Status:** Cuts **#1–#5 implemented** 2026-08-27; **hardening wave** on **#1, #3, #4, #5** 2026-08-27 (Cut #2 skipped); Cuts **#6–#8 held**  
+**Status:** Cuts **#1–#6 implemented** (#6 schemas **2026-10-08**); **hardening wave** on **#1, #3, #4, #5** 2026-08-27 (Cut #2 skipped); Cuts **#7–#8 held**  
 **Pairs with:** [09-technical-architecture.md](./09-technical-architecture.md), [DEF-011](./DEFECTS.md#def-011--refactor-assessment-modularize--de-mix-layers), [DEF-012](./DEFECTS.md#def-012--living-technical-architecture--diagrams-catch-up)
 
 Operator gut after Theme F / Assist / smash rounds: some modules hold too many vectors (UI + orchestration + domain), and business rules may be leaking into the wrong layer. This doc inventories real hotspots, classifies them, and proposes an **ordered cut list**. It is not a rewrite ticket.
@@ -23,7 +23,7 @@ Measured under `apps/web/src` and `apps/api/app` (excluding `__pycache__` / `nod
 | ~35k | `apps/web/src/api.ts` | HTTP client + DTO types (acceptable as a client kit) |
 | ~32k | `apps/api/app/services/microsoft_calendar.py` | OAuth + sync + mirror — integration density |
 | ~27k | `apps/api/app/models/__init__.py` | Monolith model module |
-| ~26k | `apps/api/app/schemas/__init__.py` | Monolith Pydantic schemas |
+| ~26k | `apps/api/app/schemas/` (was monolith `__init__.py`) | Domain modules + barrel re-export (**Cut #6** 2026-10-08) |
 | ~25k | `apps/api/app/services/google_calendar.py` | Parallel to Microsoft |
 | ~22k | `apps/api/app/api/routes/tasks.py` | CRUD + batch + trash + complete + promote hooks |
 | ~18k | `apps/web/src/components/OutlineImportPanel.tsx` | Theme F propose/review/apply UI |
@@ -56,7 +56,7 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 | `api.ts` | **keep** / optional **split module** | Client kit; section comments already help; barrel-split only if import friction hurts |
 | `microsoft_calendar.py` / `google_calendar.py` | **leave alone** | Dense but correctly layered as services; Tesla territory if touched |
 | `models/__init__.py` | **split module** (optional) | Classic monolith; extract per-entity files when next schema wave needs it |
-| `schemas/__init__.py` | **split module** (optional) | Same story as models |
+| `schemas/` | **split module** ✓ Cut #6 | `common`, `auth`, `settings`, `hierarchy`, `tasks`, `labels`, `calendar`, `search`, `assist`, `outlines`; `from app.schemas import …` unchanged |
 | `routes/tasks.py` | **extract service** ✓ Cut #3 | Thin CRUD orchestration; PATCH/batch/labels in `task_patch.py` |
 | `task_helpers.py` | **keep** | Soft-delete / complete / subtree; right layer |
 | `task_patch.py` | **keep** | PATCH/batch section-project, plan bind, `sync_task_labels` + `add_task_labels` |
@@ -69,13 +69,13 @@ Legend: **keep** (size OK / coherent) · **extract component** (UI split) · **e
 | `Sidebar.tsx` / `App.tsx` | **leave alone** | Shell size is fine |
 | `AssistPanel.tsx` | **leave alone** | Bounded |
 
-**Layer verdict:** Domain mostly still lives in API services. Cut wave #1–#5 peeled fat React surfaces and `task_patch.py` off routes; **monolith models/schemas** and **App.css** remain (Cuts **#6–#8 held**).
+**Layer verdict:** Domain mostly still lives in API services. Cut wave #1–#6 peeled fat React surfaces, `task_patch.py`, and **schemas** off monolith files; **monolith models** and **App.css** remain (Cuts **#7–#8 held**).
 
 ---
 
 ## Ordered cut list
 
-Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero behavior change intent). Cuts **#6–#8** remain **held** — do not start without explicit greenlight.
+Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero behavior change intent). **Cut #6** (schemas) landed **2026-10-08**. Cuts **#7–#8** remain **held** — do not start without explicit greenlight.
 
 | # | Cut | Status | Risk | Effort | Evidence / notes |
 |---|-----|--------|------|--------|------------------|
@@ -84,7 +84,7 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 | 3 | Peel `_apply_task_patch` / batch section-project rules from `routes/tasks.py` → `task_patch.py` | **Hardened** 2026-08-27 | **Med** | S–M | `add_task_labels` + `sync_task_labels` in `task_patch.py`; batch pytest **9/9** (+ inbox move, missing label 404, patch+labels combo) |
 | 4 | Split **CalendarView** toolbar + block menu from grid | **Hardened** 2026-08-27 | **Med** | M | `CalendarToolbar`, `CalendarBlockMenu`, **`CalendarDayColumn`**; tsc PASS; smoke: drag block, resize, due-marker move, bundle gray, release/clear |
 | 5 | Split **SettingsPanel** by domain tabs/sections | **Hardened** 2026-08-27 | **Med** | M | `components/settings/*`; scheduling PATCH via `schedulingDraft.ts` documented in shell; smoke: save scheduling defaults + calendar display |
-| 6 | Split `schemas/__init__.py` into domain modules | **Held** | **Med–High** | M | Import churn across API; do with a quiet week |
+| 6 | Split `schemas/__init__.py` into domain modules | **Implemented** 2026-10-08 | **Med–High** | M | Domain modules + explicit barrel; pytest assist/batch/auth/outlines/scheduled_blocks **61/61** |
 | 7 | Split `models/__init__.py` similarly | **Held** | **High** | M–L | Alembic/relationship imports; pair with schema wave |
 | 8 | Carve `App.css` into feature CSS modules / files | **Held** | **High** | L | Visual regression risk; defer unless design-system pass |
 
@@ -94,9 +94,9 @@ Greenlit wave executed **2026-08-27** for Cuts **#1–#5** (structure-only; zero
 
 ## Recommendation
 
-1. Cuts **#1–#5** structure + **#1/#3/#4/#5 hardening** landed; operator manual smoke still owns UI regression on #1, #2, #4, #5.
-2. Do **not** book Cuts **#6–#8** as smash work until explicitly greenlit.
-3. Next quiet week: consider **Cut #6** (schemas) before **#7** (models); **#8** (CSS) stays last.
+1. Cuts **#1–#6** structure + **#1/#3/#4/#5 hardening** landed; operator manual smoke still owns UI regression on #1, #2, #4, #5.
+2. Do **not** book Cuts **#7–#8** as smash work until explicitly greenlit.
+3. Next: **Cut #7** (models monolith) before **#8** (CSS); pair model split with Alembic/relationship import care.
 4. Keep [09-technical-architecture.md](./09-technical-architecture.md) current when further cuts land (DEF-012 living rule).
 
 ---
