@@ -2,7 +2,7 @@
 
 **Status:** Implemented (W1) · **Quality:** Renee green for W1 tranche + Dex **P2** corrections in working tree (**2026-10-08**); Dex recheck **pending**; push **held**; F3 **not** Closed/shipped — remaining reason families **W2**  
 **Spec:** [NEXT-FEATURES-SPEC.md §6](../NEXT-FEATURES-SPEC.md#6-f3-scheduler-explanations)  
-**Build:** `75d2ae1` (no push until Dex recheck)
+**Build:** `29cf8ef` (no push until Dex recheck)
 **Hygiene:** Alembic head **`023_schedule_outcome_provenance`** (after **`022_schedule_task_outcomes`**, revises **`021_task_workflow`**)
 
 ## Architecture note (F6 prep)
