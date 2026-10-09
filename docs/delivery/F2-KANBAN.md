@@ -2,7 +2,7 @@
 
 **Status:** Implemented · **Quality:** Renee follow-up **2026-10-08** — **30** API tests green; F2-D browser/manual **pending** (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §5](../NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)  
-**Build:** WIP (local; tip **`f3e9689`** + uncommitted review follow-up)  
+**Build:** 792a728
 **Hygiene:** Alembic head **`021_task_workflow`** (after F1 **`020_task_source_refs`**)
 
 ## Dex review corrections (2026-10-08)
