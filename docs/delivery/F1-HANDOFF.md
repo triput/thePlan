@@ -2,7 +2,7 @@
 
 **Status:** Implemented · **Quality:** Renee exit **2026-10-08** (automated green) · **Manual verification:** pending (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §4](../NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff)  
-**Build:** WIP — commit hash pending parent wave commit  
+**Build:** ac55c4f  
 **Hygiene:** [HYGIENE-R4-QUICKSCAN.md](../HYGIENE-R4-QUICKSCAN.md) (pass; Alembic head **019**)
 
 ## Scope
