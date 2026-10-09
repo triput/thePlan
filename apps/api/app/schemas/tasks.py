@@ -4,7 +4,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.enums import ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority
+from app.models.enums import (
+    ReminderChannel,
+    ScheduleStatus,
+    ScheduleStyle,
+    TaskBoardColumn,
+    TaskPriority,
+    TaskWorkflowState,
+)
 
 class RecurrenceOut(BaseModel):
     rrule: str
@@ -84,6 +91,17 @@ class TaskUpdate(BaseModel):
     label_ids: list[UUID] | None = None
 
 
+class TaskWorkflowTransition(BaseModel):
+    column: TaskBoardColumn
+    expected_revision: int = Field(ge=0)
+    waiting_note: str | None = Field(default=None, max_length=500)
+    board_rank: int | None = None
+    insert_before_id: UUID | None = None
+    insert_after_id: UUID | None = None
+    bulk_children: bool | None = None
+    force_parent_only: bool = False
+
+
 class TaskCompleteBody(BaseModel):
     # None = unspecified (409 OPEN_CHILDREN when open kids exist).
     # False = complete parent only; True = bulk-complete descendants.
@@ -117,6 +135,11 @@ class TaskOut(BaseModel):
     deleted_at: datetime | None = None
     status: ScheduleStatus
     sort_order: int
+    workflow_state: TaskWorkflowState
+    board_column: TaskBoardColumn
+    waiting_note: str | None = None
+    board_rank: int
+    board_revision: int
     label_ids: list[UUID] = Field(default_factory=list)
     open_subtask_count: int = 0
     recurrence: RecurrenceOut | None = None

@@ -48,6 +48,13 @@ import {
 import { emitToast } from "./ToastHost";
 import { ReorderButtons } from "./ReorderButtons";
 import { TaskBatchBar } from "./TaskBatchBar";
+import { TaskBoard } from "./TaskBoard";
+import {
+  boardViewSupported,
+  readTaskPresentation,
+  writeTaskPresentation,
+  type TaskPresentation,
+} from "../taskPresentation";
 
 interface TaskListProps {
   view: ViewSelection;
@@ -119,6 +126,11 @@ function makeOptimisticTask(body: {
     sort_order: 9999,
     label_ids: [],
     open_subtask_count: 0,
+    workflow_state: "ready",
+    board_column: "ready",
+    waiting_note: null,
+    board_rank: 9999,
+    board_revision: 0,
   };
 }
 
@@ -149,6 +161,23 @@ export function TaskList({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const selectAllRef = useRef<HTMLInputElement>(null);
   const rowRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+  const vKey = viewKey(view);
+  const boardEnabled = boardViewSupported(view);
+  const [presentation, setPresentation] = useState<TaskPresentation>(() =>
+    readTaskPresentation(vKey),
+  );
+
+  useEffect(() => {
+    setPresentation(readTaskPresentation(vKey));
+  }, [vKey]);
+
+  const setPresentationPersisted = useCallback(
+    (mode: TaskPresentation) => {
+      setPresentation(mode);
+      writeTaskPresentation(vKey, mode);
+    },
+    [vKey],
+  );
 
   const setShowCompletedPersisted = useCallback((next: boolean) => {
     setShowCompleted(next);
@@ -842,12 +871,35 @@ export function TaskList({
               ? (labelsById.get(view.labelId)?.name ?? "Label")
               : "Upcoming";
 
+  const showListChrome = presentation === "list" || !boardEnabled;
+
   return (
     <div className="task-list-layout">
-      <div className="task-list-pane">
+      <div className={`task-list-pane${presentation === "board" && boardEnabled ? " board-mode" : ""}`}>
         <header className="pane-header">
           <h1>{heading}</h1>
           <div className="pane-header-actions">
+            {boardEnabled && (
+              <div className="task-view-mode-toggle cal-mode-toggle" role="group" aria-label="Task view">
+                <button
+                  type="button"
+                  className={`btn small${presentation === "list" ? " primary" : " ghost"}`}
+                  onClick={() => setPresentationPersisted("list")}
+                  aria-pressed={presentation === "list"}
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  className={`btn small${presentation === "board" ? " primary" : " ghost"}`}
+                  onClick={() => setPresentationPersisted("board")}
+                  aria-pressed={presentation === "board"}
+                >
+                  Board
+                </button>
+              </div>
+            )}
+            {showListChrome && (
             <label className="show-completed-toggle">
               <input
                 type="checkbox"
@@ -856,7 +908,8 @@ export function TaskList({
               />
               <span>Show completed</span>
             </label>
-            {(overbookedTaskCount > 0 || overbookedOnly) && (
+            )}
+            {showListChrome && (overbookedTaskCount > 0 || overbookedOnly) && (
               <label className="overbooked-filter-chip">
                 <input
                   type="checkbox"
@@ -869,10 +922,20 @@ export function TaskList({
                 </span>
               </label>
             )}
-            {view.type === "project" && <CreateSectionForm projectId={view.projectId} />}
+            {showListChrome && view.type === "project" && (
+              <CreateSectionForm projectId={view.projectId} />
+            )}
           </div>
         </header>
 
+        {presentation === "board" && boardEnabled ? (
+          <TaskBoard
+            view={view}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={onSelectTask}
+          />
+        ) : (
+          <>
         {view.type === "project" && sections.length === 0 && (
           <p className="muted small">No sections yet — use Add section above, or tasks sit in one list.</p>
         )}
@@ -1098,6 +1161,8 @@ export function TaskList({
         />
 
         <EditSectionForm section={editingSection} onClose={() => setEditingSection(null)} />
+          </>
+        )}
       </div>
     </div>
   );

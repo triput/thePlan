@@ -39,6 +39,21 @@ class ScheduleStyle(str, enum.Enum):
     manual = "manual"
 
 
+class TaskWorkflowState(str, enum.Enum):
+    ready = "ready"
+    in_progress = "in_progress"
+    waiting = "waiting"
+
+
+class TaskBoardColumn(str, enum.Enum):
+    """Kanban column including derived Done."""
+
+    ready = "ready"
+    in_progress = "in_progress"
+    waiting = "waiting"
+    done = "done"
+
+
 class TimeMapBandTier(str, enum.Enum):
     green = "green"
     yellow = "yellow"

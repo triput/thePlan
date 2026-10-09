@@ -2,11 +2,13 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
+from app.models.enums import TaskBoardColumn, TaskWorkflowState
 from app.models import Plan, Project, RecurrenceRule, Reminder, Task, User
 from app.schemas import (
     PaginatedResponse,
@@ -21,6 +23,7 @@ from app.schemas import (
     TaskCompleteBody,
     TaskCreate,
     TaskOut,
+    TaskWorkflowTransition,
     TaskPromoteToProjectBody,
     TaskPromoteToProjectOut,
     TaskUpdate,
@@ -51,6 +54,7 @@ from app.services.task_helpers import (
     restore_task_subtree,
     soft_delete_task_subtree,
 )
+from app.services.task_workflow import board_column_for_task, transition_task_workflow
 from app.services.task_patch import (
     add_task_labels,
     apply_plan_bind_soft_target,
@@ -122,9 +126,11 @@ def task_to_out(
         else:
             plan = db.get(Plan, task.plan_id)
             plan_name = plan.name if plan is not None else None
-    return TaskOut.model_validate(
+    mapper = sa_inspect(Task)
+    payload = {attr.key: getattr(task, attr.key) for attr in mapper.column_attrs}
+    payload.update(
         {
-            **TaskOut.model_validate(task).model_dump(),
+            "board_column": board_column_for_task(task),
             "label_ids": label_ids,
             "open_subtask_count": open_subtask_count,
             "recurrence": recurrence_to_out(task.recurrence_rule),
@@ -133,6 +139,7 @@ def task_to_out(
             "plan_name": plan_name,
         }
     )
+    return TaskOut.model_validate(payload)
 
 
 def _upsert_recurrence(
@@ -193,6 +200,14 @@ def list_tasks(
     label_id: UUID | None = None,
     epic_id: UUID | None = None,
     is_completed: bool | None = None,
+    workflow: TaskBoardColumn | None = Query(
+        default=None,
+        description="Kanban column filter (done uses completion; others require open tasks).",
+    ),
+    board_order: bool = Query(
+        default=False,
+        description="When true, order by board_rank then created_at instead of sort_order.",
+    ),
     due_from: datetime | None = None,
     due_to: datetime | None = None,
     ids: list[UUID] | None = Query(default=None),
@@ -232,6 +247,14 @@ def list_tasks(
         query = query.join(TaskLabel, TaskLabel.task_id == Task.id).filter(TaskLabel.label_id == label_id)
     if is_completed is not None:
         query = query.filter(Task.is_completed == is_completed)
+    if workflow is not None:
+        if workflow == TaskBoardColumn.done:
+            query = query.filter(Task.is_completed.is_(True))
+        else:
+            query = query.filter(
+                Task.is_completed.is_(False),
+                Task.workflow_state == TaskWorkflowState(workflow.value),
+            )
     if due_from is not None:
         query = query.filter(Task.due_at.isnot(None), Task.due_at >= due_from)
     if due_to is not None:
@@ -239,7 +262,11 @@ def list_tasks(
     if ids:
         query = query.filter(Task.id.in_(ids))
     total = query.count()
-    items = query.order_by(Task.sort_order, Task.created_at).offset(offset).limit(limit).all()
+    if board_order or workflow is not None:
+        order = (Task.board_rank, Task.created_at)
+    else:
+        order = (Task.sort_order, Task.created_at)
+    items = query.order_by(*order).offset(offset).limit(limit).all()
     plan_ids = {item.plan_id for item in items if item.plan_id is not None}
     plan_names: dict[UUID, str] = {}
     if plan_ids:
@@ -468,6 +495,49 @@ def promote_task_to_project_endpoint(
     return TaskPromoteToProjectOut(
         project=ProjectOut.model_validate(project),
         task=task_to_out(_get_owned_task(db, task.id, user), db),
+    )
+
+
+@router.post("/{task_id}/workflow", response_model=TaskOut)
+def transition_task_workflow_endpoint(
+    task_id: UUID,
+    body: TaskWorkflowTransition,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TaskOut:
+    task = _get_owned_task(db, task_id, user)
+    transition_fields = body.model_dump(exclude_unset=True)
+    waiting_note_set = "waiting_note" in transition_fields
+    bulk_descendant_ids: list[UUID] = []
+    if body.bulk_children is True and body.column == TaskBoardColumn.done:
+        bulk_descendant_ids = collect_open_descendant_ids(db, task.id, user.id)
+    try:
+        advanced, previous_due = transition_task_workflow(
+            db,
+            task,
+            column=body.column,
+            expected_revision=body.expected_revision,
+            waiting_note=body.waiting_note,
+            waiting_note_set=waiting_note_set,
+            board_rank=body.board_rank,
+            insert_before_id=body.insert_before_id,
+            insert_after_id=body.insert_after_id,
+            bulk_children=body.bulk_children,
+            force_parent_only=body.force_parent_only,
+        )
+    except ApiError as exc:
+        raise exc
+    if body.column == TaskBoardColumn.done and not advanced:
+        db.flush()
+        completed_ids = [task.id, *bulk_descendant_ids]
+        shrink_bundle_blocks_for_completed_members(db, user, completed_ids)
+    db.commit()
+    refreshed = _get_owned_task(db, task.id, user)
+    return task_to_out(
+        refreshed,
+        db,
+        recurrence_advanced=advanced,
+        previous_due_at=previous_due,  # type: ignore[arg-type]
     )
 
 

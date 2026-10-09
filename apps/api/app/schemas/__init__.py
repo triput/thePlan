@@ -117,6 +117,7 @@ from app.schemas.tasks import (
     TaskCreate,
     TaskOut,
     TaskUpdate,
+    TaskWorkflowTransition,
 )
 
 __all__ = [
@@ -221,6 +222,7 @@ __all__ = [
     "TaskPromoteToProjectBody",
     "TaskPromoteToProjectOut",
     "TaskUpdate",
+    "TaskWorkflowTransition",
     "TimeField",
     "TimeMapBandIn",
     "TimeMapBandOut",

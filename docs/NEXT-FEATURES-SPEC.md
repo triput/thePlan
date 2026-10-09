@@ -162,6 +162,8 @@ Cards show title, project context where needed, ancestor breadcrumb for subtasks
 - F2-C: Open-child completion policy and cancellation work from Done; nested tasks appear once with parent context.
 - F2-D: Keyboard, touch, filtered reorder, pagination, empty/error states, and failed optimistic moves are exercised. Column totals include all matching tasks, not only the loaded page.
 
+**Delivery (post–Quality exit):** [delivery/F2-KANBAN.md](./delivery/F2-KANBAN.md). Automated API green; web build green; F2-D browser/accessibility matrix and Trish manual checklist still open.
+
 ## 6 F3 Scheduler explanations
 
 Expose explanations in task scheduling detail and in a schedule-run summary. Add CLI access such as `schedule explain --task-id ...` and run get/list. This slice explains recorded computations; a read does not trigger a new replan.

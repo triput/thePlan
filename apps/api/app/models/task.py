@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     Date,
@@ -20,7 +21,13 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
-from app.models.enums import ReminderChannel, ScheduleStatus, ScheduleStyle, TaskPriority
+from app.models.enums import (
+    ReminderChannel,
+    ScheduleStatus,
+    ScheduleStyle,
+    TaskPriority,
+    TaskWorkflowState,
+)
 from app.models.mixins import TimestampMixin, _uuid
 
 
@@ -42,6 +49,8 @@ class Task(Base, TimestampMixin):
         Index("idx_tasks_owner_is_completed", "owner_id", "is_completed"),
         Index("idx_tasks_owner_project_sort", "owner_id", "project_id", "sort_order"),
         Index("idx_tasks_owner_plan", "owner_id", "plan_id"),
+        Index("idx_tasks_owner_workflow", "owner_id", "workflow_state"),
+        Index("idx_tasks_owner_board_rank", "owner_id", "board_rank"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
@@ -89,6 +98,14 @@ class Task(Base, TimestampMixin):
     is_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     completed_at: Mapped[datetime | None] = mapped_column()
     deleted_at: Mapped[datetime | None] = mapped_column()
+    workflow_state: Mapped[TaskWorkflowState] = mapped_column(
+        SAEnum(TaskWorkflowState, name="task_workflow_state", native_enum=True),
+        nullable=False,
+        server_default="ready",
+    )
+    waiting_note: Mapped[str | None] = mapped_column(Text)
+    board_rank: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    board_revision: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
 
     project: Mapped["Project | None"] = relationship(back_populates="tasks")
     section: Mapped["Section | None"] = relationship(back_populates="tasks")

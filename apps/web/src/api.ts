@@ -103,6 +103,10 @@ export interface Section {
 
 export type TaskPriority = "p1" | "p2" | "p3" | "p4";
 
+export type TaskWorkflowState = "ready" | "in_progress" | "waiting";
+
+export type TaskBoardColumnId = "ready" | "in_progress" | "waiting" | "done";
+
 export interface Label {
   id: string;
   name: string;
@@ -178,9 +182,25 @@ export interface Task {
   sort_order: number;
   label_ids: string[];
   open_subtask_count: number;
+  workflow_state: TaskWorkflowState;
+  board_column: TaskBoardColumnId;
+  waiting_note: string | null;
+  board_rank: number;
+  board_revision: number;
   recurrence?: Recurrence | null;
   recurrence_advanced?: boolean;
   previous_due_at?: string | null;
+}
+
+export interface TaskWorkflowTransition {
+  column: TaskBoardColumnId;
+  expected_revision: number;
+  waiting_note?: string | null;
+  board_rank?: number;
+  insert_before_id?: string;
+  insert_after_id?: string;
+  bulk_children?: boolean;
+  force_parent_only?: boolean;
 }
 
 export interface ApiErrorBody {
@@ -711,6 +731,8 @@ export function fetchTasks(params?: {
   is_completed?: boolean;
   inbox?: boolean;
   trashed?: boolean;
+  workflow?: TaskBoardColumnId;
+  board_order?: boolean;
   due_from?: string;
   due_to?: string;
   ids?: string[];
@@ -832,6 +854,13 @@ export function emptyTrash(params?: { older_than_days?: number }) {
 
 export function hardPurgeTask(taskId: string) {
   return apiFetch<void>(`/api/v1/tasks/${taskId}?hard=true`, { method: "DELETE" });
+}
+
+export function transitionTaskWorkflow(taskId: string, body: TaskWorkflowTransition) {
+  return apiFetch<Task>(`/api/v1/tasks/${taskId}/workflow`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function completeTask(taskId: string, body: TaskCompleteBody = {}) {

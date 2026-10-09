@@ -104,6 +104,7 @@ All list endpoints scope to authenticated `owner_id`.
 | PATCH | `/tasks/{id}` | Update. **`parent_task_id`** that would create a parent/child cycle → **422** `PARENT_CYCLE` |
 | DELETE | `/tasks/{id}` | Soft-delete task + live descendants (`deleted_at`); unpinned blocks removed. `?hard=true` permanently purges an **already trashed** subtree (409 `NOT_TRASHED` if live). |
 | POST | `/tasks/{id}/restore` | Clear `deleted_at` for same delete-wave subtree. If the parent is still trashed, live restored tasks **reparent** to nearest live ancestor or inbox root. **409** if task is not trashed |
+| POST | `/tasks/{id}/workflow` | Kanban column transition (F2); body below |
 | POST | `/tasks/{id}/complete` | Mark complete |
 | POST | `/tasks/{id}/uncomplete` | Mark incomplete |
 | GET | `/tasks/{task_id}/dependencies` | List dependencies where path task is blocking or dependent (owner-scoped) |
@@ -152,6 +153,29 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 `schedule_style` optional on create/update: omit or `null` → inherit live (`task` → `project` → `epic` → `user_settings.default_schedule_style`); inbox is task or user default only. Explicit `standalone`, `time_block`, `bundle`, or `manual` overrides. Effective **bundle** and **manual** exclude the task from auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md).
 
 `TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), `schedule_style` (null when inheriting), and optional `source_refs` (handoff graft provenance).
+
+**Kanban / board (F2):** `workflow_state` (`ready` \| `in_progress` \| `waiting` for open tasks), denormalized `board_column` (`ready` \| `in_progress` \| `waiting` \| `done` — **done** when `is_completed`), optional `waiting_note` (max 500 chars; cleared when leaving Waiting), `board_rank` (bigint; independent of list `sort_order`), `board_revision` (monotonic; required on workflow transitions). New tasks default **ready**, revision **0**. Completing via workflow or `/complete` aligns with existing completion service; recurring advance resets open workflow to **ready** (`recurrence_advanced`, `previous_due_at` on response when applicable).
+
+**List filters (F2):** `workflow` — column filter (`done` = completed; open columns require incomplete + matching `workflow_state`). `board_order=true` sorts by `board_rank`, then `created_at` (default sort when `workflow` is set). Pagination `total` is full match count for the filter, not only the returned page.
+
+**Workflow transition body:**
+
+```json
+{
+  "column": "in_progress",
+  "expected_revision": 0,
+  "waiting_note": "Blocked on review",
+  "board_rank": 42,
+  "insert_before_id": "uuid-or-null",
+  "insert_after_id": "uuid-or-null",
+  "bulk_children": false,
+  "force_parent_only": false
+}
+```
+
+`column`: `ready` \| `in_progress` \| `waiting` \| `done`. `expected_revision` must match current `board_revision` or **409** `BOARD_REVISION_CONFLICT`. `waiting_note` is applied only when moving to **waiting** (omit field to leave note unchanged on other columns; explicit `null` clears when entering Waiting). Rank: set `board_rank`, or `insert_before_id` / `insert_after_id` (owned tasks), or omit to change column/state only. **Done** uses the same open-children rules as `/complete` (**409** `OPEN_CHILDREN` when omitted and descendants open). Moving an open column on a completed task uncompletes then sets workflow atomically.
+
+Spec: [NEXT-FEATURES-SPEC.md §5](./NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress). Delivery: [delivery/F2-KANBAN.md](./delivery/F2-KANBAN.md).
 
 ---
 
@@ -335,6 +359,7 @@ Optional convenience aliases:
 - `GET /tasks?project_id={uuid}`
 - `GET /tasks?epic_id={uuid}`
 - `GET /tasks?label_id={uuid}`
+- `GET /tasks?workflow=ready|in_progress|waiting|done&board_order=true` (Kanban column filter + board sort — F2)
 
 ---
 

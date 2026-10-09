@@ -93,7 +93,7 @@ Uses `THEPLAN_API_URL` and cookies from `THEPLAN_SESSION_FILE` when authenticate
 |------|----------|
 | **Auth** | `auth login`, `auth me`, `auth logout` |
 | **Status** | `status` — `GET /health`, then `/api/v1/auth/me` and `/api/v1/assist/status` (assist errors stay inside JSON; exit 0 if health/me succeed) |
-| **Tasks** | `tasks list`, `tasks get`, `tasks create`, `tasks patch`, `tasks complete`, `tasks uncomplete` |
+| **Tasks** | `tasks list`, `tasks get`, `tasks create`, `tasks patch`, `tasks complete`, `tasks uncomplete`, `tasks workflow` |
 | **Assist** | `assist propose`, `assist apply` |
 
 List/filter flags map to query parameters on `GET /api/v1/tasks`; see README for the full flag list.
@@ -113,6 +113,18 @@ Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §4](./NEXT-FEATU
 Handoff maps to `POST /api/v1/handoffs/propose|apply` and `GET /api/v1/handoffs/receipts/...`. Dependencies map to `/api/v1/tasks/{id}/dependencies`. `--format text` on handoff commands prints a tree and resolved defaults without changing the JSON contract.
 
 **Outline ingest** (`outline` UI / `POST /api/v1/outlines/*`) is a separate path; re-import is not idempotent. Use **handoff** for agreed-plan bulk create with receipt replay — [OUTLINE-INGEST.md](./OUTLINE-INGEST.md).
+
+### F2 — Kanban workflow (HTTP)
+
+Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §5](./NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress). Delivery record: [delivery/F2-KANBAN.md](./delivery/F2-KANBAN.md).
+
+| Command | Maps to |
+|---------|---------|
+| `tasks list --workflow ready\|in_progress\|waiting\|done` | `GET /api/v1/tasks?workflow=` (implies board sort unless overridden) |
+| `tasks list --board-order` | `GET /api/v1/tasks?board_order=true` |
+| `tasks workflow --id UUID --column COL --expected-revision N` | `POST /api/v1/tasks/{id}/workflow` |
+
+Optional flags on **workflow:** `--waiting-note`, `--board-rank`, `--insert-before-id`, `--insert-after-id`, `--bulk-children`, `--force-parent-only` (Done / open-children policy). Read `board_revision` from `tasks get` before each transition; stale revision → exit **5** / `BOARD_REVISION_CONFLICT`.
 
 ## Session revocation (`session_epoch`)
 

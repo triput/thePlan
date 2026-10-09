@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] — F2 Kanban (2026-10-08)
+
+- **F2 Kanban API:** Alembic `021_task_workflow` — `workflow_state` (`ready` \| `in_progress` \| `waiting`), `waiting_note`, `board_rank`, `board_revision`; `POST /api/v1/tasks/{id}/workflow` with revision check; `GET /tasks?workflow=&board_order=` — [delivery/F2-KANBAN.md](docs/delivery/F2-KANBAN.md), [NEXT-FEATURES-SPEC §5](docs/NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)
+- **TaskOut board fields:** `workflow_state`, `board_column`, `waiting_note`, `board_rank`, `board_revision` (Done derived from completion)
+- **Web F2:** List/Board toggle on supported views; Kanban columns, WIP summary, Move menu, drag between columns, Done pagination, roots-only filter — build green at Quality exit
+- **CLI F2:** `tasks workflow` (column transition); `tasks list --workflow`, `--board-order` — [CLI.md](docs/CLI.md)
+- **Quality:** Renee exit — `test_task_workflow` **9**; with `test_task_complete` + `test_recurrence` **23**; CLI **33**; F2-D browser trails partial / manual
+
 ## [Unreleased] — F1 CLI planning handoff (2026-10-08)
 
 - **F1 Dex review corrections:** Alembic `020_task_source_refs`; task graft `source_refs`; handoff parent/dependency ownership checks; mixed dependency edges; propose embeds resolved defaults on canonical payload; schedule root inheritance (incl. project under existing epic); intent-stable idempotency hash; dependency cycle closure — [delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md)

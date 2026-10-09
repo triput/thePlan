@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.models import Reminder, ScheduledBlock, Task
-from app.models.enums import ScheduleStatus
+from app.models.enums import ScheduleStatus, TaskWorkflowState
 
 
 def resolve_nesting_level(db: Session, owner_id: uuid.UUID, parent_task_id: uuid.UUID | None) -> int:
@@ -343,6 +343,8 @@ def complete_task(
             task.due_at = nxt
             task.is_completed = False
             task.completed_at = None
+            task.workflow_state = TaskWorkflowState.ready
+            task.waiting_note = None
             if task.status == ScheduleStatus.completed:
                 task.status = ScheduleStatus.unscheduled
             # Still bulk-complete children if requested when rolling over parent.

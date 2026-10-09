@@ -42,6 +42,17 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     )
     list_p.add_argument("--limit", type=int, default=None)
     list_p.add_argument("--offset", type=int, default=None)
+    list_p.add_argument(
+        "--workflow",
+        choices=("ready", "in_progress", "waiting", "done"),
+        default=None,
+        help="Kanban column filter",
+    )
+    list_p.add_argument(
+        "--board-order",
+        action="store_true",
+        help="Order by board_rank (default when --workflow is set)",
+    )
 
     get_p = tasks_sub.add_parser("get", help="Get one task")
     get_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
@@ -88,6 +99,47 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     uncomplete_p = tasks_sub.add_parser("uncomplete", help="Mark task incomplete")
     uncomplete_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
 
+    workflow_p = tasks_sub.add_parser("workflow", help="Kanban column transition")
+    workflow_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
+    workflow_p.add_argument(
+        "--column",
+        required=True,
+        choices=("ready", "in_progress", "waiting", "done"),
+    )
+    workflow_p.add_argument(
+        "--expected-revision",
+        dest="expected_revision",
+        type=int,
+        required=True,
+        metavar="N",
+    )
+    workflow_p.add_argument("--waiting-note", dest="waiting_note", default=None)
+    workflow_p.add_argument("--board-rank", dest="board_rank", type=int, default=None, metavar="N")
+    workflow_p.add_argument(
+        "--insert-before-id",
+        dest="insert_before_id",
+        default=None,
+        metavar="UUID",
+    )
+    workflow_p.add_argument(
+        "--insert-after-id",
+        dest="insert_after_id",
+        default=None,
+        metavar="UUID",
+    )
+    workflow_p.add_argument(
+        "--bulk-children",
+        dest="bulk_children",
+        action="store_true",
+        help="When completing (Done), bulk-complete open descendants",
+    )
+    workflow_p.add_argument(
+        "--force-parent-only",
+        dest="force_parent_only",
+        action="store_true",
+        help="When completing (Done), complete parent only",
+    )
+
 
 def _list_params(args: argparse.Namespace) -> dict[str, Any]:
     params: dict[str, Any] = {}
@@ -101,10 +153,13 @@ def _list_params(args: argparse.Namespace) -> dict[str, Any]:
         "due_to",
         "limit",
         "offset",
+        "workflow",
     ):
         value = getattr(args, key, None)
         if value is not None:
             params[key] = value
+    if getattr(args, "board_order", False) or getattr(args, "workflow", None):
+        params["board_order"] = True
     if getattr(args, "inbox", False):
         params["inbox"] = True
     if getattr(args, "trashed", False):
@@ -200,6 +255,31 @@ def run_tasks(args: argparse.Namespace) -> None:
         body = api_json(
             "POST",
             f"/api/v1/tasks/{args.task_id}/uncomplete",
+            persist_session=True,
+        )
+        emit_ok(body or {})
+        return
+    if cmd == "workflow":
+        payload: dict[str, Any] = {
+            "column": args.column,
+            "expected_revision": args.expected_revision,
+        }
+        if args.waiting_note is not None:
+            payload["waiting_note"] = args.waiting_note
+        if args.board_rank is not None:
+            payload["board_rank"] = args.board_rank
+        if args.insert_before_id is not None:
+            payload["insert_before_id"] = args.insert_before_id
+        if args.insert_after_id is not None:
+            payload["insert_after_id"] = args.insert_after_id
+        if args.bulk_children:
+            payload["bulk_children"] = True
+        if args.force_parent_only:
+            payload["force_parent_only"] = True
+        body = api_json(
+            "POST",
+            f"/api/v1/tasks/{args.task_id}/workflow",
+            json_body=payload,
             persist_session=True,
         )
         emit_ok(body or {})
