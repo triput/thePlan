@@ -148,11 +148,16 @@ def persist_calculation_outcomes(
     outcomes: list[TaskSchedulingOutcome],
     evaluated_at: datetime | None = None,
     placement_facts_by_task: dict[UUID, dict[str, Any] | None] | None = None,
+    input_snapshots: dict[UUID, dict[str, Any]] | None = None,
 ) -> list[ScheduleTaskOutcome]:
     """Insert one outcome row per task. Caller owns the transaction.
 
     Upserts on ``(schedule_run_id, task_id)`` so a retried apply replaces the
     recorded explanation instead of tripping the unique constraint.
+
+    Prefer ``input_snapshots`` captured at collect/calculate time. Re-reading
+    live inputs here would fingerprint post-collection edits the calculation
+    never evaluated. Live snapshots remain for explanation *reads* only.
     """
     if not outcomes:
         return []
@@ -161,12 +166,16 @@ def persist_calculation_outcomes(
         when = when.replace(tzinfo=timezone.utc)
 
     task_ids = [item.task_id for item in outcomes]
-    tasks = (
-        db.query(Task)
-        .filter(Task.owner_id == owner_id, Task.id.in_(task_ids))
-        .all()
-    )
-    snapshots = live_snapshots_by_task(db, tasks)
+    if input_snapshots is not None:
+        snapshots = input_snapshots
+    else:
+        # Test helpers / legacy callers without a collect snapshot.
+        tasks = (
+            db.query(Task)
+            .filter(Task.owner_id == owner_id, Task.id.in_(task_ids))
+            .all()
+        )
+        snapshots = live_snapshots_by_task(db, tasks)
 
     existing_rows = (
         db.query(ScheduleTaskOutcome)

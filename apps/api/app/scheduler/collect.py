@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -46,6 +46,8 @@ class SchedulingInputs:
     effective_window_source_by_task: dict[UUID, str | None]
     preferred_windows: dict[UUID, FocusWindow]
     daily_cap: int | None
+    # Captured at collect time so apply/persist does not re-read live inputs.
+    input_snapshots: dict[UUID, dict[str, Any]] = field(default_factory=dict)
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -133,6 +135,14 @@ def collect_inputs(
 
     daily_cap = user_settings.max_auto_schedule_minutes_per_project_per_day
 
+    # Import locally to avoid collect ↔ outcomes cycles at module load.
+    from app.scheduler.outcomes import live_snapshots_by_task
+
+    snapshot_tasks = [item.task for item in candidates] + [
+        item.task for item in excluded_tasks
+    ]
+    input_snapshots = live_snapshots_by_task(db, snapshot_tasks)
+
     return SchedulingInputs(
         owner_id=owner_id,
         user_settings=user_settings,
@@ -152,4 +162,5 @@ def collect_inputs(
         effective_window_source_by_task=effective_window_source_by_task,
         preferred_windows=preferred_windows,
         daily_cap=daily_cap,
+        input_snapshots=input_snapshots,
     )

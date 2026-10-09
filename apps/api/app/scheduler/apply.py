@@ -70,6 +70,7 @@ def apply_calculation(
         run_id=run.id,
         owner_id=inputs.owner_id,
         outcomes=result.outcomes,
+        input_snapshots=inputs.input_snapshots,
     )
 
     new_blocks = (

@@ -1,8 +1,8 @@
 # F3 — Scheduler explanations (W1)
 
-**Status:** Implemented (W1) · **Quality:** Renee green for W1 tranche (**2026-10-08**); Dex recheck **pending**; push **held**; F3 **not** Closed/shipped — remaining reason families **W2**  
+**Status:** Implemented (W1) · **Quality:** Renee green for W1 tranche + Dex **P2** corrections in working tree (**2026-10-08**); Dex recheck **pending**; push **held**; F3 **not** Closed/shipped — remaining reason families **W2**  
 **Spec:** [NEXT-FEATURES-SPEC.md §6](../NEXT-FEATURES-SPEC.md#6-f3-scheduler-explanations)  
-**Build:** `4c835b5` (no push until Dex recheck)
+**Build:** pending commit (working tree; no push until Dex recheck)
 **Hygiene:** Alembic head **`023_schedule_outcome_provenance`** (after **`022_schedule_task_outcomes`**, revises **`021_task_workflow`**)
 
 ## Architecture note (F6 prep)
@@ -14,6 +14,18 @@ Module map: [apps/api/app/scheduler/README.md](../../apps/api/app/scheduler/READ
 ## Quality fix (2026-10-08)
 
 **`unplaced_horizon_exhausted` vs `unplaced_no_slot`:** Partial placement with remaining minutes inside the horizon must classify as **`unplaced_horizon_exhausted`**; **`unplaced_no_slot`** is reserved for cases where the placement loop recorded no suitable slot (e.g. past deadline with zero placement). Renee caught misclassification before exit; acceptance tests `test_partial_fit_is_horizon_exhausted` and `test_past_deadline_is_no_slot` lock the split.
+
+## Dex W1 P2 corrections (2026-10-08)
+
+Three holds from Dex recheck — fixed in working tree; remote push still held pending Dex sign-off.
+
+| # | Hold | Fix |
+|---|------|-----|
+| 1 | Stale **unpinned** prerequisite blocks delayed dependents even though apply wipes them | Prerequisite seed uses **pinned-only** block ends (`_seed_prerequisite_block_ends` in `calculate.py`). Proposed ends from the current pass still merge during calculate; old unpinned leftovers no longer push dependents. |
+| 2 | `input_fingerprint` at persist could reflect **live** DB after collect/calculate | `SchedulingInputs` captures **`input_snapshots`** at **`collect_inputs`**; **`persist_calculation_outcomes`** writes fingerprints from that capture (not a live re-query). **GET** schedule-explanation stale compare stays **live** vs stored snapshot. |
+| 3 | Editing scheduling inputs did not refresh **Why this schedule?** | **`TaskDetailPanel`** `updateMutation` invalidates **`["schedule-explanation", taskId]`** after save of scheduling inputs. |
+
+**Evidence:** `tests/test_f3_dex_w1_corrections.py` — `test_old_unpinned_prereq_block_does_not_delay_dependent`, `test_persist_uses_captured_snapshots_not_live_deps`, `test_collect_captures_input_snapshots`.
 
 ## Scope
 
@@ -41,10 +53,10 @@ From repo root, with API venv active (`apps/api/.venv`):
 
 ```powershell
 cd "F:\Code Repo\ThePlan\apps\api"
-.\.venv\Scripts\python.exe -m pytest tests/test_scheduler_reasons.py tests/test_schedule_replan.py tests/test_input_fingerprint.py tests/test_schedule_explanations.py tests/test_f3_w1_acceptance.py -q
+.\.venv\Scripts\python.exe -m pytest tests/test_scheduler_reasons.py tests/test_schedule_replan.py tests/test_input_fingerprint.py tests/test_schedule_explanations.py tests/test_f3_w1_acceptance.py tests/test_f3_dex_w1_corrections.py -q
 ```
 
-**Renee (2026-10-08, F3-W1 exit):** **42** passed — reason formatter, replan integration, fingerprint/stale, explanation HTTP contract, W1 acceptance (reason families + summary parity).
+**Renee (2026-10-08, F3-W1 + Dex P2):** **45** passed — prior W1 suites plus Dex corrections (prereq seed, captured snapshots at persist, collect snapshot shape). W1 exit tranche was **42** passed before `test_f3_dex_w1_corrections.py`.
 
 CLI contract (API venv + `PYTHONPATH` to `apps/api`):
 
@@ -83,10 +95,10 @@ cd "F:\Code Repo\ThePlan\apps\api"
 | Item | Notes |
 |------|-------|
 | **Reason families** | Spec §6 families not listed under F3-A W1 above are **deferred to W2** (see scope table). Past deadline uses **`unplaced_no_slot`** until **`deadline_limit`** is distinct. |
-| **Stale compare** | W1 compares duration, deadline, map/style, deps, and missing snapshot (`provenance`). Not yet: pins, daily cap, timezone/horizon/workweek, priority/UPS, lifecycle, external busy, map overrides, prerequisite state beyond edge set, `due_at` / soft target — [05-api-contract.md](../05-api-contract.md) |
+| **Stale compare** | W1 compares duration, deadline, map/style, deps, and missing snapshot (`provenance`) **live on GET** against the snapshot stored on the outcome row (written from **collect-time** `input_snapshots`, not live at apply). Not yet: pins, daily cap, timezone/horizon/workweek, priority/UPS, lifecycle, external busy, map overrides, prerequisite state beyond edge set, `due_at` / soft target — [05-api-contract.md](../05-api-contract.md) |
 | **F6 preview** | No preview/async diff UI; calculate/apply split is in place for a later slice |
 | **Run summary UI** | No dedicated schedule-run explanation browser in web — task panel + CLI/API only |
-| **Dex / push** | Implementation and Quality green for W1; delivery sign-off and remote push still pending |
+| **Dex / push** | W1 + **P2** fixes (prereq pinned seed, persist fingerprints from collect capture, web invalidation after scheduling-input save) — **45** API pytest, web build green; Dex **recheck** and **push** still pending. **W2** reason families unchanged (deferred). |
 
 ## Related documents
 

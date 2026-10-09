@@ -141,6 +141,12 @@ def _seed_prerequisite_block_ends(
     horizon_start: datetime,
     horizon_end: datetime,
 ) -> dict[UUID, datetime]:
+    """Seed prereq end times from blocks that survive apply.
+
+    Apply wipes unpinned horizon blocks before writing proposals. Seeding from
+    those doomed blocks delays dependents with no remaining justification.
+    Newly proposed ends are merged into the map as placement succeeds.
+    """
     latest: dict[UUID, datetime] = {}
     if not candidate_ids:
         return latest
@@ -149,6 +155,7 @@ def _seed_prerequisite_block_ends(
         .filter(
             ScheduledBlock.owner_id == owner_id,
             ScheduledBlock.task_id.in_(candidate_ids),
+            ScheduledBlock.is_pinned.is_(True),
             ScheduledBlock.start_time < horizon_end,
             ScheduledBlock.end_time > horizon_start,
         )

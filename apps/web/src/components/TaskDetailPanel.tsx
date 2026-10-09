@@ -392,6 +392,9 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   }, [scheduleStyle, projectId, projects, epics]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tasks"] });
+  const invalidateScheduleExplanation = (taskId: string) => {
+    queryClient.invalidateQueries({ queryKey: ["schedule-explanation", taskId] });
+  };
 
   const updateMutation = useMutation({
     mutationFn: (body: TaskUpdate) => updateTask(task!.id, body),
@@ -431,6 +434,9 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     onSuccess: () => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
+      // Duration/deadline/map/style (and inheritance via project) are W1 fingerprint
+      // inputs — drop the cached explanation so stale badges refresh on reopen.
+      invalidateScheduleExplanation(task!.id);
       onClose();
     },
   });
