@@ -2,7 +2,7 @@
 
 **Status:** Implemented · **Quality:** Renee API **32** green this pass (**2026-10-08**); Dex recheck **pending** (second-hold row **6** — accum reset blank after move); push **held**; F2-D browser/manual **open** (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §5](../NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)  
-**Build:** `8636e8c` (working-tree follow-up for row **6** pending commit; no push until Dex recheck)
+**Build:** `6024d4d` (no push until Dex recheck)
 **Hygiene:** Alembic head **`021_task_workflow`** (after F1 **`020_task_source_refs`**)
 
 ## Dex review corrections (2026-10-08)
