@@ -56,19 +56,15 @@ class HandoffDependency(BaseModel):
 
     @model_validator(mode="after")
     def _blocking_dependent_pair(self) -> HandoffDependency:
-        key_pair = self.blocking_key is not None or self.dependent_key is not None
-        id_pair = self.blocking_task_id is not None or self.dependent_task_id is not None
-        if key_pair and id_pair:
-            raise ValueError("Use key references or task ids, not both")
-        if key_pair:
-            if not self.blocking_key or not self.dependent_key:
-                raise ValueError("blocking_key and dependent_key are required together")
-        elif id_pair:
-            if not self.blocking_task_id or not self.dependent_task_id:
-                raise ValueError("blocking_task_id and dependent_task_id are required together")
-        else:
-            raise ValueError("Dependency must reference keys or task ids")
-        if self.blocking_key == self.dependent_key:
+        def _one_of(key: str | None, task_id: UUID | None, label: str) -> None:
+            has_key = key is not None
+            has_id = task_id is not None
+            if has_key == has_id:
+                raise ValueError(f"{label} requires exactly one of *_key or *_task_id")
+
+        _one_of(self.blocking_key, self.blocking_task_id, "blocking")
+        _one_of(self.dependent_key, self.dependent_task_id, "dependent")
+        if self.blocking_key is not None and self.blocking_key == self.dependent_key:
             raise ValueError("blocking_key and dependent_key must differ")
         if (
             self.blocking_task_id is not None

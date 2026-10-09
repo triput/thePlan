@@ -61,6 +61,12 @@ export interface AuthMeUpdateBody {
   display_name?: string | null;
 }
 
+export interface SourceRef {
+  system: string;
+  id: string;
+  url?: string | null;
+}
+
 export interface Epic {
   id: string;
   title: string;
@@ -72,6 +78,7 @@ export interface Epic {
   is_archived: boolean;
   preferred_time_window_id: string | null;
   schedule_style: ScheduleStyle | null;
+  source_refs?: SourceRef[] | null;
 }
 
 export interface Project {
@@ -84,6 +91,7 @@ export interface Project {
   is_archived: boolean;
   preferred_time_window_id: string | null;
   schedule_style: ScheduleStyle | null;
+  source_refs?: SourceRef[] | null;
 }
 
 export interface Section {
@@ -160,6 +168,7 @@ export interface Task {
   plan_id: string | null;
   plan_name?: string | null;
   schedule_style: ScheduleStyle | null;
+  source_refs?: SourceRef[] | null;
   estimated_duration_minutes: number;
   preferred_time_window_id: string | null;
   is_completed: boolean;

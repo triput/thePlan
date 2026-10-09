@@ -31,19 +31,41 @@ def load_dependency_edges(
     owner_id: uuid.UUID,
     task_ids: set[uuid.UUID],
 ) -> list[tuple[uuid.UUID, uuid.UUID]]:
-    """Blocking -> dependent edges among task_ids plus stored deps touching the set."""
+    """Blocking -> dependent edges for the transitive closure of task_ids (owner-scoped)."""
     if not task_ids:
         return []
-    rows = (
-        db.query(TaskDependency.blocking_task_id, TaskDependency.dependent_task_id)
-        .filter(
-            TaskDependency.owner_id == owner_id,
-            TaskDependency.blocking_task_id.in_(task_ids),
-            TaskDependency.dependent_task_id.in_(task_ids),
+    frontier = set(task_ids)
+    seen_nodes: set[uuid.UUID] = set()
+    edges: list[tuple[uuid.UUID, uuid.UUID]] = []
+    seen_edges: set[tuple[uuid.UUID, uuid.UUID]] = set()
+
+    while frontier:
+        batch = frontier - seen_nodes
+        if not batch:
+            break
+        seen_nodes |= batch
+        frontier = set()
+        rows = (
+            db.query(TaskDependency.blocking_task_id, TaskDependency.dependent_task_id)
+            .filter(
+                TaskDependency.owner_id == owner_id,
+                (
+                    TaskDependency.blocking_task_id.in_(batch)
+                    | TaskDependency.dependent_task_id.in_(batch)
+                ),
+            )
+            .all()
         )
-        .all()
-    )
-    return [(row[0], row[1]) for row in rows]
+        for blocker, dependent in rows:
+            edge = (blocker, dependent)
+            if edge not in seen_edges:
+                seen_edges.add(edge)
+                edges.append(edge)
+            if blocker not in seen_nodes:
+                frontier.add(blocker)
+            if dependent not in seen_nodes:
+                frontier.add(dependent)
+    return edges
 
 
 def would_create_cycle(

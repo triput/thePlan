@@ -1,9 +1,9 @@
 # F1 — CLI planning handoff
 
-**Status:** Implemented · **Quality:** Renee exit **2026-10-08** (automated green) · **Manual verification:** pending (Trish)  
+**Status:** Implemented · **Quality:** Renee exit **2026-10-08** (automated green; Dex review corrections re-run same day) · **Manual verification:** pending (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §4](../NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff)  
-**Build:** ac55c4f  
-**Hygiene:** [HYGIENE-R4-QUICKSCAN.md](../HYGIENE-R4-QUICKSCAN.md) (pass; Alembic head **019**)
+**Build:** pending (Dex review corrections uncommitted; prior tip **ac55c4f**)  
+**Hygiene:** [HYGIENE-R4-QUICKSCAN.md](../HYGIENE-R4-QUICKSCAN.md) (pass; Alembic head **020**)
 
 ## Scope
 
@@ -11,13 +11,26 @@
 |-------|------------|-----------|
 | **F1-A** | Graph creates project, sections, nested tasks, dependencies; `source_refs` on root read back | `test_f1_a_graph_create_and_readback` |
 | **F1-B** | Same idempotency key replays one graph / one receipt; unique-key race returns same receipt | `test_f1_b_idempotent_replay`, `test_f1_b_concurrent_unique_key_one_receipt` |
-| **F1-C** | Invalid parent, cycle, or payload/key conflict → no partial writes | `test_f1_c_*` |
+| **F1-C** | Invalid parent, cycle, or payload/key conflict → no partial writes | `test_f1_c_*`, foreign section/project parent rejected |
 | **F1-D** | Task graft leaves host parent `schedule_style`; manual tasks excluded from replan candidates; inherited policy honored | `test_f1_d_*`, `test_inherited_schedule_policy_on_handoff` |
-| **F1-E** | Propose discloses duration + priority defaults; omitted dates stay absent on apply | `test_handoff_propose_discloses_defaults`, `test_f1_e_propose_discloses_priority_and_omits_due` |
+| **F1-E** | Propose discloses duration + priority defaults and **embeds** them on returned `payload`; omitted dates stay absent on apply | `test_handoff_propose_discloses_defaults`, `test_f1_e_propose_discloses_priority_and_omits_due`, `test_handoff_apply_uses_proposed_duration_not_later_settings` |
 
-**Also in slice:** Alembic **`019_handoff_receipts`** (`handoff_receipts` + `source_refs` on epics/projects); task dependency API + CLI; epic/project/section CLI CRUD; task complete/uncomplete CLI.
+**Also in slice:** Alembic **`019_handoff_receipts`** (`handoff_receipts` + `source_refs` on epics/projects); Alembic **`020_task_source_refs`** (`source_refs` on **tasks** for task-only grafts); task dependency API + CLI; epic/project/section CLI CRUD; task complete/uncomplete CLI; web read-only **source refs** on epic, project, and task detail.
 
 **Not F1:** Outline ingest remains a separate propose/apply path and is still **non-idempotent** on re-import — [OUTLINE-INGEST.md](../OUTLINE-INGEST.md). Closeout P2 scheduling fixes shipped with this wave; [DEF-028](../DEFECTS.md#def-028--calendar-mirror-delete-failure-recovery-pending-deletion) (mirror delete recovery) stays deferred.
+
+## Dex review corrections (addressed)
+
+Post–Renee exit review findings are implemented in working tree (not yet committed):
+
+| Finding | Resolution |
+|---------|------------|
+| **P1 ownership** | Handoff apply validates owned, live parents and dependency task IDs (`owner_id` + not trashed); foreign section/project parent → **422**, no partial writes |
+| **Cycle closure** | Handoff graph cycles and **three-node** closes over existing API edges rejected; task dependency API **422** `DEPENDENCY_CYCLE` on 2- and 3-node closes |
+| **Mixed dependencies** | Each edge uses exactly one blocking ref (`blocking_key` **or** `blocking_task_id`) and one dependent ref (`dependent_key` **or** `dependent_task_id`); existing blocker + new dependent key supported |
+| **Propose embeds defaults** | `POST …/propose` canonical `payload` includes resolved duration, priority, and default root `schedule_policy`; apply should replay that payload (settings changes after propose do not alter stored minutes) |
+| **Schedule root inheritance** | Root `schedule_policy` applies to created epic/project roots; per-entity override; task-only grafts honor policy without mutating host project; `inherited` → null `schedule_style` on tasks |
+| **`source_refs` + web** | Migration **020** persists graft `source_refs` on tasks; epic/project/task detail panels show read-only source refs when present |
 
 ## Integration
 
@@ -37,7 +50,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 .\.venv\Scripts\python.exe -m pytest tests/test_handoffs.py -q
 ```
 
-**Renee quality exit (2026-10-08):** `tests/test_handoffs.py` **12** passed; adjacent API (outlines + soft-delete + scheduler deps) **38** passed before the two added F1-B/F1-E cases; CLI **33** passed.
+**Dex review re-run (2026-10-08):** `tests/test_handoffs.py` **20** passed (was **12** pre-review; includes automatic/bundle → standalone root). Adjacent bundle (handoffs + task deps + scheduler deps + outlines) **36** passed.
 
 Adjacent API (hierarchy, complete, dependency edges exercised with handoff suite):
 
@@ -46,14 +59,16 @@ cd "F:\Code Repo\ThePlan\apps\api"
 .\.venv\Scripts\python.exe -m pytest tests/test_handoffs.py tests/test_sections.py tests/test_task_complete.py tests/test_task_nesting.py tests/test_schedule_style_inherit.py tests/test_scheduler_dependencies.py -q
 ```
 
-CLI parser + client contract:
+CLI parser + client contract (Renee exit count; re-run when CLI venv has pytest):
 
 ```powershell
 cd "F:\Code Repo\ThePlan\apps\cli"
 .\.venv\Scripts\python.exe -m pytest tests/ -q
 ```
 
-Apply migration before live or manual CLI checks:
+**Renee quality exit (2026-10-08):** CLI **33** passed at exit; not re-run on this doc pass.
+
+Apply migrations before live or manual CLI checks:
 
 ```powershell
 cd "F:\Code Repo\ThePlan\apps\api"
@@ -62,9 +77,9 @@ cd "F:\Code Repo\ThePlan\apps\api"
 
 ## Manual checklist (Trish)
 
-- [ ] `theplan auth login` against Compose API; `theplan handoff propose --file …` then `--format text` tree matches JSON entities
+- [ ] `theplan auth login` against Compose API; `theplan handoff propose --file …` then `--format text` tree matches JSON entities; propose JSON `payload` shows embedded duration/priority defaults
 - [ ] Apply with a fresh UUID key; `theplan handoff receipt --idempotency-key …` matches apply JSON; second apply shows `replayed: true`
-- [ ] Epic or project detail in web UI shows **source refs** after a handoff that included `source_refs`
+- [ ] Epic, project, or **task** detail in web UI shows **source refs** after a handoff or task-only graft that included `source_refs` *(automated on API; UI check now feasible)*
 - [ ] Graft tasks under an existing section: host project schedule style unchanged; new tasks respect handoff `schedule_policy`
 - [ ] `theplan deps list|add|remove` round-trip against two real task IDs
 - [ ] `theplan epics|projects|sections` list/get/create/patch against owned entities
@@ -75,7 +90,6 @@ cd "F:\Code Repo\ThePlan\apps\api"
 | Item | Notes |
 |------|-------|
 | **F1-B concurrent HTTP** | Service-level unique-key race + sequential replay covered; two live HTTP threads against TestClient are not in suite (session not thread-safe) — manual double-apply still useful |
-| **F1-E live CLI** | Priority/duration disclosure and omitted dates covered in API tests; end-to-end authenticated CLI round-trip remains on the manual checklist |
 | **Outline vs handoff** | Do not use outline apply for agreed-plan idempotency; use `handoff apply` + receipt key |
 | **Receipt retention** | Receipts retained for this release; deleting created entities does not allow replay to recreate them (per spec) |
 | **DEF-028** | Calendar mirror delete failure recovery — deferred; unrelated to handoff writes |

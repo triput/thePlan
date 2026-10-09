@@ -11,6 +11,7 @@ import {
   type ScheduleStyle,
 } from "../api";
 import { ColorPicker } from "./ColorPicker";
+import { SourceRefsReadonly } from "./SourceRefsReadonly";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Modal } from "./Modal";
 
@@ -155,6 +156,7 @@ export function EditEpicForm({ epic, onClose }: EditEpicFormProps) {
               <option value="manual">Manual / backlog</option>
             </select>
           </label>
+          <SourceRefsReadonly sourceRefs={epic?.source_refs} />
           {error && <p className="form-error">{(error as Error).message}</p>}
           <div className="form-actions">
             <button type="button" className="btn secondary" onClick={onClose}>

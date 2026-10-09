@@ -151,7 +151,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 `schedule_style` optional on create/update: omit or `null` → inherit live (`task` → `project` → `epic` → `user_settings.default_schedule_style`); inbox is task or user default only. Explicit `standalone`, `time_block`, `bundle`, or `manual` overrides. Effective **bundle** and **manual** exclude the task from auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md).
 
-`TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), and `schedule_style` (null when inheriting).
+`TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), `schedule_style` (null when inheriting), and optional `source_refs` (handoff graft provenance).
 
 ---
 
@@ -161,17 +161,19 @@ Bulk create epics, projects, sections, and tasks from a versioned graph with opt
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/handoffs/propose` | Validate graph; return canonical payload, `resolved_defaults`, `warnings` (**200**) |
+| POST | `/handoffs/propose` | Validate graph; return canonical **`payload`** (defaults **embedded** on entities and root `schedule_policy` when omitted), plus `resolved_defaults`, `warnings` (**200**) |
 | POST | `/handoffs/apply` | Atomic create + receipt in one transaction (**200**). Body: graph fields + `idempotency_key` (UUID). Same owner/kind/key + same payload → replay (`replayed: true`). Same key + different payload → **409** `IDEMPOTENCY_KEY_REUSE`. Validation → **422** `HANDOFF_VALIDATION` |
 | GET | `/handoffs/receipts/{receipt_id}` | Stored receipt envelope + embedded apply result (**404** `RECEIPT_NOT_FOUND` if not owned) |
 | GET | `/handoffs/receipts/by-key/{idempotency_key}` | Receipt by apply key |
 | GET | `/handoffs/receipts?idempotency_key=` | Alias lookup by query param |
 
-**Graph payload (subset):** `schema_version` (1), optional `source_refs` (`system`, `id`, optional `url`), optional root `schedule_policy` (`manual` \| `inherited` \| `automatic`), `entities[]` (`key`, `kind`, `title`, `parent_key` **or** `parent: { kind, id }`, task fields), `dependencies[]` (keys or existing task UUID pairs).
+**Graph payload (subset):** `schema_version` (1), optional `source_refs` (`system`, `id`, optional `url`), optional root `schedule_policy` (`manual` \| `inherited` \| `automatic`), `entities[]` (`key`, `kind`, `title`, `parent_key` **or** `parent: { kind, id }`, task fields), `dependencies[]`.
+
+**Dependency edge:** each object must specify exactly one blocking side (`blocking_key` **or** `blocking_task_id`) and exactly one dependent side (`dependent_key` **or** `dependent_task_id`). Keys refer to entities in the same graph; task IDs must be owned, live tasks. Mixed edges (e.g. existing blocker UUID + new `dependent_key`) are supported. Cycles are rejected (**422** `HANDOFF_VALIDATION` or task API **422** `DEPENDENCY_CYCLE`).
 
 **Apply result:** `receipt_id`, `idempotency_key`, `replayed`, `entities` (key/kind/id), `dependencies_created`, `created_counts`, `defaulted_fields`, `warnings`, `source_refs`.
 
-**Persistence:** Alembic `019_handoff_receipts` — table `handoff_receipts`; `source_refs` JSONB on **epics** and **projects** for created roots.
+**Persistence:** Alembic `019_handoff_receipts` — table `handoff_receipts`; `source_refs` JSONB on **epics** and **projects** for created roots. Alembic `020_task_source_refs` — `source_refs` JSONB on **tasks** (task-only grafts). Epic/project/task reads expose `source_refs` when set.
 
 ---
 

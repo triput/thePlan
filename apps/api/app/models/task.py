@@ -80,6 +80,7 @@ class Task(Base, TimestampMixin):
         SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
         nullable=True,
     )
+    source_refs: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
     status: Mapped[ScheduleStatus] = mapped_column(
         SAEnum(ScheduleStatus, name="schedule_status", native_enum=True),
         nullable=False,

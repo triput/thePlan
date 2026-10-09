@@ -46,6 +46,9 @@ def test_handoff_propose_discloses_defaults(client: TestClient) -> None:
     fields = {(item["entity_key"], item["field"]) for item in body["resolved_defaults"]}
     assert ("design", "estimated_duration_minutes") in fields
     assert ("*", "schedule_policy") in fields
+    design = next(item for item in body["payload"]["entities"] if item["key"] == "design")
+    assert design["estimated_duration_minutes"] is not None
+    assert design["priority"] == "p4"
 
 
 def test_f1_e_propose_discloses_priority_and_omits_due(client: TestClient) -> None:
@@ -91,12 +94,13 @@ def test_f1_a_graph_create_and_readback(client: TestClient) -> None:
     project_id = by_kind["project"]["id"]
     project = client.get(f"/api/v1/projects/{project_id}").json()
     assert project["source_refs"][0]["id"] == "IDEA-example"
+    assert project["schedule_style"] == "manual"
 
     task_ids = [item["id"] for item in result["entities"] if item["kind"] == "task"]
     assert len(task_ids) == 3
     for task_id in task_ids:
         task = client.get(f"/api/v1/tasks/{task_id}").json()
-        assert task["schedule_style"] == "manual"
+        assert task["schedule_style"] is None
         assert task.get("due_at") is None
 
     nested = next(item for item in result["entities"] if item["key"] == "nested")
@@ -295,6 +299,33 @@ def test_f1_d_manual_excluded_from_candidates(
     assert "Implement slice" not in titles
 
 
+def test_task_dependency_api_three_node_cycle(client: TestClient) -> None:
+    project = client.post("/api/v1/projects", json={"title": "Dep chain"}).json()
+    a = client.post("/api/v1/tasks", json={"title": "A", "project_id": project["id"]}).json()
+    b = client.post("/api/v1/tasks", json={"title": "B", "project_id": project["id"]}).json()
+    c = client.post("/api/v1/tasks", json={"title": "C", "project_id": project["id"]}).json()
+    assert (
+        client.post(
+            f"/api/v1/tasks/{a['id']}/dependencies",
+            json={"blocking_task_id": a["id"], "dependent_task_id": b["id"]},
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            f"/api/v1/tasks/{b['id']}/dependencies",
+            json={"blocking_task_id": b["id"], "dependent_task_id": c["id"]},
+        ).status_code
+        == 201
+    )
+    closing = client.post(
+        f"/api/v1/tasks/{c['id']}/dependencies",
+        json={"blocking_task_id": c["id"], "dependent_task_id": a["id"]},
+    )
+    assert closing.status_code == 422
+    assert closing.json()["code"] == "DEPENDENCY_CYCLE"
+
+
 def test_task_dependency_api_cycle(client: TestClient) -> None:
     project = client.post("/api/v1/projects", json={"title": "Dep project"}).json()
     a = client.post(
@@ -327,6 +358,240 @@ def test_task_dependency_api_cycle(client: TestClient) -> None:
     assert client.get(f"/api/v1/tasks/{a['id']}/dependencies").json() == []
 
 
+def test_handoff_apply_uses_proposed_duration_not_later_settings(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    propose = client.post("/api/v1/handoffs/propose", json=_handoff_graph())
+    assert propose.status_code == 200, propose.text
+    proposed_payload = propose.json()["payload"]
+    design = next(item for item in proposed_payload["entities"] if item["key"] == "design")
+    proposed_minutes = design["estimated_duration_minutes"]
+    assert proposed_minutes is not None
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    settings = get_or_provision_user_settings(db_session, user)
+    settings.default_estimated_duration_minutes = 90
+    db_session.flush()
+
+    applied = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **proposed_payload},
+    )
+    assert applied.status_code == 200, applied.text
+    design_id = next(item["id"] for item in applied.json()["entities"] if item["key"] == "design")
+    task = client.get(f"/api/v1/tasks/{design_id}").json()
+    assert task["estimated_duration_minutes"] == proposed_minutes
+    assert task["estimated_duration_minutes"] != 90
+
+
+def test_f1_c_foreign_section_parent_rejected(client: TestClient, db_session: Session) -> None:
+    before_sections = db_session.query(Project).count()
+    payload = {
+        "schema_version": 1,
+        "entities": [
+            {
+                "key": "sec",
+                "kind": "section",
+                "title": "Bad section",
+                "parent": {"kind": "project", "id": str(uuid4())},
+            }
+        ],
+    }
+    response = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert response.status_code == 422
+    assert db_session.query(Project).count() == before_sections
+
+
+def test_handoff_mixed_dependency_existing_blocker_new_dependent(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    from app.models import Section
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    project_row = Project(owner_id=user.id, title="Mixed dep")
+    db_session.add(project_row)
+    db_session.flush()
+    section_row = Section(owner_id=user.id, project_id=project_row.id, title="Mixed section")
+    db_session.add(section_row)
+    db_session.flush()
+    section = {"id": str(section_row.id)}
+    blocker_row = Task(
+        owner_id=user.id,
+        title="Blocker",
+        project_id=project_row.id,
+        section_id=section_row.id,
+    )
+    db_session.add(blocker_row)
+    db_session.flush()
+    blocker = {"id": str(blocker_row.id)}
+    payload = {
+        "schema_version": 1,
+        "entities": [
+            {
+                "key": "new_task",
+                "kind": "task",
+                "title": "Dependent new",
+                "parent": {"kind": "section", "id": section["id"]},
+            }
+        ],
+        "dependencies": [
+            {
+                "blocking_task_id": blocker["id"],
+                "dependent_key": "new_task",
+            }
+        ],
+    }
+    result = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert result.status_code == 200, result.text
+    new_id = result.json()["entities"][0]["id"]
+    listed = client.get(f"/api/v1/tasks/{blocker['id']}/dependencies").json()
+    assert any(row["dependent_task_id"] == new_id for row in listed)
+
+
+def test_handoff_dependency_two_existing_task_ids(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    from app.models import Section
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    project_row = Project(owner_id=user.id, title="Two ids")
+    db_session.add(project_row)
+    db_session.flush()
+    section_row = Section(owner_id=user.id, project_id=project_row.id, title="Two ids section")
+    db_session.add(section_row)
+    db_session.flush()
+    section = {"id": str(section_row.id)}
+    task_a = Task(
+        owner_id=user.id,
+        title="A",
+        project_id=project_row.id,
+        section_id=section_row.id,
+    )
+    task_b = Task(
+        owner_id=user.id,
+        title="B",
+        project_id=project_row.id,
+        section_id=section_row.id,
+    )
+    db_session.add(task_a)
+    db_session.add(task_b)
+    db_session.flush()
+    a = {"id": str(task_a.id)}
+    b = {"id": str(task_b.id)}
+    payload = {
+        "schema_version": 1,
+        "entities": [
+            {
+                "key": "extra",
+                "kind": "task",
+                "title": "Extra",
+                "parent": {"kind": "section", "id": section["id"]},
+            }
+        ],
+        "dependencies": [
+            {"blocking_task_id": a["id"], "dependent_task_id": b["id"]},
+        ],
+    }
+    response = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert response.status_code == 200, response.text
+    listed = client.get(f"/api/v1/tasks/{a['id']}/dependencies").json()
+    assert any(row["dependent_task_id"] == b["id"] for row in listed)
+
+
+def test_handoff_three_node_cycle_with_existing_chain(client: TestClient) -> None:
+    project = client.post("/api/v1/projects", json={"title": "Chain"}).json()
+    a = client.post("/api/v1/tasks", json={"title": "A", "project_id": project["id"]}).json()
+    b = client.post("/api/v1/tasks", json={"title": "B", "project_id": project["id"]}).json()
+    c = client.post("/api/v1/tasks", json={"title": "C", "project_id": project["id"]}).json()
+    assert (
+        client.post(
+            f"/api/v1/tasks/{a['id']}/dependencies",
+            json={"blocking_task_id": a["id"], "dependent_task_id": b["id"]},
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            f"/api/v1/tasks/{b['id']}/dependencies",
+            json={"blocking_task_id": b["id"], "dependent_task_id": c["id"]},
+        ).status_code
+        == 201
+    )
+    payload = {
+        "schema_version": 1,
+        "entities": [
+            {
+                "key": "extra",
+                "kind": "task",
+                "title": "Extra",
+                "parent": {"kind": "project", "id": project["id"]},
+            }
+        ],
+        "dependencies": [{"blocking_task_id": c["id"], "dependent_task_id": a["id"]}],
+    }
+    response = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert response.status_code == 422
+
+
+def test_task_only_graft_persists_source_refs_on_task(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    from app.models import Section
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    project_row = Project(owner_id=user.id, title="Graft host")
+    db_session.add(project_row)
+    db_session.flush()
+    section_row = Section(owner_id=user.id, project_id=project_row.id, title="S1")
+    db_session.add(section_row)
+    db_session.flush()
+    section = {"id": str(section_row.id)}
+    payload = {
+        "schema_version": 1,
+        "source_refs": [{"system": "notes", "id": "graft-src"}],
+        "entities": [
+            {
+                "key": "t",
+                "kind": "task",
+                "title": "Grafted",
+                "parent": {"kind": "section", "id": section["id"]},
+            }
+        ],
+    }
+    result = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert result.status_code == 200, result.text
+    task_id = result.json()["entities"][0]["id"]
+    task = client.get(f"/api/v1/tasks/{task_id}").json()
+    assert task["source_refs"][0]["id"] == "graft-src"
+
+
 def test_inherited_schedule_policy_on_handoff(client: TestClient) -> None:
     payload = _handoff_graph()
     payload["schedule_policy"] = "inherited"
@@ -342,4 +607,36 @@ def test_inherited_schedule_policy_on_handoff(client: TestClient) -> None:
         if item["kind"] != "task":
             continue
         task = client.get(f"/api/v1/tasks/{item['id']}").json()
+        assert task["schedule_style"] is None
+
+
+def test_automatic_bundle_default_stamps_standalone_on_project_root(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """User default bundle is not an auto style; created project root gets standalone, tasks inherit."""
+    from app.models.enums import ScheduleStyle
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    settings = get_or_provision_user_settings(db_session, user)
+    settings.default_schedule_style = ScheduleStyle.bundle
+    db_session.flush()
+
+    payload = _handoff_graph()
+    payload["schedule_policy"] = "automatic"
+    result = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert result.status_code == 200, result.text
+    project_id = next(item["id"] for item in result.json()["entities"] if item["kind"] == "project")
+    project = client.get(f"/api/v1/projects/{project_id}").json()
+    assert project["schedule_style"] == "standalone"
+
+    task_ids = [item["id"] for item in result.json()["entities"] if item["kind"] == "task"]
+    assert task_ids
+    for task_id in task_ids:
+        task = client.get(f"/api/v1/tasks/{task_id}").json()
         assert task["schedule_style"] is None

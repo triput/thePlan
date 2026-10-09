@@ -29,7 +29,11 @@ from app.schemas.handoffs import (
 )
 from app.services.assist_apply import _ensure_labels
 from app.services.auth_users import get_or_provision_user_settings
-from app.services.task_dependencies import edges_have_cycle, load_dependency_edges
+from app.services.task_dependencies import (
+    assert_no_cycle,
+    edges_have_cycle,
+    load_dependency_edges,
+)
 from app.services.task_helpers import resolve_nesting_level
 
 
@@ -58,6 +62,15 @@ def _effective_schedule_policy(
     return "manual"
 
 
+_AUTO_ELIGIBLE = {ScheduleStyle.standalone, ScheduleStyle.time_block}
+
+
+def _eligible_auto_style(settings_default: ScheduleStyle) -> ScheduleStyle:
+    if settings_default in _AUTO_ELIGIBLE:
+        return settings_default
+    return ScheduleStyle.standalone
+
+
 def _schedule_style_for_policy(
     policy: HandoffSchedulePolicy,
     settings_default: ScheduleStyle,
@@ -67,8 +80,55 @@ def _schedule_style_for_policy(
     if policy == "inherited":
         return None
     if policy == "automatic":
-        return settings_default
+        return _eligible_auto_style(settings_default)
     raise ApiError(422, f"Unknown schedule_policy: {policy}", "INVALID_SCHEDULE_POLICY")
+
+
+def _graph_has_epic(payload: HandoffGraphPayload) -> bool:
+    return any(entity.kind == "epic" for entity in payload.entities)
+
+
+def _creates_hierarchy_root(payload: HandoffGraphPayload) -> bool:
+    return any(entity.kind in {"epic", "project"} for entity in payload.entities)
+
+
+def _is_task_only_graft(payload: HandoffGraphPayload) -> bool:
+    return not _creates_hierarchy_root(payload) and any(entity.kind == "task" for entity in payload.entities)
+
+
+def _is_created_schedule_root(entity: HandoffEntity, payload: HandoffGraphPayload) -> bool:
+    if entity.kind == "epic":
+        return entity.parent is None and entity.parent_key is None
+    if entity.kind == "project":
+        if _graph_has_epic(payload):
+            return False
+        return entity.parent is None and entity.parent_key is None
+    return False
+
+
+def _resolve_entity_schedule_style(
+    payload: HandoffGraphPayload,
+    entity: HandoffEntity,
+    settings_default: ScheduleStyle,
+) -> ScheduleStyle | None:
+    if entity.kind not in {"epic", "project", "task"}:
+        return None
+
+    policy = _effective_schedule_policy(payload, entity)
+
+    if _is_task_only_graft(payload) and entity.kind == "task":
+        return _schedule_style_for_policy(policy, settings_default)
+
+    if entity.schedule_policy is not None:
+        return _schedule_style_for_policy(policy, settings_default)
+
+    if entity.kind == "task":
+        return None
+
+    if _is_created_schedule_root(entity, payload):
+        return _schedule_style_for_policy(policy, settings_default)
+
+    return None
 
 
 def _invalid(entity_key: str | None, field: str, message: str) -> None:
@@ -178,30 +238,39 @@ def _task_key_map(entities: list[HandoffEntity]) -> dict[str, HandoffEntity]:
     return {entity.key: entity for entity in entities if entity.kind == "task"}
 
 
+def _validate_task_id_owned(db: Session, user: User, task_id: uuid.UUID, label: str) -> None:
+    task = db.get(Task, task_id)
+    if task is None or task.owner_id != user.id or task.deleted_at is not None:
+        _invalid(None, label, "task not found or not owned")
+
+
 def _validate_dependencies(
     db: Session,
     user: User,
     payload: HandoffGraphPayload,
-) -> tuple[list[tuple[uuid.UUID, uuid.UUID]], list[tuple[str, str]]]:
+) -> list[tuple[str, str]]:
     task_entities = _task_key_map(payload.entities)
-    pending_edges: list[tuple[uuid.UUID, uuid.UUID]] = []
     symbolic_edges: list[tuple[str, str]] = []
 
     for dep in payload.dependencies:
-        if dep.blocking_key:
-            if dep.blocking_key not in task_entities or dep.dependent_key not in task_entities:
-                _invalid(None, "dependencies", "dependency keys must refer to task entities in graph")
+        if dep.blocking_key is not None:
+            if dep.blocking_key not in task_entities:
+                _invalid(None, "blocking_key", "dependency key must refer to a task entity in graph")
+        else:
+            assert dep.blocking_task_id is not None
+            _validate_task_id_owned(db, user, dep.blocking_task_id, "blocking_task_id")
+
+        if dep.dependent_key is not None:
+            if dep.dependent_key not in task_entities:
+                _invalid(None, "dependent_key", "dependency key must refer to a task entity in graph")
+        else:
+            assert dep.dependent_task_id is not None
+            _validate_task_id_owned(db, user, dep.dependent_task_id, "dependent_task_id")
+
+        if dep.blocking_key is not None and dep.dependent_key is not None:
             symbolic_edges.append((dep.blocking_key, dep.dependent_key))
-            continue
-        assert dep.blocking_task_id and dep.dependent_task_id
-        for task_id, label in (
-            (dep.blocking_task_id, "blocking_task_id"),
-            (dep.dependent_task_id, "dependent_task_id"),
-        ):
-            task = db.get(Task, task_id)
-            if task is None or task.owner_id != user.id or task.deleted_at is not None:
-                _invalid(None, label, "task not found or not owned")
-        pending_edges.append((dep.blocking_task_id, dep.dependent_task_id))
+        elif dep.blocking_task_id is not None and dep.dependent_task_id is not None:
+            assert_no_cycle(db, user.id, dep.blocking_task_id, dep.dependent_task_id)
 
     if symbolic_edges:
         # Validate symbolic cycle before ids exist using Kahn on keys.
@@ -223,7 +292,7 @@ def _validate_dependencies(
         if seen != len(nodes):
             _invalid(None, "dependencies", "dependency cycle among new tasks")
 
-    return pending_edges, symbolic_edges  # type: ignore[return-value]
+    return symbolic_edges
 
 
 def _validate_nesting(db: Session, user: User, payload: HandoffGraphPayload) -> None:
@@ -306,6 +375,20 @@ def _collect_resolved_defaults(
     return resolved
 
 
+def _embed_resolved_defaults_on_payload(
+    payload: HandoffGraphPayload,
+    default_duration: int,
+    default_priority: TaskPriority,
+) -> None:
+    for entity in payload.entities:
+        if entity.kind != "task":
+            continue
+        if entity.estimated_duration_minutes is None:
+            entity.estimated_duration_minutes = default_duration
+        if entity.priority is None:
+            entity.priority = default_priority
+
+
 def propose_handoff(
     db: Session,
     user: User,
@@ -320,15 +403,15 @@ def propose_handoff(
     _validate_nesting(db, user, canonical)
     _validate_dependencies(db, user, canonical)
     warnings: list[str] = []
-    if not any(entity.kind in {"epic", "project"} for entity in canonical.entities):
-        if any(entity.kind == "task" for entity in canonical.entities):
-            warnings.append("task-only graft: source_refs stored on receipt only")
+    default_duration = settings.default_estimated_duration_minutes
+    default_priority = TaskPriority.p4
     resolved = _collect_resolved_defaults(
         canonical,
-        settings.default_estimated_duration_minutes,
-        TaskPriority.p4,
+        default_duration,
+        default_priority,
         policy_was_omitted=policy_was_omitted,
     )
+    _embed_resolved_defaults_on_payload(canonical, default_duration, default_priority)
     return HandoffProposeResponse(payload=canonical, resolved_defaults=resolved, warnings=warnings)
 
 
@@ -362,15 +445,20 @@ def _validate_apply_cycles(
     temp_ids = {entity.key: uuid.uuid4() for entity in payload.entities}
     new_edges: list[tuple[uuid.UUID, uuid.UUID]] = []
     for dep in payload.dependencies:
-        if dep.blocking_key:
+        if dep.blocking_key is not None:
             blocker = temp_ids.get(dep.blocking_key)
-            dependent = temp_ids.get(dep.dependent_key)
-            if blocker is None or dependent is None:
-                _invalid(None, "dependencies", "dependency keys must refer to task entities in graph")
-            new_edges.append((blocker, dependent))
+            if blocker is None:
+                _invalid(None, "blocking_key", "dependency key must refer to a task entity in graph")
         else:
-            assert dep.blocking_task_id and dep.dependent_task_id
-            new_edges.append((dep.blocking_task_id, dep.dependent_task_id))
+            blocker = dep.blocking_task_id
+        if dep.dependent_key is not None:
+            dependent = temp_ids.get(dep.dependent_key)
+            if dependent is None:
+                _invalid(None, "dependent_key", "dependency key must refer to a task entity in graph")
+        else:
+            dependent = dep.dependent_task_id
+        assert blocker is not None and dependent is not None
+        new_edges.append((blocker, dependent))
 
     involved: set[uuid.UUID] = set()
     for blocker_id, dependent_id in new_edges:
@@ -409,14 +497,15 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
     entity_refs: list[HandoffReceiptEntityRef] = []
     created_counts: dict[str, int] = {"epic": 0, "project": 0, "section": 0, "task": 0}
 
-    _, symbolic_dep_edges = _validate_dependencies(db, user, payload)
+    _validate_dependencies(db, user, payload)
     _validate_apply_cycles(db, user, payload)
+
+    task_source_refs = source_json if source_json else None
 
     try:
         with db.begin_nested():
             for entity in ordered:
-                policy = _effective_schedule_policy(payload, entity)
-                style = _schedule_style_for_policy(policy, default_style)
+                style = _resolve_entity_schedule_style(payload, entity, default_style)
 
                 if entity.kind == "epic":
                     epic = Epic(
@@ -443,9 +532,6 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                         epic_id = key_to_id.get(entity.parent_key)
                         if epic_id is None:
                             _invalid(entity.key, "parent_key", "epic key not found")
-                    standalone_root = (
-                        epic_id is None and entity.parent is None and entity.parent_key is None
-                    )
                     project = Project(
                         owner_id=user.id,
                         epic_id=epic_id,
@@ -453,7 +539,7 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                         description=entity.description,
                         sort_order=entity.sort_order,
                         schedule_style=style,
-                        source_refs=source_json if standalone_root else None,
+                        source_refs=source_json,
                     )
                     db.add(project)
                     db.flush()
@@ -465,11 +551,12 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                     continue
 
                 if entity.kind == "section":
-                    project_id: uuid.UUID | None = None
-                    if entity.parent is not None and entity.parent.kind == "project":
-                        project_id = entity.parent.id
-                    elif entity.parent_key:
+                    resolved = _resolve_existing_parent(db, user, entity)
+                    project_id = resolved.project_id
+                    if entity.parent_key:
                         project_id = key_to_id.get(entity.parent_key)
+                        if project_id is None:
+                            _invalid(entity.key, "parent_key", "project key not found")
                     if project_id is None:
                         _invalid(entity.key, "parent", "project parent required")
                     section = Section(
@@ -519,10 +606,10 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                         _invalid(entity.key, "parent", "project context required for task")
 
                     nesting = resolve_nesting_level(db, user.id, parent_task_id)
-                    estimated = entity.estimated_duration_minutes
-                    if estimated is None:
-                        estimated = settings.default_estimated_duration_minutes
-                    priority = entity.priority or TaskPriority.p4
+                    if entity.estimated_duration_minutes is None:
+                        _invalid(entity.key, "estimated_duration_minutes", "required on apply payload")
+                    if entity.priority is None:
+                        _invalid(entity.key, "priority", "required on apply payload")
 
                     task = Task(
                         owner_id=user.id,
@@ -532,12 +619,13 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                         section_id=section_id,
                         parent_task_id=parent_task_id,
                         nesting_level=nesting,
-                        priority=priority,
+                        priority=entity.priority,
                         sort_order=entity.sort_order,
-                        estimated_duration_minutes=estimated,
+                        estimated_duration_minutes=entity.estimated_duration_minutes,
                         due_at=entity.due_at,
                         deadline_at=entity.deadline_at,
                         schedule_style=style,
+                        source_refs=task_source_refs,
                     )
                     db.add(task)
                     db.flush()
@@ -552,26 +640,28 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                     created_counts["task"] += 1
 
             dep_count = 0
-            for blocker_key, dependent_key in symbolic_dep_edges:
+            for dep in payload.dependencies:
+                if dep.blocking_key is not None:
+                    blocking_task_id = key_to_id.get(dep.blocking_key)
+                    if blocking_task_id is None:
+                        _invalid(None, "blocking_key", "task key not resolved")
+                else:
+                    blocking_task_id = dep.blocking_task_id
+                if dep.dependent_key is not None:
+                    dependent_task_id = key_to_id.get(dep.dependent_key)
+                    if dependent_task_id is None:
+                        _invalid(None, "dependent_key", "task key not resolved")
+                else:
+                    dependent_task_id = dep.dependent_task_id
+                assert blocking_task_id is not None and dependent_task_id is not None
                 db.add(
                     TaskDependency(
                         owner_id=user.id,
-                        blocking_task_id=key_to_id[blocker_key],
-                        dependent_task_id=key_to_id[dependent_key],
+                        blocking_task_id=blocking_task_id,
+                        dependent_task_id=dependent_task_id,
                     )
                 )
                 dep_count += 1
-
-            for dep in payload.dependencies:
-                if dep.blocking_task_id:
-                    db.add(
-                        TaskDependency(
-                            owner_id=user.id,
-                            blocking_task_id=dep.blocking_task_id,
-                            dependent_task_id=dep.dependent_task_id,
-                        )
-                    )
-                    dep_count += 1
 
             receipt_id = uuid.uuid4()
             result = HandoffApplyResult(

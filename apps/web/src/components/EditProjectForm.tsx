@@ -12,6 +12,7 @@ import {
   type ScheduleStyle,
 } from "../api";
 import { ColorPicker } from "./ColorPicker";
+import { SourceRefsReadonly } from "./SourceRefsReadonly";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Modal } from "./Modal";
 import type { ViewSelection } from "../view";
@@ -202,6 +203,7 @@ export function EditProjectForm({ project, onClose, view, onSelectView }: EditPr
             <legend>Color</legend>
             <ColorPicker value={colorHex} onChange={setColorHex} />
           </fieldset>
+          <SourceRefsReadonly sourceRefs={project?.source_refs} />
           {error && <p className="form-error">{(error as Error).message}</p>}
           <div className="form-actions">
             <button type="button" className="btn secondary" onClick={onClose}>

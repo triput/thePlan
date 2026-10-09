@@ -861,6 +861,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             deletePending={deleteReminderMutation.isPending}
             onAddReminder={() => createReminderMutation.mutate()}
             onDeleteReminder={(id) => deleteReminderMutation.mutate(id)}
+            sourceRefs={task?.source_refs}
           />
 
           {updateMutation.isError && (

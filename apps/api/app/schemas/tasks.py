@@ -111,6 +111,7 @@ class TaskOut(BaseModel):
     plan_id: UUID | None = None
     plan_name: str | None = None
     schedule_style: ScheduleStyle | None = None
+    source_refs: list[dict[str, Any]] | None = None
     is_completed: bool
     completed_at: datetime | None
     deleted_at: datetime | None = None

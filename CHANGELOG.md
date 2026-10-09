@@ -2,11 +2,12 @@
 
 ## [Unreleased] — F1 CLI planning handoff (2026-10-08)
 
+- **F1 Dex review corrections:** Alembic `020_task_source_refs`; task graft `source_refs`; handoff parent/dependency ownership checks; mixed dependency edges; propose embeds resolved defaults on canonical payload; schedule root inheritance; dependency cycle closure — [delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md)
 - **F1 handoff API:** `POST /api/v1/handoffs/propose|apply`; receipt lookup `/api/v1/handoffs/receipts/{id}`, `/receipts/by-key/{key}`, `/receipts?idempotency_key=` — owner-scoped idempotent apply with atomic graph + receipt ([delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md), [NEXT-FEATURES-SPEC §4](docs/NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff))
 - **Alembic `019_handoff_receipts`:** `handoff_receipts`; `source_refs` on epics and projects
 - **Task dependencies API:** `GET|POST /api/v1/tasks/{id}/dependencies`, `DELETE …/dependencies/{dependency_id}` — cycle and ownership validation
 - **CLI F1:** `handoff propose|apply|receipt`; `epics` / `projects` / `sections` CRUD; `tasks complete|uncomplete`; `deps list|add|remove` — [CLI.md](docs/CLI.md)
-- **Quality:** Renee exit — handoffs + adjacent API **38+**, CLI **33**; F1-A/C/D automated; F1-B concurrent / F1-E live CLI disclosure called out as partial in delivery known limitations
+- **Quality:** Renee exit — handoffs **19**, adjacent API **39**, CLI **33**; F1-A–E automated; F1-B concurrent HTTP remains a known limitation in delivery doc
 - **Docs:** Handoff distinct from non-idempotent outline ingest — [OUTLINE-INGEST.md](docs/OUTLINE-INGEST.md)
 
 ## [Unreleased] — W2c + correctness (2026-10-08)

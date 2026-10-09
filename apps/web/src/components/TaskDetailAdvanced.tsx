@@ -1,4 +1,5 @@
-import type { Reminder, ReminderChannel } from "../api";
+import type { Reminder, ReminderChannel, SourceRef } from "../api";
+import { SourceRefsReadonly } from "./SourceRefsReadonly";
 import { TaskDetailSection, type DetailSectionId } from "./TaskDetailSection";
 
 interface TaskDetailAdvancedProps {
@@ -15,6 +16,7 @@ interface TaskDetailAdvancedProps {
   deletePending: boolean;
   onAddReminder: () => void;
   onDeleteReminder: (reminderId: string) => void;
+  sourceRefs?: SourceRef[] | null;
 }
 
 export function TaskDetailAdvanced({
@@ -31,9 +33,11 @@ export function TaskDetailAdvanced({
   deletePending,
   onAddReminder,
   onDeleteReminder,
+  sourceRefs,
 }: TaskDetailAdvancedProps) {
   return (
     <TaskDetailSection id="advanced" title="Advanced" open={open} onToggle={onToggle}>
+      <SourceRefsReadonly sourceRefs={sourceRefs} />
       <fieldset className="field recurrence-fieldset">
         <legend>Reminders</legend>
         {upcomingReminders.length > 0 ? (
