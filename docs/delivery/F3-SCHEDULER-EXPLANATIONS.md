@@ -2,7 +2,7 @@
 
 **Status:** Implemented (W1+W2) · **Quality:** green W2 (**2026-10-09**, Renee **75** API pytest) · Dex recheck **pending** · push **held** · F3 **not** Closed/shipped — browser/manual checklist still open; W3 deferrals remain  
 **Spec:** [NEXT-FEATURES-SPEC.md §6](../NEXT-FEATURES-SPEC.md#6-f3-scheduler-explanations)  
-**Build:** pending commit (no push until Dex recheck; no SHA until wave commit lands)  
+**Build:** `0199edf` (no push until Dex recheck)
 **Hygiene:** Alembic head **`023_schedule_outcome_provenance`** (after **`022_schedule_task_outcomes`**, revises **`021_task_workflow`**)
 
 ## Architecture note (F6 prep)
