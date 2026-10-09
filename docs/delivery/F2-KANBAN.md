@@ -1,8 +1,8 @@
 # F2 — Kanban for work in progress
 
-**Status:** Implemented · **Quality:** Renee API **32** green this pass (**2026-10-08**); Dex recheck **pending**; push **held**; F2-D browser/manual **open** (Trish)  
+**Status:** Implemented · **Quality:** Renee API **32** green this pass (**2026-10-08**); Dex recheck **pending** (second-hold row **6** — accum reset blank after move); push **held**; F2-D browser/manual **open** (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §5](../NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)  
-**Build:** `8636e8c` (no push until Dex recheck)
+**Build:** `8636e8c` (working-tree follow-up for row **6** pending commit; no push until Dex recheck)
 **Hygiene:** Alembic head **`021_task_workflow`** (after F1 **`020_task_source_refs`**)
 
 ## Dex review corrections (2026-10-08)
@@ -19,7 +19,9 @@
 
 ## Dex residual fixes (2026-10-08 — second hold)
 
-Five P2s from Dex recheck; implemented in working tree (not yet committed/shipped).
+Five P2s from Dex recheck plus one follow-up P2 (accum blank after move); implemented in working tree (pending commit — **Build** still **`8636e8c`** until Steve stamps post-commit).
+
+**Dex on `8636e8c`:** residuals **1, 2, 4, 5** signed off. Push remains **held** until Dex rechecks row **6** (and working-tree commit lands).
 
 | # | Fix | Layer |
 |---|-----|-------|
@@ -28,6 +30,7 @@ Five P2s from Dex recheck; implemented in working tree (not yet committed/shippe
 | 3 | Board accumulators: `TaskBoard.tsx` `moveMutation` `onSuccess` resets `openOffsets` / `openAccum` / `openServerTotals`, `smartOpenOffset` / `smartOpenAccum`, and **Done** pagination — not only Done | Web |
 | 4 | `scheduledOpenQuery` `queryKey` includes `workFilters.projectId` and `workFilters.epicId` | Web |
 | 5 | Explicit **Work** view: `view.type === "work"` in `view.ts` / Sidebar **Work**; `buildScopeParams` for work with **All** filters returns owner-wide scope (no `inbox=true`, no date constraints). **Inbox** still sends `inbox=true`; **Today** / **Upcoming** still apply due ranges | Web |
+| 6 | **Accum blank after move:** `accumResetGen` in `TaskBoard.tsx` bumped on move success and on `boardResetKey` clear; included in smart-open, **Done**, and open-column accumulator effect deps so unchanged TanStack Query data refs still repopulate after clear (pairs with row **3** reset). Helper + regression: `apps/web/src/boardAccum.ts`, `apps/web/tests/boardAccum.test.ts` — **Done** unchanged-page and Today/Upcoming smart-open unchanged-due-page paths (blank without gen bump; restored with gen bump) | Web |
 
 ## Scope
 
@@ -59,6 +62,8 @@ cd "F:\Code Repo\ThePlan\apps\api"
 ```
 
 **Renee (2026-10-08, second Dex hold pass):** **32** passed — `test_task_workflow.py`, `test_task_complete.py`, `test_complete_task_unit.py`, `test_recurrence.py` (includes exhausted-gap order + Ready recurrence revision bump).
+
+**Web accum (2026-10-08, row 6):** `apps/web/tests/boardAccum.test.ts` — Done unchanged-page and Today/Upcoming smart-open unchanged-due-page (blank without `accumResetGen` bump; restored with bump). Run from `apps/web` per project test script.
 
 **Renee follow-up (2026-10-08, first pass):** **30** passed (`test_task_workflow.py` **13**, plus completion/recurrence/unit coverage).
 

@@ -29,6 +29,7 @@ import {
   viewKey,
   type ViewSelection,
 } from "../view";
+import { mergeAccumPage } from "../boardAccum";
 import {
   ownerWideBoardView,
   readBoardRootsOnly,
@@ -229,6 +230,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const [doneRawOffset, setDoneRawOffset] = useState(0);
   const [doneItems, setDoneItems] = useState<Task[]>([]);
   const [doneRawTotal, setDoneRawTotal] = useState(0);
+  const [accumResetGen, setAccumResetGen] = useState(0);
   const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
   const [pendingWaiting, setPendingWaiting] = useState<PendingWaitingMove | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<TaskBoardColumnId | null>(null);
@@ -421,31 +423,21 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     setDoneRawOffset(0);
     setDoneItems([]);
     setDoneRawTotal(0);
+    setAccumResetGen((g) => g + 1);
   }, [boardResetKey]);
 
   useEffect(() => {
     if (!smartFilter || !smartOpenQuery.data) return;
     const { items, total } = smartOpenQuery.data;
     setSmartOpenTotal(total);
-    setSmartOpenAccum((prev) => {
-      if (smartOpenOffset === 0) return items;
-      const seen = new Set(prev.map((t) => t.id));
-      const appended = items.filter((t) => !seen.has(t.id));
-      return [...prev, ...appended];
-    });
-  }, [smartFilter, smartOpenQuery.data, smartOpenOffset]);
+    setSmartOpenAccum((prev) => mergeAccumPage(prev, items, smartOpenOffset));
+  }, [smartFilter, smartOpenQuery.data, smartOpenOffset, accumResetGen]);
 
   useEffect(() => {
     if (!doneQuery.data) return;
     setDoneRawTotal(doneQuery.data.total);
-    setDoneItems((prev) => {
-      const pageItems = doneQuery.data.items;
-      if (doneRawOffset === 0) return pageItems;
-      const seen = new Set(prev.map((t) => t.id));
-      const appended = pageItems.filter((t) => !seen.has(t.id));
-      return [...prev, ...appended];
-    });
-  }, [doneQuery.data, doneRawOffset]);
+    setDoneItems((prev) => mergeAccumPage(prev, doneQuery.data.items, doneRawOffset));
+  }, [doneQuery.data, doneRawOffset, accumResetGen]);
 
   const mergedSmartOpen = useMemo(() => {
     if (!smartFilter) return null;
@@ -557,16 +549,12 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       if (!typed) return;
       const colId = OPEN_COLUMNS[index]!.id as OpenColumnId;
       setOpenServerTotals((prev) => ({ ...prev, [colId]: typed.total }));
-      setOpenAccum((prev) => {
-        if (typed.offset === 0) {
-          return { ...prev, [colId]: typed.items };
-        }
-        const seen = new Set(prev[colId].map((t) => t.id));
-        const appended = typed.items.filter((t) => !seen.has(t.id));
-        return { ...prev, [colId]: [...prev[colId], ...appended] };
-      });
+      setOpenAccum((prev) => ({
+        ...prev,
+        [colId]: mergeAccumPage(prev[colId], typed.items, typed.offset),
+      }));
     });
-  }, [smartFilter, openCol0, openCol1, openCol2]);
+  }, [smartFilter, openCol0, openCol1, openCol2, accumResetGen]);
 
   const invalidateBoard = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["tasks", "board"] });
@@ -625,6 +613,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       setSmartOpenAccum([]);
       setDoneRawOffset(0);
       setDoneItems([]);
+      setAccumResetGen((g) => g + 1);
     },
   });
 
