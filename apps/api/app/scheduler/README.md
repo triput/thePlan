@@ -8,7 +8,10 @@ via ``persist_calculation_outcomes`` (input snapshot + fingerprint,
 Alembic ``023_schedule_outcome_provenance``). Explanation GETs compare snapshot v2 on read and never replan: duration,
 deadline, map/style, dependency edges, pins, project daily cap,
 timezone/horizon/workweek, lifecycle, immovable busy, prerequisite state,
-and due/soft target. Deferred to W3: priority/UPS and time-map overrides.
+and due/soft target. Deferred to W3: priority/UPS. F4-W1: ``collect`` loads
+time-map overrides intersecting the horizon; ``placement`` resolves per-day
+effective bands (override timezone dates) and sets ``placement_facts.applicable_override``.
+Override CRUD/routes and overlap validation on write are Tesla's slice (no auto-replan on write).
 Legacy modules: ``candidates``, ``ups``, ``dependencies``, ``placement``,
 ``horizon``, ``busy_map``.
 

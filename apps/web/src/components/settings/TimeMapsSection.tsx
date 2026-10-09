@@ -22,6 +22,7 @@ import {
   TIME_MAP_TIER_LABELS,
 } from "../../focusWindows";
 import { emitToast } from "../ToastHost";
+import { TimeMapOverridesSection } from "./TimeMapOverridesSection";
 
 const EMPTY_TIME_MAP_FORM = {
   name: "",
@@ -78,6 +79,7 @@ export function TimeMapsSection({ enabled }: { enabled: boolean }) {
     EMPTY_TIME_MAP_FORM.bands.map((band) => newBandDraft(band)),
   );
   const [showForm, setShowForm] = useState(false);
+  const [overridesWindowId, setOverridesWindowId] = useState<string | null>(null);
 
   const resetForm = () => {
     setEditingId(null);
@@ -137,14 +139,16 @@ export function TimeMapsSection({ enabled }: { enabled: boolean }) {
 
   const deleteMutation = useMutation({
     mutationFn: deleteFocusWindow,
-    onSuccess: () => {
+    onSuccess: (_void, windowId) => {
       queryClient.invalidateQueries({ queryKey: ["focus-windows"] });
+      queryClient.invalidateQueries({ queryKey: ["time-map-overrides", windowId] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       emitToast("Time Map deleted");
       if (editingId) {
         resetForm();
         setShowForm(false);
       }
+      setOverridesWindowId((prev) => (prev === windowId ? null : prev));
     },
     onError: () => emitToast("Couldn't delete Time Map"),
   });
@@ -199,37 +203,52 @@ export function TimeMapsSection({ enabled }: { enabled: boolean }) {
       <p className="settings-help muted small">
         Preferred scheduling windows for tasks. Quick-add tokens{" "}
         <code>@morning</code>, <code>@afternoon</code>, and <code>@evening</code> match the
-        default seed names when present.
+        default seed names when present. Use <strong>Overrides</strong> on a map for temporary
+        date ranges (travel, holidays).
       </p>
       {windowsQuery.isLoading && <p className="muted small">Loading Time Maps…</p>}
       {windows.length > 0 && (
         <ul className="time-map-list">
           {windows.map((window) => (
-            <li key={window.id} className="time-map-row">
-              <div className="time-map-info">
-                <div className="time-map-name">{window.name}</div>
-                <div className="muted small">{formatBandsSummary(window.bands ?? [])}</div>
+            <li key={window.id} className="time-map-list-item">
+              <div className="time-map-row">
+                <div className="time-map-info">
+                  <div className="time-map-name">{window.name}</div>
+                  <div className="muted small">{formatBandsSummary(window.bands ?? [])}</div>
+                </div>
+                {window.strict_mode && (
+                  <span className="time-map-badge hard">Strict</span>
+                )}
+                <div className="time-map-actions">
+                  <button
+                    type="button"
+                    className={`btn ghost small${overridesWindowId === window.id ? " active" : ""}`}
+                    onClick={() =>
+                      setOverridesWindowId((prev) => (prev === window.id ? null : window.id))
+                    }
+                  >
+                    Overrides
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost small"
+                    onClick={() => startEdit(window)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost small danger-text"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(window.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              {window.strict_mode && (
-                <span className="time-map-badge hard">Strict</span>
+              {overridesWindowId === window.id && (
+                <TimeMapOverridesSection windowId={window.id} enabled={enabled} />
               )}
-              <div className="time-map-actions">
-                <button
-                  type="button"
-                  className="btn ghost small"
-                  onClick={() => startEdit(window)}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost small danger-text"
-                  disabled={deleteMutation.isPending}
-                  onClick={() => deleteMutation.mutate(window.id)}
-                >
-                  Delete
-                </button>
-              </div>
             </li>
           ))}
         </ul>

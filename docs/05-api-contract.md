@@ -288,7 +288,51 @@ Bulk create epics, projects, sections, and tasks from a versioned graph with opt
 
 **Scheduler placement (bound map):** green bands first, then yellow, then neutral workday minus red bands — unless `strict_mode=true`, in which case neutral spill is forbidden. Red bands are never auto-placement targets.
 
-Scheduler uses the **effective** Time Map id at replan — `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound — not the task column alone. Tier selection is resolved from that map's bands.
+Scheduler uses the **effective** Time Map id at replan — `task.preferred_time_window_id` → else `project.preferred_time_window_id` → else `epic.preferred_time_window_id` → else unbound — not the task column alone. Tier selection is resolved from that map's bands, unless a Time Map override covers that local date (below).
+
+---
+
+### Time Map overrides
+
+Nested under one owned focus window. Creating, editing, or deleting an override does **not** replan. Those writes change live override data on the task's **effective** map, so the next read of **Why this schedule?** can show **`is_stale`** with **`stale_categories`** including **`time_map_overrides`** (snapshot **v3** compare; no auto-replan). Expired overrides stay in the list until deleted. Dates are inclusive calendar dates in the override's stored IANA `timezone`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/focus-windows/{id}/overrides` | List, including expired, ordered by `local_start_date` |
+| POST | `/focus-windows/{id}/overrides` | Create (201) |
+| GET | `/focus-windows/{id}/overrides/{override_id}` | Get |
+| PATCH | `/focus-windows/{id}/overrides/{override_id}` | Update dates, timezone, `strict_mode`, and/or `bands` |
+| DELETE | `/focus-windows/{id}/overrides/{override_id}` | Delete (204) |
+
+Unknown window, another owner's window, or an override that is not on that window → 404. The body does not describe the other owner's map.
+
+**Create body:**
+
+```json
+{
+  "local_start_date": "2026-10-12",
+  "local_end_date": "2026-10-14",
+  "timezone": "America/Los_Angeles",
+  "strict_mode": true,
+  "bands": [
+    {
+      "tier": "green",
+      "start_time": "14:00",
+      "end_time": "17:00",
+      "days_of_week": 127,
+      "sort_order": 0
+    }
+  ]
+}
+```
+
+`strict_mode` is required. `bands` may be omitted or `[]`. Empty bands with `strict_mode: true` mean unavailable all day. `timezone` must be an IANA name (422 `TIME_MAP_OVERRIDE_TIMEZONE`). `local_end_date` before `local_start_date` → 422 `TIME_MAP_OVERRIDE_INVALID_RANGE`. A band with `end_time` not after `start_time` crosses midnight → 422 `TIME_MAP_OVERRIDE_BAND_CROSSES_MIDNIGHT` (split it into two same-day bands). Same-tier overlap on shared days → 422 `TIME_MAP_BAND_OVERLAP`.
+
+Overlapping inclusive dates on the **same** map → 409 `TIME_MAP_OVERRIDE_OVERLAP` with `conflicting_override_id` and that row's local dates. Another map may use the same dates. Adjacent ranges (next start is the day after this end) are not an overlap.
+
+**Response:** `id`, `map_id`, `local_start_date`, `local_end_date`, `timezone`, `strict_mode`, `bands[]` (same shape as Time Map bands), timestamps.
+
+Deleting the focus window deletes its overrides (ON DELETE CASCADE). The base map's bands are not rewritten.
 
 Quick-add `@morning`, `@afternoon`, `@evening` resolve to the seeded window IDs by case-insensitive name match; unknown token → `unresolved` entry `time_window:{token}`.
 
@@ -652,7 +696,7 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 ### Schedule (W2b — Update Schedule thin; F3-W1+W2 explanations)
 
-**F3-W1+W2:** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`) with **`algorithm_version` `f3-w2`**, snapshot **v2**, and optional **`placement_facts`**. Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)); F6 preview will reuse `calculate` without `apply`. Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md).
+**F3-W1+W2 (+ F4-W2 fingerprint):** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`) with **`algorithm_version` `f3-w2`**, snapshot **v3** (placement contract unchanged; **`v`** is the fingerprint schema only), and optional **`placement_facts`**. Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)); F6 preview will reuse `calculate` without `apply`. Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md), [delivery/F4-TIME-MAP-OVERRIDES.md](./delivery/F4-TIME-MAP-OVERRIDES.md).
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -666,7 +710,7 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 **`ScheduleExplanationOut`:** `id`, `schedule_run_id`, `task_id`, `evaluated_at`, `outcome` (`placed` \| `unplaced` \| `excluded` \| `blocked` \| `recorded`), `primary_reason_code`, `requested_minutes`, `pinned_minutes`, `placed_minutes`, `remaining_minutes`, `reason_facts` (`code`, `params`), `summary_text`, `placement_facts`, `algorithm_version`, `input_fingerprint`, `input_snapshot`, `is_stale`, `stale_categories`.
 
-Stale compare (snapshot v2 / `f3-w2`, on read only, never starts a replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not the absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events, not horizon-clipped), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`. `provenance` means the stored snapshot is missing or not version 2. Not compared (W3): `priority_ups`, `time_map_overrides`.
+Stale compare (snapshot **v3** / placement **`f3-w2`**, on read only, never starts a replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not the absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events, not horizon-clipped), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`, **`time_map_overrides`** (every override on the task's effective map — ids, inclusive local dates, stored timezone, strict mode, bands; not horizon-clipped; unbound tasks have none). `provenance` means the stored snapshot is missing or **`v` ≠ 3** (including legacy v2 rows) — categories are not guessed across versions. Not compared: **`priority_ups`** only.
 
 **W2 `primary_reason_code` values** (additive to W1: `excluded_manual_or_bundle`, `excluded_duration_covered_by_pins`, `blocked_prerequisite`, `placed`, `unplaced_horizon_exhausted`, `unplaced_no_slot`): `excluded_lifecycle_completed`, `excluded_lifecycle_trashed`, `excluded_lifecycle_archived`, `blocked_dependency_cycle`, `unplaced_no_time_map_interval`, `unplaced_red_exclusion`, `unplaced_busy_conflict`, `unplaced_pinned_conflict`, `unplaced_deadline_limit`, `unplaced_insufficient_min_block`, `unplaced_project_daily_cap`. Formatter and params: [reasons.py](../apps/api/app/scheduler/reasons.py).
 

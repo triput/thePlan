@@ -124,6 +124,7 @@ def _placement_facts_payload(
     candidate: TaskCandidate,
     proposed_blocks: list[ProposedBlock],
     prerequisite_not_before: datetime | None,
+    applicable_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     task = candidate.task
     project = inputs.projects.get(task.project_id) if task.project_id else None
@@ -153,7 +154,7 @@ def _placement_facts_payload(
         if prerequisite_not_before is not None
         else None,
         "placed_blocks": placed,
-        "applicable_override": None,
+        "applicable_override": applicable_override,
     }
 
 
@@ -582,6 +583,7 @@ def calculate(
     last_no_slot: dict[UUID, bool] = {}
     observed_constraints_by_task: dict[UUID, list[str]] = {}
     failure_telemetry_by_task: dict[UUID, dict[str, Any]] = {}
+    applicable_override_by_task: dict[UUID, dict[str, Any]] = {}
     prerequisite_not_before_by_task: dict[UUID, datetime] = {}
     minutes_by_project: dict[str, int] = {}
     blocks_created = 0
@@ -634,8 +636,11 @@ def calculate(
                 daily_cap=inputs.daily_cap,
                 prerequisite_not_before=prereq_not_before,
                 persist_blocks=False,
+                time_map_overrides_by_map=inputs.time_map_overrides_by_map,
             )
             prerequisite_not_before_by_task[task_id] = prereq_not_before
+            if result.applicable_override is not None:
+                applicable_override_by_task[task_id] = result.applicable_override
             remaining_by_task[task_id] = result.remaining_minutes
             if result.blocks_created <= 0:
                 observed_constraints_by_task[task_id] = _merge_constraint_codes(
@@ -714,6 +719,7 @@ def calculate(
             candidate=candidate,
             proposed_blocks=proposed_blocks,
             prerequisite_not_before=prerequisite_not_before_by_task.get(task_id),
+            applicable_override=applicable_override_by_task.get(task_id),
         )
         telemetry = failure_telemetry_by_task.get(task_id)
         if telemetry and (telemetry.get("last_failure") or telemetry.get("pass_hints")):

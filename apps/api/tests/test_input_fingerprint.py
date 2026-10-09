@@ -183,13 +183,152 @@ def test_w2_categories_name_themselves() -> None:
     assert diff_stale_categories(stored, due) == ["due_at_soft_target"]
 
 
-def test_w3_keys_are_not_compared() -> None:
+def test_priority_ups_are_not_compared() -> None:
     stored = _sample()
     live = _sample()
     stored["priority_ups"] = {"priority": "p1"}
     live["priority_ups"] = {"priority": "p4"}
-    live["time_map_overrides"] = [{"date": "2026-10-08"}]
     assert diff_stale_categories(stored, live) == []
+
+
+def test_v2_snapshot_is_provenance() -> None:
+    stored = _sample()
+    stored["v"] = 2
+    assert diff_stale_categories(stored, _sample()) == [STALE_PROVENANCE]
+
+
+def test_time_map_override_change_names_its_category() -> None:
+    stored = _sample()
+    changed = _sample()
+    changed["time_map_overrides"] = {
+        "overrides": [
+            {
+                "id": str(uuid4()),
+                "map_id": str(uuid4()),
+                "local_start_date": "2026-08-11",
+                "local_end_date": "2026-08-11",
+                "timezone": "America/Los_Angeles",
+                "strict_mode": True,
+                "bands": [],
+            }
+        ]
+    }
+    assert diff_stale_categories(stored, changed) == ["time_map_overrides"]
+
+
+def test_override_row_order_does_not_change_the_fingerprint() -> None:
+    early = {
+        "id": "override-early",
+        "map_id": "map-1",
+        "local_start_date": "2026-08-11",
+        "local_end_date": "2026-08-11",
+        "timezone": "UTC",
+        "strict_mode": True,
+        "bands": [],
+    }
+    late = {
+        "id": "override-late",
+        "map_id": "map-1",
+        "local_start_date": "2026-12-01",
+        "local_end_date": "2026-12-03",
+        "timezone": "America/Los_Angeles",
+        "strict_mode": False,
+        "bands": [],
+    }
+    kwargs = dict(
+        estimated_duration_minutes=30,
+        min_block_duration_minutes=15,
+        max_block_duration_minutes=120,
+        deadline_at=None,
+        schedule_style="standalone",
+        time_window_id=None,
+        strict_mode=False,
+        bands=[],
+        blocking_task_ids=[],
+    )
+    forward = assemble_snapshot(**kwargs, time_map_overrides=[early, late])
+    backward = assemble_snapshot(**kwargs, time_map_overrides=[late, early])
+    assert [row["id"] for row in forward["time_map_overrides"]["overrides"]] == [
+        "override-early",
+        "override-late",
+    ]
+    assert forward["time_map_overrides"] == backward["time_map_overrides"]
+    assert fingerprint_snapshot(forward) == fingerprint_snapshot(backward)
+
+
+def test_override_identity_fields_each_name_the_category() -> None:
+    base_row = {
+        "id": "override-1",
+        "map_id": "map-1",
+        "local_start_date": "2026-08-11",
+        "local_end_date": "2026-08-11",
+        "timezone": "UTC",
+        "strict_mode": True,
+        "bands": [],
+    }
+    stored = _sample(time_map_overrides={"overrides": [base_row]})
+
+    def _changed(**fields: object) -> dict:
+        row = {**base_row, **fields}
+        return _sample(time_map_overrides={"overrides": [row]})
+
+    assert diff_stale_categories(stored, _changed(id="override-2")) == ["time_map_overrides"]
+    assert diff_stale_categories(stored, _changed(timezone="America/Los_Angeles")) == [
+        "time_map_overrides"
+    ]
+    assert diff_stale_categories(stored, _changed(strict_mode=False)) == ["time_map_overrides"]
+    assert diff_stale_categories(stored, _changed(local_end_date="2026-08-12")) == [
+        "time_map_overrides"
+    ]
+    missing = _sample()
+    del missing["time_map_overrides"]
+    assert diff_stale_categories(missing, stored) == ["time_map_overrides"]
+
+
+def test_override_band_order_does_not_change_the_fingerprint() -> None:
+    first = {
+        "tier": "yellow",
+        "start": "13:00:00",
+        "end": "17:00:00",
+        "days_of_week": 31,
+        "sort_order": 1,
+    }
+    second = {
+        "tier": "green",
+        "start": "09:00:00",
+        "end": "12:00:00",
+        "days_of_week": 31,
+        "sort_order": 0,
+    }
+    common = {
+        "id": "override-1",
+        "map_id": "map-1",
+        "local_start_date": "2026-08-11",
+        "local_end_date": "2026-08-11",
+        "timezone": "UTC",
+        "strict_mode": True,
+    }
+    kwargs = dict(
+        estimated_duration_minutes=30,
+        min_block_duration_minutes=15,
+        max_block_duration_minutes=120,
+        deadline_at=None,
+        schedule_style="standalone",
+        time_window_id=None,
+        strict_mode=False,
+        bands=[],
+        blocking_task_ids=[],
+    )
+    forward = assemble_snapshot(
+        **kwargs,
+        time_map_overrides=[{**common, "bands": [first, second]}],
+    )
+    backward = assemble_snapshot(
+        **kwargs,
+        time_map_overrides=[{**common, "bands": [second, first]}],
+    )
+    assert forward["time_map_overrides"] == backward["time_map_overrides"]
+    assert fingerprint_snapshot(forward) == fingerprint_snapshot(backward)
 
 
 def test_outcome_family_from_reason_code() -> None:

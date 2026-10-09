@@ -10,7 +10,15 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Epic, FocusWindow, Project, ScheduledBlock, TaskDependency, UserSettings
+from app.models import (
+    Epic,
+    FocusWindow,
+    Project,
+    ScheduledBlock,
+    TaskDependency,
+    TimeMapOverride,
+    UserSettings,
+)
 from app.scheduler.busy_map import (
     BusyInterval,
     busy_from_sources,
@@ -28,6 +36,10 @@ from app.scheduler.candidates import (
 from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon
 from app.scheduler.ups import score_tasks
+from app.scheduler.time_map_overrides import (
+    load_time_map_overrides_for_maps,
+    overrides_intersecting_horizon,
+)
 from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
@@ -54,6 +66,7 @@ class SchedulingInputs:
     effective_window_by_task: dict[UUID, UUID | None]
     effective_window_source_by_task: dict[UUID, str | None]
     preferred_windows: dict[UUID, FocusWindow]
+    time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]]
     daily_cap: int | None
     # Captured at collect time so apply/persist does not re-read live inputs.
     input_snapshots: dict[UUID, dict[str, Any]] = field(default_factory=dict)
@@ -195,6 +208,20 @@ def collect_inputs(
         ):
             preferred_windows[window.id] = window
 
+    # Fingerprints keep every override on the effective map, including expired
+    # rows. Placement uses the horizon overlap only, so a sliding ``now`` does
+    # not by itself mark the explanation stale.
+    overrides_for_fingerprint = load_time_map_overrides_for_maps(
+        db,
+        owner_id,
+        preferred_ids,
+    )
+    time_map_overrides_by_map = overrides_intersecting_horizon(
+        overrides_for_fingerprint,
+        horizon_start,
+        horizon_end,
+    )
+
     daily_cap = user_settings.max_auto_schedule_minutes_per_project_per_day
 
     # Fingerprints use the same deps + pins + immovable busy calculation saw.
@@ -212,6 +239,7 @@ def collect_inputs(
         tasks_by_id=tasks_by_id,
         pinned_blocks_by_task=dict(pinned_blocks_by_task),
         busy_intervals=immovable_busy,
+        time_map_overrides_by_map=overrides_for_fingerprint,
     )
 
     return SchedulingInputs(
@@ -233,6 +261,7 @@ def collect_inputs(
         effective_window_by_task=effective_window_by_task,
         effective_window_source_by_task=effective_window_source_by_task,
         preferred_windows=preferred_windows,
+        time_map_overrides_by_map=time_map_overrides_by_map,
         daily_cap=daily_cap,
         input_snapshots=input_snapshots,
         pinned_blocks_by_task=dict(pinned_blocks_by_task),

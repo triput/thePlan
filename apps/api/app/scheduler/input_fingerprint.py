@@ -3,8 +3,10 @@
 Compared on read against live effective inputs. A mismatch sets ``is_stale``
 and names the category. This does not replan.
 
-Snapshot version 2 (``ALGORITHM_VERSION`` ``f3-w2``). A stored snapshot whose
-``v`` is not 2 is ``provenance`` — categories are not guessed across versions.
+Snapshot version 3. Placement ``ALGORITHM_VERSION`` stays ``f3-w2``; ``v`` is
+the fingerprint contract, not the placer. A stored snapshot whose ``v`` is
+not 3 (including F3 v2) is ``provenance`` — categories are not guessed across
+versions.
 
 Compared:
 - ``duration`` — estimated, min-block, and max-block minutes
@@ -25,11 +27,15 @@ Compared:
 - ``prerequisite_state`` — each blocker's estimated duration, completion, and
   trash timestamp. Edge add/remove stays on ``deps``; this is the blocker row.
 - ``due_at_soft_target`` — ``due_at``, ``soft_target_at``, and ``auto_defer_enabled``
+- ``time_map_overrides`` — every override on the task's effective map (id,
+  inclusive local dates, stored IANA timezone, strict mode, bands). Not
+  horizon-clipped, so a sliding ``now`` is not itself stale. Unbound tasks
+  have none. An override on another map is not included. Inheritance source
+  is not stored; the effective map's rows are. F4-W2 (the F3 note that called
+  this W3 is retired for this category).
 
-Deferred to W3 (not compared; a fresh v2 fingerprint is not proof these are
-unchanged):
+Not compared (a fresh v3 fingerprint is not proof this held still):
 - ``priority_ups`` — priority and UPS weights
-- ``time_map_overrides`` — F4 dated overrides
 
 ``provenance`` is returned when the stored snapshot is missing or from another
 snapshot version, so the read cannot name a live category.
@@ -39,11 +45,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timezone
 from typing import Any
 from uuid import UUID
 
-SNAPSHOT_VERSION = 2
+SNAPSHOT_VERSION = 3
 
 STALE_DURATION = "duration"
 STALE_DEADLINE = "deadline"
@@ -56,6 +62,7 @@ STALE_LIFECYCLE = "lifecycle"
 STALE_BUSY_EXTERNAL = "busy_external"
 STALE_PREREQUISITE_STATE = "prerequisite_state"
 STALE_DUE_AT_SOFT_TARGET = "due_at_soft_target"
+STALE_TIME_MAP_OVERRIDES = "time_map_overrides"
 STALE_PROVENANCE = "provenance"
 
 W1_STALE_CATEGORIES: tuple[str, ...] = (
@@ -75,13 +82,14 @@ W2_STALE_CATEGORIES: tuple[str, ...] = (
     STALE_DUE_AT_SOFT_TARGET,
 )
 
-COMPARED_STALE_CATEGORIES: tuple[str, ...] = W1_STALE_CATEGORIES + W2_STALE_CATEGORIES
+F4_W2_STALE_CATEGORIES: tuple[str, ...] = (STALE_TIME_MAP_OVERRIDES,)
 
-# Not compared in v2. Do not treat a matching fingerprint as proof these held still.
-DEFERRED_STALE_CATEGORIES: tuple[str, ...] = (
-    "priority_ups",
-    "time_map_overrides",
+COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
+    W1_STALE_CATEGORIES + W2_STALE_CATEGORIES + F4_W2_STALE_CATEGORIES
 )
+
+# Not compared in v3. Do not treat a matching fingerprint as proof these held still.
+DEFERRED_STALE_CATEGORIES: tuple[str, ...] = ("priority_ups",)
 
 ALGORITHM_VERSION = "f3-w2"
 
@@ -126,6 +134,64 @@ def normalize_bands(bands: list[dict[str, Any]]) -> list[dict[str, Any]]:
         )
     )
     return normalized
+
+
+def _iso_date(value: date | datetime | str) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    return value.isoformat()
+
+
+def normalize_time_map_overrides(overrides: list[Any] | None) -> list[dict[str, Any]]:
+    """Stable override rows for the effective map. Band row ids are omitted.
+
+    Not horizon-clipped. ``id`` distinguishes a delete-and-recreate that keeps
+    the same dates and bands. List order does not change the fingerprint.
+    """
+    rows: list[dict[str, Any]] = []
+    for item in overrides or []:
+        if isinstance(item, dict):
+            raw_bands = list(item.get("bands") or [])
+            override_id = item.get("id")
+            map_id = item.get("map_id")
+            timezone_name = item.get("timezone")
+            strict_mode = bool(item.get("strict_mode"))
+            start_date = item.get("local_start_date")
+            end_date = item.get("local_end_date")
+        else:
+            raw_bands = []
+            for band in list(getattr(item, "bands", []) or []):
+                tier = band.tier.value if hasattr(band.tier, "value") else str(band.tier)
+                raw_bands.append(
+                    {
+                        "tier": tier,
+                        "start": band.start_time,
+                        "end": band.end_time,
+                        "days_of_week": band.days_of_week,
+                        "sort_order": band.sort_order,
+                    }
+                )
+            override_id = item.id
+            map_id = item.map_id
+            timezone_name = item.timezone
+            strict_mode = bool(item.strict_mode)
+            start_date = item.local_start_date
+            end_date = item.local_end_date
+        rows.append(
+            {
+                "id": str(override_id) if override_id else None,
+                "map_id": str(map_id) if map_id else None,
+                "local_start_date": _iso_date(start_date) if start_date is not None else None,
+                "local_end_date": _iso_date(end_date) if end_date is not None else None,
+                "timezone": timezone_name,
+                "strict_mode": strict_mode,
+                "bands": normalize_bands(raw_bands),
+            }
+        )
+    rows.sort(key=lambda row: (row["local_start_date"] or "", row["id"] or ""))
+    return rows
 
 
 def normalize_pin_intervals(blocks: list[Any]) -> tuple[int, list[dict[str, Any]]]:
@@ -263,12 +329,14 @@ def assemble_snapshot(
     due_at: datetime | None = None,
     soft_target_at: datetime | None = None,
     auto_defer_enabled: bool | None = None,
+    time_map_overrides: list[Any] | None = None,
 ) -> dict[str, Any]:
-    """Canonical v2 snapshot. Callers pass effective style and map, not raw overrides.
+    """Canonical v3 snapshot. Callers pass the effective map, not the inherit source.
 
     Omitted W2 inputs use empty defaults so two default assemblies still match.
     Collect and live reads must pass the real values; defaults are not a claim
-    that the owner has no settings.
+    that the owner has no settings. ``time_map_overrides`` defaults to empty,
+    which is the unbound-task value — a bound map's rows must be passed in.
     """
     window = str(time_window_id) if time_window_id else None
     blockers = sorted({str(task_id) for task_id in blocking_task_ids})
@@ -316,6 +384,9 @@ def assemble_snapshot(
             "soft_target_at": _iso_datetime(soft_target_at),
             "auto_defer_enabled": auto_defer_enabled,
         },
+        "time_map_overrides": {
+            "overrides": normalize_time_map_overrides(time_map_overrides),
+        },
     }
 
 
@@ -333,8 +404,8 @@ def fingerprint_snapshot(snapshot: dict[str, Any] | None) -> str | None:
 def diff_stale_categories(stored: dict[str, Any] | None, live: dict[str, Any]) -> list[str]:
     """Category names that differ. Empty means the compared inputs still match.
 
-    W3 keys (``priority_ups``, ``time_map_overrides``) are ignored even if a
-    caller stuffs them into the dict.
+    ``priority_ups`` is ignored even if a caller stuffs it into the dict.
+    ``time_map_overrides`` is compared on v3 snapshots.
     """
     if not isinstance(stored, dict) or stored.get("v") != SNAPSHOT_VERSION:
         return [STALE_PROVENANCE]

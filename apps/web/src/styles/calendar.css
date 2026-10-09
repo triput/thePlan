@@ -81,7 +81,9 @@
 }
 
 .cal-gutter-spacer {
-  height: 2.5rem;
+  /* Match .cal-col-header min-height so slot grids align with the time gutter */
+  min-height: var(--cal-week-header-height);
+  box-sizing: border-box;
   border-bottom: 1px solid var(--border);
 }
 
@@ -119,10 +121,17 @@
   min-width: 0;
 }
 
+.cal-grid.week {
+  --cal-week-header-height: 4rem;
+}
+
 .cal-col-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: var(--cal-week-header-height);
+  box-sizing: border-box;
   padding: 0.35rem 0.25rem;
   border-bottom: 1px solid var(--border);
   font-size: 0.75rem;
@@ -416,6 +425,93 @@
 
 .time-map-add-band {
   margin-top: 0.45rem;
+}
+
+.time-map-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.time-map-overrides-panel {
+  margin: 0 0 0.25rem 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--panel) 40%, var(--bg));
+  border-radius: 0 6px 6px 0;
+}
+
+.time-map-overrides-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.time-map-overrides-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.time-map-override-list {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.time-map-override-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.time-map-override-info {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.time-map-override-dates {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.time-map-badge.expired {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+}
+
+.time-map-override-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.time-map-override-form {
+  margin-top: 0.5rem;
+}
+
+.cal-col-override-badge {
+  display: block;
+  margin-top: 0.1rem;
+  line-height: 1.1;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.cal-day-col.override-day .cal-time-map-band {
+  outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -1px;
 }
 
 .calendar-account-list {

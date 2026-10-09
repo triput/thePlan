@@ -28,6 +28,7 @@ from app.api.routes import (
     settings as settings_routes,
     task_dependencies,
     tasks,
+    time_map_overrides,
 )
 from app.api.errors import register_exception_handlers
 from app.api.middleware import PasswordChangeGateMiddleware
@@ -112,6 +113,7 @@ def create_app() -> FastAPI:
     api_router.include_router(reminders.router)
     api_router.include_router(labels.router)
     api_router.include_router(focus_windows.router)
+    api_router.include_router(time_map_overrides.router)
     api_router.include_router(plans.router)
     api_router.include_router(sections.router)
     api_router.include_router(quick_add.router)

@@ -18,6 +18,7 @@ StaleCategory = Literal[
     "busy_external",
     "prerequisite_state",
     "due_at_soft_target",
+    "time_map_overrides",
     "provenance",
 ]
 EvaluationState = Literal["evaluated", "never_evaluated"]
@@ -55,19 +56,20 @@ class ScheduleExplanationOut(BaseModel):
     input_snapshot: dict[str, Any] | None = Field(
         default=None,
         description=(
-            "v2 inputs captured at calculation: duration, deadline, map_style, deps, "
+            "v3 inputs captured at calculation: duration, deadline, map_style, deps, "
             "pins, project daily cap, timezone/horizon/workweek, lifecycle, external busy, "
-            "prerequisite state, due_at and soft target. "
-            "Deferred to W3 and not in this snapshot: priority/UPS, time-map overrides (F4)."
+            "prerequisite state, due_at and soft target, and time-map overrides on the "
+            "effective map. Not in this snapshot: priority/UPS."
         ),
     )
     is_stale: bool
     stale_categories: list[StaleCategory] = Field(
         description=(
-            "v2: duration, deadline, map_style, deps, pins, project_daily_cap, "
+            "v3: duration, deadline, map_style, deps, pins, project_daily_cap, "
             "timezone_horizon_workweek, lifecycle, busy_external, prerequisite_state, "
-            "due_at_soft_target. provenance means the stored snapshot is missing or "
-            "another version. priority_ups and time_map_overrides are W3 and never reported."
+            "due_at_soft_target, time_map_overrides. provenance means the stored "
+            "snapshot is missing or another version (including v2). priority_ups "
+            "is not compared and is never reported."
         )
     )
 

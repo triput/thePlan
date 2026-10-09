@@ -207,12 +207,17 @@ export interface ApiErrorBody {
   detail: string;
   code?: string;
   open_count?: number;
+  conflicting_override_id?: string;
+  conflicting_local_start_date?: string;
+  conflicting_local_end_date?: string;
+  band_index?: number;
 }
 
 export class ApiError extends Error {
   status: number;
   code?: string;
   openCount?: number;
+  body: ApiErrorBody;
 
   constructor(status: number, body: ApiErrorBody) {
     super(body.detail);
@@ -220,6 +225,7 @@ export class ApiError extends Error {
     this.status = status;
     this.code = body.code;
     this.openCount = body.open_count;
+    this.body = body;
   }
 }
 
@@ -389,6 +395,34 @@ export interface FocusWindowCreate {
 
 export interface FocusWindowUpdate {
   name?: string;
+  strict_mode?: boolean;
+  bands?: TimeMapBand[];
+}
+
+export interface TimeMapOverride {
+  id: string;
+  map_id: string;
+  local_start_date: string;
+  local_end_date: string;
+  timezone: string;
+  strict_mode: boolean;
+  bands: TimeMapBand[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TimeMapOverrideCreate {
+  local_start_date: string;
+  local_end_date: string;
+  timezone: string;
+  strict_mode: boolean;
+  bands: TimeMapBand[];
+}
+
+export interface TimeMapOverrideUpdate {
+  local_start_date?: string;
+  local_end_date?: string;
+  timezone?: string;
   strict_mode?: boolean;
   bands?: TimeMapBand[];
 }
@@ -1225,6 +1259,37 @@ export function deleteFocusWindow(windowId: string) {
   return apiFetch<void>(`/api/v1/focus-windows/${windowId}`, { method: "DELETE" });
 }
 
+export function fetchTimeMapOverrides(windowId: string) {
+  return apiFetch<TimeMapOverride[]>(`/api/v1/focus-windows/${windowId}/overrides`);
+}
+
+export function createTimeMapOverride(windowId: string, body: TimeMapOverrideCreate) {
+  return apiFetch<TimeMapOverride>(`/api/v1/focus-windows/${windowId}/overrides`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateTimeMapOverride(
+  windowId: string,
+  overrideId: string,
+  body: TimeMapOverrideUpdate,
+) {
+  return apiFetch<TimeMapOverride>(
+    `/api/v1/focus-windows/${windowId}/overrides/${overrideId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export function deleteTimeMapOverride(windowId: string, overrideId: string) {
+  return apiFetch<void>(`/api/v1/focus-windows/${windowId}/overrides/${overrideId}`, {
+    method: "DELETE",
+  });
+}
+
 export function fetchPlans() {
   return apiFetch<Plan[]>("/api/v1/plans");
 }
@@ -1419,6 +1484,7 @@ export type StaleCategory =
   | "busy_external"
   | "prerequisite_state"
   | "due_at_soft_target"
+  | "time_map_overrides"
   | "provenance";
 export type ScheduleEvaluationState = "evaluated" | "never_evaluated";
 

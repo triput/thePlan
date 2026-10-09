@@ -40,6 +40,7 @@ const STALE_LABELS: Record<StaleCategory, string> = {
   busy_external: "busy time changed",
   prerequisite_state: "prerequisite state changed",
   due_at_soft_target: "due date or soft target changed",
+  time_map_overrides: "time map overrides changed",
   provenance: "older snapshot",
 };
 

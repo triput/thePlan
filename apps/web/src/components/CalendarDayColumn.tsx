@@ -10,13 +10,18 @@ import {
   formatShortDate,
   formatWeekday,
   heightPercentForDuration,
+  intersectIntervalWithHourBounds,
   isSameDay,
   isToday,
   startOfDay,
   topPercentForTime,
   type HourBounds,
 } from "../calendarUtils";
-import { combineDayAndHHMM, dayMatchesBitset, TIME_MAP_TIER_CLASS } from "../focusWindows";
+import { TIME_MAP_TIER_CLASS } from "../focusWindows";
+import {
+  bandWallClockToInstant,
+  type TimeMapBandWallClockContext,
+} from "../timeMapOverrides";
 import { DEFAULT_PROJECT_COLOR } from "../colors";
 
 export const CALENDAR_ROW_HEIGHT_PX = 48;
@@ -62,27 +67,29 @@ function projectColor(projects: Map<string, Project>, projectId: string | null):
 
 function TimeMapBandOverlay({
   band,
-  day,
+  wallClock,
   bounds,
 }: {
   band: TimeMapBand;
-  day: Date;
+  wallClock: TimeMapBandWallClockContext;
   bounds: HourBounds;
 }) {
-  if (!dayMatchesBitset(day, band.days_of_week)) return null;
-  const start = combineDayAndHHMM(day, band.start_time);
-  const end = combineDayAndHHMM(day, band.end_time);
-  if (end <= start) return null;
-  const top = topPercentForTime(start, bounds);
-  const height = heightPercentForDuration(blockDurationMinutes(start, end), bounds);
-  if (top >= 100 || top + height <= 0) return null;
+  const start = bandWallClockToInstant(wallClock.localYmd, band.start_time, wallClock.timeZone);
+  const end = bandWallClockToInstant(wallClock.localYmd, band.end_time, wallClock.timeZone);
+  const visible = intersectIntervalWithHourBounds(start, end, bounds);
+  if (!visible) return null;
+  const top = topPercentForTime(visible.start, bounds);
+  const height = heightPercentForDuration(
+    blockDurationMinutes(visible.start, visible.end),
+    bounds,
+  );
 
   return (
     <div
       className={`cal-time-map-band ${TIME_MAP_TIER_CLASS[band.tier]}`}
       style={{
-        top: `${Math.max(0, top)}%`,
-        height: `${Math.min(100 - Math.max(0, top), height)}%`,
+        top: `${top}%`,
+        height: `${height}%`,
       }}
       aria-hidden
     />
@@ -264,6 +271,8 @@ export interface CalendarDayColumnProps {
   conflictingBlockIds: Set<string>;
   conflictingBusyEventIds: Set<string>;
   timeMapBands?: TimeMapBand[];
+  timeMapBandWallClock?: TimeMapBandWallClockContext;
+  timeMapOverrideActive?: boolean;
   onSlotClick: (day: Date, offsetY: number) => void;
   onBlockClick: (block: ScheduledBlock) => void;
   onDueClick: (task: Task) => void;
@@ -289,6 +298,8 @@ export function CalendarDayColumn({
   conflictingBlockIds,
   conflictingBusyEventIds,
   timeMapBands,
+  timeMapBandWallClock,
+  timeMapOverrideActive = false,
   onSlotClick,
   onBlockClick,
   onDueClick,
@@ -327,11 +338,16 @@ export function CalendarDayColumn({
   });
 
   return (
-    <div className={`cal-day-col${showDayLabel ? " with-label" : ""}`}>
+    <div
+      className={`cal-day-col${showDayLabel ? " with-label" : ""}${timeMapOverrideActive ? " override-day" : ""}`}
+    >
       {showDayLabel && (
         <div className={`cal-col-header${isToday(day) ? " today" : ""}`}>
           <span className="cal-col-weekday">{formatWeekday(day)}</span>
           <span className="cal-col-date">{formatShortDate(day)}</span>
+          {timeMapOverrideActive && (
+            <span className="cal-col-override-badge">Override</span>
+          )}
         </div>
       )}
       <div
@@ -374,14 +390,15 @@ export function CalendarDayColumn({
           <div key={i} className="cal-hour-row" style={{ height: CALENDAR_ROW_HEIGHT_PX }} />
         ))}
         <div className="cal-overlay">
-          {timeMapBands?.map((band, index) => (
-            <TimeMapBandOverlay
-              key={`${band.id ?? band.sort_order}-${band.tier}-${index}`}
-              band={band}
-              day={day}
-              bounds={bounds}
-            />
-          ))}
+          {timeMapBandWallClock &&
+            timeMapBands?.map((band, index) => (
+              <TimeMapBandOverlay
+                key={`${band.id ?? band.sort_order}-${band.tier}-${index}`}
+                band={band}
+                wallClock={timeMapBandWallClock}
+                bounds={bounds}
+              />
+            ))}
           {dayBusy.map((event) => (
             <BusyBlockItem
               key={`busy-${event.id}`}

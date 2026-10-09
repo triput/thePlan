@@ -38,6 +38,7 @@ from app.scheduler.input_fingerprint import (
 )
 from app.scheduler.reasons import ReasonFact, TaskSchedulingOutcome, format_summary_text
 from app.scheduler.style import effective_schedule_style
+from app.scheduler.time_map_overrides import load_time_map_overrides_for_maps
 from app.scheduler.windows import effective_preferred_time_window_id
 
 
@@ -124,12 +125,15 @@ def snapshots_from_collected(
     tasks_by_id: dict[UUID, Task] | None = None,
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
     busy_intervals: list[BusyInterval] | None = None,
+    time_map_overrides_by_map: dict[UUID, list[Any]] | None = None,
 ) -> dict[UUID, dict[str, Any]]:
-    """Build v2 snapshots from values already collected for calculation.
+    """Build v3 snapshots from values already collected for calculation.
 
     Uses the exact ``dependencies`` list the calculator saw — no second
     dependency read. Pins, blocker rows, and immovable busy are passed in
     from ``load_snapshot_extras`` (or omitted, which fingerprints as empty).
+    ``time_map_overrides_by_map`` is every override on the effective maps,
+    not the horizon-filtered placement subset.
     """
     if not tasks:
         return {}
@@ -139,6 +143,7 @@ def snapshots_from_collected(
         blockers_by_task[dep.dependent_task_id].append(dep.blocking_task_id)
     known_tasks = tasks_by_id or {task.id: task for task in tasks}
     pins_by_task = pinned_blocks_by_task or {}
+    overrides_by_map = time_map_overrides_by_map or {}
     busy_payload = normalize_busy_intervals(busy_intervals or [])
     workday_start = user_settings.workday_start_local
 
@@ -182,12 +187,13 @@ def snapshots_from_collected(
             due_at=task.due_at,
             soft_target_at=task.soft_target_at,
             auto_defer_enabled=user_settings.auto_defer_enabled,
+            time_map_overrides=overrides_by_map.get(window_id, []) if window_id else [],
         )
     return snapshots
 
 
 def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[str, Any]]:
-    """Effective v2 snapshots for explanation *reads*. Empty if settings are missing.
+    """Effective v3 snapshots for explanation *reads*. Empty if settings are missing.
 
     Collect/persist must not use this — it re-queries dependencies and can diverge
     from the edges calculation already used. Reads may query deps, pins, and busy.
@@ -245,6 +251,7 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
     tasks_by_id, pins_by_task, immovable_busy = load_snapshot_extras(
         db, owner_id, tasks, dependencies
     )
+    overrides_by_map = load_time_map_overrides_for_maps(db, owner_id, window_ids)
     return snapshots_from_collected(
         user_settings=settings,
         tasks=tasks,
@@ -256,6 +263,7 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         tasks_by_id=tasks_by_id,
         pinned_blocks_by_task=pins_by_task,
         busy_intervals=immovable_busy,
+        time_map_overrides_by_map=overrides_by_map,
     )
 
 

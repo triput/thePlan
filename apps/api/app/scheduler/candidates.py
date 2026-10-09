@@ -123,7 +123,11 @@ def load_excluded_tasks(
     *,
     pinned_minutes_by_task: dict[UUID, int] | None = None,
 ) -> list[ExcludedTask]:
-    """Classify open tasks skipped by ``load_candidates`` (not already candidates)."""
+    """Classify open tasks skipped by ``load_candidates`` (not already candidates).
+
+    Archived-scope tasks stay unclassified here. Collect treats style/pin hits as
+    already evaluated, which would hide ``excluded_lifecycle_archived``.
+    """
     if not candidate_ids:
         tasks = (
             db.query(Task)
@@ -165,6 +169,8 @@ def load_excluded_tasks(
     for task in tasks:
         project = projects.get(task.project_id) if task.project_id else None
         epic = epics.get(project.epic_id) if project and project.epic_id else None
+        if _task_archived_scope(task, projects, epics) is not None:
+            continue
         style = effective_schedule_style(task, project, epic, settings)
         style_source = effective_schedule_style_source(task, project, epic)
         if pinned_minutes_by_task is not None:

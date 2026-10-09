@@ -40,13 +40,15 @@ Three holds from Dex W2 recheck — fixed in working tree; remote push still hel
 
 **Evidence:** [apps/api/tests/test_f3_w2_dex_corrections.py](../../apps/api/tests/test_f3_w2_dex_corrections.py) — single immovable busy capture, horizon view from same capture, cycle vs prerequisite split, naive deadline. Full F3 API bundle including this file: **85** passed.
 
+**Dex manual W2 (archived lifecycle):** Real fail on frozen build ([DEX-MANUAL-2026-10-09.md](./DEX-MANUAL-2026-10-09.md)); fixed in working tree (`candidates.py` load order) with **`test_archived_lifecycle_precedes_style_and_full_pins`** + related (**4 passed**) — Dex recheck still pending.
+
 ## Scope
 
 | Slice | Capability | W1 / W2 |
 |-------|------------|---------|
 | **F3-A** | Reason families + representative combinations | **W1 (landed):** `excluded_manual_or_bundle`, `excluded_duration_covered_by_pins`, `blocked_prerequisite`, `placed`, `unplaced_horizon_exhausted`, `unplaced_no_slot`. **W2 (landed):** lifecycle (`excluded_lifecycle_completed`, `excluded_lifecycle_trashed`, `excluded_lifecycle_archived`), `blocked_dependency_cycle`, `unplaced_no_time_map_interval`, `unplaced_red_exclusion`, `unplaced_busy_conflict`, `unplaced_pinned_conflict`, `unplaced_deadline_limit`, `unplaced_insufficient_min_block`, `unplaced_project_daily_cap` |
 | **F3-B** | Inherited rules, map tier/source on placement, pinned prerequisites | **W1 (landed):** pin-full exclusion, prerequisite blocking, placed summary includes tier/window source. **W2 (landed):** **`placement_facts`** (timezone, horizon, effective style/window **source**, placed slice tier/window, `prerequisite_not_before`, optional placement-failure hints on unplaced); pinned/busy conflict reasons |
-| **F3-C** | Stale vs current settings, never-evaluated, owner isolation | **W1 (landed):** `never_evaluated` without replan on GET; W1 stale categories; cross-owner **404** parity. **W2 (landed):** snapshot **v2** / **`algorithm_version` `f3-w2`**; extended stale categories (see below); live compare on GET only |
+| **F3-C** | Stale vs current settings, never-evaluated, owner isolation | **W1 (landed):** `never_evaluated` without replan on GET; W1 stale categories; cross-owner **404** parity. **W2 (landed):** **`algorithm_version` `f3-w2`**; extended stale categories (see below); live compare on GET only. **F4-W2 (landed):** snapshot **v3** adds **`time_map_overrides`** to compare (override CRUD marks stale on read; no auto-replan) |
 | **F3-D** | Human `summary_text` and JSON `reason_facts` from same facts as placement | **W1+W2 (landed):** formatter unit tests + acceptance asserts run list, task latest, and summaries match `format_summary_text`; W2 multi-fact summaries (primary = first fact) |
 
 **Also in W1+W2 slice:** Alembic **`022_schedule_task_outcomes`** + **`023_schedule_outcome_provenance`**; `input_fingerprint` + read-time stale compare; API GET routes; CLI read-only `schedule` commands; web **Why this schedule?** panel in task scheduling detail (no run-summary page).
@@ -71,15 +73,15 @@ Recorded on `schedule_task_outcomes` and returned on explanation GETs. W1 codes 
 
 Full formatter coverage: [apps/api/app/scheduler/reasons.py](../../apps/api/app/scheduler/reasons.py).
 
-## Snapshot v2, `f3-w2`, and stale categories
+## Snapshot v3, `f3-w2`, and stale categories
 
-New replans persist **`input_snapshot`** with **`v`: 2** and **`algorithm_version`: `f3-w2`**. Older rows (missing snapshot or **`v` ≠ 2**) surface **`provenance`** in **`stale_categories`** on read — categories are not guessed across versions.
+New replans persist **`input_snapshot`** with **`v`: 3** and **`algorithm_version`: `f3-w2`**. **`v`** is the fingerprint contract only — the placement algorithm version stays **`f3-w2`**. Older rows (missing snapshot or **`v` ≠ 3**, including F3 **v2**) surface **`provenance`** in **`stale_categories`** on read — categories are not guessed across versions.
 
-**Compared on GET** (never starts replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`.
+**Compared on GET** (never starts replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`, **`time_map_overrides`** (F4-W2 — all overrides on the task's **effective** map; override create/patch/delete on that map changes live compare without auto-replan).
 
-**W3 — not compared:** `priority_ups`, `time_map_overrides` (F4). A matching v2 fingerprint is **not** proof those inputs are unchanged.
+**Not compared:** **`priority_ups`** only. A matching v3 fingerprint is **not** proof priority or UPS weights are unchanged.
 
-Implementation: [apps/api/app/scheduler/input_fingerprint.py](../../apps/api/app/scheduler/input_fingerprint.py). API mirror: [05-api-contract.md](../05-api-contract.md) § Schedule.
+Implementation: [apps/api/app/scheduler/input_fingerprint.py](../../apps/api/app/scheduler/input_fingerprint.py). Override write path: [apps/api/app/services/time_map_overrides.py](../../apps/api/app/services/time_map_overrides.py). API mirror: [05-api-contract.md](../05-api-contract.md) § Schedule · F4: [F4-TIME-MAP-OVERRIDES.md](./F4-TIME-MAP-OVERRIDES.md).
 
 ## `placement_facts` on apply
 
@@ -132,7 +134,7 @@ Canonical checkboxes (F3 W1 + W2): **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md
 
 | Item | Notes |
 |------|-------|
-| **Stale compare deferrals** | **`priority_ups`**, **`time_map_overrides`** — not in v2 fingerprint; changing only those may not set **`is_stale`**. |
+| **Stale compare deferrals** | **`priority_ups`** — not in v3 fingerprint; changing only priority/UPS may not set **`is_stale`**. **`time_map_overrides`** compared since F4-W2 / snapshot v3. |
 | **F6 preview** | No preview/async diff UI; calculate/apply split is in place for a later slice |
 | **Run summary UI** | No dedicated schedule-run explanation browser in web — task panel + CLI/API only |
 | **F3-B inheritance depth** | Fuller Time Map override provenance (F4 overlap) remains roadmap, not W2 exit scope |

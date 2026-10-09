@@ -10,7 +10,21 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
-from app.models import FocusWindow, ScheduleStatus, ScheduledBlock, Task, TimeMapBand, UserSettings
+from app.models import (
+    FocusWindow,
+    ScheduleStatus,
+    ScheduledBlock,
+    Task,
+    TimeMapBand,
+    TimeMapOverride,
+    UserSettings,
+)
+from app.scheduler.time_map_overrides import (
+    applicable_override_payload,
+    effective_day_map,
+    effective_local_date_for_scheduling_day,
+    select_override_for_scheduling_day,
+)
 from app.models.enums import TimeMapBandTier
 from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_overlaps_busy
 from app.scheduler.reasons import (
@@ -52,6 +66,7 @@ class PlacementResult:
     # placed zero blocks; ``pass_hints`` lists every observed hint in that case.
     last_failure: dict[str, Any] | None = None
     pass_hints: list[dict[str, Any]] = field(default_factory=list)
+    applicable_override: dict[str, Any] | None = None
 
 
 # Short codes Jules maps onto ``unplaced_*`` reason codes. Do not rename without
@@ -121,6 +136,15 @@ def band_bounds(
     band: TimeMapBand,
     tz: ZoneInfo,
 ) -> tuple[datetime, datetime] | None:
+    """Wall-clock band on ``day`` in the operator timezone ``tz``.
+
+    F4 overrides replace which bands apply. Those start/end times are still
+    read here, including on spring-forward and fall-back days. The override's
+    stored IANA zone selects the local dates (``effective_local_date_for_scheduling_day``)
+    and the UTC span (``override_utc_bounds``). It does not reinterpret band
+    times. Changing ``settings.timezone`` moves these instants and leaves
+    stored override bounds where they were.
+    """
     if not (band.days_of_week & (1 << day.weekday())):
         return None
     start_local = datetime.combine(day, band.start_time, tzinfo=tz)
@@ -172,6 +196,9 @@ def _search_windows_for_day(
     settings: UserSettings,
     tz: ZoneInfo,
     preferred: FocusWindow | None,
+    *,
+    day_bands: list[TimeMapBand] | list[Any] | None = None,
+    day_strict_mode: bool | None = None,
 ) -> list[tuple[datetime, datetime, str | None]]:
     if not is_workday(day, settings.workweek_days):
         return []
@@ -180,11 +207,16 @@ def _search_windows_for_day(
     if preferred is None:
         return [(work_start, work_end, None)]
 
+    bands = day_bands if day_bands is not None else list(preferred.bands)
+    strict_mode = (
+        day_strict_mode if day_strict_mode is not None else preferred.strict_mode
+    )
+
     green_clips: list[tuple[datetime, datetime]] = []
     yellow_clips: list[tuple[datetime, datetime]] = []
     red_clips: list[tuple[datetime, datetime]] = []
 
-    for band in preferred.bands:
+    for band in bands:
         clipped = _clip_band_to_workday(day, band, settings, tz)
         if clipped is None:
             continue
@@ -203,7 +235,7 @@ def _search_windows_for_day(
         (start, end, "green") for start, end in green_clips
     ] + [(start, end, "yellow") for start, end in yellow_clips]
 
-    if not preferred.strict_mode:
+    if not strict_mode:
         neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
         ordered.extend((item.start, item.end, "neutral") for item in neutral)
 
@@ -339,6 +371,9 @@ def _map_block_reason(
     settings: UserSettings,
     tz: ZoneInfo,
     preferred: FocusWindow,
+    *,
+    day_bands: list[TimeMapBand] | list[Any] | None = None,
+    day_strict_mode: bool | None = None,
 ) -> str | None:
     """Why a bound map offers no allowed window on a workday.
 
@@ -348,10 +383,14 @@ def _map_block_reason(
     """
     if not is_workday(day, settings.workweek_days):
         return None
+    bands = day_bands if day_bands is not None else list(preferred.bands)
+    strict_mode = (
+        day_strict_mode if day_strict_mode is not None else preferred.strict_mode
+    )
     green: list[tuple[datetime, datetime]] = []
     yellow: list[tuple[datetime, datetime]] = []
     red: list[tuple[datetime, datetime]] = []
-    for band in preferred.bands:
+    for band in bands:
         clipped = _clip_band_to_workday(day, band, settings, tz)
         if clipped is None:
             continue
@@ -364,7 +403,7 @@ def _map_block_reason(
     red_intervals = [TimeInterval(start, end) for start, end in red]
     green_left = _subtract_red_from_clips(green, red_intervals)
     yellow_left = _subtract_red_from_clips(yellow, red_intervals)
-    if preferred.strict_mode:
+    if strict_mode:
         if green_left or yellow_left:
             return None
         if green or yellow:
@@ -379,6 +418,26 @@ def _map_block_reason(
     return HINT_NO_TIME_MAP_INTERVAL
 
 
+def _day_override_map(
+    preferred: FocusWindow | None,
+    window_id: UUID | None,
+    day: date,
+    settings: UserSettings,
+    overrides_by_map: dict[UUID, list[TimeMapOverride]] | None,
+) -> tuple[list[Any] | None, bool | None, TimeMapOverride | None]:
+    if preferred is None or window_id is None or not overrides_by_map:
+        return None, None, None
+    day_override = select_override_for_scheduling_day(
+        overrides_by_map.get(window_id),
+        day=day,
+        settings=settings,
+    )
+    if day_override is None:
+        return None, None, None
+    bands, strict = effective_day_map(preferred, day_override, day)
+    return bands, strict, day_override
+
+
 def _observe_unplaced_constraints(
     *,
     task: Task,
@@ -388,6 +447,8 @@ def _observe_unplaced_constraints(
     horizon_start: datetime,
     horizon_end: datetime,
     preferred: FocusWindow | None,
+    preferred_window_id: UUID | None,
+    overrides_by_map: dict[UUID, list[TimeMapOverride]] | None,
     now_utc: datetime,
     not_before: datetime,
     deadline: datetime | None,
@@ -416,8 +477,20 @@ def _observe_unplaced_constraints(
                 day = now_utc.astimezone(tz).date()
                 end_day = horizon_end.astimezone(tz).date()
                 while day <= end_day:
+                    day_bands, day_strict, _ov = _day_override_map(
+                        preferred,
+                        preferred_window_id,
+                        day,
+                        settings,
+                        overrides_by_map,
+                    )
                     for window_start, window_end, _tier in _search_windows_for_day(
-                        day, settings, tz, preferred
+                        day,
+                        settings,
+                        tz,
+                        preferred,
+                        day_bands=day_bands,
+                        day_strict_mode=day_strict,
                     ):
                         if window_end <= horizon_start or window_start >= horizon_end:
                             continue
@@ -460,7 +533,21 @@ def _observe_unplaced_constraints(
     allowed_windows = 0
     max_gap = 0
     while day <= end_day:
-        windows = _search_windows_for_day(day, settings, tz, preferred)
+        day_bands, day_strict, _ov = _day_override_map(
+            preferred,
+            preferred_window_id,
+            day,
+            settings,
+            overrides_by_map,
+        )
+        windows = _search_windows_for_day(
+            day,
+            settings,
+            tz,
+            preferred,
+            day_bands=day_bands,
+            day_strict_mode=day_strict,
+        )
         for window_start, window_end, _tier in windows:
             if window_end <= horizon_start or window_start >= horizon_end:
                 continue
@@ -480,7 +567,21 @@ def _observe_unplaced_constraints(
         map_reasons: set[str] = set()
         day = now_utc.astimezone(tz).date()
         while day <= end_day:
-            reason = _map_block_reason(day, settings, tz, preferred)
+            day_bands, day_strict, _ov = _day_override_map(
+                preferred,
+                preferred_window_id,
+                day,
+                settings,
+                overrides_by_map,
+            )
+            reason = _map_block_reason(
+                day,
+                settings,
+                tz,
+                preferred,
+                day_bands=day_bands,
+                day_strict_mode=day_strict,
+            )
             if reason is not None:
                 map_reasons.add(reason)
             day += timedelta(days=1)
@@ -503,8 +604,20 @@ def _observe_unplaced_constraints(
         fits_if_ignore_external = False
         fits_if_ignore_pinned = False
         while day <= end_day:
+            day_bands, day_strict, _ov = _day_override_map(
+                preferred,
+                preferred_window_id,
+                day,
+                settings,
+                overrides_by_map,
+            )
             for window_start, window_end, _tier in _search_windows_for_day(
-                day, settings, tz, preferred
+                day,
+                settings,
+                tz,
+                preferred,
+                day_bands=day_bands,
+                day_strict_mode=day_strict,
             ):
                 if window_end <= horizon_start or window_start >= horizon_end:
                     continue
@@ -645,7 +758,10 @@ def place_task(
     daily_cap: int | None = None,
     prerequisite_not_before: datetime | None = None,
     persist_blocks: bool = True,
+    time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]] | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
+    # Operator zone for workday and band wall-clock. Override date match uses
+    # each row's stored IANA zone; it does not move these band instants.
     tz = ZoneInfo(settings.timezone)
     mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
     max_block = task.max_block_duration_minutes
@@ -674,11 +790,26 @@ def place_task(
     blocks_limit = max_blocks if max_blocks is not None else None
     cap_blocked_day: date | None = None
     day_cap_blocked_ever = False
+    applicable_override: dict[str, Any] | None = None
 
     while remaining > 0 and day <= end_day:
         if blocks_limit is not None and blocks_created >= blocks_limit:
             break
-        windows = _search_windows_for_day(day, settings, tz, preferred)
+        day_bands, day_strict, day_override = _day_override_map(
+            preferred,
+            window_id,
+            day,
+            settings,
+            time_map_overrides_by_map,
+        )
+        windows = _search_windows_for_day(
+            day,
+            settings,
+            tz,
+            preferred,
+            day_bands=day_bands,
+            day_strict_mode=day_strict,
+        )
         placed_today = False
         day_cap_blocked = False
         for window_start, window_end, window_tier in windows:
@@ -748,6 +879,13 @@ def place_task(
                     last_placed_tier = window_tier
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
                     _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
+                    if day_override is not None:
+                        local = effective_local_date_for_scheduling_day(
+                            day, settings, day_override
+                        )
+                        applicable_override = applicable_override_payload(
+                            day_override, local
+                        )
                     placed_today = True
                     placed_in_window = True
                     break
@@ -799,6 +937,8 @@ def place_task(
             horizon_start=horizon_start,
             horizon_end=horizon_end,
             preferred=preferred,
+            preferred_window_id=window_id,
+            overrides_by_map=time_map_overrides_by_map,
             now_utc=now_utc,
             not_before=not_before,
             deadline=deadline,
@@ -836,6 +976,7 @@ def place_task(
             observed_constraints=observed,
             last_failure=last_failure,
             pass_hints=hints,
+            applicable_override=applicable_override,
         ),
         busy,
     )
@@ -858,6 +999,7 @@ def place_one_block(
     daily_cap: int | None = None,
     prerequisite_not_before: datetime | None = None,
     persist_blocks: bool = True,
+    time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]] | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     """Place at most one scheduled block for round-robin replan sweeps."""
     return place_task(
@@ -878,4 +1020,5 @@ def place_one_block(
         daily_cap=daily_cap,
         prerequisite_not_before=prerequisite_not_before,
         persist_blocks=persist_blocks,
+        time_map_overrides_by_map=time_map_overrides_by_map,
     )

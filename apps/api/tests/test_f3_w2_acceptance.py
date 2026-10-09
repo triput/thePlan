@@ -4,8 +4,8 @@ Each new reason family once, placement_facts on a placed task, stale snapshot
 v2 categories on GET, and a multi-fact summary that matches the formatter
 with primary = the first fact.
 
-Still deferred (W3, not a close): ``priority_ups``, ``time_map_overrides``,
-and a run-summary web UI. F3 stays open.
+Still deferred (not a close): ``priority_ups`` and a run-summary web UI.
+Snapshot v3 compares ``time_map_overrides`` (F4-W2). F3 stays open.
 """
 
 from __future__ import annotations
@@ -479,6 +479,90 @@ def test_lifecycle_completed_trashed_and_archived(
     assert archived_body["explanation"]["placed_minutes"] == 0
 
 
+def test_archived_lifecycle_precedes_style_and_full_pins(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+    scheduled: None,
+) -> None:
+    """Open tasks under archived containers stay lifecycle, even when style or pins match."""
+    _settings(client)
+    suffix = uuid.uuid4().hex[:8]
+    manual_project = client.post(
+        "/api/v1/projects",
+        json={"title": f"f3-arch-manual-{suffix}", "schedule_style": "manual"},
+    )
+    assert manual_project.status_code == 201, manual_project.text
+    epic = client.post("/api/v1/epics", json={"title": f"f3-arch-epic-{suffix}"})
+    assert epic.status_code == 201, epic.text
+    bundle_project = client.post(
+        "/api/v1/projects",
+        json={
+            "title": f"f3-arch-bundle-{suffix}",
+            "epic_id": epic.json()["id"],
+            "schedule_style": "bundle",
+        },
+    )
+    assert bundle_project.status_code == 201, bundle_project.text
+    pin_project = client.post(
+        "/api/v1/projects",
+        json={"title": f"f3-arch-pin-{suffix}"},
+    )
+    assert pin_project.status_code == 201, pin_project.text
+
+    manual_task = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        project_id=manual_project.json()["id"],
+    )
+    bundle_task = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        project_id=bundle_project.json()["id"],
+    )
+    pinned_task = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        project_id=pin_project.json()["id"],
+    )
+    _keep(db_session, client, manual_task["id"], bundle_task["id"], pinned_task["id"])
+
+    pin_start = FIXED_NOW + timedelta(days=1)
+    _pin(
+        db_session,
+        owner_id=_current_user_id(client),
+        task_id=uuid.UUID(pinned_task["id"]),
+        start=pin_start,
+        end=pin_start + timedelta(minutes=30),
+    )
+    for project_id in (manual_project.json()["id"], pin_project.json()["id"]):
+        archived_project = client.post(f"/api/v1/projects/{project_id}/archive")
+        assert archived_project.status_code == 200, archived_project.text
+    archived_epic = client.post(f"/api/v1/epics/{epic.json()['id']}/archive")
+    assert archived_epic.status_code == 200, archived_epic.text
+
+    _replan(client, db_session, monkeypatch)
+
+    manual_body = _explanation(client, manual_task["id"])
+    manual_fact = manual_body["explanation"]["reason_facts"][0]
+    assert manual_fact["code"] == "excluded_lifecycle_archived"
+    assert manual_fact["params"]["archived_scope"] == "project"
+    assert "project archived" in manual_body["summary_text"]
+    assert manual_body["explanation"]["outcome"] == "excluded"
+
+    bundle_body = _explanation(client, bundle_task["id"])
+    bundle_fact = bundle_body["explanation"]["reason_facts"][0]
+    assert bundle_fact["code"] == "excluded_lifecycle_archived"
+    assert bundle_fact["params"]["archived_scope"] == "epic"
+    assert "epic archived" in bundle_body["summary_text"]
+
+    pinned_body = _explanation(client, pinned_task["id"])
+    pinned_fact = pinned_body["explanation"]["reason_facts"][0]
+    assert pinned_fact["code"] == "excluded_lifecycle_archived"
+    assert pinned_fact["params"]["archived_scope"] == "project"
+    assert pinned_body["explanation"]["placed_minutes"] == 0
+
+
 def test_placed_task_persists_placement_facts(
     client: TestClient,
     db_session: Session,
@@ -597,6 +681,7 @@ def test_stale_v2_categories_and_w3_keys_stay_quiet(
         assert category in fresh["explanation"]["input_snapshot"]
     for deferred in DEFERRED_STALE_CATEGORIES:
         assert deferred not in fresh["explanation"]["input_snapshot"]
+    assert fresh["explanation"]["input_snapshot"]["time_map_overrides"] == {"overrides": []}
 
     pin = _pin(
         db_session,

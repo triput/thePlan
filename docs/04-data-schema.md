@@ -30,6 +30,7 @@ users ──┬── user_settings
         │                          ├── recurrence_rules
         │                          └── reminders
         ├── focus_windows ── time_map_bands
+        │                 └── time_map_overrides ── time_map_override_bands
         ├── plans
         ├── saved_filters
         ├── calendar_accounts ── calendar_subscriptions
@@ -196,6 +197,38 @@ Painted preference bands on a Time Map. A map may have multiple bands (e.g. morn
 **Validation:** same-tier bands must not overlap on shared days (application layer). Cross-tier overlap is allowed (red can carve forbidden zones inside green/yellow).
 
 **Scheduler semantics:** green → yellow → neutral workday minus red; red never receives auto-placement; `strict_mode` on the parent map suppresses neutral spill.
+
+### time_map_overrides
+
+Dated replacement for one Time Map. Alembic `024_time_map_overrides`. The weekly map is unchanged. Outside the inclusive local dates the scheduler uses the base map again; nothing runs in the background to restore it. Expired rows stay until deleted. Deleting the focus window cascades the override and its bands.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| owner_id | UUID FK | users; ON DELETE CASCADE |
+| map_id | UUID FK | focus_windows; ON DELETE CASCADE |
+| local_start_date, local_end_date | DATE | Inclusive calendar dates in `timezone` |
+| timezone | VARCHAR(64) | Stored IANA name. Not reinterpreted if `user_settings.timezone` changes |
+| strict_mode | BOOLEAN | Explicit. Empty bands + true = unavailable all day |
+
+**Indexes:** `(map_id)`, `(owner_id)`
+
+**Overlap:** same `map_id` with inclusive date ranges that touch is a conflict (`409` `TIME_MAP_OVERRIDE_OVERLAP`). Different maps may overlap. Writes do not replan.
+
+### time_map_override_bands
+
+Replacement bands for an override. Same tier/time/weekday shape as `time_map_bands`. `end_time > start_time` — a band may not cross midnight.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| override_id | UUID FK | time_map_overrides; ON DELETE CASCADE |
+| tier | time_map_band_tier | green, yellow, or red |
+| start_time, end_time | TIME | Local wall time in the override timezone |
+| days_of_week | SMALLINT | Bitset Mon=1 … Sun=64; default 127 |
+| sort_order | INT | |
+
+**Indexes:** `(override_id)`
+
+Empty band list is valid. With `strict_mode`, that is all-day unavailable for those dates.
 
 ### plans
 
@@ -402,6 +435,7 @@ Smart views are **not** hard-coded only in application logic. They are persisted
 4. **Owner scoping:** All queries filter by authenticated `owner_id`.
 5. **Completion:** Setting `is_completed = TRUE` sets `completed_at = now()`; uncomplete clears it.
 6. **Timezone:** "Today" and calendar boundaries computed in `user_settings.timezone`.
+7. **Time Map overrides:** inclusive dates belong to the override's stored IANA timezone. Same-map ranges that overlap are rejected. Bands cannot cross midnight.
 
 ---
 

@@ -8,6 +8,7 @@ import {
   fetchCalendarConflicts,
   fetchExternalCalendarEvents,
   fetchFocusWindows,
+  fetchTimeMapOverrides,
   fetchProjects,
   fetchScheduleRun,
   fetchScheduledBlocks,
@@ -22,6 +23,11 @@ import {
   type ScheduledBlock,
   type Task,
 } from "../api";
+import {
+  bandWallClockContextForSchedulingDay,
+  effectiveTimeMapBandsForDay,
+  sortTimeMapBandsForOverlay,
+} from "../timeMapOverrides";
 import {
   addDays,
   addMinutes,
@@ -242,16 +248,46 @@ export function CalendarView() {
     }
   }, [overlayMapId, effectiveOverlayMapId]);
 
-  const timeMapBands = useMemo(() => {
-    if (mode !== "week" || !effectiveOverlayMapId) return undefined;
-    const window = focusWindows.find((w) => w.id === effectiveOverlayMapId);
-    const bands = window?.bands ?? [];
-    // Paint green → yellow → red so higher tiers sit on top in DOM + CSS z-index.
-    const tierOrder: Record<string, number> = { green: 0, yellow: 1, red: 2 };
-    return [...bands].sort(
-      (a, b) => (tierOrder[a.tier] ?? 0) - (tierOrder[b.tier] ?? 0) || a.sort_order - b.sort_order,
-    );
-  }, [effectiveOverlayMapId, focusWindows, mode]);
+  const overlayFocusWindow = useMemo(() => {
+    if (!effectiveOverlayMapId) return undefined;
+    return focusWindows.find((w) => w.id === effectiveOverlayMapId);
+  }, [effectiveOverlayMapId, focusWindows]);
+
+  const overlayOverridesQuery = useQuery({
+    queryKey: ["time-map-overrides", effectiveOverlayMapId],
+    queryFn: () => fetchTimeMapOverrides(effectiveOverlayMapId),
+    enabled: Boolean(effectiveOverlayMapId) && mode === "week",
+  });
+
+  const overlayOverrides = overlayOverridesQuery.data;
+
+  const resolveTimeMapOverlay = useCallback(
+    (day: Date) => {
+      if (mode !== "week" || !overlayFocusWindow || !settingsQuery.data) {
+        return {
+          bands: undefined as undefined,
+          overrideActive: false,
+          bandWallClock: undefined as undefined,
+        };
+      }
+      const { bands, override } = effectiveTimeMapBandsForDay(
+        overlayFocusWindow,
+        overlayOverrides,
+        day,
+        settingsQuery.data,
+      );
+      return {
+        bands: sortTimeMapBandsForOverlay(bands),
+        overrideActive: override !== null,
+        bandWallClock: bandWallClockContextForSchedulingDay(
+          day,
+          settingsQuery.data,
+          override,
+        ),
+      };
+    },
+    [mode, overlayFocusWindow, overlayOverrides, settingsQuery.data],
+  );
 
   const setTimeMapOverlay = (mapId: string) => {
     setOverlayMapId(mapId);
@@ -716,7 +752,9 @@ export function CalendarView() {
             ))}
           </div>
           <div className={`cal-columns${mode === "week" ? " week" : ""}`}>
-            {days.map((day) => (
+            {days.map((day) => {
+              const timeMapOverlay = resolveTimeMapOverlay(day);
+              return (
               <CalendarDayColumn
                 key={day.toISOString()}
                 day={day}
@@ -740,9 +778,12 @@ export function CalendarView() {
                 taskDropEnabled={dragEnabled}
                 onTaskDrop={handleTaskDrop}
                 showDayLabel={mode === "week"}
-                timeMapBands={timeMapBands}
+                timeMapBands={timeMapOverlay.bands}
+                timeMapBandWallClock={timeMapOverlay.bandWallClock}
+                timeMapOverrideActive={timeMapOverlay.overrideActive}
               />
-            ))}
+            );
+            })}
           </div>
         </div>
       </div>

@@ -108,6 +108,11 @@ from app.schemas.outlines import (
 )
 from app.schemas.search import SearchLabelOut, SearchTaskOut
 from app.schemas.settings import UserSettingsOut, UserSettingsUpdate
+from app.schemas.time_map_overrides import (
+    TimeMapOverrideCreate,
+    TimeMapOverrideOut,
+    TimeMapOverrideUpdate,
+)
 from app.schemas.tasks import (
     QuickAddParseRequest,
     QuickAddParseResponse,
@@ -236,6 +241,9 @@ __all__ = [
     "TimeField",
     "TimeMapBandIn",
     "TimeMapBandOut",
+    "TimeMapOverrideCreate",
+    "TimeMapOverrideOut",
+    "TimeMapOverrideUpdate",
     "UserOut",
     "UserSettingsOut",
     "UserSettingsUpdate",

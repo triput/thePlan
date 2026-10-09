@@ -189,6 +189,24 @@ export function topPercentForTime(d: Date, bounds: HourBounds = resolveHourBound
   return Math.max(0, Math.min(100, (mins / total) * 100));
 }
 
+/** Clip an interval to the visible calendar hour window on its start date (local). */
+export function intersectIntervalWithHourBounds(
+  start: Date,
+  end: Date,
+  bounds: HourBounds,
+): { start: Date; end: Date } | null {
+  if (end <= start) return null;
+  const day = startOfDay(start);
+  const windowStart = new Date(day);
+  windowStart.setHours(bounds.start, 0, 0, 0);
+  const windowEnd = new Date(day);
+  windowEnd.setHours(bounds.end, 0, 0, 0);
+  const clipStart = start < windowStart ? windowStart : start;
+  const clipEnd = end > windowEnd ? windowEnd : end;
+  if (clipStart >= clipEnd) return null;
+  return { start: clipStart, end: clipEnd };
+}
+
 export function heightPercentForDuration(
   minutes: number,
   bounds: HourBounds = resolveHourBounds(false),
