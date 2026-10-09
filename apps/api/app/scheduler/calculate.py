@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -245,15 +245,29 @@ def _seed_prerequisite_block_ends(
     candidate_ids: set[UUID],
     horizon_start: datetime,
     horizon_end: datetime,
+    *,
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
 ) -> dict[UUID, datetime]:
     """Seed prereq end times from blocks that survive apply.
 
     Apply wipes unpinned horizon blocks before writing proposals. Seeding from
     those doomed blocks delays dependents with no remaining justification.
     Newly proposed ends are merged into the map as placement succeeds.
+
+    Prefer the collect-time ``pinned_blocks_by_task`` capture so pin minutes,
+    busy, and fingerprints stay consistent.
     """
     latest: dict[UUID, datetime] = {}
     if not candidate_ids:
+        return latest
+    if pinned_blocks_by_task is not None:
+        for task_id in candidate_ids:
+            for block in pinned_blocks_by_task.get(task_id, []):
+                if not (block.start_time < horizon_end and block.end_time > horizon_start):
+                    continue
+                prev = latest.get(task_id)
+                if prev is None or block.end_time > prev:
+                    latest[task_id] = block.end_time
         return latest
     blocks = (
         db.query(ScheduledBlock)
@@ -345,7 +359,7 @@ def _finalize_candidate_outcomes(
     initial_remaining: dict[UUID, int],
     observed_constraints_by_task: dict[UUID, list[str]],
     cycle_task_ids: set[UUID],
-    cycle_task_ids_str: list[str],
+    cycle_members_by_task: dict[UUID, list[str]],
     placement_facts_by_task: dict[UUID, dict[str, Any]],
     prerequisite_not_before_by_task: dict[UUID, datetime],
     hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] | None = None,
@@ -383,7 +397,11 @@ def _finalize_candidate_outcomes(
                 facts.append(
                     ReasonFact(
                         REASON_BLOCKED_DEPENDENCY_CYCLE,
-                        {"cycle_task_ids": cycle_task_ids_str},
+                        {
+                            "cycle_task_ids": cycle_members_by_task.get(
+                                task_id, [str(task_id)]
+                            )
+                        },
                     )
                 )
             elif not _dependencies_ready(task_id, remaining_by_task, blockers_by_dependent):
@@ -468,7 +486,9 @@ def _finalize_candidate_outcomes(
                         settings=inputs.user_settings,
                         remaining=remaining,
                         daily_cap=inputs.daily_cap,
-                        cycle_task_ids=cycle_task_ids_str,
+                        cycle_task_ids=cycle_members_by_task.get(
+                            task_id, [str(task_id)]
+                        ),
                     )
                 )
         else:
@@ -506,6 +526,15 @@ def calculate(
 
     cycle_task_ids_str = list(inputs.dependency_stats.get("cycle_task_ids") or [])
     cycle_task_ids = {UUID(value) for value in cycle_task_ids_str}
+    cycle_members_by_task: dict[UUID, list[str]] = {}
+    for group in inputs.dependency_stats.get("cycle_groups") or []:
+        members = [str(value) for value in group]
+        for member in members:
+            cycle_members_by_task[UUID(member)] = members
+    # Flat cycle_task_ids without groups (legacy stats): each member lists all.
+    if cycle_task_ids and not cycle_members_by_task:
+        for task_id in cycle_task_ids:
+            cycle_members_by_task[task_id] = cycle_task_ids_str
 
     candidate_ids = {item.task.id for item in inputs.candidates}
     blockers_by_dependent = _blockers_by_dependent(inputs.dependencies, candidate_ids)
@@ -527,6 +556,7 @@ def calculate(
         prereq_seed_ids,
         inputs.horizon_start,
         inputs.horizon_end,
+        pinned_blocks_by_task=inputs.pinned_blocks_by_task,
     )
 
     busy: list[BusyInterval] = list(inputs.busy)
@@ -701,7 +731,7 @@ def calculate(
         initial_remaining=initial_remaining,
         observed_constraints_by_task=observed_constraints_by_task,
         cycle_task_ids=cycle_task_ids,
-        cycle_task_ids_str=cycle_task_ids_str,
+        cycle_members_by_task=cycle_members_by_task,
         placement_facts_by_task=placement_facts_by_task,
         prerequisite_not_before_by_task=prerequisite_not_before_by_task,
         hint_params_by_task=hint_params_by_task,

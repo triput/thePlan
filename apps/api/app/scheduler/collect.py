@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -9,8 +10,12 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Epic, FocusWindow, Project, TaskDependency, UserSettings
-from app.scheduler.busy_map import BusyInterval, build_busy_map
+from app.models import Epic, FocusWindow, Project, ScheduledBlock, TaskDependency, UserSettings
+from app.scheduler.busy_map import (
+    BusyInterval,
+    busy_from_sources,
+    load_immovable_busy_sources,
+)
 from app.scheduler.candidates import (
     ExcludedTask,
     LifecycleExcludedTask,
@@ -18,6 +23,7 @@ from app.scheduler.candidates import (
     load_candidates,
     load_excluded_tasks,
     load_lifecycle_excluded_tasks,
+    pinned_minutes_from_blocks,
 )
 from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon
@@ -51,6 +57,9 @@ class SchedulingInputs:
     daily_cap: int | None
     # Captured at collect time so apply/persist does not re-read live inputs.
     input_snapshots: dict[UUID, dict[str, Any]] = field(default_factory=dict)
+    # Same pin/busy capture used for candidates, prereq seed, and fingerprints.
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] = field(default_factory=dict)
+    immovable_busy: list[BusyInterval] = field(default_factory=list)
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -72,11 +81,39 @@ def collect_inputs(
     """Read scheduling inputs; does not mutate blocks or task status."""
     user_settings = _load_user_settings(db, owner_id)
     horizon_start, horizon_end = compute_horizon(user_settings, now_utc)
-    busy = build_busy_map(db, owner_id, horizon_start, horizon_end)
 
-    candidates = load_candidates(db, owner_id, user_settings)
+    # One capture of immovable busy/pins for calculation + fingerprints.
+    pinned_blocks, external_events = load_immovable_busy_sources(db, owner_id)
+    immovable_busy = busy_from_sources(pinned_blocks, external_events)
+    busy = busy_from_sources(
+        pinned_blocks,
+        external_events,
+        range_start=horizon_start,
+        range_end=horizon_end,
+    )
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] = defaultdict(list)
+    pinned_minutes_by_task: dict[UUID, int] = {}
+    for block in pinned_blocks:
+        if block.task_id is None:
+            continue
+        pinned_blocks_by_task[block.task_id].append(block)
+    for task_id, blocks in pinned_blocks_by_task.items():
+        pinned_minutes_by_task[task_id] = pinned_minutes_from_blocks(blocks)
+
+    candidates = load_candidates(
+        db,
+        owner_id,
+        user_settings,
+        pinned_minutes_by_task=pinned_minutes_by_task,
+    )
     candidate_ids = {item.task.id for item in candidates}
-    excluded_tasks = load_excluded_tasks(db, owner_id, user_settings, candidate_ids)
+    excluded_tasks = load_excluded_tasks(
+        db,
+        owner_id,
+        user_settings,
+        candidate_ids,
+        pinned_minutes_by_task=pinned_minutes_by_task,
+    )
     already_evaluated = candidate_ids | {item.task.id for item in excluded_tasks}
     lifecycle_excluded_tasks = load_lifecycle_excluded_tasks(
         db,
@@ -160,13 +197,10 @@ def collect_inputs(
 
     daily_cap = user_settings.max_auto_schedule_minutes_per_project_per_day
 
-    # Build fingerprints from the same dependency list calculation will use —
-    # do not re-query via live_snapshots_by_task (race with intervening commits).
-    from app.scheduler.outcomes import load_snapshot_extras, snapshots_from_collected
+    # Fingerprints use the same deps + pins + immovable busy calculation saw.
+    from app.scheduler.outcomes import load_blocker_tasks, snapshots_from_collected
 
-    tasks_by_id, pins_by_task, immovable_busy = load_snapshot_extras(
-        db, owner_id, snapshot_tasks, dependencies
-    )
+    tasks_by_id = load_blocker_tasks(db, owner_id, snapshot_tasks, dependencies)
     input_snapshots = snapshots_from_collected(
         user_settings=user_settings,
         tasks=snapshot_tasks,
@@ -176,7 +210,7 @@ def collect_inputs(
         preferred_windows=preferred_windows,
         effective_window_by_task=effective_window_by_task,
         tasks_by_id=tasks_by_id,
-        pinned_blocks_by_task=pins_by_task,
+        pinned_blocks_by_task=dict(pinned_blocks_by_task),
         busy_intervals=immovable_busy,
     )
 
@@ -201,4 +235,6 @@ def collect_inputs(
         preferred_windows=preferred_windows,
         daily_cap=daily_cap,
         input_snapshots=input_snapshots,
+        pinned_blocks_by_task=dict(pinned_blocks_by_task),
+        immovable_busy=immovable_busy,
     )

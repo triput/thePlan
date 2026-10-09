@@ -49,6 +49,64 @@ def _merge_busy(intervals: list[BusyInterval]) -> list[BusyInterval]:
     return merged
 
 
+def load_immovable_busy_sources(
+    db: Session,
+    owner_id: UUID,
+) -> tuple[list[ScheduledBlock], list[ExternalCalendarEvent]]:
+    """Load pinned blocks and non-mirror external events once for collect.
+
+    Callers derive horizon-filtered calculation busy and fingerprint busy from
+    the same rows so an intervening commit cannot diverge them.
+    """
+    pinned = (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == owner_id,
+            ScheduledBlock.is_pinned.is_(True),
+        )
+        .all()
+    )
+    events = (
+        db.query(ExternalCalendarEvent)
+        .filter(
+            ExternalCalendarEvent.owner_id == owner_id,
+            ExternalCalendarEvent.scheduled_block_id.is_(None),
+        )
+        .all()
+    )
+    return pinned, events
+
+
+def busy_from_sources(
+    pinned: list[ScheduledBlock],
+    events: list[ExternalCalendarEvent],
+    *,
+    range_start: datetime | None = None,
+    range_end: datetime | None = None,
+) -> list[BusyInterval]:
+    """Build merged busy from already-loaded pins/events.
+
+    When ``range_start``/``range_end`` are set, only intervals overlapping that
+    range are included (calculation horizon view).
+    """
+    intervals: list[BusyInterval] = []
+    for block in pinned:
+        if range_start is not None and range_end is not None:
+            if not (block.start_time < range_end and block.end_time > range_start):
+                continue
+        intervals.append(
+            BusyInterval(block.start_time, block.end_time, source="pinned")
+        )
+    for event in events:
+        if range_start is not None and range_end is not None:
+            if not (event.start_time < range_end and event.end_time > range_start):
+                continue
+        intervals.append(
+            BusyInterval(event.start_time, event.end_time, source="external")
+        )
+    return _merge_busy(intervals)
+
+
 def build_busy_map(
     db: Session,
     owner_id: UUID,
@@ -56,39 +114,10 @@ def build_busy_map(
     range_end: datetime,
 ) -> list[BusyInterval]:
     """External events (non-mirror) + all pinned blocks overlapping the range."""
-    intervals: list[BusyInterval] = []
-
-    pinned = (
-        db.query(ScheduledBlock)
-        .filter(
-            ScheduledBlock.owner_id == owner_id,
-            ScheduledBlock.is_pinned.is_(True),
-            ScheduledBlock.start_time < range_end,
-            ScheduledBlock.end_time > range_start,
-        )
-        .all()
+    pinned, events = load_immovable_busy_sources(db, owner_id)
+    return busy_from_sources(
+        pinned, events, range_start=range_start, range_end=range_end
     )
-    for block in pinned:
-        intervals.append(
-            BusyInterval(block.start_time, block.end_time, source="pinned")
-        )
-
-    events = (
-        db.query(ExternalCalendarEvent)
-        .filter(
-            ExternalCalendarEvent.owner_id == owner_id,
-            ExternalCalendarEvent.scheduled_block_id.is_(None),
-            ExternalCalendarEvent.start_time < range_end,
-            ExternalCalendarEvent.end_time > range_start,
-        )
-        .all()
-    )
-    for event in events:
-        intervals.append(
-            BusyInterval(event.start_time, event.end_time, source="external")
-        )
-
-    return _merge_busy(intervals)
 
 
 def load_immovable_busy(db: Session, owner_id: UUID) -> list[BusyInterval]:
@@ -97,30 +126,12 @@ def load_immovable_busy(db: Session, owner_id: UUID) -> list[BusyInterval]:
     Not clipped to the horizon. Explanation fingerprints use this so a sliding
     ``now`` does not mark ``busy_external`` stale. Auto-placed blocks are omitted;
     they are outputs of the run, not inputs.
-    """
-    intervals: list[BusyInterval] = []
-    pinned = (
-        db.query(ScheduledBlock)
-        .filter(
-            ScheduledBlock.owner_id == owner_id,
-            ScheduledBlock.is_pinned.is_(True),
-        )
-        .all()
-    )
-    for block in pinned:
-        intervals.append(BusyInterval(block.start_time, block.end_time, source="pinned"))
 
-    events = (
-        db.query(ExternalCalendarEvent)
-        .filter(
-            ExternalCalendarEvent.owner_id == owner_id,
-            ExternalCalendarEvent.scheduled_block_id.is_(None),
-        )
-        .all()
-    )
-    for event in events:
-        intervals.append(BusyInterval(event.start_time, event.end_time, source="external"))
-    return _merge_busy(intervals)
+    Prefer ``load_immovable_busy_sources`` + ``busy_from_sources`` during collect
+    so calculation and fingerprint share one capture.
+    """
+    pinned, events = load_immovable_busy_sources(db, owner_id)
+    return busy_from_sources(pinned, events)
 
 
 def add_busy_interval(

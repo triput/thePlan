@@ -53,6 +53,10 @@ def pinned_minutes_for_task(db: Session, task_id: UUID) -> int:
         )
         .all()
     )
+    return pinned_minutes_from_blocks(blocks)
+
+
+def pinned_minutes_from_blocks(blocks: list[ScheduledBlock]) -> int:
     total = 0
     for block in blocks:
         delta = block.end_time - block.start_time
@@ -64,6 +68,8 @@ def load_candidates(
     db: Session,
     owner_id: UUID,
     settings: UserSettings,
+    *,
+    pinned_minutes_by_task: dict[UUID, int] | None = None,
 ) -> list[TaskCandidate]:
     """Incomplete tasks with remaining duration > 0; bundle/manual exclude auto-placement."""
     tasks = (
@@ -99,7 +105,10 @@ def load_candidates(
             continue
         if _task_archived_scope(task, projects, epics) is not None:
             continue
-        pinned_minutes = pinned_minutes_for_task(db, task.id)
+        if pinned_minutes_by_task is not None:
+            pinned_minutes = pinned_minutes_by_task.get(task.id, 0)
+        else:
+            pinned_minutes = pinned_minutes_for_task(db, task.id)
         remaining = task.estimated_duration_minutes - pinned_minutes
         if remaining > 0:
             candidates.append(TaskCandidate(task=task, remaining_minutes=remaining))
@@ -111,6 +120,8 @@ def load_excluded_tasks(
     owner_id: UUID,
     settings: UserSettings,
     candidate_ids: set[UUID],
+    *,
+    pinned_minutes_by_task: dict[UUID, int] | None = None,
 ) -> list[ExcludedTask]:
     """Classify open tasks skipped by ``load_candidates`` (not already candidates)."""
     if not candidate_ids:
@@ -156,7 +167,10 @@ def load_excluded_tasks(
         epic = epics.get(project.epic_id) if project and project.epic_id else None
         style = effective_schedule_style(task, project, epic, settings)
         style_source = effective_schedule_style_source(task, project, epic)
-        pinned_minutes = pinned_minutes_for_task(db, task.id)
+        if pinned_minutes_by_task is not None:
+            pinned_minutes = pinned_minutes_by_task.get(task.id, 0)
+        else:
+            pinned_minutes = pinned_minutes_for_task(db, task.id)
         requested = task.estimated_duration_minutes
         remaining = requested - pinned_minutes
         if style in {ScheduleStyle.bundle, ScheduleStyle.manual}:

@@ -59,16 +59,15 @@ def _bands_payload(window: FocusWindow | None) -> list[dict[str, Any]]:
     return payload
 
 
-def load_snapshot_extras(
+def load_blocker_tasks(
     db: Session,
     owner_id: UUID,
     tasks: list[Task],
     dependencies: list[TaskDependency],
-) -> tuple[dict[UUID, Task], dict[UUID, list[ScheduledBlock]], list[BusyInterval]]:
-    """Blocker rows, this task's pins, and immovable busy for a v2 snapshot.
+) -> dict[UUID, Task]:
+    """Resolve blocker task rows for prerequisite_state fingerprints.
 
-    Does not query ``task_dependencies``. Callers pass the dependency list
-    calculation already loaded. Missing blockers are one task read.
+    Does not query pins or external busy — collect already captured those.
     """
     known: dict[UUID, Task] = {task.id: task for task in tasks}
     missing = {dep.blocking_task_id for dep in dependencies} - set(known)
@@ -80,7 +79,22 @@ def load_snapshot_extras(
         )
         for row in rows:
             known[row.id] = row
+    return known
 
+
+def load_snapshot_extras(
+    db: Session,
+    owner_id: UUID,
+    tasks: list[Task],
+    dependencies: list[TaskDependency],
+) -> tuple[dict[UUID, Task], dict[UUID, list[ScheduledBlock]], list[BusyInterval]]:
+    """Blocker rows, pins, and immovable busy for live explanation *reads*.
+
+    Collect must not use this for persist fingerprints — it reloads busy/pins
+    and can race calculation's capture. Prefer ``load_blocker_tasks`` plus the
+    already-collected pin/busy maps.
+    """
+    known = load_blocker_tasks(db, owner_id, tasks, dependencies)
     pins: dict[UUID, list[ScheduledBlock]] = defaultdict(list)
     task_ids = list(known)
     if task_ids:
