@@ -2,7 +2,7 @@
 
 **Status:** Implemented · **Quality:** Renee exit **2026-10-08** (API green; F2-D partial — browser/manual trails) · **Manual verification:** pending (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §5](../NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)  
-**Build:** WIP  
+**Build:** c51f0ca
 **Hygiene:** Alembic head **`021_task_workflow`** (after F1 **`020_task_source_refs`**)
 
 ## Scope
@@ -22,7 +22,7 @@
 |-------|----------|
 | **API** | `POST /tasks/{id}/workflow`; `GET /tasks?workflow=&board_order=`; `TaskOut` board fields — [05-api-contract.md](../05-api-contract.md) |
 | **CLI** | `theplan tasks workflow`, `tasks list --workflow …` — [CLI.md](../CLI.md) |
-| **Web** | List/Board per view (`taskPresentation` localStorage); roots-only toggle; WIP summary (In progress + Waiting) |
+| **Web** | List/Board per view (`taskPresentation` localStorage); roots-only toggle; **Build:** c51f0ca summary (In progress + Waiting) |
 | **Auth** | Owner-scoped; same session boundary as other task routes |
 
 ## Automated evidence
@@ -66,7 +66,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 ## Manual checklist (Trish)
 
 - [ ] `alembic upgrade head` → revision **`021_task_workflow`**
-- [ ] Project view: toggle **Board**; columns Ready / In progress / Waiting / Done; WIP line matches In progress + Waiting totals
+- [ ] Project view: toggle **Board**; columns Ready / In progress / Waiting / Done; **Build:** c51f0ca line matches In progress + Waiting totals
 - [ ] **Move to…** menu moves a card; CLI `theplan tasks get --id …` shows matching `workflow_state`, `board_column`, `board_revision`
 - [ ] Drag card to another open column (Waiting prompts for note); drop on **Done** runs completion policy when parent has open children
 - [ ] Complete recurring task on board → toast “next occurrence”; card lands in **Ready**, not Done
