@@ -2,7 +2,7 @@
 
 **Status:** W1+W2 **Implemented** · **Quality:** targeted Dex W2 P2 suites green; full F3 pytest bundle re-run in progress · Dex recheck **pending** · push **held** · F3 **not** Closed/shipped — browser/manual checklist still open; W3 deferrals remain  
 **Spec:** [NEXT-FEATURES-SPEC.md §6](../NEXT-FEATURES-SPEC.md#6-f3-scheduler-explanations)  
-**Build:** pending commit (Dex W2 P2 fixes in working tree; no push until Dex recheck)
+**Build:** `3ac2a05` (no push until Dex recheck)
 **Hygiene:** Alembic head **`023_schedule_outcome_provenance`** (after **`022_schedule_task_outcomes`**, revises **`021_task_workflow`**)
 
 ## Architecture note (F6 prep)
