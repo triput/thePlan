@@ -6,7 +6,6 @@ import os
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 # Avoid lifespan demo seed against the shared local Postgres during tests.
@@ -114,16 +113,20 @@ def _ensure_authenticated(client: TestClient, db: Session) -> None:
 
 @pytest.fixture()
 def db_session() -> Session:
-    """Yield a Session whose commits are rolled back at teardown."""
+    """Yield a Session whose commits are rolled back at teardown.
+
+    Route handlers call Session.commit(). create_savepoint keeps that commit
+    on a SAVEPOINT above the connection transaction, including a later
+    begin_nested() inside apply. Teardown rolls the connection transaction back.
+    """
     connection = engine.connect()
     transaction = connection.begin()
-    session = Session(bind=connection, autocommit=False, autoflush=False)
-    session.begin_nested()
-
-    @event.listens_for(session, "after_transaction_end")
-    def _restart_savepoint(sess: Session, trans) -> None:  # type: ignore[no-untyped-def]
-        if trans.nested and not trans._parent.nested:  # noqa: SLF001
-            sess.begin_nested()
+    session = Session(
+        bind=connection,
+        autocommit=False,
+        autoflush=False,
+        join_transaction_mode="create_savepoint",
+    )
 
     try:
         yield session

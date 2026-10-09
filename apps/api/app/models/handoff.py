@@ -14,6 +14,7 @@ from app.db import Base
 from app.models.mixins import _uuid
 
 HANDOFF_APPLY_KIND = "handoff_apply"
+TEMPLATE_APPLY_KIND = "template_apply"
 
 
 class HandoffReceipt(Base):

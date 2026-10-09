@@ -147,6 +147,26 @@ theplan handoff receipt --idempotency-key 00000000-0000-0000-0000-000000000030
 theplan --format text handoff propose --stdin   # tree + defaults summary
 ```
 
+### Templates (F5)
+
+Built-in Coursera specialization / course / module packs. Propose reads outline JSON (or a full `TemplateProposeRequest`); apply accepts the propose `payload` or a saved propose response.
+
+```bash
+theplan templates list
+theplan templates get coursera_specialization
+theplan --format json templates get coursera_course   # includes example_outline
+theplan templates propose coursera_specialization --file outline.json
+theplan templates propose coursera_course --stdin --skip-optional
+theplan templates propose coursera_module --file module.json \
+  --attach-kind project --attach-id 00000000-0000-0000-0000-000000000011
+theplan templates apply coursera_specialization --file propose.json \
+  --idempotency-key 00000000-0000-0000-0000-000000000040
+theplan templates receipt --idempotency-key 00000000-0000-0000-0000-000000000040
+theplan templates receipt --id 00000000-0000-0000-0000-000000000050   # via F1 receipt store
+```
+
+Legacy `POST /api/v1/outlines/*` is unchanged; use Outline in the web UI or direct API for the older action-list flow.
+
 ### Epics, projects, sections
 
 ```bash

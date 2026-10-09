@@ -28,6 +28,7 @@ from app.api.routes import (
     settings as settings_routes,
     task_dependencies,
     tasks,
+    templates,
     time_map_overrides,
 )
 from app.api.errors import register_exception_handlers
@@ -120,6 +121,7 @@ def create_app() -> FastAPI:
     api_router.include_router(assist.router)
     api_router.include_router(outlines.router)
     api_router.include_router(handoffs.router)
+    api_router.include_router(templates.router)
     api_router.include_router(scheduled_blocks.router)
     api_router.include_router(schedule.router)
     api_router.include_router(schedule.task_schedule_router)

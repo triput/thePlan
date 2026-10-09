@@ -446,12 +446,14 @@ def _existing_receipt(
     db: Session,
     user: User,
     idempotency_key: uuid.UUID,
+    *,
+    operation_kind: str = HANDOFF_APPLY_KIND,
 ) -> HandoffReceipt | None:
     return (
         db.query(HandoffReceipt)
         .filter(
             HandoffReceipt.owner_id == user.id,
-            HandoffReceipt.operation_kind == HANDOFF_APPLY_KIND,
+            HandoffReceipt.operation_kind == operation_kind,
             HandoffReceipt.idempotency_key == idempotency_key,
         )
         .one_or_none()
@@ -490,12 +492,19 @@ def _validate_apply_cycles(
         _invalid(None, "dependencies", "dependency cycle among tasks")
 
 
-def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> HandoffApplyResult:
+def apply_handoff(
+    db: Session,
+    user: User,
+    body: HandoffApplyRequest,
+    *,
+    operation_kind: str = HANDOFF_APPLY_KIND,
+    receipt_metadata: dict[str, Any] | None = None,
+) -> HandoffApplyResult:
     submitted = HandoffGraphPayload.model_validate(body.model_dump(exclude={"idempotency_key"}))
     # Idempotency compares stable submitted intent (not settings-resolved values).
     payload_hash = intent_payload_hash(submitted)
 
-    existing = _existing_receipt(db, user, body.idempotency_key)
+    existing = _existing_receipt(db, user, body.idempotency_key, operation_kind=operation_kind)
     if existing is not None:
         if existing.payload_hash != payload_hash:
             raise ApiError(
@@ -694,12 +703,13 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
                 created_counts=created_counts,
                 defaulted_fields=propose.resolved_defaults,
                 warnings=propose.warnings,
+                **(receipt_metadata or {}),
             )
 
             receipt = HandoffReceipt(
                 id=receipt_id,
                 owner_id=user.id,
-                operation_kind=HANDOFF_APPLY_KIND,
+                operation_kind=operation_kind,
                 idempotency_key=body.idempotency_key,
                 payload_hash=payload_hash,
                 receipt_json=result.model_dump(mode="json"),
@@ -707,7 +717,7 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
             db.add(receipt)
             db.flush()
     except IntegrityError as exc:
-        raced = _existing_receipt(db, user, body.idempotency_key)
+        raced = _existing_receipt(db, user, body.idempotency_key, operation_kind=operation_kind)
         if raced is not None:
             if raced.payload_hash == payload_hash:
                 stored = HandoffApplyResult.model_validate(raced.receipt_json)

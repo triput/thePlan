@@ -1138,6 +1138,124 @@ export function applyOutline(actions: OutlineAction[]) {
   });
 }
 
+/** F5 built-in Coursera templates (handoff graph propose/apply). */
+export type BuiltinTemplateId =
+  | "coursera_specialization"
+  | "coursera_course"
+  | "coursera_module";
+
+export type TemplateAttachMode = "root" | "epic" | "project" | "section";
+
+export interface TemplateListItem {
+  id: BuiltinTemplateId;
+  version: number;
+  title: string;
+  description: string;
+  attach_modes: TemplateAttachMode[];
+}
+
+export interface TemplateDetail extends TemplateListItem {
+  outline_pack: string;
+  example_outline: Record<string, unknown>;
+  is_scaffold: boolean;
+}
+
+export type HandoffEntityKind = "epic" | "project" | "section" | "task";
+
+export interface HandoffEntity {
+  key: string;
+  kind: HandoffEntityKind;
+  title: string;
+  description?: string | null;
+  parent_key?: string | null;
+  sort_order?: number;
+  label_names?: string[];
+  estimated_duration_minutes?: number | null;
+}
+
+export interface HandoffGraphPayload {
+  schema_version: number;
+  source_refs?: SourceRef[];
+  schedule_policy?: string | null;
+  entities: HandoffEntity[];
+  dependencies?: unknown[];
+}
+
+export interface HandoffResolvedDefault {
+  entity_key: string;
+  field: string;
+  value: unknown;
+  source?: string;
+}
+
+export interface TemplateProposeResponse {
+  template_id: BuiltinTemplateId;
+  template_version: number;
+  payload: HandoffGraphPayload;
+  summary: OutlineProposeSummary;
+  resolved_defaults: HandoffResolvedDefault[];
+  warnings: string[];
+  is_scaffold: boolean;
+}
+
+export interface HandoffReceiptEntityRef {
+  key: string;
+  kind: HandoffEntityKind;
+  id: string;
+}
+
+export interface TemplateApplyResult {
+  receipt_id: string;
+  idempotency_key: string;
+  replayed: boolean;
+  source_refs: SourceRef[];
+  entities: HandoffReceiptEntityRef[];
+  dependencies_created: number;
+  created_counts: Record<string, number>;
+  defaulted_fields: HandoffResolvedDefault[];
+  warnings: string[];
+  template_id: string | null;
+  template_version: number | null;
+}
+
+export function fetchTemplates() {
+  return apiFetch<TemplateListItem[]>("/api/v1/templates");
+}
+
+export function fetchTemplate(templateId: BuiltinTemplateId) {
+  return apiFetch<TemplateDetail>(`/api/v1/templates/${templateId}`);
+}
+
+export function proposeTemplate(
+  templateId: BuiltinTemplateId,
+  body: {
+    outline: Record<string, unknown>;
+    skip_optional?: boolean;
+    attach_under?: OutlineAttachUnder | null;
+  },
+) {
+  return apiFetch<TemplateProposeResponse>(`/api/v1/templates/${templateId}/propose`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function applyTemplate(
+  templateId: BuiltinTemplateId,
+  body: HandoffGraphPayload & { idempotency_key: string },
+) {
+  return apiFetch<TemplateApplyResult>(`/api/v1/templates/${templateId}/apply`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchTemplateReceiptByKey(idempotencyKey: string) {
+  return apiFetch<TemplateApplyResult>(
+    `/api/v1/templates/receipts/by-key/${encodeURIComponent(idempotencyKey)}`,
+  );
+}
+
 export interface ReorderItem {
   id: string;
   sort_order: number;

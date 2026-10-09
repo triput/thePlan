@@ -160,12 +160,18 @@ def test_f1_b_concurrent_unique_key_one_receipt(
     real_existing = handoff_apply._existing_receipt
     skipped = False
 
-    def miss_precheck(db: Session, owner: User, idempotency_key: UUID):
+    def miss_precheck(
+        db: Session,
+        owner: User,
+        idempotency_key: UUID,
+        *,
+        operation_kind: str = "handoff_apply",
+    ):
         nonlocal skipped
         if not skipped:
             skipped = True
             return None
-        return real_existing(db, owner, idempotency_key)
+        return real_existing(db, owner, idempotency_key, operation_kind=operation_kind)
 
     monkeypatch.setattr(handoff_apply, "_existing_receipt", miss_precheck)
     second = handoff_apply.apply_handoff(db_session, user, body)

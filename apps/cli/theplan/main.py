@@ -8,6 +8,7 @@ from theplan.commands.assist import register_assist, run_assist
 from theplan.commands.auth import register_auth, run_auth
 from theplan.commands.deps import register_deps, run_deps
 from theplan.commands.handoffs import register_handoff, run_handoff
+from theplan.commands.templates import register_templates, run_templates
 from theplan.commands.hierarchy import (
     register_epics,
     register_projects,
@@ -47,6 +48,7 @@ def _build_parser() -> argparse.ArgumentParser:
     register_tasks(sub)
     register_assist(sub)
     register_handoff(sub)
+    register_templates(sub)
     register_epics(sub)
     register_projects(sub)
     register_sections(sub)
@@ -78,6 +80,9 @@ def _dispatch(args: argparse.Namespace) -> None:
         return
     if args.command == "handoff":
         run_handoff(args)
+        return
+    if args.command == "templates":
+        run_templates(args)
         return
     if args.command == "epics":
         run_epics(args)

@@ -127,6 +127,11 @@ def _project_description(course: _OutlineCourse) -> str:
         lines.append(f"url: {course.url}")
     if course.estimated_hours is not None:
         lines.append(f"estimated_hours: {course.estimated_hours}")
+    for module in course.modules:
+        if module.estimated_hours is None:
+            continue
+        title = module.title.strip() or "module"
+        lines.append(f"module_estimated_hours: {title}={module.estimated_hours}")
     return "\n".join(lines) if lines else ""
 
 

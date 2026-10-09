@@ -201,6 +201,45 @@ Bulk create epics, projects, sections, and tasks from a versioned graph with opt
 
 ---
 
+### Coursera templates (F5)
+
+Versioned **built-in** catalog (no DB template CRUD). Outline JSON → F1 handoff graph → transactional apply with **`template_apply`** receipts (separate idempotency namespace from **`handoff_apply`**). Legacy **`/outlines/*`** ingest unchanged — see [OUTLINE-INGEST.md](./OUTLINE-INGEST.md). Spec: [NEXT-FEATURES-SPEC.md §8](./NEXT-FEATURES-SPEC.md#8-f5-coursera-templates). Delivery: [delivery/F5-COURSERA-TEMPLATES.md](./delivery/F5-COURSERA-TEMPLATES.md).
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/templates` | — | List builtins: `id`, `version`, `title`, `description`, `attach_modes[]` |
+| GET | `/templates/{template_id}` | — | Detail + `outline_pack`, `example_outline`, `is_scaffold` |
+| POST | `/templates/{template_id}/propose` | session | Validate outline → canonical handoff **`payload`**, `summary` (entity counts, `optional_skipped`), `resolved_defaults`, `warnings`, `template_id` / `template_version`, `is_scaffold` (**200**) |
+| POST | `/templates/{template_id}/apply` | session | Atomic create + receipt (**200**). Body: proposed graph fields + **`idempotency_key`** (UUID). Same owner + `template_apply` + key + same payload → replay (`replayed: true`). Same key + different payload → **409** `IDEMPOTENCY_KEY_REUSE`. Validation → **422** (`TEMPLATE_OUTLINE_INVALID`, `TEMPLATE_ATTACH_*`, or handoff codes) |
+| GET | `/templates/receipts/by-key/{idempotency_key}` | session | Template apply receipt (**404** `RECEIPT_NOT_FOUND` if not owned or not a template receipt) |
+
+**Template IDs (v1):** `coursera_specialization`, `coursera_course`, `coursera_module`.
+
+**Propose body:**
+
+```json
+{
+  "outline": { },
+  "skip_optional": false,
+  "attach_under": { "kind": "epic", "id": "uuid-or-omit" },
+  "source_refs": [{ "system": "coursera", "id": "…", "url": "https://…" }]
+}
+```
+
+| Template | `attach_under` |
+|----------|----------------|
+| `coursera_specialization` | Omit → new epic; `{ "kind": "epic", "id" }` → graft courses onto existing epic |
+| `coursera_course` | Omit → standalone project; `{ "kind": "epic", "id" }` → project under epic |
+| `coursera_module` | **Required** `{ "kind": "project", "id" }` (new section + tasks) or `{ "kind": "section", "id" }` (tasks only) |
+
+**Apply result:** Same fields as F1 handoff apply, plus **`template_id`** and **`template_version`** from receipt metadata. Lookup under **`/handoffs/receipts/*`** returns **404** for template keys.
+
+**Errors (additions):** **404** `TEMPLATE_NOT_FOUND`; **422** `TEMPLATE_ATTACH_REQUIRED` / `TEMPLATE_ATTACH_INVALID`; **404** `OUTLINE_ATTACH_NOT_FOUND` for unknown/unowned attach target; **400** `OUTLINE_INVALID` for wrong outline shape (e.g. certificate JSON on `coursera_course`).
+
+**Persistence:** Reuses `handoff_receipts` with `operation_kind = template_apply` and JSON metadata `{ "template_id", "template_version" }`. No new Alembic revision for F5.
+
+---
+
 ### Plans
 
 | Method | Path | Description |
@@ -466,7 +505,7 @@ Does not replace `/quick-add/parse`. Voice/STT out of cut.
 | POST | `/outlines/propose` | Validate outline JSON + template pack → structured create actions (no DB writes). Optional `attach_under: { kind, id }` grafts under an existing epic/project/section. |
 | POST | `/outlines/apply` | Apply **approved** epic/project/section/task (+ label) actions (may reference existing parent ids when grafting) |
 
-Templates: `coursera_specialization` (default) and `hierarchy_v1` (same mapper). Deterministic (no LLM). Operator-owned file only — no Coursera client. Unknown/unowned attach target → 404 `OUTLINE_ATTACH_NOT_FOUND`. See [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [09-technical-architecture.md](./09-technical-architecture.md).
+Templates: `coursera_specialization` (default) and `hierarchy_v1` (same mapper). Deterministic (no LLM). Operator-owned file only — no Coursera client. Unknown/unowned attach target → 404 `OUTLINE_ATTACH_NOT_FOUND`. **Apply is not idempotent** (re-import duplicates). For idempotent curriculum apply with F1 receipts, use **§ Coursera templates (F5)** `/templates/{id}/propose|apply`. See [OUTLINE-INGEST.md](./OUTLINE-INGEST.md), [delivery/F5-COURSERA-TEMPLATES.md](./delivery/F5-COURSERA-TEMPLATES.md), [09-technical-architecture.md](./09-technical-architecture.md).
 
 ---
 

@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# Build context is apps/api, so this ships app/data/outlines/*.json.
+# Template examples must not depend on a repo testdata mount.
 COPY . .
 
 EXPOSE 8000

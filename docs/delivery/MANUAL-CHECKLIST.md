@@ -2,16 +2,16 @@
 
 **Filename:** MANUAL-CHECKLIST.md
 
-**Last modified:** 2026-10-09 (Trish/Dex — F4 W3 residual P2s closed)
+**Last modified:** 2026-10-09 (Dex — F5 residuals verified closed; remaining manual rows open)
 
-**File version:** 1.9
+**File version:** 2.4
 
-**Dex coverage, 2026-10-09:** Checked boxes below mean the stated local check has Dex evidence; Trish may independently rerun them. They do not complete the human sign-off table. **F1–F3: 31 pass, 5 partial, 1 user-only; prior lifecycle failure retested successfully.** Original pass uses frozen `cc87349`; reused `0199edf` browser evidence is labeled. CLI/API checks are identified separately from browser checks. See [original Dex evidence](./DEX-MANUAL-2026-10-09.md) and [F4 verification / three web P2s](./DEX-F4-MANUAL-2026-10-09.md). **F4 W3 web slice: empty-band edit/create, header alignment, and original UTC overlay Pass; residual P2s (mixed override TZ → settings.timezone band hours; 06–22 visible clipping) Verified closed (Trish/Dex, local working tree). F4 remains Open (CLI, day overlay, F4-D, sign-off table); no push.** F4 evidence below distinguishes direct browser/HTTP checks from focused automated corroboration; the optional browser DST check remains open.
+**Dex coverage, 2026-10-09:** Checked boxes below mean the stated local check has Dex evidence; Trish may independently rerun them. They do not complete the human sign-off table. **F1–F3: 31 pass, 5 partial, 1 user-only; prior lifecycle failure retested successfully.** Original pass uses frozen `cc87349`; reused `0199edf` browser evidence is labeled. CLI/API checks are identified separately from browser checks. See [original Dex evidence](./DEX-MANUAL-2026-10-09.md) and [F4 verification / three web P2s](./DEX-F4-MANUAL-2026-10-09.md). **F4 W3 web slice: empty-band edit/create, header alignment, and original UTC overlay Pass; residual P2s (mixed override TZ → settings.timezone band hours; 06–22 visible clipping) Verified closed (Trish/Dex, local working tree). F4 remains Open (CLI, day overlay, F4-D, sign-off table); no push.** **F5:** all seven findings, including both residuals, verified closed by Dex; see [F5 evidence](./DEX-F5-MANUAL-2026-10-09.md). F5 remains Open for remaining manual coverage and human sign-off; no push. F4 evidence below distinguishes direct browser/HTTP checks from focused automated corroboration; the optional browser DST check remains open.
 
-Standalone operator checklist for browser / CLI verification of F1–F4 delivery waves.
+Standalone operator checklist for browser / CLI verification of F1–F5 delivery waves.
 Canonical copy — tick boxes here. Feature delivery docs link here instead of duplicating lists.
 
-**As of 2026-10-09:** tip on `cursor` `main` includes F3-W2 through `93dbbcb` (plus Move-to Space `0c36ee2`); **F4-W1** spine with API pytest **17** green; **F4-W2** fingerprint **v3** + stale **`time_map_overrides`** — Renee pytest **22** green (**2026-10-09**), Dex local W2 evidence recorded below; **F4-W3** Settings + week overlay Dex-verified (Trish/Dex) — **not pushed**. F4 remains **Open / in-progress** (not Closed).
+**As of 2026-10-09:** tip on `cursor` `main` includes F3-W2 through `93dbbcb` (plus Move-to Space `0c36ee2`); **F4-W1** spine with API pytest **17** green; **F4-W2** fingerprint **v3** + stale **`time_map_overrides`** — Renee pytest **22** green (**2026-10-09**), Dex local W2 evidence recorded below; **F4-W3** Settings + week overlay Dex-verified (Trish/Dex) — **not pushed**. F4 remains **Open / in-progress** (not Closed). **F5-W1** template API pytest **14** green (Renee, **2026-10-09**); **F5-W2** CLI landed (local); **F5-W3** + **F5-B** Quality green; Dex verified all seven findings and both residual paths closed — **not pushed**. F5 **Open / in-progress** (not Closed).
 F1–F3: automated suites green; human gate still open for those waves where sections below are unchecked.
 
 ---
@@ -270,6 +270,70 @@ Delivery: [F4-TIME-MAP-OVERRIDES.md](./F4-TIME-MAP-OVERRIDES.md) · **W1** Quali
 
 ---
 
+## F5 — Coursera templates
+
+Delivery: [F5-COURSERA-TEMPLATES.md](./F5-COURSERA-TEMPLATES.md) · **W1** Quality green (**14** pytest, Renee) · **W2** CLI landed (local) · **W3** Quality green (**TemplatesPanel**, web build — Andi) · **F5-B** Quality green (**7** + W1 **14** = **21** API pytest; CLI list/get; IBM apply **417** tasks — Renee) · **Outline merge deferred** · **F5 not Closed**
+
+**Dex 2026-10-09:** All seven findings and both residual paths are **verified closed**. Prior rebuilt-image verification: zero API mounts, 62 API tests, web build and live HTTP/CLI checks passed. Final focused browser retest preserved invalid JSON in Raw mode and ignored a delayed obsolete proposal; fresh proposal/apply created one task with one optional skipped. Final web build passed. F5 remains Open for unchecked coverage below and human sign-off. See [full evidence](./DEX-F5-MANUAL-2026-10-09.md).
+
+### W1 API + legacy outline (operator / CLI)
+
+- [x] `GET /api/v1/templates` lists **`coursera_specialization`**, **`coursera_course`**, **`coursera_module`**; `GET …/{id}` returns version **1**, `example_outline`, and scaffold flag where applicable
+
+  Dex 2026-10-09 — **PASS with packaging caveat (HTTP/CLI):** Three IDs, v1 examples/scaffold flags verified after test-only mount. **P1 Fixed (code):** examples packaged under `apps/api/app/data/outlines` — **awaiting Dex retest** without testdata mount.
+
+- [x] **`coursera_specialization`:** propose + apply tiny outline → epic / project / section / task tree; **`skip_optional`** reduces task count; second apply with **same** idempotency key → `replayed: true`; **new** key → second epic instance
+
+  Dex 2026-10-09 — **PASS (HTTP):** Tiny specialization tree, optional exclusion, same-key replay, and new-key second instance verified. **P2 Fixed (code):** idempotency key retained pre-apply for retry — **awaiting Dex retest**.
+
+- [x] **`coursera_course`:** standalone `{ "course": … }` → project-only root; graft under existing epic → project under that epic; certificate-shaped JSON rejected with readable error
+
+  Dex 2026-10-09 — **PASS (HTTP):** Standalone project, existing-epic graft, and certificate-shape rejection verified.
+
+- [x] **`coursera_module`:** requires **`attach_under`** project or section; project attach creates section + tasks; section attach adds tasks only; missing attach → **422** `TEMPLATE_ATTACH_REQUIRED`
+
+  Dex 2026-10-09 — **PASS (HTTP/CLI):** Required parent validation, project and section grafts verified. **P2 Fixed (code):** module picker can target standalone projects — **awaiting Dex retest**.
+
+- [x] Template receipt: `GET /api/v1/templates/receipts/by-key/{key}` returns apply result; same key under **`/handoffs/receipts/by-key`** → **404**
+
+  Dex 2026-10-09 — **PASS (HTTP):** Matching template receipt; same key under handoff receipts returns 404.
+
+- [x] Legacy **`POST /api/v1/outlines/propose`** with IBM RAG fixture still succeeds; **`POST /api/v1/templates/coursera_specialization/propose`** on same file matches legacy **summary** counts (outline path still **non-idempotent** on apply)
+
+  Dex 2026-10-09 — **PASS (HTTP + pytest):** IBM proposal summaries match; template apply created 417 tasks. Legacy outline regressions pass.
+
+### W2 CLI
+
+- [x] `theplan templates list` and `get coursera_specialization` (text + JSON output)
+
+  Dex 2026-10-09 — **PASS (actual CLI):** Catalog and specialization detail in text and JSON verified against isolated API.
+
+- [x] `theplan templates propose coursera_module --file … --attach-kind project --attach-id …` then `apply … --idempotency-key …`; `templates receipt --idempotency-key …` matches apply JSON; replay on repeat apply
+
+  Dex 2026-10-09 — **PASS (actual CLI):** Module project graft, apply, by-key receipt equality, and repeat replay verified.
+
+### W3 web (when landed)
+
+- [ ] Template picker distinct from **Outline** panel; example JSON download; modest form for common fields; raw JSON still works; blank scaffold visibly distinct from imported syllabus
+
+  Dex 2026-10-09 — **PARTIAL (browser):** Distinct picker, Raw↔Quick sync, invalid-draft preservation, and scaffold classification pass. Download-event capture timed out; upload not exercised.
+
+- [ ] Propose/apply uses **`/templates/*`** (not `/outlines/apply`); optional-item toggle in review; source refs / warnings surfaced before apply
+
+  Dex 2026-10-09 — **PARTIAL:** Templates API route confirmed; browser apply/receipt/replay pass. Both settled-input and in-flight stale-preview paths verified closed. Full source-reference/warning presentation remains open.
+
+### F5-B spot-checks (expand as UX lands)
+
+- [ ] Task labels from outline `task_type` (+ optional) visible after apply; durations match supplied `duration_minutes` (defaults disclosed on propose, not invented catalog durations)
+
+  Dex 2026-10-09 — **PARTIAL (HTTP/pytest/browser):** Supplied 17-minute duration retained; labels covered by API tests. Browser review verified explicit 17m and settings-derived 30m. Post-apply label visibility remains API-tested, not browser signed off.
+
+- [x] Duplicate Coursera URL on propose warns; apply still creates a **new** instance (no merge)
+
+  Dex 2026-10-09 — **PASS (HTTP):** Duplicate source URL warns; fresh-key apply creates another instance without merge.
+
+---
+
 ## Not on this gate (parked)
 
 Do not block F1–F3 close on these; they live elsewhere:
@@ -297,3 +361,4 @@ When a section is done, note date + “ok” here (optional):
 | F2 | | |
 | F3 | | |
 | F4 | | W1/W2 Quality green; W3 Settings + week overlay Dex-verified (residual P2s closed); CLI/day/F4-D deferred — **not Closed** |
+| F5 | | W1/W3/F5-B Quality green; Dex all findings/residuals verified closed; remaining manual rows open — **not Closed**, **not pushed** |

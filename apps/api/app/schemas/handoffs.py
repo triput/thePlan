@@ -123,6 +123,8 @@ class HandoffApplyResult(BaseModel):
     created_counts: dict[str, int] = Field(default_factory=dict)
     defaulted_fields: list[HandoffResolvedDefault] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    template_id: str | None = None
+    template_version: int | None = None
 
 
 class HandoffReceiptOut(BaseModel):
