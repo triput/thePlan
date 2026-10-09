@@ -19,9 +19,9 @@
 
 ## Dex residual fixes (2026-10-08 — second hold)
 
-Five P2s from Dex recheck plus one follow-up P2 (accum blank after move); implemented in working tree (pending commit — **Build** still **`8636e8c`** until Steve stamps post-commit).
+Five P2s from Dex recheck plus follow-up P2 row **6** (accum blank after move) in **`6024d4d`**.
 
-**Dex on `8636e8c`:** residuals **1, 2, 4, 5** signed off. Push remains **held** until Dex rechecks row **6** (and working-tree commit lands).
+**Dex on `8636e8c`:** residuals **1, 2, 4, 5** signed off. Push remains **held** until Dex rechecks row **6**.
 
 | # | Fix | Layer |
 |---|-----|-------|
