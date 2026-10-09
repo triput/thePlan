@@ -163,7 +163,7 @@ def test_latest_explanation_stale_after_duration_change(
     )
     assert "Placed 30 minute(s)" in fresh_body["summary_text"]
     assert fresh_body["explanation"]["outcome"] == "placed"
-    assert fresh_body["explanation"]["algorithm_version"] == "f3-w1"
+    assert fresh_body["explanation"]["algorithm_version"] == "f3-w2"
     assert fresh_body["explanation"]["input_fingerprint"]
 
     listed = client.get(f"/api/v1/schedule/runs/{run.id}/explanations")
@@ -291,11 +291,11 @@ def test_fingerprint_categories_mark_stale_without_replan(
     assert linked.status_code == 201, linked.text
     after_deps = client.get(f"/api/v1/tasks/{task_id}/schedule-explanation").json()
     assert after_deps["is_stale"] is True
-    assert after_deps["stale_categories"] == ["deps"]
+    assert after_deps["stale_categories"] == ["deps", "prerequisite_state"]
     assert after_deps["explanation"]["schedule_run_id"] == str(run.id)
     page = client.get(f"/api/v1/schedule/runs/{run.id}/explanations").json()
     assert page["items"][0]["is_stale"] is True
-    assert page["items"][0]["stale_categories"] == ["deps"]
+    assert page["items"][0]["stale_categories"] == ["deps", "prerequisite_state"]
     runs_after = (
         db_session.query(ScheduleRun).filter(ScheduleRun.owner_id == owner_id).count()
     )

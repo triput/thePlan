@@ -1407,7 +1407,19 @@ export function fetchScheduleRuns(params?: { limit?: number; offset?: number }) 
   );
 }
 
-export type StaleCategory = "duration" | "deadline" | "map_style" | "deps" | "provenance";
+export type StaleCategory =
+  | "duration"
+  | "deadline"
+  | "map_style"
+  | "deps"
+  | "pins"
+  | "project_daily_cap"
+  | "timezone_horizon_workweek"
+  | "lifecycle"
+  | "busy_external"
+  | "prerequisite_state"
+  | "due_at_soft_target"
+  | "provenance";
 export type ScheduleEvaluationState = "evaluated" | "never_evaluated";
 
 export interface ReasonFactOut {

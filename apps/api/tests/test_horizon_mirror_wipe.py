@@ -251,8 +251,8 @@ def test_wipe_deletes_mirrored_events_and_keeps_external_busy(
 
     busy = build_busy_map(db_session, owner_id, HORIZON_START, HORIZON_END)
     assert busy == [
-        BusyInterval(pin_start, pin_end),
-        BusyInterval(external_start, external_end),
+        BusyInterval(pin_start, pin_end, source="pinned"),
+        BusyInterval(external_start, external_end, source="external"),
     ]
 
 

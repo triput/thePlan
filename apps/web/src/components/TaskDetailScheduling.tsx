@@ -6,6 +6,7 @@ import {
   type ScheduleStyle,
   type StaleCategory,
 } from "../api";
+import { formatScheduleReasonFact } from "../scheduleReasonFacts";
 import { TaskDetailSection, type DetailSectionId } from "./TaskDetailSection";
 
 interface TaskDetailSchedulingProps {
@@ -32,15 +33,15 @@ const STALE_LABELS: Record<StaleCategory, string> = {
   deadline: "deadline changed",
   map_style: "time map or style changed",
   deps: "dependencies changed",
+  pins: "pins changed",
+  project_daily_cap: "project daily cap changed",
+  timezone_horizon_workweek: "timezone, horizon, or workweek changed",
+  lifecycle: "completed, trash, or archive changed",
+  busy_external: "busy time changed",
+  prerequisite_state: "prerequisite state changed",
+  due_at_soft_target: "due date or soft target changed",
   provenance: "older snapshot",
 };
-
-function formatReasonFact(code: string, params: Record<string, unknown>): string {
-  const extras = Object.keys(params).length
-    ? ` (${JSON.stringify(params)})`
-    : "";
-  return `${code}${extras}`;
-}
 
 export function TaskDetailScheduling({
   taskId,
@@ -118,7 +119,7 @@ export function TaskDetailScheduling({
                   <ul className="schedule-reason-list muted small">
                     {explanation.reason_facts.map((fact, index) => (
                       <li key={`${fact.code}-${index}`}>
-                        {formatReasonFact(fact.code, fact.params)}
+                        {formatScheduleReasonFact(fact.code, fact.params)}
                       </li>
                     ))}
                   </ul>

@@ -71,6 +71,7 @@ def apply_calculation(
         owner_id=inputs.owner_id,
         outcomes=result.outcomes,
         input_snapshots=inputs.input_snapshots,
+        placement_facts_by_task=result.placement_facts_by_task,
     )
 
     new_blocks = (

@@ -21,14 +21,19 @@ from app.models import (
     FocusWindow,
     Project,
     ScheduleTaskOutcome,
+    ScheduledBlock,
     Task,
     TaskDependency,
     UserSettings,
 )
+from app.scheduler.busy_map import BusyInterval, load_immovable_busy
 from app.scheduler.input_fingerprint import (
     ALGORITHM_VERSION,
     assemble_snapshot,
     fingerprint_snapshot,
+    normalize_busy_intervals,
+    normalize_pin_intervals,
+    normalize_prerequisite_states,
     outcome_family,
 )
 from app.scheduler.reasons import ReasonFact, TaskSchedulingOutcome, format_summary_text
@@ -54,6 +59,45 @@ def _bands_payload(window: FocusWindow | None) -> list[dict[str, Any]]:
     return payload
 
 
+def load_snapshot_extras(
+    db: Session,
+    owner_id: UUID,
+    tasks: list[Task],
+    dependencies: list[TaskDependency],
+) -> tuple[dict[UUID, Task], dict[UUID, list[ScheduledBlock]], list[BusyInterval]]:
+    """Blocker rows, this task's pins, and immovable busy for a v2 snapshot.
+
+    Does not query ``task_dependencies``. Callers pass the dependency list
+    calculation already loaded. Missing blockers are one task read.
+    """
+    known: dict[UUID, Task] = {task.id: task for task in tasks}
+    missing = {dep.blocking_task_id for dep in dependencies} - set(known)
+    if missing:
+        rows = (
+            db.query(Task)
+            .filter(Task.owner_id == owner_id, Task.id.in_(missing))
+            .all()
+        )
+        for row in rows:
+            known[row.id] = row
+
+    pins: dict[UUID, list[ScheduledBlock]] = defaultdict(list)
+    task_ids = list(known)
+    if task_ids:
+        pinned_rows = (
+            db.query(ScheduledBlock)
+            .filter(
+                ScheduledBlock.owner_id == owner_id,
+                ScheduledBlock.is_pinned.is_(True),
+                ScheduledBlock.task_id.in_(task_ids),
+            )
+            .all()
+        )
+        for block in pinned_rows:
+            pins[block.task_id].append(block)
+    return known, pins, load_immovable_busy(db, owner_id)
+
+
 def snapshots_from_collected(
     *,
     user_settings: UserSettings,
@@ -63,10 +107,15 @@ def snapshots_from_collected(
     dependencies: list[TaskDependency],
     preferred_windows: dict[UUID, FocusWindow],
     effective_window_by_task: dict[UUID, UUID | None] | None = None,
+    tasks_by_id: dict[UUID, Task] | None = None,
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
+    busy_intervals: list[BusyInterval] | None = None,
 ) -> dict[UUID, dict[str, Any]]:
-    """Build W1 snapshots from values already collected for calculation.
+    """Build v2 snapshots from values already collected for calculation.
 
-    Uses the exact ``dependencies`` list the calculator saw — no second DB read.
+    Uses the exact ``dependencies`` list the calculator saw — no second
+    dependency read. Pins, blocker rows, and immovable busy are passed in
+    from ``load_snapshot_extras`` (or omitted, which fingerprints as empty).
     """
     if not tasks:
         return {}
@@ -74,6 +123,10 @@ def snapshots_from_collected(
     blockers_by_task: dict[UUID, list[UUID]] = defaultdict(list)
     for dep in dependencies:
         blockers_by_task[dep.dependent_task_id].append(dep.blocking_task_id)
+    known_tasks = tasks_by_id or {task.id: task for task in tasks}
+    pins_by_task = pinned_blocks_by_task or {}
+    busy_payload = normalize_busy_intervals(busy_intervals or [])
+    workday_start = user_settings.workday_start_local
 
     snapshots: dict[UUID, dict[str, Any]] = {}
     for task in tasks:
@@ -85,6 +138,8 @@ def snapshots_from_collected(
         else:
             window_id = effective_preferred_time_window_id(task, project, epic)
         window = preferred_windows.get(window_id) if window_id is not None else None
+        blocking_ids = blockers_by_task.get(task.id, [])
+        pinned_minutes, pin_intervals = normalize_pin_intervals(pins_by_task.get(task.id, []))
         snapshots[task.id] = assemble_snapshot(
             estimated_duration_minutes=task.estimated_duration_minutes,
             min_block_duration_minutes=task.min_block_duration_minutes,
@@ -94,16 +149,34 @@ def snapshots_from_collected(
             time_window_id=window_id,
             strict_mode=window.strict_mode if window is not None else None,
             bands=_bands_payload(window),
-            blocking_task_ids=blockers_by_task.get(task.id, []),
+            blocking_task_ids=blocking_ids,
+            pinned_minutes=pinned_minutes,
+            pin_intervals=pin_intervals,
+            project_daily_cap_minutes=user_settings.max_auto_schedule_minutes_per_project_per_day,
+            timezone_name=user_settings.timezone,
+            upcoming_horizon_days=user_settings.upcoming_horizon_days,
+            workday_start_local=workday_start,
+            workday_minutes=user_settings.workday_minutes,
+            workweek_days=user_settings.workweek_days,
+            inter_block_buffer_minutes=user_settings.inter_block_buffer_minutes,
+            is_completed=task.is_completed,
+            deleted_at=task.deleted_at,
+            project_archived=bool(project.is_archived) if project is not None else False,
+            epic_archived=bool(epic.is_archived) if epic is not None else False,
+            busy_intervals=busy_payload,
+            prerequisite_states=normalize_prerequisite_states(blocking_ids, known_tasks),
+            due_at=task.due_at,
+            soft_target_at=task.soft_target_at,
+            auto_defer_enabled=user_settings.auto_defer_enabled,
         )
     return snapshots
 
 
 def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[str, Any]]:
-    """Effective W1 snapshots for explanation *reads*. Empty if settings are missing.
+    """Effective v2 snapshots for explanation *reads*. Empty if settings are missing.
 
     Collect/persist must not use this — it re-queries dependencies and can diverge
-    from the edges calculation already used.
+    from the edges calculation already used. Reads may query deps, pins, and busy.
     """
     if not tasks:
         return {}
@@ -155,6 +228,9 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         ):
             windows[window.id] = window
 
+    tasks_by_id, pins_by_task, immovable_busy = load_snapshot_extras(
+        db, owner_id, tasks, dependencies
+    )
     return snapshots_from_collected(
         user_settings=settings,
         tasks=tasks,
@@ -163,6 +239,9 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         dependencies=dependencies,
         preferred_windows=windows,
         effective_window_by_task=window_by_task,
+        tasks_by_id=tasks_by_id,
+        pinned_blocks_by_task=pins_by_task,
+        busy_intervals=immovable_busy,
     )
 
 

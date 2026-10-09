@@ -3,7 +3,7 @@
 Deferred reason families (W2, not asserted here): completed/trashed/archived,
 dependency cycle, no allowed Time Map interval, red exclusion, busy/pinned
 conflict, deadline limit, insufficient contiguous minimum block, project daily
-cap. A past deadline currently collapses into ``unplaced_no_slot``.
+Past deadline with zero placement uses ``unplaced_deadline_limit`` (F3-W2).
 """
 
 from __future__ import annotations
@@ -284,7 +284,7 @@ def test_partial_fit_is_horizon_exhausted(
     assert explanation["outcome"] == "unplaced"
 
 
-def test_past_deadline_is_no_slot(
+def test_past_deadline_is_deadline_limit(
     client: TestClient,
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
@@ -304,5 +304,5 @@ def test_past_deadline_is_no_slot(
     explanation = body["explanation"]
     assert explanation["placed_minutes"] == 0
     assert explanation["remaining_minutes"] == 30
-    assert explanation["reason_facts"][0]["code"] == "unplaced_no_slot"
+    assert explanation["reason_facts"][0]["code"] == "unplaced_deadline_limit"
     assert explanation["outcome"] == "unplaced"

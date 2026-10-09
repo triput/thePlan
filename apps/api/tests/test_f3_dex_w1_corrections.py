@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -118,24 +119,9 @@ def test_persist_uses_captured_snapshots_not_live_deps(
     task_id = uuid.UUID(task["id"])
     other_id = uuid.UUID(other["id"])
 
-    captured = {
-        task_id: {
-            "v": 1,
-            "duration": {
-                "estimated_duration_minutes": 30,
-                "min_block_duration_minutes": 15,
-                "max_block_duration_minutes": 120,
-            },
-            "deadline": {"deadline_at": None},
-            "map_style": {
-                "schedule_style": "auto",
-                "time_window_id": None,
-                "strict_mode": None,
-                "bands": [],
-            },
-            "deps": {"blocking_task_ids": []},
-        }
-    }
+    before = collect_inputs(db_session, owner_id, datetime.now(timezone.utc))
+    captured = {task_id: copy.deepcopy(before.input_snapshots[task_id])}
+    assert captured[task_id]["deps"]["blocking_task_ids"] == []
 
     run = ScheduleRun(
         owner_id=owner_id,
@@ -211,7 +197,9 @@ def test_collect_captures_input_snapshots(
 
     inputs = collect_inputs(db_session, owner_id, FIXED_NOW)
     assert task_id in inputs.input_snapshots
-    assert inputs.input_snapshots[task_id]["v"] == 1
+    assert inputs.input_snapshots[task_id]["v"] == 2
+    assert "pins" in inputs.input_snapshots[task_id]
+    assert "priority_ups" not in inputs.input_snapshots[task_id]
     assert "deps" in inputs.input_snapshots[task_id]
 
     result = calculate(db_session, inputs)

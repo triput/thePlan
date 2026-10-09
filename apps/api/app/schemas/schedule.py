@@ -6,7 +6,20 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-StaleCategory = Literal["duration", "deadline", "map_style", "deps", "provenance"]
+StaleCategory = Literal[
+    "duration",
+    "deadline",
+    "map_style",
+    "deps",
+    "pins",
+    "project_daily_cap",
+    "timezone_horizon_workweek",
+    "lifecycle",
+    "busy_external",
+    "prerequisite_state",
+    "due_at_soft_target",
+    "provenance",
+]
 EvaluationState = Literal["evaluated", "never_evaluated"]
 
 
@@ -42,18 +55,19 @@ class ScheduleExplanationOut(BaseModel):
     input_snapshot: dict[str, Any] | None = Field(
         default=None,
         description=(
-            "W1 inputs captured at calculation: duration, deadline, map_style, deps. "
-            "Deferred and not in this snapshot: pins, project daily cap, timezone/horizon/"
-            "workweek, priority/UPS, lifecycle, external busy, time-map overrides (F4), "
-            "prerequisite state beyond the edge set, due_at and soft target."
+            "v2 inputs captured at calculation: duration, deadline, map_style, deps, "
+            "pins, project daily cap, timezone/horizon/workweek, lifecycle, external busy, "
+            "prerequisite state, due_at and soft target. "
+            "Deferred to W3 and not in this snapshot: priority/UPS, time-map overrides (F4)."
         ),
     )
     is_stale: bool
     stale_categories: list[StaleCategory] = Field(
         description=(
-            "W1: duration, deadline, map_style, deps. "
-            "provenance means the stored snapshot is missing or an older version. "
-            "Deferred categories are never reported here."
+            "v2: duration, deadline, map_style, deps, pins, project_daily_cap, "
+            "timezone_horizon_workweek, lifecycle, busy_external, prerequisite_state, "
+            "due_at_soft_target. provenance means the stored snapshot is missing or "
+            "another version. priority_ups and time_map_overrides are W3 and never reported."
         )
     )
 

@@ -650,9 +650,9 @@ Overlap rule: `a.start < b.end AND a.end > b.start`. Busy sources are `external_
 
 Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirror is on, create/update/delete of `/scheduled-blocks` best-effort pushes to the primary Google calendar (local CRUD never fails on Google errors).
 
-### Schedule (W2b — Update Schedule thin; F3-W1 explanations)
+### Schedule (W2b — Update Schedule thin; F3-W1+W2 explanations)
 
-**F3-W1:** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`). Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)); F6 preview will reuse `calculate` without `apply`. Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md).
+**F3-W1+W2:** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`) with **`algorithm_version` `f3-w2`**, snapshot **v2**, and optional **`placement_facts`**. Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)); F6 preview will reuse `calculate` without `apply`. Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md).
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -666,7 +666,9 @@ Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirro
 
 **`ScheduleExplanationOut`:** `id`, `schedule_run_id`, `task_id`, `evaluated_at`, `outcome` (`placed` \| `unplaced` \| `excluded` \| `blocked` \| `recorded`), `primary_reason_code`, `requested_minutes`, `pinned_minutes`, `placed_minutes`, `remaining_minutes`, `reason_facts` (`code`, `params`), `summary_text`, `placement_facts`, `algorithm_version`, `input_fingerprint`, `input_snapshot`, `is_stale`, `stale_categories`.
 
-Stale compare (W1, on read only): `duration` (estimate, min block, max block), `deadline` (`deadline_at`), `map_style` (effective style, effective time-map id, strict mode, band contents), `deps` (sorted blocking task ids). `provenance` means the stored snapshot is missing or a different snapshot version. Not compared yet: pins, project daily cap, timezone/horizon/workweek, priority/UPS, completed/trashed/archived, external busy, time-map overrides, prerequisite state beyond the edge set, `due_at` and soft target.
+Stale compare (snapshot v2 / `f3-w2`, on read only, never starts a replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not the absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events, not horizon-clipped), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`. `provenance` means the stored snapshot is missing or not version 2. Not compared (W3): `priority_ups`, `time_map_overrides`.
+
+**W2 `primary_reason_code` values** (additive to W1: `excluded_manual_or_bundle`, `excluded_duration_covered_by_pins`, `blocked_prerequisite`, `placed`, `unplaced_horizon_exhausted`, `unplaced_no_slot`): `excluded_lifecycle_completed`, `excluded_lifecycle_trashed`, `excluded_lifecycle_archived`, `blocked_dependency_cycle`, `unplaced_no_time_map_interval`, `unplaced_red_exclusion`, `unplaced_busy_conflict`, `unplaced_pinned_conflict`, `unplaced_deadline_limit`, `unplaced_insufficient_min_block`, `unplaced_project_daily_cap`. Formatter and params: [reasons.py](../apps/api/app/scheduler/reasons.py).
 
 Worker behavior: wipe unpinned blocks intersecting horizon (cancel Google/MS mirrors + drop local mirror rows for those blocks), rewrite from open tasks per ADR-006; pins and external busy immovable. **Residual:** failed remote delete may leave a provider event that re-imports as busy. Placement uses the **effective** Time Map id (task → project → epic → unbound) and **effective** schedule style (task → project → epic → user default). Effective `manual` and `bundle` are excluded from auto-placement. Bound maps honor painted tiers (green → yellow → neutral minus red; red subtracts from green/yellow clips; `strict_mode` forbids neutral spill). Dependencies: topo order with max-UPS ready queue; **`prerequisite_not_before`** from blockers' latest block end. Slice placement tries decreasing slice sizes down to MBL.
 

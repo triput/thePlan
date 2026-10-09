@@ -13,9 +13,11 @@ from app.models import Epic, FocusWindow, Project, TaskDependency, UserSettings
 from app.scheduler.busy_map import BusyInterval, build_busy_map
 from app.scheduler.candidates import (
     ExcludedTask,
+    LifecycleExcludedTask,
     TaskCandidate,
     load_candidates,
     load_excluded_tasks,
+    load_lifecycle_excluded_tasks,
 )
 from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon
@@ -36,6 +38,7 @@ class SchedulingInputs:
     busy: list[BusyInterval]
     candidates: list[TaskCandidate]
     excluded_tasks: list[ExcludedTask]
+    lifecycle_excluded_tasks: list[LifecycleExcludedTask]
     dependencies: list[TaskDependency]
     projects: dict[UUID, Project]
     epics: dict[UUID, Epic]
@@ -74,6 +77,13 @@ def collect_inputs(
     candidates = load_candidates(db, owner_id, user_settings)
     candidate_ids = {item.task.id for item in candidates}
     excluded_tasks = load_excluded_tasks(db, owner_id, user_settings, candidate_ids)
+    already_evaluated = candidate_ids | {item.task.id for item in excluded_tasks}
+    lifecycle_excluded_tasks = load_lifecycle_excluded_tasks(
+        db,
+        owner_id,
+        user_settings,
+        already_evaluated_ids=already_evaluated,
+    )
 
     dependencies = (
         db.query(TaskDependency)
@@ -85,6 +95,7 @@ def collect_inputs(
     remaining_by_task = {item.task.id: item.remaining_minutes for item in candidates}
 
     snapshot_tasks = tasks + [item.task for item in excluded_tasks]
+    snapshot_tasks.extend(item.task for item in lifecycle_excluded_tasks)
     project_ids = {task.project_id for task in snapshot_tasks if task.project_id}
     projects: dict[UUID, Project] = {}
     epics: dict[UUID, Epic] = {}
@@ -123,7 +134,7 @@ def collect_inputs(
             task, project, epic
         )
 
-    for item in excluded_tasks:
+    for item in (*excluded_tasks, *lifecycle_excluded_tasks):
         task = item.task
         if task.id in effective_window_by_task:
             continue
@@ -151,8 +162,11 @@ def collect_inputs(
 
     # Build fingerprints from the same dependency list calculation will use —
     # do not re-query via live_snapshots_by_task (race with intervening commits).
-    from app.scheduler.outcomes import snapshots_from_collected
+    from app.scheduler.outcomes import load_snapshot_extras, snapshots_from_collected
 
+    tasks_by_id, pins_by_task, immovable_busy = load_snapshot_extras(
+        db, owner_id, snapshot_tasks, dependencies
+    )
     input_snapshots = snapshots_from_collected(
         user_settings=user_settings,
         tasks=snapshot_tasks,
@@ -161,6 +175,9 @@ def collect_inputs(
         dependencies=dependencies,
         preferred_windows=preferred_windows,
         effective_window_by_task=effective_window_by_task,
+        tasks_by_id=tasks_by_id,
+        pinned_blocks_by_task=pins_by_task,
+        busy_intervals=immovable_busy,
     )
 
     return SchedulingInputs(
@@ -172,6 +189,7 @@ def collect_inputs(
         busy=busy,
         candidates=candidates,
         excluded_tasks=excluded_tasks,
+        lifecycle_excluded_tasks=lifecycle_excluded_tasks,
         dependencies=dependencies,
         projects=projects,
         epics=epics,

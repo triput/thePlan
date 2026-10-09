@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
-from typing import TypeAlias
+from typing import Any, TypeAlias
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -13,6 +13,15 @@ from sqlalchemy.orm import Session
 from app.models import FocusWindow, ScheduleStatus, ScheduledBlock, Task, TimeMapBand, UserSettings
 from app.models.enums import TimeMapBandTier
 from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_overlaps_busy
+from app.scheduler.reasons import (
+    REASON_UNPLACED_BUSY_CONFLICT,
+    REASON_UNPLACED_DEADLINE_LIMIT,
+    REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK,
+    REASON_UNPLACED_NO_TIME_MAP_INTERVAL,
+    REASON_UNPLACED_PINNED_CONFLICT,
+    REASON_UNPLACED_PROJECT_DAILY_CAP,
+    REASON_UNPLACED_RED_EXCLUSION,
+)
 from app.services.busy_intervals import TimeInterval, ranges_overlap, subtract_intervals_from_range
 
 
@@ -37,6 +46,33 @@ class PlacementResult:
     last_block_end: datetime | None = None
     last_placed_tier: str | None = None
     proposed_blocks: list[ProposedBlock] | None = None
+    # Jules' reason codes, priority order. First entry is the primary constraint.
+    observed_constraints: list[str] = field(default_factory=list)
+    # Short hints for the same pass. ``last_failure`` is set only when this call
+    # placed zero blocks; ``pass_hints`` lists every observed hint in that case.
+    last_failure: dict[str, Any] | None = None
+    pass_hints: list[dict[str, Any]] = field(default_factory=list)
+
+
+# Short codes Jules maps onto ``unplaced_*`` reason codes. Do not rename without
+# updating ``_HINT_BY_REASON`` and the placement_facts copy in calculate.
+HINT_DEADLINE_LIMIT = "deadline_limit"
+HINT_DAILY_CAP = "daily_cap"
+HINT_MIN_BLOCK = "min_block"
+HINT_NO_TIME_MAP_INTERVAL = "no_time_map_interval"
+HINT_RED_EXCLUSION = "red_exclusion"
+HINT_BUSY_CONFLICT = "busy_conflict"
+HINT_PINNED_CONFLICT = "pinned_conflict"
+
+_HINT_BY_REASON: dict[str, str] = {
+    REASON_UNPLACED_DEADLINE_LIMIT: HINT_DEADLINE_LIMIT,
+    REASON_UNPLACED_PROJECT_DAILY_CAP: HINT_DAILY_CAP,
+    REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK: HINT_MIN_BLOCK,
+    REASON_UNPLACED_NO_TIME_MAP_INTERVAL: HINT_NO_TIME_MAP_INTERVAL,
+    REASON_UNPLACED_RED_EXCLUSION: HINT_RED_EXCLUSION,
+    REASON_UNPLACED_BUSY_CONFLICT: HINT_BUSY_CONFLICT,
+    REASON_UNPLACED_PINNED_CONFLICT: HINT_PINNED_CONFLICT,
+}
 
 
 def _day_cap_allows(
@@ -255,6 +291,323 @@ def _slice_size(
     return None
 
 
+def _busy_for_sources(busy: list[BusyInterval], *sources: str) -> list[BusyInterval]:
+    allowed = set(sources)
+    return [item for item in busy if item.source in allowed]
+
+
+def _max_contiguous_minutes(
+    busy: list[BusyInterval],
+    window_start: datetime,
+    window_end: datetime,
+    not_before: datetime,
+    deadline: datetime | None,
+) -> int:
+    search_start = max(window_start, not_before)
+    if deadline is not None:
+        deadline = _ensure_utc(deadline)
+        if search_start >= deadline:
+            return 0
+        window_end = min(window_end, deadline)
+    if search_start >= window_end:
+        return 0
+
+    relevant = [
+        item
+        for item in busy
+        if ranges_overlap(search_start, window_end, item.start, item.end)
+    ]
+    relevant.sort(key=lambda item: item.start)
+    cursor = search_start
+    best = 0
+    for item in relevant:
+        if item.start > cursor:
+            gap = int((item.start - cursor).total_seconds() // 60)
+            if gap > best:
+                best = gap
+        if item.end > cursor:
+            cursor = item.end
+    if cursor < window_end:
+        gap = int((window_end - cursor).total_seconds() // 60)
+        if gap > best:
+            best = gap
+    return best
+
+
+def _map_block_reason(
+    day: date,
+    settings: UserSettings,
+    tz: ZoneInfo,
+    preferred: FocusWindow,
+) -> str | None:
+    """Why a bound map offers no allowed window on a workday.
+
+    ``None`` means the day still has a placeable clip. ``no_time_map_interval``
+    means the map never painted an allowed band. ``red_exclusion`` means red
+    removed every clip that would have been allowed.
+    """
+    if not is_workday(day, settings.workweek_days):
+        return None
+    green: list[tuple[datetime, datetime]] = []
+    yellow: list[tuple[datetime, datetime]] = []
+    red: list[tuple[datetime, datetime]] = []
+    for band in preferred.bands:
+        clipped = _clip_band_to_workday(day, band, settings, tz)
+        if clipped is None:
+            continue
+        if band.tier == TimeMapBandTier.green:
+            green.append(clipped)
+        elif band.tier == TimeMapBandTier.yellow:
+            yellow.append(clipped)
+        elif band.tier == TimeMapBandTier.red:
+            red.append(clipped)
+    red_intervals = [TimeInterval(start, end) for start, end in red]
+    green_left = _subtract_red_from_clips(green, red_intervals)
+    yellow_left = _subtract_red_from_clips(yellow, red_intervals)
+    if preferred.strict_mode:
+        if green_left or yellow_left:
+            return None
+        if green or yellow:
+            return HINT_RED_EXCLUSION
+        return HINT_NO_TIME_MAP_INTERVAL
+    work_start, work_end = workday_bounds(day, settings, tz)
+    neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
+    if green_left or yellow_left or neutral:
+        return None
+    if red:
+        return HINT_RED_EXCLUSION
+    return HINT_NO_TIME_MAP_INTERVAL
+
+
+def _observe_unplaced_constraints(
+    *,
+    task: Task,
+    settings: UserSettings,
+    remaining: int,
+    busy: list[BusyInterval],
+    horizon_start: datetime,
+    horizon_end: datetime,
+    preferred: FocusWindow | None,
+    now_utc: datetime,
+    not_before: datetime,
+    deadline: datetime | None,
+    mbl: int,
+    max_block: int,
+    daily_cap: int | None,
+    project_daily_usage: ProjectDailyUsage | None,
+    day_cap_blocked: bool,
+    cap_blocked_day: date | None,
+) -> list[str]:
+    """Observed placement constraints for F3 (not a unique root-cause proof)."""
+    if remaining <= 0:
+        return []
+
+    observed: list[str] = []
+    tz = ZoneInfo(settings.timezone)
+    deadline_utc = _ensure_utc(deadline) if deadline is not None else None
+
+    if deadline_utc is not None:
+        deadline_binds = not_before >= deadline_utc or deadline_utc <= horizon_start
+        if not deadline_binds:
+            slice_minutes = _slice_size(remaining, mbl, max_block)
+            if slice_minutes is not None:
+                fits_with_deadline = False
+                fits_without_deadline = False
+                day = now_utc.astimezone(tz).date()
+                end_day = horizon_end.astimezone(tz).date()
+                while day <= end_day:
+                    for window_start, window_end, _tier in _search_windows_for_day(
+                        day, settings, tz, preferred
+                    ):
+                        if window_end <= horizon_start or window_start >= horizon_end:
+                            continue
+                        search_start = max(window_start, horizon_start)
+                        search_end = min(window_end, horizon_end)
+                        if (
+                            find_slot(
+                                busy,
+                                search_start,
+                                search_end,
+                                slice_minutes,
+                                not_before,
+                                deadline_utc,
+                            )
+                            is not None
+                        ):
+                            fits_with_deadline = True
+                        if (
+                            find_slot(
+                                busy,
+                                search_start,
+                                search_end,
+                                slice_minutes,
+                                not_before,
+                                None,
+                            )
+                            is not None
+                        ):
+                            fits_without_deadline = True
+                    day += timedelta(days=1)
+                deadline_binds = fits_without_deadline and not fits_with_deadline
+        if deadline_binds:
+            observed.append(REASON_UNPLACED_DEADLINE_LIMIT)
+
+    if day_cap_blocked and daily_cap is not None:
+        observed.append(REASON_UNPLACED_PROJECT_DAILY_CAP)
+
+    day = now_utc.astimezone(tz).date()
+    end_day = horizon_end.astimezone(tz).date()
+    allowed_windows = 0
+    max_gap = 0
+    while day <= end_day:
+        windows = _search_windows_for_day(day, settings, tz, preferred)
+        for window_start, window_end, _tier in windows:
+            if window_end <= horizon_start or window_start >= horizon_end:
+                continue
+            allowed_windows += 1
+            gap = _max_contiguous_minutes(
+                busy,
+                max(window_start, horizon_start),
+                min(window_end, horizon_end),
+                not_before,
+                deadline_utc,
+            )
+            if gap > max_gap:
+                max_gap = gap
+        day += timedelta(days=1)
+
+    if preferred is not None and allowed_windows == 0:
+        map_reasons: set[str] = set()
+        day = now_utc.astimezone(tz).date()
+        while day <= end_day:
+            reason = _map_block_reason(day, settings, tz, preferred)
+            if reason is not None:
+                map_reasons.add(reason)
+            day += timedelta(days=1)
+        if HINT_NO_TIME_MAP_INTERVAL in map_reasons:
+            observed.append(REASON_UNPLACED_NO_TIME_MAP_INTERVAL)
+        if HINT_RED_EXCLUSION in map_reasons:
+            observed.append(REASON_UNPLACED_RED_EXCLUSION)
+
+    need = min(max_block, remaining) if remaining > max_block else remaining
+    if need >= mbl and max_gap > 0 and max_gap < mbl:
+        observed.append(REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK)
+
+    slice_minutes = _slice_size(remaining, mbl, max_block)
+    if slice_minutes is not None and allowed_windows > 0:
+        without_external = _busy_for_sources(busy, "pinned", "scheduled")
+        without_pinned = _busy_for_sources(busy, "external", "scheduled")
+        has_external = any(item.source == "external" for item in busy)
+        has_pinned = any(item.source == "pinned" for item in busy)
+        day = now_utc.astimezone(tz).date()
+        fits_if_ignore_external = False
+        fits_if_ignore_pinned = False
+        while day <= end_day:
+            for window_start, window_end, _tier in _search_windows_for_day(
+                day, settings, tz, preferred
+            ):
+                if window_end <= horizon_start or window_start >= horizon_end:
+                    continue
+                search_start = max(window_start, horizon_start)
+                search_end = min(window_end, horizon_end)
+                full_slot = find_slot(
+                    busy,
+                    search_start,
+                    search_end,
+                    slice_minutes,
+                    not_before,
+                    deadline_utc,
+                )
+                if full_slot is not None:
+                    continue
+                if has_external and (
+                    find_slot(
+                        without_external,
+                        search_start,
+                        search_end,
+                        slice_minutes,
+                        not_before,
+                        deadline_utc,
+                    )
+                    is not None
+                ):
+                    fits_if_ignore_external = True
+                if has_pinned and (
+                    find_slot(
+                        without_pinned,
+                        search_start,
+                        search_end,
+                        slice_minutes,
+                        not_before,
+                        deadline_utc,
+                    )
+                    is not None
+                ):
+                    fits_if_ignore_pinned = True
+            day += timedelta(days=1)
+        # Dropping the source reveals a slot the full busy list does not have.
+        if has_external and fits_if_ignore_external:
+            observed.append(REASON_UNPLACED_BUSY_CONFLICT)
+        if has_pinned and fits_if_ignore_pinned:
+            observed.append(REASON_UNPLACED_PINNED_CONFLICT)
+
+    # Stable order for primary_code = first observed constraint.
+    order = [
+        REASON_UNPLACED_DEADLINE_LIMIT,
+        REASON_UNPLACED_PROJECT_DAILY_CAP,
+        REASON_UNPLACED_NO_TIME_MAP_INTERVAL,
+        REASON_UNPLACED_RED_EXCLUSION,
+        REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK,
+        REASON_UNPLACED_PINNED_CONFLICT,
+        REASON_UNPLACED_BUSY_CONFLICT,
+    ]
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for code in order:
+        if code in observed and code not in seen:
+            ordered.append(code)
+            seen.add(code)
+    return ordered
+
+
+def _pass_hints(
+    codes: list[str],
+    *,
+    remaining: int,
+    deadline: datetime | None,
+    daily_cap: int | None,
+    cap_day: date | None,
+    mbl: int,
+    window_id: UUID | None,
+    strict_mode: bool | None,
+) -> list[dict[str, Any]]:
+    """Structured hints in the same order as ``codes`` (Jules' priority)."""
+    hints: list[dict[str, Any]] = []
+    for code in codes:
+        short = _HINT_BY_REASON.get(code)
+        if short is None:
+            continue
+        params: dict[str, Any] = {"remaining_minutes": remaining}
+        if short == HINT_DEADLINE_LIMIT and deadline is not None:
+            params["deadline_at"] = _ensure_utc(deadline).isoformat()
+        elif short == HINT_DAILY_CAP:
+            if daily_cap is not None:
+                params["daily_cap_minutes"] = daily_cap
+            if cap_day is not None:
+                params["local_date"] = cap_day.isoformat()
+        elif short == HINT_MIN_BLOCK:
+            params["min_block_minutes"] = mbl
+        elif short in {HINT_NO_TIME_MAP_INTERVAL, HINT_RED_EXCLUSION}:
+            params["time_window_id"] = str(window_id) if window_id else None
+            params["strict_mode"] = strict_mode
+        elif short == HINT_BUSY_CONFLICT:
+            params["sources"] = ["external"]
+        elif short == HINT_PINNED_CONFLICT:
+            params["sources"] = ["pinned"]
+        hints.append({"code": short, "reason_code": code, "params": params})
+    return hints
+
+
 def _decreasing_slice_sizes(remaining: int, mbl: int, max_block: int) -> list[int]:
     """Preferred slice first, then smaller multiples of min block down to mbl."""
     preferred = _slice_size(remaining, mbl, max_block)
@@ -319,6 +672,8 @@ def place_task(
     end_day = horizon_end.astimezone(tz).date()
 
     blocks_limit = max_blocks if max_blocks is not None else None
+    cap_blocked_day: date | None = None
+    day_cap_blocked_ever = False
 
     while remaining > 0 and day <= end_day:
         if blocks_limit is not None and blocks_created >= blocks_limit:
@@ -345,6 +700,9 @@ def place_task(
                         day, task.project_id, slice_minutes, project_daily_usage, daily_cap
                     ):
                         day_cap_blocked = True
+                        day_cap_blocked_ever = True
+                        if cap_blocked_day is None:
+                            cap_blocked_day = day
                         break
                     slot = find_slot(
                         busy,
@@ -430,6 +788,43 @@ def place_task(
 
     if persist_blocks:
         db.flush()
+
+    observed: list[str] = []
+    if remaining > 0:
+        observed = _observe_unplaced_constraints(
+            task=task,
+            settings=settings,
+            remaining=remaining,
+            busy=busy,
+            horizon_start=horizon_start,
+            horizon_end=horizon_end,
+            preferred=preferred,
+            now_utc=now_utc,
+            not_before=not_before,
+            deadline=deadline,
+            mbl=mbl,
+            max_block=max_block,
+            daily_cap=daily_cap,
+            project_daily_usage=project_daily_usage,
+            day_cap_blocked=day_cap_blocked_ever,
+            cap_blocked_day=cap_blocked_day,
+        )
+
+    hints: list[dict[str, Any]] = []
+    last_failure: dict[str, Any] | None = None
+    if blocks_created == 0 and observed:
+        hints = _pass_hints(
+            observed,
+            remaining=remaining,
+            deadline=deadline,
+            daily_cap=daily_cap,
+            cap_day=cap_blocked_day,
+            mbl=mbl,
+            window_id=window_id,
+            strict_mode=preferred.strict_mode if preferred is not None else None,
+        )
+        last_failure = hints[0] if hints else None
+
     return (
         PlacementResult(
             blocks_created=blocks_created,
@@ -438,6 +833,9 @@ def place_task(
             last_block_end=last_block_end,
             last_placed_tier=last_placed_tier,
             proposed_blocks=proposed if proposed else None,
+            observed_constraints=observed,
+            last_failure=last_failure,
+            pass_hints=hints,
         ),
         busy,
     )

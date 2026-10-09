@@ -5,11 +5,10 @@ Flow: ``replan`` → ``collect`` → ``calculate`` → ``apply`` (F3 shared pipe
 proposes blocks + reason facts without persisting; ``apply`` wipes unpinned
 horizon blocks, writes blocks, task status, and ``schedule_task_outcomes``
 via ``persist_calculation_outcomes`` (input snapshot + fingerprint,
-Alembic ``023_schedule_outcome_provenance``). Explanation GETs compare
-duration, deadline, map/style, and dependency edges on read and never replan.
-Deferred stale categories: pins, daily cap, timezone/horizon/workweek,
-priority/UPS, lifecycle, external busy, time-map overrides, prerequisite
-state beyond the edge set, due date and soft target.
+Alembic ``023_schedule_outcome_provenance``). Explanation GETs compare snapshot v2 on read and never replan: duration,
+deadline, map/style, dependency edges, pins, project daily cap,
+timezone/horizon/workweek, lifecycle, immovable busy, prerequisite state,
+and due/soft target. Deferred to W3: priority/UPS and time-map overrides.
 Legacy modules: ``candidates``, ``ups``, ``dependencies``, ``placement``,
 ``horizon``, ``busy_map``.
 

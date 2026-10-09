@@ -123,6 +123,75 @@ def test_w1_categories_are_the_compared_set() -> None:
     assert W1_STALE_CATEGORIES == ("duration", "deadline", "map_style", "deps")
 
 
+def test_v1_snapshot_is_provenance() -> None:
+    stored = _sample()
+    stored["v"] = 1
+    assert diff_stale_categories(stored, _sample()) == [STALE_PROVENANCE]
+
+
+def test_w2_categories_name_themselves() -> None:
+    stored = _sample()
+    pins = _sample()
+    pins["pins"] = {"pinned_minutes": 15, "intervals": []}
+    assert diff_stale_categories(stored, pins) == ["pins"]
+
+    cap = _sample()
+    cap["project_daily_cap"] = {"max_auto_schedule_minutes_per_project_per_day": 120}
+    assert diff_stale_categories(stored, cap) == ["project_daily_cap"]
+
+    horizon = _sample()
+    horizon["timezone_horizon_workweek"] = {
+        **horizon["timezone_horizon_workweek"],
+        "timezone": "America/Los_Angeles",
+    }
+    assert diff_stale_categories(stored, horizon) == ["timezone_horizon_workweek"]
+
+    life = _sample()
+    life["lifecycle"] = {**life["lifecycle"], "is_completed": True}
+    assert diff_stale_categories(stored, life) == ["lifecycle"]
+
+    busy = _sample()
+    busy["busy_external"] = {
+        "intervals": [
+            {
+                "source": "external",
+                "start": "2026-10-08T15:00:00+00:00",
+                "end": "2026-10-08T16:00:00+00:00",
+            }
+        ]
+    }
+    assert diff_stale_categories(stored, busy) == ["busy_external"]
+
+    prereq = _sample()
+    prereq["prerequisite_state"] = {
+        "blockers": [
+            {
+                "task_id": str(uuid4()),
+                "estimated_duration_minutes": 30,
+                "is_completed": False,
+                "deleted_at": None,
+            }
+        ]
+    }
+    assert diff_stale_categories(stored, prereq) == ["prerequisite_state"]
+
+    due = _sample()
+    due["due_at_soft_target"] = {
+        **due["due_at_soft_target"],
+        "due_at": "2026-10-12T17:00:00+00:00",
+    }
+    assert diff_stale_categories(stored, due) == ["due_at_soft_target"]
+
+
+def test_w3_keys_are_not_compared() -> None:
+    stored = _sample()
+    live = _sample()
+    stored["priority_ups"] = {"priority": "p1"}
+    live["priority_ups"] = {"priority": "p4"}
+    live["time_map_overrides"] = [{"date": "2026-10-08"}]
+    assert diff_stale_categories(stored, live) == []
+
+
 def test_outcome_family_from_reason_code() -> None:
     assert outcome_family("placed") == "placed"
     assert outcome_family("excluded_manual_or_bundle") == "excluded"

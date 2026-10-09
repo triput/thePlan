@@ -12,19 +12,24 @@ from sqlalchemy.orm import Session
 from app.models import ScheduledBlock, Task, TaskDependency
 from app.models.enums import ScheduleStyle, TaskPriority
 from app.scheduler.busy_map import BusyInterval
-from app.scheduler.candidates import TaskCandidate, pinned_minutes_for_task
+from app.scheduler.candidates import LifecycleExcludedTask, TaskCandidate, pinned_minutes_for_task
 from app.scheduler.collect import SchedulingInputs
 from app.scheduler.placement import ProposedBlock, ProjectDailyUsage, place_one_block
 from app.scheduler.reasons import (
+    REASON_BLOCKED_DEPENDENCY_CYCLE,
     REASON_BLOCKED_PREREQUISITE,
     REASON_EXCLUDED_DURATION_COVERED_BY_PINS,
     REASON_EXCLUDED_MANUAL_OR_BUNDLE,
     REASON_PLACED,
+    REASON_UNPLACED_DEADLINE_LIMIT,
     REASON_UNPLACED_HORIZON_EXHAUSTED,
+    REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK,
     REASON_UNPLACED_NO_SLOT,
+    REASON_UNPLACED_PROJECT_DAILY_CAP,
     ReasonFact,
     TaskSchedulingOutcome,
 )
+from app.scheduler.style import effective_schedule_style_source
 
 PRIORITY_ORDER = [
     TaskPriority.p1,
@@ -43,9 +48,109 @@ class CalculationResult:
     remaining_by_task: dict[UUID, int] = field(default_factory=dict)
     task_had_blocks: dict[UUID, bool] = field(default_factory=dict)
     minutes_by_project: dict[str, int] = field(default_factory=dict)
+    placement_facts_by_task: dict[UUID, dict[str, Any]] = field(default_factory=dict)
     tasks_scheduled: int = 0
     blocks_created: int = 0
     overbooked_count: int = 0
+
+
+def _ensure_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
+
+
+def _task_deadline_binds(
+    task: Task,
+    inputs: SchedulingInputs,
+    *,
+    not_before: datetime | None = None,
+) -> bool:
+    if task.deadline_at is None:
+        return False
+    deadline = _ensure_utc(task.deadline_at)
+    bound = not_before if not_before is not None else inputs.horizon_start
+    bound = _ensure_utc(bound)
+    if bound >= deadline:
+        return True
+    if deadline <= inputs.horizon_start:
+        return True
+    return False
+
+
+def _merge_constraint_codes(
+    existing: list[str],
+    observed: list[str],
+) -> list[str]:
+    seen = set(existing)
+    merged = list(existing)
+    for code in observed:
+        if code not in seen:
+            merged.append(code)
+            seen.add(code)
+    return merged
+
+
+def _reason_fact_for_constraint(
+    code: str,
+    *,
+    task: Task,
+    settings,
+    remaining: int,
+    daily_cap: int | None,
+    cycle_task_ids: list[str],
+) -> ReasonFact:
+    params: dict[str, Any] = {"remaining_minutes": remaining}
+    if code == REASON_UNPLACED_DEADLINE_LIMIT and task.deadline_at is not None:
+        params["deadline_at"] = task.deadline_at.isoformat()
+    if code == REASON_UNPLACED_PROJECT_DAILY_CAP and daily_cap is not None:
+        params["daily_cap_minutes"] = daily_cap
+    if code == REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK:
+        mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
+        params["min_block_minutes"] = mbl
+    if code == REASON_BLOCKED_DEPENDENCY_CYCLE:
+        params = {"cycle_task_ids": cycle_task_ids}
+    return ReasonFact(code, params)
+
+
+def _placement_facts_payload(
+    inputs: SchedulingInputs,
+    *,
+    task_id: UUID,
+    candidate: TaskCandidate,
+    proposed_blocks: list[ProposedBlock],
+    prerequisite_not_before: datetime | None,
+) -> dict[str, Any]:
+    task = candidate.task
+    project = inputs.projects.get(task.project_id) if task.project_id else None
+    epic = inputs.epics.get(project.epic_id) if project and project.epic_id else None
+    window_id = inputs.effective_window_by_task.get(task_id)
+    placed = [
+        {
+            "start_time": block.start_time.isoformat(),
+            "end_time": block.end_time.isoformat(),
+            "slice_minutes": block.slice_minutes,
+            "tier": block.tier,
+            "preferred_window_id": str(block.preferred_window_id)
+            if block.preferred_window_id
+            else None,
+        }
+        for block in proposed_blocks
+        if block.task_id == task_id
+    ]
+    return {
+        "timezone": inputs.user_settings.timezone,
+        "horizon_start": inputs.horizon_start.isoformat(),
+        "horizon_end": inputs.horizon_end.isoformat(),
+        "schedule_style_source": effective_schedule_style_source(task, project, epic),
+        "time_window_source": inputs.effective_window_source_by_task.get(task_id),
+        "time_window_id": str(window_id) if window_id else None,
+        "prerequisite_not_before": prerequisite_not_before.isoformat()
+        if prerequisite_not_before is not None
+        else None,
+        "placed_blocks": placed,
+        "applicable_override": None,
+    }
 
 
 def _blockers_by_dependent(
@@ -170,6 +275,27 @@ def _seed_prerequisite_block_ends(
     return latest
 
 
+def _outcomes_for_lifecycle(
+    items: list[LifecycleExcludedTask],
+) -> list[TaskSchedulingOutcome]:
+    outcomes: list[TaskSchedulingOutcome] = []
+    for item in items:
+        params: dict[str, Any] = {}
+        if item.archived_scope:
+            params["archived_scope"] = item.archived_scope
+        outcomes.append(
+            TaskSchedulingOutcome(
+                task_id=item.task.id,
+                requested_minutes=item.requested_minutes,
+                pinned_minutes=0,
+                placed_minutes=0,
+                remaining_minutes=item.requested_minutes,
+                reason_facts=[ReasonFact(item.reason_code, params)],
+            )
+        )
+    return outcomes
+
+
 def _outcomes_for_excluded(inputs: SchedulingInputs) -> list[TaskSchedulingOutcome]:
     outcomes: list[TaskSchedulingOutcome] = []
     for item in inputs.excluded_tasks:
@@ -217,6 +343,12 @@ def _finalize_candidate_outcomes(
     last_no_slot: dict[UUID, bool],
     blockers_by_dependent: dict[UUID, list[UUID]],
     initial_remaining: dict[UUID, int],
+    observed_constraints_by_task: dict[UUID, list[str]],
+    cycle_task_ids: set[UUID],
+    cycle_task_ids_str: list[str],
+    placement_facts_by_task: dict[UUID, dict[str, Any]],
+    prerequisite_not_before_by_task: dict[UUID, datetime],
+    hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] | None = None,
 ) -> list[TaskSchedulingOutcome]:
     outcomes: list[TaskSchedulingOutcome] = []
     for candidate in ordered:
@@ -246,32 +378,99 @@ def _finalize_candidate_outcomes(
                 )
             ]
         elif remaining > 0:
-            if not _dependencies_ready(task_id, remaining_by_task, blockers_by_dependent):
+            facts = []
+            if task_id in cycle_task_ids:
+                facts.append(
+                    ReasonFact(
+                        REASON_BLOCKED_DEPENDENCY_CYCLE,
+                        {"cycle_task_ids": cycle_task_ids_str},
+                    )
+                )
+            elif not _dependencies_ready(task_id, remaining_by_task, blockers_by_dependent):
                 blocking = [
                     str(bid)
                     for bid in blockers_by_dependent.get(task_id, [])
                     if remaining_by_task.get(bid, 0) > 0
                 ]
-                facts = [
+                facts.append(
                     ReasonFact(
                         REASON_BLOCKED_PREREQUISITE,
                         {"blocking_task_ids": blocking},
                     )
-                ]
-            elif last_no_slot.get(task_id):
-                facts = [
-                    ReasonFact(
-                        REASON_UNPLACED_NO_SLOT,
-                        {"remaining_minutes": remaining},
-                    )
-                ]
-            else:
-                facts = [
+                )
+
+            constraints = [
+                code
+                for code in observed_constraints_by_task.get(task_id, [])
+                if code
+                not in {
+                    REASON_BLOCKED_DEPENDENCY_CYCLE,
+                    REASON_BLOCKED_PREREQUISITE,
+                }
+            ]
+            if (
+                REASON_UNPLACED_DEADLINE_LIMIT not in constraints
+                and _task_deadline_binds(
+                    task,
+                    inputs,
+                    not_before=prerequisite_not_before_by_task.get(task_id),
+                )
+            ):
+                constraints.insert(0, REASON_UNPLACED_DEADLINE_LIMIT)
+
+            if placed > 0:
+                facts.append(
                     ReasonFact(
                         REASON_UNPLACED_HORIZON_EXHAUSTED,
                         {"remaining_minutes": remaining},
                     )
-                ]
+                )
+            elif not facts and not constraints:
+                if last_no_slot.get(task_id):
+                    facts.append(
+                        ReasonFact(
+                            REASON_UNPLACED_NO_SLOT,
+                            {"remaining_minutes": remaining},
+                        )
+                    )
+                else:
+                    facts.append(
+                        ReasonFact(
+                            REASON_UNPLACED_HORIZON_EXHAUSTED,
+                            {"remaining_minutes": remaining},
+                        )
+                    )
+            elif (
+                placed <= 0
+                and last_no_slot.get(task_id)
+                and not facts
+                and not constraints
+            ):
+                facts.append(
+                    ReasonFact(
+                        REASON_UNPLACED_NO_SLOT,
+                        {"remaining_minutes": remaining},
+                    )
+                )
+
+            hint_params = (hint_params_by_task or {}).get(task_id, {})
+            for code in constraints:
+                if code == REASON_UNPLACED_HORIZON_EXHAUSTED:
+                    continue
+                observed_params = hint_params.get(code)
+                if observed_params is not None:
+                    facts.append(ReasonFact(code, dict(observed_params)))
+                    continue
+                facts.append(
+                    _reason_fact_for_constraint(
+                        code,
+                        task=task,
+                        settings=inputs.user_settings,
+                        remaining=remaining,
+                        daily_cap=inputs.daily_cap,
+                        cycle_task_ids=cycle_task_ids_str,
+                    )
+                )
         else:
             facts = []
 
@@ -283,6 +482,7 @@ def _finalize_candidate_outcomes(
                 placed_minutes=placed,
                 remaining_minutes=remaining,
                 reason_facts=facts,
+                placement_facts=placement_facts_by_task.get(task_id),
             )
         )
     return outcomes
@@ -303,6 +503,9 @@ def calculate(
     ordered = inputs.ordered_candidates
     remaining_by_task = {item.task.id: item.remaining_minutes for item in inputs.candidates}
     initial_remaining = dict(remaining_by_task)
+
+    cycle_task_ids_str = list(inputs.dependency_stats.get("cycle_task_ids") or [])
+    cycle_task_ids = {UUID(value) for value in cycle_task_ids_str}
 
     candidate_ids = {item.task.id for item in inputs.candidates}
     blockers_by_dependent = _blockers_by_dependent(inputs.dependencies, candidate_ids)
@@ -333,6 +536,9 @@ def calculate(
     placed_minutes_by_task: dict[UUID, int] = {}
     tiers_by_task: dict[UUID, list[str | None]] = {}
     last_no_slot: dict[UUID, bool] = {}
+    observed_constraints_by_task: dict[UUID, list[str]] = {}
+    failure_telemetry_by_task: dict[UUID, dict[str, Any]] = {}
+    prerequisite_not_before_by_task: dict[UUID, datetime] = {}
     minutes_by_project: dict[str, int] = {}
     blocks_created = 0
 
@@ -355,6 +561,8 @@ def calculate(
             task_id = candidate.task.id
             remaining = remaining_by_task.get(task_id, 0)
             if remaining <= 0:
+                continue
+            if task_id in cycle_task_ids:
                 continue
             if not _dependencies_ready(
                 task_id, remaining_by_task, blockers_by_dependent
@@ -383,8 +591,22 @@ def calculate(
                 prerequisite_not_before=prereq_not_before,
                 persist_blocks=False,
             )
+            prerequisite_not_before_by_task[task_id] = prereq_not_before
             remaining_by_task[task_id] = result.remaining_minutes
             if result.blocks_created <= 0:
+                observed_constraints_by_task[task_id] = _merge_constraint_codes(
+                    observed_constraints_by_task.get(task_id, []),
+                    result.observed_constraints,
+                )
+                if _task_deadline_binds(
+                    candidate.task,
+                    inputs,
+                    not_before=prereq_not_before,
+                ):
+                    observed_constraints_by_task[task_id] = _merge_constraint_codes(
+                        observed_constraints_by_task.get(task_id, []),
+                        [REASON_UNPLACED_DEADLINE_LIMIT],
+                    )
                 # A task that never placed has no suitable slot. A later miss
                 # after minutes were placed means the horizon could not take
                 # the remainder. Do not let an earlier miss stick once placement
@@ -394,9 +616,14 @@ def calculate(
                     and placed_minutes_by_task.get(task_id, 0) <= 0
                 ):
                     last_no_slot[task_id] = True
+                failure_telemetry_by_task[task_id] = {
+                    "last_failure": result.last_failure,
+                    "pass_hints": list(result.pass_hints),
+                }
                 continue
             placed_in_sweep = True
             last_no_slot.pop(task_id, None)
+            failure_telemetry_by_task.pop(task_id, None)
             task_had_blocks[task_id] = True
             blocks_created += result.blocks_created
             if result.proposed_blocks:
@@ -434,7 +661,34 @@ def calculate(
     if minutes_by_project:
         stats["minutes_by_project"] = minutes_by_project
 
+    placement_facts_by_task: dict[UUID, dict[str, Any]] = {}
+    for candidate in ordered:
+        task_id = candidate.task.id
+        placement_facts_by_task[task_id] = _placement_facts_payload(
+            inputs,
+            task_id=task_id,
+            candidate=candidate,
+            proposed_blocks=proposed_blocks,
+            prerequisite_not_before=prerequisite_not_before_by_task.get(task_id),
+        )
+        telemetry = failure_telemetry_by_task.get(task_id)
+        if telemetry and (telemetry.get("last_failure") or telemetry.get("pass_hints")):
+            placement_facts_by_task[task_id]["last_failure"] = telemetry["last_failure"]
+            placement_facts_by_task[task_id]["pass_hints"] = telemetry["pass_hints"]
+
+    hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] = {}
+    for task_id, telemetry in failure_telemetry_by_task.items():
+        by_code: dict[str, dict[str, Any]] = {}
+        for hint in telemetry.get("pass_hints") or []:
+            code = hint.get("reason_code")
+            params = hint.get("params")
+            if code and isinstance(params, dict):
+                by_code[str(code)] = dict(params)
+        if by_code:
+            hint_params_by_task[task_id] = by_code
+
     excluded_outcomes = _outcomes_for_excluded(inputs)
+    lifecycle_outcomes = _outcomes_for_lifecycle(inputs.lifecycle_excluded_tasks)
     candidate_outcomes = _finalize_candidate_outcomes(
         inputs,
         ordered=ordered,
@@ -445,15 +699,22 @@ def calculate(
         last_no_slot=last_no_slot,
         blockers_by_dependent=blockers_by_dependent,
         initial_remaining=initial_remaining,
+        observed_constraints_by_task=observed_constraints_by_task,
+        cycle_task_ids=cycle_task_ids,
+        cycle_task_ids_str=cycle_task_ids_str,
+        placement_facts_by_task=placement_facts_by_task,
+        prerequisite_not_before_by_task=prerequisite_not_before_by_task,
+        hint_params_by_task=hint_params_by_task,
     )
 
     return CalculationResult(
         proposed_blocks=proposed_blocks,
-        outcomes=excluded_outcomes + candidate_outcomes,
+        outcomes=excluded_outcomes + lifecycle_outcomes + candidate_outcomes,
         stats=stats,
         remaining_by_task=remaining_by_task,
         task_had_blocks=task_had_blocks,
         minutes_by_project=minutes_by_project,
+        placement_facts_by_task=placement_facts_by_task,
         tasks_scheduled=tasks_scheduled,
         blocks_created=blocks_created,
         overbooked_count=overbooked_count,

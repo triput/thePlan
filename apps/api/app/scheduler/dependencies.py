@@ -49,7 +49,10 @@ def order_candidates(
     if len(ordered_ids) != len(candidate_ids):
         stats["dependency_cycle"] = True
         stats["ordered_count"] = len(ordered_ids)
+        cycle_ids = sorted(candidate_ids - set(ordered_ids), key=str)
+        stats["cycle_task_ids"] = [str(task_id) for task_id in cycle_ids]
         return list(candidates), stats
 
     stats["dependency_cycle"] = False
+    stats["cycle_task_ids"] = []
     return [candidate_by_id[task_id] for task_id in ordered_ids], stats

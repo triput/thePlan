@@ -33,8 +33,12 @@ def _map(*bands: tuple[TimeMapBandTier, time, time], strict_mode: bool = False) 
     return window
 
 
-def _window_starts(windows: list[tuple[datetime, datetime]]) -> list[datetime]:
-    return [start for start, _ in windows]
+def _window_starts(windows: list[tuple]) -> list[datetime]:
+    return [item[0] for item in windows]
+
+
+def _window_spans(windows: list[tuple]) -> list[tuple[datetime, datetime]]:
+    return [(item[0], item[1]) for item in windows]
 
 
 def test_green_preferred_before_yellow() -> None:
@@ -76,17 +80,16 @@ def test_red_excluded_from_green_band() -> None:
     windows = _search_windows_for_day(day, settings, tz, preferred)
     red_start = datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc)
     red_end = datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc)
-    assert not any(
-        start < red_end and end > red_start for start, end in windows
-    )
+    spans = _window_spans(windows)
+    assert not any(start < red_end and end > red_start for start, end in spans)
     assert (
         datetime(2026, 8, 11, 8, 0, tzinfo=timezone.utc),
         datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc),
-    ) in windows
+    ) in spans
     assert (
         datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc),
         datetime(2026, 8, 11, 12, 0, tzinfo=timezone.utc),
-    ) in windows
+    ) in spans
 
 
 def test_red_excluded_from_neutral() -> None:
@@ -102,14 +105,14 @@ def test_red_excluded_from_neutral() -> None:
 
     windows = _search_windows_for_day(day, settings, tz, preferred)
     starts = _window_starts(windows)
-    ends = [end for _, end in windows]
+    ends = [item[1] for item in windows]
 
     assert datetime(2026, 8, 11, 8, 0, tzinfo=timezone.utc) in starts
     assert datetime(2026, 8, 11, 14, 0, tzinfo=timezone.utc) in starts
     assert not any(
         start < datetime(2026, 8, 11, 14, 0, tzinfo=timezone.utc)
         and end > datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc)
-        for start, end in windows
+        for start, end in _window_spans(windows)
     )
 
 
@@ -129,10 +132,11 @@ def test_strict_mode_no_neutral_spill() -> None:
 
     windows = _search_windows_for_day(day, settings, tz, preferred)
     assert len(windows) == 1
-    assert windows[0] == (
+    assert windows[0][:2] == (
         datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc),
         datetime(2026, 8, 11, 10, 0, tzinfo=timezone.utc),
     )
+    assert windows[0][2] == "green"
 
 
 def test_multi_band_morning_evening_green() -> None:
