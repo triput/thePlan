@@ -9,10 +9,20 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import ScheduleRun, ScheduleTaskOutcome, ScheduledBlock, TaskDependency
+from app.models import (
+    ScheduleRun,
+    ScheduleTaskOutcome,
+    ScheduledBlock,
+    Task,
+    TaskDependency,
+    UserSettings,
+)
 from app.scheduler.calculate import calculate
 from app.scheduler.collect import collect_inputs
-from app.scheduler.outcomes import persist_calculation_outcomes
+from app.scheduler.outcomes import (
+    persist_calculation_outcomes,
+    snapshots_from_collected,
+)
 from app.scheduler.reasons import REASON_PLACED, ReasonFact, TaskSchedulingOutcome
 from test_schedule_replan import (
     FIXED_NOW,
@@ -206,3 +216,100 @@ def test_collect_captures_input_snapshots(
 
     result = calculate(db_session, inputs)
     assert result.outcomes
+
+
+def test_snapshots_from_collected_uses_exact_dependency_list(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """Captured blockers must match the list calculation used, not a later DB state."""
+    task = _create_task(client)
+    other = _create_task(client)
+    owner_id = uuid.UUID(client.get("/api/v1/auth/me").json()["id"])
+    task_row = db_session.get(Task, uuid.UUID(task["id"]))
+    assert task_row is not None
+    settings = db_session.query(UserSettings).filter_by(owner_id=owner_id).one()
+    # Live DB has a dependency calculation never saw.
+    db_session.add(
+        TaskDependency(
+            owner_id=owner_id,
+            blocking_task_id=uuid.UUID(other["id"]),
+            dependent_task_id=uuid.UUID(task["id"]),
+        )
+    )
+    db_session.flush()
+
+    snapshots = snapshots_from_collected(
+        user_settings=settings,
+        tasks=[task_row],
+        projects={},
+        epics={},
+        dependencies=[],  # edges calculation actually used
+        preferred_windows={},
+        effective_window_by_task={task_row.id: None},
+    )
+    assert snapshots[task_row.id]["deps"]["blocking_task_ids"] == []
+
+
+def test_collect_does_not_requery_deps_via_live_snapshots(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Dex residual: intervening dep after first load must not enter the snapshot.
+
+    Poison the DB after the calculation dependency ``.all()`` returns. A second
+    dependency query (old ``live_snapshots_by_task`` path) would see the new edge.
+    """
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    task = _create_task(client, estimated_duration_minutes=30)
+    other = _create_task(client, estimated_duration_minutes=15)
+    owner_id = uuid.UUID(client.get("/api/v1/auth/me").json()["id"])
+    task_id = uuid.UUID(task["id"])
+    other_id = uuid.UUID(other["id"])
+    _isolate_tasks(db_session, client, {task_id, other_id})
+
+    real_query = db_session.query
+    state = {"dep_alls": 0}
+
+    def tracking_query(*entities, **kwargs):
+        q = real_query(*entities, **kwargs)
+        if entities and entities[0] is TaskDependency:
+            real_all = q.all
+
+            def all_with_poison():
+                rows = real_all()
+                state["dep_alls"] += 1
+                if state["dep_alls"] == 1:
+                    # Concurrent edit lands after calc edges are fixed in memory.
+                    db_session.add(
+                        TaskDependency(
+                            owner_id=owner_id,
+                            blocking_task_id=other_id,
+                            dependent_task_id=task_id,
+                        )
+                    )
+                    db_session.flush()
+                return rows
+
+            q.all = all_with_poison  # type: ignore[method-assign]
+        return q
+
+    monkeypatch.setattr(db_session, "query", tracking_query)
+
+    def boom_live(*_a, **_k):
+        raise AssertionError("collect must not call live_snapshots_by_task")
+
+    monkeypatch.setattr(
+        "app.scheduler.outcomes.live_snapshots_by_task",
+        boom_live,
+    )
+
+    inputs = collect_inputs(db_session, owner_id, FIXED_NOW)
+    assert state["dep_alls"] == 1, "dependencies should be loaded once for calculation"
+    assert inputs.input_snapshots[task_id]["deps"]["blocking_task_ids"] == []
+    # Calculation edges match the captured fingerprint (both empty at collect).
+    assert not any(
+        d.dependent_task_id == task_id for d in inputs.dependencies
+    )

@@ -54,8 +54,57 @@ def _bands_payload(window: FocusWindow | None) -> list[dict[str, Any]]:
     return payload
 
 
+def snapshots_from_collected(
+    *,
+    user_settings: UserSettings,
+    tasks: list[Task],
+    projects: dict[UUID, Project],
+    epics: dict[UUID, Epic],
+    dependencies: list[TaskDependency],
+    preferred_windows: dict[UUID, FocusWindow],
+    effective_window_by_task: dict[UUID, UUID | None] | None = None,
+) -> dict[UUID, dict[str, Any]]:
+    """Build W1 snapshots from values already collected for calculation.
+
+    Uses the exact ``dependencies`` list the calculator saw — no second DB read.
+    """
+    if not tasks:
+        return {}
+    window_by_task = effective_window_by_task or {}
+    blockers_by_task: dict[UUID, list[UUID]] = defaultdict(list)
+    for dep in dependencies:
+        blockers_by_task[dep.dependent_task_id].append(dep.blocking_task_id)
+
+    snapshots: dict[UUID, dict[str, Any]] = {}
+    for task in tasks:
+        project = projects.get(task.project_id) if task.project_id else None
+        epic = epics.get(project.epic_id) if project and project.epic_id else None
+        style = effective_schedule_style(task, project, epic, user_settings)
+        if task.id in window_by_task:
+            window_id = window_by_task[task.id]
+        else:
+            window_id = effective_preferred_time_window_id(task, project, epic)
+        window = preferred_windows.get(window_id) if window_id is not None else None
+        snapshots[task.id] = assemble_snapshot(
+            estimated_duration_minutes=task.estimated_duration_minutes,
+            min_block_duration_minutes=task.min_block_duration_minutes,
+            max_block_duration_minutes=task.max_block_duration_minutes,
+            deadline_at=task.deadline_at,
+            schedule_style=style.value,
+            time_window_id=window_id,
+            strict_mode=window.strict_mode if window is not None else None,
+            bands=_bands_payload(window),
+            blocking_task_ids=blockers_by_task.get(task.id, []),
+        )
+    return snapshots
+
+
 def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[str, Any]]:
-    """Effective W1 snapshots for tasks that share an owner. Empty if settings are missing."""
+    """Effective W1 snapshots for explanation *reads*. Empty if settings are missing.
+
+    Collect/persist must not use this — it re-queries dependencies and can diverge
+    from the edges calculation already used.
+    """
     if not tasks:
         return {}
     owner_id = tasks[0].owner_id
@@ -85,20 +134,16 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         )
         .all()
     )
-    blockers_by_task: dict[UUID, list[UUID]] = defaultdict(list)
-    for dep in dependencies:
-        blockers_by_task[dep.dependent_task_id].append(dep.blocking_task_id)
 
-    resolved: list[tuple[Task, str, UUID | None]] = []
     window_ids: set[UUID] = set()
+    window_by_task: dict[UUID, UUID | None] = {}
     for task in tasks:
         project = projects.get(task.project_id) if task.project_id else None
         epic = epics.get(project.epic_id) if project and project.epic_id else None
-        style = effective_schedule_style(task, project, epic, settings)
         window_id = effective_preferred_time_window_id(task, project, epic)
+        window_by_task[task.id] = window_id
         if window_id is not None:
             window_ids.add(window_id)
-        resolved.append((task, style.value, window_id))
 
     windows: dict[UUID, FocusWindow] = {}
     if window_ids:
@@ -110,21 +155,15 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         ):
             windows[window.id] = window
 
-    snapshots: dict[UUID, dict[str, Any]] = {}
-    for task, style, window_id in resolved:
-        window = windows.get(window_id) if window_id is not None else None
-        snapshots[task.id] = assemble_snapshot(
-            estimated_duration_minutes=task.estimated_duration_minutes,
-            min_block_duration_minutes=task.min_block_duration_minutes,
-            max_block_duration_minutes=task.max_block_duration_minutes,
-            deadline_at=task.deadline_at,
-            schedule_style=style,
-            time_window_id=window_id,
-            strict_mode=window.strict_mode if window is not None else None,
-            bands=_bands_payload(window),
-            blocking_task_ids=blockers_by_task.get(task.id, []),
-        )
-    return snapshots
+    return snapshots_from_collected(
+        user_settings=settings,
+        tasks=tasks,
+        projects=projects,
+        epics=epics,
+        dependencies=dependencies,
+        preferred_windows=windows,
+        effective_window_by_task=window_by_task,
+    )
 
 
 def summary_text_for_facts(facts: list[ReasonFact] | list[dict[str, Any]]) -> str:

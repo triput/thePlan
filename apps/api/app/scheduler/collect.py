@@ -84,7 +84,8 @@ def collect_inputs(
     tasks = [item.task for item in candidates]
     remaining_by_task = {item.task.id: item.remaining_minutes for item in candidates}
 
-    project_ids = {task.project_id for task in tasks if task.project_id}
+    snapshot_tasks = tasks + [item.task for item in excluded_tasks]
+    project_ids = {task.project_id for task in snapshot_tasks if task.project_id}
     projects: dict[UUID, Project] = {}
     epics: dict[UUID, Epic] = {}
     if project_ids:
@@ -122,6 +123,19 @@ def collect_inputs(
             task, project, epic
         )
 
+    for item in excluded_tasks:
+        task = item.task
+        if task.id in effective_window_by_task:
+            continue
+        project = projects.get(task.project_id) if task.project_id else None
+        epic = epics.get(project.epic_id) if project and project.epic_id else None
+        effective_window_by_task[task.id] = effective_preferred_time_window_id(
+            task, project, epic
+        )
+        effective_window_source_by_task[task.id] = effective_preferred_time_window_source(
+            task, project, epic
+        )
+
     preferred_ids = {wid for wid in effective_window_by_task.values() if wid}
     preferred_windows: dict[UUID, FocusWindow] = {}
     if preferred_ids:
@@ -135,13 +149,19 @@ def collect_inputs(
 
     daily_cap = user_settings.max_auto_schedule_minutes_per_project_per_day
 
-    # Import locally to avoid collect ↔ outcomes cycles at module load.
-    from app.scheduler.outcomes import live_snapshots_by_task
+    # Build fingerprints from the same dependency list calculation will use —
+    # do not re-query via live_snapshots_by_task (race with intervening commits).
+    from app.scheduler.outcomes import snapshots_from_collected
 
-    snapshot_tasks = [item.task for item in candidates] + [
-        item.task for item in excluded_tasks
-    ]
-    input_snapshots = live_snapshots_by_task(db, snapshot_tasks)
+    input_snapshots = snapshots_from_collected(
+        user_settings=user_settings,
+        tasks=snapshot_tasks,
+        projects=projects,
+        epics=epics,
+        dependencies=dependencies,
+        preferred_windows=preferred_windows,
+        effective_window_by_task=effective_window_by_task,
+    )
 
     return SchedulingInputs(
         owner_id=owner_id,
