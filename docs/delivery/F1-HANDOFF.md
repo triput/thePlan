@@ -2,7 +2,7 @@
 
 **Status:** Implemented · **Quality:** Renee exit **2026-10-08** (automated green; Dex review corrections re-run same day) · **Manual verification:** pending (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §4](../NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff)  
-**Build:** pending (Dex review corrections uncommitted; prior tip **ac55c4f**)  
+**Build:** 3861166  
 **Hygiene:** [HYGIENE-R4-QUICKSCAN.md](../HYGIENE-R4-QUICKSCAN.md) (pass; Alembic head **020**)
 
 ## Scope
