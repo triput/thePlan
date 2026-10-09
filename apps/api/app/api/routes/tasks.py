@@ -2,14 +2,14 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import inspect as sa_inspect
+from sqlalchemy import and_, inspect as sa_inspect, or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.db import get_db
 from app.models.enums import TaskBoardColumn, TaskWorkflowState
-from app.models import Plan, Project, RecurrenceRule, Reminder, Task, User
+from app.models import Epic, Plan, Project, RecurrenceRule, Reminder, Task, User
 from app.schemas import (
     PaginatedResponse,
     ProjectOut,
@@ -66,13 +66,22 @@ from app.services.task_patch import (
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-def _get_owned_task(db: Session, task_id: UUID, user: User) -> Task:
-    task = (
-        db.query(Task)
-        .options(joinedload(Task.recurrence_rule), joinedload(Task.label_links))
-        .filter(Task.id == task_id)
-        .one_or_none()
-    )
+def _get_owned_task(
+    db: Session,
+    task_id: UUID,
+    user: User,
+    *,
+    for_update: bool = False,
+) -> Task:
+    query = db.query(Task).filter(Task.id == task_id)
+    if for_update:
+        query = query.with_for_update()
+    else:
+        query = query.options(
+            joinedload(Task.recurrence_rule),
+            joinedload(Task.label_links),
+        )
+    task = query.one_or_none()
     if task is None or task.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
     return task
@@ -230,6 +239,7 @@ def list_tasks(
         query = query.filter(Task.deleted_at.isnot(None))
     else:
         query = query.filter(Task.deleted_at.is_(None))
+    project_joined = False
     if inbox:
         query = query.filter(Task.project_id.is_(None))
     elif project_id is not None:
@@ -239,6 +249,7 @@ def list_tasks(
             Project.epic_id == epic_id,
             Project.owner_id == user.id,
         )
+        project_joined = True
     if section_id is not None:
         query = query.filter(Task.section_id == section_id)
     if parent_task_id is not None:
@@ -261,6 +272,23 @@ def list_tasks(
         query = query.filter(Task.due_at.isnot(None), Task.due_at < due_to)
     if ids:
         query = query.filter(Task.id.in_(ids))
+    # Exclude archived project/epic tasks by default on all non-trash lists.
+    # Explicit project_id still returns that project's tasks (archived project detail).
+    if not trashed and project_id is None:
+        if not project_joined:
+            query = query.outerjoin(Project, Task.project_id == Project.id)
+        query = query.outerjoin(Epic, Project.epic_id == Epic.id).filter(
+            or_(
+                Task.project_id.is_(None),
+                and_(
+                    Project.is_archived.is_(False),
+                    or_(
+                        Project.epic_id.is_(None),
+                        Epic.is_archived.is_(False),
+                    ),
+                ),
+            )
+        )
     total = query.count()
     if board_order or workflow is not None:
         order = (Task.board_rank, Task.created_at)
@@ -316,6 +344,8 @@ def create_task(
         bound_soft_target=bound_soft_target,
     )
 
+    from app.services.task_workflow import next_board_rank
+
     task = Task(
         owner_id=user.id,
         title=body.title.strip(),
@@ -332,6 +362,7 @@ def create_task(
         preferred_time_window_id=body.preferred_time_window_id,
         plan_id=body.plan_id,
         schedule_style=body.schedule_style,
+        board_rank=next_board_rank(db, user.id),
     )
     db.add(task)
     db.flush()
@@ -505,7 +536,7 @@ def transition_task_workflow_endpoint(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> TaskOut:
-    task = _get_owned_task(db, task_id, user)
+    task = _get_owned_task(db, task_id, user, for_update=True)
     transition_fields = body.model_dump(exclude_unset=True)
     waiting_note_set = "waiting_note" in transition_fields
     bulk_descendant_ids: list[UUID] = []

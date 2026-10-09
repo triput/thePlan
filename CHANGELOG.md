@@ -4,9 +4,10 @@
 
 - **F2 Kanban API:** Alembic `021_task_workflow` — `workflow_state` (`ready` \| `in_progress` \| `waiting`), `waiting_note`, `board_rank`, `board_revision`; `POST /api/v1/tasks/{id}/workflow` with revision check; `GET /tasks?workflow=&board_order=` — [delivery/F2-KANBAN.md](docs/delivery/F2-KANBAN.md), [NEXT-FEATURES-SPEC §5](docs/NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)
 - **TaskOut board fields:** `workflow_state`, `board_column`, `waiting_note`, `board_rank`, `board_revision` (Done derived from completion)
-- **Web F2:** List/Board toggle on supported views; Kanban columns, WIP summary, Move menu, drag between columns, Done pagination, roots-only filter — build green at Quality exit
+- **Web F2:** List/Board toggle on supported views; Kanban columns, WIP summary, Move menu, drag between columns with within-column insert hints, Done + open-column pagination, work-board epic/project filters, roots-only filter — build WIP at review follow-up
 - **CLI F2:** `tasks workflow` (column transition); `tasks list --workflow`, `--board-order` — [CLI.md](docs/CLI.md)
-- **Quality:** Renee exit — `test_task_workflow` **9**; with `test_task_complete` + `test_recurrence` **23**; CLI **33**; F2-D browser trails partial / manual
+- **F2 Dex review corrections:** `board_revision` on complete/uncomplete/bulk/recurrence; workflow transition `FOR UPDATE`; fixed `insert_before_id`/`insert_after_id` + rank re-gap; create assigns `next_board_rank`; default task list excludes archived project/epic (including `epic_id`/`ids`; `project_id` scoped to archived detail unchanged)
+- **Quality:** Renee follow-up — API **30** green (`test_task_workflow`, `test_task_complete`, `test_recurrence`, `test_complete_task_unit`); CLI **33** at prior exit; F2-D browser/manual **pending**
 
 ## [Unreleased] — F1 CLI planning handoff (2026-10-08)
 

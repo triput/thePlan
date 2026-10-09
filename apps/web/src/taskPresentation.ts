@@ -2,6 +2,38 @@ import type { ViewSelection } from "./view";
 
 const PRESENTATION_KEY = "theplan.taskPresentation";
 const ROOTS_ONLY_KEY = "theplan.boardRootsOnly";
+const WORK_FILTERS_KEY = "theplan.boardWorkFilters";
+
+export interface BoardWorkFilters {
+  projectId: string | null;
+  epicId: string | null;
+}
+
+export function ownerWideBoardView(view: ViewSelection): boolean {
+  return view.type === "inbox" || view.type === "today" || view.type === "upcoming";
+}
+
+export function readBoardWorkFilters(): BoardWorkFilters {
+  try {
+    const raw = localStorage.getItem(WORK_FILTERS_KEY);
+    if (!raw) return { projectId: null, epicId: null };
+    const parsed = JSON.parse(raw) as Partial<BoardWorkFilters>;
+    return {
+      projectId: parsed.projectId ?? null,
+      epicId: parsed.epicId ?? null,
+    };
+  } catch {
+    return { projectId: null, epicId: null };
+  }
+}
+
+export function writeBoardWorkFilters(filters: BoardWorkFilters) {
+  try {
+    localStorage.setItem(WORK_FILTERS_KEY, JSON.stringify(filters));
+  } catch {
+    /* ignore */
+  }
+}
 
 export type TaskPresentation = "list" | "board";
 

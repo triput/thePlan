@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
+  fetchEpics,
   fetchLabels,
   fetchPlans,
   fetchProjects,
@@ -28,7 +29,14 @@ import {
   viewKey,
   type ViewSelection,
 } from "../view";
-import { readBoardRootsOnly, writeBoardRootsOnly } from "../taskPresentation";
+import {
+  ownerWideBoardView,
+  readBoardRootsOnly,
+  readBoardWorkFilters,
+  writeBoardRootsOnly,
+  writeBoardWorkFilters,
+  type BoardWorkFilters,
+} from "../taskPresentation";
 
 interface TaskBoardProps {
   view: ViewSelection;
@@ -43,9 +51,12 @@ interface PendingComplete {
   expectedRevision: number;
 }
 
+type DropInsertHint = { insert_before_id?: string; insert_after_id?: string };
+
 interface PendingWaitingMove {
   task: Task;
   note: string;
+  hints: DropInsertHint;
 }
 
 const OPEN_COLUMNS: { id: TaskBoardColumnId; label: string }[] = [
@@ -55,8 +66,10 @@ const OPEN_COLUMNS: { id: TaskBoardColumnId; label: string }[] = [
 ];
 
 const DONE_COLUMN: TaskBoardColumnId = "done";
-const OPEN_FETCH_LIMIT = 200;
+const OPEN_PAGE_SIZE = 50;
 const DONE_PAGE_SIZE = 30;
+
+/** Default GET /tasks excludes archived project/epic tasks; explicit project_id may still include them. */
 
 type OpenColumnId = "ready" | "in_progress" | "waiting";
 
@@ -69,28 +82,82 @@ function isOverbookedStatus(status: string): boolean {
   return status === "overbooked";
 }
 
-function boardOpenQueryKey(view: ViewSelection, column: TaskBoardColumnId, rootsOnly: boolean) {
-  return ["tasks", "board", "column", viewKey(view), column, rootsOnly ? "roots" : "all"] as const;
+function boardOpenQueryKey(
+  view: ViewSelection,
+  column: TaskBoardColumnId,
+  offset: number,
+  workFilters: BoardWorkFilters,
+) {
+  return [
+    "tasks",
+    "board",
+    "column",
+    viewKey(view),
+    column,
+    offset,
+    workFilters.projectId ?? "",
+    workFilters.epicId ?? "",
+  ] as const;
 }
 
-function boardDoneQueryKey(view: ViewSelection, offset: number) {
-  return ["tasks", "board", "column", viewKey(view), DONE_COLUMN, offset] as const;
+function boardSmartOpenQueryKey(
+  view: ViewSelection,
+  offset: number,
+  workFilters: BoardWorkFilters,
+  dueKey: string,
+) {
+  return ["tasks", "board", "smart-open", viewKey(view), offset, workFilters.projectId ?? "", workFilters.epicId ?? "", dueKey] as const;
 }
 
-function buildListBaseParams(view: ViewSelection): Record<string, string | number | boolean> {
-  if (view.type === "inbox") {
-    return { inbox: true, limit: OPEN_FETCH_LIMIT, board_order: true };
-  }
+function boardDoneQueryKey(
+  view: ViewSelection,
+  offset: number,
+  workFilters: BoardWorkFilters,
+  dueKey: string,
+) {
+  return ["tasks", "board", "column", viewKey(view), DONE_COLUMN, offset, workFilters.projectId ?? "", workFilters.epicId ?? "", dueKey] as const;
+}
+
+function buildScopeParams(
+  view: ViewSelection,
+  workFilters: BoardWorkFilters,
+): Record<string, string | number | boolean> {
+  const base: Record<string, string | number | boolean> = { board_order: true };
   if (view.type === "project") {
-    return { project_id: view.projectId, limit: OPEN_FETCH_LIMIT, board_order: true };
+    return { ...base, project_id: view.projectId };
   }
   if (view.type === "epic") {
-    return { epic_id: view.epicId, limit: OPEN_FETCH_LIMIT, board_order: true };
+    return { ...base, epic_id: view.epicId };
   }
   if (view.type === "label") {
-    return { label_id: view.labelId, limit: OPEN_FETCH_LIMIT, board_order: true };
+    return { ...base, label_id: view.labelId };
   }
-  return { limit: OPEN_FETCH_LIMIT, board_order: true };
+  if (ownerWideBoardView(view)) {
+    if (workFilters.projectId) {
+      return { ...base, project_id: workFilters.projectId };
+    }
+    if (workFilters.epicId) {
+      return { ...base, epic_id: workFilters.epicId };
+    }
+    if (view.type === "inbox") {
+      return { ...base, inbox: true };
+    }
+    return base;
+  }
+  return base;
+}
+
+function dueRangeParams(
+  view: ViewSelection,
+  smartRange: { start: Date; end: Date } | null,
+): { due_from?: string; due_to?: string } {
+  if (!smartRange || (view.type !== "today" && view.type !== "upcoming")) {
+    return {};
+  }
+  return {
+    due_from: smartRange.start.toISOString(),
+    due_to: smartRange.end.toISOString(),
+  };
 }
 
 function applyViewFilters(
@@ -139,11 +206,36 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
   const [rootsOnly, setRootsOnly] = useState(readBoardRootsOnly);
-  const [doneOffset, setDoneOffset] = useState(0);
+  const [workFilters, setWorkFilters] = useState<BoardWorkFilters>(readBoardWorkFilters);
+  const [openOffsets, setOpenOffsets] = useState<Record<OpenColumnId, number>>({
+    ready: 0,
+    in_progress: 0,
+    waiting: 0,
+  });
+  const [openAccum, setOpenAccum] = useState<Record<OpenColumnId, Task[]>>({
+    ready: [],
+    in_progress: [],
+    waiting: [],
+  });
+  const [openServerTotals, setOpenServerTotals] = useState<Record<OpenColumnId, number>>({
+    ready: 0,
+    in_progress: 0,
+    waiting: 0,
+  });
+  const [smartOpenOffset, setSmartOpenOffset] = useState(0);
+  const [smartOpenAccum, setSmartOpenAccum] = useState<Task[]>([]);
+  const [smartOpenTotal, setSmartOpenTotal] = useState(0);
+  const [doneRawOffset, setDoneRawOffset] = useState(0);
   const [doneItems, setDoneItems] = useState<Task[]>([]);
+  const [doneRawTotal, setDoneRawTotal] = useState(0);
   const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
   const [pendingWaiting, setPendingWaiting] = useState<PendingWaitingMove | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<TaskBoardColumnId | null>(null);
+  const [dragOverCard, setDragOverCard] = useState<{
+    taskId: string;
+    edge: "before" | "after";
+  } | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
 
   const smartRange = useMemo(() => {
     if (view.type === "today") {
@@ -159,6 +251,16 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   }, [view.type]);
 
   const smartFilter = view.type === "today" || view.type === "upcoming";
+  const dueKey = smartRange ? `${smartRange.start.toISOString()}/${smartRange.end.toISOString()}` : "";
+  const dueParams = dueRangeParams(view, smartRange);
+  const scopeParams = buildScopeParams(view, workFilters);
+  const showWorkFilters = ownerWideBoardView(view);
+
+  const epicsQuery = useQuery({
+    queryKey: ["epics", "board-filters"],
+    queryFn: () => fetchEpics({ archived: false, limit: 200 }),
+    enabled: showWorkFilters,
+  });
 
   const blocksQuery = useQuery({
     queryKey: ["scheduled-blocks", viewKey(view), smartRange?.start.toISOString()],
@@ -209,6 +311,10 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     queryKey: ["projects"],
     queryFn: () => fetchProjects({ limit: 200 }),
   });
+  const activeProjects = useMemo(
+    () => (projectsQuery.data?.items ?? []).filter((p) => !p.is_archived),
+    [projectsQuery.data],
+  );
   const projectById = useMemo(() => {
     const map = new Map<string, string>();
     for (const p of projectsQuery.data?.items ?? []) {
@@ -219,15 +325,38 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
 
   const showProjectContext = view.type !== "project";
 
-  const openBundleQuery = useQuery({
-    queryKey: ["tasks", "board", "open-bundle", viewKey(view)],
+  const scheduledOpenIds = useMemo(() => {
+    if (!smartFilter) return [] as string[];
+    return [...scheduledIds].filter(Boolean);
+  }, [smartFilter, scheduledIds]);
+
+  const scheduledOpenQuery = useQuery({
+    queryKey: ["tasks", "board", "scheduled-open", viewKey(view), scheduledOpenIds.join(",")],
+    enabled: smartFilter && scheduledOpenIds.length > 0,
+    queryFn: async () => {
+      const result = await fetchTasks({
+        ...scopeParams,
+        ids: scheduledOpenIds,
+        is_completed: false,
+        limit: Math.min(scheduledOpenIds.length, 200),
+        board_order: true,
+      });
+      return result.items;
+    },
+  });
+
+  const smartOpenQuery = useQuery({
+    queryKey: boardSmartOpenQueryKey(view, smartOpenOffset, workFilters, dueKey),
     enabled: smartFilter,
     queryFn: async () => {
       const result = await fetchTasks({
-        ...buildListBaseParams(view),
+        ...scopeParams,
+        ...dueParams,
         is_completed: false,
+        limit: OPEN_PAGE_SIZE,
+        offset: smartOpenOffset,
       });
-      return result;
+      return { items: result.items, total: result.total };
     },
   });
 
@@ -235,26 +364,30 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     queries: smartFilter
       ? []
       : OPEN_COLUMNS.map((col) => ({
-          queryKey: boardOpenQueryKey(view, col.id, rootsOnly),
+          queryKey: boardOpenQueryKey(view, col.id, openOffsets[col.id as OpenColumnId], workFilters),
           queryFn: async () => {
+            const offset = openOffsets[col.id as OpenColumnId];
             const result = await fetchTasks({
-              ...buildListBaseParams(view),
+              ...scopeParams,
               workflow: col.id,
               is_completed: false,
+              limit: OPEN_PAGE_SIZE,
+              offset,
             });
-            return { items: result.items, total: result.total };
+            return { items: result.items, total: result.total, offset };
           },
         })),
   });
 
   const doneQuery = useQuery({
-    queryKey: boardDoneQueryKey(view, doneOffset),
+    queryKey: boardDoneQueryKey(view, doneRawOffset, workFilters, dueKey),
     queryFn: async () => {
       const result = await fetchTasks({
-        ...buildListBaseParams(view),
+        ...scopeParams,
+        ...(smartFilter ? dueParams : {}),
         workflow: DONE_COLUMN,
         limit: DONE_PAGE_SIZE,
-        offset: doneOffset,
+        offset: doneRawOffset,
       });
       let items = result.items;
       if (view.type === "label") {
@@ -263,22 +396,67 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       if (smartFilter) {
         items = applyViewFilters(items, view, scheduledIds);
       }
-      return { items, total: result.total };
+      return { items, rawItems: result.items, total: result.total };
     },
   });
 
-  const mergedOpenFromBundle = useMemo(() => {
-    if (!smartFilter || !openBundleQuery.data) return null;
-    let items = applyViewFilters(openBundleQuery.data.items, view, scheduledIds);
+  const boardResetKey = `${viewKey(view)}|${workFilters.projectId ?? ""}|${workFilters.epicId ?? ""}|${dueKey}`;
+
+  useEffect(() => {
+    setOpenOffsets({ ready: 0, in_progress: 0, waiting: 0 });
+    setOpenAccum({ ready: [], in_progress: [], waiting: [] });
+    setOpenServerTotals({ ready: 0, in_progress: 0, waiting: 0 });
+    setSmartOpenOffset(0);
+    setSmartOpenAccum([]);
+    setSmartOpenTotal(0);
+    setDoneRawOffset(0);
+    setDoneItems([]);
+    setDoneRawTotal(0);
+  }, [boardResetKey]);
+
+  useEffect(() => {
+    if (!smartFilter || !smartOpenQuery.data) return;
+    const { items, total } = smartOpenQuery.data;
+    setSmartOpenTotal(total);
+    setSmartOpenAccum((prev) => {
+      if (smartOpenOffset === 0) return items;
+      const seen = new Set(prev.map((t) => t.id));
+      const appended = items.filter((t) => !seen.has(t.id));
+      return [...prev, ...appended];
+    });
+  }, [smartFilter, smartOpenQuery.data, smartOpenOffset]);
+
+  useEffect(() => {
+    if (!doneQuery.data) return;
+    setDoneRawTotal(doneQuery.data.total);
+    setDoneItems((prev) => {
+      const pageItems = doneQuery.data.items;
+      if (doneRawOffset === 0) return pageItems;
+      const seen = new Set(prev.map((t) => t.id));
+      const appended = pageItems.filter((t) => !seen.has(t.id));
+      return [...prev, ...appended];
+    });
+  }, [doneQuery.data, doneRawOffset]);
+
+  const mergedSmartOpen = useMemo(() => {
+    if (!smartFilter) return null;
+    const byId = new Map<string, Task>();
+    for (const task of smartOpenAccum) {
+      byId.set(task.id, task);
+    }
+    for (const task of scheduledOpenQuery.data ?? []) {
+      byId.set(task.id, task);
+    }
+    let items = applyViewFilters([...byId.values()], view, scheduledIds);
     if (rootsOnly) {
       items = items.filter((t) => t.parent_task_id === null);
     }
     return groupOpenTasks(items);
-  }, [smartFilter, openBundleQuery.data, view, scheduledIds, rootsOnly]);
+  }, [smartFilter, smartOpenAccum, scheduledOpenQuery.data, view, scheduledIds, rootsOnly]);
 
   const openByColumn = useMemo(() => {
-    if (smartFilter && mergedOpenFromBundle) {
-      return mergedOpenFromBundle;
+    if (smartFilter && mergedSmartOpen) {
+      return mergedSmartOpen;
     }
     const groups: Record<TaskBoardColumnId, Task[]> = {
       ready: [],
@@ -286,38 +464,51 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       waiting: [],
       done: [],
     };
-    OPEN_COLUMNS.forEach((col, index) => {
-      const data = columnQueries[index]?.data as ColumnTasks | undefined;
-      let items = data?.items ?? [];
+    OPEN_COLUMNS.forEach((col) => {
+      let items = openAccum[col.id as OpenColumnId] ?? [];
       if (rootsOnly) {
         items = items.filter((t) => t.parent_task_id === null);
       }
       groups[col.id] = items;
     });
     return groups;
-  }, [smartFilter, mergedOpenFromBundle, columnQueries, rootsOnly]);
+  }, [smartFilter, mergedSmartOpen, openAccum, rootsOnly]);
 
   const openColumnTotals = useMemo(() => {
-    if (smartFilter && mergedOpenFromBundle) {
+    if (smartFilter && mergedSmartOpen) {
+      const smartHasMore = smartOpenOffset + OPEN_PAGE_SIZE < smartOpenTotal;
+      const suffix = smartHasMore ? "+" : "";
       return {
-        ready: mergedOpenFromBundle.ready.length,
-        in_progress: mergedOpenFromBundle.in_progress.length,
-        waiting: mergedOpenFromBundle.waiting.length,
+        ready: `${mergedSmartOpen.ready.length}${suffix}`,
+        in_progress: `${mergedSmartOpen.in_progress.length}${suffix}`,
+        waiting: `${mergedSmartOpen.waiting.length}${suffix}`,
       };
     }
-    const totals: Record<OpenColumnId, number> = {
-      ready: 0,
-      in_progress: 0,
-      waiting: 0,
+    const totals: Record<OpenColumnId, string | number> = {
+      ready: openServerTotals.ready,
+      in_progress: openServerTotals.in_progress,
+      waiting: openServerTotals.waiting,
     };
-    OPEN_COLUMNS.forEach((col, index) => {
-      const data = columnQueries[index]?.data as ColumnTasks | undefined;
-      totals[col.id as OpenColumnId] = data?.total ?? 0;
-    });
     return totals;
-  }, [smartFilter, mergedOpenFromBundle, columnQueries]);
+  }, [smartFilter, mergedSmartOpen, openServerTotals, smartOpenOffset, smartOpenTotal]);
 
-  const wipCount = openColumnTotals.in_progress + openColumnTotals.waiting;
+  const openColumnHasMore = useCallback(
+    (colId: OpenColumnId): boolean => {
+      if (smartFilter) {
+        return smartOpenOffset + OPEN_PAGE_SIZE < smartOpenTotal;
+      }
+      const loaded = openAccum[colId].length;
+      return loaded < openServerTotals[colId];
+    },
+    [smartFilter, smartOpenOffset, smartOpenTotal, openAccum, openServerTotals],
+  );
+
+  const wipCount = useMemo(() => {
+    if (smartFilter && mergedSmartOpen) {
+      return mergedSmartOpen.in_progress.length + mergedSmartOpen.waiting.length;
+    }
+    return openServerTotals.in_progress + openServerTotals.waiting;
+  }, [smartFilter, mergedSmartOpen, openServerTotals]);
 
   const allTasksById = useMemo(() => {
     const map = new Map<string, Task>();
@@ -325,38 +516,48 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       for (const task of openByColumn[col.id]) {
         map.set(task.id, task);
       }
+      for (const task of openAccum[col.id as OpenColumnId] ?? []) {
+        map.set(task.id, task);
+      }
+    }
+    for (const task of smartOpenAccum) {
+      map.set(task.id, task);
+    }
+    for (const task of scheduledOpenQuery.data ?? []) {
+      map.set(task.id, task);
     }
     for (const task of doneItems) {
       map.set(task.id, task);
     }
-    for (const task of doneQuery.data?.items ?? []) {
-      map.set(task.id, task);
-    }
-    if (openBundleQuery.data) {
-      for (const task of openBundleQuery.data.items) {
-        map.set(task.id, task);
-      }
-    }
     return map;
-  }, [openByColumn, doneItems, doneQuery.data, openBundleQuery.data]);
+  }, [openByColumn, openAccum, smartOpenAccum, scheduledOpenQuery.data, doneItems]);
 
-  const doneTotal = doneQuery.data?.total ?? 0;
-  const doneLoadedCount = doneItems.length;
+  const doneFilteredView = smartFilter;
+  const doneHasMore = doneRawOffset + DONE_PAGE_SIZE < doneRawTotal;
+  const doneDisplayTotal = doneFilteredView
+    ? `${doneItems.length}${doneHasMore ? "+" : ""}`
+    : doneRawTotal;
 
+  const openCol0 = columnQueries[0]?.data;
+  const openCol1 = columnQueries[1]?.data;
+  const openCol2 = columnQueries[2]?.data;
   useEffect(() => {
-    setDoneOffset(0);
-    setDoneItems([]);
-  }, [viewKey(view)]);
-
-  useEffect(() => {
-    if (!doneQuery.data) return;
-    setDoneItems((prev) => {
-      if (doneOffset === 0) return doneQuery.data.items;
-      const seen = new Set(prev.map((t) => t.id));
-      const appended = doneQuery.data.items.filter((t) => !seen.has(t.id));
-      return [...prev, ...appended];
+    if (smartFilter) return;
+    [openCol0, openCol1, openCol2].forEach((data, index) => {
+      const typed = data as (ColumnTasks & { offset: number }) | undefined;
+      if (!typed) return;
+      const colId = OPEN_COLUMNS[index]!.id as OpenColumnId;
+      setOpenServerTotals((prev) => ({ ...prev, [colId]: typed.total }));
+      setOpenAccum((prev) => {
+        if (typed.offset === 0) {
+          return { ...prev, [colId]: typed.items };
+        }
+        const seen = new Set(prev[colId].map((t) => t.id));
+        const appended = typed.items.filter((t) => !seen.has(t.id));
+        return { ...prev, [colId]: [...prev[colId], ...appended] };
+      });
     });
-  }, [doneQuery.data, doneOffset]);
+  }, [smartFilter, openCol0, openCol1, openCol2]);
 
   const invalidateBoard = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["tasks", "board"] });
@@ -407,7 +608,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
         push({ type: "complete", taskId });
       }
       invalidateBoard();
-      setDoneOffset(0);
+      setDoneRawOffset(0);
       setDoneItems([]);
     },
   });
@@ -459,7 +660,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const handleMoveSelect = (task: Task, value: string) => {
     if (!value) return;
     if (value === "waiting") {
-      setPendingWaiting({ task, note: task.waiting_note ?? "" });
+      setPendingWaiting({ task, note: task.waiting_note ?? "", hints: {} });
       return;
     }
     void runMove(task, value as TaskBoardColumnId);
@@ -471,11 +672,66 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   };
 
   const loading =
-    (smartFilter ? openBundleQuery.isLoading : columnQueries.some((q) => q.isLoading)) ||
-    doneQuery.isLoading;
+    (smartFilter
+      ? smartOpenQuery.isLoading || scheduledOpenQuery.isLoading
+      : columnQueries.some((q) => q.isLoading)) || doneQuery.isLoading;
 
   const loadMoreDone = () => {
-    setDoneOffset((prev) => prev + DONE_PAGE_SIZE);
+    setDoneRawOffset((prev) => prev + DONE_PAGE_SIZE);
+  };
+
+  const loadMoreOpen = (colId: OpenColumnId) => {
+    if (smartFilter) {
+      setSmartOpenOffset((prev) => prev + OPEN_PAGE_SIZE);
+      return;
+    }
+    setOpenOffsets((prev) => ({
+      ...prev,
+      [colId]: prev[colId] + OPEN_PAGE_SIZE,
+    }));
+  };
+
+  const resolveDropHints = (
+    column: TaskBoardColumnId,
+    targetTaskId: string | null,
+    edge: "before" | "after" | "append",
+    draggedId?: string | null,
+  ): DropInsertHint => {
+    if (targetTaskId && edge === "before") {
+      return { insert_before_id: targetTaskId };
+    }
+    if (targetTaskId && edge === "after") {
+      return { insert_after_id: targetTaskId };
+    }
+    const colItems = openByColumn[column].filter(
+      (t) => !t.is_completed && t.id !== draggedId,
+    );
+    const last = colItems[colItems.length - 1];
+    if (last) {
+      return { insert_after_id: last.id };
+    }
+    return {};
+  };
+
+  const applyDrop = (
+    task: Task,
+    column: TaskBoardColumnId,
+    hints: DropInsertHint,
+  ) => {
+    if (column === "waiting") {
+      setPendingWaiting({ task, note: task.waiting_note ?? "", hints });
+      return;
+    }
+    const fromColumn = columnForOpenTask(task);
+    const sameColumn = column === fromColumn;
+    if (
+      sameColumn &&
+      !hints.insert_before_id &&
+      !hints.insert_after_id
+    ) {
+      return;
+    }
+    void runMove(task, column, hints);
   };
 
   const onColumnDragOver = (e: React.DragEvent, column: TaskBoardColumnId) => {
@@ -486,23 +742,64 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const onColumnDrop = (e: React.DragEvent, column: TaskBoardColumnId) => {
     e.preventDefault();
     setDragOverColumn(null);
+    setDragOverCard(null);
     const raw = e.dataTransfer.getData("application/x-theplan-task-id");
     if (!raw) return;
     const task = allTasksById.get(raw);
     if (!task) return;
-    if (column === "waiting") {
-      setPendingWaiting({ task, note: task.waiting_note ?? "" });
-      return;
-    }
-    void runMove(task, column);
+    const hints =
+      dragOverCard && dragOverCard.taskId !== raw
+        ? resolveDropHints(column, dragOverCard.taskId, dragOverCard.edge, raw)
+        : resolveDropHints(column, null, "append", raw);
+    applyDrop(task, column, hints);
   };
 
   const onCardDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData("application/x-theplan-task-id", taskId);
     e.dataTransfer.effectAllowed = "move";
+    setDraggingTaskId(taskId);
   };
 
-  const renderCard = (task: Task) => {
+  const onCardDragEnd = () => {
+    setDraggingTaskId(null);
+    setDragOverCard(null);
+    setDragOverColumn(null);
+  };
+
+  const onCardDragOver = (e: React.DragEvent, taskId: string, column: TaskBoardColumnId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverColumn(column);
+    if (draggingTaskId === taskId) return;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const edge: "before" | "after" = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setDragOverCard({ taskId, edge });
+  };
+
+  const onCardDrop = (e: React.DragEvent, taskId: string, column: TaskBoardColumnId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverColumn(null);
+    setDragOverCard(null);
+    const raw = e.dataTransfer.getData("application/x-theplan-task-id");
+    if (!raw) return;
+    const task = allTasksById.get(raw);
+    if (!task) return;
+    if (raw === taskId) return;
+    const edge =
+      dragOverCard?.taskId === taskId
+        ? dragOverCard.edge
+        : (() => {
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            return e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+          })();
+    const hints = resolveDropHints(column, taskId, edge, raw);
+    applyDrop(task, column, hints);
+  };
+
+  const renderCard = (task: Task, column: TaskBoardColumnId) => {
+    const dropBefore = dragOverCard?.taskId === task.id && dragOverCard.edge === "before";
+    const dropAfter = dragOverCard?.taskId === task.id && dragOverCard.edge === "after";
     const parent = parentTitle(task);
     const projectLabel =
       showProjectContext && task.project_id
@@ -511,9 +808,12 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return (
       <article
         key={task.id}
-        className={`task-board-card${selectedTaskId === task.id ? " selected" : ""}`}
+        className={`task-board-card${selectedTaskId === task.id ? " selected" : ""}${dropBefore ? " drop-before" : ""}${dropAfter ? " drop-after" : ""}`}
         draggable
         onDragStart={(e) => onCardDragStart(e, task.id)}
+        onDragEnd={onCardDragEnd}
+        onDragOver={(e) => onCardDragOver(e, task.id, column)}
+        onDrop={(e) => onCardDrop(e, task.id, column)}
         onClick={() => onSelectTask(task.id)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -611,7 +911,13 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
 
   const renderOpenColumn = (col: (typeof OPEN_COLUMNS)[number]) => {
     const items = openByColumn[col.id];
-    const total = rootsOnly ? items.length : openColumnTotals[col.id as OpenColumnId];
+    const colId = col.id as OpenColumnId;
+    const total = rootsOnly ? items.length : openColumnTotals[colId];
+    const hasMore = openColumnHasMore(colId);
+    const fetchingMore = smartFilter
+      ? smartOpenQuery.isFetching && smartOpenOffset > 0
+      : columnQueries[OPEN_COLUMNS.findIndex((c) => c.id === col.id)]?.isFetching &&
+        openOffsets[colId] > 0;
     return (
       <section
         key={col.id}
@@ -631,10 +937,25 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
           {items.length === 0 && !loading && (
             <p className="muted small">No tasks</p>
           )}
-          {items.map(renderCard)}
+          {items.map((task) => renderCard(task, col.id))}
+          {hasMore && (
+            <button
+              type="button"
+              className="btn secondary small task-board-load-more"
+              onClick={() => loadMoreOpen(colId)}
+              disabled={fetchingMore}
+            >
+              {fetchingMore ? "Loading…" : "Load more"}
+            </button>
+          )}
         </div>
       </section>
     );
+  };
+
+  const updateWorkFilters = (next: BoardWorkFilters) => {
+    setWorkFilters(next);
+    writeBoardWorkFilters(next);
   };
 
   return (
@@ -643,17 +964,74 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
         <p className="task-board-wip-summary" role="status">
           WIP (In progress + Waiting): {wipCount} task{wipCount === 1 ? "" : "s"}
         </p>
-        <label className="show-completed-toggle">
-          <input
-            type="checkbox"
-            checked={rootsOnly}
-            onChange={(e) => {
-              setRootsOnly(e.target.checked);
-              writeBoardRootsOnly(e.target.checked);
-            }}
-          />
-          <span>Roots only</span>
-        </label>
+        <div className="task-board-toolbar-actions">
+          {showWorkFilters && (
+            <div className="task-board-work-filters">
+              <label className="task-board-filter-label">
+                <span className="sr-only">Epic</span>
+                <select
+                  className="task-board-filter-select"
+                  value={workFilters.epicId ?? ""}
+                  onChange={(e) => {
+                    const epicId = e.target.value || null;
+                    updateWorkFilters({
+                      epicId,
+                      projectId:
+                        epicId && workFilters.projectId
+                          ? (activeProjects.find((p) => p.id === workFilters.projectId)?.epic_id ===
+                            epicId
+                              ? workFilters.projectId
+                              : null)
+                          : workFilters.projectId,
+                    });
+                  }}
+                  aria-label="Filter board by epic"
+                >
+                  <option value="">All epics</option>
+                  {(epicsQuery.data?.items ?? []).map((epic) => (
+                    <option key={epic.id} value={epic.id}>
+                      {epic.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="task-board-filter-label">
+                <span className="sr-only">Project</span>
+                <select
+                  className="task-board-filter-select"
+                  value={workFilters.projectId ?? ""}
+                  onChange={(e) => {
+                    updateWorkFilters({
+                      ...workFilters,
+                      projectId: e.target.value || null,
+                    });
+                  }}
+                  aria-label="Filter board by project"
+                >
+                  <option value="">All projects</option>
+                  {activeProjects
+                    .filter((p) => !workFilters.epicId || p.epic_id === workFilters.epicId)
+                    .map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.title}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            </div>
+          )}
+          <label className="show-completed-toggle">
+            <input
+              type="checkbox"
+              checked={rootsOnly}
+              onChange={(e) => {
+                setRootsOnly(e.target.checked);
+                writeBoardRootsOnly(e.target.checked);
+              }}
+            />
+            <span>Roots only</span>
+          </label>
+        </div>
       </div>
 
       {loading && <p className="muted">Loading board…</p>}
@@ -663,7 +1041,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
         <section className="task-board-column" aria-label="Done column">
           <header className="task-board-column-header">
             <h2 className="task-board-column-title">Done</h2>
-            <span className="task-board-column-count">{doneTotal}</span>
+            <span className="task-board-column-count">{doneDisplayTotal}</span>
           </header>
           <div
             className={`task-board-column-body${dragOverColumn === DONE_COLUMN ? " drag-over" : ""}`}
@@ -674,8 +1052,8 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
             {doneItems.length === 0 && !loading && (
               <p className="muted small">No completed tasks loaded</p>
             )}
-            {doneItems.map(renderCard)}
-            {doneLoadedCount < doneTotal && (
+            {doneItems.map((task) => renderCard(task, DONE_COLUMN))}
+            {doneHasMore && (
               <button
                 type="button"
                 className="btn secondary small task-board-load-more"
@@ -747,6 +1125,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
                 onClick={() => {
                   void runMove(pendingWaiting.task, "waiting", {
                     waiting_note: pendingWaiting.note.trim() || null,
+                    ...pendingWaiting.hints,
                   }).then(() => setPendingWaiting(null));
                 }}
               >

@@ -96,7 +96,7 @@ All list endpoints scope to authenticated `owner_id`.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/tasks` | List with filters (see Smart Views); `?ids=`; `?trashed=true` for soft-deleted only. Default excludes trashed. |
+| GET | `/tasks` | List with filters (see Smart Views); `?ids=`; `?trashed=true` for soft-deleted only. Default excludes trashed and tasks under **archived** project or epic (inbox tasks kept). Explicit `?project_id=` returns that project's tasks even when the project is archived. |
 | POST | `/tasks` | Create |
 | PATCH | `/tasks/batch` | Batch patch / add labels (`task_ids` + `patch` and/or `add_label_ids`). Patch may include `due_at`, `project_id` (move clears orphan `section_id`), schedule style, etc. |
 | DELETE | `/tasks/trash` | Hard-purge trashed tasks. Optional `?older_than_days=N` (N≥1) — only rows with `deleted_at` older than N days. Omit to empty all. 204 even if nothing matched. |
@@ -154,9 +154,9 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 
 `TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), `schedule_style` (null when inheriting), and optional `source_refs` (handoff graft provenance).
 
-**Kanban / board (F2):** `workflow_state` (`ready` \| `in_progress` \| `waiting` for open tasks), denormalized `board_column` (`ready` \| `in_progress` \| `waiting` \| `done` — **done** when `is_completed`), optional `waiting_note` (max 500 chars; cleared when leaving Waiting), `board_rank` (bigint; independent of list `sort_order`), `board_revision` (monotonic; required on workflow transitions). New tasks default **ready**, revision **0**. Completing via workflow or `/complete` aligns with existing completion service; recurring advance resets open workflow to **ready** (`recurrence_advanced`, `previous_due_at` on response when applicable).
+**Kanban / board (F2):** `workflow_state` (`ready` \| `in_progress` \| `waiting` for open tasks), denormalized `board_column` (`ready` \| `in_progress` \| `waiting` \| `done` — **done** when `is_completed`), optional `waiting_note` (max 500 chars; cleared when leaving Waiting), `board_rank` (bigint; independent of list `sort_order`; new tasks allocate via `next_board_rank`), `board_revision` (monotonic; required on workflow transitions; also bumps when board **column** changes via `/complete`, `/uncomplete`, or bulk child complete). New tasks default **ready**, revision **0**. Completing via workflow or `/complete` aligns with existing completion service; recurring advance resets open workflow to **ready** (`recurrence_advanced`, `previous_due_at` on response when applicable). Workflow POST re-reads the row **`FOR UPDATE`** before applying revision + rank.
 
-**List filters (F2):** `workflow` — column filter (`done` = completed; open columns require incomplete + matching `workflow_state`). `board_order=true` sorts by `board_rank`, then `created_at` (default sort when `workflow` is set). Pagination `total` is full match count for the filter, not only the returned page.
+**List filters (F2):** `workflow` — column filter (`done` = completed; open columns require incomplete + matching `workflow_state`). `board_order=true` sorts by `board_rank`, then `created_at` (default sort when `workflow` is set). Pagination `total` is full match count for the filter, not only the returned page. Archived project/epic exclusion (above) still applies when filtering by `epic_id` or `ids`.
 
 **Workflow transition body:**
 
@@ -173,7 +173,7 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 }
 ```
 
-`column`: `ready` \| `in_progress` \| `waiting` \| `done`. `expected_revision` must match current `board_revision` or **409** `BOARD_REVISION_CONFLICT`. `waiting_note` is applied only when moving to **waiting** (omit field to leave note unchanged on other columns; explicit `null` clears when entering Waiting). Rank: set `board_rank`, or `insert_before_id` / `insert_after_id` (owned tasks), or omit to change column/state only. **Done** uses the same open-children rules as `/complete` (**409** `OPEN_CHILDREN` when omitted and descendants open). Moving an open column on a completed task uncompletes then sets workflow atomically.
+`column`: `ready` \| `in_progress` \| `waiting` \| `done`. `expected_revision` must match current `board_revision` or **409** `BOARD_REVISION_CONFLICT`. `waiting_note` is applied only when moving to **waiting** (omit field to leave note unchanged on other columns; explicit `null` clears when entering Waiting). Rank: set `board_rank`, or `insert_before_id` / `insert_after_id` (owned tasks; ascending order; re-gap neighbor when the integer gap is exhausted), or omit to change column/state only. **Done** uses the same open-children rules as `/complete` (**409** `OPEN_CHILDREN` when omitted and descendants open). Moving an open column on a completed task uncompletes then sets workflow atomically.
 
 Spec: [NEXT-FEATURES-SPEC.md §5](./NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress). Delivery: [delivery/F2-KANBAN.md](./delivery/F2-KANBAN.md).
 

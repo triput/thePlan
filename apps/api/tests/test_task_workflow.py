@@ -161,6 +161,148 @@ def test_list_workflow_filter_and_board_order(client: TestClient) -> None:
     assert body["total"] >= 2
 
 
+def test_complete_bumps_revision_stale_workflow_conflicts(client: TestClient) -> None:
+    task = _create_task(client, f"complete-rev-{_uid()}")
+    assert task["board_revision"] == 0
+    complete = client.post(f"/api/v1/tasks/{task['id']}/complete", json={})
+    assert complete.status_code == 200, complete.text
+    assert complete.json()["board_revision"] == 1
+    stale = _workflow(client, task["id"], column="in_progress", expected_revision=0)
+    assert stale.status_code == 409
+    assert stale.json()["code"] == "BOARD_REVISION_CONFLICT"
+
+
+def test_workflow_insert_before_and_after_rank(client: TestClient) -> None:
+    anchor = _create_task(client, f"anchor-{_uid()}")
+    neighbor = _create_task(client, f"neighbor-{_uid()}")
+    # Pin a clear ascending gap regardless of create-time next_board_rank.
+    assert (
+        _workflow(
+            client,
+            anchor["id"],
+            column="in_progress",
+            expected_revision=anchor["board_revision"],
+            board_rank=10_000_000,
+        ).status_code
+        == 200
+    )
+    neighbor = client.get(f"/api/v1/tasks/{neighbor['id']}").json()
+    assert (
+        _workflow(
+            client,
+            neighbor["id"],
+            column="in_progress",
+            expected_revision=neighbor["board_revision"],
+            board_rank=20_000_000,
+        ).status_code
+        == 200
+    )
+    mover = _create_task(client, f"mover-{_uid()}")
+    before = _workflow(
+        client,
+        mover["id"],
+        column="in_progress",
+        expected_revision=mover["board_revision"],
+        insert_before_id=neighbor["id"],
+    )
+    assert before.status_code == 200, before.text
+    neighbor_after = client.get(f"/api/v1/tasks/{neighbor['id']}").json()
+    anchor_after = client.get(f"/api/v1/tasks/{anchor['id']}").json()
+    assert before.json()["board_rank"] < neighbor_after["board_rank"]
+    assert before.json()["board_rank"] > anchor_after["board_rank"]
+
+    mover2 = _create_task(client, f"mover2-{_uid()}")
+    after = _workflow(
+        client,
+        mover2["id"],
+        column="in_progress",
+        expected_revision=mover2["board_revision"],
+        insert_after_id=anchor["id"],
+    )
+    assert after.status_code == 200, after.text
+    assert after.json()["board_rank"] > anchor_after["board_rank"]
+    assert after.json()["board_rank"] < neighbor_after["board_rank"]
+
+
+def test_rank_between_unit() -> None:
+    from app.services.task_workflow import _rank_between
+
+    assert _rank_between(None, 2_000_000) == 1_000_000
+    assert _rank_between(1_000_000, None) == 2_000_000
+    assert _rank_between(10, 20) == 15
+    assert _rank_between(10, 11) is None  # exhausted — caller re-gaps
+
+
+def test_list_excludes_archived_project_and_epic_tasks(client: TestClient) -> None:
+    epic_resp = client.post("/api/v1/epics", json={"title": f"epic-{_uid()}"})
+    assert epic_resp.status_code == 201, epic_resp.text
+    epic = epic_resp.json()
+    project = client.post(
+        "/api/v1/projects",
+        json={"title": f"proj-{_uid()}", "epic_id": epic["id"]},
+    ).json()
+    archived_project = client.post(
+        "/api/v1/projects",
+        json={"title": f"arch-proj-{_uid()}"},
+    ).json()
+    client.post(f"/api/v1/projects/{archived_project['id']}/archive")
+
+    in_live = _create_task(client, f"live-{_uid()}", project_id=project["id"])
+    in_archived_project = _create_task(
+        client,
+        f"arch-proj-task-{_uid()}",
+        project_id=archived_project["id"],
+    )
+    inbox = _create_task(client, f"inbox-{_uid()}")
+
+    client.post(f"/api/v1/epics/{epic['id']}/archive")
+    in_archived_epic = _create_task(client, f"epic-arch-{_uid()}", project_id=project["id"])
+
+    listed = client.get("/api/v1/tasks", params={"limit": 200})
+    assert listed.status_code == 200, listed.text
+    ids = {item["id"] for item in listed.json()["items"]}
+    assert inbox["id"] in ids
+    assert in_live["id"] not in ids
+    assert in_archived_project["id"] not in ids
+    assert in_archived_epic["id"] not in ids
+
+    by_project = client.get(
+        "/api/v1/tasks",
+        params={"project_id": archived_project["id"], "limit": 50},
+    )
+    assert by_project.status_code == 200
+    scoped_ids = {item["id"] for item in by_project.json()["items"]}
+    assert in_archived_project["id"] in scoped_ids
+
+    # epic_id / ids must still hide archived-project tasks (Work board / smart ids).
+    live_epic = client.post("/api/v1/epics", json={"title": f"live-epic-{_uid()}"}).json()
+    live_proj = client.post(
+        "/api/v1/projects",
+        json={"title": f"live-under-{_uid()}", "epic_id": live_epic["id"]},
+    ).json()
+    arch_under = client.post(
+        "/api/v1/projects",
+        json={"title": f"arch-under-{_uid()}", "epic_id": live_epic["id"]},
+    ).json()
+    client.post(f"/api/v1/projects/{arch_under['id']}/archive")
+    live_task = _create_task(client, f"epic-live-{_uid()}", project_id=live_proj["id"])
+    arch_task = _create_task(client, f"epic-arch-proj-{_uid()}", project_id=arch_under["id"])
+    by_epic = client.get("/api/v1/tasks", params={"epic_id": live_epic["id"], "limit": 100})
+    assert by_epic.status_code == 200
+    epic_ids = {item["id"] for item in by_epic.json()["items"]}
+    assert live_task["id"] in epic_ids
+    assert arch_task["id"] not in epic_ids
+
+    by_ids = client.get(
+        "/api/v1/tasks",
+        params=[("ids", live_task["id"]), ("ids", arch_task["id"])],
+    )
+    assert by_ids.status_code == 200
+    id_set = {item["id"] for item in by_ids.json()["items"]}
+    assert live_task["id"] in id_set
+    assert arch_task["id"] not in id_set
+
+
 def test_recurrence_complete_advances_to_ready_not_done(client: TestClient) -> None:
     created = client.post(
         "/api/v1/tasks",

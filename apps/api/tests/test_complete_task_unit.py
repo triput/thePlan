@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.api.errors import ApiError
-from app.models.enums import ScheduleStatus
+from app.models.enums import ScheduleStatus, TaskWorkflowState
 from app.services import task_helpers
 
 
@@ -103,6 +103,8 @@ def _task(*, nesting_level: int = 0, completed: bool = False) -> SimpleNamespace
         status=ScheduleStatus.unscheduled,
         due_at=None,
         recurrence_rule=None,
+        workflow_state=TaskWorkflowState.ready,
+        board_revision=0,
     )
 
 

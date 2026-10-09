@@ -284,6 +284,12 @@ def empty_trash_for_user(
 
 
 def mark_task_complete(task: Task, *, completed: bool) -> None:
+    from app.services.task_workflow import (
+        board_column_for_task,
+        bump_board_revision_if_column_changed,
+    )
+
+    before_column = board_column_for_task(task)
     task.is_completed = completed
     if completed:
         task.completed_at = datetime.now(timezone.utc)
@@ -292,6 +298,26 @@ def mark_task_complete(task: Task, *, completed: bool) -> None:
         task.completed_at = None
         if task.status == ScheduleStatus.completed:
             task.status = ScheduleStatus.unscheduled
+    bump_board_revision_if_column_changed(task, before_column)
+
+
+def _bulk_complete_open_descendants(
+    db: Session,
+    descendant_ids: list[uuid.UUID],
+    *,
+    now: datetime,
+) -> None:
+    if not descendant_ids:
+        return
+    db.query(Task).filter(Task.id.in_(descendant_ids)).update(
+        {
+            Task.is_completed: True,
+            Task.completed_at: now,
+            Task.status: ScheduleStatus.completed,
+            Task.board_revision: Task.board_revision + 1,
+        },
+        synchronize_session=False,
+    )
 
 
 def _rule_to_spec(rule) -> "RecurrenceSpec":
@@ -317,6 +343,12 @@ def complete_task(
 
     Returns (previous_due_at, recurrence_advanced).
     """
+    from app.services.task_workflow import (
+        board_column_for_task,
+        bump_board_revision_if_column_changed,
+    )
+
+    before_column = board_column_for_task(task)
     open_count = count_open_children(db, task.id, task.owner_id)
     # Contract: omitted bulk_children → 409; explicit false → parent only;
     # true → bulk. force_parent_only is an alternate parent-only signal.
@@ -347,31 +379,15 @@ def complete_task(
             task.waiting_note = None
             if task.status == ScheduleStatus.completed:
                 task.status = ScheduleStatus.unscheduled
-            # Still bulk-complete children if requested when rolling over parent.
+            bump_board_revision_if_column_changed(task, before_column)
             if bulk_children is True:
                 descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
-                if descendant_ids:
-                    db.query(Task).filter(Task.id.in_(descendant_ids)).update(
-                        {
-                            Task.is_completed: True,
-                            Task.completed_at: now,
-                            Task.status: ScheduleStatus.completed,
-                        },
-                        synchronize_session=False,
-                    )
+                _bulk_complete_open_descendants(db, descendant_ids, now=now)
             return previous_due, True
 
     if bulk_children is True:
         descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
-        if descendant_ids:
-            db.query(Task).filter(Task.id.in_(descendant_ids)).update(
-                {
-                    Task.is_completed: True,
-                    Task.completed_at: now,
-                    Task.status: ScheduleStatus.completed,
-                },
-                synchronize_session=False,
-            )
+        _bulk_complete_open_descendants(db, descendant_ids, now=now)
 
     mark_task_complete(task, completed=True)
     db.query(Reminder).filter(
