@@ -52,9 +52,9 @@ No installs / bumps applied. Confirm with Trish before any non-trivial upgrade w
 
 | Item | Value |
 |------|-------|
-| Head revision | **`016_scheduled_block_bundle_meta`** |
-| Prior trash column | `015_task_deleted_at` |
-| Drift vs Round 4 features | None — Round 4 used existing columns / JSONB; **no new migration** |
+| Head revision | **`019_handoff_receipts`** (revises `018_one_running_schedule_run`) |
+| Prior notable | `018_one_running_schedule_run`; `017_session_epoch`; trash `015_task_deleted_at` |
+| Drift vs Round 4 freeze | **F1** added `019` after Round 4 closeout; run `alembic upgrade head` before F1 API/CLI manual checks |
 
 ## Native / ops debt
 

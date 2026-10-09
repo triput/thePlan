@@ -2,7 +2,9 @@ import uuid
 from datetime import date, datetime, time
 
 from sqlalchemy import Boolean, CheckConstraint, Date, Enum as SAEnum, ForeignKey, Index, Integer, SmallInteger, String, Text, Time
-from sqlalchemy.dialects.postgresql import UUID
+from typing import Any
+
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -35,6 +37,7 @@ class Epic(Base, TimestampMixin):
         SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
         nullable=True,
     )
+    source_refs: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
 
     projects: Mapped[list["Project"]] = relationship(back_populates="epic")
 
@@ -66,6 +69,7 @@ class Project(Base, TimestampMixin):
         SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),
         nullable=True,
     )
+    source_refs: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
 
     epic: Mapped["Epic | None"] = relationship(back_populates="projects")
     sections: Mapped[list["Section"]] = relationship(back_populates="project")

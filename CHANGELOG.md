@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] — F1 CLI planning handoff (2026-10-08)
+
+- **F1 handoff API:** `POST /api/v1/handoffs/propose|apply`; receipt lookup `/api/v1/handoffs/receipts/{id}`, `/receipts/by-key/{key}`, `/receipts?idempotency_key=` — owner-scoped idempotent apply with atomic graph + receipt ([delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md), [NEXT-FEATURES-SPEC §4](docs/NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff))
+- **Alembic `019_handoff_receipts`:** `handoff_receipts`; `source_refs` on epics and projects
+- **Task dependencies API:** `GET|POST /api/v1/tasks/{id}/dependencies`, `DELETE …/dependencies/{dependency_id}` — cycle and ownership validation
+- **CLI F1:** `handoff propose|apply|receipt`; `epics` / `projects` / `sections` CRUD; `tasks complete|uncomplete`; `deps list|add|remove` — [CLI.md](docs/CLI.md)
+- **Quality:** Renee exit — handoffs + adjacent API **38+**, CLI **33**; F1-A/C/D automated; F1-B concurrent / F1-E live CLI disclosure called out as partial in delivery known limitations
+- **Docs:** Handoff distinct from non-idempotent outline ingest — [OUTLINE-INGEST.md](docs/OUTLINE-INGEST.md)
+
 ## [Unreleased] — W2c + correctness (2026-10-08)
 
 - **Compose replan worker (W2c):** `scheduler` service in `infra/compose/compose.yaml` polls `schedule_runs` and runs replan; API `SCHEDULE_DISPATCH=external` (default); residual `SCHEDULE_DISPATCH=thread` for no-poller setups — [ADR-005](docs/adr/ADR-005-scheduler-decoupling.md), [apps/api/app/scheduler/README.md](apps/api/app/scheduler/README.md)

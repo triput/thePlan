@@ -14,6 +14,7 @@ from app.api.routes import (
     calendar,
     epics,
     focus_windows,
+    handoffs,
     labels,
     outlines,
     plans,
@@ -25,6 +26,7 @@ from app.api.routes import (
     search,
     sections,
     settings as settings_routes,
+    task_dependencies,
     tasks,
 )
 from app.api.errors import register_exception_handlers
@@ -106,6 +108,7 @@ def create_app() -> FastAPI:
     api_router.include_router(epics.router)
     api_router.include_router(projects.router)
     api_router.include_router(tasks.router)
+    api_router.include_router(task_dependencies.router)
     api_router.include_router(reminders.router)
     api_router.include_router(labels.router)
     api_router.include_router(focus_windows.router)
@@ -114,6 +117,7 @@ def create_app() -> FastAPI:
     api_router.include_router(quick_add.router)
     api_router.include_router(assist.router)
     api_router.include_router(outlines.router)
+    api_router.include_router(handoffs.router)
     api_router.include_router(scheduled_blocks.router)
     api_router.include_router(schedule.router)
     api_router.include_router(calendar.router)

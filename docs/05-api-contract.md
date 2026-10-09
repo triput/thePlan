@@ -106,6 +106,9 @@ All list endpoints scope to authenticated `owner_id`.
 | POST | `/tasks/{id}/restore` | Clear `deleted_at` for same delete-wave subtree. If the parent is still trashed, live restored tasks **reparent** to nearest live ancestor or inbox root. **409** if task is not trashed |
 | POST | `/tasks/{id}/complete` | Mark complete |
 | POST | `/tasks/{id}/uncomplete` | Mark incomplete |
+| GET | `/tasks/{task_id}/dependencies` | List dependencies where path task is blocking or dependent (owner-scoped) |
+| POST | `/tasks/{task_id}/dependencies` | Add edge (**201**). Body: `{ "blocking_task_id", "dependent_task_id" }`. Path task must be one endpoint. Duplicate edge returns existing row. **422** `DEPENDENCY_CYCLE`, `DEPENDENCY_TASK_MISMATCH` |
+| DELETE | `/tasks/{task_id}/dependencies/{dependency_id}` | Remove edge (**204**). Path task must touch the edge |
 | PATCH | `/tasks/reorder` | Batch reorder |
 
 **Complete body:**
@@ -149,6 +152,26 @@ When completing a parent with open children and `bulk_children` omitted, API ret
 `schedule_style` optional on create/update: omit or `null` → inherit live (`task` → `project` → `epic` → `user_settings.default_schedule_style`); inbox is task or user default only. Explicit `standalone`, `time_block`, `bundle`, or `manual` overrides. Effective **bundle** and **manual** exclude the task from auto-placement per [ADR-006](./adr/ADR-006-fuzzy-scheduling.md).
 
 `TaskOut` includes `plan_id`, denormalized `plan_name` (null when unbound), and `schedule_style` (null when inheriting).
+
+---
+
+### Planning handoff (F1)
+
+Bulk create epics, projects, sections, and tasks from a versioned graph with optional dependencies between new or existing tasks. Separate from [outline ingest](./OUTLINE-INGEST.md) (outline re-import is not idempotent). Spec: [NEXT-FEATURES-SPEC.md §4](./NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/handoffs/propose` | Validate graph; return canonical payload, `resolved_defaults`, `warnings` (**200**) |
+| POST | `/handoffs/apply` | Atomic create + receipt in one transaction (**200**). Body: graph fields + `idempotency_key` (UUID). Same owner/kind/key + same payload → replay (`replayed: true`). Same key + different payload → **409** `IDEMPOTENCY_KEY_REUSE`. Validation → **422** `HANDOFF_VALIDATION` |
+| GET | `/handoffs/receipts/{receipt_id}` | Stored receipt envelope + embedded apply result (**404** `RECEIPT_NOT_FOUND` if not owned) |
+| GET | `/handoffs/receipts/by-key/{idempotency_key}` | Receipt by apply key |
+| GET | `/handoffs/receipts?idempotency_key=` | Alias lookup by query param |
+
+**Graph payload (subset):** `schema_version` (1), optional `source_refs` (`system`, `id`, optional `url`), optional root `schedule_policy` (`manual` \| `inherited` \| `automatic`), `entities[]` (`key`, `kind`, `title`, `parent_key` **or** `parent: { kind, id }`, task fields), `dependencies[]` (keys or existing task UUID pairs).
+
+**Apply result:** `receipt_id`, `idempotency_key`, `replayed`, `entities` (key/kind/id), `dependencies_created`, `created_counts`, `defaulted_fields`, `warnings`, `source_refs`.
+
+**Persistence:** Alembic `019_handoff_receipts` — table `handoff_receipts`; `source_refs` JSONB on **epics** and **projects** for created roots.
 
 ---
 

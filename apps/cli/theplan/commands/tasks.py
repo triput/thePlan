@@ -82,6 +82,12 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     )
     patch_p.add_argument("--description", default=None)
 
+    complete_p = tasks_sub.add_parser("complete", help="Mark task complete")
+    complete_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
+
+    uncomplete_p = tasks_sub.add_parser("uncomplete", help="Mark task incomplete")
+    uncomplete_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
+
 
 def _list_params(args: argparse.Namespace) -> dict[str, Any]:
     params: dict[str, Any] = {}
@@ -178,6 +184,22 @@ def run_tasks(args: argparse.Namespace) -> None:
             "PATCH",
             f"/api/v1/tasks/{args.task_id}",
             json_body=payload,
+            persist_session=True,
+        )
+        emit_ok(body or {})
+        return
+    if cmd == "complete":
+        body = api_json(
+            "POST",
+            f"/api/v1/tasks/{args.task_id}/complete",
+            persist_session=True,
+        )
+        emit_ok(body or {})
+        return
+    if cmd == "uncomplete":
+        body = api_json(
+            "POST",
+            f"/api/v1/tasks/{args.task_id}/uncomplete",
             persist_session=True,
         )
         emit_ok(body or {})

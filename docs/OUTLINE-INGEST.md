@@ -31,6 +31,8 @@ Durations come from `duration_minutes`. Optional items are included by default; 
 
 Re-importing the same outline **will duplicate** entities in prove-it (no dedupe yet).
 
+**F1 planning handoff** is separate: CLI/API `handoff propose|apply` with an idempotency key and persisted receipts ([delivery/F1-HANDOFF.md](./delivery/F1-HANDOFF.md), [NEXT-FEATURES-SPEC §4](./NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff)). Use handoff for agreed conversation → structure with replay; use Outline for curriculum/template JSON. Handoff idempotency does not change outline behavior.
+
 ## Graft under existing hierarchy
 
 Use **Attach under** in the Outline UI (or pass `attach_under` on propose):

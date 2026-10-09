@@ -93,10 +93,26 @@ Uses `THEPLAN_API_URL` and cookies from `THEPLAN_SESSION_FILE` when authenticate
 |------|----------|
 | **Auth** | `auth login`, `auth me`, `auth logout` |
 | **Status** | `status` — `GET /health`, then `/api/v1/auth/me` and `/api/v1/assist/status` (assist errors stay inside JSON; exit 0 if health/me succeed) |
-| **Tasks** | `tasks list`, `tasks get`, `tasks create`, `tasks patch` |
+| **Tasks** | `tasks list`, `tasks get`, `tasks create`, `tasks patch`, `tasks complete`, `tasks uncomplete` |
 | **Assist** | `assist propose`, `assist apply` |
 
 List/filter flags map to query parameters on `GET /api/v1/tasks`; see README for the full flag list.
+
+### F1 — planning handoff and hierarchy (HTTP)
+
+Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §4](./NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff). Delivery record: [delivery/F1-HANDOFF.md](./delivery/F1-HANDOFF.md).
+
+| Area | Commands |
+|------|----------|
+| **Handoff** | `handoff propose` (`--file` or `--stdin`), `handoff apply` (`--idempotency-key` or key in JSON), `handoff receipt` (`--id` or `--idempotency-key`) |
+| **Epics** | `epics list`, `get`, `create`, `patch` |
+| **Projects** | `projects list`, `get`, `create`, `patch` |
+| **Sections** | `sections list`, `get`, `create`, `patch` |
+| **Dependencies** | `deps list`, `add`, `remove` (path `--task-id` must be blocking or dependent) |
+
+Handoff maps to `POST /api/v1/handoffs/propose|apply` and `GET /api/v1/handoffs/receipts/...`. Dependencies map to `/api/v1/tasks/{id}/dependencies`. `--format text` on handoff commands prints a tree and resolved defaults without changing the JSON contract.
+
+**Outline ingest** (`outline` UI / `POST /api/v1/outlines/*`) is a separate path; re-import is not idempotent. Use **handoff** for agreed-plan bulk create with receipt replay — [OUTLINE-INGEST.md](./OUTLINE-INGEST.md).
 
 ## Session revocation (`session_epoch`)
 

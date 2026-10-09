@@ -10,6 +10,7 @@ from app.models.enums import (
     TaskPriority,
     TimeMapBandTier,
 )
+from app.models.handoff import HandoffReceipt
 from app.models.hierarchy import Epic, FocusWindow, Plan, Project, Section, TimeMapBand
 from app.models.label import Label, TaskLabel
 from app.models.mixins import TimestampMixin
@@ -25,6 +26,7 @@ __all__ = [
     "Epic",
     "ExternalCalendarEvent",
     "FocusWindow",
+    "HandoffReceipt",
     "Label",
     "Plan",
     "Project",

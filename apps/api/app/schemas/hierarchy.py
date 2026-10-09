@@ -44,6 +44,7 @@ class EpicOut(BaseModel):
     is_archived: bool
     preferred_time_window_id: UUID | None
     schedule_style: ScheduleStyle | None
+    source_refs: list[dict[str, Any]] | None = None
 
 
 class ProjectCreate(BaseModel):
@@ -78,6 +79,8 @@ class ProjectOut(BaseModel):
     is_archived: bool
     preferred_time_window_id: UUID | None
     schedule_style: ScheduleStyle | None
+    source_refs: list[dict[str, Any]] | None = None
+
 
 class ProjectPromoteToEpicOut(BaseModel):
     """DEF-023: project kept as sole child under a new epic cloned from its meta."""

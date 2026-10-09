@@ -6,6 +6,16 @@ import sys
 from theplan import __version__
 from theplan.commands.assist import register_assist, run_assist
 from theplan.commands.auth import register_auth, run_auth
+from theplan.commands.deps import register_deps, run_deps
+from theplan.commands.handoffs import register_handoff, run_handoff
+from theplan.commands.hierarchy import (
+    register_epics,
+    register_projects,
+    register_sections,
+    run_epics,
+    run_projects,
+    run_sections,
+)
 from theplan.commands.status import register_status, run_status
 from theplan.commands.tasks import register_tasks, run_tasks
 from theplan.errors import CliError
@@ -35,6 +45,11 @@ def _build_parser() -> argparse.ArgumentParser:
     register_status(sub)
     register_tasks(sub)
     register_assist(sub)
+    register_handoff(sub)
+    register_epics(sub)
+    register_projects(sub)
+    register_sections(sub)
+    register_deps(sub)
 
     return parser
 
@@ -58,6 +73,21 @@ def _dispatch(args: argparse.Namespace) -> None:
         return
     if args.command == "assist":
         run_assist(args)
+        return
+    if args.command == "handoff":
+        run_handoff(args)
+        return
+    if args.command == "epics":
+        run_epics(args)
+        return
+    if args.command == "projects":
+        run_projects(args)
+        return
+    if args.command == "sections":
+        run_sections(args)
+        return
+    if args.command == "deps":
+        run_deps(args)
         return
     raise CliError(code="INVALID_USAGE", message=f"Unknown command: {args.command}", exit_code=1)
 

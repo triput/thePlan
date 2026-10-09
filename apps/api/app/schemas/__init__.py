@@ -43,6 +43,15 @@ from app.schemas.calendar import (
     ScheduledBlockUpdate,
 )
 from app.schemas.common import PaginatedResponse, ReorderItem, ReorderRequest, TimeField
+from app.schemas.handoffs import (
+    HandoffApplyRequest,
+    HandoffApplyResult,
+    HandoffGraphPayload,
+    HandoffProposeResponse,
+    HandoffReceiptOut,
+    TaskDependencyCreate,
+    TaskDependencyOut,
+)
 from app.schemas.hierarchy import (
     EpicCreate,
     EpicDemoteToProjectBody,
@@ -147,6 +156,11 @@ __all__ = [
     "FocusWindowOut",
     "FocusWindowUpdate",
     "GoogleCalendarListItem",
+    "HandoffApplyRequest",
+    "HandoffApplyResult",
+    "HandoffGraphPayload",
+    "HandoffProposeResponse",
+    "HandoffReceiptOut",
     "LabelBatchCreate",
     "LabelBatchCreateItem",
     "LabelBatchCreateResponse",
@@ -200,6 +214,8 @@ __all__ = [
     "TaskBatchUpdate",
     "TaskBatchUpdateResponse",
     "TaskCompleteBody",
+    "TaskDependencyCreate",
+    "TaskDependencyOut",
     "TaskCreate",
     "TaskOut",
     "TaskPromoteToProjectBody",

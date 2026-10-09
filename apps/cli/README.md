@@ -132,9 +132,41 @@ theplan tasks list --project-id 00000000-0000-0000-0000-000000000010 --completed
 theplan tasks get --id 00000000-0000-0000-0000-000000000020
 theplan tasks create --title "Write CLI docs" --priority p2 --due-at 2026-10-09T17:00:00Z
 theplan tasks patch --id 00000000-0000-0000-0000-000000000020 --title "Write CLI docs (done)"
+theplan tasks complete --id 00000000-0000-0000-0000-000000000020
+theplan tasks uncomplete --id 00000000-0000-0000-0000-000000000020
 ```
 
 List query flags map to `GET /api/v1/tasks` parameters (`project_id`, `inbox`, `is_completed` via `--completed` / `--incomplete`, `limit`, `offset`, `trashed`, `epic_id`, `section_id`, `parent_task_id`, `label_id`, `due_from`, `due_to`, repeated `--id`).
+
+### Handoff (F1)
+
+```bash
+theplan handoff propose --file graph.json
+theplan handoff apply --file graph.json --idempotency-key 00000000-0000-0000-0000-000000000030
+theplan handoff receipt --idempotency-key 00000000-0000-0000-0000-000000000030
+theplan --format text handoff propose --stdin   # tree + defaults summary
+```
+
+### Epics, projects, sections
+
+```bash
+theplan epics list --limit 20
+theplan epics create --title "Q4 roadmap"
+theplan projects list --epic-id 00000000-0000-0000-0000-000000000010
+theplan sections list --project-id 00000000-0000-0000-0000-000000000011
+theplan sections create --project-id 00000000-0000-0000-0000-000000000011 --title Backlog
+```
+
+### Task dependencies
+
+```bash
+theplan deps list --task-id 00000000-0000-0000-0000-000000000020
+theplan deps add --task-id 00000000-0000-0000-0000-000000000021 \
+  --blocking-task-id 00000000-0000-0000-0000-000000000020 \
+  --dependent-task-id 00000000-0000-0000-0000-000000000021
+theplan deps remove --task-id 00000000-0000-0000-0000-000000000021 \
+  --dependency-id 00000000-0000-0000-0000-000000000040
+```
 
 ### Assist
 
