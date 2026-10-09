@@ -34,7 +34,7 @@ Three holds from Dex W2 recheck — fixed in working tree; remote push still hel
 
 | # | Hold | Fix |
 |---|------|-----|
-| 1 | Immovable busy/pins could be loaded twice — fingerprint path re-queried external/pin state after calculate capture | **`load_immovable_busy_sources`** loads pinned blocks and external events **once** during collect; horizon **`busy`**, **`input_fingerprint`** `busy_external`, candidate pin minutes, and prerequisite seed all share that capture (no second external/pin reload for fingerprint). |
+| 1 | Immovable busy/pins could be loaded twice — fingerprint path re-queried external/pin state after calculate capture; **`_remaining_including_external_blockers`** still reread pin minutes live for non-candidate prerequisites | **`load_immovable_busy_sources`** once during collect; horizon **`busy`**, fingerprints, candidate pin minutes, prereq seed, and external-blocker remaining all use **`pinned_blocks_by_task`** from that capture. Regression: pin added after collect does not satisfy a manual prerequisite. |
 | 2 | **`cycle_groups` / `cycle_task_ids`** could include non-members or conflate separate cycles | Cycle membership via **Tarjan SCCs** (`dependencies.py`); **`cycle_task_ids`** lists true cycle members only; tasks **downstream** of a cycle get **`blocked_prerequisite`**; separate cycles keep distinct member lists. |
 | 3 | Naive **`deadline_at`** during calculate raised **`NameError`** in **`_ensure_utc`** | **`calculate._ensure_utc`** imports **`timezone`** from **`datetime`**. |
 

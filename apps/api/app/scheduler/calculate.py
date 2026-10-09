@@ -12,7 +12,11 @@ from sqlalchemy.orm import Session
 from app.models import ScheduledBlock, Task, TaskDependency
 from app.models.enums import ScheduleStyle, TaskPriority
 from app.scheduler.busy_map import BusyInterval
-from app.scheduler.candidates import LifecycleExcludedTask, TaskCandidate, pinned_minutes_for_task
+from app.scheduler.candidates import (
+    LifecycleExcludedTask,
+    TaskCandidate,
+    pinned_minutes_from_blocks,
+)
 from app.scheduler.collect import SchedulingInputs
 from app.scheduler.placement import ProposedBlock, ProjectDailyUsage, place_one_block
 from app.scheduler.reasons import (
@@ -172,7 +176,15 @@ def _remaining_including_external_blockers(
     owner_id: UUID,
     remaining_by_task: dict[UUID, int],
     blockers_by_dependent: dict[UUID, list[UUID]],
+    *,
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
 ) -> dict[UUID, int]:
+    """Remaining minutes for blockers outside the candidate set.
+
+    Pin coverage must come from the collect-time ``pinned_blocks_by_task``
+    capture — a live pin reread can mark a prerequisite satisfied while the
+    busy map and prerequisite-end seed still have no pin.
+    """
     merged = dict(remaining_by_task)
     missing = {
         blocker_id
@@ -182,6 +194,7 @@ def _remaining_including_external_blockers(
     }
     if not missing:
         return merged
+    pins_by_task = pinned_blocks_by_task or {}
     tasks = (
         db.query(Task)
         .filter(Task.owner_id == owner_id, Task.id.in_(missing))
@@ -191,7 +204,7 @@ def _remaining_including_external_blockers(
         if task.is_completed or task.deleted_at is not None:
             merged[task.id] = 0
             continue
-        pinned = pinned_minutes_for_task(db, task.id)
+        pinned = pinned_minutes_from_blocks(pins_by_task.get(task.id, []))
         merged[task.id] = max(0, task.estimated_duration_minutes - pinned)
     for blocker_id in missing:
         merged.setdefault(blocker_id, 0)
@@ -543,6 +556,7 @@ def calculate(
         inputs.owner_id,
         remaining_by_task,
         blockers_by_dependent,
+        pinned_blocks_by_task=inputs.pinned_blocks_by_task,
     )
 
     prereq_seed_ids = candidate_ids | {

@@ -10,10 +10,11 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import TaskDependency
+from app.models import ScheduledBlock, TaskDependency
 from app.scheduler.busy_map import busy_from_sources, load_immovable_busy_sources
-from app.scheduler.calculate import _ensure_utc
+from app.scheduler.calculate import _ensure_utc, calculate
 from app.scheduler.collect import collect_inputs
+from app.scheduler.reasons import REASON_BLOCKED_PREREQUISITE
 from test_schedule_replan import (
     FIXED_NOW,
     _create_task,
@@ -167,3 +168,63 @@ def test_downstream_of_cycle_gets_prerequisite_not_cycle(
     body_c = client.get(f"/api/v1/tasks/{c['id']}/schedule-explanation").json()
     assert body_c["explanation"]["reason_facts"][0]["code"] == "blocked_prerequisite"
     assert b["id"] in body_c["explanation"]["reason_facts"][0]["params"]["blocking_task_ids"]
+
+
+def test_external_blocker_remaining_ignores_pins_added_after_collect(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Dex residual: live pin reread must not satisfy a non-candidate prerequisite.
+
+    Collect sees an unfinished manual blocker with no pins. A pin covering its
+    full estimate added after collect must not zero remaining or clear the
+    dependent's prerequisite gate while busy/prereq-seed still have no pin.
+    """
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    owner_id = uuid.UUID(client.get("/api/v1/auth/me").json()["id"])
+    blocker = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        schedule_style="manual",
+        priority="p1",
+    )
+    dependent = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        priority="p1",
+    )
+    blocker_id = uuid.UUID(blocker["id"])
+    dependent_id = uuid.UUID(dependent["id"])
+    db_session.add(
+        TaskDependency(
+            owner_id=owner_id,
+            blocking_task_id=blocker_id,
+            dependent_task_id=dependent_id,
+        )
+    )
+    _isolate_tasks(db_session, client, {blocker_id, dependent_id})
+
+    inputs = collect_inputs(db_session, owner_id, FIXED_NOW)
+    assert blocker_id not in {item.task.id for item in inputs.candidates}
+    assert inputs.pinned_blocks_by_task.get(blocker_id, []) == []
+
+    pin_start = FIXED_NOW + timedelta(days=1, hours=15)
+    db_session.add(
+        ScheduledBlock(
+            owner_id=owner_id,
+            task_id=blocker_id,
+            start_time=pin_start,
+            end_time=pin_start + timedelta(minutes=30),
+            is_pinned=True,
+        )
+    )
+    db_session.flush()
+
+    result = calculate(db_session, inputs)
+    # Collect-time pins were empty — remaining stays the full estimate.
+    assert result.remaining_by_task.get(blocker_id) == 30
+    dep_outcome = next(o for o in result.outcomes if o.task_id == dependent_id)
+    assert dep_outcome.primary_code == REASON_BLOCKED_PREREQUISITE
+    assert not any(b.task_id == dependent_id for b in result.proposed_blocks)
