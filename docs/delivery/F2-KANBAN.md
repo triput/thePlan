@@ -2,7 +2,7 @@
 
 **Status:** Implemented · **Quality:** Renee API **32** green this pass (**2026-10-08**); Dex recheck **pending**; push **held**; F2-D browser/manual **open** (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §5](../NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)  
-**Build:** *pending commit* (fixes in working tree; no push until Dex recheck)
+**Build:** `8636e8c` (no push until Dex recheck)
 **Hygiene:** Alembic head **`021_task_workflow`** (after F1 **`020_task_source_refs`**)
 
 ## Dex review corrections (2026-10-08)
