@@ -10,7 +10,12 @@ export interface BoardWorkFilters {
 }
 
 export function ownerWideBoardView(view: ViewSelection): boolean {
-  return view.type === "inbox" || view.type === "today" || view.type === "upcoming";
+  return (
+    view.type === "work" ||
+    view.type === "inbox" ||
+    view.type === "today" ||
+    view.type === "upcoming"
+  );
 }
 
 export function readBoardWorkFilters(): BoardWorkFilters {
@@ -40,6 +45,7 @@ export type TaskPresentation = "list" | "board";
 export function boardViewSupported(view: ViewSelection): boolean {
   return (
     view.type === "project" ||
+    view.type === "work" ||
     view.type === "inbox" ||
     view.type === "today" ||
     view.type === "upcoming" ||

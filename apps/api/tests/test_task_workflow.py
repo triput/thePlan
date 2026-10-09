@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import uuid
+from uuid import UUID
 
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 
 def _uid() -> str:
@@ -231,6 +233,66 @@ def test_rank_between_unit() -> None:
     assert _rank_between(1_000_000, None) == 2_000_000
     assert _rank_between(10, 20) == 15
     assert _rank_between(10, 11) is None  # exhausted — caller re-gaps
+
+
+def test_exhausted_gap_insert_before_preserves_order(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """A=10,B=11,C=12; insert D before B must not jump B past C or tie D with A."""
+    from app.models import Task as TaskModel
+    from app.models.enums import TaskWorkflowState
+    from app.services.task_workflow import _resolve_board_rank
+
+    me = client.get("/api/v1/auth/me").json()
+    owner_id = UUID(me["id"])
+    a = _create_task(client, f"gap-a-{_uid()}")
+    b = _create_task(client, f"gap-b-{_uid()}")
+    c = _create_task(client, f"gap-c-{_uid()}")
+    for task_id, rank in ((a["id"], 10), (b["id"], 11), (c["id"], 12)):
+        row = db_session.get(TaskModel, UUID(task_id))
+        assert row is not None
+        row.board_rank = rank
+        row.workflow_state = TaskWorkflowState.in_progress
+    db_session.flush()
+
+    d_rank = _resolve_board_rank(
+        db_session,
+        owner_id,
+        explicit_rank=None,
+        insert_before_id=UUID(b["id"]),
+        insert_after_id=None,
+    )
+    db_session.flush()
+    a_row = db_session.get(TaskModel, UUID(a["id"]))
+    b_row = db_session.get(TaskModel, UUID(b["id"]))
+    c_row = db_session.get(TaskModel, UUID(c["id"]))
+    assert a_row and b_row and c_row and d_rank is not None
+    assert a_row.board_rank < d_rank < b_row.board_rank < c_row.board_rank
+    assert b_row.board_revision >= 1
+
+
+def test_recurrence_ready_advance_bumps_revision(client: TestClient) -> None:
+    created = client.post(
+        "/api/v1/tasks",
+        json={
+            "title": f"recur-ready-{_uid()}",
+            "due_at": "2026-10-08T09:00:00Z",
+            "recurrence": {"rrule": "FREQ=DAILY;INTERVAL=1", "is_fixed": True},
+        },
+    )
+    assert created.status_code == 201, created.text
+    task = created.json()
+    assert task["board_column"] == "ready"
+    assert task["board_revision"] == 0
+    complete = client.post(f"/api/v1/tasks/{task['id']}/complete", json={})
+    assert complete.status_code == 200, complete.text
+    body = complete.json()
+    assert body["board_column"] == "ready"
+    assert body["board_revision"] == 1
+    stale = _workflow(client, task["id"], column="done", expected_revision=0)
+    assert stale.status_code == 409
+    assert stale.json()["code"] == "BOARD_REVISION_CONFLICT"
 
 
 def test_list_excludes_archived_project_and_epic_tasks(client: TestClient) -> None:

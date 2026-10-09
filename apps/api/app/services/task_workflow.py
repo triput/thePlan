@@ -72,6 +72,58 @@ def _rank_between(lower: int | None, upper: int | None) -> int | None:
     return _RANK_GAP
 
 
+def _tasks_at_or_after(db: Session, owner_id: UUID, anchor: Task) -> list[Task]:
+    """Board-ordered tasks at or after ``anchor`` (inclusive), same owner, not trashed."""
+    return (
+        db.query(Task)
+        .filter(
+            Task.owner_id == owner_id,
+            Task.deleted_at.is_(None),
+            (
+                (Task.board_rank > anchor.board_rank)
+                | (
+                    (Task.board_rank == anchor.board_rank)
+                    & (Task.created_at >= anchor.created_at)
+                )
+            ),
+        )
+        .order_by(Task.board_rank.asc(), Task.created_at.asc())
+        .all()
+    )
+
+
+def _tasks_strictly_after(db: Session, owner_id: UUID, anchor: Task) -> list[Task]:
+    return (
+        db.query(Task)
+        .filter(
+            Task.owner_id == owner_id,
+            Task.deleted_at.is_(None),
+            (
+                (Task.board_rank > anchor.board_rank)
+                | (
+                    (Task.board_rank == anchor.board_rank)
+                    & (Task.created_at > anchor.created_at)
+                )
+            ),
+        )
+        .order_by(Task.board_rank.asc(), Task.created_at.asc())
+        .all()
+    )
+
+
+def _rebalance_suffix(
+    db: Session,
+    following: list[Task],
+    *,
+    first_following_rank: int,
+) -> None:
+    """Assign ascending ranks to ``following`` starting at ``first_following_rank``; bump revisions."""
+    for index, row in enumerate(following):
+        row.board_rank = first_following_rank + index * _RANK_GAP
+        bump_board_revision(row)
+    db.flush()
+
+
 def _resolve_board_rank(
     db: Session,
     owner_id: UUID,
@@ -82,7 +134,8 @@ def _resolve_board_rank(
 ) -> int | None:
     """Ascending board_rank: insert_before → strictly less; insert_after → strictly greater.
 
-    When the integer gap is exhausted, re-gap the neighbor so the insert stays ordered.
+    Exhausted gaps re-number the affected suffix so relative order is preserved and the
+    moved neighbors get a board_revision bump.
     """
     if explicit_rank is not None:
         return explicit_rank
@@ -159,17 +212,18 @@ def _resolve_board_rank(
     if mid is not None and (upper is None or mid < upper) and (lower is None or mid > lower):
         return mid
 
-    # Exhausted / contaminated gap: push the insert_before neighbor up and sit in its old slot
-    # (or between lower and that old slot when lower is strictly below).
+    # Exhausted gap: open a slot and shift the suffix, preserving relative order.
     if before_task is not None:
-        old = before_task.board_rank
-        before_task.board_rank = old + _RANK_GAP
-        db.flush()
-        if lower is not None and lower < old:
-            return (lower + old) // 2
-        return old
+        insert_rank = (lower if lower is not None else 0) + _RANK_GAP
+        following = _tasks_at_or_after(db, owner_id, before_task)
+        _rebalance_suffix(db, following, first_following_rank=insert_rank + _RANK_GAP)
+        return insert_rank
     if after_task is not None:
-        return after_task.board_rank + _RANK_GAP
+        insert_rank = after_task.board_rank + _RANK_GAP
+        following = _tasks_strictly_after(db, owner_id, after_task)
+        if following:
+            _rebalance_suffix(db, following, first_following_rank=insert_rank + _RANK_GAP)
+        return insert_rank
     return next_board_rank(db, owner_id)
 
 

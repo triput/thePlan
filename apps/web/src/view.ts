@@ -1,5 +1,6 @@
 export type ViewSelection =
   | { type: "inbox" }
+  | { type: "work" }
   | { type: "today" }
   | { type: "upcoming" }
   | { type: "calendar" }
@@ -14,6 +15,8 @@ export function viewKey(view: ViewSelection): string {
   switch (view.type) {
     case "inbox":
       return "inbox";
+    case "work":
+      return "work";
     case "today":
       return "today";
     case "upcoming":
@@ -42,6 +45,8 @@ export function viewTitle(
   switch (view.type) {
     case "inbox":
       return "Inbox";
+    case "work":
+      return "Work";
     case "today":
       return "Today";
     case "upcoming":

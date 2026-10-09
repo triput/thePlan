@@ -251,6 +251,11 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
           onClick={() => onSelectView({ type: "inbox" })}
         />
         <NavItem
+          active={view.type === "work"}
+          label="Work"
+          onClick={() => onSelectView({ type: "work" })}
+        />
+        <NavItem
           active={view.type === "today"}
           label="Today"
           onClick={() => onSelectView({ type: "today" })}

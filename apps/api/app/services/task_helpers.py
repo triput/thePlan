@@ -343,12 +343,8 @@ def complete_task(
 
     Returns (previous_due_at, recurrence_advanced).
     """
-    from app.services.task_workflow import (
-        board_column_for_task,
-        bump_board_revision_if_column_changed,
-    )
+    from app.services.task_workflow import bump_board_revision
 
-    before_column = board_column_for_task(task)
     open_count = count_open_children(db, task.id, task.owner_id)
     # Contract: omitted bulk_children → 409; explicit false → parent only;
     # true → bulk. force_parent_only is an alternate parent-only signal.
@@ -379,7 +375,9 @@ def complete_task(
             task.waiting_note = None
             if task.status == ScheduleStatus.completed:
                 task.status = ScheduleStatus.unscheduled
-            bump_board_revision_if_column_changed(task, before_column)
+            # Always invalidate board revision on occurrence advance, even when
+            # the column stays Ready (stale Done must not re-advance).
+            bump_board_revision(task)
             if bulk_children is True:
                 descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
                 _bulk_complete_open_descendants(db, descendant_ids, now=now)

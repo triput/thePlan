@@ -1,8 +1,8 @@
 # F2 — Kanban for work in progress
 
-**Status:** Implemented · **Quality:** Renee follow-up **2026-10-08** — **30** API tests green; F2-D browser/manual **pending** (Trish)  
+**Status:** Implemented · **Quality:** Renee API **32** green this pass (**2026-10-08**); Dex recheck **pending**; push **held**; F2-D browser/manual **open** (Trish)  
 **Spec:** [NEXT-FEATURES-SPEC.md §5](../NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)  
-**Build:** 792a728
+**Build:** *pending commit* (fixes in working tree; no push until Dex recheck)
 **Hygiene:** Alembic head **`021_task_workflow`** (after F1 **`020_task_source_refs`**)
 
 ## Dex review corrections (2026-10-08)
@@ -16,6 +16,18 @@
 | 6 | Default **`GET /tasks`** (non-trash) excludes tasks under **archived** project or epic — including **`epic_id`**, **`ids`**, and smart/board fetches; explicit **`project_id`** still returns that project’s tasks (archived project detail) | API + Web |
 
 **Also in follow-up:** Work board **epic / project** filter dropdowns (non-archived projects only); within-column drag sends insert hints; **Waiting** drop preserves hints through the note prompt.
+
+## Dex residual fixes (2026-10-08 — second hold)
+
+Five P2s from Dex recheck; implemented in working tree (not yet committed/shipped).
+
+| # | Fix | Layer |
+|---|-----|-------|
+| 1 | Exhausted rank gaps: `_resolve_board_rank` in `task_workflow.py` rebalances the suffix preserving relative order, creates a genuine insertion slot, and bumps `board_revision` on shifted neighbors via `_rebalance_suffix` | API |
+| 2 | Completing a **Ready** recurring task: `complete_task` in `task_helpers.py` always calls `bump_board_revision` on occurrence advance even when column stays **Ready** | API |
+| 3 | Board accumulators: `TaskBoard.tsx` `moveMutation` `onSuccess` resets `openOffsets` / `openAccum` / `openServerTotals`, `smartOpenOffset` / `smartOpenAccum`, and **Done** pagination — not only Done | Web |
+| 4 | `scheduledOpenQuery` `queryKey` includes `workFilters.projectId` and `workFilters.epicId` | Web |
+| 5 | Explicit **Work** view: `view.type === "work"` in `view.ts` / Sidebar **Work**; `buildScopeParams` for work with **All** filters returns owner-wide scope (no `inbox=true`, no date constraints). **Inbox** still sends `inbox=true`; **Today** / **Upcoming** still apply due ranges | Web |
 
 ## Scope
 
@@ -46,7 +58,9 @@ cd "F:\Code Repo\ThePlan\apps\api"
 .\.venv\Scripts\python.exe -m pytest tests/test_task_workflow.py tests/test_task_complete.py tests/test_recurrence.py tests/test_complete_task_unit.py -q
 ```
 
-**Renee follow-up (2026-10-08):** **30** passed (`test_task_workflow.py` **13**, plus completion/recurrence/unit coverage).
+**Renee (2026-10-08, second Dex hold pass):** **32** passed — `test_task_workflow.py`, `test_task_complete.py`, `test_complete_task_unit.py`, `test_recurrence.py` (includes exhausted-gap order + Ready recurrence revision bump).
+
+**Renee follow-up (2026-10-08, first pass):** **30** passed (`test_task_workflow.py` **13**, plus completion/recurrence/unit coverage).
 
 Workflow-only smoke:
 
@@ -71,7 +85,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 .\.venv\Scripts\alembic.exe upgrade head
 ```
 
-**UI build:** production web build green at prior exit; not re-run on this doc pass (WIP).
+**UI build:** production web build **green** this pass (`tsc -b && vite build`).
 
 ## Manual checklist (Trish)
 

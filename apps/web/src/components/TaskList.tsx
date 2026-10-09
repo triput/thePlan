@@ -250,13 +250,15 @@ export function TaskList({
       const base =
         view.type === "inbox"
           ? { inbox: true as const, limit: 200 }
-          : view.type === "project"
-            ? { project_id: view.projectId, limit: 200 }
-            : view.type === "epic"
-              ? { epic_id: view.epicId, limit: 1000 }
-              : view.type === "label"
-                ? { label_id: view.labelId, limit: 200 }
-                : { limit: 200 };
+          : view.type === "work"
+            ? { limit: 200 }
+            : view.type === "project"
+              ? { project_id: view.projectId, limit: 200 }
+              : view.type === "epic"
+                ? { epic_id: view.epicId, limit: 1000 }
+                : view.type === "label"
+                  ? { label_id: view.labelId, limit: 200 }
+                  : { limit: 200 };
 
       const load = async (is_completed?: boolean) => {
         const result = await fetchTasks(
@@ -865,11 +867,13 @@ export function TaskList({
         ? (projectTitle ?? "Epic")
         : view.type === "inbox"
           ? "Inbox"
-          : view.type === "today"
-            ? "Today"
-            : view.type === "label"
-              ? (labelsById.get(view.labelId)?.name ?? "Label")
-              : "Upcoming";
+          : view.type === "work"
+            ? "Work"
+            : view.type === "today"
+              ? "Today"
+              : view.type === "label"
+                ? (labelsById.get(view.labelId)?.name ?? "Label")
+                : "Upcoming";
 
   const showListChrome = presentation === "list" || !boardEnabled;
 

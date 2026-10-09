@@ -142,6 +142,7 @@ function buildScopeParams(
     if (view.type === "inbox") {
       return { ...base, inbox: true };
     }
+    // work / today / upcoming with All filters: full owner scope (no inbox=true)
     return base;
   }
   return base;
@@ -331,7 +332,15 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   }, [smartFilter, scheduledIds]);
 
   const scheduledOpenQuery = useQuery({
-    queryKey: ["tasks", "board", "scheduled-open", viewKey(view), scheduledOpenIds.join(",")],
+    queryKey: [
+      "tasks",
+      "board",
+      "scheduled-open",
+      viewKey(view),
+      workFilters.projectId ?? "",
+      workFilters.epicId ?? "",
+      scheduledOpenIds.join(","),
+    ],
     enabled: smartFilter && scheduledOpenIds.length > 0,
     queryFn: async () => {
       const result = await fetchTasks({
@@ -608,6 +617,12 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
         push({ type: "complete", taskId });
       }
       invalidateBoard();
+      // Drop accumulated pages so moved cards leave their old columns.
+      setOpenOffsets({ ready: 0, in_progress: 0, waiting: 0 });
+      setOpenAccum({ ready: [], in_progress: [], waiting: [] });
+      setOpenServerTotals({ ready: 0, in_progress: 0, waiting: 0 });
+      setSmartOpenOffset(0);
+      setSmartOpenAccum([]);
       setDoneRawOffset(0);
       setDoneItems([]);
     },
