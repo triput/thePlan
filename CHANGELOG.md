@@ -2,7 +2,7 @@
 
 ## [Unreleased] — F1 CLI planning handoff (2026-10-08)
 
-- **F1 Dex review corrections:** Alembic `020_task_source_refs`; task graft `source_refs`; handoff parent/dependency ownership checks; mixed dependency edges; propose embeds resolved defaults on canonical payload; schedule root inheritance; dependency cycle closure — [delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md)
+- **F1 Dex review corrections:** Alembic `020_task_source_refs`; task graft `source_refs`; handoff parent/dependency ownership checks; mixed dependency edges; propose embeds resolved defaults on canonical payload; schedule root inheritance (incl. project under existing epic); intent-stable idempotency hash; dependency cycle closure — [delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md)
 - **F1 handoff API:** `POST /api/v1/handoffs/propose|apply`; receipt lookup `/api/v1/handoffs/receipts/{id}`, `/receipts/by-key/{key}`, `/receipts?idempotency_key=` — owner-scoped idempotent apply with atomic graph + receipt ([delivery/F1-HANDOFF.md](docs/delivery/F1-HANDOFF.md), [NEXT-FEATURES-SPEC §4](docs/NEXT-FEATURES-SPEC.md#4-f1-cli-planning-handoff))
 - **Alembic `019_handoff_receipts`:** `handoff_receipts`; `source_refs` on epics and projects
 - **Task dependencies API:** `GET|POST /api/v1/tasks/{id}/dependencies`, `DELETE …/dependencies/{dependency_id}` — cycle and ownership validation

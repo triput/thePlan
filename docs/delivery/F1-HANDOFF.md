@@ -21,15 +21,16 @@
 
 ## Dex review corrections (addressed)
 
-Post–Renee exit review findings are implemented in working tree (not yet committed):
+Post–Renee exit Dex findings (including the second recheck pair) are addressed:
 
 | Finding | Resolution |
 |---------|------------|
 | **P1 ownership** | Handoff apply validates owned, live parents and dependency task IDs (`owner_id` + not trashed); foreign section/project parent → **422**, no partial writes |
 | **Cycle closure** | Handoff graph cycles and **three-node** closes over existing API edges rejected; task dependency API **422** `DEPENDENCY_CYCLE` on 2- and 3-node closes |
 | **Mixed dependencies** | Each edge uses exactly one blocking ref (`blocking_key` **or** `blocking_task_id`) and one dependent ref (`dependent_key` **or** `dependent_task_id`); existing blocker + new dependent key supported |
-| **Propose embeds defaults** | `POST …/propose` canonical `payload` includes resolved duration, priority, and default root `schedule_policy`; apply should replay that payload (settings changes after propose do not alter stored minutes) |
-| **Schedule root inheritance** | Root `schedule_policy` applies to created epic/project roots; per-entity override; task-only grafts honor policy without mutating host project; `inherited` → null `schedule_style` on tasks |
+| **Propose embeds defaults** | `POST …/propose` canonical `payload` includes resolved duration, priority, and default root `schedule_policy`; apply of that payload keeps proposed minutes |
+| **Schedule root inheritance** | Policy stamps created epic roots and **projects whose epic is outside the handoff** (standalone or existing-epic parent); projects under a new epic in-graph inherit; task-only grafts keep explicit policy; tasks under new roots inherit `null` |
+| **Idempotency vs settings** | Receipt `payload_hash` is over **submitted intent** (design-default `schedule_policy` only), not settings-filled duration/priority — retry after default changes returns the original receipt |
 | **`source_refs` + web** | Migration **020** persists graft `source_refs` on tasks; epic/project/task detail panels show read-only source refs when present |
 
 ## Integration
@@ -39,7 +40,7 @@ Post–Renee exit review findings are implemented in working tree (not yet commi
 | **API** | `POST /api/v1/handoffs/propose`, `POST /api/v1/handoffs/apply`, receipt lookup under `/api/v1/handoffs/receipts/...`; task deps under `/api/v1/tasks/{id}/dependencies` — [05-api-contract.md](../05-api-contract.md) |
 | **CLI** | `handoff`, `epics` / `projects` / `sections`, `tasks complete|uncomplete`, `deps` — [CLI.md](../CLI.md), [apps/cli/README.md](../../apps/cli/README.md) |
 | **Auth** | Owner-scoped session; same write boundary as other domain routes |
-| **Idempotency** | Owner + `handoff_apply` kind + UUID key; same canonical payload replays; different payload → **409** `IDEMPOTENCY_KEY_REUSE` |
+| **Idempotency** | Owner + `handoff_apply` kind + UUID key; same **submitted intent** replays (settings-stable); different intent → **409** `IDEMPOTENCY_KEY_REUSE` |
 
 ## Automated evidence
 
@@ -50,7 +51,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 .\.venv\Scripts\python.exe -m pytest tests/test_handoffs.py -q
 ```
 
-**Dex review re-run (2026-10-08):** `tests/test_handoffs.py` **20** passed (was **12** pre-review; includes automatic/bundle → standalone root). Adjacent bundle (handoffs + task deps + scheduler deps + outlines) **36** passed.
+**Dex review re-run (2026-10-08):** `tests/test_handoffs.py` **22** passed (was **12** pre-review). Follow-ups: project graft under existing epic is a schedule root; idempotency hashes submitted intent (settings-stable).
 
 Adjacent API (hierarchy, complete, dependency edges exercised with handoff suite):
 

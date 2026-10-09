@@ -84,10 +84,6 @@ def _schedule_style_for_policy(
     raise ApiError(422, f"Unknown schedule_policy: {policy}", "INVALID_SCHEDULE_POLICY")
 
 
-def _graph_has_epic(payload: HandoffGraphPayload) -> bool:
-    return any(entity.kind == "epic" for entity in payload.entities)
-
-
 def _creates_hierarchy_root(payload: HandoffGraphPayload) -> bool:
     return any(entity.kind in {"epic", "project"} for entity in payload.entities)
 
@@ -97,13 +93,38 @@ def _is_task_only_graft(payload: HandoffGraphPayload) -> bool:
 
 
 def _is_created_schedule_root(entity: HandoffEntity, payload: HandoffGraphPayload) -> bool:
+    """True when this entity should receive the handoff schedule_policy stamp.
+
+    New epics are roots. A new project is a root when its epic ancestry is
+    outside the handoff (standalone, or parent is an existing epic). A project
+    whose parent_key points at a new epic in this graph inherits from that epic.
+    """
     if entity.kind == "epic":
         return entity.parent is None and entity.parent_key is None
-    if entity.kind == "project":
-        if _graph_has_epic(payload):
+    if entity.kind != "project":
+        return False
+    if entity.parent_key is not None:
+        parent = next((row for row in payload.entities if row.key == entity.parent_key), None)
+        # Under a newly created epic in this handoff → inherit from that epic.
+        if parent is not None and parent.kind == "epic":
             return False
-        return entity.parent is None and entity.parent_key is None
-    return False
+        return True
+    if entity.parent is not None:
+        # Existing epic (or other owned parent) outside the handoff → project is the root.
+        return entity.parent.kind == "epic"
+    return True
+
+
+def intent_payload_for_hash(payload: HandoffGraphPayload) -> HandoffGraphPayload:
+    """Normalize only stable design defaults — never mutable user settings."""
+    intent = payload.model_copy(deep=True)
+    if intent.schedule_policy is None:
+        intent.schedule_policy = "manual"
+    return intent
+
+
+def intent_payload_hash(payload: HandoffGraphPayload) -> str:
+    return canonical_payload_hash(intent_payload_for_hash(payload))
 
 
 def _resolve_entity_schedule_style(
@@ -470,13 +491,9 @@ def _validate_apply_cycles(
 
 
 def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> HandoffApplyResult:
-    payload = HandoffGraphPayload.model_validate(body.model_dump(exclude={"idempotency_key"}))
-    if payload.schedule_policy is None:
-        payload.schedule_policy = "manual"
-
-    propose = propose_handoff(db, user, payload)
-    payload = propose.payload
-    payload_hash = canonical_payload_hash(payload)
+    submitted = HandoffGraphPayload.model_validate(body.model_dump(exclude={"idempotency_key"}))
+    # Idempotency compares stable submitted intent (not settings-resolved values).
+    payload_hash = intent_payload_hash(submitted)
 
     existing = _existing_receipt(db, user, body.idempotency_key)
     if existing is not None:
@@ -488,6 +505,9 @@ def apply_handoff(db: Session, user: User, body: HandoffApplyRequest) -> Handoff
             )
         stored = HandoffApplyResult.model_validate(existing.receipt_json)
         return stored.model_copy(update={"replayed": True})
+
+    propose = propose_handoff(db, user, submitted)
+    payload = propose.payload
 
     settings = get_or_provision_user_settings(db, user)
     default_style = settings.default_schedule_style

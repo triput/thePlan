@@ -640,3 +640,106 @@ def test_automatic_bundle_default_stamps_standalone_on_project_root(
     for task_id in task_ids:
         task = client.get(f"/api/v1/tasks/{task_id}").json()
         assert task["schedule_style"] is None
+
+
+def test_manual_project_graft_under_automatic_existing_epic(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """New project under an existing automatic epic is a schedule root for handoff policy."""
+    from app.models import Epic
+    from app.models.enums import ScheduleStyle
+    from app.scheduler.style import effective_schedule_style
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    epic = Epic(
+        owner_id=user.id,
+        title=f"Auto epic {uuid4()}",
+        schedule_style=ScheduleStyle.standalone,
+    )
+    db_session.add(epic)
+    db_session.flush()
+
+    payload = {
+        "schema_version": 1,
+        "schedule_policy": "manual",
+        "entities": [
+            {
+                "key": "project",
+                "kind": "project",
+                "title": "Manual graft project",
+                "parent": {"kind": "epic", "id": str(epic.id)},
+            },
+            {
+                "key": "section",
+                "kind": "section",
+                "parent_key": "project",
+                "title": "Slice",
+            },
+            {
+                "key": "task",
+                "kind": "task",
+                "parent_key": "section",
+                "title": "Stay off auto schedule",
+            },
+        ],
+    }
+    result = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(uuid4()), **payload},
+    )
+    assert result.status_code == 200, result.text
+    project_id = next(item["id"] for item in result.json()["entities"] if item["kind"] == "project")
+    task_id = next(item["id"] for item in result.json()["entities"] if item["kind"] == "task")
+    project = client.get(f"/api/v1/projects/{project_id}").json()
+    task = client.get(f"/api/v1/tasks/{task_id}").json()
+    assert project["schedule_style"] == "manual"
+    assert task["schedule_style"] is None
+
+    task_row = db_session.get(Task, UUID(task_id))
+    project_row = db_session.get(Project, UUID(project_id))
+    assert task_row is not None and project_row is not None
+    settings = get_or_provision_user_settings(db_session, user)
+    assert (
+        effective_schedule_style(task_row, project_row, epic, settings) == ScheduleStyle.manual
+    )
+
+
+def test_idempotent_retry_after_settings_change_same_omitted_payload(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """Same key + omitted-duration intent replays even if user defaults moved."""
+    key = uuid4()
+    payload = _handoff_graph()
+    first = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(key), **payload},
+    )
+    assert first.status_code == 200, first.text
+    first_body = first.json()
+    design_id = next(item["id"] for item in first_body["entities"] if item["key"] == "design")
+    original_minutes = client.get(f"/api/v1/tasks/{design_id}").json()["estimated_duration_minutes"]
+
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    settings = get_or_provision_user_settings(db_session, user)
+    settings.default_estimated_duration_minutes = (
+        90 if original_minutes != 90 else 45
+    )
+    db_session.flush()
+
+    second = client.post(
+        "/api/v1/handoffs/apply",
+        json={"idempotency_key": str(key), **payload},
+    )
+    assert second.status_code == 200, second.text
+    assert second.json()["replayed"] is True
+    assert second.json()["receipt_id"] == first_body["receipt_id"]
+    assert (
+        client.get(f"/api/v1/tasks/{design_id}").json()["estimated_duration_minutes"]
+        == original_minutes
+    )
