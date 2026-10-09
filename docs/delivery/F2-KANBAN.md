@@ -94,19 +94,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 
 ## Manual checklist (Trish)
 
-- [ ] `alembic upgrade head` → revision **`021_task_workflow`**
-- [ ] Project view: toggle **Board**; columns Ready / In progress / Waiting / Done; WIP summary line matches In progress + Waiting totals
-- [ ] Work board: epic / project filters narrow cards; archived containers not offered in project picker
-- [ ] **Move to…** menu moves a card; CLI `theplan tasks get --id …` shows matching `workflow_state`, `board_column`, `board_revision`
-- [ ] Drag card within a column (insert before/after peer); drag to another column (Waiting prompts for note, then applies saved insert hints); drop on **Done** runs completion policy when parent has open children
-- [ ] **Load more** on an open column and on **Done** when totals exceed page size
-- [ ] Complete recurring task on board → toast “next occurrence”; card lands in **Ready**, not Done
-- [ ] Move completed task to In progress → uncomplete + workflow in one step; list view shows same state
-- [ ] **Roots only** toggle hides subtasks but column headers still show API totals (known quirk)
-- [ ] Today / Upcoming board: scheduled-but-not-due tasks still appear when blocks overlap the smart range
-- [ ] Stale board: complete in one session → workflow with stale revision in another → **409** `BOARD_REVISION_CONFLICT`; same for concurrent workflow moves
-- [ ] Default task list / board hides tasks in archived project or epic; opening archived **project** detail still lists its tasks
-- [ ] `theplan tasks workflow --id … --column waiting --expected-revision N --waiting-note "…"` then list with `--workflow waiting --board-order`
+Canonical checkboxes (F2 section, including Move-to Space browser retest): **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md)**. Do not maintain a second full list here.
 
 ## Accessibility fix (2026-10-09)
 

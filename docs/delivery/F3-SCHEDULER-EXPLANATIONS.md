@@ -126,21 +126,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 
 ## Manual checklist (Trish)
 
-W1 items below still apply; W2 adds spot-checks for new reason families and v2 stale badges. **Not** a ship gate until Dex recheck + push policy — same as W1.
-
-- [ ] `alembic upgrade head` → revision **`023_schedule_outcome_provenance`**
-- [ ] **Update Schedule** on a project with mix of auto and manual/bundle tasks → run completes; manual/bundle tasks show exclusion explanations after replan
-- [ ] Task with pinned blocks covering full estimate → exclusion “covered by pins”; replan does not add unpinned blocks for that task
-- [ ] Dependent task with unfinished blocker → **blocked** prerequisite reason; after blocker completes and replan → dependent can show **placed**
-- [ ] Task that partially fits in horizon → summary cites remaining minutes as **horizon exhausted**; task with past deadline and zero placement → **no suitable slot** (distinct from **`unplaced_deadline_limit`** when deadline blocks remaining work)
-- [ ] Task never replanned → **Why this schedule?** shows never-evaluated copy (no fabricated placement)
-- [ ] Change estimate or deadline after a run → stale badge and named categories on next panel load (no auto-replan)
-- [ ] **W2:** Completed / trashed / archived (project or epic) tasks → lifecycle exclusion copy; manual/bundle on an **archived** project → **`excluded_lifecycle_archived`** (lifecycle wins over style exclusion)
-- [ ] **W2:** Dependency cycle → **`blocked_dependency_cycle`**; deadline inside horizon → **`unplaced_deadline_limit`** when applicable
-- [ ] **W2:** Explanation JSON shows **`algorithm_version`: `f3-w2`**, **`placement_facts`** on a placed task after replan
-- [ ] `theplan schedule explain --task-id …` JSON includes `human_summary` alias matching `summary_text`
-- [ ] `theplan schedule runs list` / `get --id …` / `explanations --id …` match API pagination and owner scope
-- [ ] Second user cannot read another owner’s run or explanation (**404**)
+Canonical checkboxes (F3 W1 + W2): **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md)**. Do not maintain a second full list here.
 
 ## Known limitations (W3 and polish)
 

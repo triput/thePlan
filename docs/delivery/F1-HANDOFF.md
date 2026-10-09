@@ -78,13 +78,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 
 ## Manual checklist (Trish)
 
-- [ ] `theplan auth login` against Compose API; `theplan handoff propose --file …` then `--format text` tree matches JSON entities; propose JSON `payload` shows embedded duration/priority defaults
-- [ ] Apply with a fresh UUID key; `theplan handoff receipt --idempotency-key …` matches apply JSON; second apply shows `replayed: true`
-- [ ] Epic, project, or **task** detail in web UI shows **source refs** after a handoff or task-only graft that included `source_refs` *(automated on API; UI check now feasible)*
-- [ ] Graft tasks under an existing section: host project schedule style unchanged; new tasks respect handoff `schedule_policy`
-- [ ] `theplan deps list|add|remove` round-trip against two real task IDs
-- [ ] `theplan epics|projects|sections` list/get/create/patch against owned entities
-- [ ] Confirm outline re-import still duplicates (handoff idempotency does **not** apply to outline)
+Canonical checkboxes (F1 section): **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md)**. Do not maintain a second full list here.
 
 ## Known limitations
 
