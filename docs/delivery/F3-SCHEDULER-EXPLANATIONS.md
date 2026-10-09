@@ -22,10 +22,10 @@ Three holds from Dex recheck — fixed in working tree; remote push still held p
 | # | Hold | Fix |
 |---|------|-----|
 | 1 | Stale **unpinned** prerequisite blocks delayed dependents even though apply wipes them | Prerequisite seed uses **pinned-only** block ends (`_seed_prerequisite_block_ends` in `calculate.py`). Proposed ends from the current pass still merge during calculate; old unpinned leftovers no longer push dependents. |
-| 2 | `input_fingerprint` at persist could reflect **live** DB after collect/calculate | `SchedulingInputs` captures **`input_snapshots`** at **`collect_inputs`**; **`persist_calculation_outcomes`** writes fingerprints from that capture (not a live re-query). **GET** schedule-explanation stale compare stays **live** vs stored snapshot. |
+| 2 | `input_fingerprint` at persist could reflect **live** DB after collect/calculate; mid-collect **`live_snapshots_by_task`** re-queried deps | Snapshots built with **`snapshots_from_collected`** from the **same** `dependencies` list calculation uses (no second dep read). Persist writes that capture. **GET** stale compare stays **live**. Regression: poison deps after first `.all()` — snapshot stays empty. |
 | 3 | Editing scheduling inputs did not refresh **Why this schedule?** | **`TaskDetailPanel`** `updateMutation` invalidates **`["schedule-explanation", taskId]`** after save of scheduling inputs. |
 
-**Evidence:** `tests/test_f3_dex_w1_corrections.py` — `test_old_unpinned_prereq_block_does_not_delay_dependent`, `test_persist_uses_captured_snapshots_not_live_deps`, `test_collect_captures_input_snapshots`.
+**Evidence:** `tests/test_f3_dex_w1_corrections.py` — prereq unpinned delay, persist capture, collect race (`test_collect_does_not_requery_deps_via_live_snapshots`), `snapshots_from_collected` exact edges.
 
 ## Scope
 
