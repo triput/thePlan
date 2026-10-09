@@ -152,6 +152,15 @@ W1 items below still apply; W2 adds spot-checks for new reason families and v2 s
 | **F3-B inheritance depth** | Fuller Time Map override provenance (F4 overlap) remains roadmap, not W2 exit scope |
 | **Dex / push** | W1 **P2**, W2 reason/snapshot/`placement_facts`, and W2 **P2** (immovable busy capture, Tarjan cycle membership, naive deadline tz) at **`3ac2a05`** — API **85** green; Dex **recheck** and **push** still **held**. F3 stays **open** until Trish signs manual/browser checks and delivery policy. |
 
+## Backlog — explanation UX (final pass after planned F1–F7)
+
+Not blocking F3-W2 Dex/push. Capture for a polish pass once the planned feature waves settle:
+
+| # | Item | Notes |
+|---|------|-------|
+| 1 | **Prerequisite titles in explanations** | `blocked_prerequisite` (and similar) currently surface blocker **UUIDs** in `reason_facts` / summary text. Resolve to task titles (API and/or web formatter) so operators need not look up ids. |
+| 2 | **Overbooked copy vs actual blocker** | Generic Overbooked advice mentions deadlines even when the explanation’s primary constraint is a prerequisite (or other non-deadline reason). Align detail/scheduling copy with `reason_facts` / primary code. |
+
 ## Related documents
 
 - Data: `schedule_task_outcomes` — [04-data-schema.md](../04-data-schema.md)

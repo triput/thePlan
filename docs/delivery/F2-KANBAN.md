@@ -108,6 +108,10 @@ cd "F:\Code Repo\ThePlan\apps\api"
 - [ ] Default task list / board hides tasks in archived project or epic; opening archived **project** detail still lists its tasks
 - [ ] `theplan tasks workflow --id … --column waiting --expected-revision N --waiting-note "…"` then list with `--workflow waiting --board-order`
 
+## Accessibility fix (2026-10-09)
+
+**Move to… + Space:** Card `onKeyDown` only opens task details when the **card** is the event target (`e.target === e.currentTarget`); the Move select also `stopPropagation` on keydown so Space opens the dropdown instead of details.
+
 ## Known limitations
 
 | Item | Notes |

@@ -820,6 +820,9 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
         onDrop={(e) => onCardDrop(e, task.id, column)}
         onClick={() => onSelectTask(task.id)}
         onKeyDown={(e) => {
+          // Only activate when the card itself has focus — nested controls
+          // (Move to…) need Space/Enter for their own UI.
+          if (e.target !== e.currentTarget) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onSelectTask(task.id);
@@ -883,6 +886,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
             className="task-board-move-select"
             value=""
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
             onChange={(e) => {
               e.stopPropagation();
               handleMoveSelect(task, e.target.value);
