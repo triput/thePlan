@@ -20,6 +20,12 @@ from app.schemas.auth import (
     AuthUserAdminUpdate,
     UserOut,
 )
+from app.schemas.schedule import (
+    ReasonFactOut,
+    ScheduleExplanationOut,
+    ScheduleExplanationPage,
+    TaskScheduleExplanationOut,
+)
 from app.schemas.calendar import (
     BundleMetaOut,
     CalendarAccountOut,
@@ -192,6 +198,7 @@ __all__ = [
     "ProjectUpdate",
     "QuickAddParseRequest",
     "QuickAddParseResponse",
+    "ReasonFactOut",
     "RecurrenceOut",
     "RecurrenceUpsert",
     "ReleaseRemainderBody",
@@ -202,6 +209,8 @@ __all__ = [
     "ReminderUpdate",
     "ReorderItem",
     "ReorderRequest",
+    "ScheduleExplanationOut",
+    "ScheduleExplanationPage",
     "ScheduleRunOut",
     "ScheduledBlockBundleCreate",
     "ScheduledBlockCreate",
@@ -212,6 +221,7 @@ __all__ = [
     "SectionCreate",
     "SectionOut",
     "SectionUpdate",
+    "TaskScheduleExplanationOut",
     "TaskBatchUpdate",
     "TaskBatchUpdateResponse",
     "TaskCompleteBody",

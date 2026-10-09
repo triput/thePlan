@@ -1401,6 +1401,66 @@ export function fetchScheduleRun(id: string) {
   return apiFetch<ScheduleRunOut>(`/api/v1/schedule/runs/${id}`);
 }
 
+export function fetchScheduleRuns(params?: { limit?: number; offset?: number }) {
+  return apiFetchUrl<PaginatedResponse<ScheduleRunOut>>(
+    buildUrl("/api/v1/schedule/runs", params),
+  );
+}
+
+export type StaleCategory = "duration" | "deadline" | "map_style" | "deps" | "provenance";
+export type ScheduleEvaluationState = "evaluated" | "never_evaluated";
+
+export interface ReasonFactOut {
+  code: string;
+  params: Record<string, unknown>;
+}
+
+export interface ScheduleExplanationOut {
+  id: string;
+  schedule_run_id: string;
+  task_id: string;
+  evaluated_at: string;
+  outcome: string;
+  primary_reason_code: string;
+  requested_minutes: number;
+  pinned_minutes: number;
+  placed_minutes: number;
+  remaining_minutes: number;
+  reason_facts: ReasonFactOut[];
+  summary_text: string;
+  placement_facts: Record<string, unknown> | null;
+  algorithm_version: string | null;
+  input_fingerprint: string | null;
+  input_snapshot: Record<string, unknown> | null;
+  is_stale: boolean;
+  stale_categories: StaleCategory[];
+}
+
+export interface TaskScheduleExplanationOut {
+  task_id: string;
+  evaluation_state: ScheduleEvaluationState;
+  summary_text: string;
+  is_stale: boolean;
+  stale_categories: StaleCategory[];
+  explanation: ScheduleExplanationOut | null;
+}
+
+export function fetchTaskScheduleExplanation(taskId: string) {
+  return apiFetch<TaskScheduleExplanationOut>(`/api/v1/tasks/${taskId}/schedule-explanation`);
+}
+
+export function fetchScheduleRunExplanations(
+  runId: string,
+  params?: { task_id?: string; limit?: number; offset?: number },
+) {
+  return apiFetchUrl<{
+    items: ScheduleExplanationOut[];
+    total: number;
+    limit: number;
+    offset: number;
+  }>(buildUrl(`/api/v1/schedule/runs/${runId}/explanations`, params));
+}
+
 /** Full-page navigation so session cookie rides the OAuth round-trip. */
 export function googleCalendarConnectHref(): string {
   const base = API_URL.replace(/\/$/, "");

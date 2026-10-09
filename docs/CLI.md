@@ -126,6 +126,19 @@ Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §5](./NEXT-FEATU
 
 Optional flags on **workflow:** `--waiting-note`, `--board-rank`, `--insert-before-id`, `--insert-after-id`, `--bulk-children`, `--force-parent-only` (Done / open-children policy). Read `board_revision` from `tasks get` before each transition; stale revision → exit **5** / `BOARD_REVISION_CONFLICT`.
 
+### F3 — Scheduler explanations (HTTP, read-only)
+
+Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §6](./NEXT-FEATURES-SPEC.md#6-f3-scheduler-explanations). Delivery record: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md). These commands **do not** call `POST /schedule/replan`.
+
+| Command | Maps to |
+|---------|---------|
+| `schedule explain --task-id UUID` | `GET /api/v1/tasks/{task_id}/schedule-explanation` — JSON success adds `human_summary` (same text as `summary_text`) |
+| `schedule runs list` [`--limit`, `--offset`] | `GET /api/v1/schedule/runs` |
+| `schedule runs get --id UUID` | `GET /api/v1/schedule/runs/{id}` |
+| `schedule runs explanations --id UUID` [`--task-id`, `--limit`, `--offset`] | `GET /api/v1/schedule/runs/{id}/explanations` |
+
+Run Update Schedule via the web UI or API replan before expecting `evaluation_state: evaluated`.
+
 ## Session revocation (`session_epoch`)
 
 Password changes and host recovery bump per-user `session_epoch` in PostgreSQL (migration `017_session_epoch`). The API stores the epoch in the session cookie at login; requests with a stale epoch are treated as unauthenticated. This satisfies DEF-027’s requirement to invalidate sessions after recovery without email. Details: [09-technical-architecture.md](./09-technical-architecture.md) §7.

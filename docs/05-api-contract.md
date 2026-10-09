@@ -650,14 +650,23 @@ Overlap rule: `a.start < b.end AND a.end > b.start`. Busy sources are `external_
 
 Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirror is on, create/update/delete of `/scheduled-blocks` best-effort pushes to the primary Google calendar (local CRUD never fails on Google errors).
 
-### Schedule (W2b — Update Schedule thin)
+### Schedule (W2b — Update Schedule thin; F3-W1 explanations)
+
+**F3-W1:** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`). Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)); F6 preview will reuse `calculate` without `apply`. Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md).
 
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/schedule/replan` | Start explicit replan ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Inserts `schedule_runs` and returns **202** with `ScheduleRunOut` (`status: running`). **409** `SCHEDULE_RUN_IN_PROGRESS` if another non-stale run is active (Alembic `018` partial unique index). Stale `running` rows older than **15 minutes** are reclaimed as `failed` before enqueue. **Compose (default):** `SCHEDULE_DISPATCH=external` — replan runs in the **`scheduler`** service ([ADR-005](./adr/ADR-005-scheduler-decoupling.md), [apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)). **Bare uvicorn / Tauri:** poller or `SCHEDULE_DISPATCH=thread`, else run stays `running` until stale reclaim. CRUD never waits on the worker. |
+| GET | `/schedule/runs` | List the owner's runs, newest `started_at` first. Paginated (`limit`, `offset`). Does not start a replan. |
 | GET | `/schedule/runs/{id}` | Poll run status and stats. **404** if missing or not owned. |
+| GET | `/schedule/runs/{id}/explanations` | Recorded per-task explanations for that run. Paginated. Optional `task_id` filter (unknown ids yield an empty page, not a leak). **404** if the run is missing or not owned. Does not start a replan. Each item includes `reason_facts`, `summary_text` (deterministic formatter), and read-time `is_stale` / `stale_categories`. |
+| GET | `/tasks/{task_id}/schedule-explanation` | Latest explanation from the most recent **completed** run that evaluated the task. **200** `evaluation_state: never_evaluated` when this owner has no such row (no fabricated placement). **404** `Task not found` for a missing or other-owner task, same body either way. Does not start a replan. |
 
 **`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
+
+**`ScheduleExplanationOut`:** `id`, `schedule_run_id`, `task_id`, `evaluated_at`, `outcome` (`placed` \| `unplaced` \| `excluded` \| `blocked` \| `recorded`), `primary_reason_code`, `requested_minutes`, `pinned_minutes`, `placed_minutes`, `remaining_minutes`, `reason_facts` (`code`, `params`), `summary_text`, `placement_facts`, `algorithm_version`, `input_fingerprint`, `input_snapshot`, `is_stale`, `stale_categories`.
+
+Stale compare (W1, on read only): `duration` (estimate, min block, max block), `deadline` (`deadline_at`), `map_style` (effective style, effective time-map id, strict mode, band contents), `deps` (sorted blocking task ids). `provenance` means the stored snapshot is missing or a different snapshot version. Not compared yet: pins, project daily cap, timezone/horizon/workweek, priority/UPS, completed/trashed/archived, external busy, time-map overrides, prerequisite state beyond the edge set, `due_at` and soft target.
 
 Worker behavior: wipe unpinned blocks intersecting horizon (cancel Google/MS mirrors + drop local mirror rows for those blocks), rewrite from open tasks per ADR-006; pins and external busy immovable. **Residual:** failed remote delete may leave a provider event that re-imports as busy. Placement uses the **effective** Time Map id (task → project → epic → unbound) and **effective** schedule style (task → project → epic → user default). Effective `manual` and `bundle` are excluded from auto-placement. Bound maps honor painted tiers (green → yellow → neutral minus red; red subtracts from green/yellow clips; `strict_mode` forbids neutral spill). Dependencies: topo order with max-UPS ready queue; **`prerequisite_not_before`** from blockers' latest block end. Slice placement tries decreasing slice sizes down to MBL.
 

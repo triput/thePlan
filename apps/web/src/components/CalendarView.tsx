@@ -263,6 +263,7 @@ export function CalendarView() {
     queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
     queryClient.invalidateQueries({ queryKey: ["calendar-conflicts"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    queryClient.invalidateQueries({ queryKey: ["schedule-explanation"] });
   }, [queryClient]);
 
   const [replanPolling, setReplanPolling] = useState(false);

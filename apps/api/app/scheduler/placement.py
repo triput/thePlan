@@ -19,12 +19,24 @@ from app.services.busy_intervals import TimeInterval, ranges_overlap, subtract_i
 ProjectDailyUsage: TypeAlias = dict[tuple[date, UUID | None], int]
 
 
+@dataclass(frozen=True)
+class ProposedBlock:
+    task_id: UUID
+    start_time: datetime
+    end_time: datetime
+    slice_minutes: int
+    tier: str | None = None
+    preferred_window_id: UUID | None = None
+
+
 @dataclass
 class PlacementResult:
     blocks_created: int
     overbooked: bool
     remaining_minutes: int = 0
     last_block_end: datetime | None = None
+    last_placed_tier: str | None = None
+    proposed_blocks: list[ProposedBlock] | None = None
 
 
 def _day_cap_allows(
@@ -124,13 +136,13 @@ def _search_windows_for_day(
     settings: UserSettings,
     tz: ZoneInfo,
     preferred: FocusWindow | None,
-) -> list[tuple[datetime, datetime]]:
+) -> list[tuple[datetime, datetime, str | None]]:
     if not is_workday(day, settings.workweek_days):
         return []
 
     work_start, work_end = workday_bounds(day, settings, tz)
     if preferred is None:
-        return [(work_start, work_end)]
+        return [(work_start, work_end, None)]
 
     green_clips: list[tuple[datetime, datetime]] = []
     yellow_clips: list[tuple[datetime, datetime]] = []
@@ -151,11 +163,13 @@ def _search_windows_for_day(
     green_clips = _subtract_red_from_clips(green_clips, red_intervals)
     yellow_clips = _subtract_red_from_clips(yellow_clips, red_intervals)
 
-    ordered: list[tuple[datetime, datetime]] = green_clips + yellow_clips
+    ordered: list[tuple[datetime, datetime, str | None]] = [
+        (start, end, "green") for start, end in green_clips
+    ] + [(start, end, "yellow") for start, end in yellow_clips]
 
     if not preferred.strict_mode:
         neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
-        ordered.extend((item.start, item.end) for item in neutral)
+        ordered.extend((item.start, item.end, "neutral") for item in neutral)
 
     return ordered
 
@@ -277,6 +291,7 @@ def place_task(
     project_daily_usage: ProjectDailyUsage | None = None,
     daily_cap: int | None = None,
     prerequisite_not_before: datetime | None = None,
+    persist_blocks: bool = True,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     tz = ZoneInfo(settings.timezone)
     mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
@@ -298,6 +313,8 @@ def place_task(
     remaining = remaining_minutes
     blocks_created = 0
     last_block_end: datetime | None = None
+    last_placed_tier: str | None = None
+    proposed: list[ProposedBlock] = []
     day = now_utc.astimezone(tz).date()
     end_day = horizon_end.astimezone(tz).date()
 
@@ -309,7 +326,7 @@ def place_task(
         windows = _search_windows_for_day(day, settings, tz, preferred)
         placed_today = False
         day_cap_blocked = False
-        for window_start, window_end in windows:
+        for window_start, window_end, window_tier in windows:
             if window_end <= horizon_start or window_start >= horizon_end:
                 continue
             search_start = max(window_start, horizon_start)
@@ -345,19 +362,32 @@ def place_task(
                         not_before = end
                         continue
 
-                    block = ScheduledBlock(
-                        owner_id=owner_id,
-                        task_id=task.id,
-                        start_time=start,
-                        end_time=end,
-                        is_pinned=False,
-                    )
-                    db.add(block)
-                    db.flush()
+                    if persist_blocks:
+                        block = ScheduledBlock(
+                            owner_id=owner_id,
+                            task_id=task.id,
+                            start_time=start,
+                            end_time=end,
+                            is_pinned=False,
+                        )
+                        db.add(block)
+                        db.flush()
+                    else:
+                        proposed.append(
+                            ProposedBlock(
+                                task_id=task.id,
+                                start_time=start,
+                                end_time=end,
+                                slice_minutes=slice_minutes,
+                                tier=window_tier,
+                                preferred_window_id=window_id,
+                            )
+                        )
                     blocks_created += 1
                     remaining -= slice_minutes
                     not_before = end
                     last_block_end = end
+                    last_placed_tier = window_tier
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
                     _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
                     placed_today = True
@@ -387,7 +417,7 @@ def place_task(
     if deadline is not None and remaining > 0:
         overbooked = True
 
-    if finalize_status:
+    if finalize_status and persist_blocks:
         if overbooked:
             task.status = ScheduleStatus.overbooked
         elif blocks_created > 0:
@@ -398,13 +428,16 @@ def place_task(
             elif remaining > 0:
                 task.status = ScheduleStatus.overbooked
 
-    db.flush()
+    if persist_blocks:
+        db.flush()
     return (
         PlacementResult(
             blocks_created=blocks_created,
             overbooked=overbooked if finalize_status else False,
             remaining_minutes=remaining,
             last_block_end=last_block_end,
+            last_placed_tier=last_placed_tier,
+            proposed_blocks=proposed if proposed else None,
         ),
         busy,
     )
@@ -426,6 +459,7 @@ def place_one_block(
     project_daily_usage: ProjectDailyUsage | None = None,
     daily_cap: int | None = None,
     prerequisite_not_before: datetime | None = None,
+    persist_blocks: bool = True,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     """Place at most one scheduled block for round-robin replan sweeps."""
     return place_task(
@@ -445,4 +479,5 @@ def place_one_block(
         project_daily_usage=project_daily_usage,
         daily_cap=daily_cap,
         prerequisite_not_before=prerequisite_not_before,
+        persist_blocks=persist_blocks,
     )

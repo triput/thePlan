@@ -782,6 +782,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
           </label>
 
           <TaskDetailScheduling
+            taskId={task.id}
             open={sectionOpen.scheduling}
             onToggle={toggleSection}
             planId={planId}

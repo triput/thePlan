@@ -14,7 +14,7 @@ from app.models.handoff import HandoffReceipt
 from app.models.hierarchy import Epic, FocusWindow, Plan, Project, Section, TimeMapBand
 from app.models.label import Label, TaskLabel
 from app.models.mixins import TimestampMixin
-from app.models.schedule import ScheduleRun
+from app.models.schedule import ScheduleRun, ScheduleTaskOutcome
 from app.models.task import RecurrenceRule, Reminder, ScheduledBlock, Task, TaskDependency
 from app.models.user import SavedFilter, User, UserSettings
 
@@ -35,6 +35,7 @@ __all__ = [
     "ReminderChannel",
     "SavedFilter",
     "ScheduleRun",
+    "ScheduleTaskOutcome",
     "ScheduleStatus",
     "ScheduleStyle",
     "ScheduledBlock",

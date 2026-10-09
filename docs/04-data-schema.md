@@ -362,6 +362,30 @@ Audit log for W2 scheduler passes: timing, counts, errors, `stats_json`.
 
 Greenfield [001_baseline.sql](./sql/001_baseline.sql) predates migration-only indexes; Alembic `018` is the source of truth for the partial unique index.
 
+### schedule_task_outcomes
+
+One row per task evaluated by a schedule run (F3). Alembic `022_schedule_task_outcomes` creates the table; `023_schedule_outcome_provenance` adds calculation time and input provenance. Unique on `(schedule_run_id, task_id)`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| schedule_run_id | UUID FK | `schedule_runs`, cascade delete |
+| owner_id | UUID FK | |
+| task_id | UUID FK | `tasks`, cascade delete |
+| requested_minutes, pinned_minutes, placed_minutes, remaining_minutes | INT | |
+| primary_reason_code | VARCHAR(64) | Jules' reason code |
+| reason_facts | JSONB | `[{code, params}, ...]` |
+| summary_text | TEXT | Stored formatter output; reads re-derive from `reason_facts` |
+| created_at | TIMESTAMPTZ | Row insert |
+| evaluated_at | TIMESTAMPTZ | Calculation time (`023`) |
+| outcome | VARCHAR(32) nullable | `placed`, `unplaced`, `excluded`, `blocked`, `recorded` |
+| placement_facts | JSONB nullable | Optional placement detail |
+| input_snapshot | JSONB nullable | W1 fingerprint categories |
+| input_fingerprint | VARCHAR(64) nullable | sha256 of `input_snapshot` |
+| algorithm_version | VARCHAR(64) nullable | `f3-w1` when stamped by `persist_calculation_outcomes` |
+
+**Indexes:** `(schedule_run_id)`; `(owner_id, task_id, created_at DESC)`; `(owner_id, task_id, evaluated_at DESC)` for latest-by-task.
+
 ---
 
 ## Smart Views vs Code-Named Predicates

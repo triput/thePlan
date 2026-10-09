@@ -120,6 +120,7 @@ def create_app() -> FastAPI:
     api_router.include_router(handoffs.router)
     api_router.include_router(scheduled_blocks.router)
     api_router.include_router(schedule.router)
+    api_router.include_router(schedule.task_schedule_router)
     api_router.include_router(calendar.router)
     api_router.include_router(search.router)
     api_router.include_router(settings_routes.router)

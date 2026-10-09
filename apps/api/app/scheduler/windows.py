@@ -23,3 +23,18 @@ def effective_preferred_time_window_id(
     if epic is not None and epic.preferred_time_window_id is not None:
         return epic.preferred_time_window_id
     return None
+
+
+def effective_preferred_time_window_source(
+    task: Task,
+    project: Project | None,
+    epic: Epic | None,
+) -> str | None:
+    """Which layer bound the time map, if any."""
+    if task.preferred_time_window_id is not None:
+        return "task"
+    if project is not None and project.preferred_time_window_id is not None:
+        return "project"
+    if epic is not None and epic.preferred_time_window_id is not None:
+        return "epic"
+    return None

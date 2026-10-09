@@ -18,6 +18,18 @@ from theplan.main import _build_parser
         ["sections", "list", "--project-id", "00000000-0000-0000-0000-000000000010"],
         ["tasks", "complete", "--id", "00000000-0000-0000-0000-000000000020"],
         ["deps", "list", "--task-id", "00000000-0000-0000-0000-000000000020"],
+        ["schedule", "explain", "--task-id", "00000000-0000-0000-0000-000000000020"],
+        ["schedule", "runs", "list"],
+        ["schedule", "runs", "get", "--id", "00000000-0000-0000-0000-000000000030"],
+        [
+            "schedule",
+            "runs",
+            "explanations",
+            "--id",
+            "00000000-0000-0000-0000-000000000030",
+            "--task-id",
+            "00000000-0000-0000-0000-000000000020",
+        ],
     ],
 )
 def test_parser_accepts_f1_commands(argv: list[str]) -> None:

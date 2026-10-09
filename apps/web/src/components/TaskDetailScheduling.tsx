@@ -1,7 +1,15 @@
-import type { FocusWindow, Plan, ScheduleStyle } from "../api";
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchTaskScheduleExplanation,
+  type FocusWindow,
+  type Plan,
+  type ScheduleStyle,
+  type StaleCategory,
+} from "../api";
 import { TaskDetailSection, type DetailSectionId } from "./TaskDetailSection";
 
 interface TaskDetailSchedulingProps {
+  taskId: string;
   open: boolean;
   onToggle: (id: DetailSectionId) => void;
   planId: string;
@@ -19,7 +27,23 @@ interface TaskDetailSchedulingProps {
   scheduleStatus: string;
 }
 
+const STALE_LABELS: Record<StaleCategory, string> = {
+  duration: "duration changed",
+  deadline: "deadline changed",
+  map_style: "time map or style changed",
+  deps: "dependencies changed",
+  provenance: "older snapshot",
+};
+
+function formatReasonFact(code: string, params: Record<string, unknown>): string {
+  const extras = Object.keys(params).length
+    ? ` (${JSON.stringify(params)})`
+    : "";
+  return `${code}${extras}`;
+}
+
 export function TaskDetailScheduling({
+  taskId,
   open,
   onToggle,
   planId,
@@ -38,8 +62,82 @@ export function TaskDetailScheduling({
 }: TaskDetailSchedulingProps) {
   const isOverbooked = scheduleStatus === "overbooked";
 
+  const explanationQuery = useQuery({
+    queryKey: ["schedule-explanation", taskId],
+    queryFn: () => fetchTaskScheduleExplanation(taskId),
+    enabled: open && Boolean(taskId),
+    staleTime: 30_000,
+  });
+
+  const explanationData = explanationQuery.data;
+  const explanation = explanationData?.explanation;
+  const neverEvaluated = explanationData?.evaluation_state === "never_evaluated";
+  const showStale = explanationData?.is_stale ?? false;
+  const staleCategories = explanationData?.stale_categories ?? [];
+
   return (
     <TaskDetailSection id="scheduling" title="Scheduling" open={open} onToggle={onToggle}>
+      <div className="schedule-explanation-panel" aria-labelledby="schedule-why-heading">
+        <div className="schedule-explanation-header">
+          <h4 id="schedule-why-heading" className="schedule-explanation-title">
+            Why this schedule?
+          </h4>
+          {showStale && (
+            <span
+              className="schedule-stale-badge"
+              title={
+                staleCategories.length
+                  ? `Inputs changed since last run: ${staleCategories.map((c) => STALE_LABELS[c] ?? c).join(", ")}`
+                  : "Explanation may be out of date"
+              }
+            >
+              Stale
+            </span>
+          )}
+        </div>
+        {explanationQuery.isLoading && (
+          <p className="muted small" role="status">
+            Loading schedule explanation…
+          </p>
+        )}
+        {explanationQuery.isError && (
+          <p className="schedule-explanation-error muted small" role="alert">
+            Could not load schedule explanation.
+          </p>
+        )}
+        {explanationQuery.isSuccess && explanationData && (
+          <>
+            {neverEvaluated ? (
+              <p className="schedule-explanation-never muted small" role="status">
+                {explanationData.summary_text}
+              </p>
+            ) : (
+              <>
+                <p className="schedule-explanation-summary">{explanationData.summary_text}</p>
+                {explanation && explanation.reason_facts.length > 0 && (
+                  <ul className="schedule-reason-list muted small">
+                    {explanation.reason_facts.map((fact, index) => (
+                      <li key={`${fact.code}-${index}`}>
+                        {formatReasonFact(fact.code, fact.params)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {explanation?.schedule_run_id && (
+                  <p className="schedule-run-ref muted small">
+                    From schedule run{" "}
+                    <code className="schedule-run-id">{explanation.schedule_run_id}</code>
+                  </p>
+                )}
+              </>
+            )}
+          </>
+        )}
+        <p className="field-hint muted small schedule-explanation-hint">
+          Read-only — run Update Schedule to refresh placement.
+        </p>
+      </div>
+
       {isOverbooked && (
         <p className="scheduling-overbook-note" role="status">
           <strong>Overbooked.</strong> Update Schedule could not fit remaining work before this

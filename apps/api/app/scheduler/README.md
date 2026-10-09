@@ -1,7 +1,17 @@
 """Module map for the W2b Update Schedule pipeline.
 
-Flow: ``replan`` → ``candidates`` → ``ups`` → ``dependencies`` → ``placement``
-with ``horizon`` bounds and ``busy_map`` for immovable intervals.
+Flow: ``replan`` → ``collect`` → ``calculate`` → ``apply`` (F3 shared pipeline).
+``collect`` loads candidates, deps, busy, and excluded tasks; ``calculate``
+proposes blocks + reason facts without persisting; ``apply`` wipes unpinned
+horizon blocks, writes blocks, task status, and ``schedule_task_outcomes``
+via ``persist_calculation_outcomes`` (input snapshot + fingerprint,
+Alembic ``023_schedule_outcome_provenance``). Explanation GETs compare
+duration, deadline, map/style, and dependency edges on read and never replan.
+Deferred stale categories: pins, daily cap, timezone/horizon/workweek,
+priority/UPS, lifecycle, external busy, time-map overrides, prerequisite
+state beyond the edge set, due date and soft target.
+Legacy modules: ``candidates``, ``ups``, ``dependencies``, ``placement``,
+``horizon``, ``busy_map``.
 
 Candidate set: incomplete tasks with remaining duration > 0; **exclude
 effective ``manual`` as well as ``bundle``** from auto-placement
