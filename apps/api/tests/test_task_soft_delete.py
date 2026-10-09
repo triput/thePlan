@@ -291,3 +291,43 @@ def test_restore_child_only_survives_empty_trash(
     assert db_session.get(Task, uuid.UUID(child["id"])) is not None
 
     assert client.get(f"/api/v1/tasks/{parent['id']}").status_code == 404
+
+
+def test_empty_trash_flushes_detach_before_purge_when_live_child_under_trashed_parent(
+    client: TestClient,
+    db_session: Session,
+) -> None:
+    """Defensive detach must flush under autoflush=False before parent DELETE."""
+    from app.services.task_helpers import empty_trash_for_user, soft_delete_task_subtree
+
+    parent = _create_task(client, f"trash-parent-{_uid()}")
+    child = _create_task(client, f"trash-child-{_uid()}", parent_task_id=parent["id"])
+    parent_row = db_session.get(Task, uuid.UUID(parent["id"]))
+    child_row = db_session.get(Task, uuid.UUID(child["id"]))
+    assert parent_row is not None and child_row is not None
+
+    soft_delete_task_subtree(db_session, parent_row)
+    db_session.flush()
+    # bulk update uses synchronize_session=False — expire so the next write is real
+    db_session.expire_all()
+    parent_row = db_session.get(Task, uuid.UUID(parent["id"]))
+    child_row = db_session.get(Task, uuid.UUID(child["id"]))
+    assert parent_row is not None and child_row is not None
+    assert parent_row.deleted_at is not None
+    assert child_row.deleted_at is not None
+
+    # Simulate a live child still attached to a trashed parent (bypass restore helper).
+    child_row.deleted_at = None
+    assert child_row.parent_task_id == parent_row.id
+    db_session.flush()
+
+    removed = empty_trash_for_user(db_session, parent_row.owner_id)
+    assert removed >= 1
+    db_session.flush()
+    db_session.expire_all()
+
+    live = db_session.get(Task, uuid.UUID(child["id"]))
+    assert live is not None
+    assert live.deleted_at is None
+    assert live.parent_task_id is None
+    assert db_session.get(Task, uuid.UUID(parent["id"])) is None

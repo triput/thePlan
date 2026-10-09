@@ -916,3 +916,30 @@ remain optional and must not become a dependency for a local installation.
 - The temporary credential is immediately replaced through the existing forced-change flow.
 - Existing sessions are invalidated after recovery.
 - The path works without an email provider and has automated auth tests.
+
+---
+
+## DEF-028 — Calendar mirror delete failure recovery (pending deletion)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (busy-map pollution after a failed remote delete; success path is fine) |
+| **Status** | Open — backlog (success-path wipe shipped 2026-10-08; recovery debt parked) |
+| **Found** | 2026-10-08 (code review residual after horizon mirror wipe) |
+| **Surface** | `wipe_unpinned_blocks_in_horizon` ([`horizon.py`](../apps/api/app/scheduler/horizon.py)); Google/MS `delete_mirrored_block`; sync pull → `busy_map` |
+| **Wave** | W2c / calendar sync polish |
+
+### Symptom / ask
+
+Horizon wipe cancels Google/Microsoft mirrors and drops the local `ExternalCalendarEvent` so successful deletes no longer linger as external busy. If the provider **rejects** the delete, the implementation still removes the local row (so wipe cannot poison busy with a detached mirror). The **remote** event remains. A later calendar sync can re-import it with `scheduled_block_id` unset, and `busy_map` treats it as someone else's appointment.
+
+Changelog already notes the residual ([CHANGELOG.md](../CHANGELOG.md) Unreleased).
+
+### Recommended direction
+
+Keep a **pending-deletion** (or tombstone) record that retains provider / calendar / external event identity after local unlink, so retries can call delete again without losing the handle. Do not leave orphaned remote events as anonymous busy after a failed cancel.
+
+### Expected
+
+- Failed provider deletes are retried (or surface operator-visible debt) without losing external event identity.
+- A later sync does not permanently reintroduce wiped mirror slots as external busy without an explicit retry/fail path.

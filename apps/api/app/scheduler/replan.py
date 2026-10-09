@@ -11,10 +11,19 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.config import get_settings
 from app.db import SessionLocal
-from app.models import Epic, FocusWindow, Project, ScheduleRun, ScheduledBlock, TaskDependency, UserSettings
+from app.models import (
+    Epic,
+    FocusWindow,
+    Project,
+    ScheduleRun,
+    ScheduledBlock,
+    Task,
+    TaskDependency,
+    UserSettings,
+)
 from app.models.enums import ScheduleStatus, TaskPriority
 from app.scheduler.busy_map import build_busy_map
-from app.scheduler.candidates import TaskCandidate, load_candidates
+from app.scheduler.candidates import TaskCandidate, load_candidates, pinned_minutes_for_task
 from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon, wipe_unpinned_blocks_in_horizon
 from app.scheduler.placement import ProjectDailyUsage, place_one_block
@@ -38,14 +47,51 @@ def _blockers_by_dependent(
     dependencies: list[TaskDependency],
     candidate_ids: set[UUID],
 ) -> dict[UUID, list[UUID]]:
+    """Map each candidate to its blockers, including non-candidate prerequisites.
+
+    Fully pinned (or otherwise non-candidate) blockers must stay on the edge so
+    placement can enforce prerequisite finish times via ``not_before``.
+    """
     blockers: dict[UUID, list[UUID]] = {task_id: [] for task_id in candidate_ids}
     for dep in dependencies:
         blocker = dep.blocking_task_id
         dependent = dep.dependent_task_id
-        if blocker not in candidate_ids or dependent not in candidate_ids:
+        if dependent not in candidate_ids:
             continue
         blockers[dependent].append(blocker)
     return blockers
+
+
+def _remaining_including_external_blockers(
+    db: Session,
+    owner_id: UUID,
+    remaining_by_task: dict[UUID, int],
+    blockers_by_dependent: dict[UUID, list[UUID]],
+) -> dict[UUID, int]:
+    """Fill remaining minutes for blockers excluded from auto-placement candidates."""
+    merged = dict(remaining_by_task)
+    missing = {
+        blocker_id
+        for deps in blockers_by_dependent.values()
+        for blocker_id in deps
+        if blocker_id not in merged
+    }
+    if not missing:
+        return merged
+    tasks = (
+        db.query(Task)
+        .filter(Task.owner_id == owner_id, Task.id.in_(missing))
+        .all()
+    )
+    for task in tasks:
+        if task.is_completed or task.deleted_at is not None:
+            merged[task.id] = 0
+            continue
+        pinned = pinned_minutes_for_task(db, task.id)
+        merged[task.id] = max(0, task.estimated_duration_minutes - pinned)
+    for blocker_id in missing:
+        merged.setdefault(blocker_id, 0)
+    return merged
 
 
 def _dependencies_ready(
@@ -232,10 +278,24 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
 
         candidate_ids = {item.task.id for item in candidates}
         blockers_by_dependent = _blockers_by_dependent(dependencies, candidate_ids)
+        # One remaining map for placement + readiness: seed non-candidate
+        # (e.g. fully pinned) blockers, then mutate as blocks are placed so
+        # dependents unlock in later sweeps.
+        remaining_by_task = _remaining_including_external_blockers(
+            db,
+            owner_id,
+            remaining_by_task,
+            blockers_by_dependent,
+        )
+        prereq_seed_ids = candidate_ids | {
+            blocker_id
+            for deps in blockers_by_dependent.values()
+            for blocker_id in deps
+        }
         latest_block_end_by_task = _seed_prerequisite_block_ends(
             db,
             owner_id,
-            candidate_ids,
+            prereq_seed_ids,
             horizon_start,
             horizon_end,
         )

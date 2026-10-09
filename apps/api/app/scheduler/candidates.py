@@ -17,7 +17,7 @@ class TaskCandidate:
     remaining_minutes: int
 
 
-def _pinned_minutes_for_task(db: Session, task_id: UUID) -> int:
+def pinned_minutes_for_task(db: Session, task_id: UUID) -> int:
     blocks = (
         db.query(ScheduledBlock)
         .filter(
@@ -70,7 +70,7 @@ def load_candidates(
             ScheduleStyle.manual,
         }:
             continue
-        pinned_minutes = _pinned_minutes_for_task(db, task.id)
+        pinned_minutes = pinned_minutes_for_task(db, task.id)
         remaining = task.estimated_duration_minutes - pinned_minutes
         if remaining > 0:
             candidates.append(TaskCandidate(task=task, remaining_minutes=remaining))

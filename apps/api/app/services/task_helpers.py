@@ -180,6 +180,10 @@ def detach_live_children_before_purge(
         new_parent = nearest_live_ancestor_id(db, owner_id, child.parent_task_id)
         child.parent_task_id = new_parent
         child.nesting_level = resolve_nesting_level(db, owner_id, new_parent)
+    # Production sessions use autoflush=False; CASCADE delete must see the
+    # reparent UPDATE before the parent DELETE, or live children are removed.
+    if live_children:
+        db.flush()
 
 
 def soft_delete_task_subtree(db: Session, task: Task) -> datetime:

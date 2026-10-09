@@ -6,10 +6,12 @@
 - **Schedule concurrency:** Alembic `018_one_running_schedule_run` — partial unique index one `running` row per owner; `POST /schedule/replan` returns **409** `SCHEDULE_RUN_IN_PROGRESS`
 - **Trash restore:** child restored while parent still trashed → reparent to nearest live ancestor or inbox root; empty trash no longer hard-deletes live restored descendants
 - **Task PATCH:** reparent that would create a cycle → **422** `PARENT_CYCLE`
-- **Replan horizon wipe:** cancels Google/MS mirrors for removed unpinned blocks and drops local `ExternalCalendarEvent`; residual stale remote delete may re-import as busy
+- **Replan horizon wipe:** cancels Google/MS mirrors for removed unpinned blocks and drops local `ExternalCalendarEvent`; failed remote delete recovery parked as [DEF-028](docs/DEFECTS.md#def-028--calendar-mirror-delete-failure-recovery-pending-deletion)
 - **Scheduler:** dependency max-UPS ready queue + prerequisite `not_before`; red bands cut green/yellow; decreasing placement slice sizes
+- **Pinned prerequisites:** fully pinned / non-candidate blockers still gate dependents via remaining + `not_before` (shared remaining map so placement unlocks later sweeps)
+- **Trash purge:** detach live children flushes before parent hard-delete under `autoflush=False` (CASCADE-safe)
 - **Reminders:** due poll skips trashed tasks (`deleted_at` set)
-- **Quality:** correctness suite **73/73** green (Renee); scheduler worker tests green
+- **Quality:** correctness suite **73/73** green (Renee); scheduler worker tests green; P2 pinned-prereq + purge-flush targeted **34/34**
 
 ## [Unreleased] — W2c steal (scheduler polish)
 

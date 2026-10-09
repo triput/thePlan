@@ -185,6 +185,83 @@ def test_dependency_higher_priority_dependent_places_after_blocker(
     assert dependent_start >= blocker_end
 
 
+def test_fully_pinned_blocker_still_enforces_not_before(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Pinned-complete prerequisites stay out of candidates but must gate dependents."""
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    owner_id = _current_user_id(client)
+    blocker = _create_task(
+        client,
+        estimated_duration_minutes=60,
+        min_block_duration_minutes=30,
+        max_block_duration_minutes=60,
+        priority="p2",
+        deadline_at=_iso(FIXED_NOW + timedelta(days=6)),
+    )
+    dependent = _create_task(
+        client,
+        estimated_duration_minutes=30,
+        min_block_duration_minutes=30,
+        max_block_duration_minutes=30,
+        priority="p1",
+        deadline_at=_iso(FIXED_NOW + timedelta(days=6)),
+    )
+    blocker_id = uuid.UUID(blocker["id"])
+    dependent_id = uuid.UUID(dependent["id"])
+    db_session.add(
+        TaskDependency(
+            owner_id=owner_id,
+            blocking_task_id=blocker_id,
+            dependent_task_id=dependent_id,
+        )
+    )
+    _isolate_tasks(db_session, client, {blocker_id, dependent_id})
+    pin_start = FIXED_NOW + timedelta(days=1, hours=3)  # tomorrow 15:00 UTC
+    pin_end = pin_start + timedelta(hours=1)
+    db_session.add(
+        ScheduledBlock(
+            owner_id=owner_id,
+            task_id=blocker_id,
+            start_time=pin_start,
+            end_time=pin_end,
+            is_pinned=True,
+        )
+    )
+    db_session.flush()
+
+    monkeypatch.setattr(
+        "app.api.routes.schedule.dispatch_replan",
+        lambda run_id, sync=False: None,
+    )
+    run_row = ScheduleRun(owner_id=owner_id, status="running", started_at=FIXED_NOW)
+    db_session.add(run_row)
+    db_session.flush()
+    run_replan(run_row.id, db=db_session)
+    db_session.flush()
+    assert run_row.status == "completed"
+
+    horizon_end = FIXED_NOW + timedelta(days=7)
+    blocks = client.get(
+        "/api/v1/scheduled-blocks",
+        params={"start": _iso(FIXED_NOW), "end": _iso(horizon_end)},
+    ).json()["items"]
+    dependent_blocks = [
+        row
+        for row in blocks
+        if row["task_id"] == dependent["id"] and not row["is_pinned"]
+    ]
+    assert dependent_blocks, "dependent should still place after the pinned prereq"
+    dependent_start = min(
+        datetime.fromisoformat(row["start_time"].replace("Z", "+00:00"))
+        for row in dependent_blocks
+    )
+    assert dependent_start >= pin_end
+
+
 def test_replan_places_task_end_to_end(
     client: TestClient,
     db_session: Session,
