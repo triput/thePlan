@@ -1,6 +1,7 @@
 # F3 — Scheduler explanations (W1 + W2)
 
-**Status:** W1+W2 **Implemented** · **Quality:** targeted Dex W2 P2 suites green; full F3 pytest bundle re-run in progress · Dex recheck **pending** · push **held** · F3 **not** Closed/shipped — browser/manual checklist still open; W3 deferrals remain  
+**Status:** W1+W2 **Implemented** · **Quality:** F3 API pytest **85** green after Dex W2 P2 (**2026-10-09**) · Dex recheck **pending** · push **held** · F3 **not** Closed/shipped — browser/manual checklist still open; W3 deferrals remain  
+
 **Spec:** [NEXT-FEATURES-SPEC.md §6](../NEXT-FEATURES-SPEC.md#6-f3-scheduler-explanations)  
 **Build:** `3ac2a05` (no push until Dex recheck)
 **Hygiene:** Alembic head **`023_schedule_outcome_provenance`** (after **`022_schedule_task_outcomes`**, revises **`021_task_workflow`**)
@@ -37,7 +38,7 @@ Three holds from Dex W2 recheck — fixed in working tree; remote push still hel
 | 2 | **`cycle_groups` / `cycle_task_ids`** could include non-members or conflate separate cycles | Cycle membership via **Tarjan SCCs** (`dependencies.py`); **`cycle_task_ids`** lists true cycle members only; tasks **downstream** of a cycle get **`blocked_prerequisite`**; separate cycles keep distinct member lists. |
 | 3 | Naive **`deadline_at`** during calculate raised **`NameError`** in **`_ensure_utc`** | **`calculate._ensure_utc`** imports **`timezone`** from **`datetime`**. |
 
-**Evidence:** [apps/api/tests/test_f3_w2_dex_corrections.py](../../apps/api/tests/test_f3_w2_dex_corrections.py) — single immovable busy capture (`test_collect_captures_immovable_busy_once`, `test_snapshot_busy_uses_passed_capture_not_later_live`), horizon view from same capture (`test_busy_from_sources_derives_horizon_view_from_same_capture`), cycle vs prerequisite split (`test_downstream_of_cycle_gets_prerequisite_not_cycle`), naive deadline (`test_ensure_utc_accepts_naive_datetime`). Targeted suite green; full F3 bundle re-run pending.
+**Evidence:** [apps/api/tests/test_f3_w2_dex_corrections.py](../../apps/api/tests/test_f3_w2_dex_corrections.py) — single immovable busy capture, horizon view from same capture, cycle vs prerequisite split, naive deadline. Full F3 API bundle including this file: **85** passed.
 
 ## Scope
 
@@ -102,7 +103,7 @@ cd "F:\Code Repo\ThePlan\apps\api"
 .\.venv\Scripts\python.exe -m pytest tests/test_scheduler_reasons.py tests/test_schedule_replan.py tests/test_input_fingerprint.py tests/test_schedule_explanations.py tests/test_f3_w1_acceptance.py tests/test_f3_dex_w1_corrections.py tests/test_f3_w2_reasons.py tests/test_f3_w2_placement_telemetry.py tests/test_f3_w2_acceptance.py tests/test_f3_w2_dex_corrections.py -q
 ```
 
-**Renee (2026-10-09, F3-W2 exit):** **75** passed — W1 tranche (**45** on **2026-10-08**, including Dex P2) plus W2 suites (`test_f3_w2_reasons.py`, `test_f3_w2_placement_telemetry.py`, `test_f3_w2_acceptance.py`). **Dex W2 P2 (2026-10-09):** `test_f3_w2_dex_corrections.py` green; full bundle including that file re-run pending before Dex recheck.
+**Renee (2026-10-09, F3-W2 exit):** **75** passed — W1 tranche plus W2 suites. **Dex W2 P2 (2026-10-09):** full F3 API bundle including `test_f3_w2_dex_corrections.py` + dependency unit tests → **85** passed.
 
 CLI contract (API venv + `PYTHONPATH` to `apps/api`):
 
@@ -149,7 +150,7 @@ W1 items below still apply; W2 adds spot-checks for new reason families and v2 s
 | **F6 preview** | No preview/async diff UI; calculate/apply split is in place for a later slice |
 | **Run summary UI** | No dedicated schedule-run explanation browser in web — task panel + CLI/API only |
 | **F3-B inheritance depth** | Fuller Time Map override provenance (F4 overlap) remains roadmap, not W2 exit scope |
-| **Dex / push** | W1 **P2**, W2 reason/snapshot/`placement_facts`, and W2 **P2** (immovable busy capture, Tarjan cycle membership, naive deadline tz) in working tree — targeted Dex W2 P2 suite green; full F3 bundle re-run pending; Dex **recheck** and **push** still **held**. F3 stays **open** until Trish signs manual/browser checks and delivery policy. |
+| **Dex / push** | W1 **P2**, W2 reason/snapshot/`placement_facts`, and W2 **P2** (immovable busy capture, Tarjan cycle membership, naive deadline tz) at **`3ac2a05`** — API **85** green; Dex **recheck** and **push** still **held**. F3 stays **open** until Trish signs manual/browser checks and delivery policy. |
 
 ## Related documents
 
