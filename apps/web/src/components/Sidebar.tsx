@@ -9,13 +9,19 @@ import {
   fetchLabels,
   fetchProjects,
   listViews,
+  patchView,
   reorderProjects,
   type Epic,
   type Project,
   type SavedView,
 } from "../api";
 import { SavedViewFilterModal } from "./SavedViewFilterModal";
-import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
+import {
+  buildReorderSwap,
+  canReorderDown,
+  canReorderUp,
+  compareBySortOrderThenName,
+} from "../reorder";
 import type { ViewSelection } from "../view";
 import { CreateEpicForm } from "./CreateEpicForm";
 import { CreateProjectForm } from "./CreateProjectForm";
@@ -154,6 +160,27 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
+
+  const reorderSavedViewsMutation = useMutation({
+    mutationFn: async (items: { id: string; sort_order: number }[]) => {
+      await Promise.all(items.map((item) => patchView(item.id, { sort_order: item.sort_order })));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["views"] });
+    },
+  });
+
+  const handleReorderSavedView = (viewId: string, direction: "up" | "down") => {
+    // Tie-break by name — must match userSavedViews display sort (M2).
+    const items = buildReorderSwap(
+      userSavedViews,
+      viewId,
+      direction,
+      compareBySortOrderThenName,
+    );
+    if (!items) return;
+    reorderSavedViewsMutation.mutate(items);
+  };
 
   const handleReorderProject = (group: Project[], projectId: string, direction: "up" | "down") => {
     const items = buildReorderSwap(group, projectId, direction);
@@ -310,6 +337,13 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
             onClick={() =>
               onSelectView({ type: "saved", id: row.id, slug: row.slug })
             }
+            reorder={{
+              canMoveUp: canReorderUp(userSavedViews, row.id, compareBySortOrderThenName),
+              canMoveDown: canReorderDown(userSavedViews, row.id, compareBySortOrderThenName),
+              onMoveUp: () => handleReorderSavedView(row.id, "up"),
+              onMoveDown: () => handleReorderSavedView(row.id, "down"),
+              pending: reorderSavedViewsMutation.isPending,
+            }}
           />
         ))}
         {!viewsQuery.isLoading && userSavedViews.length === 0 && (

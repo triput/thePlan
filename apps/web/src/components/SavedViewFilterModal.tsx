@@ -25,7 +25,11 @@ import {
   validateSavedViewFilterDraft,
   type SavedViewFilterDraft,
 } from "../savedViewPredicate";
-import type { TaskPresentation } from "../taskPresentation";
+import {
+  savedViewPresentationSort,
+  type SavedViewSortKey,
+  type TaskPresentation,
+} from "../taskPresentation";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
@@ -42,6 +46,18 @@ const SCHEDULE_STATUSES = [
 ] as const;
 const SCHEDULE_STYLES: ScheduleStyle[] = ["standalone", "time_block", "manual", "bundle"];
 
+const SORT_OPTIONS: { value: SavedViewSortKey; label: string }[] = [
+  { value: "sort_order", label: "Manual order" },
+  { value: "created_at", label: "Created (oldest first)" },
+  { value: "-created_at", label: "Created (newest first)" },
+  { value: "due_at", label: "Due date (soonest first)" },
+  { value: "-due_at", label: "Due date (latest first)" },
+  { value: "priority", label: "Priority (highest first)" },
+  { value: "-priority", label: "Priority (lowest first)" },
+  { value: "title", label: "Title (A–Z)" },
+  { value: "-title", label: "Title (Z–A)" },
+];
+
 function toggleInList<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
 }
@@ -54,6 +70,7 @@ export interface SavedViewFilterModalProps {
   viewId?: string;
   initialName?: string;
   initialPredicate?: SavedViewPredicateV1 | Record<string, unknown>;
+  initialPresentation?: SavedViewPresentation | Record<string, unknown>;
   presentationMode?: TaskPresentation;
   invalidReferences?: SavedViewInvalidReference[];
   onSaved?: (view: SavedView) => void;
@@ -67,6 +84,7 @@ export function SavedViewFilterModal({
   viewId,
   initialName = "",
   initialPredicate,
+  initialPresentation,
   presentationMode = "list",
   invalidReferences = [],
   onSaved,
@@ -79,6 +97,9 @@ export function SavedViewFilterModal({
   );
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [sortKey, setSortKey] = useState<SavedViewSortKey>(() =>
+    savedViewPresentationSort(initialPresentation),
+  );
 
   const projectsQuery = useQuery({
     queryKey: ["projects"],
@@ -122,7 +143,8 @@ export function SavedViewFilterModal({
         : defaultSavedViewFilterDraft(),
     );
     setFormError(null);
-  }, [open, initialName, initialPredicate, predicateOptions]);
+    setSortKey(savedViewPresentationSort(initialPresentation));
+  }, [open, initialName, initialPredicate, initialPresentation, predicateOptions]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -131,7 +153,10 @@ export function SavedViewFilterModal({
       const validationError = validateSavedViewFilterDraft(draft);
       if (validationError) throw new Error(validationError);
       const predicate = predicateFromDraft(draft, predicateOptions) as SavedViewPredicateV1;
-      const presentation_json: SavedViewPresentation = { mode: presentationMode };
+      const presentation_json: SavedViewPresentation = {
+        mode: presentationMode,
+        sort: sortKey,
+      };
       if (mode === "create") {
         return createView({
           name: trimmed,
@@ -518,9 +543,24 @@ export function SavedViewFilterModal({
           )}
         </fieldset>
 
+        <label className="field-label">
+          Sort tasks by
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SavedViewSortKey)}
+            aria-label="Saved view task sort order"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <p className="muted small">
-          Presentation when saving: <strong>{presentationMode === "board" ? "Board" : "List"}</strong>{" "}
-          (from the current view toggle).
+          Layout when saving: <strong>{presentationMode === "board" ? "Board" : "List"}</strong>{" "}
+          (from the current List/Board toggle).
         </p>
 
         {formError && <p className="form-error">{formError}</p>}

@@ -55,12 +55,36 @@ export function boardViewSupported(view: ViewSelection): boolean {
   );
 }
 
+export const SAVED_VIEW_SORT_KEYS = [
+  "sort_order",
+  "created_at",
+  "-created_at",
+  "due_at",
+  "-due_at",
+  "priority",
+  "-priority",
+  "title",
+  "-title",
+] as const;
+
+export type SavedViewSortKey = (typeof SAVED_VIEW_SORT_KEYS)[number];
+
 export function savedViewPresentationMode(
   presentationJson: { mode?: string } | null | undefined,
 ): TaskPresentation | null {
   if (presentationJson?.mode === "board") return "board";
   if (presentationJson?.mode === "list") return "list";
   return null;
+}
+
+export function savedViewPresentationSort(
+  presentationJson: { sort?: string } | null | undefined,
+): SavedViewSortKey {
+  const sort = presentationJson?.sort;
+  if (sort && (SAVED_VIEW_SORT_KEYS as readonly string[]).includes(sort)) {
+    return sort as SavedViewSortKey;
+  }
+  return "sort_order";
 }
 
 export function readTaskPresentation(viewKey: string): TaskPresentation {

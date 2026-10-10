@@ -4,12 +4,18 @@ import {
   buildReorderSwap,
   canReorderDown,
   canReorderUp,
+  compareBySortOrderThenName,
 } from "../src/reorder.ts";
 
 type Item = { id: string; sort_order: number };
+type Named = Item & { name: string };
 
 function item(id: string, sort_order: number): Item {
   return { id, sort_order };
+}
+
+function named(id: string, name: string, sort_order: number): Named {
+  return { id, name, sort_order };
 }
 
 describe("buildReorderSwap", () => {
@@ -38,6 +44,34 @@ describe("buildReorderSwap", () => {
       { id: "a", sort_order: 1 },
       { id: "z", sort_order: 2 },
     ]);
+  });
+
+  it("name tiebreak matches Sidebar saved-view display (M2)", () => {
+    // Display (name): Browser mixed, Pagination view, Repair label, Repair project
+    // IDs intentionally reverse of name order so id-tiebreak would disagree.
+    const items = [
+      named("id-pagination", "Pagination view", 100),
+      named("id-browser", "Browser mixed", 100),
+      named("id-repair-proj", "Repair project", 100),
+      named("id-repair-label", "Repair label", 100),
+    ];
+    assert.equal(canReorderUp(items, "id-browser", compareBySortOrderThenName), false);
+    assert.equal(canReorderUp(items, "id-pagination", compareBySortOrderThenName), true);
+    // Move Repair project up → swap with Repair label (name neighbor above).
+    const updates = buildReorderSwap(
+      items,
+      "id-repair-proj",
+      "up",
+      compareBySortOrderThenName,
+    );
+    assert.ok(updates);
+    // Equal ranks → renumber 0..n-1 in post-swap name order:
+    // Browser, Pagination, Repair project, Repair label
+    const byId = Object.fromEntries(updates.map((u) => [u.id, u.sort_order]));
+    assert.equal(byId["id-browser"], 0);
+    assert.equal(byId["id-pagination"], 1);
+    assert.equal(byId["id-repair-proj"], 2);
+    assert.equal(byId["id-repair-label"], 3);
   });
 
   it("returns null at list edges", () => {

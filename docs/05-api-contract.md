@@ -434,14 +434,29 @@ Calendar view uses range query: `GET /scheduled-blocks?start=2026-08-11T00:00:00
 | GET | `/views` | List system + owner user views. Order: `is_system` DESC, then `sort_order`, then `name`. |
 | POST | `/views` | Create user view — **201** `SavedViewOut`. Body: `name`, optional `slug` (else slugified from name), `predicate_json` (v1), optional `presentation_json`, optional `sort_order` (default **100**). |
 | GET | `/views/{id}` | Owner-scoped view metadata. **404** if missing or not owned. |
-| PATCH | `/views/{id}` | User views only — rename, slug, predicate, presentation, `sort_order`. System rows → **403** `SYSTEM_VIEW_READ_ONLY`. |
+| PATCH | `/views/{id}` | User views only — rename, slug, predicate, **`presentation_json`** (shallow-merge), `sort_order`. System rows → **403** `SYSTEM_VIEW_READ_ONLY`. |
 | DELETE | `/views/{id}` | User views only — **204**; tasks unchanged. System → **403** `SYSTEM_VIEW_READ_ONLY`. |
-| GET | `/views/{id}/tasks` | Tasks matching predicate — `{ items, total, limit, offset, invalid_references? }`. Query: `limit` (default **50**, max **1000**), `offset`, `board_order` (when true: sort by `board_rank`, then `created_at`; else `sort_order`, then `created_at`). |
-| GET | `/views/by-slug/{slug}/tasks` | Same response as `/{id}/tasks`; resolves slug for system or user views. |
+| GET | `/views/{id}/tasks` | Tasks matching predicate — `{ items, total, limit, offset, invalid_references? }`. Query: `limit` (default **50**, max **1000**), `offset`, optional **`sort`** (allowlisted; overrides `presentation_json.sort`), `board_order` (when **true**: sort by `board_rank`, then `created_at` — **presentation sort ignored**; when false/absent: order from `sort` / `presentation_json.sort` / default **`sort_order`** then tie-breakers per key — see below). |
+| GET | `/views/by-slug/{slug}/tasks` | Same response and query params as `/{id}/tasks`; resolves slug for system or user views. |
 
 **`SavedViewOut`:** `id`, `name`, `slug`, `predicate_json`, `presentation_json` (object, default `{}`), `is_system`, `sort_order`.
 
-**`presentation_json`:** UI preference only (does not change which tasks match). W1 accepts any JSON object; typical keys: `mode` (`list` \| `board`), optional `sort`. Web/CLI may adopt stricter shapes in W2–W3.
+**`presentation_json`:** UI preference only (does not change which tasks match). Object; unknown keys preserved. **`PATCH`** **shallow-merges** into the stored object (partial `{ "mode": "board" }` keeps other keys). Validated keys:
+
+- **`mode`:** `list` \| `board` — invalid → **422** `INVALID_PRESENTATION` (`presentation_json.mode`).
+- **`sort`:** allowlisted string (see task query sort below) — invalid → **422** `INVALID_SORT` (`presentation_json.sort`).
+
+**View task sort resolution** (when `board_order` is not true): optional query **`sort`** wins, else `presentation_json.sort`, else default **`sort_order`**. Allowlisted values (ascending unless prefixed with `-`):
+
+| Key | ORDER BY |
+|-----|----------|
+| `sort_order` (default) | `sort_order` ASC, `created_at` ASC |
+| `created_at` / `-created_at` | `created_at` ASC / DESC |
+| `due_at` / `-due_at` | `due_at` ASC / DESC, `created_at` ASC |
+| `priority` / `-priority` | `priority` ASC / DESC, `created_at` ASC |
+| `title` / `-title` | `title` ASC / DESC, `created_at` ASC |
+
+Unknown or empty sort → **422** `INVALID_SORT` (field `sort` or `presentation_json.sort` as applicable).
 
 **Predicate v1 (runtime):** top-level `"v": 1` and `"dimensions"` object. Omitted dimension keys = no constraint on that axis; present keys **AND** together; array values **OR** within the dimension. Legacy `op` / `clauses` documents → **422** `INVALID_PREDICATE`. Supported dimension keys include: `inbox` (boolean `true` only), `project_ids`, `epic_ids`, `labels` (`ids`, `match`: `any` \| `all`), `priorities`, `workflow_states`, `completion` (`open` \| `done` \| `any`), `schedule_statuses`, `schedule_styles`, `due` (`kind`: `none` \| `unbounded` \| `fixed` with half-open `[from, to)` \| `rolling` with `today`, `next_7_days`, `this_calendar_week`, `within_days` + `days`). **`inbox` and `project_ids` together** → **422** `INVALID_PREDICATE`. Empty OR arrays rejected. Complexity caps → **422** `PREDICATE_TOO_COMPLEX` (max dimension keys, OR fan-out, single bag — no nested clause trees).
 
@@ -458,10 +473,12 @@ Calendar view uses range query: `GET /scheduled-blocks?start=2026-08-11T00:00:00
 | `PREDICATE_TOO_COMPLEX` | **422** | Over dimension count, OR fan-out, or nesting |
 | `INVALID_SLUG` | **422** | Slug format (lowercase `[a-z0-9-]`, 1–100 chars) |
 | `DUPLICATE_SLUG` | **422** | Slug already used for this owner |
+| `INVALID_SORT` | **422** | Unknown or empty `sort` query param or `presentation_json.sort` |
+| `INVALID_PRESENTATION` | **422** | `presentation_json` not an object, or invalid `mode` |
 
 View **GET** by foreign owner's id → **404** (same as missing).
 
-**Not in W1:** `GET /tasks?view=inbox|today|upcoming` — use `/views/by-slug/…/tasks`. CLI **`theplan views`** (F7 W2) and web filter builder (W3) not shipped yet.
+**Not implemented:** `GET /tasks?view=inbox|today|upcoming` — use `/views/by-slug/…/tasks`. CLI **`theplan views`** (F7 W2) and web saved-view UI (F7 W3) are shipped; see [delivery/F7-SAVED-VIEWS.md](./delivery/F7-SAVED-VIEWS.md) for remaining Open items (Dex retest, automated W3 tests).
 
 **Ad hoc task list (non-saved-view contexts):**
 

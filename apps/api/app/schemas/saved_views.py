@@ -1,3 +1,10 @@
+"""Saved view API shapes (F7).
+
+Presentation ``sort`` allowlist (validated in ``saved_view_presentation``):
+``sort_order``, ``created_at``, ``-created_at``, ``due_at``, ``-due_at``,
+``priority``, ``-priority``, ``title``, ``-title`` — default ``sort_order``.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Literal

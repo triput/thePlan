@@ -5,8 +5,9 @@
 - **F7 W1 API:** Alembic **`027_saved_filter_presentation`** — `saved_filters.presentation_json`; v1 predicate engine (`saved_filter_predicate`, `saved_filter_query`); **`/api/v1/views`** CRUD + **`/{id}/tasks`** and **`/by-slug/{slug}/tasks`**; system Inbox/Today/Upcoming backfilled to v1 — [delivery/F7-SAVED-VIEWS.md](docs/delivery/F7-SAVED-VIEWS.md), [NEXT-FEATURES-SPEC §10](docs/NEXT-FEATURES-SPEC.md#10-f7-saved-views)
 - **Quality (W1):** Renee exit — **64** API pytest (`test_f7_w1_views`, `test_f7_w1_predicate`, `test_f7_w1_quality`)
 - **F7 W2 CLI:** `theplan views` **list**, **get**, **create**, **patch**, **delete**, **query** (`--id` / `--slug`, pagination, `--board-order`) — [CLI.md](docs/CLI.md); CLI tests green (`test_views_commands.py`)
-- **F7 W3 web:** Saved-view filter modal, sidebar user views, TaskList/TaskBoard via saved-view task query, invalid-reference repair banner — `npm run build` green; no automated W3 tests; known gaps (sidebar reorder, presentation patch on every list/board toggle, load-more on saved views) in delivery doc
-- **F7 status:** **Open / in-progress** — Dex manual + sign-off remain; **not** Closed/shipped
+- **F7 W3 web:** Saved-view filter modal, sidebar user views, TaskList/TaskBoard via saved-view task query, invalid-reference repair banner — `npm run build` green; no automated W3 tests
+- **F7 W3 completion (2026-10-10):** Saved-view **load-more** (list page **200**, board **500**); List/Board toggle **PATCH**es `presentation_json.mode` (server shallow-merge); view task **sort** allowlist on `GET …/tasks` via `?sort=` or `presentation_json.sort` (`INVALID_SORT` when invalid; `board_order=true` ignores presentation sort); sidebar user-view **reorder** via `sort_order` — pending Dex retest; [05-api-contract.md](docs/05-api-contract.md) Smart Views section updated
+- **F7 status:** **Open / in-progress** — Dex retest on W3 completion slices + sign-off remain; **not** Closed/shipped
 
 ## [Unreleased] — F2 Kanban (2026-10-08)
 

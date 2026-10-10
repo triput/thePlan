@@ -26,6 +26,12 @@ from app.services.saved_filter_query import (
     apply_default_task_visibility,
     apply_predicate_to_query,
 )
+from app.services.saved_view_presentation import (
+    merge_presentation,
+    resolve_task_sort,
+    task_order_by,
+    validate_presentation,
+)
 
 router = APIRouter(prefix="/views", tags=["views"])
 
@@ -87,6 +93,7 @@ def _query_view_tasks(
     limit: int,
     offset: int,
     board_order: bool,
+    sort: str | None = None,
 ) -> SavedViewTasksResponse:
     settings = get_or_provision_user_settings(db, user)
     predicate = validate_predicate(view.predicate_json)
@@ -121,9 +128,11 @@ def _query_view_tasks(
     query = applied.query
     total = query.count()
     if board_order:
+        # Board columns use board_rank; presentation_json.sort is ignored here.
         order = (Task.board_rank, Task.created_at)
     else:
-        order = (Task.sort_order, Task.created_at)
+        sort_key = resolve_task_sort(query_sort=sort, presentation=view.presentation_json)
+        order = task_order_by(sort_key)
     rows = query.order_by(*order).offset(offset).limit(limit).all()
     plan_ids = {item.plan_id for item in rows if item.plan_id is not None}
     plan_names: dict[UUID, str] = {}
@@ -165,7 +174,7 @@ def create_view(
     predicate = validate_predicate(body.predicate_json)
     slug = _normalize_slug(body.slug) if body.slug else _slugify_name(body.name)
     _ensure_unique_slug(db, user.id, slug, exclude_id=None)
-    presentation = body.presentation_json if body.presentation_json is not None else {}
+    presentation = validate_presentation(body.presentation_json if body.presentation_json is not None else {})
     row = SavedFilter(
         owner_id=user.id,
         name=body.name.strip(),
@@ -190,11 +199,17 @@ def list_view_tasks_by_slug(
         default=False,
         description="When true, order by board_rank then created_at.",
     ),
+    sort: str | None = Query(
+        default=None,
+        description="Optional allowlisted sort key; overrides presentation_json.sort.",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> SavedViewTasksResponse:
     view = _get_owned_view_by_slug(db, _normalize_slug(slug), user)
-    return _query_view_tasks(db, user, view, limit=limit, offset=offset, board_order=board_order)
+    return _query_view_tasks(
+        db, user, view, limit=limit, offset=offset, board_order=board_order, sort=sort
+    )
 
 
 @router.get("/{view_id}", response_model=SavedViewOut)
@@ -226,7 +241,7 @@ def update_view(
     if "predicate_json" in updates and updates["predicate_json"] is not None:
         row.predicate_json = validate_predicate(updates["predicate_json"])
     if "presentation_json" in updates and updates["presentation_json"] is not None:
-        row.presentation_json = updates["presentation_json"]
+        row.presentation_json = merge_presentation(row.presentation_json or {}, updates["presentation_json"])
     if "sort_order" in updates and updates["sort_order"] is not None:
         row.sort_order = updates["sort_order"]
 
@@ -257,8 +272,14 @@ def list_view_tasks(
         default=False,
         description="When true, order by board_rank then created_at.",
     ),
+    sort: str | None = Query(
+        default=None,
+        description="Optional allowlisted sort key; overrides presentation_json.sort.",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> SavedViewTasksResponse:
     view = _get_owned_view(db, view_id, user)
-    return _query_view_tasks(db, user, view, limit=limit, offset=offset, board_order=board_order)
+    return _query_view_tasks(
+        db, user, view, limit=limit, offset=offset, board_order=board_order, sort=sort
+    )

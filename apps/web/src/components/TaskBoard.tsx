@@ -70,6 +70,7 @@ const OPEN_COLUMNS: { id: TaskBoardColumnId; label: string }[] = [
 const DONE_COLUMN: TaskBoardColumnId = "done";
 const OPEN_PAGE_SIZE = 50;
 const DONE_PAGE_SIZE = 30;
+const SAVED_BOARD_PAGE_SIZE = 500;
 
 /** Default GET /tasks excludes archived project/epic tasks; explicit project_id may still include them. */
 
@@ -232,6 +233,9 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const [doneItems, setDoneItems] = useState<Task[]>([]);
   const [doneRawTotal, setDoneRawTotal] = useState(0);
   const [accumResetGen, setAccumResetGen] = useState(0);
+  const [savedViewOffset, setSavedViewOffset] = useState(0);
+  const [savedViewAccum, setSavedViewAccum] = useState<Task[]>([]);
+  const [savedViewTotal, setSavedViewTotal] = useState(0);
   const [pendingComplete, setPendingComplete] = useState<PendingComplete | null>(null);
   const [pendingWaiting, setPendingWaiting] = useState<PendingWaitingMove | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<TaskBoardColumnId | null>(null);
@@ -331,11 +335,21 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const showProjectContext = view.type !== "project" && !isSavedView;
 
   const savedViewBoardQuery = useQuery({
-    queryKey: ["views", isSavedView && view.type === "saved" ? view.id : "", "tasks", "board"],
+    queryKey: [
+      "views",
+      isSavedView && view.type === "saved" ? view.id : "",
+      "tasks",
+      "board",
+      savedViewOffset,
+    ],
     enabled: isSavedView && view.type === "saved",
     queryFn: () => {
       if (view.type !== "saved") throw new Error("Saved view required");
-      return queryViewTasks(view.id, { limit: 500, board_order: true });
+      return queryViewTasks(view.id, {
+        limit: SAVED_BOARD_PAGE_SIZE,
+        offset: savedViewOffset,
+        board_order: true,
+      });
     },
   });
 
@@ -435,8 +449,19 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     setDoneRawOffset(0);
     setDoneItems([]);
     setDoneRawTotal(0);
+    setSavedViewOffset(0);
+    setSavedViewAccum([]);
+    setSavedViewTotal(0);
     setAccumResetGen((g) => g + 1);
   }, [boardResetKey]);
+
+  useEffect(() => {
+    if (!isSavedView || !savedViewBoardQuery.data) return;
+    setSavedViewTotal(savedViewBoardQuery.data.total);
+    setSavedViewAccum((prev) =>
+      mergeAccumPage(prev, savedViewBoardQuery.data!.items, savedViewOffset),
+    );
+  }, [isSavedView, savedViewBoardQuery.data, savedViewOffset, accumResetGen]);
 
   useEffect(() => {
     if (!smartFilter || !smartOpenQuery.data) return;
@@ -467,23 +492,27 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return groupOpenTasks(items);
   }, [smartFilter, smartOpenAccum, scheduledOpenQuery.data, view, scheduledIds, rootsOnly]);
 
+  const savedViewLoadedCount = isSavedView ? savedViewAccum.length : 0;
+  const savedViewHasMore =
+    isSavedView && savedViewLoadedCount < savedViewTotal;
+
   const savedViewGrouped = useMemo(() => {
-    if (!isSavedView || !savedViewBoardQuery.data) return null;
-    let openItems = savedViewBoardQuery.data.items.filter((t) => !t.is_completed);
+    if (!isSavedView || savedViewAccum.length === 0) return null;
+    let openItems = savedViewAccum.filter((t) => !t.is_completed);
     if (rootsOnly) {
       openItems = openItems.filter((t) => t.parent_task_id === null);
     }
     return groupOpenTasks(openItems);
-  }, [isSavedView, savedViewBoardQuery.data, rootsOnly]);
+  }, [isSavedView, savedViewAccum, rootsOnly]);
 
   const savedViewDoneItems = useMemo(() => {
-    if (!isSavedView || !savedViewBoardQuery.data) return [];
-    let items = savedViewBoardQuery.data.items.filter((t) => t.is_completed);
+    if (!isSavedView || savedViewAccum.length === 0) return [];
+    let items = savedViewAccum.filter((t) => t.is_completed);
     if (rootsOnly) {
       items = items.filter((t) => t.parent_task_id === null);
     }
     return items;
-  }, [isSavedView, savedViewBoardQuery.data, rootsOnly]);
+  }, [isSavedView, savedViewAccum, rootsOnly]);
 
   const openByColumn = useMemo(() => {
     if (isSavedView && savedViewGrouped) {
@@ -510,9 +539,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
 
   const openColumnTotals = useMemo(() => {
     if (isSavedView && savedViewGrouped) {
-      const loaded = savedViewBoardQuery.data?.items.length ?? 0;
-      const apiTotal = savedViewBoardQuery.data?.total ?? loaded;
-      const suffix = loaded < apiTotal ? "+" : "";
+      const suffix = savedViewHasMore ? "+" : "";
       return {
         ready: `${savedViewGrouped.ready.length}${suffix}`,
         in_progress: `${savedViewGrouped.in_progress.length}${suffix}`,
@@ -537,7 +564,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   }, [
     isSavedView,
     savedViewGrouped,
-    savedViewBoardQuery.data,
+    savedViewHasMore,
     smartFilter,
     mergedSmartOpen,
     openServerTotals,
@@ -547,13 +574,24 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
 
   const openColumnHasMore = useCallback(
     (colId: OpenColumnId): boolean => {
+      if (isSavedView) {
+        return savedViewHasMore;
+      }
       if (smartFilter) {
         return smartOpenOffset + OPEN_PAGE_SIZE < smartOpenTotal;
       }
       const loaded = openAccum[colId].length;
       return loaded < openServerTotals[colId];
     },
-    [smartFilter, smartOpenOffset, smartOpenTotal, openAccum, openServerTotals],
+    [
+      isSavedView,
+      savedViewHasMore,
+      smartFilter,
+      smartOpenOffset,
+      smartOpenTotal,
+      openAccum,
+      openServerTotals,
+    ],
   );
 
   const wipCount = useMemo(() => {
@@ -587,13 +625,28 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     for (const task of doneColumnItems) {
       map.set(task.id, task);
     }
+    if (isSavedView) {
+      for (const task of savedViewAccum) {
+        map.set(task.id, task);
+      }
+    }
     return map;
-  }, [openByColumn, openAccum, smartOpenAccum, scheduledOpenQuery.data, doneColumnItems]);
+  }, [
+    openByColumn,
+    openAccum,
+    smartOpenAccum,
+    scheduledOpenQuery.data,
+    doneColumnItems,
+    isSavedView,
+    savedViewAccum,
+  ]);
 
   const doneFilteredView = smartFilter || isSavedView;
-  const doneHasMore = isSavedView ? false : doneRawOffset + DONE_PAGE_SIZE < doneRawTotal;
+  const doneHasMore = isSavedView
+    ? savedViewHasMore
+    : doneRawOffset + DONE_PAGE_SIZE < doneRawTotal;
   const doneDisplayTotal = isSavedView
-    ? savedViewDoneItems.length
+    ? `${savedViewDoneItems.length}${savedViewHasMore ? "+" : ""}`
     : doneFilteredView
       ? `${doneItems.length}${doneHasMore ? "+" : ""}`
       : doneRawTotal;
@@ -735,16 +788,21 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return allTasksById.get(task.parent_task_id)?.title ?? "Subtask";
   };
 
-  const loading =
-    (smartFilter
-      ? smartOpenQuery.isLoading || scheduledOpenQuery.isLoading
-      : columnQueries.some((q) => q.isLoading)) || doneQuery.isLoading;
+  const loading = isSavedView
+    ? savedViewBoardQuery.isLoading && savedViewOffset === 0
+    : (smartFilter
+        ? smartOpenQuery.isLoading || scheduledOpenQuery.isLoading
+        : columnQueries.some((q) => q.isLoading)) || doneQuery.isLoading;
 
   const loadMoreDone = () => {
     setDoneRawOffset((prev) => prev + DONE_PAGE_SIZE);
   };
 
   const loadMoreOpen = (colId: OpenColumnId) => {
+    if (isSavedView) {
+      setSavedViewOffset((prev) => prev + SAVED_BOARD_PAGE_SIZE);
+      return;
+    }
     if (smartFilter) {
       setSmartOpenOffset((prev) => prev + OPEN_PAGE_SIZE);
       return;
@@ -753,6 +811,10 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       ...prev,
       [colId]: prev[colId] + OPEN_PAGE_SIZE,
     }));
+  };
+
+  const loadMoreSavedDone = () => {
+    setSavedViewOffset((prev) => prev + SAVED_BOARD_PAGE_SIZE);
   };
 
   const resolveDropHints = (
@@ -982,10 +1044,12 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     const colId = col.id as OpenColumnId;
     const total = rootsOnly ? items.length : openColumnTotals[colId];
     const hasMore = openColumnHasMore(colId);
-    const fetchingMore = smartFilter
-      ? smartOpenQuery.isFetching && smartOpenOffset > 0
-      : columnQueries[OPEN_COLUMNS.findIndex((c) => c.id === col.id)]?.isFetching &&
-        openOffsets[colId] > 0;
+    const fetchingMore = isSavedView
+      ? savedViewBoardQuery.isFetching && savedViewOffset > 0
+      : smartFilter
+        ? smartOpenQuery.isFetching && smartOpenOffset > 0
+        : columnQueries[OPEN_COLUMNS.findIndex((c) => c.id === col.id)]?.isFetching &&
+          openOffsets[colId] > 0;
     return (
       <section
         key={col.id}
@@ -1125,10 +1189,20 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
               <button
                 type="button"
                 className="btn secondary small task-board-load-more"
-                onClick={loadMoreDone}
-                disabled={doneQuery.isFetching}
+                onClick={isSavedView ? loadMoreSavedDone : loadMoreDone}
+                disabled={
+                  isSavedView
+                    ? savedViewBoardQuery.isFetching && savedViewOffset > 0
+                    : doneQuery.isFetching
+                }
               >
-                {doneQuery.isFetching ? "Loading…" : "Load more"}
+                {(
+                  isSavedView
+                    ? savedViewBoardQuery.isFetching && savedViewOffset > 0
+                    : doneQuery.isFetching
+                )
+                  ? "Loading…"
+                  : "Load more"}
               </button>
             )}
           </div>

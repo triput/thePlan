@@ -2,16 +2,16 @@
 
 **Filename:** MANUAL-CHECKLIST.md
 
-**Last modified:** 2026-10-10 (Dex — six F7 P2s verified closed)
+**Last modified:** 2026-10-10 (Dex — F7 manual checklist execution)
 
-**File version:** 3.3
+**File version:** 3.6
 
 **Dex coverage, 2026-10-09:** Checked boxes below mean the stated local check has Dex evidence; Trish may independently rerun them. They do not complete the human sign-off table. **F1–F3: 31 pass, 5 partial, 1 user-only; prior lifecycle failure retested successfully.** Original pass uses frozen `cc87349`; reused `0199edf` browser evidence is labeled. CLI/API checks are identified separately from browser checks. See [original Dex evidence](./DEX-MANUAL-2026-10-09.md) and [F4 verification / three web P2s](./DEX-F4-MANUAL-2026-10-09.md). **F4 W3 web slice: empty-band edit/create, header alignment, and original UTC overlay Pass; residual P2s (mixed override TZ → settings.timezone band hours; 06–22 visible clipping) Verified closed (Trish/Dex, local working tree). F4 remains Open (CLI, day overlay, F4-D, sign-off table); no push.** **F5:** all seven findings, including both residuals, verified closed by Dex; see [F5 evidence](./DEX-F5-MANUAL-2026-10-09.md). F5 remains Open for remaining manual coverage and human sign-off; no push. F4 evidence below distinguishes direct browser/HTTP checks from focused automated corroboration; the optional browser DST check remains open.
 
 Standalone operator checklist for browser / CLI verification of F1–F5 delivery waves.
 Canonical copy — tick boxes here. Feature delivery docs link here instead of duplicating lists.
 
-**As of 2026-10-10:** prior **2026-10-09** paragraph unchanged for F3–F6 (F6 **Open**, Dex retest items as below). **F7:** W1 API Quality **64** pytest green; **W2** CLI `theplan views` implemented (CLI tests green); **W3** web filter builder + sidebar user views + saved-view task query implemented (`npm run build` green; **no automated W3 tests**). Dex **2026-10-10** filed six P2s (R1–R6) — **Fixed (code), awaiting Dex retest** (Andi+Jules); pagination, presentation PATCH, sidebar reorder gaps unchanged. F7 **Open / in-progress** (not Closed); operator rows below **unchecked** — broader acceptance and human sign-off remain.
+**As of 2026-10-10:** prior **2026-10-09** paragraph unchanged for F3–F6 (F6 **Open**, Dex retest items as below). **F7:** W1 API Quality **64** pytest green; **W2** CLI `theplan views` implemented (CLI tests green); **W3** web filter builder + sidebar user views + saved-view task query implemented (`npm run build` green; **no automated W3 tests**). Dex **2026-10-10** R1–R6 **verified closed** in focused retest. **W3 completion gaps (same day):** saved-view load-more (list **200**, board **500**), List/Board → **`presentation_json.mode` PATCH** + allowlisted **`?sort=`** / `presentation_json.sort`, sidebar user-view reorder — **Implemented, pending Dex retest**. F7 **Open / in-progress** (not Closed); operator rows below **unchecked** — broader acceptance and human sign-off remain.
 F1–F3: automated suites green; human gate still open for those waves where sections below are unchecked.
 
 ---
@@ -403,65 +403,77 @@ Delivery: [F6-REPLAN-PREVIEW.md](./F6-REPLAN-PREVIEW.md) · **W1–W2** Quality 
 
 ## F7 — Saved views
 
-**Focused fix retest, 2026-10-10:** R1–R6 verified closed by Dex in a rebuilt disposable instance: successive board moves, counts after reload, incomplete-date rejection with retained draft, exact absolute-bound preservation, completed-only membership, and rename with omitted completion. Adapter **6**, API **64**, CLI/main smoke **32**, build green. [Retest details](DEX-F7-MANUAL-2026-10-10.md#focused-retest-evidence). Pagination, presentation PATCH/sort, reorder, broader checklist coverage, and human sign-off remain open.
+**Checklist execution 2026-10-10:** **21 rows verified** (11 HTTP, 5 CLI, 5 browser). [Full evidence and two open P2s](DEX-F7-CHECKLIST-2026-10-10.md). Current pass includes newly implemented load-more and presentation/reorder work. Checkmarks are Dex evidence, not final human acceptance.
 
-**Dex local pass 2026-10-10:** [Detailed report](DEX-F7-MANUAL-2026-10-10.md). API **64/64**, CLI + main smoke **32/32**, frontend build green. Actual CLI list/create/get/query/patch/delete exercised against the disposable API. Browser verified saved sidebar selection and persisted Board mode; found six P2s in board refresh/counts, date edits, and completion semantics. **Implementation (2026-10-10):** R1–R6 **Fixed (code), awaiting Dex retest** — views-prefix invalidation, saved counts from grouped data, reject incomplete fixed dates, preserve absolute ISO on untouched dates, saved lists ignore Show completed, omit completion preserved on rename. Broader checklist rows below remain unchecked; human sign-off is still open. No daily-driver changes.
+**Focused fix retest, 2026-10-10:** R1–R6 verified closed by Dex in a rebuilt disposable instance: successive board moves, counts after reload, incomplete-date rejection with retained draft, exact absolute-bound preservation, completed-only membership, and rename with omitted completion. Adapter **6**, API **64**, CLI/main smoke **32**, build green. [Retest details](DEX-F7-MANUAL-2026-10-10.md#focused-retest-evidence). **W3 completion gaps** (load-more, presentation PATCH/sort, sidebar reorder) **implemented, pending Dex retest**; broader checklist coverage and human sign-off remain open.
 
-Delivery: [F7-SAVED-VIEWS.md](./F7-SAVED-VIEWS.md) · **W1** Quality green (**64** API pytest; Renee **2026-10-10**) · **W2** CLI **implemented** (tests green) · **W3** web **implemented** (build green; known gaps in delivery doc) · **F7 not Closed**
+**Dex local pass 2026-10-10:** [Detailed report](DEX-F7-MANUAL-2026-10-10.md). API **64/64**, CLI + main smoke **32/32**, frontend build green. Actual CLI list/create/get/query/patch/delete exercised against the disposable API. Browser verified saved sidebar selection and persisted Board mode; found six P2s in board refresh/counts, date edits, and completion semantics — **R1–R6 verified closed** in focused retest (see above). W3 completion gaps **implemented, pending Dex retest**. Broader checklist rows below remain unchecked; human sign-off is still open. No daily-driver changes.
+
+Delivery: [F7-SAVED-VIEWS.md](./F7-SAVED-VIEWS.md) · **W1** Quality green (**64** API pytest; Renee **2026-10-10**) · **W2** CLI **implemented** (tests green) · **W3** web **implemented** (build green; pagination/mode persistence passed; M1/M2 verified closed) · **F7 not Closed**
 
 ### W1 API (operator / HTTP)
 
-- [ ] `alembic upgrade head` → **`027_saved_filter_presentation`**; bootstrap user has system views **`inbox`**, **`today`**, **`upcoming`** with **`predicate_json.v === 1`**
+- [x] `alembic upgrade head` → **`027_saved_filter_presentation`**; bootstrap user has system views **`inbox`**, **`today`**, **`upcoming`** with **`predicate_json.v === 1`**
 
-- [ ] **`GET /api/v1/views`** — system rows first (`is_system`), user views by `sort_order`; each row includes `id`, `slug`, `presentation_json`
+- [x] **`GET /api/v1/views`** — system rows first (`is_system`), user views by `sort_order`; each row includes `id`, `slug`, `presentation_json`
 
-- [ ] **`POST /api/v1/views`** — create user view with mixed dimensions + `presentation_json`; **`GET /api/v1/views/{id}`** round-trip; **`PATCH`** rename / predicate / `sort_order`; **`DELETE`** → **204** and tasks remain
+- [x] **`POST /api/v1/views`** — create user view with mixed dimensions + `presentation_json`; **`GET /api/v1/views/{id}`** round-trip; **`PATCH`** rename / predicate / `sort_order`; **`DELETE`** → **204** and tasks remain
 
-- [ ] **`PATCH` / `DELETE`** on system **`inbox`** → **403** **`SYSTEM_VIEW_READ_ONLY`**; foreign view id → **404**
+- [x] **`PATCH` / `DELETE`** on system **`inbox`** → **403** **`SYSTEM_VIEW_READ_ONLY`**; foreign view id → **404**
 
-- [ ] **`GET /api/v1/views/by-slug/inbox/tasks`** and **`GET …/{inbox_id}/tasks`** — same `total`; pagination fields present; inbox task has `project_id` null and open
+- [x] **`GET /api/v1/views/by-slug/inbox/tasks`** and **`GET …/{inbox_id}/tasks`** — same `total`; pagination fields present; inbox task has `project_id` null and open
 
-- [ ] Invalid / legacy predicate on create → **422** **`INVALID_PREDICATE`**; **`inbox` + `project_ids`** together → **422**
+- [x] **`GET …/views/{id}/tasks?sort=-due_at`** — allowlisted sort applied; bad sort (e.g. `?sort=foo`) → **422** **`INVALID_SORT`**; with **`board_order=true`**, presentation/`sort` ignored (board rank order)
 
-- [ ] Predicate referencing deleted project or label → **`items: []`**, **`invalid_references`** populated (not full task list)
+- [x] **`PATCH /api/v1/views/{id}`** with partial **`presentation_json`** (e.g. `{ "mode": "board" }`) — shallow-merge keeps other keys; invalid `mode` → **422** **`INVALID_PRESENTATION`**
 
-- [ ] Change **`user_settings.timezone`**, re-query **`today`** / **`upcoming`** slug tasks — rolling boundaries follow settings TZ (not browser local)
+- [x] Invalid / legacy predicate on create → **422** **`INVALID_PREDICATE`**; **`inbox` + `project_ids`** together → **422**
 
-- [ ] Labels filter: create view with **`labels.match: all`** vs **`any`** — result sets differ as expected for multi-label tasks
+- [x] Predicate referencing deleted project or label → **`items: []`**, **`invalid_references`** populated (not full task list)
+
+- [x] Change **`user_settings.timezone`**, re-query **`today`** / **`upcoming`** slug tasks — rolling boundaries follow settings TZ (not browser local)
+
+- [x] Labels filter: create view with **`labels.match: all`** vs **`any`** — result sets differ as expected for multi-label tasks
 
 ### W2 CLI
 
-- [ ] `theplan views list` — system + user rows; JSON includes `id`, `slug`, `presentation_json`, `is_system`
+- [x] `theplan views list` — system + user rows; JSON includes `id`, `slug`, `presentation_json`, `is_system`
 
-- [ ] `theplan views get --id …` round-trip after create
+- [x] `theplan views get --id …` round-trip after create
 
-- [ ] `theplan views create --stdin` (or `--file`) with v1 `predicate_json` + optional `presentation_json`; `patch --id … --stdin`; `delete --id …` on user view — tasks unchanged
+- [x] `theplan views create --stdin` (or `--file`) with v1 `predicate_json` + optional `presentation_json`; `patch --id … --stdin`; `delete --id …` on user view — tasks unchanged
 
-- [ ] `theplan views query --id …` and `views query --slug inbox` — `total`, `limit`, `offset` match API; optional `--board-order`
+- [x] `theplan views query --id …` and `views query --slug inbox` — `total`, `limit`, `offset` match API; optional `--board-order`
 
-- [ ] Patch/delete system **`inbox`** → stable **`SYSTEM_VIEW_READ_ONLY`** (CLI exit **2**)
+- [x] Patch/delete system **`inbox`** → stable **`SYSTEM_VIEW_READ_ONLY`** (CLI exit **2**)
 
 ### W3 web
 
-- [ ] Sidebar shows **user saved views** from API; selecting one loads tasks (not ad hoc `GET /tasks` only)
+- [x] Sidebar shows **user saved views** from API; selecting one loads tasks (not ad hoc `GET /tasks` only)
 
-- [ ] **Save view** / filter builder creates or updates a user view with mixed dimensions (labels any/all spot-check)
+- [x] **Save view** / filter builder creates or updates a user view with mixed dimensions (labels any/all spot-check)
 
-- [ ] List/Board toggle works for a saved view; **`presentation_json.mode`** honored on open (note: toggle may **not** persist mode on every switch — known gap)
+- [x] List/Board toggle on a **saved view** — **PATCHes** `presentation_json.mode`; reload honors server mode (Dex verified 2026-10-10)
 
-- [ ] Predicate with deleted project/label → empty list + **repair** affordance (not full task list)
+- [x] Predicate with deleted project/label → empty list + **repair** affordance (not full task list)
 
-- [ ] Saved-view task list: **no load-more** yet when `total` exceeds page size (known gap — document if large set)
+- [x] Saved-view **Load more** when `total` exceeds first page — list **200** / board **500**; appended rows match API offset (Dex verified 2026-10-10)
+
+- [x] Sidebar **user saved views** — **up/down** reorder persists `sort_order` via PATCH; order survives reload. **PASS M2 retest 2026-10-10:** equal-rank Up and Down swap only displayed neighbors; edge buttons and reload verified.
+
+- [x] **Saved task sort in browser:** **PASS M1 retest 2026-10-10.** Title Z–A peer order matches API; children remain beneath their parent with Z–A sibling order; reload verified.
+
+- [ ] **Representative existing-data migration:** fresh migration to 027 and v1 seeds passed; no household-data migration was attempted.
 
 ### Deferred / non-goals (still open)
 
 | Item | Status |
 |------|--------|
-| Sidebar **reorder** user views (`sort_order`) | Not implemented |
 | **`GET /tasks?view=`** convenience alias | Not implemented — use `/views/…/tasks` |
 | Automated **W3** browser/API tests | Not implemented |
 
 ---
+
 
 ## Not on this gate (parked)
 
@@ -492,4 +504,4 @@ When a section is done, note date + “ok” here (optional):
 | F4 | | W1/W2 Quality green; W3 Settings + week overlay Dex-verified (residual P2s closed); CLI/day/F4-D deferred — **not Closed** |
 | F5 | | W1/W3/F5-B Quality green; Dex all findings/residuals verified closed; remaining manual rows open — **not Closed**, **not pushed** |
 | F6 | | W1–W2 Quality **24** pytest green; W3 modal + CLI landed (conditional go); Dex **3 P2s Verified closed**; P1 archive closed; P1 reparent **`epic_id`** + epic **`target_date`** **Fixed (code), awaiting Dex retest** (Tesla, local); F6-B–D not fully accepted — **not Closed**, **not pushed** |
-| F7 | | W1 Quality **64** pytest; W2 CLI + W3 web implemented; Dex **6 P2s Fixed (code), awaiting Dex retest**; gaps (reorder, presentation patch, load-more, no W3 auto tests); manual rows open — **not Closed** |
+| F7 | Open | Dex: 23 checklist rows passed 2026-10-10; R1–R6 and M1/M2 verified closed; pagination, mode persistence, saved sort and sidebar reorder passed; see DEX-F7-CHECKLIST-2026-10-10.md. Human sign-off pending. |

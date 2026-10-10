@@ -150,7 +150,7 @@ def test_f7_a_mixed_dimensions_round_trip_and_matching_only(
             "due": {"kind": "none"},
         },
     }
-    presentation = {"mode": "board", "sort": "board_rank"}
+    presentation = {"mode": "board", "sort": "sort_order"}
     created = _create_view(
         client,
         name="Mixed hot",

@@ -11,7 +11,9 @@ import {
   fetchSections,
   fetchTasks,
   getView,
+  patchView,
   queryViewTasks,
+  type SavedView,
   reorderSections,
   reorderTasks,
   uncompleteTask,
@@ -54,6 +56,7 @@ import { emitToast } from "./ToastHost";
 import { ReorderButtons } from "./ReorderButtons";
 import { TaskBatchBar } from "./TaskBatchBar";
 import { TaskBoard } from "./TaskBoard";
+import { mergeAccumPage } from "../boardAccum";
 import {
   boardViewSupported,
   readTaskPresentation,
@@ -61,6 +64,8 @@ import {
   writeTaskPresentation,
   type TaskPresentation,
 } from "../taskPresentation";
+
+const SAVED_LIST_PAGE_SIZE = 200;
 
 interface TaskListProps {
   view: ViewSelection;
@@ -177,6 +182,10 @@ export function TaskList({
   );
   const [savedViewEditOpen, setSavedViewEditOpen] = useState(false);
   const [invalidReferences, setInvalidReferences] = useState<SavedViewInvalidReference[]>([]);
+  const [savedListOffset, setSavedListOffset] = useState(0);
+  const [savedListAccum, setSavedListAccum] = useState<Task[]>([]);
+  const [savedListTotal, setSavedListTotal] = useState(0);
+  const [savedListResetGen, setSavedListResetGen] = useState(0);
 
   const savedViewId = view.type === "saved" ? view.id : null;
 
@@ -195,12 +204,50 @@ export function TaskList({
     setPresentation(readTaskPresentation(vKey));
   }, [vKey, view.type, savedViewMetaQuery.data]);
 
+  useEffect(() => {
+    if (view.type !== "saved") return;
+    setSavedListOffset(0);
+    setSavedListAccum([]);
+    setSavedListTotal(0);
+    setSavedListResetGen((g) => g + 1);
+  }, [view.type === "saved" ? view.id : null]);
+
+  const patchSavedPresentationMutation = useMutation({
+    mutationFn: (mode: TaskPresentation) => {
+      if (!savedViewId) throw new Error("Missing saved view");
+      return patchView(savedViewId, { presentation_json: { mode } });
+    },
+    onMutate: async (mode) => {
+      if (!savedViewId) return {};
+      await queryClient.cancelQueries({ queryKey: ["views", savedViewId] });
+      const prev = queryClient.getQueryData<SavedView>(["views", savedViewId]);
+      if (prev) {
+        queryClient.setQueryData<SavedView>(["views", savedViewId], {
+          ...prev,
+          presentation_json: { ...(prev.presentation_json as object), mode },
+        });
+      }
+      return { prev };
+    },
+    onError: (_err, _mode, ctx) => {
+      if (ctx?.prev && savedViewId) {
+        queryClient.setQueryData(["views", savedViewId], ctx.prev);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["views"] });
+    },
+  });
+
   const setPresentationPersisted = useCallback(
     (mode: TaskPresentation) => {
       setPresentation(mode);
       writeTaskPresentation(vKey, mode);
+      if (view.type === "saved" && savedViewId) {
+        patchSavedPresentationMutation.mutate(mode);
+      }
     },
-    [vKey],
+    [vKey, view.type, savedViewId, patchSavedPresentationMutation],
   );
 
   const setShowCompletedPersisted = useCallback((next: boolean) => {
@@ -274,10 +321,17 @@ export function TaskList({
       : null;
 
   const tasksQuery = useQuery({
-    queryKey: tasksCacheKey(view, showCompleted),
+    queryKey:
+      view.type === "saved"
+        ? (["views", view.id, "tasks", "list", savedListOffset] as const)
+        : tasksCacheKey(view, showCompleted),
     queryFn: async () => {
       if (view.type === "saved") {
-        const result = await queryViewTasks(view.id, { limit: 200, board_order: false });
+        const result = await queryViewTasks(view.id, {
+          limit: SAVED_LIST_PAGE_SIZE,
+          offset: savedListOffset,
+          board_order: false,
+        });
         setInvalidReferences(result.invalid_references ?? []);
         return result;
       }
@@ -331,6 +385,19 @@ export function TaskList({
     },
   });
 
+  useEffect(() => {
+    if (view.type !== "saved" || !tasksQuery.data) return;
+    setSavedListTotal(tasksQuery.data.total);
+    setSavedListAccum((prev) =>
+      mergeAccumPage(prev, tasksQuery.data!.items, savedListOffset),
+    );
+  }, [view.type, tasksQuery.data, savedListOffset, savedListResetGen]);
+
+  const savedListHasMore =
+    view.type === "saved" && savedListAccum.length < savedListTotal;
+  const savedListFetchingMore =
+    view.type === "saved" && tasksQuery.isFetching && savedListOffset > 0;
+
   const smartRange = useMemo(() => {
     if (view.type === "today") {
       return { start: startOfLocalDay(new Date()), end: endOfLocalDay(new Date()) };
@@ -363,15 +430,17 @@ export function TaskList({
   const applyClientCompletedFilter = view.type !== "saved" && !showCompleted;
 
   const overbookedTaskCount = useMemo(() => {
-    let items = tasksQuery.data?.items ?? [];
+    let items =
+      view.type === "saved" ? savedListAccum : (tasksQuery.data?.items ?? []);
     if (applyClientCompletedFilter) {
       items = items.filter((t) => !t.is_completed);
     }
     return items.filter((t) => isOverbookedStatus(t.status)).length;
-  }, [tasksQuery.data, applyClientCompletedFilter]);
+  }, [tasksQuery.data, savedListAccum, view.type, applyClientCompletedFilter]);
 
   const tasks = useMemo(() => {
-    let items = tasksQuery.data?.items ?? [];
+    let items =
+      view.type === "saved" ? savedListAccum : (tasksQuery.data?.items ?? []);
     if (applyClientCompletedFilter) {
       items = items.filter((t) => !t.is_completed);
     }
@@ -389,8 +458,19 @@ export function TaskList({
       const scheduledIds = new Set((blocksQuery.data?.items ?? []).map((b) => b.task_id));
       items = items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
     }
-    return orderTasksForest(items);
-  }, [tasksQuery.data, blocksQuery.data, view.type, applyClientCompletedFilter, overbookedOnly]);
+    // Saved views: keep API/presentation peer order (M1). Hierarchy nesting still applies.
+    return orderTasksForest(
+      items,
+      view.type === "saved" ? { peerOrder: "stable" } : undefined,
+    );
+  }, [
+    tasksQuery.data,
+    savedListAccum,
+    blocksQuery.data,
+    view.type,
+    applyClientCompletedFilter,
+    overbookedOnly,
+  ]);
 
   const showCompletedToggle =
     view.type !== "saved" || savedCompletion === "any" || savedCompletion === "done";
@@ -461,6 +541,11 @@ export function TaskList({
   const clearSelection = () => setSelectedIds(new Set());
 
   const invalidateTasks = () => {
+    if (view.type === "saved") {
+      setSavedListOffset(0);
+      setSavedListAccum([]);
+      setSavedListResetGen((g) => g + 1);
+    }
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
     queryClient.invalidateQueries({ queryKey: ["views"] });
   };
@@ -1174,6 +1259,17 @@ export function TaskList({
           </ul>
         )}
 
+        {view.type === "saved" && savedListHasMore && (
+          <button
+            type="button"
+            className="btn secondary small task-board-load-more"
+            disabled={savedListFetchingMore}
+            onClick={() => setSavedListOffset((prev) => prev + SAVED_LIST_PAGE_SIZE)}
+          >
+            {savedListFetchingMore ? "Loading…" : "Load more"}
+          </button>
+        )}
+
         {subtaskParentId && (
           <form className="inline-form subtask-form" onSubmit={handleAddSubtask}>
             <input
@@ -1257,6 +1353,7 @@ export function TaskList({
             viewId={view.id}
             initialName={savedViewMetaQuery.data?.name ?? heading}
             initialPredicate={savedViewMetaQuery.data?.predicate_json}
+            initialPresentation={savedViewMetaQuery.data?.presentation_json}
             presentationMode={presentation}
             invalidReferences={invalidReferences}
             onClose={() => setSavedViewEditOpen(false)}

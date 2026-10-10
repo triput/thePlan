@@ -10,13 +10,19 @@ function compareSiblings<T extends ForestTask>(a: T, b: T): number {
   return a.id.localeCompare(b.id);
 }
 
+export type ForestPeerOrder = "sort_order" | "stable";
+
 /**
  * Order tasks as a forest DFS: each parent, then its children immediately under it.
- * Siblings: sort_order, then id (created_at is not on the client Task type).
+ * Siblings default: sort_order, then id (created_at is not on the client Task type).
+ * `peerOrder: "stable"` keeps sibling order as in the input array (server-sorted saved views).
  * Orphans (parent missing from the set) are treated as roots.
  * Cycles are broken; remaining nodes are visited after true roots.
  */
-export function orderTasksForest<T extends ForestTask>(tasks: T[]): T[] {
+export function orderTasksForest<T extends ForestTask>(
+  tasks: T[],
+  options?: { peerOrder?: ForestPeerOrder },
+): T[] {
   if (tasks.length <= 1) return tasks.slice();
 
   const byId = new Map<string, T>();
@@ -33,8 +39,16 @@ export function orderTasksForest<T extends ForestTask>(tasks: T[]): T[] {
     else children.set(key, [task]);
   }
 
-  for (const group of children.values()) {
-    group.sort(compareSiblings);
+  const peerOrder = options?.peerOrder ?? "sort_order";
+  if (peerOrder === "stable") {
+    const indexById = new Map(tasks.map((task, index) => [task.id, index]));
+    for (const group of children.values()) {
+      group.sort((a, b) => (indexById.get(a.id) ?? 0) - (indexById.get(b.id) ?? 0));
+    }
+  } else {
+    for (const group of children.values()) {
+      group.sort(compareSiblings);
+    }
   }
 
   const result: T[] = [];
