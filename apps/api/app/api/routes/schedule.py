@@ -12,10 +12,11 @@ from app.schemas import (
     SchedulePreviewApplyReceipt,
     SchedulePreviewOut,
     ScheduleRunOut,
+    ScheduleRunStaleSummary,
     TaskScheduleExplanationOut,
 )
 from app.services.schedule_dispatch import admit_replan, dispatch_replan
-from app.services.schedule_explanations import latest_for_task, page_for_run
+from app.services.schedule_explanations import latest_for_task, page_for_run, stale_summary_for_run
 from app.services.schedule_preview_dispatch import admit_preview, dispatch_preview
 from app.services.schedule_preview_apply import apply_schedule_preview
 from app.services.schedule_previews import preview_to_dict, refresh_preview_staleness
@@ -137,6 +138,21 @@ def list_run_explanations(
     """
     run = _get_owned_run(db, run_id, user)
     return page_for_run(db, run, task_id=task_id, limit=limit, offset=offset)
+
+
+@router.get("/runs/{run_id}/stale-summary", response_model=ScheduleRunStaleSummary)
+def get_run_stale_summary(
+    run_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ScheduleRunStaleSummary:
+    """Stale count and categories for every explanation on the run.
+
+    Owner-scoped: a missing or foreign run is 404. Does not start a replan.
+    Unlike the explanations list, this is not paginated and does not stop at 200.
+    """
+    run = _get_owned_run(db, run_id, user)
+    return stale_summary_for_run(db, run)
 
 
 @task_schedule_router.get(

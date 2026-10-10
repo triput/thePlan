@@ -393,6 +393,30 @@
   box-sizing: border-box;
 }
 
+.import-panel {
+  flex: 0 0 auto;
+}
+
+.import-toggle {
+  white-space: nowrap;
+}
+
+.modal.import-modal {
+  max-width: 42rem;
+}
+
+.import-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.import-tab-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 .templates {
   flex: 0 0 auto;
 }

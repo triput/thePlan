@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/components/SchedulePreviewModal.tsx
+//  Description: F6 replan preview modal — stale reasons, block diff, and apply (Calendar).
+//  Component: Replan Preview
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import { useMemo } from "react";
 import type { SchedulePreviewOut, StaleCategory, Task } from "../api";
 import { formatScheduleReasonFact } from "../scheduleReasonFacts";

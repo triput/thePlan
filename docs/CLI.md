@@ -139,6 +139,32 @@ Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §6](./NEXT-FEATU
 
 Run Update Schedule via the web UI or API replan before expecting `evaluation_state: evaluated`.
 
+### F4 — Time Map overrides (HTTP)
+
+Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §7](./NEXT-FEATURES-SPEC.md#7-f4-temporary-time-map-overrides). Delivery record: [delivery/F4-TIME-MAP-OVERRIDES.md](./delivery/F4-TIME-MAP-OVERRIDES.md). F4 **Open** — operator Dex and sign-off pending.
+
+All subcommands require **`--map-id UUID`** (focus window / Time Map id). **Create** and **edit** take a JSON body via **`--file PATH`** or **`--stdin`** (same pattern as `views create`).
+
+| Command | Maps to |
+|---------|---------|
+| `overrides list --map-id UUID` | `GET /api/v1/focus-windows/{map_id}/overrides` — includes expired rows |
+| `overrides get --map-id UUID --id UUID` | `GET …/overrides/{override_id}` |
+| `overrides create --map-id UUID` (`--file` or `--stdin`) | `POST …/overrides` — body matches API **TimeMapOverrideCreate** (inclusive local dates, IANA `timezone`, `strict_mode`, replacement `bands`) |
+| `overrides edit --map-id UUID --id UUID` (`--file` or `--stdin`) | `PATCH …/overrides/{override_id}` — partial body; at least one field required |
+| `overrides delete --map-id UUID --id UUID` | `DELETE …/overrides/{override_id}` |
+
+Overlap on the same map → exit **5** / **`TIME_MAP_OVERRIDE_OVERLAP`**. Midnight-crossing bands and invalid date order → **422** with stable API codes. Override writes do **not** auto-replan; see scheduler stale **`time_map_overrides`** in [F3 delivery](./delivery/F3-SCHEDULER-EXPLANATIONS.md).
+
+### F5 — Coursera templates (HTTP)
+
+Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §8](./NEXT-FEATURES-SPEC.md#8-f5-coursera-templates). Delivery record: [delivery/F5-COURSERA-TEMPLATES.md](./delivery/F5-COURSERA-TEMPLATES.md).
+
+| Area | Commands |
+|------|----------|
+| **Templates** | `templates list`, `templates get ID`, `templates propose ID` (`--file` or `--stdin`; optional `--skip-optional`, `--attach-kind epic\|project\|section`, `--attach-id UUID`), `templates apply ID` (`--file` or `--stdin`; `--idempotency-key UUID`), `templates receipt --id UUID` or `--idempotency-key UUID` |
+
+Maps to `/api/v1/templates/*` and `/api/v1/templates/receipts/...`. **Module** templates require attach context (`--attach-kind` + `--attach-id`). Idempotency keys must be retained across retries for uncertain outcomes. Legacy **`outline`** ingest remains separate and non-idempotent — [OUTLINE-INGEST.md](./OUTLINE-INGEST.md).
+
 ### F7 — Saved views (HTTP)
 
 Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §10](./NEXT-FEATURES-SPEC.md#10-f7-saved-views). Delivery record: [delivery/F7-SAVED-VIEWS.md](./delivery/F7-SAVED-VIEWS.md).

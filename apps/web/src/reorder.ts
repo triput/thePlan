@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/reorder.ts
+//  Description: Sort-order comparators and reorder payloads for F7 sidebar and board peers.
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import type { ReorderItem } from "./api";
 
 export type ReorderComparable = { id: string; sort_order: number };

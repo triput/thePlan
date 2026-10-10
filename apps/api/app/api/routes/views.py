@@ -1,4 +1,11 @@
-"""Saved views CRUD and predicate-backed task queries (F7)."""
+# ==============================================================================
+#  File: apps/api/app/api/routes/views.py
+#  Description: Saved views CRUD and predicate-backed task query HTTP routes (F7).
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

@@ -35,7 +35,7 @@ The initial container detail request failed due to finding 1. A **test-only** `t
 
 ## Dex retest, 2026-10-09
 
-**Five findings verified closed (unchanged).** **Andi residual fix wave (2026-10-09, working tree, not pushed):** R1 invalid JSON tab stay; R2 propose generation ignores stale in-flight responses — **Fixed (code), awaiting Dex retest.** F5 stays Open. Prior retest: frozen 347 source/config/fixture files over committed base `4ae0a8d`, ~13:32 Pacific; final hash comparison found no source drift. Rebuilt API image `dex-f5-retest-api:local` has image ID `sha256:5d80d033bb187cc1e52e84ad7a7d3dfdb0dc56a1a0ddd00a9f2e8bb299b958bd`. Docker inspect confirmed **zero API container mounts**. All three template detail endpoints pass without `/testdata`.
+**All seven findings verified closed (unchanged).** **Andi residual fix wave (2026-10-09):** R1 invalid JSON tab stay; R2 propose generation ignores stale in-flight responses — **Verified closed** in [Final residual retest](#final-residual-retest--pass). F5 stays Open for remaining manual rows and human sign-off. Prior retest: frozen 347 source/config/fixture files over committed base `4ae0a8d`, ~13:32 Pacific; final hash comparison found no source drift. Rebuilt API image `dex-f5-retest-api:local` has image ID `sha256:5d80d033bb187cc1e52e84ad7a7d3dfdb0dc56a1a0ddd00a9f2e8bb299b958bd`. Docker inspect confirmed **zero API container mounts**. All three template detail endpoints pass without `/testdata`.
 
 **62 API tests passed** (the earlier 54-test selection plus eight packaged-example/scaffold tests); frozen web build passed. Live HTTP and actual CLI driver passed again, including all shapes/grafts, optional exclusion, receipts, replay, duplicate-source warning, and IBM apply **417**. Pytest used a separate test runner with repository fixtures mounted; the runtime API serving browser/HTTP checks had no mounts. The earlier 18 CLI unit-test result was not rerun in this retest.
 
@@ -52,21 +52,21 @@ Browser verification:
 
 Paste an unfinished draft such as `{"course":{"title":"Unsaved unfinished curriculum"` into Raw JSON. Click Quick fields. An error says to fix Raw JSON first, but the UI switches anyway and displays the previous form. Click Raw JSON again: the previous valid outline replaces the unfinished draft. `syncFormFromJson` returns false on parse failure, but its caller ignores that return and always changes modes (`TemplatesPanel.tsx:785–786`). Keep Raw mode and the exact draft when synchronization fails. The original valid-JSON repro is closed on retest.
 
-**Fix (Andi, working tree):** Mode switch respects failed sync — stay on Raw and preserve the invalid draft. **Awaiting Dex retest.**
+**Fix (Andi, working tree):** Mode switch respects failed sync — stay on Raw and preserve the invalid draft. **Verified closed** (final residual retest).
 
 ### Residual R2 [P2]: An in-flight proposal restores a stale preview — **Verified closed**
 
 Use the custom course containing one normal and one optional task. Start Propose with Skip optional unchecked, delay the response five seconds, and check Skip optional while Proposing is displayed. The handler clears the preview, but the old response then unconditionally populates entities and enables Apply. With Skip optional still checked, Apply created both tasks: receipt `7f675b3c-10b9-419a-a7b9-2d63b9c5b352`, key `d83047dd-d127-498d-a573-35152f4c7015`. `proposeMutation.onSuccess` does not check whether the inputs changed since dispatch (`TemplatesPanel.tsx:494–503`). Associate each request with an input generation/snapshot and ignore obsolete responses, or prevent changes while pending. The after-completion input-change repro passes on retest.
 
-**Fix (Andi, working tree):** Propose dispatch tagged with input generation; stale responses ignored. **Awaiting Dex retest.**
+**Fix (Andi, working tree):** Propose dispatch tagged with input generation; stale responses ignored. **Verified closed** (final residual retest).
 
-Retest artifacts are under `C:\Users\trish\.codex\visualizations\2026\10\08\01a11d56-e98c-7c31-995d-8b17c9a41e5a\f5-retest`: `source-manifest.json`, `api-cli-evidence.json`, `fault_proxy.py`, `fault-evidence.jsonl`, and `stale-proposal-receipt.png`. The proxy was confined to the disposable environment; no product code was edited. The screenshot shows the checked optional exclusion beside the two-task preview; exact applied counts are in the receipt log. Disposable stack removed after the pass. Download/upload remain outside this focused retest; prior unverified status is unchanged. No commits or pushes from Dex. **Andi** residual fixes are local working-tree only — **not pushed**; Dex has not rerun R1/R2 yet.
+Retest artifacts are under `C:\Users\trish\.codex\visualizations\2026\10\08\01a11d56-e98c-7c31-995d-8b17c9a41e5a\f5-retest`: `source-manifest.json`, `api-cli-evidence.json`, `fault_proxy.py`, `fault-evidence.jsonl`, and `stale-proposal-receipt.png`. The proxy was confined to the disposable environment; no product code was edited. The screenshot shows the checked optional exclusion beside the two-task preview; exact applied counts are in the receipt log. Disposable stack removed after the pass. Download/upload remain outside this focused retest. No commits or pushes from Dex.
 
 The sections below preserve the **initial** findings and evidence; the retest table, residual fix notes, and this section supersede their awaiting-retest status.
 
 ## Findings for the team
 
-### 1. [P1] Template example JSON is absent from the production image — **Fixed (code), awaiting Dex retest**
+### 1. [P1] Template example JSON is absent from the production image — **Verified closed** (Dex retest)
 
 Catalog GET returned 200, but `GET /api/v1/templates/coursera_course` returned 500. Container log: `FileNotFoundError: /testdata/outlines/blank_hierarchy_v1.json`. All three detail examples share this file loader. `apps/api/Dockerfile` copies only the `apps/api` build context; production Compose has no testdata mount. Thus the ordinary container deployment cannot provide the examples needed by the Templates form or CLI get.
 
@@ -74,37 +74,37 @@ Package runtime template definitions/examples with the API, or explicitly includ
 
 **Fix (Andi+Tesla, working tree):** Examples live under `apps/api/app/data/outlines` and ship with the API image context — retest ordinary container detail **without** a `/testdata` mount.
 
-### 2. [P2] Browser retries generate a new key after an unsuccessful response — **Fixed (code), awaiting Dex retest**
+### 2. [P2] Browser retries generate a new key after an unsuccessful response — **Verified closed** (Dex retest)
 
 Source-confirmed error path: `TemplatesPanel` generates the key inside the mutation at line 450, but stores it only in `onSuccess` at line 463. If the server commits and the response is lost, `onError` leaves the key null; pressing Apply again creates a fresh key and a second instance. This defeats F5-C's uncertain-outcome retry guarantee. Allocate and retain the key before sending, and bind it to the submitted payload across retries. Successful-response replay was browser-tested and passes; a dropped post-commit response was **not** injected during this pass.
 
 **Fix (Andi+Tesla, working tree):** Idempotency key allocated and retained pre-apply for retry — retest lost-response / retry path.
 
-### 3. [P2] Raw JSON is discarded when switching to Quick fields — **Fixed (code), awaiting Dex retest**
+### 3. [P2] Raw JSON is discarded when switching to Quick fields — **Verified closed** (Dex retest)
 
 Browser repro: select course, paste a custom two-task course into Raw JSON, click Quick fields, then Raw JSON. The editor now contains the original four-task example; the custom title/modules/tasks are gone. Quick fields calls `syncJsonFromForm` rather than parsing the current JSON into form/outline state. This overwrites supplied curriculum without warning. Source: `TemplatesPanel.tsx:397`, `:705`, `:836`.
 
 **Fix (Andi+Tesla, working tree):** Raw↔Quick mode sync preserves edited JSON — retest paste / toggle round-trip.
 
-### 4. [P2] Module picker cannot target a standalone course — **Fixed (code), awaiting Dex retest**
+### 4. [P2] Module picker cannot target a standalone course — **Verified closed** (Dex retest)
 
 The API successfully created a standalone course and attached a module to its project. In the browser, the module's Target project control is disabled until an epic is chosen, and the project query then filters by that epic. No path exposes standalone projects or their sections. This prevents adding a module to the standalone course that the course template itself creates. Allow owner-wide/standalone project selection; retain optional epic filtering. Source: `TemplatesPanel.tsx:346–355`, `:629`.
 
 **Fix (Andi+Tesla, working tree):** Module attach UI exposes standalone / owner-wide projects — retest course-then-module browser path.
 
-### 5. [P2] Changing proposal inputs leaves the old graph applicable — **Fixed (code), awaiting Dex retest**
+### 5. [P2] Changing proposal inputs leaves the old graph applicable — **Verified closed** (Dex retest)
 
 Browser repro: propose a course containing one normal and one optional task; check **Skip optional items (preview exclude)**; click Apply. The checkbox remains checked, but both tasks are created. Receipt `e04adff2-cc27-4e8c-a192-b4295d1a3c0a`, key `776096f0-ca16-4335-b226-0168cfcb4f81`, reports two tasks. Input handlers do not clear or invalidate the previous preview. Attach changes and raw/form edits follow the same stale-preview pattern. Require re-proposal after changing proposal inputs, or rebuild the preview before enabling Apply. Source: `TemplatesPanel.tsx:876` and Apply button/handleApply.
 
 **Fix (Andi+Tesla, working tree):** Stale propose preview invalidated when inputs change — retest Skip optional after propose and attach/raw edits.
 
-### 6. [P2] Renaming a scaffold relabels sample content as imported syllabus — **Fixed (code), awaiting Dex retest**
+### 6. [P2] Renaming a scaffold relabels sample content as imported syllabus — **Verified closed** (Dex retest)
 
 Browser repro: select the built-in course, change only its title to **My statistics course** and replace the placeholder URL with a valid URL, then propose. The banner says **Imported syllabus detected**, although the untouched example modules and tasks (Welcome and overview, Syllabus and setup guide, Practice quiz, Hands-on exercise) remain. `is_blank_scaffold` tests only the root title prefix. This violates the requirement to distinguish scaffolds from supplied curricula; track provenance or detect remaining placeholders without asserting that a renamed scaffold was imported. Source: `builtin_templates.py:109–113` and `TemplatesPanel` scaffold banner.
 
 **Fix (Andi+Tesla, working tree):** Scaffold detection improved — retest renamed-title propose banner.
 
-### 7. [P2] Web review does not disclose defaulted task durations — **Fixed (code), awaiting Dex retest**
+### 7. [P2] Web review does not disclose defaulted task durations — **Verified closed** (Dex retest)
 
 The custom browser outline supplied 17 minutes for one task and omitted the optional task's duration. API propose returns `resolved_defaults` with `estimated_duration_minutes: 30` from user settings; the UI stores that field but never renders it. Review rows show only titles and labels, and the proposal has no duration warning. Apply creates the task with 30 minutes without the required preview disclosure. Render explicit and defaulted minutes, identifying settings-derived values. Source: `TemplatesPanel.tsx:429` and `EntityReviewRow`; live API evidence records the defaults.
 

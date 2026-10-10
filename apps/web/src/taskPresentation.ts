@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/taskPresentation.ts
+//  Description: Board presentation prefs — roots-only, work filters, and localStorage (F7 polish).
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-10
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import type { ViewSelection } from "./view";
 
 const PRESENTATION_KEY = "theplan.taskPresentation";
@@ -69,6 +78,23 @@ export const SAVED_VIEW_SORT_KEYS = [
 
 export type SavedViewSortKey = (typeof SAVED_VIEW_SORT_KEYS)[number];
 
+/** Filter-modal labels. Values are the API allowlist, nothing else. */
+export const SAVED_VIEW_SORT_OPTIONS: { value: SavedViewSortKey; label: string }[] = [
+  { value: "sort_order", label: "Manual order" },
+  { value: "created_at", label: "Created (oldest first)" },
+  { value: "-created_at", label: "Created (newest first)" },
+  { value: "due_at", label: "Due date (soonest first)" },
+  { value: "-due_at", label: "Due date (latest first)" },
+  { value: "priority", label: "Priority (highest first)" },
+  { value: "-priority", label: "Priority (lowest first)" },
+  { value: "title", label: "Title (A–Z)" },
+  { value: "-title", label: "Title (Z–A)" },
+];
+
+export function isSavedViewSortKey(sort: string): sort is SavedViewSortKey {
+  return (SAVED_VIEW_SORT_KEYS as readonly string[]).includes(sort);
+}
+
 export function savedViewPresentationMode(
   presentationJson: { mode?: string } | null | undefined,
 ): TaskPresentation | null {
@@ -81,10 +107,30 @@ export function savedViewPresentationSort(
   presentationJson: { sort?: string } | null | undefined,
 ): SavedViewSortKey {
   const sort = presentationJson?.sort;
-  if (sort && (SAVED_VIEW_SORT_KEYS as readonly string[]).includes(sort)) {
-    return sort as SavedViewSortKey;
-  }
+  if (sort && isSavedViewSortKey(sort)) return sort;
   return "sort_order";
+}
+
+/** Create/edit save body. Re-checks the allowlist so a bad stored key cannot round-trip. */
+export function savedViewPresentationPayload(
+  mode: TaskPresentation,
+  sortKey: string | null | undefined,
+): { mode: TaskPresentation; sort: SavedViewSortKey } {
+  return {
+    mode,
+    sort: savedViewPresentationSort(sortKey == null ? undefined : { sort: sortKey }),
+  };
+}
+
+/**
+ * List/Board toggle PATCH body and optimistic cache write.
+ * Shallow-merge so `sort` and any extra presentation keys survive a mode-only update.
+ */
+export function mergeSavedViewPresentationMode<T extends object>(
+  presentation: T | null | undefined,
+  mode: TaskPresentation,
+): T & { mode: TaskPresentation } {
+  return { ...(presentation ?? ({} as T)), mode };
 }
 
 export function readTaskPresentation(viewKey: string): TaskPresentation {

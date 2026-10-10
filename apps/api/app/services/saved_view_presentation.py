@@ -1,16 +1,15 @@
-"""Validate saved-view presentation_json and compile task ORDER BY (F7).
+# ==============================================================================
+#  File: apps/api/app/services/saved_view_presentation.py
+#  Description: Validate presentation_json and compile allowlisted Task ORDER BY for saved views.
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
-Page note — allowlisted ``presentation_json.sort`` string keys (ascending unless
-prefixed with ``-``):
+"""Allowlisted sort keys: sort_order (default), created_at, due_at, priority, title (+ ``-`` desc).
 
-* ``sort_order`` (default when omitted) → ``Task.sort_order``, ``Task.created_at``
-* ``created_at`` / ``-created_at``
-* ``due_at`` / ``-due_at``
-* ``priority`` / ``-priority`` (p1 highest; PostgreSQL enum order)
-* ``title`` / ``-title``
-
-``board_order=true`` on view task queries uses ``board_rank`` then ``created_at``;
-presentation sort is ignored (see ``routes/views.py``).
+``board_order=true`` on view task queries uses board_rank; presentation sort is ignored.
 """
 
 from __future__ import annotations

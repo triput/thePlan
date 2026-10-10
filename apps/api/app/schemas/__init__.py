@@ -24,6 +24,7 @@ from app.schemas.schedule import (
     ReasonFactOut,
     ScheduleExplanationOut,
     ScheduleExplanationPage,
+    ScheduleRunStaleSummary,
     TaskScheduleExplanationOut,
 )
 from app.schemas.schedule_preview import SchedulePreviewApplyReceipt, SchedulePreviewOut
@@ -223,6 +224,7 @@ __all__ = [
     "ReorderRequest",
     "ScheduleExplanationOut",
     "ScheduleExplanationPage",
+    "ScheduleRunStaleSummary",
     "SchedulePreviewApplyReceipt",
     "SchedulePreviewOut",
     "SavedViewCreate",

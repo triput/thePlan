@@ -1,7 +1,12 @@
-/**
- * Calendar day/week grid column — blocks, due markers, busy overlays.
- * Cut #4 hardening: peeled from CalendarView orchestrator (drag state stays in parent).
- */
+// ==============================================================================
+//  File: apps/web/src/components/CalendarDayColumn.tsx
+//  Description: Calendar day/week grid column — blocks, due markers, busy overlays (Cut #4 peel).
+//  Component: Calendar
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import { useState } from "react";
 import type { ExternalCalendarEvent, Project, ScheduledBlock, Task, TimeMapBand } from "../api";
 import { TASK_CALENDAR_DRAG_MIME } from "../taskCalendarDrag";
@@ -65,6 +70,17 @@ function projectColor(projects: Map<string, Project>, projectId: string | null):
   return projects.get(projectId)?.color_hex ?? DEFAULT_PROJECT_COLOR;
 }
 
+function TimeMapAllDayUnavailableOverlay() {
+  return (
+    <div
+      className="cal-time-map-band cal-time-map-band--red cal-time-map-band--all-day"
+      style={{ top: "0%", height: "100%" }}
+      aria-hidden
+      title="Strict Time Map — unavailable all day"
+    />
+  );
+}
+
 function TimeMapBandOverlay({
   band,
   wallClock,
@@ -118,7 +134,11 @@ function BusyBlockItem({
         top: `${Math.max(0, top)}%`,
         height: `${Math.min(100 - Math.max(0, top), height)}%`,
       }}
-      title={event.title ? `Busy: ${event.title}` : "Busy (Google Calendar)"}
+      title={
+        event.title
+          ? `External busy: ${event.title} (unchanged by Time Map overrides)`
+          : "External busy (Google Calendar) — unchanged by Time Map overrides"
+      }
     >
       <span className="cal-block-title">{event.title ?? "Busy"}</span>
     </div>
@@ -218,9 +238,11 @@ function ScheduledBlockItem({
       title={
         hasConflict
           ? `${displayTitle} — schedule conflict`
-          : dragEnabled
-            ? `${displayTitle} — drag to move, bottom edge to resize`
-            : displayTitle
+          : block.is_pinned
+            ? `${displayTitle} — pinned (replan leaves this block in place)`
+            : dragEnabled
+              ? `${displayTitle} — drag to move, bottom edge to resize`
+              : displayTitle
       }
       onClick={(e) => {
         e.stopPropagation();
@@ -273,6 +295,8 @@ export interface CalendarDayColumnProps {
   timeMapBands?: TimeMapBand[];
   timeMapBandWallClock?: TimeMapBandWallClockContext;
   timeMapOverrideActive?: boolean;
+  timeMapStrictAllDayUnavailable?: boolean;
+  showOverrideBadgeOnly?: boolean;
   onSlotClick: (day: Date, offsetY: number) => void;
   onBlockClick: (block: ScheduledBlock) => void;
   onDueClick: (task: Task) => void;
@@ -300,6 +324,8 @@ export function CalendarDayColumn({
   timeMapBands,
   timeMapBandWallClock,
   timeMapOverrideActive = false,
+  timeMapStrictAllDayUnavailable = false,
+  showOverrideBadgeOnly = false,
   onSlotClick,
   onBlockClick,
   onDueClick,
@@ -339,12 +365,18 @@ export function CalendarDayColumn({
 
   return (
     <div
-      className={`cal-day-col${showDayLabel ? " with-label" : ""}${timeMapOverrideActive ? " override-day" : ""}`}
+      className={`cal-day-col${showDayLabel || showOverrideBadgeOnly ? " with-label" : ""}${timeMapOverrideActive ? " override-day" : ""}`}
     >
-      {showDayLabel && (
-        <div className={`cal-col-header${isToday(day) ? " today" : ""}`}>
-          <span className="cal-col-weekday">{formatWeekday(day)}</span>
-          <span className="cal-col-date">{formatShortDate(day)}</span>
+      {(showDayLabel || showOverrideBadgeOnly) && (
+        <div
+          className={`cal-col-header${isToday(day) ? " today" : ""}${showOverrideBadgeOnly && !showDayLabel ? " override-badge-only" : ""}`}
+        >
+          {showDayLabel && (
+            <>
+              <span className="cal-col-weekday">{formatWeekday(day)}</span>
+              <span className="cal-col-date">{formatShortDate(day)}</span>
+            </>
+          )}
           {timeMapOverrideActive && (
             <span className="cal-col-override-badge">Override</span>
           )}
@@ -390,7 +422,9 @@ export function CalendarDayColumn({
           <div key={i} className="cal-hour-row" style={{ height: CALENDAR_ROW_HEIGHT_PX }} />
         ))}
         <div className="cal-overlay">
-          {timeMapBandWallClock &&
+          {timeMapStrictAllDayUnavailable && <TimeMapAllDayUnavailableOverlay />}
+          {!timeMapStrictAllDayUnavailable &&
+            timeMapBandWallClock &&
             timeMapBands?.map((band, index) => (
               <TimeMapBandOverlay
                 key={`${band.id ?? band.sort_order}-${band.tier}-${index}`}

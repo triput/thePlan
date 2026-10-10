@@ -1,7 +1,11 @@
-/**
- * Outline import UI — propose → review → apply (Theme F / ADR-011).
- * Coursera specialization + generic hierarchy_v1; graft under existing parents.
- */
+// ==============================================================================
+//  File: apps/web/src/components/OutlineImportPanel.tsx
+//  Description: Free-form outline import via /api/v1/outlines (paste, upload, propose, apply).
+//  Component: F5 Outline
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -94,10 +98,27 @@ function ActionReviewRow({
 
 export function OutlineImportPanel({
   onApplied,
+  embedded = false,
+  active = true,
+  shellOpen,
+  onRequestClose,
 }: {
   onApplied?: (epicId: string | null) => void;
+  embedded?: boolean;
+  /** Visible tab (draft survives when false). */
+  active?: boolean;
+  /** Keep attach queries warm while Import modal is open. */
+  shellOpen?: boolean;
+  /** When embedded, parent Import shell closes after a successful apply. */
+  onRequestClose?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const panelOpen = embedded ? (shellOpen ?? active) : internalOpen;
+
+  const closeShell = () => {
+    if (embedded) onRequestClose?.();
+    else setInternalOpen(false);
+  };
   const [jsonText, setJsonText] = useState("");
   const [templateId, setTemplateId] = useState<OutlineTemplateId>("coursera_specialization");
   const [skipOptional, setSkipOptional] = useState(false);
@@ -114,7 +135,7 @@ export function OutlineImportPanel({
   const epicsQuery = useQuery({
     queryKey: ["epics", "outline-import"],
     queryFn: () => fetchEpics({ archived: false, limit: 200 }),
-    enabled: open && attachKind !== "new",
+    enabled: panelOpen && attachKind !== "new",
   });
 
   const projectsQuery = useQuery({
@@ -125,13 +146,13 @@ export function OutlineImportPanel({
         limit: 200,
         epic_id: attachKind === "project" || attachKind === "section" ? attachEpicId || undefined : undefined,
       }),
-    enabled: open && (attachKind === "project" || attachKind === "section"),
+    enabled: panelOpen && (attachKind === "project" || attachKind === "section"),
   });
 
   const sectionsQuery = useQuery({
     queryKey: ["sections", "outline-import", attachProjectId],
     queryFn: () => fetchSections(attachProjectId),
-    enabled: open && attachKind === "section" && Boolean(attachProjectId),
+    enabled: panelOpen && attachKind === "section" && Boolean(attachProjectId),
   });
 
   const buildAttachUnder = (): OutlineAttachUnder | null => {
@@ -206,7 +227,7 @@ export function OutlineImportPanel({
       setJsonText("");
       setActions(null);
       setSummary(null);
-      setOpen(false);
+      closeShell();
       onApplied?.(epicId);
     },
     onError: (err) => {
@@ -275,22 +296,8 @@ export function OutlineImportPanel({
           ? "Imports modules as sections under the selected project. Use modules[] or a single-course fragment."
           : "Imports tasks into the selected section. Use tasks[] or a single-module fragment.";
 
-  return (
-    <div className="outline">
-      <button
-        type="button"
-        className="btn secondary small outline-toggle"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-      >
-        Outline
-      </button>
-      <Modal
-        open={open}
-        title="Outline import"
-        onClose={() => setOpen(false)}
-        className="outline-modal"
-      >
+  const flowBody = (
+    <>
         <p className="outline-help muted small">
           Paste or upload an operator-owned outline JSON file. No Coursera sync — local file only.
         </p>
@@ -494,6 +501,25 @@ export function OutlineImportPanel({
           </ul>
         )}
         {error && <p className="form-error">{error}</p>}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="outline outline-embedded">{flowBody}</div>;
+  }
+
+  return (
+    <div className="outline">
+      <button
+        type="button"
+        className="btn secondary small outline-toggle"
+        aria-expanded={internalOpen}
+        onClick={() => setInternalOpen(true)}
+      >
+        Outline
+      </button>
+      <Modal open={internalOpen} title="Outline import" onClose={() => setInternalOpen(false)} className="outline-modal">
+        {flowBody}
       </Modal>
     </div>
   );

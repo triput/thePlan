@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/components/CalendarToolbar.tsx
+//  Description: Calendar toolbar — mode, replan/preview polling, clear unpinned (F6).
+//  Component: Calendar
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import type { FocusWindow } from "../api";
 import type { CalendarMode } from "../calendarUtils";
 
@@ -12,6 +21,7 @@ export interface CalendarToolbarProps {
   clearUnpinnedPending: boolean;
   focusWindows: ReadonlyArray<Pick<FocusWindow, "id" | "name">>;
   effectiveOverlayMapId: string;
+  scheduleStaleHint: { taskCount: number; title: string } | null;
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -34,6 +44,7 @@ export function CalendarToolbar({
   clearUnpinnedPending,
   focusWindows,
   effectiveOverlayMapId,
+  scheduleStaleHint,
   onPrev,
   onNext,
   onToday,
@@ -103,24 +114,31 @@ export function CalendarToolbar({
         >
           {show24h ? "24h" : "6A–10P"}
         </button>
-        {mode === "week" && (
-          <label className="cal-time-map-overlay">
-            <span className="cal-time-map-overlay-label">Time Map</span>
-            <select
-              className="cal-time-map-overlay-select"
-              value={effectiveOverlayMapId}
-              onChange={(e) => onSetTimeMapOverlay(e.target.value)}
-              aria-label="Time Map overlay — visual only; does not change scheduling"
-              title="Visual prompt only — does not change scheduling"
-            >
-              <option value="">Neutral</option>
-              {focusWindows.map((window) => (
-                <option key={window.id} value={window.id}>
-                  {window.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <label className="cal-time-map-overlay">
+          <span className="cal-time-map-overlay-label">Time Map</span>
+          <select
+            className="cal-time-map-overlay-select"
+            value={effectiveOverlayMapId}
+            onChange={(e) => onSetTimeMapOverlay(e.target.value)}
+            aria-label="Time Map overlay — visual only; does not change scheduling"
+            title="Visual prompt only — does not change scheduling"
+          >
+            <option value="">Neutral</option>
+            {focusWindows.map((window) => (
+              <option key={window.id} value={window.id}>
+                {window.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {scheduleStaleHint && (
+          <span
+            className="cal-schedule-stale-badge schedule-stale-badge"
+            role="status"
+            title={scheduleStaleHint.title}
+          >
+            Schedule stale
+          </span>
         )}
         <button
           type="button"

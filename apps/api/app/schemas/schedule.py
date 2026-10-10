@@ -81,6 +81,26 @@ class ScheduleExplanationPage(BaseModel):
     offset: int
 
 
+class ScheduleRunStaleSummary(BaseModel):
+    """Read-time stale aggregate for every explanation on one run.
+
+    Covers the whole run. Not a page, and not capped at the explanations list limit.
+    """
+
+    stale_task_count: int = Field(
+        description="Explanations on this run whose read-time compare is stale."
+    )
+    categories: list[StaleCategory] = Field(
+        description=(
+            "Sorted union of stale_categories across every stale explanation. "
+            "Empty when nothing on the run is stale."
+        )
+    )
+    total_explanations: int = Field(
+        description="Explanation rows on the run, including fresh ones."
+    )
+
+
 class TaskScheduleExplanationOut(BaseModel):
     """Latest completed-run explanation, or never_evaluated when this task has no history."""
 

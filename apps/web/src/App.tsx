@@ -9,8 +9,7 @@ import { LabelsManagement } from "./components/LabelsManagement";
 import { TrashView } from "./components/TrashView";
 import { QuickAdd, type QuickAddHandle } from "./components/QuickAdd";
 import { AssistPanel } from "./components/AssistPanel";
-import { OutlineImportPanel } from "./components/OutlineImportPanel";
-import { TemplatesPanel } from "./components/TemplatesPanel";
+import { ImportPanel } from "./components/ImportPanel";
 import { ReminderPoller } from "./components/ReminderPoller";
 import { SearchBox, type SearchBoxHandle } from "./components/SearchBox";
 import { requestExpandEpic, Sidebar } from "./components/Sidebar";
@@ -228,14 +227,7 @@ function AppInner() {
           <QuickAdd ref={quickAddRef} view={view} projects={projects} />
           <div className="assist-cluster">
             <AssistPanel />
-            <TemplatesPanel
-              onApplied={(epicId) => {
-                if (!epicId) return;
-                requestExpandEpic(epicId);
-                selectView({ type: "epic", epicId });
-              }}
-            />
-            <OutlineImportPanel
+            <ImportPanel
               onApplied={(epicId) => {
                 if (!epicId) return;
                 requestExpandEpic(epicId);

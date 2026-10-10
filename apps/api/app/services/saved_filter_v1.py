@@ -1,4 +1,11 @@
-"""Locked v1 predicate shapes for system saved views (F7)."""
+# ==============================================================================
+#  File: apps/api/app/services/saved_filter_v1.py
+#  Description: Locked v1 predicate constants for system saved views (Inbox, Today, Upcoming).
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

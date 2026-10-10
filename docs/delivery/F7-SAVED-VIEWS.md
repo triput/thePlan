@@ -1,10 +1,21 @@
 # F7 — Saved views
 
-**Latest manual gate, Dex 2026-10-10:** 23 checklist rows passed; list/board continuation, server mode persistence, saved peer sort and equal-rank sidebar reorder verified. **M1/M2 verified closed** in isolated browser retest; 14 web unit tests and build passed. [Execution report](DEX-F7-CHECKLIST-2026-10-10.md). **F7 remains Open.** Earlier implementation-status notes below are historical where superseded by this gate.
+<!--
+==============================================================================
+  File: docs/delivery/F7-SAVED-VIEWS.md
+  Description: F7 saved views delivery tracker — waves, W3 gaps, Dex evidence links.
+  Component: Docs/Delivery
+  Version: 1.0
+  Created: 2026-10-09
+  Last Update: 2026-10-10 (Page — Trish Done sign-off; B-F7-1 closed disposition)
+==============================================================================
+-->
 
-**Dex review 2026-10-10:** **R1–R6 verified closed** in the focused isolated retest. API **64**, CLI + main smoke **32**, adapter **6**, frontend build green; browser moves/counts, date validation, and completion/rename paths passed. **W3 completion gaps (2026-10-10):** saved-view **load-more** (list **200**, board **500**), **List/Board toggle → `presentation_json.mode` PATCH** (server shallow-merge) + allowlisted task **sort** from `?sort=` or `presentation_json.sort`, sidebar user-view **reorder** via `sort_order` — **Retested:** pagination and mode persistence pass; browser sort and sidebar reorder now pass (M1/M2 retest). **F7 Open:** automated W3 tests, representative existing-data migration, human sign-off. See [Dex findings and evidence](DEX-F7-MANUAL-2026-10-10.md). Not Closed/shipped.
+**Latest manual gate, Dex 2026-10-10:** 23 checklist rows passed; list/board continuation, server mode persistence, saved peer sort and equal-rank sidebar reorder verified. **M1/M2 verified closed** in isolated browser retest; build passed; **W3 automated suite** now **36** web tests green (Renee **2026-10-10** — supersedes earlier **14**-test retest note). [Execution report](DEX-F7-CHECKLIST-2026-10-10.md). **Trish Done sign-off 2026-10-10** — feature **not Closed/shipped** (deferred alias non-goal). Earlier implementation-status notes below are historical where superseded by this gate.
 
-**Status:** **W1** Quality green (**64** API pytest; Renee **2026-10-10**) · **W2 Implemented** (CLI `theplan views`; CLI tests green — `test_views_commands.py` + main smoke **~32**) · **W3 Implemented** (web filter builder, sidebar user views, List/Board via `queryViewTasks`; load-more, presentation PATCH/sort, sidebar reorder **retested; M1/M2 closed**; `npm run build` green) · F7 **Open / in-progress** — remaining acceptance + human sign-off remain; **not** Closed/shipped
+**Dex review 2026-10-10:** **R1–R6 verified closed** in the focused isolated retest. API **64**, CLI + main smoke **32**, adapter **6**, frontend build green; browser moves/counts, date validation, and completion/rename paths passed. **W3 completion gaps (2026-10-10):** saved-view **load-more** (list **200**, board **500**), **List/Board toggle → `presentation_json.mode` PATCH** (server shallow-merge) + allowlisted task **sort** from `?sort=` or `presentation_json.sort`, sidebar user-view **reorder** via `sort_order` — **Retested:** pagination and mode persistence pass; browser sort and sidebar reorder now pass (M1/M2 retest). **Migration coverage:** **B-F7-1 closed (disposition, Trish 2026-10-10)** — fresh disposable migrate (Dex) + synthetic pre-027 dry-run ([F7-MIGRATION-VERIFY.md](./F7-MIGRATION-VERIFY.md)); household dump not required. Trish Done **2026-10-10**; W3 automated suite corroborated (Renee **36** green). Dex **F4 Wave 1** / **F6 R1** retests in flight elsewhere — not F7 blockers. See [Dex findings and evidence](DEX-F7-MANUAL-2026-10-10.md). Not Closed/shipped.
+
+**Status:** **W1** Quality green (**64** API pytest; Renee **2026-10-10**) · **W2 Implemented** (CLI `theplan views`; CLI tests green — `test_views_commands.py` + main smoke **~32**) · **W3 Implemented** (web filter builder, sidebar user views, List/Board via `queryViewTasks`; load-more, presentation PATCH/sort, sidebar reorder **retested; M1/M2 closed**; `npm run build` green; **W3 automated suite:** web `npm test` **36** green — Renee **2026-10-10**) · **B-F7-1 closed (disposition:** fresh + synthetic, Trish **2026-10-10**) · Trish Done **2026-10-10** — **not** Closed/shipped (non-goal alias)
 **Spec:** [NEXT-FEATURES-SPEC.md §10](../NEXT-FEATURES-SPEC.md#10-f7-saved-views) · API table row F7  
 **Build:** migration **`027_saved_filter_presentation`**; engine `saved_filter_predicate` / `saved_filter_query` / `saved_filter_v1`; routes `/api/v1/views`  
 **Hygiene:** Head after W1 is **`027_saved_filter_presentation`**. Do **not** commit `uv.lock`.
@@ -15,16 +26,16 @@
 |------|--------|--------|--------|
 | **W1** | Versioned predicate engine + SQLAlchemy apply; migration extending `saved_filters`; full `/views` CRUD + `/{id}/tasks` (and system slug read path); backfill system predicates to v1; Renee API tests for F7-A/C/D foundations + F7-B timezone | **Tesla** (predicate validate/compile/apply) + **Jules** (migration, schemas, routes, CRUD, system backfill) | **Quality green** — **64** pytest (Renee **2026-10-10**) |
 | **W2** | CLI `theplan views` list/get/create/patch/delete/query — same API + engine; pagination + truthful totals | **Jules** | **Implemented** — CLI tests green (`test_views_commands.py`; **~32** with main smoke) |
-| **W3** | Web filter builder + Save view + sidebar user entries; List/Board via saved-view task query; repair banner; F2 board hook where wired | **Andi** (UI) + **Jules** (api.ts / ViewSelection) | **Implemented** — `npm run build` green; **no automated W3 tests**; three former Dex gaps **implemented, pending Dex** (see table) |
+| **W3** | Web filter builder + Save view + sidebar user entries; List/Board via saved-view task query; repair banner; F2 board hook where wired | **Andi** (UI) + **Jules** (api.ts / ViewSelection) | **Implemented** — `npm run build` green; **automated W3 suite** **36** tests green (`npm test`, Renee **2026-10-10**); load-more / mode PATCH / sort / sidebar reorder **Verified closed** Dex+Trish **2026-10-10** (see table) |
 
 ### W3 gaps (Dex / follow-up — do not mark F7 Closed)
 
 | Gap | Status |
 |-----|--------|
-| Sidebar reorder | **Implemented, pending Dex** — user views: up/down controls PATCH `sort_order` ([`Sidebar.tsx`](../../apps/web/src/components/Sidebar.tsx)). |
-| `presentation_json` on toggle | **Implemented, pending Dex** — List/Board toggle PATCHes `{ mode }`; server **shallow-merges** `presentation_json`; task query sort from allowlisted `?sort=` or `presentation_json.sort` ([`05-api-contract.md`](../05-api-contract.md)). |
-| Load-more on saved views | **Implemented, pending Dex** — list page size **200**, board **500**; **Load more** continues `offset` on saved-view task query ([`TaskList.tsx`](../../apps/web/src/components/TaskList.tsx), [`TaskBoard.tsx`](../../apps/web/src/components/TaskBoard.tsx)). |
-| Automated W3 tests | **Open** — manual/Dex only for web slice. |
+| Sidebar reorder | **Verified closed** Dex+Trish **2026-10-10** (M2) — user views: up/down controls PATCH `sort_order` ([`Sidebar.tsx`](../../apps/web/src/components/Sidebar.tsx)). |
+| `presentation_json` on toggle | **Verified closed** Dex+Trish **2026-10-10** — List/Board toggle PATCHes `{ mode }`; server **shallow-merges** `presentation_json`; task query sort from allowlisted `?sort=` or `presentation_json.sort` ([`05-api-contract.md`](../05-api-contract.md)); M1 sort peer order matches API. |
+| Load-more on saved views | **Verified closed** Dex+Trish **2026-10-10** — list page size **200**, board **500**; **Load more** continues `offset` on saved-view task query ([`TaskList.tsx`](../../apps/web/src/components/TaskList.tsx), [`TaskBoard.tsx`](../../apps/web/src/components/TaskBoard.tsx)). |
+| Automated W3 tests | **Quality green (2026-10-10):** web `npm test` **36** — regression for forest/reorder/presentation/saved-view predicate and related W3 paths. **B-F7-1 closed (disposition)** Trish **2026-10-10**. F7 **Open:** sign-off — not Closed. |
 
 Parallelism: W1 Tesla (`services/saved_filter_*.py`, predicate tests) and Jules (`routes/views.py`, schemas, migration, model) may run in parallel once the **predicate v1 JSON shape** in this brief is treated as locked.
 
@@ -52,10 +63,10 @@ Router [`views.py`](../../apps/api/app/api/routes/views.py) mounted at **`/api/v
 
 | Surface | Behavior |
 |---------|----------|
-| Sidebar | Built-ins unchanged; **user saved views** from `GET /views` — [`Sidebar.tsx`](../../apps/web/src/components/Sidebar.tsx). **Reorder** up/down via `sort_order` PATCH (pending Dex). |
+| Sidebar | Built-ins unchanged; **user saved views** from `GET /views` — [`Sidebar.tsx`](../../apps/web/src/components/Sidebar.tsx). **Reorder** up/down via `sort_order` PATCH (**Verified closed** Dex **2026-10-10**). |
 | Filter / save | [`SavedViewFilterModal`](../../apps/web/src/components/SavedViewFilterModal.tsx) — builder + Save view. |
 | Task list/board | User saved views load tasks via **`queryViewTasks`** (view id path); repair banner when API returns `invalid_references`. |
-| Presentation | Saved views: **`presentation_json.mode`** patched on List/Board toggle; **`presentation_json.sort`** + optional `?sort=` on view tasks (allowlist; **`board_order=true`** ignores presentation sort). Hardcoded views may still use [`taskPresentation.ts`](../../apps/web/src/taskPresentation.ts) local prefs. Pending Dex. |
+| Presentation | Saved views: **`presentation_json.mode`** patched on List/Board toggle; **`presentation_json.sort`** + optional `?sort=` on view tasks (allowlist; **`board_order=true`** ignores presentation sort). Hardcoded views may still use [`taskPresentation.ts`](../../apps/web/src/taskPresentation.ts) local prefs. Dex **2026-10-10** verified mode, sort (M1), and load-more. |
 | Built-in Today/Upcoming | May still differ from pure predicate semantics where legacy client paths remain (see locked default on due-only engine). |
 
 ### CLI (W2 landed)
@@ -141,7 +152,7 @@ No other Trish blockers identified for starting W1.
 | **Tesla (lead)** | Predicate v1 schema validation; compile → SQLAlchemy `Query` filters; rolling-date evaluation in owner TZ; complexity bounds; missing-ref detection; unit tests for engine (F7-B/C foundations). Prefer Grok per model policy when dispatched. |
 | **Jules** | Alembic **`027_saved_filter_presentation`** (name flexible); model + Pydantic schemas; `routes/views.py` + wire in `main.py`; CRUD semantics; system predicate backfill to v1; `GET …/tasks` orchestration calling Tesla’s apply; integrate archived/trash defaults. Prefer Composer. |
 | **Renee (after W1 code)** | Integration pytest matrix below — Quality gate before Page closes docs. Prefer Grok. |
-| **Page** | W1–W3 + three W3 completion gaps reflected **2026-10-10**; F7 remains **Open** until Dex retest on pagination/presentation/reorder, automated W3 tests, and sign-off. |
+| **Page** | W1–W3 + W3 completion gaps **Verified closed** Dex+Trish **2026-10-10**; automated W3 suite **36** green Renee **2026-10-10**; **B-F7-1 closed (disposition)** Trish **2026-10-10** (fresh + synthetic); F7 remains **Open** for human sign-off. |
 | **Andi** | Not W1. |
 
 ### Migration (`027_*`, after head `026_pending_deletion`)

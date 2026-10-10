@@ -1,3 +1,8 @@
+/**
+ * Sidebar reorder. The M2 case is name tie-break (`compareBySortOrderThenName`).
+ *
+ * Run the web suite from apps/web: npm test
+ */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {

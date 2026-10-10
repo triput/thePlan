@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/components/TaskList.tsx
+//  Description: Task list and board — load-more, saved-view query, presentation hooks (F7-W3).
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -59,6 +68,7 @@ import { TaskBoard } from "./TaskBoard";
 import { mergeAccumPage } from "../boardAccum";
 import {
   boardViewSupported,
+  mergeSavedViewPresentationMode,
   readTaskPresentation,
   savedViewPresentationMode,
   writeTaskPresentation,
@@ -224,7 +234,7 @@ export function TaskList({
       if (prev) {
         queryClient.setQueryData<SavedView>(["views", savedViewId], {
           ...prev,
-          presentation_json: { ...(prev.presentation_json as object), mode },
+          presentation_json: mergeSavedViewPresentationMode(prev.presentation_json, mode),
         });
       }
       return { prev };

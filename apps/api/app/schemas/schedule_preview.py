@@ -1,4 +1,11 @@
-"""F6 schedule preview API responses."""
+# ==============================================================================
+#  File: apps/api/app/schemas/schedule_preview.py
+#  Description: Pydantic models for F6 schedule preview API responses and apply receipts.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from datetime import datetime
 from typing import Any

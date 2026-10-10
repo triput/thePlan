@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/taskForest.ts
+//  Description: DFS forest ordering for task hierarchies (F7 board and list sibling order).
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 /** Minimal task shape for DFS forest ordering. */
 export interface ForestTask {
   id: string;

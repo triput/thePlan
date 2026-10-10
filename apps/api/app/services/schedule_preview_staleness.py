@@ -1,4 +1,11 @@
-"""Apply-time preview validation (do not trust GET status alone)."""
+# ==============================================================================
+#  File: apps/api/app/services/schedule_preview_staleness.py
+#  Description: Apply-time F6 preview staleness checks against live owner input fingerprint.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

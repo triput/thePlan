@@ -1,4 +1,11 @@
-/** Local-time calendar helpers (ISO weeks = Monday-start). */
+// ==============================================================================
+//  File: apps/web/src/calendarUtils.ts
+//  Description: Local-time calendar helpers — ISO weeks, hour bounds, Time Map overlay keys (F4/F6).
+//  Component: Calendar
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
 
 export const DEFAULT_CALENDAR_HOUR_START = 6;
 export const DEFAULT_CALENDAR_HOUR_END = 22;
@@ -41,7 +48,7 @@ export function saveShow24h(value: boolean): void {
   }
 }
 
-/** Selected Time Map id for week-view band overlay, or "" for Neutral. */
+/** Selected Time Map id for calendar band overlay (day/week), or "" for Neutral. */
 export function loadTimeMapOverlayId(): string {
   try {
     return localStorage.getItem(TIME_MAP_OVERLAY_STORAGE_KEY) ?? "";

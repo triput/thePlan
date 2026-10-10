@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/components/SavedViewFilterModal.tsx
+//  Description: Saved view create and edit filter builder modal (F7-W3).
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -26,6 +35,8 @@ import {
   type SavedViewFilterDraft,
 } from "../savedViewPredicate";
 import {
+  SAVED_VIEW_SORT_OPTIONS,
+  savedViewPresentationPayload,
   savedViewPresentationSort,
   type SavedViewSortKey,
   type TaskPresentation,
@@ -45,18 +56,6 @@ const SCHEDULE_STATUSES = [
   "overbooked",
 ] as const;
 const SCHEDULE_STYLES: ScheduleStyle[] = ["standalone", "time_block", "manual", "bundle"];
-
-const SORT_OPTIONS: { value: SavedViewSortKey; label: string }[] = [
-  { value: "sort_order", label: "Manual order" },
-  { value: "created_at", label: "Created (oldest first)" },
-  { value: "-created_at", label: "Created (newest first)" },
-  { value: "due_at", label: "Due date (soonest first)" },
-  { value: "-due_at", label: "Due date (latest first)" },
-  { value: "priority", label: "Priority (highest first)" },
-  { value: "-priority", label: "Priority (lowest first)" },
-  { value: "title", label: "Title (A–Z)" },
-  { value: "-title", label: "Title (Z–A)" },
-];
 
 function toggleInList<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
@@ -153,10 +152,10 @@ export function SavedViewFilterModal({
       const validationError = validateSavedViewFilterDraft(draft);
       if (validationError) throw new Error(validationError);
       const predicate = predicateFromDraft(draft, predicateOptions) as SavedViewPredicateV1;
-      const presentation_json: SavedViewPresentation = {
-        mode: presentationMode,
-        sort: sortKey,
-      };
+      const presentation_json: SavedViewPresentation = savedViewPresentationPayload(
+        presentationMode,
+        sortKey,
+      );
       if (mode === "create") {
         return createView({
           name: trimmed,
@@ -550,7 +549,7 @@ export function SavedViewFilterModal({
             onChange={(e) => setSortKey(e.target.value as SavedViewSortKey)}
             aria-label="Saved view task sort order"
           >
-            {SORT_OPTIONS.map((opt) => (
+            {SAVED_VIEW_SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

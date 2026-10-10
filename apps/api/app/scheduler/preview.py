@@ -1,4 +1,11 @@
-"""Replan preview worker — collect → calculate only (F6-W1)."""
+# ==============================================================================
+#  File: apps/api/app/scheduler/preview.py
+#  Description: F6 replan preview worker — collect inputs and calculate without live writes.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

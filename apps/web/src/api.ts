@@ -1894,6 +1894,19 @@ export function fetchScheduleRunExplanations(
   }>(buildUrl(`/api/v1/schedule/runs/${runId}/explanations`, params));
 }
 
+export interface ScheduleRunStaleSummary {
+  stale_task_count: number;
+  categories: StaleCategory[];
+  total_explanations: number;
+}
+
+/** Whole-run stale aggregate. Not paginated; covers explanations past the list cap. */
+export function fetchScheduleRunStaleSummary(runId: string) {
+  return apiFetch<ScheduleRunStaleSummary>(
+    `/api/v1/schedule/runs/${runId}/stale-summary`,
+  );
+}
+
 /** Full-page navigation so session cookie rides the OAuth round-trip. */
 export function googleCalendarConnectHref(): string {
   const base = API_URL.replace(/\/$/, "");

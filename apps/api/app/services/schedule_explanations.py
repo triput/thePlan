@@ -13,8 +13,12 @@ from app.schemas.schedule import (
     ReasonFactOut,
     ScheduleExplanationOut,
     ScheduleExplanationPage,
+    ScheduleRunStaleSummary,
     TaskScheduleExplanationOut,
 )
+
+# Read window only. The summary loop keeps going until every row is compared.
+_STALE_SUMMARY_BATCH = 200
 
 
 def _facts_out(raw: list | None) -> list[ReasonFactOut]:
@@ -109,6 +113,43 @@ def page_for_run(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+
+def stale_summary_for_run(db: Session, run: ScheduleRun) -> ScheduleRunStaleSummary:
+    """Stale count and category union for every explanation on the run.
+
+    Same compare as ``page_for_run`` / ``_explanation_out``. Batches the read so
+    a large run is not one giant snapshot load, and does not stop after one batch.
+    """
+    query = db.query(ScheduleTaskOutcome).filter(
+        ScheduleTaskOutcome.schedule_run_id == run.id,
+        ScheduleTaskOutcome.owner_id == run.owner_id,
+    )
+    total = query.count()
+    stale_task_count = 0
+    categories: set[str] = set()
+    offset = 0
+    while offset < total:
+        rows = (
+            query.order_by(ScheduleTaskOutcome.task_id)
+            .offset(offset)
+            .limit(_STALE_SUMMARY_BATCH)
+            .all()
+        )
+        if not rows:
+            break
+        live = _live_for_rows(db, rows)
+        for row in rows:
+            explanation = _explanation_out(row, live.get(row.task_id))
+            if explanation.is_stale:
+                stale_task_count += 1
+                categories.update(explanation.stale_categories)
+        offset += len(rows)
+    return ScheduleRunStaleSummary(
+        stale_task_count=stale_task_count,
+        categories=sorted(categories),
+        total_explanations=total,
     )
 
 

@@ -1,21 +1,16 @@
-"""Validate and normalize saved-view predicate JSON (F7 v1).
+# ==============================================================================
+#  File: apps/api/app/services/saved_filter_predicate.py
+#  Description: Validate and normalize saved-view predicate JSON (F7 v1 dimension bag).
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
-Runtime accepts the versioned dimension bag only. Legacy ``op`` / ``clauses``
-documents are rejected here; a migration normalizer may rewrite them once,
-but query and CRUD paths must not.
+"""Engine layer — persist :func:`validate_predicate` output; reject legacy clause trees.
 
-Jules: persist the dict returned by :func:`validate_predicate`. Call
-:func:`check_missing_refs` (or :func:`apply_predicate_to_query`, which does)
-at read time. Missing project, epic, and label ids stay in the predicate and
-are returned as structured refs — this module never deletes them to widen
-the match set.
-
-Complexity (422 ``PREDICATE_TOO_COMPLEX``):
-
-* ``MAX_DIMENSIONS`` — keys present on ``dimensions`` (omitted axes do not count).
-* ``MAX_OR_FANOUT`` — raw array length for each OR list (ids or enum values).
-* ``MAX_NESTING_DEPTH`` — one dimension bag. ``labels`` and ``due`` are the only
-  structured values, and their fields are scalars. Clause trees are rejected.
+Missing project/epic/label refs stay in the predicate and surface at read time.
+Complexity limits raise 422 ``PREDICATE_TOO_COMPLEX`` (dimensions, OR fanout, depth).
 """
 
 from __future__ import annotations

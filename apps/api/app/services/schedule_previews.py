@@ -1,4 +1,11 @@
-"""Read and normalize schedule preview rows for API responses."""
+# ==============================================================================
+#  File: apps/api/app/services/schedule_previews.py
+#  Description: Read, expire, and normalize schedule preview rows for F6 API responses.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

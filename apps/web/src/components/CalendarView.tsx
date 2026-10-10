@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/components/CalendarView.tsx
+//  Description: Calendar week/day surface — blocks, Time Map overrides overlay, F6 preview entry.
+//  Component: Calendar
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -11,6 +20,8 @@ import {
   fetchTimeMapOverrides,
   fetchProjects,
   fetchScheduleRun,
+  fetchScheduleRunStaleSummary,
+  fetchScheduleRuns,
   fetchSchedulePreview,
   fetchScheduledBlocks,
   postSchedulePreview,
@@ -262,29 +273,32 @@ export function CalendarView() {
   const overlayOverridesQuery = useQuery({
     queryKey: ["time-map-overrides", effectiveOverlayMapId],
     queryFn: () => fetchTimeMapOverrides(effectiveOverlayMapId),
-    enabled: Boolean(effectiveOverlayMapId) && mode === "week",
+    enabled: Boolean(effectiveOverlayMapId),
   });
 
   const overlayOverrides = overlayOverridesQuery.data;
 
   const resolveTimeMapOverlay = useCallback(
     (day: Date) => {
-      if (mode !== "week" || !overlayFocusWindow || !settingsQuery.data) {
+      if (!overlayFocusWindow || !settingsQuery.data) {
         return {
           bands: undefined as undefined,
           overrideActive: false,
+          strictAllDayUnavailable: false,
           bandWallClock: undefined as undefined,
         };
       }
-      const { bands, override } = effectiveTimeMapBandsForDay(
+      const { bands, override, strictMode } = effectiveTimeMapBandsForDay(
         overlayFocusWindow,
         overlayOverrides,
         day,
         settingsQuery.data,
       );
+      const sorted = sortTimeMapBandsForOverlay(bands);
       return {
-        bands: sortTimeMapBandsForOverlay(bands),
+        bands: sorted,
         overrideActive: override !== null,
+        strictAllDayUnavailable: strictMode && sorted.length === 0,
         bandWallClock: bandWallClockContextForSchedulingDay(
           day,
           settingsQuery.data,
@@ -292,8 +306,59 @@ export function CalendarView() {
         ),
       };
     },
-    [mode, overlayFocusWindow, overlayOverrides, settingsQuery.data],
+    [overlayFocusWindow, overlayOverrides, settingsQuery.data],
   );
+
+  const latestScheduleRunQuery = useQuery({
+    queryKey: ["schedule-runs", "latest"],
+    queryFn: () => fetchScheduleRuns({ limit: 1 }),
+    staleTime: 60_000,
+  });
+
+  const latestCompletedRunId = useMemo(() => {
+    const run = latestScheduleRunQuery.data?.items[0];
+    return run?.status === "completed" ? run.id : undefined;
+  }, [latestScheduleRunQuery.data?.items]);
+
+  const scheduleStaleScanQuery = useQuery({
+    queryKey: ["schedule-run-stale-summary", latestCompletedRunId],
+    queryFn: async () => {
+      const summary = await fetchScheduleRunStaleSummary(latestCompletedRunId!);
+      return {
+        staleTaskCount: summary.stale_task_count,
+        categories: summary.categories,
+      };
+    },
+    enabled: Boolean(latestCompletedRunId),
+    staleTime: 60_000,
+  });
+
+  const scheduleStaleHint = useMemo(() => {
+    const scan = scheduleStaleScanQuery.data;
+    if (!scan || scan.staleTaskCount === 0) return null;
+    const labels: Record<StaleCategory, string> = {
+      duration: "duration changed",
+      deadline: "deadline changed",
+      map_style: "time map or style changed",
+      deps: "dependencies changed",
+      pins: "pins changed",
+      project_daily_cap: "project daily cap changed",
+      timezone_horizon_workweek: "timezone, horizon, or workweek changed",
+      lifecycle: "completed, trash, or archive changed",
+      busy_external: "busy time changed",
+      prerequisite_state: "prerequisite state changed",
+      due_at_soft_target: "due date or soft target changed",
+      time_map_overrides: "time map overrides changed",
+      provenance: "older snapshot",
+    };
+    const detail = scan.categories.map((c) => labels[c] ?? c).join(", ");
+    return {
+      taskCount: scan.staleTaskCount,
+      title: detail
+        ? `${scan.staleTaskCount} task${scan.staleTaskCount === 1 ? "" : "s"} may be out of date (${detail}) — run Update Schedule`
+        : `${scan.staleTaskCount} task${scan.staleTaskCount === 1 ? "" : "s"} may be out of date — run Update Schedule`,
+    };
+  }, [scheduleStaleScanQuery.data]);
 
   const setTimeMapOverlay = (mapId: string) => {
     setOverlayMapId(mapId);
@@ -306,6 +371,8 @@ export function CalendarView() {
     queryClient.invalidateQueries({ queryKey: ["calendar-conflicts"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
     queryClient.invalidateQueries({ queryKey: ["schedule-explanation"] });
+    queryClient.invalidateQueries({ queryKey: ["schedule-runs"] });
+    queryClient.invalidateQueries({ queryKey: ["schedule-run-stale-summary"] });
   }, [queryClient]);
 
   const [replanPolling, setReplanPolling] = useState(false);
@@ -803,6 +870,15 @@ export function CalendarView() {
 
   const headerTitle = mode === "day" ? dayViewTitle(anchor) : weekViewTitle(anchor);
   const days = mode === "day" ? [anchor] : weekDays(anchor);
+  const anchorOverlay = resolveTimeMapOverlay(anchor);
+  const dayOverlayHeader =
+    mode === "day" && Boolean(effectiveOverlayMapId) && anchorOverlay.overrideActive;
+  const overlayMapName = overlayFocusWindow?.name ?? "";
+  const pinnedBlockCount = useMemo(
+    () => blocks.filter((b) => b.is_pinned).length,
+    [blocks],
+  );
+  const busyInRangeCount = busyEvents.length;
 
   const formTasks = useMemo(() => {
     const seen = new Set<string>();
@@ -839,6 +915,7 @@ export function CalendarView() {
         clearUnpinnedPending={clearUnpinnedMutation.isPending}
         focusWindows={focusWindows}
         effectiveOverlayMapId={effectiveOverlayMapId}
+        scheduleStaleHint={scheduleStaleHint}
         onPrev={goPrev}
         onNext={goNext}
         onToday={goToday}
@@ -867,9 +944,11 @@ export function CalendarView() {
       )}
 
       <div className={`cal-grid-wrap${show24h ? " show-24h" : ""}`}>
-        <div className={`cal-grid${mode === "week" ? " week" : " day"}`}>
+        <div
+          className={`cal-grid${mode === "week" ? " week" : " day"}${dayOverlayHeader ? " day-overlay-header" : ""}`}
+        >
           <div className="cal-time-gutter">
-            {mode === "week" && <div className="cal-gutter-spacer" />}
+            {(mode === "week" || dayOverlayHeader) && <div className="cal-gutter-spacer" />}
             {Array.from({ length: hours.hours }, (_, i) => (
               <div key={i} className="cal-time-label" style={{ height: CALENDAR_ROW_HEIGHT_PX }}>
                 {formatHour(hours.start + i)}
@@ -903,9 +982,11 @@ export function CalendarView() {
                 taskDropEnabled={dragEnabled}
                 onTaskDrop={handleTaskDrop}
                 showDayLabel={mode === "week"}
+                showOverrideBadgeOnly={mode === "day" && dayOverlayHeader}
                 timeMapBands={timeMapOverlay.bands}
                 timeMapBandWallClock={timeMapOverlay.bandWallClock}
                 timeMapOverrideActive={timeMapOverlay.overrideActive}
+                timeMapStrictAllDayUnavailable={timeMapOverlay.strictAllDayUnavailable}
               />
             );
             })}
@@ -918,6 +999,28 @@ export function CalendarView() {
           ? "Drag a task from the list onto the calendar, or click a slot to schedule. Drag blocks to move, bottom edge to resize; drag due dots to reschedule."
           : "Tap a time slot to schedule a task. Tap a due dot or block to edit."}
       </p>
+      {effectiveOverlayMapId && (
+        <p className="muted small cal-overlay-legend" role="note">
+          <span className="cal-overlay-legend-map">{overlayMapName}</span> overlay is visual only
+          (does not replan).{" "}
+          <span className="cal-overlay-legend-red">Red</span> bands take precedence over green/yellow.{" "}
+          {pinnedBlockCount > 0 && (
+            <>
+              <span className="cal-overlay-legend-pin" aria-hidden>
+                📌
+              </span>{" "}
+              {pinnedBlockCount} pinned block{pinnedBlockCount === 1 ? "" : "s"} stay fixed during
+              replan.{" "}
+            </>
+          )}
+          {busyInRangeCount > 0 && (
+            <>
+              Gray <span className="cal-overlay-legend-busy">busy</span> blocks are external calendar
+              time ({busyInRangeCount} in view) — unchanged by Time Map overrides.
+            </>
+          )}
+        </p>
+      )}
 
       <CalendarBlockMenu
         open={blockForm !== null}

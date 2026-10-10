@@ -1,3 +1,12 @@
+# ==============================================================================
+#  File: apps/cli/theplan/api_client.py
+#  Description: HTTP helpers for thePlan CLI — base URL, session cookies, and JSON API calls.
+#  Component: CLI
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
+
 from __future__ import annotations
 
 import json
@@ -128,6 +137,14 @@ def api_logout() -> None:
     if response.status_code >= 400:
         raise api_error_from_response(response)
     clear_session_file()
+
+
+def focus_window_overrides_path(map_id: str, override_id: str | None = None) -> str:
+    """Nested F4 override routes under one owned focus window."""
+    base = f"/api/v1/focus-windows/{map_id}/overrides"
+    if override_id:
+        return f"{base}/{override_id}"
+    return base
 
 
 def unwrap_api_list(body: dict[str, Any] | None) -> list[Any]:

@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/components/TaskBoard.tsx
+//  Description: Kanban board including saved-view queries, load-more, and WIP counts (F2/F7).
+//  Component: Task Board
+//  Version: 1.0
+//  Created: 2026-08-27
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {

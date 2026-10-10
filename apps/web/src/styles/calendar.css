@@ -231,6 +231,10 @@
   --cal-week-header-height: 4rem;
 }
 
+.cal-grid.day.day-overlay-header {
+  --cal-week-header-height: 1.85rem;
+}
+
 .cal-col-header {
   display: flex;
   flex-direction: column;
@@ -262,6 +266,12 @@
 
 .cal-col-header.today .cal-col-date {
   color: inherit;
+}
+
+.cal-col-header.override-badge-only {
+  min-height: var(--cal-week-header-height);
+  flex-direction: row;
+  gap: 0.35rem;
 }
 
 .cal-slots {
@@ -329,6 +339,13 @@
     color-mix(in srgb, #b91c1c 28%, transparent) 7px
   );
   z-index: 3;
+}
+
+.cal-time-map-band--all-day {
+  left: 0;
+  right: 0;
+  border-radius: 0;
+  opacity: 0.92;
 }
 .cal-block {
   position: absolute;
@@ -810,6 +827,29 @@
 
 .cal-hint {
   margin: 0.75rem 0 0;
+}
+
+.cal-overlay-legend {
+  margin: 0.35rem 0 0;
+  line-height: 1.45;
+}
+
+.cal-overlay-legend-map {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cal-overlay-legend-red {
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.cal-overlay-legend-busy {
+  font-style: italic;
+}
+
+.cal-schedule-stale-badge {
+  flex-shrink: 0;
 }
 
 .cal-pin-field span {

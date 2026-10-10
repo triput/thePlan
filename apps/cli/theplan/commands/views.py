@@ -1,3 +1,12 @@
+# ==============================================================================
+#  File: apps/cli/theplan/commands/views.py
+#  Description: CLI commands for saved views CRUD and predicate-backed task query (F7).
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
+
 from __future__ import annotations
 
 import argparse

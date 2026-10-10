@@ -1,4 +1,11 @@
-"""Preview collect clock — immutable proposals must stay apply-able after review."""
+# ==============================================================================
+#  File: apps/api/app/scheduler/preview_planning.py
+#  Description: Deterministic UTC planning clock so F6 preview proposals stay apply-able after review.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

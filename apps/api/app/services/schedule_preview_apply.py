@@ -1,4 +1,11 @@
-"""Apply an immutable schedule preview (F6-W2)."""
+# ==============================================================================
+#  File: apps/api/app/services/schedule_preview_apply.py
+#  Description: Apply an immutable F6 schedule preview via shared apply_calculation and receipts.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

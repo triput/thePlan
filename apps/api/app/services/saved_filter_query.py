@@ -1,37 +1,16 @@
-"""Compile a validated v1 predicate into SQLAlchemy filters on ``Task``.
+# ==============================================================================
+#  File: apps/api/app/services/saved_filter_query.py
+#  Description: Compile validated v1 saved-view predicates into SQLAlchemy Task filters.
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
-Bounds are computed in Python from ``user_settings.timezone`` (passed in as
-``timezone_name``) at query time. Fixed ranges stay absolute timestamptz.
-Nothing in the predicate is interpolated into SQL text; comparisons use bound
-parameters and ORM expressions only.
+"""Query layer — owner timezone bounds, rolling due windows, visibility rules.
 
-Jules: build an owner-scoped ``Query`` and call :func:`apply_predicate_to_query`.
-Pass ``settings.timezone``. ``upcoming_horizon_days`` is used only when a
-``within_days`` dimension has no ``days`` value; :func:`validate_predicate`
-always writes ``days`` (default 7), so a saved Upcoming predicate does not
-track the settings horizon by itself.
-
-Rolling windows (half-open, owner timezone):
-
-* ``today`` — ``[local midnight, next local midnight)``.
-* ``next_7_days`` — ``[local midnight, local midnight + 7 days)`` (includes today).
-* ``this_calendar_week`` — ISO week, Monday 00:00 through the next Monday 00:00.
-  There is no week-start setting.
-* ``within_days`` — Upcoming: ``[start of tomorrow, start of today + (days + 1) days)``.
-  ``days=7`` is tomorrow through local day+7, and does not include today.
-
-``due.kind = unbounded`` stores an explicit non-constraint (null and non-null
-``due_at`` both match). ``due.kind = none`` is ``due_at IS NULL``.
-
-Visibility applied here, even if the route also calls
-:func:`apply_default_task_visibility`:
-
-* Trashed tasks (``deleted_at`` set) stay excluded. v1 has no trash dimension.
-* Tasks in an archived project, or a project under an archived epic, stay
-  excluded unless ``project_ids`` is set (explicit project scope, same idea as
-  ``GET /tasks?project_id=``). ``epic_ids`` does not widen that exclusion.
-* Omitted ``completion`` matches open and done. System seeds set ``open``.
-* ``workflow_states`` matches open tasks in those states.
+Call :func:`apply_predicate_to_query` with ``settings.timezone``. No predicate
+text is interpolated into SQL; rolling windows are half-open in owner local time.
 """
 
 from __future__ import annotations

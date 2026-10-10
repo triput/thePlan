@@ -1,4 +1,11 @@
-"""Per-owner scheduling revision for F6 preview staleness and apply serialization."""
+# ==============================================================================
+#  File: apps/api/app/services/scheduling_revision.py
+#  Description: Per-owner scheduling revision counter and advisory lock for F6 apply serialization.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

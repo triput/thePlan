@@ -1,6 +1,11 @@
-/**
- * F5 template picker — built-in Coursera packs via /api/v1/templates (handoff apply + receipts).
- */
+// ==============================================================================
+//  File: apps/web/src/components/TemplatesPanel.tsx
+//  Description: Built-in Coursera template import via /api/v1/templates (propose, apply, receipt).
+//  Component: F5 Templates
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -308,10 +313,23 @@ function ReceiptBlock({ receipt, idempotencyKey }: { receipt: TemplateApplyResul
 
 export function TemplatesPanel({
   onApplied,
+  embedded = false,
+  active = true,
+  shellOpen,
 }: {
   onApplied?: (epicId: string | null) => void;
+  /** Render propose/apply body only (no toolbar button or Modal). */
+  embedded?: boolean;
+  /** Visible tab in the Import shell (does not reset draft). */
+  active?: boolean;
+  /**
+   * When embedded, keep catalog/detail queries alive while the Import modal is open
+   * even if this tab is hidden — avoids re-seeding the example on tab switch.
+   */
+  shellOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const queriesEnabled = embedded ? (shellOpen ?? active) : internalOpen;
   const [templateId, setTemplateId] = useState<BuiltinTemplateId>("coursera_specialization");
   const [inputMode, setInputMode] = useState<InputMode>("form");
   const [outline, setOutline] = useState<Record<string, unknown> | null>(null);
@@ -336,6 +354,8 @@ export function TemplatesPanel({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const proposeGenerationRef = useRef(0);
+  /** Seed example once per selected template id — not when the Import tab becomes active again. */
+  const seededTemplateIdRef = useRef<BuiltinTemplateId | null>(null);
   const queryClient = useQueryClient();
 
   const invalidateProposePreview = useCallback(() => {
@@ -351,17 +371,19 @@ export function TemplatesPanel({
   const templatesQuery = useQuery({
     queryKey: ["templates", "catalog"],
     queryFn: fetchTemplates,
-    enabled: open,
+    enabled: queriesEnabled,
   });
 
   const detailQuery = useQuery({
     queryKey: ["templates", "detail", templateId],
     queryFn: () => fetchTemplate(templateId),
-    enabled: open,
+    enabled: queriesEnabled,
   });
 
   useEffect(() => {
-    if (!open || !detailQuery.data || detailQuery.data.id !== templateId) return;
+    if (!detailQuery.data || detailQuery.data.id !== templateId) return;
+    if (seededTemplateIdRef.current === templateId) return;
+    seededTemplateIdRef.current = templateId;
     const example = detailQuery.data.example_outline;
     setOutline(structuredClone(example));
     setJsonText(JSON.stringify(example, null, 2));
@@ -375,7 +397,7 @@ export function TemplatesPanel({
     setIdempotencyKey(null);
     setReceipt(null);
     setError(null);
-  }, [open, detailQuery.data, templateId]);
+  }, [detailQuery.data, templateId]);
 
   useEffect(() => {
     if (templateId === "coursera_module") {
@@ -393,7 +415,7 @@ export function TemplatesPanel({
   const epicsQuery = useQuery({
     queryKey: ["epics", "templates"],
     queryFn: () => fetchEpics({ archived: false, limit: 200 }),
-    enabled: open && (templateId === "coursera_module" || !attachRoot),
+    enabled: queriesEnabled && (templateId === "coursera_module" || !attachRoot),
   });
 
   const projectsQuery = useQuery({
@@ -404,13 +426,13 @@ export function TemplatesPanel({
         limit: 200,
         epic_id: attachEpicId || undefined,
       }),
-    enabled: open && (templateId === "coursera_module" || !attachRoot),
+    enabled: queriesEnabled && (templateId === "coursera_module" || !attachRoot),
   });
 
   const sectionsQuery = useQuery({
     queryKey: ["sections", "templates", attachProjectId],
     queryFn: () => fetchSections(attachProjectId),
-    enabled: open && templateId === "coursera_module" && Boolean(attachProjectId),
+    enabled: queriesEnabled && templateId === "coursera_module" && Boolean(attachProjectId),
   });
 
   const buildAttachUnder = (): OutlineAttachUnder | null => {
@@ -633,17 +655,8 @@ export function TemplatesPanel({
       </p>
     ) : null;
 
-  return (
-    <div className="templates">
-      <button
-        type="button"
-        className="btn secondary small templates-toggle"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-      >
-        Templates
-      </button>
-      <Modal open={open} title="Coursera templates" onClose={() => setOpen(false)} className="templates-modal">
+  const flowBody = (
+    <>
         <p className="outline-help muted small">
           Built-in specialization, course, and module packs. Propose previews the handoff graph;
           apply uses an idempotency key and returns a receipt.
@@ -1059,6 +1072,30 @@ export function TemplatesPanel({
         ) : null}
 
         {error && <p className="form-error">{error}</p>}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="templates templates-embedded">{flowBody}</div>;
+  }
+
+  return (
+    <div className="templates">
+      <button
+        type="button"
+        className="btn secondary small templates-toggle"
+        aria-expanded={internalOpen}
+        onClick={() => setInternalOpen(true)}
+      >
+        Templates
+      </button>
+      <Modal
+        open={internalOpen}
+        title="Coursera templates"
+        onClose={() => setInternalOpen(false)}
+        className="templates-modal"
+      >
+        {flowBody}
       </Modal>
     </div>
   );

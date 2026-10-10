@@ -1,6 +1,19 @@
 # F6 — Replan preview
 
-**Status:** **W1–W2 Quality green** — **24** F6 pytest (**W1 9** + **W2 15**, Renee **2026-10-09**) · **W3 conditional go** (Calendar **Preview changes** modal — Andi; CLI preview create/get/apply — Tesla) · **F6-B–D** not fully accepted · push **not requested** · F6 **Open / in-progress** — **not** Closed/shipped ([manual checklist](./MANUAL-CHECKLIST.md), [sign-off](./MANUAL-CHECKLIST.md#sign-off))
+**Latest Dex gate, 2026-10-10:** F6 **P1 R1** verified closed (**37** API integration tests incl. concurrent reparent). F4 Wave 1 **verified closed** incl. **W1-R1** volume stale (`GET …/stale-summary`). Web **36** + CLI **36** green. [Evidence](DEX-WAVE1-RETEST-2026-10-10.md). Trish Done sign-off **2026-10-10** ([sign-off](./MANUAL-CHECKLIST.md#sign-off)); F6 **not Closed** (F6-B–D).
+
+<!--
+==============================================================================
+  File: docs/delivery/F6-REPLAN-PREVIEW.md
+  Description: F6 replan preview delivery tracker — worker, apply, W3 modal/CLI status.
+  Component: Docs/Delivery
+  Version: 1.0
+  Created: 2026-10-09
+  Last Update: 2026-10-10
+==============================================================================
+-->
+
+**Status:** **W1–W2 Quality green** — **24** F6 pytest (**W1 9** + **W2 15**, Renee **2026-10-09**) · **W3 conditional go** (Calendar **Preview changes** modal — Andi; CLI preview create/get/apply — Tesla) · **F6-B–D** not fully accepted · push **not requested** · Trish Done **2026-10-10** — **not** Closed/shipped ([manual checklist](./MANUAL-CHECKLIST.md), [sign-off](./MANUAL-CHECKLIST.md#sign-off); F6-B–D) · **Dex:** three P2s + archive P1 + **P1 R1 Verified closed** (Wave 1 retest **2026-10-10**) — [DEX-F6 evidence](./DEX-F6-MANUAL-2026-10-09.md)
 
 **Spec:** [NEXT-FEATURES-SPEC.md §9](../NEXT-FEATURES-SPEC.md#9-f6-replan-preview)  
 **Build:** working tree on `cursor` `main` (F6 API + scheduler preview worker extension; uncommitted)  
@@ -80,7 +93,7 @@ Canonical checkboxes: **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md)** § F6. Do
 
 | Item | Notes |
 |------|-------|
-| **Web / CLI** | Preview modal + CLI create/get/apply **landed locally** — operator [manual checklist](./MANUAL-CHECKLIST.md) § F6 and Trish sign-off **open** |
+| **Web / CLI** | Preview modal + CLI create/get/apply **landed locally** — operator [manual checklist](./MANUAL-CHECKLIST.md) § F6; Trish Done **2026-10-10**; F6-B–D **not Closed** |
 | **Selective apply** | Whole proposal only ([spec design default](../NEXT-FEATURES-SPEC.md#9-f6-replan-preview)) |
 | **Hypothetical inputs** | Preview uses persisted DB state only — unsaved override drafts deferred |
 | **Mirror atomicity** | Apply uses ordinary replan mirror path; provider failures do not roll back local apply ([spec](../NEXT-FEATURES-SPEC.md#9-f6-replan-preview)) |

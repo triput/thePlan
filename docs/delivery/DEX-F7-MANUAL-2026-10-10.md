@@ -1,9 +1,17 @@
 # Dex F7 review and local verification
 
-**Filename:** DEX-F7-MANUAL-2026-10-10.md  
-**Last modified:** 2026-10-10  
-**File version:** 1.2  
-**Disposition:** R1–R6 verified closed in the focused Dex retest. F7 remains Open for the acknowledged completion gaps and remaining sign-off. Original findings below are retained as history. No implementation edits, commit, push, or production data changes by Dex.
+<!--
+==============================================================================
+  File: docs/delivery/DEX-F7-MANUAL-2026-10-10.md
+  Description: Dex F7 W1–W3 review — build/env, verified checks, R1–R6 disposition.
+  Component: Docs/Delivery
+  Version: 1.2
+  Created: 2026-10-10
+  Last Update: 2026-10-10
+==============================================================================
+-->
+
+**Disposition:** R1–R6 verified closed in the focused Dex retest. Completion gaps closed Dex+Trish **2026-10-10**; Trish Done sign-off recorded; F7 **not Closed/shipped** (non-goal alias). Original findings below are retained as history. No implementation edits, commit, push, or production data changes by Dex.
 
 ## Build and environment
 
@@ -99,7 +107,7 @@ The due-only system-engine default was accepted as documented. Existing web Toda
 
 ## Resolution (Dex retest passed)
 
-Implementation landed **2026-10-10** (Andi+Jules). Dex verified all six original repros closed on the same date. F7 stays **Open / in-progress** for the known completion gaps and remaining acceptance; human sign-off unchanged.
+Implementation landed **2026-10-10** (Andi+Jules). Dex verified all six original repros closed on the same date. Completion gaps **Verified closed** Dex+Trish **2026-10-10**; Trish Done sign-off recorded; F7 **not Closed/shipped** (non-goal alias).
 
 | ID | Fix direction landed |
 |----|----------------------|
@@ -131,4 +139,4 @@ Scope remains focused: this does not certify every task writer, all accessibilit
 
 ## Next gate
 
-Finish or explicitly disposition the three known completion gaps with Trish, then repeat broader checklist rows as needed. Keep human sign-off open. Both passes' disposable containers and tmpfs databases were removed; snapshots and screenshots remain for review.
+Finish or explicitly disposition the three known completion gaps with Trish, then repeat broader checklist rows as needed. Trish Done sign-off recorded **2026-10-10** in [MANUAL-CHECKLIST § Sign-off](./MANUAL-CHECKLIST.md#sign-off). Both passes' disposable containers and tmpfs databases were removed; snapshots and screenshots remain for review.

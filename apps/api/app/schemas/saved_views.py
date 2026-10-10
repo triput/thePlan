@@ -1,9 +1,11 @@
-"""Saved view API shapes (F7).
-
-Presentation ``sort`` allowlist (validated in ``saved_view_presentation``):
-``sort_order``, ``created_at``, ``-created_at``, ``due_at``, ``-due_at``,
-``priority``, ``-priority``, ``title``, ``-title`` — default ``sort_order``.
-"""
+# ==============================================================================
+#  File: apps/api/app/schemas/saved_views.py
+#  Description: Pydantic request/response models for saved views API (F7).
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

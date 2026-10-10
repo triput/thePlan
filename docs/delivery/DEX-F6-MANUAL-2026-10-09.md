@@ -1,18 +1,20 @@
 # Dex F6 review and manual verification
 
+**Latest Dex gate, 2026-10-10:** F6 **P1 R1** verified closed (**37** API integration tests incl. concurrent reparent). F4 Wave 1 **verified closed** incl. **W1-R1** volume stale. Web **36** + CLI **36** green. [Evidence](DEX-WAVE1-RETEST-2026-10-10.md). Trish Done sign-off **2026-10-10**; F6 **not Closed** (F6-B–D).
+
 **Filename:** DEX-F6-MANUAL-2026-10-09.md
-**Last modified:** 2026-10-09 (Tesla — P1 reparent/target_date fix; awaiting Dex retest)
+**Last modified:** 2026-10-10 (Page — P1 R1 + W1-R1 Dex verified closed)
 **File version:** 1.3
 
 ## Tesla fix wave — 2026-10-09 (working tree, not pushed)
 
-**P1 residual R1 — Fixed (code), awaiting Dex retest.** Renee/Tesla: **4** focused pytest green on the lock-writer selection covering reparent/detach and epic **`target_date`** bumps.
+**P1 residual R1 — Verified closed (Wave 1 retest 2026-10-10)** — **37** API integration tests incl. concurrent reparent ([DEX-WAVE1-RETEST](./DEX-WAVE1-RETEST-2026-10-10.md)). Renee/Tesla: **4** focused pytest green on lock-writer selection. **Three initial P2s + archive P1: Verified closed** (Dex retest).
 
 - **`PROJECT_SCHEDULING_FIELDS`** now includes **`epic_id`** (reparent and detach, including `null`).
 - **`EPIC_SCHEDULING_FIELDS`** now includes **`target_date`** (UPS epic alignment).
 - Shared predicate aligned in `scheduling_revision.py`; project/epic patch routes take the common owner lock + revision path before mutating those fields.
 
-**Disposition:** Prior Dex retest closed **three P2s** and the original archive interleaving P1. **F6 Open.** No commits or pushes from Tesla in this wave. Dex has not rerun the disposable stack on this fix.
+**Disposition:** Prior Dex retest closed **three P2s** and the original archive interleaving P1. **P1 R1 verified closed** on Wave 1 retest **2026-10-10**. Trish Done **2026-10-10**; **not Closed** (F6-B–D). No commits or pushes from Tesla in this wave.
 
 ## Dex fix retest
 
@@ -47,7 +49,7 @@ Artifacts: `f6-retest/source-manifest.json`, `retest.py`, `reparent_repro.py`, a
 
 | # | Severity | Dex symptom | Fix (working tree) | Retest |
 |---|----------|-------------|-------------------|--------|
-| 1 | P1 | Concurrent project archive after apply validation → stale proposal commits | Scheduling-relevant writers (incl. project archive) take common owner lock + revision path before mutating scheduling state | **PASS** — archive closed (Dex); **`epic_id`** / **`target_date`** **Fixed (code), awaiting Dex retest** (Tesla) |
+| 1 | P1 | Concurrent project archive after apply validation → stale proposal commits | Scheduling-relevant writers (incl. project archive) take common owner lock + revision path before mutating scheduling state | **PASS** — archive **Verified closed** (Dex); reparent **`epic_id`** / epic **`target_date`** **Fixed (code), awaiting Dex retest** (Tesla) |
 | 2 | P2 | Available-now preview → immediate **PREVIEW_PAST_BLOCKS** on apply | Preview calculate uses **planning lead**: wall UTC **ceiled to the next whole minute**, then **+ 90s** (`preview_collection_time` / `PREVIEW_PLANNING_LEAD_SECONDS`); apply still rejects past blocks, no slide | **Verified closed** (Dex) |
 | 3 | P2 | **MOVED** in list but summary **Moved 0** | **diff_counts** / `summarize_diff` pairs moved blocks consistently with display | **Verified closed** (Dex) |
 | 4 | P2 | Overlapping duplicate apply → **PREVIEW_STALE** instead of receipt | Refresh locked preview row before status/receipt check on apply retry | **Verified closed** (Dex) |
@@ -70,7 +72,7 @@ Evidence: preview `73761d89-c0e7-44bf-9fa8-101935fd3f96`; successful receipt `09
 
 **Fix (Jules, working tree):** Scheduling writers participate in apply serialization (project archive and related audit). **Verified closed (Dex retest)** — archive interleaving repro passes. Epic reparent residual: **Tesla fix wave** above.
 
-### 2. [P2] A preview calculated during available time is already too old to apply — **Fixed (code), awaiting Dex retest**
+### 2. [P2] A preview calculated during available time is already too old to apply — **Verified closed** (Dex retest)
 
 With UTC, seven workdays, workday 00:00–24:00, and a standalone 60-minute task, preview returned ready with first block starting exactly at collection: `2026-10-09T22:28:20.244260+00:00`. An immediate apply returned **409 PREVIEW_PAST_BLOCKS**. This is the normal available-now case; repeatedly refreshing will produce another block already in the past by apply time.
 
@@ -78,7 +80,7 @@ Keep the past-block rejection, but provide an explicit future planning boundary/
 
 **Fix (Jules, working tree):** Preview **planning lead** at calculate — UTC wall time **ceiled to the next whole minute**, then **+ 90 seconds** (`preview_planning.py`); snapshot `collected_at` drives placement; apply unchanged (**PREVIEW_PAST_BLOCKS** only). **Verified closed (Dex retest)** — available-now create → immediate apply.
 
-### 3. [P2] Summary move counts contradict the before/after list — **Fixed (code), awaiting Dex retest**
+### 3. [P2] Summary move counts contradict the before/after list — **Verified closed** (Dex retest)
 
 Browser repro: existing task block at 16:28 Pacific; changed work window moved proposed block to 17:29. Block changes correctly says **MOVED**, but summary shows **Added 1 / Removed 1 / Moved 0**. `summarize_diff` counts all nonidentical after rows as added, so `len(after) - unchanged - added` is zero for unique blocks. Match moved pairs consistently with the display; keep unchanged interval identity normalization.
 
@@ -86,7 +88,7 @@ Source: `services/schedule_previews.py:74–77`. Screenshot `diff-counts.png` re
 
 **Fix (Jules, working tree):** Moved pairing in **diff_counts** / summarize path aligned with MOVED display. **Verified closed (Dex retest)** — browser summary agrees with MOVED row.
 
-### 4. [P2] Overlapping duplicate apply can return PREVIEW_STALE instead of the original receipt — **Fixed (code), awaiting Dex retest**
+### 4. [P2] Overlapping duplicate apply can return PREVIEW_STALE instead of the original receipt — **Verified closed** (Dex retest)
 
 Two sessions loaded the same ready preview, matching the route's pre-lock `_get_owned_preview` lookup. Session A applied and committed. Session B then acquired the preview row lock, but SQLAlchemy reused its already-loaded ready object; the query does not refresh populated attributes. B returned **409 PREVIEW_STALE / provenance**, rather than recognizing applied status and returning A's receipt.
 
@@ -111,4 +113,4 @@ Scratch: `C:\Users\trish\.codex\visualizations\2026\10\08\01a11d56-e98c-7c31-995
 
 `source-manifest.json`, `initial-evidence.json` (available-now rejection), `manual_checks.py`, `manual-evidence.json` (HTTP and real CLI results), `concurrency_repros.py`, `retry_repro.py`, corresponding fixture IDs, and `diff-counts.png` retained. Concurrency scripts require fresh ready preview IDs to repeat after successful apply; they operate only on the disposable fixture.
 
-Disposable stack removed after testing. Human sign-off remains untouched; no migration on daily-driver. Dex: no commits or pushes. **Jules + Tesla fix waves:** local working tree only — **not pushed**. Dex retest closed three P2s and archive P1; **P1 R1 (`epic_id` / `target_date`) Fixed (code), awaiting Dex retest.** **F6 Open.**
+Disposable stack removed after testing. Trish Done sign-off recorded **2026-10-10**; no migration on daily-driver. Dex: no commits or pushes. **Jules + Tesla fix waves:** local working tree only — **not pushed**. Dex retest closed three P2s, archive P1, and **P1 R1 (`epic_id` / `target_date`) Verified closed (Wave 1 retest 2026-10-10).** F6 **not Closed** (F6-B–D).

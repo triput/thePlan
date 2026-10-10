@@ -1,4 +1,11 @@
-"""Dispatch schedule preview jobs (separate from direct replan admission)."""
+# ==============================================================================
+#  File: apps/api/app/services/schedule_preview_dispatch.py
+#  Description: Admit and dispatch F6 schedule preview worker jobs (separate from direct replan).
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

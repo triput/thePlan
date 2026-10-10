@@ -1,4 +1,11 @@
-"""Serialize scheduling calculation output for immutable preview storage."""
+# ==============================================================================
+#  File: apps/api/app/scheduler/preview_proposal.py
+#  Description: Build proposal_json and diff payloads from F6 preview calculate results.
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

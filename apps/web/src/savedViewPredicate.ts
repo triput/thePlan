@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/savedViewPredicate.ts
+//  Description: Saved-view predicate v1 filter draft state, validation, and API payload (F7-W3).
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import type {
   SavedViewCompletion,
   SavedViewDueRolling,

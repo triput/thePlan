@@ -1,3 +1,10 @@
+/**
+ * Saved-view filter draft validation and predicate round-trips (F7 W3, B-F7-2).
+ *
+ * Run the web suite from apps/web:
+ *   npm test
+ *   node --experimental-strip-types --test tests/*.test.ts
+ */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
@@ -5,6 +12,10 @@ import {
   predicateFromDraft,
   validateSavedViewFilterDraft,
 } from "../src/savedViewPredicate.ts";
+import {
+  savedViewPresentationPayload,
+  savedViewPresentationSort,
+} from "../src/taskPresentation.ts";
 
 const FIXED_FROM = "2026-10-10T07:00:00.000Z";
 const FIXED_TO = "2026-10-11T07:00:00.000Z";
@@ -77,6 +88,18 @@ describe("fixed due round-trip (R4)", () => {
     );
     assert.equal(out.dimensions.due?.from, FIXED_FROM);
     assert.equal(out.dimensions.due?.to, FIXED_TO);
+  });
+
+  it("keeps presentation sort across a rename-only predicate round-trip", () => {
+    const draft = draftFromPredicate(pred, { userTimezone: "America/Los_Angeles" });
+    const out = predicateFromDraft(draft, { userTimezone: "America/Los_Angeles" });
+    assert.equal(out.dimensions.due?.from, FIXED_FROM);
+    const presentation = { mode: "board", sort: "-title", note: "kept on server merge" };
+    assert.equal(savedViewPresentationSort(presentation), "-title");
+    assert.deepEqual(savedViewPresentationPayload("board", presentation.sort), {
+      mode: "board",
+      sort: "-title",
+    });
   });
 
   it("throws instead of emitting an unbounded predicate when fixed bounds are incomplete (R3)", () => {

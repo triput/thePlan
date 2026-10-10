@@ -1,9 +1,11 @@
-"""Keep provider identity when a mirrored calendar delete fails.
-
-Horizon wipe and block delete must not turn our own mirror into anonymous busy.
-The row stays with ``pending_deletion`` until a later sync deletes the remote
-event or observes that it is already gone.
-"""
+# ==============================================================================
+#  File: apps/api/app/services/mirror_tombstone.py
+#  Description: Retain provider mirror identity when remote calendar delete fails (pending_deletion).
+#  Component: Replan Preview
+#  Version: 1.0
+#  Created: 2026-10-09
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 

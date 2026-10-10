@@ -1,3 +1,12 @@
+// ==============================================================================
+//  File: apps/web/src/schedulePreviewDiff.ts
+//  Description: Schedule preview block diff rows for F6 Preview changes modal.
+//  Component: Replan Preview
+//  Version: 1.0
+//  Created: 2026-10-09
+//  Last Update: 2026-10-10
+// ==============================================================================
+
 import type {
   SchedulePreviewBlockRow,
   SchedulePreviewProposedBlock,

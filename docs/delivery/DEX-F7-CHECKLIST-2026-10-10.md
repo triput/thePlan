@@ -1,9 +1,17 @@
 # F7 manual checklist execution
 
-**Filename:** DEX-F7-CHECKLIST-2026-10-10.md  
-**Last modified:** 2026-10-10  
-**File version:** 1.1  
-**Result:** 23 checklist rows verified: 11 HTTP, 5 CLI, 7 browser. M1/M2 verified closed in the focused retest below. F7 overall and human sign-off remain open.
+<!--
+==============================================================================
+  File: docs/delivery/DEX-F7-CHECKLIST-2026-10-10.md
+  Description: Dex execution report — F7 manual checklist rows and M1/M2 retest evidence.
+  Component: Docs/Delivery
+  Version: 1.2
+  Created: 2026-10-10
+  Last Update: 2026-10-10
+==============================================================================
+-->
+
+**Result:** 23 checklist rows verified: 11 HTTP, 5 CLI, 7 browser. M1/M2 verified closed in the focused retest below. Trish Done sign-off **2026-10-10** ([MANUAL-CHECKLIST § Sign-off](./MANUAL-CHECKLIST.md#sign-off)); F7 feature **not Closed/shipped** (non-goal alias).
 
 ## M1/M2 focused retest, 2026-10-10
 
@@ -14,7 +22,7 @@ Current web source/tests copied into the isolated fixture and built as `index-C7
 - **Independent checks:** `node --experimental-strip-types --test tests/taskForest.test.ts tests/reorder.test.ts tests/savedViewPredicate.test.ts`: 14/14 passed. `npm run build` passed (bundle-size advisory only).
 - Screenshot: `f7-manual/m1-m2-retest-pass.png`. Disposable containers/database removed after testing. Nothing committed or pushed.
 
-The findings below preserve the original failure evidence; both are now verified closed. Existing-data migration, a committed W3 browser regression suite, and human final acceptance remain open.
+The findings below preserve the original failure evidence; both are now verified closed. **B-F7-1** migration dispositioned Trish **2026-10-10**; W3 automated suite **36** green (Renee); Trish Done sign-off **2026-10-10**.
 
 ## Tested artifact
 
@@ -51,7 +59,7 @@ Frozen CLI ran via `python -m theplan` inside the isolated container against its
 
 The first check script incorrectly expected a nested `error` key in the failure envelope. Correcting that test expectation and rerunning both protected commands confirmed the existing top-level CLI contract; this was not a product failure.
 
-## Browser evidence — 5 rows pass, reorder fails
+## Browser evidence — 7 rows pass (incl. M1/M2 retest)
 
 Chrome against the frozen local build:
 
@@ -69,7 +77,7 @@ The UI tests are manual browser automation evidence, not a committed browser reg
 
 **Repro:** Edit `Browser mixed` to labels any and Title (Z–A), then save. Server stores `presentation_json.sort: -title`; its task endpoint returns `Alpha only`, then `Alpha and beta`. The browser renders `Alpha and beta`, then `Alpha only`, including after the response settles. Both are root tasks in the same project. `orderTasksForest(items)` restores the ordinary manual ordering after the server has already sorted the saved result.
 
-**Expected:** Visible peer order agrees with the chosen saved sort and API/CLI. Mode persistence itself passes; sort sign-off stays open.
+**Expected:** Visible peer order agrees with the chosen saved sort and API/CLI. Mode persistence itself passes; **M1 verified closed** Dex+Trish **2026-10-10**.
 
 Screenshot: `f7-manual/sort-mismatch.png` in the artifact directory.
 
@@ -85,17 +93,16 @@ All new views default to rank 100. Sidebar sorts ties by name, while the reused 
 
 Screenshot: `f7-manual/reorder-tie-mismatch.png`.
 
-## Resolution (pending Dex retest)
+## Resolution — Verified closed (Dex+Trish 2026-10-10)
 
-| ID | Fix landed |
-|----|------------|
-| **M1** | `orderTasksForest(..., { peerOrder: "stable" })` on saved TaskList — hierarchy kept; peer order matches API/presentation sort |
-| **M2** | Sidebar reorder/`canReorder*` use `compareBySortOrderThenName` (same as display); projects still use id tie-break |
+| ID | Fix landed | Retest |
+|----|------------|--------|
+| **M1** | `orderTasksForest(..., { peerOrder: "stable" })` on saved TaskList — hierarchy kept; peer order matches API/presentation sort | **PASS** — [M1/M2 focused retest](#m1m2-focused-retest-2026-10-10) |
+| **M2** | Sidebar reorder/`canReorder*` use `compareBySortOrderThenName` (same as display); projects still use id tie-break | **PASS** — same retest |
+
+Shipped on cursor in **`b0c49d8`** (W3 completion gaps + M1/M2).
 
 ## Checks left open with notes
-
-- **Saved sort in browser:** M1 fixed in code; requires Dex retest.
-- **Sidebar reorder:** M2 fixed in code; requires Dex retest.
 - **Representative existing-data migration/backfill:** fresh migration and v1 seeds passed; did not migrate a copy of household data. No production migration performed.
 - **Automated W3 regression suite:** still not implemented. This manual pass does not substitute for a checked-in suite.
 - **Human final acceptance:** reserved for Trish; individual verified rows are checked without closing the wave.

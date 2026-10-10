@@ -1,75 +1,96 @@
 # File headers (module info blocks)
 
-Short purpose headers at the top of non-trivial source files. Quirk the operator wants as convention — not a novel, not a wall of metadata.
+Operator-preferred **banner header** at the top of non-trivial source files and delivery docs. Short purpose + identity fields — not a novel, not a changelog.
 
-**Preferred length:** 2–6 lines. One sentence can be enough when the name already says it.
+**Preferred:** the block below (comment syntax varies by language). Keep Description to one sentence.
 
 ---
 
-## Python (`apps/api`)
+## Canonical shape
 
-Put a **module docstring** as the **first statement**, then `from __future__` if used (PEP 236 — docstring must precede future imports so `__doc__` is set).
+```
+==============================================================================
+//  File: path/relative/to/repo.ext
+//  Description: One-sentence purpose.
+//  Component: Area name
+//  Version: 1.0
+//  Created: YYYY-MM-DD
+//  Last Update: YYYY-MM-DD
+// ==============================================================================
+```
+
+Use `(Gold Master)` on Version only when that artifact is frozen/shipped; omit for in-progress wave code.
+
+---
+
+## Python (`apps/api`, `apps/cli`)
+
+Module docstring **or** `#` banner as the first content (before `from __future__` if using a docstring — PEP 236). Prefer the `#` banner so fields stay machine-scannable:
 
 ```python
-"""One-line purpose.
-
-Optional second line: ADR / theme refs; ownership layer (route | service | model | scheduler).
-"""
+# ==============================================================================
+#  File: apps/api/app/services/example.py
+#  Description: One-sentence purpose.
+#  Component: Saved Views
+#  Version: 1.0
+#  Created: 2026-10-10
+#  Last Update: 2026-10-10
+# ==============================================================================
 
 from __future__ import annotations
 ```
 
-### Include when useful
-
-| Field | Notes |
-|-------|--------|
-| **Purpose** | What this module owns (not a function inventory) |
-| **ADR / theme** | e.g. ADR-010, Theme F — only when relevant |
-| **Layer** | `route` · `service` · `model` · `scheduler` (or `api deps`) |
-
-Skip class/function Gold Master banners. No author/date/changelog in the header.
-
-### Good examples (in-tree)
-
-```python
-"""OpenAI-compatible chat client for Assist (default: Ollama). ADR-010.
-
-Service layer — propose JSON actions from natural language.
-"""
-```
-
-```python
-"""Merge external calendar busy + pinned blocks into sorted BUSY intervals.
-
-Scheduler layer — input to fuzzy placement / replan (ADR-005, ADR-006).
-"""
-```
+Optional second purpose line may live in a short module docstring *below* the banner if ADR/layer notes help.
 
 ---
 
 ## TypeScript / TSX (`apps/web`)
 
-Use a brief top file comment for **non-trivial** modules — entry surfaces, fat panels, hooks that own a pipeline:
-
 ```tsx
-/**
- * Outline import UI — propose → review → apply (Theme F / ADR-011).
- * Entry surface for Coursera specialization pack ingest.
- */
+// ==============================================================================
+//  File: apps/web/src/example.ts
+//  Description: One-sentence purpose.
+//  Component: Saved Views
+//  Version: 1.0
+//  Created: 2026-10-10
+//  Last Update: 2026-10-10
+// ==============================================================================
 ```
 
-`api.ts` and similar multi-section clients can stay **lighter** (section comments inside the file are fine; no need for a six-line banner on every helper).
+`api.ts` and similar multi-section clients can stay lighter (section comments inside); banners on entry surfaces and fat modules.
 
-Prefer `/** ... */` over `//` stacks so it reads as a file info block.
+---
+
+## Markdown (delivery / guides)
+
+HTML comment banner immediately under the `#` title (or as the first lines):
+
+```markdown
+# Title
+
+<!--
+==============================================================================
+  File: docs/delivery/EXAMPLE.md
+  Description: One-sentence purpose.
+  Component: Docs/Delivery
+  Version: 1.0
+  Created: 2026-10-10
+  Last Update: 2026-10-10
+==============================================================================
+-->
+```
+
+Bold **File** / **Status** lines below the title remain fine for human scanning; do not duplicate contradictory dates.
 
 ---
 
 ## Do **not** require headers on
 
-- Tiny pure re-export barrels (`index.ts` that only re-exports)
+- Tiny pure re-export barrels
 - Generated code
-- Trivial one-liner helpers with an obvious name and no cross-cutting role
+- Trivial one-liner helpers
 - Test fixtures that are data-only
+- `__pycache__` / build output
 
 When in doubt: if you’d open the file to learn *why it exists*, give it a header.
 
@@ -77,4 +98,4 @@ When in doubt: if you’d open the file to learn *why it exists*, give it a head
 
 ## Rollout
 
-Convention established here. Broad apply across api/web hotspots is tracked as **[DEF-013](../DEFECTS.md#def-013--file-headers-across-apiweb-hotspots)**. Starter headers land with this doc so the rule isn’t vaporware.
+Convention updated **2026-10-10** to match the operator banner format. Wave F4/F6/F7 modules are the apply set; broader backlog remains **[DEF-013](../DEFECTS.md#def-013--file-headers-across-apiweb-hotspots)**.
