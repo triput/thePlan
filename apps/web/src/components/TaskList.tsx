@@ -360,17 +360,19 @@ export function TaskList({
     enabled: view.type === "project",
   });
 
+  const applyClientCompletedFilter = view.type !== "saved" && !showCompleted;
+
   const overbookedTaskCount = useMemo(() => {
     let items = tasksQuery.data?.items ?? [];
-    if (!showCompleted) {
+    if (applyClientCompletedFilter) {
       items = items.filter((t) => !t.is_completed);
     }
     return items.filter((t) => isOverbookedStatus(t.status)).length;
-  }, [tasksQuery.data, showCompleted]);
+  }, [tasksQuery.data, applyClientCompletedFilter]);
 
   const tasks = useMemo(() => {
     let items = tasksQuery.data?.items ?? [];
-    if (!showCompleted) {
+    if (applyClientCompletedFilter) {
       items = items.filter((t) => !t.is_completed);
     }
     if (overbookedOnly) {
@@ -388,7 +390,7 @@ export function TaskList({
       items = items.filter((t) => isUpcoming(t.due_at) || scheduledIds.has(t.id));
     }
     return orderTasksForest(items);
-  }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted, overbookedOnly]);
+  }, [tasksQuery.data, blocksQuery.data, view.type, applyClientCompletedFilter, overbookedOnly]);
 
   const showCompletedToggle =
     view.type !== "saved" || savedCompletion === "any" || savedCompletion === "done";
@@ -460,9 +462,7 @@ export function TaskList({
 
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
-    if (view.type === "saved") {
-      queryClient.invalidateQueries({ queryKey: ["views", view.id, "tasks"] });
-    }
+    queryClient.invalidateQueries({ queryKey: ["views"] });
   };
 
   const {

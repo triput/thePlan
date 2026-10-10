@@ -6,7 +6,6 @@ import type {
   TaskPriority,
   TaskWorkflowState,
 } from "./api";
-
 export interface SavedViewFilterDraft {
   inbox: boolean;
   projectIds: string[];
@@ -15,16 +14,28 @@ export interface SavedViewFilterDraft {
   labelMatch: SavedViewLabelMatch;
   priorities: TaskPriority[];
   workflowStates: TaskWorkflowState[];
-  completion: SavedViewCompletion;
+  /** null = omit completion dimension (matches open and done on the server). */
+  completion: SavedViewCompletion | null;
   scheduleStatuses: string[];
   scheduleStyles: string[];
   /** null = omit due dimension */
   dueKind: "none" | "unbounded" | "fixed" | "rolling" | null;
   dueRolling: SavedViewDueRolling | null;
   dueWithinDays: number;
-  /** ISO date or datetime for fixed range (from inclusive) */
+  /** Inclusive calendar dates (YYYY-MM-DD) for fixed range UI */
   dueFixedFrom: string;
   dueFixedTo: string;
+  /** Absolute bounds from the server — preserved when display dates are unchanged. */
+  dueFixedFromIso?: string;
+  dueFixedToIso?: string;
+  /** Display values at load time; used to detect rename-only / non-due edits. */
+  dueFixedFromBaseline?: string;
+  dueFixedToBaseline?: string;
+}
+
+export interface SavedViewPredicateAdapterOptions {
+  /** Owner timezone for fixed due display and new date-only bounds. */
+  userTimezone?: string;
 }
 
 export function defaultSavedViewFilterDraft(): SavedViewFilterDraft {
@@ -47,22 +58,119 @@ export function defaultSavedViewFilterDraft(): SavedViewFilterDraft {
   };
 }
 
-function localDateToIsoStart(dateStr: string): string | null {
-  if (!dateStr.trim()) return null;
-  const d = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toISOString();
+function ymdInTimeZone(instant: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(instant);
 }
 
-function localDateToIsoEndExclusive(dateStr: string): string | null {
-  if (!dateStr.trim()) return null;
-  const d = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setDate(d.getDate() + 1);
-  return d.toISOString();
+function getTimeZoneOffsetMs(utcMs: number, timeZone: string): number {
+  const d = new Date(utcMs);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(d);
+  const map: Record<string, number> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") map[part.type] = Number(part.value);
+  }
+  const asUtc = Date.UTC(
+    map.year,
+    map.month - 1,
+    map.day,
+    map.hour,
+    map.minute,
+    map.second ?? 0,
+  );
+  return asUtc - utcMs;
 }
 
-export function predicateFromDraft(draft: SavedViewFilterDraft): SavedViewPredicateV1 {
+/** Wall clock in IANA zone → UTC instant (mirrors scheduler / timeMapOverrides). */
+function zonedDateTimeToUtc(ymd: string, hour: number, minute: number, timeZone: string): Date {
+  const [y, mo, d] = ymd.split("-").map(Number);
+  let ms = Date.UTC(y, mo - 1, d, hour, minute);
+  for (let i = 0; i < 4; i++) {
+    ms = Date.UTC(y, mo - 1, d, hour, minute) - getTimeZoneOffsetMs(ms, timeZone);
+  }
+  return new Date(ms);
+}
+
+function resolvedTimezone(options?: SavedViewPredicateAdapterOptions): string {
+  const fromSettings = options?.userTimezone?.trim();
+  if (fromSettings) return fromSettings;
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+function addDaysToYmd(ymd: string, days: number): string {
+  const [y, mo, d] = ymd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, mo - 1, d + days));
+  return dt.toISOString().slice(0, 10);
+}
+
+function fixedDueDisplayFromIso(
+  fromIso: string,
+  toExclusiveIso: string,
+  timeZone: string,
+): { from: string; to: string } {
+  const fromYmd = ymdInTimeZone(new Date(fromIso), timeZone);
+  const endInclusive = new Date(toExclusiveIso);
+  endInclusive.setMilliseconds(endInclusive.getMilliseconds() - 1);
+  const toYmd = ymdInTimeZone(endInclusive, timeZone);
+  return { from: fromYmd, to: toYmd };
+}
+
+function fixedDueIsoFromDisplay(
+  fromYmd: string,
+  toInclusiveYmd: string,
+  timeZone: string,
+): { from: string; to: string } {
+  const from = zonedDateTimeToUtc(fromYmd, 0, 0, timeZone).toISOString();
+  const to = zonedDateTimeToUtc(addDaysToYmd(toInclusiveYmd, 1), 0, 0, timeZone).toISOString();
+  return { from, to };
+}
+
+function isValidYmd(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr.trim())) return false;
+  const [y, mo, d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() === mo - 1 &&
+    dt.getUTCDate() === d
+  );
+}
+
+/** Client-side validation before save; returns a user-facing message or null. */
+export function validateSavedViewFilterDraft(draft: SavedViewFilterDraft): string | null {
+  if (draft.dueKind !== "fixed") return null;
+
+  const from = draft.dueFixedFrom.trim();
+  const to = draft.dueFixedTo.trim();
+  if (!from || !to) {
+    return "Fixed due range requires both From and To dates.";
+  }
+  if (!isValidYmd(from) || !isValidYmd(to)) {
+    return "Fixed due dates must be valid calendar dates.";
+  }
+  if (from > to) {
+    return "Fixed due From must be on or before To.";
+  }
+  return null;
+}
+
+export function predicateFromDraft(
+  draft: SavedViewFilterDraft,
+  options?: SavedViewPredicateAdapterOptions,
+): SavedViewPredicateV1 {
   const dimensions: Record<string, unknown> = {};
 
   if (draft.inbox) dimensions.inbox = true;
@@ -73,8 +181,7 @@ export function predicateFromDraft(draft: SavedViewFilterDraft): SavedViewPredic
   }
   if (draft.priorities.length > 0) dimensions.priorities = [...draft.priorities];
   if (draft.workflowStates.length > 0) dimensions.workflow_states = [...draft.workflowStates];
-  if (draft.completion !== "open") dimensions.completion = draft.completion;
-  else dimensions.completion = "open";
+  if (draft.completion !== null) dimensions.completion = draft.completion;
   if (draft.scheduleStatuses.length > 0) dimensions.schedule_statuses = [...draft.scheduleStatuses];
   if (draft.scheduleStyles.length > 0) dimensions.schedule_styles = [...draft.scheduleStyles];
 
@@ -89,18 +196,40 @@ export function predicateFromDraft(draft: SavedViewFilterDraft): SavedViewPredic
       dimensions.due = { kind: "rolling", rolling: draft.dueRolling };
     }
   } else if (draft.dueKind === "fixed") {
-    const from = localDateToIsoStart(draft.dueFixedFrom);
-    const to = localDateToIsoEndExclusive(draft.dueFixedTo);
-    if (from && to) {
-      dimensions.due = { kind: "fixed", from, to };
+    const validationError = validateSavedViewFilterDraft(draft);
+    if (validationError) {
+      throw new Error(validationError);
+    }
+    const fromDisplay = draft.dueFixedFrom.trim();
+    const toDisplay = draft.dueFixedTo.trim();
+    const unchangedFixed =
+      draft.dueFixedFromIso &&
+      draft.dueFixedToIso &&
+      fromDisplay === (draft.dueFixedFromBaseline ?? "") &&
+      toDisplay === (draft.dueFixedToBaseline ?? "");
+
+    if (unchangedFixed) {
+      dimensions.due = {
+        kind: "fixed",
+        from: draft.dueFixedFromIso,
+        to: draft.dueFixedToIso,
+      };
+    } else {
+      const tz = resolvedTimezone(options);
+      const bounds = fixedDueIsoFromDisplay(fromDisplay, toDisplay, tz);
+      dimensions.due = { kind: "fixed", from: bounds.from, to: bounds.to };
     }
   }
 
   return { v: 1, dimensions };
 }
 
-export function draftFromPredicate(raw: unknown): SavedViewFilterDraft {
+export function draftFromPredicate(
+  raw: unknown,
+  options?: SavedViewPredicateAdapterOptions,
+): SavedViewFilterDraft {
   const draft = defaultSavedViewFilterDraft();
+  draft.completion = null;
   if (!raw || typeof raw !== "object") return draft;
   const pred = raw as SavedViewPredicateV1;
   const dims = pred.dimensions;
@@ -158,12 +287,14 @@ export function draftFromPredicate(raw: unknown): SavedViewFilterDraft {
       if (typeof due.days === "number") draft.dueWithinDays = due.days;
     }
     if (kind === "fixed" && typeof due.from === "string" && typeof due.to === "string") {
-      draft.dueFixedFrom = due.from.slice(0, 10);
-      const toDate = new Date(due.to);
-      if (!Number.isNaN(toDate.getTime())) {
-        toDate.setDate(toDate.getDate() - 1);
-        draft.dueFixedTo = toDate.toISOString().slice(0, 10);
-      }
+      draft.dueFixedFromIso = due.from;
+      draft.dueFixedToIso = due.to;
+      const tz = resolvedTimezone(options);
+      const display = fixedDueDisplayFromIso(due.from, due.to, tz);
+      draft.dueFixedFrom = display.from;
+      draft.dueFixedTo = display.to;
+      draft.dueFixedFromBaseline = display.from;
+      draft.dueFixedToBaseline = display.to;
     }
   }
 

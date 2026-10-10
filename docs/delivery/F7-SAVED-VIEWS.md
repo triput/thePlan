@@ -1,5 +1,7 @@
 # F7 — Saved views
 
+**Dex review 2026-10-10:** **R1–R6 verified closed** in the focused isolated retest. API **64**, CLI + main smoke **32**, adapter **6**, frontend build green; browser moves/counts, date validation, and completion/rename paths passed. **F7 Open:** pagination, presentation PATCH/sort, sidebar reorder, and remaining sign-off are unchanged. See [Dex findings and evidence](DEX-F7-MANUAL-2026-10-10.md). Not Closed/shipped.
+
 **Status:** **W1** Quality green (**64** API pytest; Renee **2026-10-10**) · **W2 Implemented** (CLI `theplan views`; CLI tests green — `test_views_commands.py` + main smoke **~32**) · **W3 Implemented** (web filter builder, sidebar user views, List/Board via `queryViewTasks`; `npm run build` green) · F7 **Open / in-progress** — Dex manual + human sign-off remain; **not** Closed/shipped  
 **Spec:** [NEXT-FEATURES-SPEC.md §10](../NEXT-FEATURES-SPEC.md#10-f7-saved-views) · API table row F7  
 **Build:** migration **`027_saved_filter_presentation`**; engine `saved_filter_predicate` / `saved_filter_query` / `saved_filter_v1`; routes `/api/v1/views`  

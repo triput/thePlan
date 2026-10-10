@@ -7,6 +7,7 @@ import {
   fetchEpics,
   fetchLabels,
   fetchProjects,
+  fetchSettings,
   patchView,
   type SavedView,
   type SavedViewInvalidReference,
@@ -21,6 +22,7 @@ import {
   draftFromPredicate,
   predicateFromDraft,
   stripInvalidRefsFromDraft,
+  validateSavedViewFilterDraft,
   type SavedViewFilterDraft,
 } from "../savedViewPredicate";
 import type { TaskPresentation } from "../taskPresentation";
@@ -93,6 +95,16 @@ export function SavedViewFilterModal({
     queryFn: () => fetchLabels({ limit: 200 }),
     enabled: open,
   });
+  const settingsQuery = useQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+    enabled: open,
+  });
+  const userTimezone = settingsQuery.data?.timezone;
+  const predicateOptions = useMemo(
+    () => (userTimezone ? { userTimezone } : undefined),
+    [userTimezone],
+  );
 
   const projects = projectsQuery.data?.items ?? [];
   const epics = epicsQuery.data?.items ?? [];
@@ -105,16 +117,20 @@ export function SavedViewFilterModal({
     if (!open) return;
     setName(initialName);
     setDraft(
-      initialPredicate ? draftFromPredicate(initialPredicate) : defaultSavedViewFilterDraft(),
+      initialPredicate
+        ? draftFromPredicate(initialPredicate, predicateOptions)
+        : defaultSavedViewFilterDraft(),
     );
     setFormError(null);
-  }, [open, initialName, initialPredicate]);
+  }, [open, initialName, initialPredicate, predicateOptions]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       const trimmed = name.trim();
       if (!trimmed) throw new Error("Name is required");
-      const predicate = predicateFromDraft(draft) as SavedViewPredicateV1;
+      const validationError = validateSavedViewFilterDraft(draft);
+      if (validationError) throw new Error(validationError);
+      const predicate = predicateFromDraft(draft, predicateOptions) as SavedViewPredicateV1;
       const presentation_json: SavedViewPresentation = { mode: presentationMode };
       if (mode === "create") {
         return createView({
@@ -345,11 +361,11 @@ export function SavedViewFilterModal({
         <label className="field-label">
           Completion
           <select
-            value={draft.completion}
+            value={draft.completion ?? "any"}
             onChange={(e) =>
               setDraft((d) => ({
                 ...d,
-                completion: e.target.value as SavedViewFilterDraft["completion"],
+                completion: e.target.value as NonNullable<SavedViewFilterDraft["completion"]>,
               }))
             }
           >
@@ -527,7 +543,15 @@ export function SavedViewFilterModal({
             type="button"
             className="btn primary"
             disabled={saveMutation.isPending}
-            onClick={() => saveMutation.mutate()}
+            onClick={() => {
+              const validationError = validateSavedViewFilterDraft(draft);
+              if (validationError) {
+                setFormError(validationError);
+                return;
+              }
+              setFormError(null);
+              saveMutation.mutate();
+            }}
           >
             {mode === "create" ? "Save view" : "Update view"}
           </button>

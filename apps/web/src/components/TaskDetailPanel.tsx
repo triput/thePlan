@@ -391,7 +391,10 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     return null;
   }, [scheduleStyle, projectId, projects, epics]);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tasks"] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    queryClient.invalidateQueries({ queryKey: ["views"] });
+  };
   const invalidateScheduleExplanation = (taskId: string) => {
     queryClient.invalidateQueries({ queryKey: ["schedule-explanation", taskId] });
   };

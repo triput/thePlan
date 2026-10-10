@@ -509,6 +509,16 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   }, [isSavedView, savedViewGrouped, smartFilter, mergedSmartOpen, openAccum, rootsOnly]);
 
   const openColumnTotals = useMemo(() => {
+    if (isSavedView && savedViewGrouped) {
+      const loaded = savedViewBoardQuery.data?.items.length ?? 0;
+      const apiTotal = savedViewBoardQuery.data?.total ?? loaded;
+      const suffix = loaded < apiTotal ? "+" : "";
+      return {
+        ready: `${savedViewGrouped.ready.length}${suffix}`,
+        in_progress: `${savedViewGrouped.in_progress.length}${suffix}`,
+        waiting: `${savedViewGrouped.waiting.length}${suffix}`,
+      };
+    }
     if (smartFilter && mergedSmartOpen) {
       const smartHasMore = smartOpenOffset + OPEN_PAGE_SIZE < smartOpenTotal;
       const suffix = smartHasMore ? "+" : "";
@@ -524,7 +534,16 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       waiting: openServerTotals.waiting,
     };
     return totals;
-  }, [smartFilter, mergedSmartOpen, openServerTotals, smartOpenOffset, smartOpenTotal]);
+  }, [
+    isSavedView,
+    savedViewGrouped,
+    savedViewBoardQuery.data,
+    smartFilter,
+    mergedSmartOpen,
+    openServerTotals,
+    smartOpenOffset,
+    smartOpenTotal,
+  ]);
 
   const openColumnHasMore = useCallback(
     (colId: OpenColumnId): boolean => {
@@ -538,11 +557,14 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   );
 
   const wipCount = useMemo(() => {
+    if (isSavedView && savedViewGrouped) {
+      return savedViewGrouped.in_progress.length + savedViewGrouped.waiting.length;
+    }
     if (smartFilter && mergedSmartOpen) {
       return mergedSmartOpen.in_progress.length + mergedSmartOpen.waiting.length;
     }
     return openServerTotals.in_progress + openServerTotals.waiting;
-  }, [smartFilter, mergedSmartOpen, openServerTotals]);
+  }, [isSavedView, savedViewGrouped, smartFilter, mergedSmartOpen, openServerTotals]);
 
   const doneColumnItems = isSavedView ? savedViewDoneItems : doneItems;
 
@@ -596,6 +618,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   const invalidateBoard = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["tasks", "board"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    queryClient.invalidateQueries({ queryKey: ["views"] });
   }, [queryClient]);
 
   const moveMutation = useMutation({
