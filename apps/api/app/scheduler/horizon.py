@@ -10,8 +10,9 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
-from app.models import ExternalCalendarEvent, ScheduledBlock, UserSettings
+from app.models import ScheduledBlock, UserSettings
 from app.services import google_calendar, microsoft_calendar
+from app.services.mirror_tombstone import mark_block_mirrors_pending_deletion
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +34,12 @@ def compute_horizon(
 
 
 def _drop_mirrored_events(db: Session, settings: Settings, block: ScheduledBlock) -> None:
-    """Cancel provider mirrors, then drop local rows so they cannot become external busy.
+    """Cancel provider mirrors. A failed delete keeps a tombstone, not anonymous busy.
 
-    Remote delete is synchronous via the calendar services. If a provider call fails,
-    the local ExternalCalendarEvent is still removed before the block row goes away.
-    Otherwise ON DELETE SET NULL clears scheduled_block_id and busy_map treats the
-    leftover mirror as someone else's event.
+    Successful deletes remove the local ExternalCalendarEvent. If a provider call
+    fails, the row stays with pending_deletion and no scheduled_block_id so
+    ON DELETE SET NULL cannot turn our mirror into someone else's appointment.
+    The next account sync retries the remote delete and will not reimport it.
     """
     for deleter in (
         google_calendar.delete_mirrored_block,
@@ -52,15 +53,7 @@ def _drop_mirrored_events(db: Session, settings: Settings, block: ScheduledBlock
                 block.id,
             )
 
-    leftovers = (
-        db.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
-        .all()
-    )
-    for row in leftovers:
-        db.delete(row)
-    if leftovers:
-        db.flush()
+    mark_block_mirrors_pending_deletion(db, block.id)
 
 
 def wipe_unpinned_blocks_in_horizon(
@@ -71,9 +64,10 @@ def wipe_unpinned_blocks_in_horizon(
 ) -> int:
     """Delete unpinned blocks intersecting [horizon_start, horizon_end). Returns count deleted.
 
-    Provider-mirrored events for those blocks are cancelled (Google and Microsoft)
-    and their local ExternalCalendarEvent rows are removed. Pinned blocks and
-    genuinely external events are left alone.
+    Provider-mirrored events for those blocks are cancelled (Google and Microsoft).
+    Successful deletes remove the local ExternalCalendarEvent. Failed deletes keep
+    a pending-deletion tombstone so sync can retry. Pinned blocks and genuinely
+    external events are left alone.
     """
     blocks = (
         db.query(ScheduledBlock)

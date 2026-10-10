@@ -18,6 +18,10 @@ Legacy modules: ``candidates``, ``ups``, ``dependencies``, ``placement``,
 Candidate set: incomplete tasks with remaining duration > 0; **exclude
 effective ``manual`` as well as ``bundle``** from auto-placement
 (``effective_schedule_style``: task → project → epic → user default).
+
+### F6 preview collect clock
+
+Preview calculate uses ``preview_collection_time()`` (see ``preview_planning.py``): wall UTC ceiled to the **next whole minute**, plus **90 seconds** lead. That ``now_utc`` is stored in the input snapshot ``collected_at`` and drives placement so the first proposed block start stays strictly in the future through a short review window. Apply still rejects ``PREVIEW_PAST_BLOCKS``; it does **not** slide block times at apply time.
 Manual/pinned blocks for those tasks remain OK. ADR-006 / DEF-014.
 
 **Compose worker (W2c):** the ``scheduler`` service runs

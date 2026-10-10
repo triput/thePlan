@@ -9,7 +9,8 @@ export type ViewSelection =
   | { type: "labels" }
   | { type: "label"; labelId: string }
   | { type: "archived" }
-  | { type: "trash" };
+  | { type: "trash" }
+  | { type: "saved"; id: string; slug?: string };
 
 export function viewKey(view: ViewSelection): string {
   switch (view.type) {
@@ -35,12 +36,19 @@ export function viewKey(view: ViewSelection): string {
       return "archived";
     case "trash":
       return "trash";
+    case "saved":
+      return view.slug ? `saved:slug:${view.slug}` : `saved:${view.id}`;
   }
 }
 
 export function viewTitle(
   view: ViewSelection,
-  options?: { projectTitle?: string; labelName?: string; epicTitle?: string },
+  options?: {
+    projectTitle?: string;
+    labelName?: string;
+    epicTitle?: string;
+    savedViewName?: string;
+  },
 ): string {
   switch (view.type) {
     case "inbox":
@@ -65,6 +73,8 @@ export function viewTitle(
       return "Archived";
     case "trash":
       return "Trash";
+    case "saved":
+      return options?.savedViewName ?? "Saved view";
   }
 }
 

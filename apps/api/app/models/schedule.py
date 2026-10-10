@@ -107,3 +107,27 @@ class ScheduleTaskOutcome(Base):
     input_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     input_fingerprint: Mapped[str | None] = mapped_column(String(64))
     algorithm_version: Mapped[str | None] = mapped_column(String(64))
+
+
+class SchedulePreview(Base):
+    """Owner-scoped replan preview (F6). Never writes live blocks or task status."""
+
+    __tablename__ = "schedule_previews"
+    __table_args__ = (Index("idx_schedule_previews_owner", "owner_id", desc("started_at")),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    started_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column()
+    expires_at: Mapped[datetime | None] = mapped_column()
+    evaluated_at: Mapped[datetime | None] = mapped_column()
+    status: Mapped[str] = mapped_column(String(32), nullable=False, server_default="running")
+    algorithm_version: Mapped[str | None] = mapped_column(String(64))
+    input_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    input_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    scheduling_revision: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    proposal_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    stats_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB)

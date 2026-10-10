@@ -5,10 +5,20 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db import get_db
-from app.models import ScheduleRun, Task, User
-from app.schemas import PaginatedResponse, ScheduleExplanationPage, ScheduleRunOut, TaskScheduleExplanationOut
+from app.models import SchedulePreview, ScheduleRun, Task, User
+from app.schemas import (
+    PaginatedResponse,
+    ScheduleExplanationPage,
+    SchedulePreviewApplyReceipt,
+    SchedulePreviewOut,
+    ScheduleRunOut,
+    TaskScheduleExplanationOut,
+)
 from app.services.schedule_dispatch import admit_replan, dispatch_replan
 from app.services.schedule_explanations import latest_for_task, page_for_run
+from app.services.schedule_preview_dispatch import admit_preview, dispatch_preview
+from app.services.schedule_preview_apply import apply_schedule_preview
+from app.services.schedule_previews import preview_to_dict, refresh_preview_staleness
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 task_schedule_router = APIRouter(prefix="/tasks", tags=["schedule"])
@@ -19,6 +29,53 @@ def _get_owned_run(db: Session, run_id: UUID, user: User) -> ScheduleRun:
     if run is None or run.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Schedule run not found")
     return run
+
+
+def _get_owned_preview(db: Session, preview_id: UUID, user: User) -> SchedulePreview:
+    preview = db.get(SchedulePreview, preview_id)
+    if preview is None or preview.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Schedule preview not found")
+    return preview
+
+
+@router.post("/previews", response_model=SchedulePreviewOut, status_code=status.HTTP_202_ACCEPTED)
+def create_schedule_preview(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SchedulePreviewOut:
+    """Start an async replan preview. Never writes live schedule rows."""
+    preview = admit_preview(db, user.id)
+    dispatch_preview(preview.id)
+    return SchedulePreviewOut.model_validate(preview_to_dict(preview))
+
+
+@router.post(
+    "/previews/{preview_id}/apply",
+    response_model=SchedulePreviewApplyReceipt,
+    status_code=status.HTTP_200_OK,
+)
+def apply_schedule_preview_route(
+    preview_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SchedulePreviewApplyReceipt:
+    """Apply a ready preview atomically; idempotent while status stays applied."""
+    preview = _get_owned_preview(db, preview_id, user)
+    receipt = apply_schedule_preview(db, user, preview)
+    db.commit()
+    return SchedulePreviewApplyReceipt.model_validate(receipt)
+
+
+@router.get("/previews/{preview_id}", response_model=SchedulePreviewOut)
+def get_schedule_preview(
+    preview_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SchedulePreviewOut:
+    preview = _get_owned_preview(db, preview_id, user)
+    refresh_preview_staleness(db, preview)
+    db.flush()
+    return SchedulePreviewOut.model_validate(preview_to_dict(preview))
 
 
 @router.post("/replan", response_model=ScheduleRunOut, status_code=status.HTTP_202_ACCEPTED)

@@ -20,6 +20,7 @@ from theplan.commands.hierarchy import (
 from theplan.commands.schedule import register_schedule, run_schedule
 from theplan.commands.status import register_status, run_status
 from theplan.commands.tasks import register_tasks, run_tasks
+from theplan.commands.views import register_views, run_views
 from theplan.errors import CliError
 from theplan.output import emit_ok, handle_cli_error, set_output_format
 
@@ -54,6 +55,7 @@ def _build_parser() -> argparse.ArgumentParser:
     register_sections(sub)
     register_deps(sub)
     register_schedule(sub)
+    register_views(sub)
 
     return parser
 
@@ -98,6 +100,9 @@ def _dispatch(args: argparse.Namespace) -> None:
         return
     if args.command == "schedule":
         run_schedule(args)
+        return
+    if args.command == "views":
+        run_views(args)
         return
     raise CliError(code="INVALID_USAGE", message=f"Unknown command: {args.command}", exit_code=1)
 

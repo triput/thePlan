@@ -1,5 +1,11 @@
 # Defects log
 
+**Filename:** DEFECTS.md
+
+**Last modified:** 2026-10-09
+
+**File version:** 1.1
+
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
 ---
@@ -924,7 +930,7 @@ remain optional and must not become a dependency for a local installation.
 | Field | Value |
 |-------|--------|
 | **Severity** | **P3** (busy-map pollution after a failed remote delete; success path is fine) |
-| **Status** | Open — backlog (success-path wipe shipped 2026-10-08; recovery debt parked) |
+| **Status** | Closed — fixed 2026-10-09 |
 | **Found** | 2026-10-08 (code review residual after horizon mirror wipe) |
 | **Surface** | `wipe_unpinned_blocks_in_horizon` ([`horizon.py`](../apps/api/app/scheduler/horizon.py)); Google/MS `delete_mirrored_block`; sync pull → `busy_map` |
 | **Wave** | W2c / calendar sync polish |
@@ -943,3 +949,75 @@ Keep a **pending-deletion** (or tombstone) record that retains provider / calend
 
 - Failed provider deletes are retried (or surface operator-visible debt) without losing external event identity.
 - A later sync does not permanently reintroduce wiped mirror slots as external busy without an explicit retry/fail path.
+
+### Resolution (2026-10-09)
+
+Alembic `026_pending_deletion` adds `external_calendar_events.pending_deletion`. Horizon wipe and scheduled-block delete, when the provider delete fails, keep the row, clear `scheduled_block_id`, and set the flag. Busy map, conflicts, and `GET /calendar/events` ignore those tombstones. The next Google or Microsoft sync retries the delete (404/410 count as gone) and will not reimport that external id as busy. A failed retry leaves the tombstone and logs it. A real event in the same pull still imports.
+
+Not this fix: task soft-delete still hard-deletes unpinned blocks. A mirror on one of those blocks can become anonymous busy via `ON DELETE SET NULL` because that writer never calls the provider. Separate from the failed-delete path.
+
+---
+
+## DEF-029 — Course import removes supplied lab title prefixes
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P3** (source title fidelity; lab classification retained) |
+| **Status** | Closed — shipped 2026-10-09 (preserve task-type prefixes; optional marker still stripped) |
+| **Found** | 2026-10-09 (Julie, reported through Trish) |
+| **Surface** | Coursera template import; shared outline title normalization |
+| **Fixed** | 2026-10-09 — `_clean_task_title` no longer strips `Lab:` / `Video:` / etc.; proposal titles match Apply. Existing imported rows are not rewritten. |
+
+### Observed behavior
+
+Julie reports that importing Trish's course removed the `Lab:` prefix from all **27 lab titles**. The tasks still carry the lab tag. Dex has not inspected the imported records or independently rerun this specific course import.
+
+### Source evidence
+
+`_clean_task_title` in `apps/api/app/services/outline_templates.py` explicitly removes matching task-type prefixes, case-insensitively. Course outline actions use this helper; the module handoff conversion uses it too. This is deliberate normalization in the implementation, rather than evidence of random title truncation. Whether that normalization should remain is the product behavior under review.
+
+### Expected direction
+
+Preserve supplied task titles by default, or make prefix removal an explicit import choice. Retain the task-type label independently. The proposal should show the exact title that Apply will create, so title transformations can be reviewed before import.
+
+### Verification for a fix
+
+- Import a lab whose supplied title starts with `Lab:` and compare source, proposal, and persisted title.
+- Cover other task-type prefixes handled by the shared helper, including mixed case and optional items.
+- Confirm labels remain intact and ordinary titles are not changed.
+- Existing imported titles are not automatically rewritten without a separate user request.
+
+### Workaround
+
+Julie can restore the prefixes with task edits if Trish wants them. This report does not authorize a bulk rename or reimport.
+
+---
+
+## DEF-030 — CLI task patch omits the accepted title argument
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (requested task rename cannot be applied through the CLI) |
+| **Status** | Closed — shipped 2026-10-09 (`title` added to patch field_map) |
+| **Found** | 2026-10-09 (Julie, reported through Trish; Dex local verification) |
+| **Surface** | `apps/cli/theplan/commands/tasks.py`, `_optional_task_fields` |
+| **Fixed** | 2026-10-09 — patch payload includes `title`; CLI unit tests cover title-only and title+description. Redeploy/reinstall CLI where Julie runs before retrying lab renames. |
+
+### Observed behavior
+
+The task patch parser accepts `--title`, but the payload field map omits it. A title-only patch raises `INVALID_USAGE` with "Provide at least one field to patch" before making an API call. A patch supplying a title plus another supported field sends only that other field, silently omitting the requested title change.
+
+Julie reports that the 27 imported lab titles remain unchanged. Dex verified the command handlers with `api_json` replaced by an in-process capture function; no live records were read or changed.
+
+### Scope and proposed fix
+
+Add `("title", "title")` to the task helper's `field_map`. The existing loop already trims title strings and skips this mapping for create, whose title is handled separately.
+
+Epic, project, and section patch handlers in the current local tree already include that mapping. Intercepted calls from all three contained the supplied title. This does not verify the CLI version installed on supernova.
+
+### Verification for a fix
+
+- A title-only task patch sends the trimmed title to the API.
+- A task patch with title and description sends both fields.
+- Task create retains its existing title handling; an empty patch still fails.
+- Confirm the corrected CLI is installed where Julie will run it before retrying the lab renames.

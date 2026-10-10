@@ -96,15 +96,15 @@ def _clamp_duration(raw: int | float | None) -> int | None:
 
 
 def _clean_task_title(title: str, task_type: str) -> str:
+    """Normalize whitespace and strip a leading optional marker only.
+
+    Task-type prefixes such as ``Lab:`` / ``Video:`` are preserved so the
+    supplied syllabus title matches what Apply creates (DEF-029). Classification
+    remains on the task-type label, not the title.
+    """
+    del task_type  # retained for call-site compatibility; not used for stripping
     cleaned = title.strip()
     cleaned = _OPTIONAL_PREFIX.sub("", cleaned).strip()
-    candidates = [task_type.replace("_", " "), task_type, *_TYPE_PREFIXES]
-    for prefix in candidates:
-        pattern = re.compile(rf"^{re.escape(prefix)}\s*:\s*", re.IGNORECASE)
-        updated = pattern.sub("", cleaned)
-        if updated != cleaned:
-            cleaned = updated.strip()
-            break
     return cleaned or title.strip()
 
 

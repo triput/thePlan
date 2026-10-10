@@ -103,7 +103,7 @@ def test_template_specialization_propose_apply_idempotent(
         .filter(Task.owner_id == user.id, Task.section_id == section.id)
         .one()
     )
-    assert task.title == "Hello"
+    assert task.title == "Video: Hello"
     assert task.estimated_duration_minutes == 5
     assert task.schedule_style is None
 
@@ -314,7 +314,7 @@ def test_template_module_under_project_replay_and_second_instance(
         .one()
     )
     task = db_session.query(Task).filter(Task.owner_id == user.id, Task.section_id == section.id).one()
-    assert task.title == "Lab intro"
+    assert task.title == "Video: Lab intro"
     assert task.project_id == project.id
     assert task.estimated_duration_minutes == 8
     assert (
@@ -381,7 +381,7 @@ def test_template_module_under_section_adds_tasks_only(
     assert applied.status_code == 200, applied.text
     assert applied.json()["created_counts"]["section"] == 0
     assert applied.json()["created_counts"]["task"] == 1
-    task = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Lab intro").one()
+    task = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Video: Lab intro").one()
     assert task.section_id == section.id
     assert task.project_id == project.id
     assert (

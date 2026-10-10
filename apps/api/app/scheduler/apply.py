@@ -17,6 +17,7 @@ from app.scheduler.collect import SchedulingInputs
 from app.scheduler.horizon import wipe_unpinned_blocks_in_horizon
 from app.scheduler.outcomes import persist_calculation_outcomes
 from app.services import google_calendar, microsoft_calendar
+from app.services.scheduling_revision import bump_scheduling_revision
 
 logger = logging.getLogger(__name__)
 
@@ -97,5 +98,7 @@ def apply_calculation(
     run.stats_json = stats
     run.status = "completed"
     run.finished_at = datetime.now(timezone.utc)
+
+    bump_scheduling_revision(db, inputs.owner_id)
 
     return stats

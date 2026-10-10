@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] — F7 Saved views W1–W3 (2026-10-10)
+
+- **F7 W1 API:** Alembic **`027_saved_filter_presentation`** — `saved_filters.presentation_json`; v1 predicate engine (`saved_filter_predicate`, `saved_filter_query`); **`/api/v1/views`** CRUD + **`/{id}/tasks`** and **`/by-slug/{slug}/tasks`**; system Inbox/Today/Upcoming backfilled to v1 — [delivery/F7-SAVED-VIEWS.md](docs/delivery/F7-SAVED-VIEWS.md), [NEXT-FEATURES-SPEC §10](docs/NEXT-FEATURES-SPEC.md#10-f7-saved-views)
+- **Quality (W1):** Renee exit — **64** API pytest (`test_f7_w1_views`, `test_f7_w1_predicate`, `test_f7_w1_quality`)
+- **F7 W2 CLI:** `theplan views` **list**, **get**, **create**, **patch**, **delete**, **query** (`--id` / `--slug`, pagination, `--board-order`) — [CLI.md](docs/CLI.md); CLI tests green (`test_views_commands.py`)
+- **F7 W3 web:** Saved-view filter modal, sidebar user views, TaskList/TaskBoard via saved-view task query, invalid-reference repair banner — `npm run build` green; no automated W3 tests; known gaps (sidebar reorder, presentation patch on every list/board toggle, load-more on saved views) in delivery doc
+- **F7 status:** **Open / in-progress** — Dex manual + sign-off remain; **not** Closed/shipped
+
 ## [Unreleased] — F2 Kanban (2026-10-08)
 
 - **F2 Kanban API:** Alembic `021_task_workflow` — `workflow_state` (`ready` \| `in_progress` \| `waiting`), `waiting_note`, `board_rank`, `board_revision`; `POST /api/v1/tasks/{id}/workflow` with revision check; `GET /tasks?workflow=&board_order=` — [delivery/F2-KANBAN.md](docs/delivery/F2-KANBAN.md), [NEXT-FEATURES-SPEC §5](docs/NEXT-FEATURES-SPEC.md#5-f2-kanban-for-work-in-progress)
@@ -25,7 +33,7 @@
 - **Schedule concurrency:** Alembic `018_one_running_schedule_run` — partial unique index one `running` row per owner; `POST /schedule/replan` returns **409** `SCHEDULE_RUN_IN_PROGRESS`
 - **Trash restore:** child restored while parent still trashed → reparent to nearest live ancestor or inbox root; empty trash no longer hard-deletes live restored descendants
 - **Task PATCH:** reparent that would create a cycle → **422** `PARENT_CYCLE`
-- **Replan horizon wipe:** cancels Google/MS mirrors for removed unpinned blocks and drops local `ExternalCalendarEvent`; failed remote delete recovery parked as [DEF-028](docs/DEFECTS.md#def-028--calendar-mirror-delete-failure-recovery-pending-deletion)
+- **Replan horizon wipe:** cancels Google/MS mirrors for removed unpinned blocks and drops local `ExternalCalendarEvent`. Failed remote deletes keep a `pending_deletion` tombstone (Alembic `026`) and are retried on the next sync instead of returning as anonymous busy — [DEF-028](docs/DEFECTS.md#def-028--calendar-mirror-delete-failure-recovery-pending-deletion) closed 2026-10-09
 - **Scheduler:** dependency max-UPS ready queue + prerequisite `not_before`; red bands cut green/yellow; decreasing placement slice sizes
 - **Pinned prerequisites:** fully pinned / non-candidate blockers still gate dependents via remaining + `not_before` (shared remaining map so placement unlocks later sweeps)
 - **Trash purge:** detach live children flushes before parent hard-delete under `autoflush=False` (CASCADE-safe)

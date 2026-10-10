@@ -12,6 +12,7 @@ from app.api.errors import ApiError
 from app.db import get_db
 from app.models import Task, TaskDependency, User
 from app.schemas.handoffs import TaskDependencyCreate, TaskDependencyOut
+from app.services.scheduling_revision import bump_scheduling_revision, lock_owner_scheduling
 from app.services.task_dependencies import assert_no_cycle, assert_tasks_owned
 
 router = APIRouter(prefix="/tasks", tags=["task-dependencies"])
@@ -56,6 +57,7 @@ def add_task_dependency(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> TaskDependencyOut:
+    lock_owner_scheduling(db, user.id)
     task = db.get(Task, task_id)
     if task is None or task.owner_id != user.id or task.deleted_at is not None:
         raise ApiError(404, "Task not found", "TASK_NOT_FOUND")
@@ -87,6 +89,7 @@ def add_task_dependency(
         dependent_task_id=body.dependent_task_id,
     )
     db.add(row)
+    bump_scheduling_revision(db, user.id)
     db.commit()
     db.refresh(row)
     return _dependency_out(row)
@@ -103,6 +106,7 @@ def remove_task_dependency(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Response:
+    lock_owner_scheduling(db, user.id)
     task = db.get(Task, task_id)
     if task is None or task.owner_id != user.id or task.deleted_at is not None:
         raise ApiError(404, "Task not found", "TASK_NOT_FOUND")
@@ -112,5 +116,6 @@ def remove_task_dependency(
     if task_id not in {row.blocking_task_id, row.dependent_task_id}:
         raise ApiError(404, "Dependency not found", "DEPENDENCY_NOT_FOUND")
     db.delete(row)
+    bump_scheduling_revision(db, user.id)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

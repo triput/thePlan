@@ -36,6 +36,7 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) | Round 4 dependency hygiene quick scan (2026-08-27) |
 | [USER-GUIDE.md](./USER-GUIDE.md) | Operator guide — Compose, auth/recovery CLI, batch & calendar, Assist, trash/archive |
 | [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest quick start — live instance UI tour (no ops/setup) |
+| [guides/AGENT-COURSE-IMPORT.md](./guides/AGENT-COURSE-IMPORT.md) | Julie-facing course import through the CLI; reusable workflow, verification, and handoff template |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md) | Microsoft Calendar Entra app setup (W3 Slice 2) |
 | [DESKTOP.md](./DESKTOP.md) | Tauri desktop prove-it operator note (W3 Slice 3) |

@@ -73,6 +73,24 @@ function AppInner() {
   }, [isNarrow]);
 
   useEffect(() => {
+    const onSelectInbox = () => {
+      setView({ type: "inbox" });
+      setNavOpen(false);
+      setSelectedTaskId(null);
+    };
+    window.addEventListener("theplan:select-inbox", onSelectInbox);
+    return () => window.removeEventListener("theplan:select-inbox", onSelectInbox);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const savedViewId = params.get("saved_view") ?? params.get("view");
+    if (savedViewId && /^[0-9a-f-]{36}$/i.test(savedViewId)) {
+      setView({ type: "saved", id: savedViewId });
+    }
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     let changed = false;
     let openCalendar = false;

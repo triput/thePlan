@@ -14,6 +14,7 @@ from app.models import ScheduleRun
 from app.scheduler.apply import apply_calculation
 from app.scheduler.calculate import calculate
 from app.scheduler.collect import collect_inputs
+from app.services.scheduling_revision import lock_owner_scheduling
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
             logger.warning("Schedule run %s is not running (status=%s)", run_id, run.status)
             return
 
+        lock_owner_scheduling(db, run.owner_id)
         now_utc = datetime.now(timezone.utc)
         inputs = collect_inputs(db, run.owner_id, now_utc)
         result = calculate(db, inputs)

@@ -175,8 +175,7 @@ def create_bundle_block(
         bundle_meta=build_bundle_meta(member_task_ids=members, source=source),
     )
     db.add(block)
-    db.commit()
-    db.refresh(block)
+    db.flush()
     return block
 
 

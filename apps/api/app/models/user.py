@@ -69,6 +69,10 @@ class UserSettings(Base, TimestampMixin):
     max_auto_schedule_minutes_per_project_per_day: Mapped[int | None] = mapped_column(
         Integer, nullable=True
     )
+    # Bumped when schedule-affecting domain rows commit (F6 apply + direct replan).
+    scheduling_revision: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="0"
+    )
 
     owner: Mapped["User"] = relationship(back_populates="settings")
 
@@ -87,6 +91,9 @@ class SavedFilter(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False)
     predicate_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    presentation_json: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default="{}"
+    )
     is_system: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
 

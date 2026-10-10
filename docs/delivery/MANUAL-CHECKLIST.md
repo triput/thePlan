@@ -2,16 +2,16 @@
 
 **Filename:** MANUAL-CHECKLIST.md
 
-**Last modified:** 2026-10-09 (Dex — F5 residuals verified closed; remaining manual rows open)
+**Last modified:** 2026-10-10 (Page — F7 W1–W3 implemented; manual rows for W2/W3 added)
 
-**File version:** 2.4
+**File version:** 3.0
 
 **Dex coverage, 2026-10-09:** Checked boxes below mean the stated local check has Dex evidence; Trish may independently rerun them. They do not complete the human sign-off table. **F1–F3: 31 pass, 5 partial, 1 user-only; prior lifecycle failure retested successfully.** Original pass uses frozen `cc87349`; reused `0199edf` browser evidence is labeled. CLI/API checks are identified separately from browser checks. See [original Dex evidence](./DEX-MANUAL-2026-10-09.md) and [F4 verification / three web P2s](./DEX-F4-MANUAL-2026-10-09.md). **F4 W3 web slice: empty-band edit/create, header alignment, and original UTC overlay Pass; residual P2s (mixed override TZ → settings.timezone band hours; 06–22 visible clipping) Verified closed (Trish/Dex, local working tree). F4 remains Open (CLI, day overlay, F4-D, sign-off table); no push.** **F5:** all seven findings, including both residuals, verified closed by Dex; see [F5 evidence](./DEX-F5-MANUAL-2026-10-09.md). F5 remains Open for remaining manual coverage and human sign-off; no push. F4 evidence below distinguishes direct browser/HTTP checks from focused automated corroboration; the optional browser DST check remains open.
 
 Standalone operator checklist for browser / CLI verification of F1–F5 delivery waves.
 Canonical copy — tick boxes here. Feature delivery docs link here instead of duplicating lists.
 
-**As of 2026-10-09:** tip on `cursor` `main` includes F3-W2 through `93dbbcb` (plus Move-to Space `0c36ee2`); **F4-W1** spine with API pytest **17** green; **F4-W2** fingerprint **v3** + stale **`time_map_overrides`** — Renee pytest **22** green (**2026-10-09**), Dex local W2 evidence recorded below; **F4-W3** Settings + week overlay Dex-verified (Trish/Dex) — **not pushed**. F4 remains **Open / in-progress** (not Closed). **F5-W1** template API pytest **14** green (Renee, **2026-10-09**); **F5-W2** CLI landed (local); **F5-W3** + **F5-B** Quality green; Dex verified all seven findings and both residual paths closed — **not pushed**. F5 **Open / in-progress** (not Closed).
+**As of 2026-10-10:** prior **2026-10-09** paragraph unchanged for F3–F6 (F6 **Open**, Dex retest items as below). **F7:** W1 API Quality **64** pytest green; **W2** CLI `theplan views` implemented (CLI tests green); **W3** web filter builder + sidebar user views + saved-view task query implemented (`npm run build` green; **no automated W3 tests**). F7 **Open / in-progress** (not Closed); operator rows below **unchecked** — Dex manual + human sign-off remain.
 F1–F3: automated suites green; human gate still open for those waves where sections below are unchecked.
 
 ---
@@ -29,6 +29,10 @@ F1–F3: automated suites green; human gate still open for those waves where sec
 - [x] **F4 rows:** same migrate → head includes **`024_time_map_overrides`**
 
   Dex 2026-10-09 — **PASS:** Isolated current-working-tree stack migrated to 024_time_map_overrides; alembic current confirms head.
+
+- [ ] **F6 rows:** same migrate → head includes **`025_schedule_previews`** (`schedule_previews` + `user_settings.scheduling_revision`)
+
+- [ ] **F7 rows:** same migrate → head includes **`027_saved_filter_presentation`** (`saved_filters.presentation_json`)
 
 - [ ] Web: signed in as yourself
 
@@ -334,6 +338,127 @@ Delivery: [F5-COURSERA-TEMPLATES.md](./F5-COURSERA-TEMPLATES.md) · **W1** Quali
 
 ---
 
+## F6 — Replan preview
+
+Delivery: [F6-REPLAN-PREVIEW.md](./F6-REPLAN-PREVIEW.md) · **W1–W2** Quality green (**24** pytest: **9** + **15**, Renee **2026-10-09**) · **W3 conditional go** — **Preview changes** modal (Andi), CLI preview create/get/apply (Tesla, local) · **F6-B–D** not fully accepted · manual rows below **open** · **F6 not Closed**, **not pushed**
+
+**Dex 2026-10-09:** Frozen F6 over `094663f`; disposable migration 025, 47 API tests, 37 CLI tests, web build, and focused live/browser checks. Initial **one P1 + three P2s** — see [Dex evidence](./DEX-F6-MANUAL-2026-10-09.md). **Dex retest:** **three P2s Verified closed**; archive P1 closed. **Tesla (2026-10-09, working tree, not pushed):** P1 R1 — project **`epic_id`** reparent/detach + epic **`target_date`** lock+bump; **4** focused pytest green — **Fixed (code), awaiting Dex retest.** Daily-driver untouched.
+
+**Dex fix retest:** 42 combined preview/lock-writer tests and web build passed. Available-now apply, overlapping receipt replay, and moved counts **Verified closed**; archive serializes. **Tesla (working tree, not pushed):** reparent/detach + epic **`target_date`** lock+bump — **Fixed (code), awaiting Dex retest** (prior three P2s stay closed). See [retest evidence](./DEX-F6-MANUAL-2026-10-09.md). Known project-delete orphan behavior remains separately disclosed.
+
+### W1 preview (API — no live schedule writes)
+
+- [x] **`POST /api/v1/schedule/previews`** → **202** `running`; poll **`GET …/{id}`** until **`ready`** (or **`failed`** with `error_message`). Live **`scheduled_blocks`** / task schedule fields unchanged vs snapshot before apply
+
+  Dex 2026-10-09 — PASS (HTTP): 202/running to ready; exact live block list and task response unchanged.
+
+- [ ] **`ready`** preview shows **`proposal`** (`before_blocks`, `proposed_blocks`, `outcomes`), **`diff_counts`**, **`expires_at`** ≈ **`evaluated_at` + 15m**, **`input_fingerprint`**, **`scheduling_revision`**
+
+  Dex 2026-10-09 — PARTIAL: Proposal fields and 15-minute TTL pass. Moved summary counts wrong (browser/source repro). **P2 Fixed (code):** moved **diff_counts** — **awaiting Dex retest**.
+
+- [x] Edit task **duration** (or scheduling-relevant field) after **`ready`** → next **`GET`** shows **`stale`**; **`proposal`** still returned for inspection; no auto-replan
+
+  Dex 2026-10-09 — PASS (HTTP): Duration change gives stale GET with proposal retained and no automatic replan.
+
+- [ ] Force **`expires_at`** in the past (or wait past TTL) → **`GET`** promotes **`expired`**; domain schedule still unchanged
+
+  Dex 2026-10-09 — AUTOMATED PASS: Forced expiry path passed pytest; separate operator expiry check not performed.
+
+- [ ] Start **`POST /schedule/replan`** while a preview is **`running`** or **`ready`** — preview admission still succeeds (preview is not blocked by migration **018** one-running-replan)
+
+  Dex 2026-10-09 — AUTOMATED PASS: Preview admission/replan independence passed pytest; separate live admission check not performed.
+
+### W2 apply (API)
+
+- [ ] **`POST /api/v1/schedule/previews/{id}/apply`** on **`ready`** preview → **200** receipt (`schedule_run_id`, counts); calendar blocks match **`proposed_blocks`**; second apply → same receipt (idempotent)
+
+  Dex 2026-10-09 — PARTIAL: Future-dated HTTP/browser apply and sequential receipt replay pass. Available-now rejected **PREVIEW_PAST_BLOCKS**; overlapping duplicate could return **PREVIEW_STALE**. **P2 Fixed (code):** **planning lead** (ceil next UTC minute **+ 90s**) and locked-row refresh for idempotent replay — **awaiting Dex retest**.
+
+- [ ] Change scheduling inputs after **`ready`**, then apply → **409** **`PREVIEW_STALE`** with **`stale_categories`**; live schedule unchanged
+
+  Dex 2026-10-09 — PARTIAL: Committed duration edit rejects with named category and no writes; browser offers fresh preview. Archive race closed (Dex); epic reparent residual **Fixed (code), awaiting Dex retest** (Tesla: **`epic_id`** + epic **`target_date`** lock+bump).
+
+- [ ] Apply on **`expired`** or non-**`ready`** preview → **409** **`PREVIEW_EXPIRED`** or **`PREVIEW_NOT_APPLICABLE`** as appropriate
+
+  Dex 2026-10-09 — AUTOMATED PASS: Expiry/non-ready rejection covered by pytest; live available-now proposal returns PREVIEW_PAST_BLOCKS.
+
+- [ ] While direct replan is **`running`**, apply → **409** **`SCHEDULE_RUN_IN_PROGRESS`**
+
+  Dex 2026-10-09 — AUTOMATED PASS: Running replan conflict covered by pytest; separate live concurrency gate not exercised.
+
+- [ ] Second authenticated owner: foreign preview **GET** / apply → **404** (no leak)
+
+  Dex 2026-10-09 — AUTOMATED PASS: Foreign/missing owner behavior covered by pytest; second authenticated live owner not exercised.
+
+### Deferred (do not block W1/W2 API sign-off here)
+
+| Item | Wave |
+|------|------|
+| Web **Preview changes** modal (before/after, diff counts) | **W3 landed (Andi, local)** — operator verify + any apply-in-web polish **open** |
+| CLI `theplan schedule preview` create / get / apply | **W3 landed (Tesla, local)** — operator verify **open** |
+| Selective per-block apply; multi-scenario compare | Out of scope (spec design default) |
+| Unsaved hypothetical Time Map edits in preview | Later extension |
+
+---
+
+## F7 — Saved views
+
+Delivery: [F7-SAVED-VIEWS.md](./F7-SAVED-VIEWS.md) · **W1** Quality green (**64** API pytest; Renee **2026-10-10**) · **W2** CLI **implemented** (tests green) · **W3** web **implemented** (build green; known gaps in delivery doc) · **F7 not Closed**
+
+### W1 API (operator / HTTP)
+
+- [ ] `alembic upgrade head` → **`027_saved_filter_presentation`**; bootstrap user has system views **`inbox`**, **`today`**, **`upcoming`** with **`predicate_json.v === 1`**
+
+- [ ] **`GET /api/v1/views`** — system rows first (`is_system`), user views by `sort_order`; each row includes `id`, `slug`, `presentation_json`
+
+- [ ] **`POST /api/v1/views`** — create user view with mixed dimensions + `presentation_json`; **`GET /api/v1/views/{id}`** round-trip; **`PATCH`** rename / predicate / `sort_order`; **`DELETE`** → **204** and tasks remain
+
+- [ ] **`PATCH` / `DELETE`** on system **`inbox`** → **403** **`SYSTEM_VIEW_READ_ONLY`**; foreign view id → **404**
+
+- [ ] **`GET /api/v1/views/by-slug/inbox/tasks`** and **`GET …/{inbox_id}/tasks`** — same `total`; pagination fields present; inbox task has `project_id` null and open
+
+- [ ] Invalid / legacy predicate on create → **422** **`INVALID_PREDICATE`**; **`inbox` + `project_ids`** together → **422**
+
+- [ ] Predicate referencing deleted project or label → **`items: []`**, **`invalid_references`** populated (not full task list)
+
+- [ ] Change **`user_settings.timezone`**, re-query **`today`** / **`upcoming`** slug tasks — rolling boundaries follow settings TZ (not browser local)
+
+- [ ] Labels filter: create view with **`labels.match: all`** vs **`any`** — result sets differ as expected for multi-label tasks
+
+### W2 CLI
+
+- [ ] `theplan views list` — system + user rows; JSON includes `id`, `slug`, `presentation_json`, `is_system`
+
+- [ ] `theplan views get --id …` round-trip after create
+
+- [ ] `theplan views create --stdin` (or `--file`) with v1 `predicate_json` + optional `presentation_json`; `patch --id … --stdin`; `delete --id …` on user view — tasks unchanged
+
+- [ ] `theplan views query --id …` and `views query --slug inbox` — `total`, `limit`, `offset` match API; optional `--board-order`
+
+- [ ] Patch/delete system **`inbox`** → stable **`SYSTEM_VIEW_READ_ONLY`** (CLI exit **2**)
+
+### W3 web
+
+- [ ] Sidebar shows **user saved views** from API; selecting one loads tasks (not ad hoc `GET /tasks` only)
+
+- [ ] **Save view** / filter builder creates or updates a user view with mixed dimensions (labels any/all spot-check)
+
+- [ ] List/Board toggle works for a saved view; **`presentation_json.mode`** honored on open (note: toggle may **not** persist mode on every switch — known gap)
+
+- [ ] Predicate with deleted project/label → empty list + **repair** affordance (not full task list)
+
+- [ ] Saved-view task list: **no load-more** yet when `total` exceeds page size (known gap — document if large set)
+
+### Deferred / non-goals (still open)
+
+| Item | Status |
+|------|--------|
+| Sidebar **reorder** user views (`sort_order`) | Not implemented |
+| **`GET /tasks?view=`** convenience alias | Not implemented — use `/views/…/tasks` |
+| Automated **W3** browser/API tests | Not implemented |
+
+---
+
 ## Not on this gate (parked)
 
 Do not block F1–F3 close on these; they live elsewhere:
@@ -346,7 +471,7 @@ Do not block F1–F3 close on these; they live elsewhere:
 | `time_map_overrides` stale compare + snapshot v3 fingerprint | F4 W2 — **landed**; Renee Quality green; operator manual still open |
 | Schedule-run summary web UI | F3 W3 / later |
 | Full F2-D a11y/touch matrix beyond Move-to Space | F2 known limitations |
-| DEF-028 calendar mirror delete recovery | Deferred |
+| DEF-028 calendar mirror delete recovery | Closed 2026-10-09 — tombstone + sync retry |
 
 ---
 
@@ -362,3 +487,5 @@ When a section is done, note date + “ok” here (optional):
 | F3 | | |
 | F4 | | W1/W2 Quality green; W3 Settings + week overlay Dex-verified (residual P2s closed); CLI/day/F4-D deferred — **not Closed** |
 | F5 | | W1/W3/F5-B Quality green; Dex all findings/residuals verified closed; remaining manual rows open — **not Closed**, **not pushed** |
+| F6 | | W1–W2 Quality **24** pytest green; W3 modal + CLI landed (conditional go); Dex **3 P2s Verified closed**; P1 archive closed; P1 reparent **`epic_id`** + epic **`target_date`** **Fixed (code), awaiting Dex retest** (Tesla, local); F6-B–D not fully accepted — **not Closed**, **not pushed** |
+| F7 | | W1 Quality **64** pytest; W2 CLI + W3 web implemented (build/CLI tests green); Dex gaps (reorder, presentation patch, load-more, no W3 auto tests); manual rows open — **not Closed** |

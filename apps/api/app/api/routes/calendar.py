@@ -29,6 +29,7 @@ from app.schemas import (
     PaginatedResponse,
 )
 from app.services.calendar_conflicts import find_conflicts
+from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 from app.services.google_calendar import (
     build_authorize_url as build_google_authorize_url,
     exchange_code_for_tokens as exchange_google_code_for_tokens,
@@ -389,10 +390,24 @@ def disconnect_calendar_account(
     user: User = Depends(get_current_user),
 ) -> Response:
     account = _owned_account(db, account_id, user)
+    scheduling_settings = lock_owner_scheduling(db, user.id)
+    # Non-mirror rows are immovable busy. Count before the bulk delete so the
+    # identity map does not keep rows that synchronize_session=False will drop.
+    removes_busy = (
+        db.query(ExternalCalendarEvent.id)
+        .filter(
+            ExternalCalendarEvent.calendar_account_id == account.id,
+            *ExternalCalendarEvent.immovable_busy_clause(),
+        )
+        .count()
+        > 0
+    )
     db.query(ExternalCalendarEvent).filter(
         ExternalCalendarEvent.calendar_account_id == account.id
     ).delete(synchronize_session=False)
     db.delete(account)
+    if removes_busy:
+        increment_scheduling_revision(db, scheduling_settings)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -474,7 +489,7 @@ def list_external_events(
         db.query(ExternalCalendarEvent)
         .filter(
             ExternalCalendarEvent.owner_id == user.id,
-            ExternalCalendarEvent.scheduled_block_id.is_(None),
+            *ExternalCalendarEvent.immovable_busy_clause(),
             ExternalCalendarEvent.start_time < end,
             ExternalCalendarEvent.end_time > start,
         )

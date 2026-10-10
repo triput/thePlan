@@ -50,8 +50,17 @@ export function boardViewSupported(view: ViewSelection): boolean {
     view.type === "today" ||
     view.type === "upcoming" ||
     view.type === "epic" ||
-    view.type === "label"
+    view.type === "label" ||
+    view.type === "saved"
   );
+}
+
+export function savedViewPresentationMode(
+  presentationJson: { mode?: string } | null | undefined,
+): TaskPresentation | null {
+  if (presentationJson?.mode === "board") return "board";
+  if (presentationJson?.mode === "list") return "list";
+  return null;
 }
 
 export function readTaskPresentation(viewKey: string): TaskPresentation {

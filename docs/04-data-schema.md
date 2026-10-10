@@ -345,21 +345,22 @@ Smart views and future user filters. Fixed MVP views are `is_system = TRUE` rows
 |--------|------|-------|
 | name | VARCHAR(100) | Display name |
 | slug | VARCHAR(100) | URL/API key; unique per owner |
-| predicate_json | JSONB | Structured filter definition |
+| predicate_json | JSONB | F7 v1 dimension bag (`"v": 1`); validated at write/query |
+| presentation_json | JSONB | List/board preference (default `{}`); Alembic **`027_saved_filter_presentation`** |
 | is_system | BOOLEAN | TRUE for Inbox/Today/Upcoming |
 | sort_order | INT | Sidebar ordering |
 
-**Predicate model (forward-compatible):** JSON document with `op` (and/or) and `clauses` array. Each clause: `{field, op, value}`. System filters use ops like `is_null`, `is_today`, `within_days`, `eq`. W2 query language compiles to the same structure.
+**Predicate model (F7 W1):** versioned JSON with `"v": 1` and `"dimensions"` — AND across keys, OR within array-valued dimensions. Runtime rejects legacy `op`/`clauses` trees. System seeds and migration backfill use v1 (see [`saved_filter_v1.py`](../apps/api/app/services/saved_filter_v1.py)). API contract: [05-api-contract.md](./05-api-contract.md#smart-views-saved-filters).
 
-Example Inbox predicate:
+Example Inbox predicate (v1):
 
 ```json
 {
-  "op": "and",
-  "clauses": [
-    {"field": "project_id", "op": "is_null"},
-    {"field": "is_completed", "op": "eq", "value": false}
-  ]
+  "v": 1,
+  "dimensions": {
+    "inbox": true,
+    "completion": "open"
+  }
 }
 ```
 
@@ -423,7 +424,7 @@ One row per task evaluated by a schedule run (F3). Alembic `022_schedule_task_ou
 
 ## Smart Views vs Code-Named Predicates
 
-Smart views are **not** hard-coded only in application logic. They are persisted as `saved_filters` rows with `predicate_json`. MVP ships system seeds (Inbox, Today, Upcoming); API exposes them by slug. W2 adds user-authored filters using the same predicate schema, evolving into full query language without migration.
+Smart views are **not** hard-coded only in application logic. They are persisted as `saved_filters` rows with `predicate_json` and `presentation_json`. System seeds (Inbox, Today, Upcoming) plus user-authored views share the v1 predicate schema; **`GET /api/v1/views`** and predicate-backed task queries are live (F7 W1). CLI and web builder consume the same store in later F7 waves.
 
 ---
 

@@ -211,6 +211,7 @@ export interface ApiErrorBody {
   conflicting_local_start_date?: string;
   conflicting_local_end_date?: string;
   band_index?: number;
+  stale_categories?: StaleCategory[];
 }
 
 export class ApiError extends Error {
@@ -793,6 +794,142 @@ export function fetchTasks(params?: {
 
 export function fetchLabels(params?: { limit?: number; offset?: number }) {
   return apiFetchUrl<PaginatedResponse<Label>>(buildUrl("/api/v1/labels", params));
+}
+
+/** F7 saved views — predicate v1 dimension bag (runtime-validated on API). */
+export type SavedViewCompletion = "open" | "done" | "any";
+
+export type SavedViewLabelMatch = "any" | "all";
+
+export type SavedViewScheduleStatus =
+  | "unscheduled"
+  | "scheduled"
+  | "pinned"
+  | "completed"
+  | "cancelled"
+  | "overbooked";
+
+export type SavedViewDueRolling =
+  | "today"
+  | "next_7_days"
+  | "this_calendar_week"
+  | "within_days";
+
+export type SavedViewDueDimension =
+  | { kind: "none" }
+  | { kind: "unbounded" }
+  | { kind: "fixed"; from: string; to: string }
+  | { kind: "rolling"; rolling: "today" }
+  | { kind: "rolling"; rolling: "next_7_days" }
+  | { kind: "rolling"; rolling: "this_calendar_week" }
+  | { kind: "rolling"; rolling: "within_days"; days: number };
+
+export interface SavedViewPredicateLabels {
+  ids: string[];
+  match: SavedViewLabelMatch;
+}
+
+export interface SavedViewPredicateDimensions {
+  inbox?: true;
+  project_ids?: string[];
+  epic_ids?: string[];
+  labels?: SavedViewPredicateLabels;
+  priorities?: TaskPriority[];
+  workflow_states?: TaskWorkflowState[];
+  completion?: SavedViewCompletion;
+  schedule_statuses?: SavedViewScheduleStatus[];
+  schedule_styles?: ScheduleStyle[];
+  due?: SavedViewDueDimension;
+}
+
+export interface SavedViewPredicateV1 {
+  v: 1;
+  dimensions: SavedViewPredicateDimensions;
+}
+
+export interface SavedViewPresentation {
+  mode?: "list" | "board";
+  sort?: string;
+}
+
+export interface SavedView {
+  id: string;
+  name: string;
+  slug: string;
+  predicate_json: SavedViewPredicateV1;
+  presentation_json: SavedViewPresentation | Record<string, unknown>;
+  is_system: boolean;
+  sort_order: number;
+}
+
+export interface SavedViewCreate {
+  name: string;
+  slug?: string | null;
+  predicate_json: SavedViewPredicateV1;
+  presentation_json?: SavedViewPresentation | Record<string, unknown> | null;
+  sort_order?: number | null;
+}
+
+export interface SavedViewUpdate {
+  name?: string;
+  slug?: string | null;
+  predicate_json?: SavedViewPredicateV1;
+  presentation_json?: SavedViewPresentation | Record<string, unknown> | null;
+  sort_order?: number | null;
+}
+
+export interface SavedViewInvalidReference {
+  kind: string;
+  id: string;
+}
+
+export interface SavedViewTasksResponse extends PaginatedResponse<Task> {
+  invalid_references?: SavedViewInvalidReference[] | null;
+}
+
+export interface SavedViewTasksQuery {
+  limit?: number;
+  offset?: number;
+  board_order?: boolean;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export function listViews() {
+  return apiFetch<SavedView[]>("/api/v1/views");
+}
+
+export function getView(viewId: string) {
+  return apiFetch<SavedView>(`/api/v1/views/${viewId}`);
+}
+
+export function createView(body: SavedViewCreate) {
+  return apiFetch<SavedView>("/api/v1/views", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function patchView(viewId: string, body: SavedViewUpdate) {
+  return apiFetch<SavedView>(`/api/v1/views/${viewId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteView(viewId: string) {
+  return apiFetch<void>(`/api/v1/views/${viewId}`, { method: "DELETE" });
+}
+
+export function queryViewTasks(viewId: string, params?: SavedViewTasksQuery) {
+  return apiFetchUrl<SavedViewTasksResponse>(
+    buildUrl(`/api/v1/views/${viewId}/tasks`, params),
+  );
+}
+
+export function queryViewTasksBySlug(slug: string, params?: SavedViewTasksQuery) {
+  return apiFetchUrl<SavedViewTasksResponse>(
+    buildUrl(`/api/v1/views/by-slug/${encodeURIComponent(slug)}/tasks`, params),
+  );
 }
 
 export function createLabel(body: LabelCreate) {
@@ -1575,6 +1712,106 @@ export interface ScheduleRunOut {
 
 export function postScheduleReplan() {
   return apiFetch<ScheduleRunOut>("/api/v1/schedule/replan", {
+    method: "POST",
+    body: "{}",
+  });
+}
+
+export type SchedulePreviewStatus =
+  | "running"
+  | "ready"
+  | "stale"
+  | "expired"
+  | "failed"
+  | "applied";
+
+export interface SchedulePreviewDiffCounts {
+  blocks_added: number;
+  blocks_removed: number;
+  blocks_moved: number;
+  blocks_unchanged: number;
+}
+
+export interface SchedulePreviewBlockRow {
+  task_id: string;
+  start_time: string;
+  end_time: string;
+  is_pinned?: boolean;
+}
+
+export interface SchedulePreviewProposedBlock {
+  task_id: string;
+  start_time: string;
+  end_time: string;
+  slice_minutes: number;
+  tier: string | null;
+  preferred_window_id: string | null;
+}
+
+export interface SchedulePreviewOutcomeRow {
+  task_id: string;
+  requested_minutes: number;
+  pinned_minutes: number;
+  placed_minutes: number;
+  remaining_minutes: number;
+  reason_facts: ReasonFactOut[];
+  placement_facts: Record<string, unknown> | null;
+  primary_reason_code: string;
+}
+
+export interface SchedulePreviewProposal {
+  v: number;
+  horizon_start: string;
+  horizon_end: string;
+  before_blocks: SchedulePreviewBlockRow[];
+  proposed_blocks: SchedulePreviewProposedBlock[];
+  outcomes: SchedulePreviewOutcomeRow[];
+  stats: Record<string, unknown>;
+  tasks_scheduled: number;
+  blocks_created: number;
+  overbooked_count: number;
+}
+
+export interface SchedulePreviewOut {
+  id: string;
+  status: SchedulePreviewStatus;
+  started_at: string;
+  finished_at: string | null;
+  expires_at: string | null;
+  evaluated_at: string | null;
+  algorithm_version: string | null;
+  input_fingerprint: string | null;
+  scheduling_revision: number;
+  error_message: string | null;
+  stats_json: Record<string, unknown> | null;
+  diff_counts: SchedulePreviewDiffCounts;
+  proposal: SchedulePreviewProposal | null;
+}
+
+export interface SchedulePreviewApplyReceipt {
+  receipt_id: string;
+  preview_id: string;
+  schedule_run_id: string;
+  applied_at: string;
+  blocks_created: number;
+  tasks_scheduled: number;
+  overbooked_count: number;
+  scheduling_revision: number;
+}
+
+export function postSchedulePreview() {
+  return apiFetch<SchedulePreviewOut>("/api/v1/schedule/previews", {
+    method: "POST",
+    body: "{}",
+  });
+}
+
+export function fetchSchedulePreview(id: string) {
+  return apiFetch<SchedulePreviewOut>(`/api/v1/schedule/previews/${id}`);
+}
+
+export function postSchedulePreviewApply(id: string) {
+  return apiFetch<SchedulePreviewApplyReceipt>(`/api/v1/schedule/previews/${id}/apply`, {
     method: "POST",
     body: "{}",
   });

@@ -1,42 +1,22 @@
 import uuid
-from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models import SavedFilter, User, UserSettings
 from app.services.focus_windows import ensure_default_focus_windows
+from app.services.saved_filter_v1 import (
+    INBOX_PREDICATE_V1,
+    TODAY_PREDICATE_V1,
+    UPCOMING_PREDICATE_V1,
+)
 
 BOOTSTRAP_USER_ID = uuid.UUID(get_settings().bootstrap_user_id)
 
-INBOX_PREDICATE: dict[str, Any] = {
-    "op": "and",
-    "clauses": [
-        {"field": "project_id", "op": "is_null"},
-        {"field": "is_completed", "op": "eq", "value": False},
-    ],
-}
-
-TODAY_PREDICATE: dict[str, Any] = {
-    "op": "and",
-    "clauses": [
-        {"field": "due_at", "op": "is_today"},
-        {"field": "is_completed", "op": "eq", "value": False},
-    ],
-}
-
-UPCOMING_PREDICATE: dict[str, Any] = {
-    "op": "and",
-    "clauses": [
-        {"field": "due_at", "op": "within_days", "value": 7},
-        {"field": "is_completed", "op": "eq", "value": False},
-    ],
-}
-
 SYSTEM_FILTERS = [
-    ("Inbox", "inbox", INBOX_PREDICATE, 1),
-    ("Today", "today", TODAY_PREDICATE, 2),
-    ("Upcoming", "upcoming", UPCOMING_PREDICATE, 3),
+    ("Inbox", "inbox", INBOX_PREDICATE_V1, 1),
+    ("Today", "today", TODAY_PREDICATE_V1, 2),
+    ("Upcoming", "upcoming", UPCOMING_PREDICATE_V1, 3),
 ]
 
 

@@ -70,7 +70,7 @@ def load_immovable_busy_sources(
         db.query(ExternalCalendarEvent)
         .filter(
             ExternalCalendarEvent.owner_id == owner_id,
-            ExternalCalendarEvent.scheduled_block_id.is_(None),
+            *ExternalCalendarEvent.immovable_busy_clause(),
         )
         .all()
     )

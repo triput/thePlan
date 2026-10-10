@@ -48,6 +48,21 @@ def test_api_error_from_validation_list() -> None:
     assert json.loads(err.message) == detail
 
 
+def test_api_error_keeps_stale_categories() -> None:
+    response = httpx.Response(
+        409,
+        json={
+            "detail": "Scheduling inputs changed since this preview was calculated",
+            "code": "PREVIEW_STALE",
+            "stale_categories": ["duration", "deps"],
+        },
+    )
+    err = api_error_from_response(response)
+    assert err.code == "PREVIEW_STALE"
+    assert err.exit_code == 5
+    assert err.extra == {"stale_categories": ["duration", "deps"]}
+
+
 def test_api_error_from_non_json_body() -> None:
     response = httpx.Response(502, content=b"bad gateway")
     err = api_error_from_response(response)

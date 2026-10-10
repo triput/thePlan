@@ -18,6 +18,7 @@ from app.schemas import (
 )
 from app.services.assist_apply import _ensure_labels
 from app.services.auth_users import get_or_provision_user_settings
+from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 
 
 def apply_outline_actions(
@@ -28,6 +29,8 @@ def apply_outline_actions(
     results: list[OutlineApplyResultItem] = []
     key_map: dict[str, UUID] = {}
     settings = get_or_provision_user_settings(db, user)
+    creates_task = any(isinstance(action, OutlineCreateTaskAction) for action in actions)
+    scheduling_settings = lock_owner_scheduling(db, user.id) if creates_task else None
 
     for action in actions:
         title = action.title.strip() if action.title else ""
@@ -69,6 +72,10 @@ def apply_outline_actions(
                 )
             )
 
+    if scheduling_settings is not None and any(
+        item.ok and item.action_type == "create_task" for item in results
+    ):
+        increment_scheduling_revision(db, scheduling_settings)
     db.commit()
     return results
 

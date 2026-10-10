@@ -328,7 +328,8 @@ def delete_google_event(access_token: str, calendar_id: str, event_id: str) -> N
             event_path,
             headers={"Authorization": f"Bearer {access_token}"},
         )
-    if response.status_code >= 400 and response.status_code != 404:
+    # 404 and 410 both mean the event is already gone (Google uses 410 after delete).
+    if response.status_code >= 400 and response.status_code not in (404, 410):
         raise ApiError(
             502,
             "Google Calendar event delete failed",
@@ -484,6 +485,8 @@ def _upsert_external_event(
         return False
 
     row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
+    if row is not None and row.pending_deletion:
+        return False
     if row is None:
         row = ExternalCalendarEvent(
             owner_id=account.owner_id,
@@ -506,22 +509,49 @@ def _upsert_external_event(
     return True
 
 
-def _sync_subscription_full(
+def _pull_subscription_changes(
     db: Session,
     *,
     access: str,
-    account: CalendarAccount,
     subscription: CalendarSubscription,
     time_min: datetime,
     time_max: datetime,
-    now: datetime,
-) -> int:
+) -> tuple[list[dict[str, Any]], str | None, bool]:
+    """Fetch provider events before the owner scheduling lock. Returns (events, cursor, is_full)."""
+    if subscription.sync_cursor:
+        try:
+            events, next_sync_token = list_calendar_events_incremental(
+                access,
+                subscription.external_calendar_id,
+                subscription.sync_cursor,
+            )
+            return events, next_sync_token, False
+        except GoogleSyncTokenExpired:
+            subscription.sync_cursor = None
+            db.flush()
+
     events, next_sync_token = list_calendar_events(
         access,
         subscription.external_calendar_id,
         time_min=time_min,
         time_max=time_max,
     )
+    return events, next_sync_token, True
+
+
+def _apply_subscription_full(
+    db: Session,
+    *,
+    account: CalendarAccount,
+    subscription: CalendarSubscription,
+    events: list[dict[str, Any]],
+    next_sync_token: str | None,
+    time_min: datetime,
+    time_max: datetime,
+    now: datetime,
+    suppressed_external_ids: set[str] | None = None,
+) -> int:
+    suppressed = suppressed_external_ids or set()
     seen_external_ids: set[str] = set()
     upserted = 0
 
@@ -529,6 +559,14 @@ def _sync_subscription_full(
         status = event.get("status")
         external_id = event.get("id")
         if not external_id or status == "cancelled":
+            if external_id and status == "cancelled":
+                pending = _find_external_event(
+                    db, owner_id=account.owner_id, external_id=external_id
+                )
+                if pending is not None and pending.pending_deletion:
+                    db.delete(pending)
+            continue
+        if external_id in suppressed:
             continue
         seen_external_ids.add(external_id)
         if _upsert_external_event(
@@ -545,7 +583,7 @@ def _sync_subscription_full(
         .filter(
             ExternalCalendarEvent.calendar_account_id == account.id,
             ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
-            ExternalCalendarEvent.scheduled_block_id.is_(None),
+            *ExternalCalendarEvent.immovable_busy_clause(),
             ExternalCalendarEvent.start_time < time_max,
             ExternalCalendarEvent.end_time > time_min,
         )
@@ -561,20 +599,17 @@ def _sync_subscription_full(
     return upserted
 
 
-def _sync_subscription_incremental(
+def _apply_subscription_incremental(
     db: Session,
     *,
-    access: str,
     account: CalendarAccount,
     subscription: CalendarSubscription,
+    events: list[dict[str, Any]],
+    next_sync_token: str | None,
     now: datetime,
+    suppressed_external_ids: set[str] | None = None,
 ) -> int:
-    assert subscription.sync_cursor
-    events, next_sync_token = list_calendar_events_incremental(
-        access,
-        subscription.external_calendar_id,
-        subscription.sync_cursor,
-    )
+    suppressed = suppressed_external_ids or set()
     upserted = 0
 
     for event in events:
@@ -586,6 +621,8 @@ def _sync_subscription_incremental(
             row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
             if row is not None:
                 db.delete(row)
+            continue
+        if external_id in suppressed:
             continue
         if _upsert_external_event(
             db,
@@ -602,41 +639,6 @@ def _sync_subscription_incremental(
     return upserted
 
 
-def _sync_subscription(
-    db: Session,
-    *,
-    settings: Settings,
-    account: CalendarAccount,
-    subscription: CalendarSubscription,
-    time_min: datetime,
-    time_max: datetime,
-    access: str,
-    now: datetime,
-) -> int:
-    if subscription.sync_cursor:
-        try:
-            return _sync_subscription_incremental(
-                db,
-                access=access,
-                account=account,
-                subscription=subscription,
-                now=now,
-            )
-        except GoogleSyncTokenExpired:
-            subscription.sync_cursor = None
-            db.flush()
-
-    return _sync_subscription_full(
-        db,
-        access=access,
-        account=account,
-        subscription=subscription,
-        time_min=time_min,
-        time_max=time_max,
-        now=now,
-    )
-
-
 def sync_account_events(
     db: Session,
     *,
@@ -645,6 +647,13 @@ def sync_account_events(
     time_min: datetime,
     time_max: datetime,
 ) -> int:
+    from app.services.mirror_tombstone import retry_pending_deletions
+    from app.services.scheduling_revision import (
+        immovable_busy_signature,
+        increment_scheduling_revision,
+        lock_owner_scheduling,
+    )
+
     access = get_valid_access_token(db, settings=settings, account=account)
     now = datetime.now(timezone.utc)
     subscriptions = (
@@ -666,21 +675,54 @@ def sync_account_events(
             .all()
         )
 
-    upserted = 0
+    pulled: list[tuple[CalendarSubscription, list[dict[str, Any]], str | None, bool]] = []
     for subscription in subscriptions:
-        upserted += _sync_subscription(
+        events, next_cursor, is_full = _pull_subscription_changes(
             db,
-            settings=settings,
-            account=account,
+            access=access,
             subscription=subscription,
             time_min=time_min,
             time_max=time_max,
-            access=access,
-            now=now,
         )
+        pulled.append((subscription, events, next_cursor, is_full))
+
+    scheduling_settings = lock_owner_scheduling(db, account.owner_id)
+    before_busy = immovable_busy_signature(db, account.owner_id)
+    suppressed = retry_pending_deletions(
+        db,
+        account=account,
+        access=access,
+        delete_event=delete_google_event,
+    )
+    upserted = 0
+    for subscription, events, next_cursor, is_full in pulled:
+        if is_full:
+            upserted += _apply_subscription_full(
+                db,
+                account=account,
+                subscription=subscription,
+                events=events,
+                next_sync_token=next_cursor,
+                time_min=time_min,
+                time_max=time_max,
+                now=now,
+                suppressed_external_ids=suppressed,
+            )
+        else:
+            upserted += _apply_subscription_incremental(
+                db,
+                account=account,
+                subscription=subscription,
+                events=events,
+                next_sync_token=next_cursor,
+                now=now,
+                suppressed_external_ids=suppressed,
+            )
 
     account.last_synced_at = now
     db.flush()
+    if immovable_busy_signature(db, account.owner_id) != before_busy:
+        increment_scheduling_revision(db, scheduling_settings)
     return upserted
 
 

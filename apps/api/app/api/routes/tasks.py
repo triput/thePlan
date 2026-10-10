@@ -55,6 +55,7 @@ from app.services.task_helpers import (
     soft_delete_task_subtree,
 )
 from app.services.task_workflow import board_column_for_task, transition_task_workflow
+from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 from app.services.task_patch import (
     add_task_labels,
     apply_plan_bind_soft_target,
@@ -331,11 +332,12 @@ def create_task(
         raise exc
 
     if body.estimated_duration_minutes is None:
-        settings = get_or_provision_user_settings(db, user)
-        estimated_duration_minutes = settings.default_estimated_duration_minutes
+        user_settings = get_or_provision_user_settings(db, user)
+        estimated_duration_minutes = user_settings.default_estimated_duration_minutes
     else:
         estimated_duration_minutes = body.estimated_duration_minutes
 
+    scheduling_settings = lock_owner_scheduling(db, user.id)
     bound_soft_target = resolve_plan_bind(db, user, body.plan_id)
     soft_target_at = apply_plan_bind_soft_target(
         plan_id=body.plan_id,
@@ -373,6 +375,7 @@ def create_task(
     if body.recurrence is not None:
         _upsert_recurrence(db, task, user, body.recurrence)
 
+    increment_scheduling_revision(db, scheduling_settings)
     db.commit()
     db.refresh(task)
     return task_to_out(_get_owned_task(db, task.id, user), db)
@@ -509,6 +512,7 @@ def promote_task_to_project_endpoint(
     user: User = Depends(get_current_user),
 ) -> TaskPromoteToProjectOut:
     """DEF-023: create project from task; move task (+ descendants by default) into it."""
+    settings = lock_owner_scheduling(db, user.id)
     task = _get_owned_task(db, task_id, user)
     payload = body or TaskPromoteToProjectBody()
     try:
@@ -521,6 +525,7 @@ def promote_task_to_project_endpoint(
         )
     except ApiError as exc:
         raise exc
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(project)
     return TaskPromoteToProjectOut(
@@ -641,8 +646,13 @@ def put_recurrence(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> RecurrenceOut:
+    settings = lock_owner_scheduling(db, user.id)
     task = _get_owned_task(db, task_id, user)
+    due_before = task.due_at
     rule = _upsert_recurrence(db, task, user, body)
+    # First occurrence fills due_at, which is a fingerprint input. Rule text alone is not.
+    if task.due_at != due_before:
+        increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(rule)
     return recurrence_to_out(rule)  # type: ignore[return-value]

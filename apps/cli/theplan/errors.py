@@ -10,10 +10,12 @@ class CliError(Exception):
         code: str,
         message: str,
         exit_code: int = 1,
+        extra: dict | None = None,
     ) -> None:
         self.code = code
         self.message = message
         self.exit_code = exit_code
+        self.extra = extra
         super().__init__(message)
 
 

@@ -18,6 +18,11 @@ from app.schemas import (
 )
 from app.services.hierarchy_promote import demote_epic_to_project
 from app.services.ownership import verify_owned_focus_window
+from app.services.scheduling_revision import (
+    increment_scheduling_revision,
+    lock_owner_scheduling,
+    epic_patch_touches_scheduling,
+)
 
 router = APIRouter(prefix="/epics", tags=["epics"])
 
@@ -56,6 +61,7 @@ def create_epic(
 ) -> EpicOut:
     if body.preferred_time_window_id is not None:
         verify_owned_focus_window(db, body.preferred_time_window_id, user)
+    settings = lock_owner_scheduling(db, user.id)
     epic = Epic(
         owner_id=user.id,
         title=body.title.strip(),
@@ -67,6 +73,8 @@ def create_epic(
         schedule_style=body.schedule_style,
     )
     db.add(epic)
+    if body.preferred_time_window_id is not None or body.schedule_style is not None:
+        increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(epic)
     return EpicOut.model_validate(epic)
@@ -89,14 +97,18 @@ def update_epic(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> EpicOut:
-    epic = _get_owned_epic(db, epic_id, user)
     updates = body.model_dump(exclude_unset=True)
+    touches_scheduling = epic_patch_touches_scheduling(updates)
+    settings = lock_owner_scheduling(db, user.id) if touches_scheduling else None
+    epic = _get_owned_epic(db, epic_id, user)
     if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
         verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
     for field, value in updates.items():
         setattr(epic, field, value)
+    if touches_scheduling and settings is not None:
+        increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(epic)
     return EpicOut.model_validate(epic)
@@ -108,8 +120,10 @@ def delete_epic(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> None:
+    settings = lock_owner_scheduling(db, user.id)
     epic = _get_owned_epic(db, epic_id, user)
     db.delete(epic)
+    increment_scheduling_revision(db, settings)
     db.commit()
 
 
@@ -119,8 +133,10 @@ def archive_epic(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> EpicOut:
+    settings = lock_owner_scheduling(db, user.id)
     epic = _get_owned_epic(db, epic_id, user)
     epic.is_archived = True
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(epic)
     return EpicOut.model_validate(epic)
@@ -132,8 +148,10 @@ def unarchive_epic(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> EpicOut:
+    settings = lock_owner_scheduling(db, user.id)
     epic = _get_owned_epic(db, epic_id, user)
     epic.is_archived = False
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(epic)
     return EpicOut.model_validate(epic)
@@ -147,6 +165,7 @@ def demote_epic_to_project_endpoint(
     user: User = Depends(get_current_user),
 ) -> EpicDemoteToProjectOut:
     """DEF-023: fold epic into a new project; orphan former child projects."""
+    settings = lock_owner_scheduling(db, user.id)
     epic = _get_owned_epic(db, epic_id, user)
     payload = body or EpicDemoteToProjectBody()
     try:
@@ -158,6 +177,7 @@ def demote_epic_to_project_endpoint(
         )
     except ApiError as exc:
         raise exc
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(project)
     return EpicDemoteToProjectOut(

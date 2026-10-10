@@ -10,10 +10,13 @@ import {
   fetchScheduledBlocks,
   fetchSections,
   fetchTasks,
+  getView,
+  queryViewTasks,
   reorderSections,
   reorderTasks,
   uncompleteTask,
   type Label,
+  type SavedViewInvalidReference,
   type Section,
   type Task,
 } from "../api";
@@ -35,8 +38,10 @@ import {
   rangeOverlapsLocalDay,
   startOfLocalDay,
   viewKey,
+  viewTitle,
   type ViewSelection,
 } from "../view";
+import { SavedViewFilterModal } from "./SavedViewFilterModal";
 import { CompleteDialog } from "./CompleteDialog";
 import { CreateSectionForm } from "./CreateSectionForm";
 import { EditSectionForm } from "./EditSectionForm";
@@ -52,6 +57,7 @@ import { TaskBoard } from "./TaskBoard";
 import {
   boardViewSupported,
   readTaskPresentation,
+  savedViewPresentationMode,
   writeTaskPresentation,
   type TaskPresentation,
 } from "../taskPresentation";
@@ -93,6 +99,9 @@ function writeShowCompleted(value: boolean) {
 }
 
 function tasksCacheKey(view: ViewSelection, showCompleted: boolean) {
+  if (view.type === "saved") {
+    return ["views", view.id, "tasks", showCompleted ? "with-completed" : "active"] as const;
+  }
   return ["tasks", viewKey(view), showCompleted ? "with-completed" : "active"] as const;
 }
 
@@ -166,10 +175,25 @@ export function TaskList({
   const [presentation, setPresentation] = useState<TaskPresentation>(() =>
     readTaskPresentation(vKey),
   );
+  const [savedViewEditOpen, setSavedViewEditOpen] = useState(false);
+  const [invalidReferences, setInvalidReferences] = useState<SavedViewInvalidReference[]>([]);
+
+  const savedViewId = view.type === "saved" ? view.id : null;
+
+  const savedViewMetaQuery = useQuery({
+    queryKey: ["views", savedViewId],
+    queryFn: () => getView(savedViewId!),
+    enabled: savedViewId !== null,
+  });
 
   useEffect(() => {
+    if (view.type === "saved" && savedViewMetaQuery.data) {
+      const fromServer = savedViewPresentationMode(savedViewMetaQuery.data.presentation_json);
+      setPresentation(fromServer ?? readTaskPresentation(vKey));
+      return;
+    }
     setPresentation(readTaskPresentation(vKey));
-  }, [vKey]);
+  }, [vKey, view.type, savedViewMetaQuery.data]);
 
   const setPresentationPersisted = useCallback(
     (mode: TaskPresentation) => {
@@ -244,9 +268,20 @@ export function TaskList({
   });
   const epicSections = epicSectionsQuery.data ?? [];
 
+  const savedCompletion =
+    view.type === "saved" && savedViewMetaQuery.data
+      ? savedViewMetaQuery.data.predicate_json.dimensions?.completion ?? "open"
+      : null;
+
   const tasksQuery = useQuery({
     queryKey: tasksCacheKey(view, showCompleted),
     queryFn: async () => {
+      if (view.type === "saved") {
+        const result = await queryViewTasks(view.id, { limit: 200, board_order: false });
+        setInvalidReferences(result.invalid_references ?? []);
+        return result;
+      }
+      setInvalidReferences([]);
       const base =
         view.type === "inbox"
           ? { inbox: true as const, limit: 200 }
@@ -316,7 +351,7 @@ export function TaskList({
         start: smartRange!.start.toISOString(),
         end: smartRange!.end.toISOString(),
       }),
-    enabled: smartRange !== null,
+    enabled: smartRange !== null && view.type !== "saved",
   });
 
   const sectionsQuery = useQuery({
@@ -354,6 +389,9 @@ export function TaskList({
     }
     return orderTasksForest(items);
   }, [tasksQuery.data, blocksQuery.data, view.type, showCompleted, overbookedOnly]);
+
+  const showCompletedToggle =
+    view.type !== "saved" || savedCompletion === "any" || savedCompletion === "done";
 
   const visibleTaskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
 
@@ -422,6 +460,9 @@ export function TaskList({
 
   const invalidateTasks = () => {
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    if (view.type === "saved") {
+      queryClient.invalidateQueries({ queryKey: ["views", view.id, "tasks"] });
+    }
   };
 
   const {
@@ -721,6 +762,15 @@ export function TaskList({
   const renderTaskRow = (task: Task) => {
     const siblings = getTaskSiblings(task);
     const isMultiSelected = selectedIds.has(task.id);
+    const hasMeta =
+      task.priority !== "p4" ||
+      Boolean(task.due_at) ||
+      Boolean(task.plan_name || task.plan_id) ||
+      Boolean(task.soft_target_at) ||
+      Boolean(task.deadline_at) ||
+      isOverbookedStatus(task.status) ||
+      task.estimated_duration_minutes > 0 ||
+      task.label_ids.length > 0;
     return (
       <li
         key={task.id}
@@ -732,148 +782,155 @@ export function TaskList({
         style={{ paddingLeft: `${12 + task.nesting_level * 20}px` }}
         onClick={(e) => handleTaskRowClick(task, e)}
       >
-        <input
-          type="checkbox"
-          className="task-select"
-          checked={isMultiSelected}
-          readOnly
-          onClick={(e) => {
-            e.stopPropagation();
-            if (e.altKey && hasLoadedDescendants(tasks, task.id)) {
-              selectLoadedSubtree(task.id);
-              return;
-            }
-            toggleSelectTask(task.id);
-          }}
-          aria-label={`Select "${task.title}"`}
-          title={
-            hasLoadedDescendants(tasks, task.id)
-              ? "Select task (Alt+click to include visible subtasks)"
-              : undefined
-          }
-        />
-        {hasLoadedDescendants(tasks, task.id) && (
-          <button
-            type="button"
-            className="icon-btn tiny select-subtree-btn"
-            title="Select this task and all visible subtasks"
-            aria-label={`Select "${task.title}" and all visible subtasks`}
+        <div className="task-row-leading">
+          <input
+            type="checkbox"
+            className="task-select"
+            checked={isMultiSelected}
+            readOnly
             onClick={(e) => {
               e.stopPropagation();
-              selectLoadedSubtree(task.id);
+              if (e.altKey && hasLoadedDescendants(tasks, task.id)) {
+                selectLoadedSubtree(task.id);
+                return;
+              }
+              toggleSelectTask(task.id);
             }}
-          >
-            ⊞
-          </button>
-        )}
-        <input
-          type="checkbox"
-          className="task-check"
-          checked={task.is_completed}
-          onChange={() => handleToggleComplete(task)}
-          aria-label={`Mark "${task.title}" complete`}
-        />
-        <span className={`task-title${task.is_completed ? " done" : ""}`}>{task.title}</span>
-        {task.priority !== "p4" && (
-          <span className="priority-badge" style={{ color: PRIORITY_COLORS[task.priority] }}>
-            {task.priority.toUpperCase()}
-          </span>
-        )}
-        {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
-        {(task.plan_name || task.plan_id) && (
-          <span className="plan-badge">
-            Plan {task.plan_name ?? planNameById.get(task.plan_id!) ?? "…"}
-          </span>
-        )}
-        {task.soft_target_at && (
-          <span className="soft-target-badge">Soft {formatDue(task.soft_target_at)}</span>
-        )}
-        {task.deadline_at && (
-          <span className="deadline-badge">Deadline {formatDue(task.deadline_at)}</span>
-        )}
-        {isOverbookedStatus(task.status) && (
-          <span className="overbooked-badge" title="Scheduler could not fit this task before its deadline">
-            Overbooked
-          </span>
-        )}
-        {task.estimated_duration_minutes > 0 && (
-          <span className="duration-badge">{formatDuration(task.estimated_duration_minutes)}</span>
-        )}
-        {task.label_ids.map((labelId) => {
-          const label = labelsById.get(labelId);
-          if (!label) return null;
-          return (
-            <span
-              key={labelId}
-              className="label-chip"
-              style={{ borderColor: label.color_hex, color: label.color_hex }}
+            aria-label={`Select "${task.title}"`}
+            title={
+              hasLoadedDescendants(tasks, task.id)
+                ? "Select task (Alt+click to include visible subtasks)"
+                : undefined
+            }
+          />
+          {hasLoadedDescendants(tasks, task.id) && (
+            <button
+              type="button"
+              className="icon-btn tiny select-subtree-btn"
+              title="Select this task and all visible subtasks"
+              aria-label={`Select "${task.title}" and all visible subtasks`}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectLoadedSubtree(task.id);
+              }}
             >
-              {label.name}
-            </span>
-          );
-        })}
-        <ReorderButtons
-          label={task.title}
-          canMoveUp={canReorderUp(siblings, task.id)}
-          canMoveDown={canReorderDown(siblings, task.id)}
-          onMoveUp={() => handleReorderTask(task, "up")}
-          onMoveDown={() => handleReorderTask(task, "down")}
-          pending={reorderTasksMutation.isPending}
-          className="task-reorder-btns"
-        />
-        {taskCalendarDragEnabled && !task.is_completed && (
-          <button
-            type="button"
-            className="icon-btn task-calendar-drag-handle"
-            draggable
-            title="Drag to calendar to schedule"
-            aria-label={`Drag "${task.title}" to calendar`}
-            onDragStart={(e) => {
-              const payload = serializeTaskCalendarDrag({
-                taskId: task.id,
-                title: task.title,
-                estimatedDurationMinutes: task.estimated_duration_minutes,
-              });
-              e.dataTransfer.setData(TASK_CALENDAR_DRAG_MIME, payload);
-              e.dataTransfer.effectAllowed = "copy";
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            ⠿
-          </button>
-        )}
-        {!task.is_completed && (
-          <button
-            type="button"
-            className="icon-btn subtask-btn"
-            title="Add subtask"
-            aria-label={`Add subtask to ${task.title}`}
-            onClick={() => {
-              setSubtaskParentId(task.id);
-              setSubtaskTitle("");
-            }}
-          >
-            +
-          </button>
-        )}
+              ⊞
+            </button>
+          )}
+          <input
+            type="checkbox"
+            className="task-check"
+            checked={task.is_completed}
+            onChange={() => handleToggleComplete(task)}
+            aria-label={`Mark "${task.title}" complete`}
+          />
+        </div>
+        <div className="task-row-body">
+          <span className={`task-title${task.is_completed ? " done" : ""}`}>{task.title}</span>
+          {hasMeta && (
+            <div className="task-row-meta">
+              {task.priority !== "p4" && (
+                <span className="priority-badge" style={{ color: PRIORITY_COLORS[task.priority] }}>
+                  {task.priority.toUpperCase()}
+                </span>
+              )}
+              {task.due_at && <span className="due-badge">{formatDue(task.due_at)}</span>}
+              {(task.plan_name || task.plan_id) && (
+                <span className="plan-badge">
+                  Plan {task.plan_name ?? planNameById.get(task.plan_id!) ?? "…"}
+                </span>
+              )}
+              {task.soft_target_at && (
+                <span className="soft-target-badge">Soft {formatDue(task.soft_target_at)}</span>
+              )}
+              {task.deadline_at && (
+                <span className="deadline-badge">Deadline {formatDue(task.deadline_at)}</span>
+              )}
+              {isOverbookedStatus(task.status) && (
+                <span
+                  className="overbooked-badge"
+                  title="Scheduler could not fit this task before its deadline"
+                >
+                  Overbooked
+                </span>
+              )}
+              {task.estimated_duration_minutes > 0 && (
+                <span className="duration-badge">
+                  {formatDuration(task.estimated_duration_minutes)}
+                </span>
+              )}
+              {task.label_ids.map((labelId) => {
+                const label = labelsById.get(labelId);
+                if (!label) return null;
+                return (
+                  <span
+                    key={labelId}
+                    className="label-chip"
+                    style={{ borderColor: label.color_hex, color: label.color_hex }}
+                  >
+                    {label.name}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div className="task-row-trailing">
+          <ReorderButtons
+            label={task.title}
+            canMoveUp={canReorderUp(siblings, task.id)}
+            canMoveDown={canReorderDown(siblings, task.id)}
+            onMoveUp={() => handleReorderTask(task, "up")}
+            onMoveDown={() => handleReorderTask(task, "down")}
+            pending={reorderTasksMutation.isPending}
+            className="task-reorder-btns"
+          />
+          {taskCalendarDragEnabled && !task.is_completed && (
+            <button
+              type="button"
+              className="icon-btn task-calendar-drag-handle"
+              draggable
+              title="Drag to calendar to schedule"
+              aria-label={`Drag "${task.title}" to calendar`}
+              onDragStart={(e) => {
+                const payload = serializeTaskCalendarDrag({
+                  taskId: task.id,
+                  title: task.title,
+                  estimatedDurationMinutes: task.estimated_duration_minutes,
+                });
+                e.dataTransfer.setData(TASK_CALENDAR_DRAG_MIME, payload);
+                e.dataTransfer.effectAllowed = "copy";
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              ⠿
+            </button>
+          )}
+          {!task.is_completed && (
+            <button
+              type="button"
+              className="icon-btn subtask-btn"
+              title="Add subtask"
+              aria-label={`Add subtask to ${task.title}`}
+              onClick={() => {
+                setSubtaskParentId(task.id);
+                setSubtaskTitle("");
+              }}
+            >
+              +
+            </button>
+          )}
+        </div>
       </li>
     );
   };
 
-  const heading =
-    view.type === "project"
-      ? (projectTitle ?? "Project")
-      : view.type === "epic"
-        ? (projectTitle ?? "Epic")
-        : view.type === "inbox"
-          ? "Inbox"
-          : view.type === "work"
-            ? "Work"
-            : view.type === "today"
-              ? "Today"
-              : view.type === "label"
-                ? (labelsById.get(view.labelId)?.name ?? "Label")
-                : "Upcoming";
+  const heading = viewTitle(view, {
+    projectTitle,
+    epicTitle: projectTitle,
+    labelName: view.type === "label" ? labelsById.get(view.labelId)?.name : undefined,
+    savedViewName: savedViewMetaQuery.data?.name,
+  });
 
   const showListChrome = presentation === "list" || !boardEnabled;
 
@@ -903,7 +960,16 @@ export function TaskList({
                 </button>
               </div>
             )}
-            {showListChrome && (
+            {showListChrome && view.type === "saved" && (
+              <button
+                type="button"
+                className="btn small secondary"
+                onClick={() => setSavedViewEditOpen(true)}
+              >
+                Edit filters
+              </button>
+            )}
+            {showListChrome && showCompletedToggle && (
             <label className="show-completed-toggle">
               <input
                 type="checkbox"
@@ -940,6 +1006,22 @@ export function TaskList({
           />
         ) : (
           <>
+        {invalidReferences.length > 0 && view.type === "saved" && (
+          <div className="saved-view-repair-banner" role="status">
+            <p>
+              This view references missing projects, labels, or epics — the list stays empty until
+              you repair the filter.
+            </p>
+            <button
+              type="button"
+              className="btn secondary small"
+              onClick={() => setSavedViewEditOpen(true)}
+            >
+              Repair filters
+            </button>
+          </div>
+        )}
+
         {view.type === "project" && sections.length === 0 && (
           <p className="muted small">No sections yet — use Add section above, or tasks sit in one list.</p>
         )}
@@ -1166,6 +1248,27 @@ export function TaskList({
 
         <EditSectionForm section={editingSection} onClose={() => setEditingSection(null)} />
           </>
+        )}
+
+        {view.type === "saved" && (
+          <SavedViewFilterModal
+            open={savedViewEditOpen}
+            mode="edit"
+            viewId={view.id}
+            initialName={savedViewMetaQuery.data?.name ?? heading}
+            initialPredicate={savedViewMetaQuery.data?.predicate_json}
+            presentationMode={presentation}
+            invalidReferences={invalidReferences}
+            onClose={() => setSavedViewEditOpen(false)}
+            onSaved={() => {
+              queryClient.invalidateQueries({ queryKey: ["views", view.id] });
+              invalidateTasks();
+            }}
+            onDeleted={() => {
+              onSelectTask(null);
+              window.dispatchEvent(new CustomEvent("theplan:select-inbox"));
+            }}
+          />
         )}
       </div>
     </div>

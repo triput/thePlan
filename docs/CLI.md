@@ -139,6 +139,16 @@ Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §6](./NEXT-FEATU
 
 Run Update Schedule via the web UI or API replan before expecting `evaluation_state: evaluated`.
 
+### F7 — Saved views (HTTP)
+
+Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §10](./NEXT-FEATURES-SPEC.md#10-f7-saved-views). Delivery record: [delivery/F7-SAVED-VIEWS.md](./delivery/F7-SAVED-VIEWS.md).
+
+| Area | Commands |
+|------|----------|
+| **Views** | `views list`, `views get --id UUID`, `views create` (`--file` or `--stdin` JSON body), `views patch --id UUID` (`--file` or `--stdin`), `views delete --id UUID`, `views query` (`--id UUID` or `--slug SLUG`; optional `--limit`, `--offset`, `--board-order`) |
+
+CRUD maps to `/api/v1/views`; **query** maps to `/api/v1/views/{id}/tasks` or `/api/v1/views/by-slug/{slug}/tasks`. System views are read-only at the API (CLI surfaces **`SYSTEM_VIEW_READ_ONLY`**). Prefer **query** over ad hoc `tasks list` for saved-view predicates.
+
 ## Session revocation (`session_epoch`)
 
 Password changes and host recovery bump per-user `session_epoch` in PostgreSQL (migration `017_session_epoch`). The API stores the epoch in the session cookie at login; requests with a stale epoch are treated as unauthenticated. This satisfies DEF-027’s requirement to invalidate sessions after recovery without email. Details: [09-technical-architecture.md](./09-technical-architecture.md) §7.

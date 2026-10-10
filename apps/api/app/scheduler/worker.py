@@ -26,7 +26,8 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import SessionLocal, engine
-from app.models import ScheduleRun
+from app.models import SchedulePreview, ScheduleRun
+from app.scheduler.preview import run_preview
 from app.scheduler.replan import run_replan
 from app.services.schedule_dispatch import reclaim_stale_runs_global
 
@@ -51,6 +52,19 @@ def poll_interval_seconds() -> float:
     if raw < 0.2:
         return 0.2
     return raw
+
+
+def list_running_preview_ids(db: Session) -> list[UUID]:
+    rows = (
+        db.query(SchedulePreview.id)
+        .filter(
+            SchedulePreview.status == "running",
+            SchedulePreview.finished_at.is_(None),
+        )
+        .order_by(SchedulePreview.started_at.asc(), SchedulePreview.id.asc())
+        .all()
+    )
+    return [row[0] for row in rows]
 
 
 def list_running_run_ids(db: Session) -> list[UUID]:
@@ -108,6 +122,25 @@ def _is_runnable(run_id: UUID) -> bool:
         db.close()
 
 
+def _is_preview_runnable(preview_id: UUID) -> bool:
+    db = SessionLocal()
+    try:
+        preview = db.get(SchedulePreview, preview_id)
+        if preview is None:
+            logger.error("Schedule preview %s disappeared before execution", preview_id)
+            return False
+        if preview.status != "running" or preview.finished_at is not None:
+            logger.info(
+                "Schedule preview %s no longer runnable (status=%s)",
+                preview_id,
+                preview.status,
+            )
+            return False
+        return True
+    finally:
+        db.close()
+
+
 def execute_locked(run_id: UUID) -> bool:
     """Run one replan if this process can lock a still-running row.
 
@@ -129,6 +162,26 @@ def execute_locked(run_id: UUID) -> bool:
     finally:
         if locked:
             release_advisory_lock(connection, run_id)
+        connection.close()
+
+
+def execute_preview_locked(preview_id: UUID) -> bool:
+    connection = engine.connect()
+    locked = False
+    try:
+        locked = try_advisory_lock(connection, preview_id)
+        connection.commit()
+        if not locked:
+            logger.info("Schedule preview %s already locked by another worker", preview_id)
+            return False
+        if not _is_preview_runnable(preview_id):
+            return False
+        logger.info("Running schedule preview %s", preview_id)
+        run_preview(preview_id)
+        return True
+    finally:
+        if locked:
+            release_advisory_lock(connection, preview_id)
         connection.close()
 
 
@@ -157,6 +210,21 @@ def process_available_runs() -> int:
         except Exception:
             # One bad row must not skip every newer run until the 15-minute reclaim.
             logger.exception("Scheduler failed to execute run %s", run_id)
+
+    preview_db = SessionLocal()
+    try:
+        preview_ids = list_running_preview_ids(preview_db)
+    finally:
+        preview_db.close()
+
+    for preview_id in preview_ids:
+        if _stop.is_set():
+            break
+        try:
+            if execute_preview_locked(preview_id):
+                processed += 1
+        except Exception:
+            logger.exception("Scheduler failed to execute preview %s", preview_id)
     return processed
 
 

@@ -2,9 +2,19 @@
  * App shell navigation — epics/projects, smart views, Trash/Archived entry.
  * Owns sidebar expand/collapse and epic tree; settings opens as a panel.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchEpics, fetchLabels, fetchProjects, reorderProjects, type Epic, type Project } from "../api";
+import {
+  fetchEpics,
+  fetchLabels,
+  fetchProjects,
+  listViews,
+  reorderProjects,
+  type Epic,
+  type Project,
+  type SavedView,
+} from "../api";
+import { SavedViewFilterModal } from "./SavedViewFilterModal";
 import { buildReorderSwap, canReorderDown, canReorderUp } from "../reorder";
 import type { ViewSelection } from "../view";
 import { CreateEpicForm } from "./CreateEpicForm";
@@ -96,6 +106,15 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
   const [editingEpic, setEditingEpic] = useState<Epic | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showCreateSavedView, setShowCreateSavedView] = useState(false);
+
+  const viewsQuery = useQuery({ queryKey: ["views"], queryFn: listViews });
+  const userSavedViews = useMemo(() => {
+    const rows = viewsQuery.data ?? [];
+    return rows
+      .filter((v) => !v.is_system)
+      .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+  }, [viewsQuery.data]);
 
   const epicsQuery = useQuery({ queryKey: ["epics"], queryFn: () => fetchEpics({ limit: 200 }) });
   const projectsQuery = useQuery({
@@ -167,6 +186,9 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
 
   const isLabelActive = (labelId: string) =>
     view.type === "label" && view.labelId === labelId;
+
+  const isSavedViewActive = (row: SavedView) =>
+    view.type === "saved" && view.id === row.id;
 
   const renderEpic = (epic: Epic) => {
     const expanded = expandedEpics.has(epic.id);
@@ -265,6 +287,35 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
           label="Upcoming"
           onClick={() => onSelectView({ type: "upcoming" })}
         />
+
+        <div className="nav-section-header">
+          <p className="nav-section-label">Saved views</p>
+          <button
+            type="button"
+            className="icon-btn tiny"
+            title="New saved view"
+            aria-label="New saved view"
+            onClick={() => setShowCreateSavedView(true)}
+          >
+            +
+          </button>
+        </div>
+        {viewsQuery.isLoading && <p className="muted small">Loading…</p>}
+        {userSavedViews.map((row) => (
+          <NavItem
+            key={row.id}
+            active={isSavedViewActive(row)}
+            label={row.name}
+            indent
+            onClick={() =>
+              onSelectView({ type: "saved", id: row.id, slug: row.slug })
+            }
+          />
+        ))}
+        {!viewsQuery.isLoading && userSavedViews.length === 0 && (
+          <p className="muted small indent">No saved views yet.</p>
+        )}
+
         <NavItem
           active={view.type === "calendar"}
           label="Calendar"
@@ -365,6 +416,14 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
         </button>
       </footer>
 
+      <SavedViewFilterModal
+        open={showCreateSavedView}
+        mode="create"
+        onClose={() => setShowCreateSavedView(false)}
+        onSaved={(row) => {
+          onSelectView({ type: "saved", id: row.id, slug: row.slug });
+        }}
+      />
       <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
       <CreateEpicForm open={showCreateEpic} onClose={() => setShowCreateEpic(false)} />
       <CreateProjectForm

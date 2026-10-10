@@ -8,6 +8,7 @@ import {
   fetchProjects,
   fetchScheduledBlocks,
   fetchTasks,
+  queryViewTasks,
   transitionTaskWorkflow,
   type Label,
   type Task,
@@ -253,7 +254,8 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return null;
   }, [view.type]);
 
-  const smartFilter = view.type === "today" || view.type === "upcoming";
+  const isSavedView = view.type === "saved";
+  const smartFilter = !isSavedView && (view.type === "today" || view.type === "upcoming");
   const dueKey = smartRange ? `${smartRange.start.toISOString()}/${smartRange.end.toISOString()}` : "";
   const dueParams = dueRangeParams(view, smartRange);
   const scopeParams = buildScopeParams(view, workFilters);
@@ -326,7 +328,16 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return map;
   }, [projectsQuery.data]);
 
-  const showProjectContext = view.type !== "project";
+  const showProjectContext = view.type !== "project" && !isSavedView;
+
+  const savedViewBoardQuery = useQuery({
+    queryKey: ["views", isSavedView && view.type === "saved" ? view.id : "", "tasks", "board"],
+    enabled: isSavedView && view.type === "saved",
+    queryFn: () => {
+      if (view.type !== "saved") throw new Error("Saved view required");
+      return queryViewTasks(view.id, { limit: 500, board_order: true });
+    },
+  });
 
   const scheduledOpenIds = useMemo(() => {
     if (!smartFilter) return [] as string[];
@@ -372,7 +383,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
   });
 
   const columnQueries = useQueries({
-    queries: smartFilter
+    queries: smartFilter || isSavedView
       ? []
       : OPEN_COLUMNS.map((col) => ({
           queryKey: boardOpenQueryKey(view, col.id, openOffsets[col.id as OpenColumnId], workFilters),
@@ -392,6 +403,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
 
   const doneQuery = useQuery({
     queryKey: boardDoneQueryKey(view, doneRawOffset, workFilters, dueKey),
+    enabled: !isSavedView,
     queryFn: async () => {
       const result = await fetchTasks({
         ...scopeParams,
@@ -455,7 +467,28 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return groupOpenTasks(items);
   }, [smartFilter, smartOpenAccum, scheduledOpenQuery.data, view, scheduledIds, rootsOnly]);
 
+  const savedViewGrouped = useMemo(() => {
+    if (!isSavedView || !savedViewBoardQuery.data) return null;
+    let openItems = savedViewBoardQuery.data.items.filter((t) => !t.is_completed);
+    if (rootsOnly) {
+      openItems = openItems.filter((t) => t.parent_task_id === null);
+    }
+    return groupOpenTasks(openItems);
+  }, [isSavedView, savedViewBoardQuery.data, rootsOnly]);
+
+  const savedViewDoneItems = useMemo(() => {
+    if (!isSavedView || !savedViewBoardQuery.data) return [];
+    let items = savedViewBoardQuery.data.items.filter((t) => t.is_completed);
+    if (rootsOnly) {
+      items = items.filter((t) => t.parent_task_id === null);
+    }
+    return items;
+  }, [isSavedView, savedViewBoardQuery.data, rootsOnly]);
+
   const openByColumn = useMemo(() => {
+    if (isSavedView && savedViewGrouped) {
+      return savedViewGrouped;
+    }
     if (smartFilter && mergedSmartOpen) {
       return mergedSmartOpen;
     }
@@ -473,7 +506,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
       groups[col.id] = items;
     });
     return groups;
-  }, [smartFilter, mergedSmartOpen, openAccum, rootsOnly]);
+  }, [isSavedView, savedViewGrouped, smartFilter, mergedSmartOpen, openAccum, rootsOnly]);
 
   const openColumnTotals = useMemo(() => {
     if (smartFilter && mergedSmartOpen) {
@@ -511,6 +544,8 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return openServerTotals.in_progress + openServerTotals.waiting;
   }, [smartFilter, mergedSmartOpen, openServerTotals]);
 
+  const doneColumnItems = isSavedView ? savedViewDoneItems : doneItems;
+
   const allTasksById = useMemo(() => {
     const map = new Map<string, Task>();
     for (const col of OPEN_COLUMNS) {
@@ -527,17 +562,19 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     for (const task of scheduledOpenQuery.data ?? []) {
       map.set(task.id, task);
     }
-    for (const task of doneItems) {
+    for (const task of doneColumnItems) {
       map.set(task.id, task);
     }
     return map;
-  }, [openByColumn, openAccum, smartOpenAccum, scheduledOpenQuery.data, doneItems]);
+  }, [openByColumn, openAccum, smartOpenAccum, scheduledOpenQuery.data, doneColumnItems]);
 
-  const doneFilteredView = smartFilter;
-  const doneHasMore = doneRawOffset + DONE_PAGE_SIZE < doneRawTotal;
-  const doneDisplayTotal = doneFilteredView
-    ? `${doneItems.length}${doneHasMore ? "+" : ""}`
-    : doneRawTotal;
+  const doneFilteredView = smartFilter || isSavedView;
+  const doneHasMore = isSavedView ? false : doneRawOffset + DONE_PAGE_SIZE < doneRawTotal;
+  const doneDisplayTotal = isSavedView
+    ? savedViewDoneItems.length
+    : doneFilteredView
+      ? `${doneItems.length}${doneHasMore ? "+" : ""}`
+      : doneRawTotal;
 
   const openCol0 = columnQueries[0]?.data;
   const openCol1 = columnQueries[1]?.data;
@@ -1057,10 +1094,10 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
             onDragLeave={() => setDragOverColumn(null)}
             onDrop={(e) => onColumnDrop(e, DONE_COLUMN)}
           >
-            {doneItems.length === 0 && !loading && (
+            {doneColumnItems.length === 0 && !loading && (
               <p className="muted small">No completed tasks loaded</p>
             )}
-            {doneItems.map((task) => renderCard(task, DONE_COLUMN))}
+            {doneColumnItems.map((task) => renderCard(task, DONE_COLUMN))}
             {doneHasMore && (
               <button
                 type="button"

@@ -42,6 +42,16 @@ from theplan.main import _build_parser
             "--task-id",
             "00000000-0000-0000-0000-000000000020",
         ],
+        ["schedule", "preview", "create"],
+        ["schedule", "preview", "get", "--id", "00000000-0000-0000-0000-000000000040"],
+        ["schedule", "preview", "apply", "--id", "00000000-0000-0000-0000-000000000040"],
+        ["views", "list"],
+        ["views", "get", "--id", "00000000-0000-0000-0000-000000000050"],
+        ["views", "create", "--stdin"],
+        ["views", "patch", "--id", "00000000-0000-0000-0000-000000000050", "--stdin"],
+        ["views", "delete", "--id", "00000000-0000-0000-0000-000000000050"],
+        ["views", "query", "--slug", "inbox"],
+        ["views", "query", "--id", "00000000-0000-0000-0000-000000000050", "--limit", "10"],
     ],
 )
 def test_parser_accepts_f1_commands(argv: list[str]) -> None:

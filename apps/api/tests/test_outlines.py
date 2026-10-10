@@ -241,11 +241,11 @@ def test_apply_small_outline(client: TestClient, db_session: Session) -> None:
         .all()
     )
     assert len(tasks) == 2
-    assert tasks[0].title == "Hello"
+    assert tasks[0].title == "Video: Hello"
     assert tasks[0].section_id == section.id
     assert tasks[0].description == "outline_id: c01-m01-t01"
     assert tasks[0].estimated_duration_minutes == 5
-    assert tasks[1].title == "Extra"
+    assert tasks[1].title == "Reading: Extra"
     assert tasks[1].estimated_duration_minutes == 3
 
     labels = {label.name.lower() for label in db_session.query(Label).filter(Label.owner_id == user.id)}

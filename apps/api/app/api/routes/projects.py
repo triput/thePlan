@@ -18,6 +18,11 @@ from app.schemas import (
 from app.services.hierarchy_promote import promote_project_to_epic
 from app.services.ownership import verify_owned_epic, verify_owned_focus_window
 from app.services.reorder import batch_reorder_sort_order
+from app.services.scheduling_revision import (
+    increment_scheduling_revision,
+    lock_owner_scheduling,
+    project_patch_touches_scheduling,
+)
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -61,6 +66,7 @@ def create_project(
         verify_owned_epic(db, body.epic_id, user)
     if body.preferred_time_window_id is not None:
         verify_owned_focus_window(db, body.preferred_time_window_id, user)
+    settings = lock_owner_scheduling(db, user.id)
     project = Project(
         owner_id=user.id,
         title=body.title.strip(),
@@ -71,6 +77,8 @@ def create_project(
         schedule_style=body.schedule_style,
     )
     db.add(project)
+    if body.preferred_time_window_id is not None or body.schedule_style is not None:
+        increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(project)
     return ProjectOut.model_validate(project)
@@ -108,8 +116,10 @@ def update_project(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ProjectOut:
-    project = _get_owned_project(db, project_id, user)
     updates = body.model_dump(exclude_unset=True)
+    touches_scheduling = project_patch_touches_scheduling(updates)
+    settings = lock_owner_scheduling(db, user.id) if touches_scheduling else None
+    project = _get_owned_project(db, project_id, user)
     if "epic_id" in updates and updates["epic_id"] is not None:
         verify_owned_epic(db, updates["epic_id"], user)
     if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
@@ -118,6 +128,8 @@ def update_project(
         updates["title"] = updates["title"].strip()
     for field, value in updates.items():
         setattr(project, field, value)
+    if touches_scheduling and settings is not None:
+        increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(project)
     return ProjectOut.model_validate(project)
@@ -129,8 +141,10 @@ def delete_project(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> None:
+    settings = lock_owner_scheduling(db, user.id)
     project = _get_owned_project(db, project_id, user)
     db.delete(project)
+    increment_scheduling_revision(db, settings)
     db.commit()
 
 
@@ -140,8 +154,10 @@ def archive_project(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ProjectOut:
+    settings = lock_owner_scheduling(db, user.id)
     project = _get_owned_project(db, project_id, user)
     project.is_archived = True
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(project)
     return ProjectOut.model_validate(project)
@@ -153,8 +169,10 @@ def unarchive_project(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ProjectOut:
+    settings = lock_owner_scheduling(db, user.id)
     project = _get_owned_project(db, project_id, user)
     project.is_archived = False
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(project)
     return ProjectOut.model_validate(project)
@@ -167,8 +185,10 @@ def promote_project_to_epic_endpoint(
     user: User = Depends(get_current_user),
 ) -> ProjectPromoteToEpicOut:
     """DEF-023: create epic from project meta; keep project UUID under the new epic."""
+    settings = lock_owner_scheduling(db, user.id)
     project = _get_owned_project(db, project_id, user)
     epic, project = promote_project_to_epic(db, project, user.id)
+    increment_scheduling_revision(db, settings)
     db.commit()
     db.refresh(epic)
     db.refresh(project)

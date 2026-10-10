@@ -20,7 +20,7 @@ Versioned REST API served by FastAPI. Base path: `/api/v1`.
 | Errors | `{ "detail": "...", "code": "..." }` with appropriate HTTP status |
 | Pagination | `?limit=50&offset=0` on list endpoints; default limit 50, max 200 |
 | Sorting | `?sort=sort_order` or `?sort=-due_at` (prefix `-` = DESC) |
-| Filtering | Named smart views via `/views/{slug}/tasks` or `?view=today` |
+| Filtering | Saved views: **`GET /views/{id}/tasks`** or **`GET /views/by-slug/{slug}/tasks`** (F7). Ad hoc lists still use `GET /tasks` query params. |
 
 All list endpoints scope to authenticated `owner_id`.
 
@@ -427,18 +427,44 @@ Calendar view uses range query: `GET /scheduled-blocks?start=2026-08-11T00:00:00
 
 ### Smart Views (Saved Filters)
 
+**F7 W1:** Persisted rows in `saved_filters` (Alembic **`027_saved_filter_presentation`** — `presentation_json`). System seeds **`inbox`**, **`today`**, **`upcoming`** (`is_system=true`, v1 predicates). User views: full CRUD. Task queries evaluate the predicate at read time in **`user_settings.timezone`** (rolling due windows). Delivery: [delivery/F7-SAVED-VIEWS.md](./delivery/F7-SAVED-VIEWS.md). Spec: [NEXT-FEATURES-SPEC.md §10](./NEXT-FEATURES-SPEC.md#10-f7-saved-views).
+
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/views` | List saved_filters (system + user) |
-| GET | `/views/{slug}/tasks` | Tasks matching predicate |
+| GET | `/views` | List system + owner user views. Order: `is_system` DESC, then `sort_order`, then `name`. |
+| POST | `/views` | Create user view — **201** `SavedViewOut`. Body: `name`, optional `slug` (else slugified from name), `predicate_json` (v1), optional `presentation_json`, optional `sort_order` (default **100**). |
+| GET | `/views/{id}` | Owner-scoped view metadata. **404** if missing or not owned. |
+| PATCH | `/views/{id}` | User views only — rename, slug, predicate, presentation, `sort_order`. System rows → **403** `SYSTEM_VIEW_READ_ONLY`. |
+| DELETE | `/views/{id}` | User views only — **204**; tasks unchanged. System → **403** `SYSTEM_VIEW_READ_ONLY`. |
+| GET | `/views/{id}/tasks` | Tasks matching predicate — `{ items, total, limit, offset, invalid_references? }`. Query: `limit` (default **50**, max **1000**), `offset`, `board_order` (when true: sort by `board_rank`, then `created_at`; else `sort_order`, then `created_at`). |
+| GET | `/views/by-slug/{slug}/tasks` | Same response as `/{id}/tasks`; resolves slug for system or user views. |
 
-MVP: read-only system views (`inbox`, `today`, `upcoming`). User-created filters and query language in W2.
+**`SavedViewOut`:** `id`, `name`, `slug`, `predicate_json`, `presentation_json` (object, default `{}`), `is_system`, `sort_order`.
 
-Optional convenience aliases:
+**`presentation_json`:** UI preference only (does not change which tasks match). W1 accepts any JSON object; typical keys: `mode` (`list` \| `board`), optional `sort`. Web/CLI may adopt stricter shapes in W2–W3.
 
-- `GET /tasks?view=inbox`
-- `GET /tasks?view=today`
-- `GET /tasks?view=upcoming`
+**Predicate v1 (runtime):** top-level `"v": 1` and `"dimensions"` object. Omitted dimension keys = no constraint on that axis; present keys **AND** together; array values **OR** within the dimension. Legacy `op` / `clauses` documents → **422** `INVALID_PREDICATE`. Supported dimension keys include: `inbox` (boolean `true` only), `project_ids`, `epic_ids`, `labels` (`ids`, `match`: `any` \| `all`), `priorities`, `workflow_states`, `completion` (`open` \| `done` \| `any`), `schedule_statuses`, `schedule_styles`, `due` (`kind`: `none` \| `unbounded` \| `fixed` with half-open `[from, to)` \| `rolling` with `today`, `next_7_days`, `this_calendar_week`, `within_days` + `days`). **`inbox` and `project_ids` together** → **422** `INVALID_PREDICATE`. Empty OR arrays rejected. Complexity caps → **422** `PREDICATE_TOO_COMPLEX` (max dimension keys, OR fan-out, single bag — no nested clause trees).
+
+**Default visibility on view task queries:** trashed tasks excluded; archived project/epic containers excluded unless `project_ids` explicitly scopes a project (same idea as `GET /tasks?project_id=`). No v1 trash/archive dimension.
+
+**Missing references:** deleted or foreign project/epic/label ids referenced in the predicate → **`items: []`**, **`total: 0`**, and **`invalid_references`**: `[{ "kind", "id" }, …]` — never widen to all tasks.
+
+**Stable error codes (views):**
+
+| Code | HTTP | When |
+|------|------|------|
+| `SYSTEM_VIEW_READ_ONLY` | **403** | PATCH/DELETE on `is_system` view |
+| `INVALID_PREDICATE` | **422** | Bad v1 shape, legacy predicate, conflicting dimensions, empty arrays, invalid UUIDs/enums |
+| `PREDICATE_TOO_COMPLEX` | **422** | Over dimension count, OR fan-out, or nesting |
+| `INVALID_SLUG` | **422** | Slug format (lowercase `[a-z0-9-]`, 1–100 chars) |
+| `DUPLICATE_SLUG` | **422** | Slug already used for this owner |
+
+View **GET** by foreign owner's id → **404** (same as missing).
+
+**Not in W1:** `GET /tasks?view=inbox|today|upcoming` — use `/views/by-slug/…/tasks`. CLI **`theplan views`** (F7 W2) and web filter builder (W3) not shipped yet.
+
+**Ad hoc task list (non-saved-view contexts):**
+
 - `GET /tasks?project_id={uuid}`
 - `GET /tasks?epic_id={uuid}`
 - `GET /tasks?label_id={uuid}`
@@ -729,21 +755,42 @@ Session cookie stores `user_id`. Password/passphrase: 12–128 characters, space
 }
 ```
 
-Overlap rule: `a.start < b.end AND a.end > b.start`. Busy sources are `external_calendar_events` with `scheduled_block_id IS NULL` only (mirrored push rows are excluded). Does **not** mutate `tasks.status` — visual flags only (W2a Slice 3); scheduler sets `schedule_status.overbooked` in W2b.
+Overlap rule: `a.start < b.end AND a.end > b.start`. Busy sources are `external_calendar_events` with `scheduled_block_id IS NULL` and `pending_deletion = false` (mirrored push rows and failed-delete tombstones are excluded). Does **not** mutate `tasks.status` — visual flags only (W2a Slice 3); scheduler sets `schedule_status.overbooked` in W2b.
 
 Scopes default: `calendar.events` + `calendar.calendarlist.readonly`. When mirror is on, create/update/delete of `/scheduled-blocks` best-effort pushes to the primary Google calendar (local CRUD never fails on Google errors).
 
 ### Schedule (W2b — Update Schedule thin; F3-W1+W2 explanations)
 
-**F3-W1+W2 (+ F4-W2 fingerprint):** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`) with **`algorithm_version` `f3-w2`**, snapshot **v3** (placement contract unchanged; **`v`** is the fingerprint schema only), and optional **`placement_facts`**. Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)); F6 preview will reuse `calculate` without `apply`. Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md), [delivery/F4-TIME-MAP-OVERRIDES.md](./delivery/F4-TIME-MAP-OVERRIDES.md).
+**F3-W1+W2 (+ F4-W2 fingerprint):** Completed replans persist per-task rows in `schedule_task_outcomes` (Alembic `022` / `023`) with **`algorithm_version` `f3-w2`**, snapshot **v3** (placement contract unchanged; **`v`** is the fingerprint schema only), and optional **`placement_facts`**. Explanation routes below are **read-only** and never enqueue replan. Internal pipeline: `collect` → `calculate` → `apply` ([scheduler README](../apps/api/app/scheduler/README.md)). Delivery: [delivery/F3-SCHEDULER-EXPLANATIONS.md](./delivery/F3-SCHEDULER-EXPLANATIONS.md), [delivery/F4-TIME-MAP-OVERRIDES.md](./delivery/F4-TIME-MAP-OVERRIDES.md).
+
+**F6 replan preview (W1+W2):** Preview rows in `schedule_previews` (Alembic **`025_schedule_previews`**) store an immutable calculation proposal without writing live blocks. **`user_settings.scheduling_revision`** bumps on scheduling-relevant writes; preview capture stores revision + owner input fingerprint at calculate time. Preview admission is **not** limited by migration **018** one-running-replan; **apply** and **direct replan** still conflict when a run is **`running`**. Delivery: [delivery/F6-REPLAN-PREVIEW.md](./delivery/F6-REPLAN-PREVIEW.md). Spec: [NEXT-FEATURES-SPEC.md §9](./NEXT-FEATURES-SPEC.md#9-f6-replan-preview).
 
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/schedule/replan` | Start explicit replan ([ADR-006](./adr/ADR-006-fuzzy-scheduling.md)). Inserts `schedule_runs` and returns **202** with `ScheduleRunOut` (`status: running`). **409** `SCHEDULE_RUN_IN_PROGRESS` if another non-stale run is active (Alembic `018` partial unique index). Stale `running` rows older than **15 minutes** are reclaimed as `failed` before enqueue. **Compose (default):** `SCHEDULE_DISPATCH=external` — replan runs in the **`scheduler`** service ([ADR-005](./adr/ADR-005-scheduler-decoupling.md), [apps/api/app/scheduler/README.md](../apps/api/app/scheduler/README.md)). **Bare uvicorn / Tauri:** poller or `SCHEDULE_DISPATCH=thread`, else run stays `running` until stale reclaim. CRUD never waits on the worker. |
+| POST | `/schedule/previews` | Start async replan **preview** — **202** `SchedulePreviewOut` (`status: running`). Inserts `schedule_previews`; worker runs **`collect` → `calculate` only** (never `apply`). Multiple previews per owner allowed. Same dispatch model as replan (`scheduler` poller or `SCHEDULE_DISPATCH=thread`). |
+| GET | `/schedule/previews/{id}` | Poll preview status and proposal. **404** if missing or not owned (`Schedule preview not found`). On read, may promote **`ready` → `stale`** (fingerprint or `scheduling_revision` drift) or **`ready` → `expired`** (past `expires_at`) — flush is not committed until the request ends; **apply must re-validate**. |
+| POST | `/schedule/previews/{id}/apply` | Atomically apply a **`ready`** preview's immutable proposal via shared **`apply_calculation`** (**200** `SchedulePreviewApplyReceipt`). Creates a completed **`schedule_run`** for the apply. While `status` is **`applied`**, retries return the same receipt from `stats_json.apply_receipt` (idempotent). **404** `PREVIEW_NOT_FOUND` if missing or not owned. **409** codes below. Does not silently recalculate. |
 | GET | `/schedule/runs` | List the owner's runs, newest `started_at` first. Paginated (`limit`, `offset`). Does not start a replan. |
 | GET | `/schedule/runs/{id}` | Poll run status and stats. **404** if missing or not owned. |
 | GET | `/schedule/runs/{id}/explanations` | Recorded per-task explanations for that run. Paginated. Optional `task_id` filter (unknown ids yield an empty page, not a leak). **404** if the run is missing or not owned. Does not start a replan. Each item includes `reason_facts`, `summary_text` (deterministic formatter), and read-time `is_stale` / `stale_categories`. |
 | GET | `/tasks/{task_id}/schedule-explanation` | Latest explanation from the most recent **completed** run that evaluated the task. **200** `evaluation_state: never_evaluated` when this owner has no such row (no fabricated placement). **404** `Task not found` for a missing or other-owner task, same body either way. Does not start a replan. |
+
+**Preview apply conflicts (`409`):**
+
+| Code | When |
+|------|------|
+| `PREVIEW_NOT_APPLICABLE` | Status is not **`ready`** (e.g. `running`, `failed`, `stale`, `expired`) or proposal missing |
+| `PREVIEW_EXPIRED` | Past `expires_at` (row may be marked **`expired`**) |
+| `PREVIEW_STALE` | Live owner fingerprint or `scheduling_revision` no longer matches capture; body includes **`stale_categories`** (same vocabulary as explanation stale compare — e.g. `duration`, `deps`, `time_map_overrides`, `provenance` when revision diverged) |
+| `PREVIEW_PAST_BLOCKS` | Any **`proposed_blocks`** row would start before server **now** (clock invalidation — no silent slide) |
+| `SCHEDULE_RUN_IN_PROGRESS` | Another **`schedule_runs`** row is **`running`** for this owner |
+
+**`SchedulePreviewOut`:** `id`, `status` (`running` \| `ready` \| `stale` \| `expired` \| `failed` \| `applied`), `started_at`, `finished_at`, `expires_at` (set when **`ready`**, **now + 15 minutes** from `evaluated_at`), `evaluated_at`, `algorithm_version`, `input_fingerprint`, `scheduling_revision` (revision at calculate start), `error_message`, `stats_json`, `diff_counts` (`blocks_added`, `blocks_removed`, `blocks_moved`, `blocks_unchanged` — identity `(task_id, start_time, end_time)`, unpinned **`before_blocks`** only), `proposal` (present when status is **`ready`**, **`stale`**, or **`expired`**; omitted when **`applied`** / **`failed`** / in-flight **`running`**).
+
+**`proposal` object (when present):** `v` (proposal schema, **1**), `horizon_start`, `horizon_end`, `before_blocks[]` (`task_id`, `start_time`, `end_time`, `is_pinned`), `proposed_blocks[]` (interval + `slice_minutes`, `tier`, `preferred_window_id`), `outcomes[]` (F3-shaped per-task results: `reason_facts`, `primary_reason_code`, `placement_facts`, minute tallies), run stats (`tasks_scheduled`, `blocks_created`, `overbooked_count`, `stats`).
+
+**`SchedulePreviewApplyReceipt`:** `receipt_id`, `preview_id`, `schedule_run_id`, `applied_at`, `blocks_created`, `tasks_scheduled`, `overbooked_count`, `scheduling_revision` (after apply bump).
 
 **`ScheduleRunOut`:** `id`, `status` (`running` \| `completed` \| `failed`), `started_at`, `finished_at`, `tasks_scheduled`, `blocks_created`, `overbooked_count`, `error_message`, `stats_json`.
 
@@ -757,9 +804,7 @@ Worker behavior: wipe unpinned blocks intersecting horizon (cancel Google/MS mir
 
 ### Reserved (W2c / W3+)
 
-| Resource | Path prefix |
-|----------|-------------|
-| User saved filters (write) | `POST /views` |
+(No F7 view write paths reserved — user CRUD shipped in F7 W1.)
 
 ---
 

@@ -192,6 +192,9 @@ def soft_delete_task_subtree(db: Session, task: Task) -> datetime:
     ``scheduled_blocks`` has no ``deleted_at`` column, so unpinned blocks for the
     stamped task ids are hard-deleted. Pinned blocks are left in place.
     """
+    from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+
+    settings = lock_owner_scheduling(db, task.owner_id)
     now = datetime.now(timezone.utc)
     ids = [task.id, *collect_live_descendant_ids(db, task.id, task.owner_id)]
     db.query(Task).filter(Task.id.in_(ids)).update(
@@ -203,13 +206,17 @@ def soft_delete_task_subtree(db: Session, task: Task) -> datetime:
         ScheduledBlock.is_pinned.is_(False),
     ).delete(synchronize_session=False)
     task.deleted_at = now
+    increment_scheduling_revision(db, settings)
     return now
 
 
 def restore_task_subtree(db: Session, task: Task) -> None:
     """Clear ``deleted_at`` on this task and descendants stamped in the same wave."""
+    from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+
     if task.deleted_at is None:
         raise ApiError(409, "Task is not in trash", "NOT_TRASHED")
+    settings = lock_owner_scheduling(db, task.owner_id)
     wave = task.deleted_at
     ids = [task.id, *collect_descendant_ids(db, task.id, task.owner_id)]
     restored_ids = [
@@ -224,6 +231,7 @@ def restore_task_subtree(db: Session, task: Task) -> None:
     )
     task.deleted_at = None
     reparent_live_tasks_with_invalid_parent(db, task.owner_id, restored_ids)
+    increment_scheduling_revision(db, settings)
 
 
 def _hard_delete_task_blocks(db: Session, task_ids: list[uuid.UUID]) -> None:
@@ -237,8 +245,11 @@ def _hard_delete_task_blocks(db: Session, task_ids: list[uuid.UUID]) -> None:
 
 def hard_purge_trashed_task_subtree(db: Session, task: Task) -> int:
     """Permanently delete a trashed task and trashed descendants only. Returns rows removed."""
+    from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+
     if task.deleted_at is None:
         raise ApiError(409, "Task is not in trash", "NOT_TRASHED")
+    settings = lock_owner_scheduling(db, task.owner_id)
     subtree_ids = {task.id, *collect_descendant_ids(db, task.id, task.owner_id)}
     purge_ids = {
         row_id
@@ -251,6 +262,7 @@ def hard_purge_trashed_task_subtree(db: Session, task: Task) -> int:
     detach_live_children_before_purge(db, task.owner_id, purge_ids)
     _hard_delete_task_blocks(db, list(purge_ids))
     db.query(Task).filter(Task.id.in_(purge_ids)).delete(synchronize_session=False)
+    increment_scheduling_revision(db, settings)
     return len(purge_ids)
 
 
@@ -265,6 +277,9 @@ def empty_trash_for_user(
     When ``older_than_days`` is set, only purge tasks whose ``deleted_at`` is
     strictly older than that many days (UTC). When omitted, empty all trash.
     """
+    from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+
+    settings = lock_owner_scheduling(db, owner_id)
     query = db.query(Task).filter(Task.owner_id == owner_id, Task.deleted_at.isnot(None))
     if older_than_days is not None:
         cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
@@ -280,6 +295,7 @@ def empty_trash_for_user(
     db.query(Task).filter(Task.id.in_(trashed_ids), Task.deleted_at.isnot(None)).delete(
         synchronize_session=False,
     )
+    increment_scheduling_revision(db, settings)
     return len(trashed_ids)
 
 
@@ -343,6 +359,7 @@ def complete_task(
 
     Returns (previous_due_at, recurrence_advanced).
     """
+    from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
     from app.services.task_workflow import bump_board_revision
 
     open_count = count_open_children(db, task.id, task.owner_id)
@@ -356,6 +373,7 @@ def complete_task(
             open_count=open_count,
         )
 
+    settings = lock_owner_scheduling(db, task.owner_id)
     now = datetime.now(timezone.utc)
     rule = task.recurrence_rule
     if rule is not None:
@@ -381,6 +399,7 @@ def complete_task(
             if bulk_children is True:
                 descendant_ids = collect_open_descendant_ids(db, task.id, task.owner_id)
                 _bulk_complete_open_descendants(db, descendant_ids, now=now)
+            increment_scheduling_revision(db, settings)
             return previous_due, True
 
     if bulk_children is True:
@@ -393,4 +412,5 @@ def complete_task(
         Reminder.owner_id == task.owner_id,
         Reminder.is_fired.is_(False),
     ).update({Reminder.is_fired: True}, synchronize_session=False)
+    increment_scheduling_revision(db, settings)
     return None, False

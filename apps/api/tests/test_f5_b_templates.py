@@ -57,14 +57,14 @@ def test_template_apply_round_trips_labels_urls_and_order(
 
     tasks = [entity for entity in body["payload"]["entities"] if entity["kind"] == "task"]
     by_title = {entity["title"]: entity for entity in tasks}
-    assert set(by_title) == {"Hello", "Extra"}
-    assert by_title["Hello"]["label_names"] == ["video"]
-    assert by_title["Hello"]["estimated_duration_minutes"] == 5
-    assert by_title["Hello"]["sort_order"] == 1
-    assert by_title["Extra"]["label_names"] == ["reading", "optional"]
-    assert by_title["Extra"]["estimated_duration_minutes"] == 3
-    assert by_title["Extra"]["sort_order"] == 2
-    assert by_title["Hello"]["estimated_duration_minutes"] != 2 * 60
+    assert set(by_title) == {"Video: Hello", "Reading: Extra"}
+    assert by_title["Video: Hello"]["label_names"] == ["video"]
+    assert by_title["Video: Hello"]["estimated_duration_minutes"] == 5
+    assert by_title["Video: Hello"]["sort_order"] == 1
+    assert by_title["Reading: Extra"]["label_names"] == ["reading", "optional"]
+    assert by_title["Reading: Extra"]["estimated_duration_minutes"] == 3
+    assert by_title["Reading: Extra"]["sort_order"] == 2
+    assert by_title["Video: Hello"]["estimated_duration_minutes"] != 2 * 60
 
     project = next(entity for entity in body["payload"]["entities"] if entity["kind"] == "project")
     description = project["description"] or ""
@@ -93,8 +93,8 @@ def test_template_apply_round_trips_labels_urls_and_order(
     assert "url: https://example.com/course" in (stored_project.description or "")
     assert "module_estimated_hours: Module A=1" in (stored_project.description or "")
 
-    hello = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Hello").one()
-    extra = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Extra").one()
+    hello = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Video: Hello").one()
+    extra = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Reading: Extra").one()
     assert hello.sort_order == 1
     assert extra.sort_order == 2
     assert hello.estimated_duration_minutes == 5
@@ -116,15 +116,15 @@ def test_template_skip_optional_excludes_tasks_from_created_graph(
     assert body["summary"]["task_count"] == 1
     assert body["summary"]["optional_skipped"] == 1
     titles = [entity["title"] for entity in body["payload"]["entities"] if entity["kind"] == "task"]
-    assert titles == ["Hello"]
+    assert titles == ["Video: Hello"]
     assert all("optional" not in entity.get("label_names", []) for entity in body["payload"]["entities"])
 
     applied = _apply(client, "coursera_course", body["payload"])
     assert applied["created_counts"]["task"] == 1
 
     user = _current_user(client, db_session)
-    assert db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Extra").count() == 0
-    hello = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Hello").one()
+    assert db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Reading: Extra").count() == 0
+    hello = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Video: Hello").one()
     assert _labels(db_session, hello.id) == {"video"}
     assert "optional" not in _labels(db_session, hello.id)
 
@@ -166,7 +166,9 @@ def test_template_blank_scaffold_apply_creates_placeholder_graph(
     )
     assert epic.schedule_style is not None
     welcome = (
-        db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Welcome and overview").one()
+        db_session.query(Task)
+        .filter(Task.owner_id == user.id, Task.title == "Video: Welcome and overview")
+        .one()
     )
     quiz = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Practice quiz").one()
     assert welcome.estimated_duration_minutes == 12
@@ -214,7 +216,11 @@ def test_template_module_scaffold_apply_under_project(
         task.title
         for task in db_session.query(Task).filter(Task.owner_id == user.id, Task.section_id == section.id)
     }
-    assert titles == {"Welcome and overview", "Syllabus and setup guide", "Practice quiz"}
+    assert titles == {
+        "Video: Welcome and overview",
+        "Reading: Syllabus and setup guide",
+        "Practice quiz",
+    }
 
 
 def test_template_estimated_hours_are_not_task_durations(
@@ -279,8 +285,8 @@ def test_template_estimated_hours_are_not_task_durations(
         for entity in body["payload"]["entities"]
         if entity["kind"] == "task"
     }
-    assert by_title["Timed clip"]["estimated_duration_minutes"] == 12
-    assert by_title["No duration"]["estimated_duration_minutes"] == default_minutes
+    assert by_title["Video: Timed clip"]["estimated_duration_minutes"] == 12
+    assert by_title["Reading: No duration"]["estimated_duration_minutes"] == default_minutes
     project = next(entity for entity in body["payload"]["entities"] if entity["kind"] == "project")
     description = project["description"] or ""
     assert "estimated_hours: 9" in description
@@ -288,8 +294,10 @@ def test_template_estimated_hours_are_not_task_durations(
     assert "url: https://example.com/hours-course" in description
 
     _apply(client, "coursera_course", body["payload"])
-    timed = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Timed clip").one()
-    untimed = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "No duration").one()
+    timed = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Video: Timed clip").one()
+    untimed = (
+        db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Reading: No duration").one()
+    )
     stored = (
         db_session.query(Project).filter(Project.owner_id == user.id, Project.title == "Hours Course").one()
     )
@@ -339,7 +347,7 @@ def test_template_module_estimated_hours_warn_and_do_not_set_duration(
     assert task_entity["estimated_duration_minutes"] != 4 * 60
 
     _apply(client, "coursera_module", body["payload"])
-    task = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Short").one()
+    task = db_session.query(Task).filter(Task.owner_id == user.id, Task.title == "Lab: Short").one()
     assert task.estimated_duration_minutes == 8
     assert _labels(db_session, task.id) == {"lab"}
     section = (

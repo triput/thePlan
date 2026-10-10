@@ -18,6 +18,11 @@ from app.services.ownership import (
     verify_owned_section,
     verify_owned_task,
 )
+from app.services.scheduling_revision import (
+    increment_scheduling_revision,
+    lock_owner_scheduling,
+    task_patch_touches_scheduling,
+)
 from app.services.task_helpers import collect_descendant_ids, resolve_nesting_level
 
 # Sentinel for "field omitted" vs explicit null on soft_target_at / plan_id.
@@ -99,6 +104,14 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     soft_target_at = updates.pop("soft_target_at", MISSING)
     plan_id = updates.pop("plan_id", MISSING)
     section_explicit = "section_id" in updates
+    touches_scheduling = task_patch_touches_scheduling(
+        updates,
+        plan_touched=plan_id is not MISSING,
+        soft_target_touched=soft_target_at is not MISSING,
+    )
+    scheduling_settings = (
+        lock_owner_scheduling(db, task.owner_id) if touches_scheduling else None
+    )
 
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
@@ -170,3 +183,6 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
 
     if label_ids is not None:
         sync_task_labels(db, task, user, label_ids)
+
+    if touches_scheduling and scheduling_settings is not None:
+        increment_scheduling_revision(db, scheduling_settings)

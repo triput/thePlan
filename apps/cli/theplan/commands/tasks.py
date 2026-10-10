@@ -179,6 +179,7 @@ def _optional_task_fields(args: argparse.Namespace, *, for_create: bool) -> dict
     if for_create:
         body["title"] = args.title.strip()
     field_map = (
+        ("title", "title"),
         ("project_id", "project_id"),
         ("due_at", "due_at"),
         ("priority", "priority"),

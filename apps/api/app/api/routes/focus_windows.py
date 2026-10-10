@@ -16,6 +16,7 @@ from app.services.focus_windows import (
     resolve_create_strict_mode,
     resolve_update_bands,
 )
+from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 
 router = APIRouter(prefix="/focus-windows", tags=["focus-windows"])
 
@@ -61,6 +62,7 @@ def create_focus_window(
     user: User = Depends(get_current_user),
 ) -> FocusWindowOut:
     bands = resolve_create_bands(body)
+    settings = lock_owner_scheduling(db, user.id)
     window = FocusWindow(
         owner_id=user.id,
         name=body.name.strip(),
@@ -69,6 +71,7 @@ def create_focus_window(
     db.add(window)
     db.flush()
     replace_bands(db, window, bands)
+    increment_scheduling_revision(db, settings)
     db.commit()
     window = _load_focus_window(db, window.id)
     assert window is not None
@@ -92,6 +95,7 @@ def update_focus_window(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> FocusWindowOut:
+    settings = lock_owner_scheduling(db, user.id)
     window = _get_owned_focus_window(db, window_id, user)
     updates = body.model_dump(exclude_unset=True)
 
@@ -107,6 +111,7 @@ def update_focus_window(
     if bands is not None:
         replace_bands(db, window, bands)
 
+    increment_scheduling_revision(db, settings)
     db.commit()
     window = _load_focus_window(db, window.id)
     assert window is not None
@@ -119,7 +124,9 @@ def delete_focus_window(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Response:
+    settings = lock_owner_scheduling(db, user.id)
     window = _get_owned_focus_window(db, window_id, user)
     db.delete(window)
+    increment_scheduling_revision(db, settings)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

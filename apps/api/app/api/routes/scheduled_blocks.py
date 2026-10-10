@@ -27,6 +27,8 @@ from app.schemas import (
     ScheduledBlockUpdate,
 )
 from app.services.bundle_blocks import create_bundle_block, is_bundle_inactive
+from app.services.mirror_tombstone import mark_block_mirrors_pending_deletion
+from app.services.scheduling_revision import bump_scheduling_revision, lock_owner_scheduling
 from app.services.google_calendar import (
     delete_mirrored_block as delete_mirrored_block_google,
     push_scheduled_block as push_scheduled_block_google,
@@ -80,16 +82,24 @@ def _get_owned_block(db: Session, block_id: UUID, user: User) -> ScheduledBlock:
     return block
 
 
-def _delete_block(db: Session, settings, block: ScheduledBlock) -> None:
+def _delete_block(db: Session, settings, block: ScheduledBlock, *, commit: bool = True) -> None:
+    """Delete the mirror and the local row before releasing the owner scheduling lock.
+
+    Mirror failure rolls back only the savepoint. The caller's lock and revision
+    bump stay on the outer transaction, and the local row still deletes with them.
+    """
     block_id = block.id
     try:
-        delete_mirrored_block(db, settings, block)
-        db.commit()
+        with db.begin_nested():
+            delete_mirrored_block(db, settings, block)
     except Exception:
         logger.exception("Failed to delete mirrored calendar event for block %s", block_id)
-        db.rollback()
-    db.delete(block)
-    db.commit()
+        mark_block_mirrors_pending_deletion(db, block_id)
+    current = db.get(ScheduledBlock, block_id)
+    if current is not None:
+        db.delete(current)
+    if commit:
+        db.commit()
 
 
 def _block_out(db: Session, block: ScheduledBlock, user: User) -> ScheduledBlockOut:
@@ -139,6 +149,7 @@ def clear_unpinned_blocks(
     if body.end <= body.start:
         raise ApiError(422, "end must be after start", "INVALID_TIME_RANGE")
 
+    lock_owner_scheduling(db, user.id)
     blocks = (
         db.query(ScheduledBlock)
         .filter(
@@ -151,9 +162,13 @@ def clear_unpinned_blocks(
     )
     settings = get_settings()
     deleted_count = 0
+    if blocks:
+        bump_scheduling_revision(db, user.id)
     for block in blocks:
-        _delete_block(db, settings, block)
+        _delete_block(db, settings, block, commit=False)
         deleted_count += 1
+    if blocks:
+        db.commit()
     return ClearUnpinnedBlocksOut(deleted_count=deleted_count)
 
 
@@ -164,6 +179,7 @@ def create_scheduled_block_bundle(
     user: User = Depends(get_current_user),
 ) -> ScheduledBlockOut:
     """DEF-019: one calendar face for N member tasks (or parent subtree)."""
+    lock_owner_scheduling(db, user.id)
     block = create_bundle_block(
         db,
         user,
@@ -173,6 +189,9 @@ def create_scheduled_block_bundle(
         member_task_ids=body.member_task_ids,
         parent_task_id=body.parent_task_id,
     )
+    bump_scheduling_revision(db, user.id)
+    db.commit()
+    db.refresh(block)
     block_id = block.id
     settings = get_settings()
     try:
@@ -194,6 +213,7 @@ def create_scheduled_block(
     user: User = Depends(get_current_user),
 ) -> ScheduledBlockOut:
     _validate_time_range(body.start_time, body.end_time)
+    lock_owner_scheduling(db, user.id)
     _get_owned_task(db, body.task_id, user)
 
     block = ScheduledBlock(
@@ -204,6 +224,7 @@ def create_scheduled_block(
         is_pinned=body.is_pinned,
     )
     db.add(block)
+    bump_scheduling_revision(db, user.id)
     db.commit()
     db.refresh(block)
     block_id = block.id
@@ -227,6 +248,7 @@ def release_block_remainder(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ReleaseRemainderOut:
+    lock_owner_scheduling(db, user.id)
     block = _get_owned_block(db, block_id, user)
     at = _ensure_utc(body.at if body and body.at is not None else datetime.now(timezone.utc))
     start = _ensure_utc(block.start_time)
@@ -238,10 +260,12 @@ def release_block_remainder(
     settings = get_settings()
 
     if at <= start or (at - start) < _MIN_BLOCK_AFTER_TRUNCATE:
+        bump_scheduling_revision(db, user.id)
         _delete_block(db, settings, block)
         return ReleaseRemainderOut(block=None, deleted=True)
 
     block.end_time = at
+    bump_scheduling_revision(db, user.id)
     db.commit()
     db.refresh(block)
     try:
@@ -273,6 +297,7 @@ def update_scheduled_block(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ScheduledBlockOut:
+    lock_owner_scheduling(db, user.id)
     block = _get_owned_block(db, block_id, user)
     updates = body.model_dump(exclude_unset=True)
 
@@ -286,6 +311,7 @@ def update_scheduled_block(
     for field, value in updates.items():
         setattr(block, field, value)
 
+    bump_scheduling_revision(db, user.id)
     db.commit()
     db.refresh(block)
     block_id = block.id
@@ -308,6 +334,8 @@ def delete_scheduled_block(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> None:
+    lock_owner_scheduling(db, user.id)
     block = _get_owned_block(db, block_id, user)
     settings = get_settings()
+    bump_scheduling_revision(db, user.id)
     _delete_block(db, settings, block)

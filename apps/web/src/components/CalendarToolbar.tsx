@@ -8,6 +8,7 @@ export interface CalendarToolbarProps {
   isNarrow: boolean;
   show24h: boolean;
   replanPolling: boolean;
+  previewPolling: boolean;
   clearUnpinnedPending: boolean;
   focusWindows: ReadonlyArray<Pick<FocusWindow, "id" | "name">>;
   effectiveOverlayMapId: string;
@@ -16,6 +17,7 @@ export interface CalendarToolbarProps {
   onToday: () => void;
   onClearUnpinned: () => void;
   onUpdateSchedule: () => void;
+  onPreviewSchedule: () => void;
   onToggleShow24h: () => void;
   onSetTimeMapOverlay: (mapId: string) => void;
   onSetMode: (mode: CalendarMode) => void;
@@ -28,6 +30,7 @@ export function CalendarToolbar({
   isNarrow,
   show24h,
   replanPolling,
+  previewPolling,
   clearUnpinnedPending,
   focusWindows,
   effectiveOverlayMapId,
@@ -36,6 +39,7 @@ export function CalendarToolbar({
   onToday,
   onClearUnpinned,
   onUpdateSchedule,
+  onPreviewSchedule,
   onToggleShow24h,
   onSetTimeMapOverlay,
   onSetMode,
@@ -64,16 +68,25 @@ export function CalendarToolbar({
           type="button"
           className="btn small ghost cal-clear-btn"
           onClick={onClearUnpinned}
-          disabled={clearUnpinnedPending || replanPolling}
+          disabled={clearUnpinnedPending || replanPolling || previewPolling}
           title="Remove unpinned blocks in the visible day or week"
         >
           {clearUnpinnedPending ? "Clearing…" : "Clear unpinned"}
         </button>
         <button
           type="button"
+          className="btn small secondary cal-preview-btn"
+          onClick={onPreviewSchedule}
+          disabled={replanPolling || previewPolling}
+          title="Calculate changes without updating the live calendar"
+        >
+          {previewPolling ? "Previewing…" : "Preview changes"}
+        </button>
+        <button
+          type="button"
           className="btn small primary cal-replan-btn"
           onClick={onUpdateSchedule}
-          disabled={replanPolling}
+          disabled={replanPolling || previewPolling}
         >
           {replanPolling ? "Updating…" : "Update Schedule"}
         </button>

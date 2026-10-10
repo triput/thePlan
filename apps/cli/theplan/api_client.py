@@ -30,10 +30,12 @@ def api_error_from_response(response: httpx.Response) -> CliError:
     else:
         message = str(detail)
         code = str(body.get("code", "API_ERROR"))
+    extra = {key: value for key, value in body.items() if key not in {"detail", "code"}}
     return CliError(
         code=code,
         message=message,
         exit_code=exit_code_for_api_status(status),
+        extra=extra or None,
     )
 
 
@@ -126,3 +128,13 @@ def api_logout() -> None:
     if response.status_code >= 400:
         raise api_error_from_response(response)
     clear_session_file()
+
+
+def unwrap_api_list(body: dict[str, Any] | None) -> list[Any]:
+    """Normalize list endpoints that return a JSON array (wrapped as ``data`` by api_json)."""
+    if not body:
+        return []
+    data = body.get("data")
+    if isinstance(data, list):
+        return data
+    return []

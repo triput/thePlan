@@ -9,7 +9,10 @@ from theplan.output import emit_ok, get_output_format
 
 
 def register_schedule(sub: argparse._SubParsersAction) -> None:
-    schedule = sub.add_parser("schedule", help="Schedule runs and task explanations (read-only)")
+    schedule = sub.add_parser(
+        "schedule",
+        help="Schedule explanations, run history, and replan previews",
+    )
     schedule_sub = schedule.add_subparsers(dest="schedule_command", required=True)
 
     explain_p = schedule_sub.add_parser(
@@ -37,6 +40,29 @@ def register_schedule(sub: argparse._SubParsersAction) -> None:
     expl_p.add_argument("--limit", type=int, default=None)
     expl_p.add_argument("--offset", type=int, default=None)
 
+    preview = schedule_sub.add_parser(
+        "preview",
+        help="Replan previews (create, inspect, apply)",
+    )
+    preview_sub = preview.add_subparsers(dest="preview_command", required=True)
+
+    preview_sub.add_parser(
+        "create",
+        help="Start an async replan preview (does not change the live schedule)",
+    )
+
+    get_preview = preview_sub.add_parser("get", help="Get one schedule preview")
+    get_preview.add_argument("--id", dest="preview_id", required=True, metavar="UUID")
+
+    apply_preview = preview_sub.add_parser(
+        "apply",
+        help="Apply a ready preview (stale or expired exits 5)",
+    )
+    apply_preview.add_argument("--id", dest="preview_id", required=True, metavar="UUID")
+
+
+_FRESH_PREVIEW = "Create a fresh preview."
+
 
 def _pagination_params(args: argparse.Namespace) -> dict[str, Any]:
     params: dict[str, Any] = {}
@@ -55,8 +81,62 @@ def _emit_explain(body: dict[str, Any]) -> None:
     emit_ok(payload)
 
 
+def _clarify_preview_error(exc: CliError) -> CliError:
+    """Keep PREVIEW_STALE / PREVIEW_EXPIRED actionable without hiding the API code."""
+    categories = (exc.extra or {}).get("stale_categories")
+    message = exc.message
+    if exc.code == "PREVIEW_STALE" and isinstance(categories, list) and categories:
+        shown = ", ".join(str(item) for item in categories)
+        message = f"{message} ({shown})"
+    stale_or_expired = exc.code in {"PREVIEW_STALE", "PREVIEW_EXPIRED"} or (
+        exc.code == "PREVIEW_NOT_APPLICABLE"
+        and ("status is stale" in message or "status is expired" in message)
+    )
+    if not stale_or_expired:
+        return exc
+    if _FRESH_PREVIEW not in message:
+        message = f"{message}. {_FRESH_PREVIEW}"
+    return CliError(
+        code=exc.code,
+        message=message,
+        exit_code=exc.exit_code,
+        extra=exc.extra,
+    )
+
+
+def _preview_json(method: str, path: str) -> dict[str, Any] | None:
+    try:
+        return api_json(method, path, persist_session=True)
+    except CliError as exc:
+        raise _clarify_preview_error(exc) from exc
+
+
+def _run_preview(args: argparse.Namespace) -> None:
+    cmd = args.preview_command
+    if cmd == "create":
+        body = _preview_json("POST", "/api/v1/schedule/previews")
+        emit_ok(body or {})
+        return
+    if cmd == "get":
+        body = _preview_json("GET", f"/api/v1/schedule/previews/{args.preview_id}")
+        emit_ok(body or {})
+        return
+    if cmd == "apply":
+        body = _preview_json("POST", f"/api/v1/schedule/previews/{args.preview_id}/apply")
+        emit_ok(body or {})
+        return
+    raise CliError(
+        code="INVALID_USAGE",
+        message=f"Unknown schedule preview command: {cmd}",
+        exit_code=1,
+    )
+
+
 def run_schedule(args: argparse.Namespace) -> None:
     cmd = args.schedule_command
+    if cmd == "preview":
+        _run_preview(args)
+        return
     if cmd == "explain":
         body = api_json(
             "GET",

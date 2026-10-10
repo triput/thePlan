@@ -98,5 +98,16 @@ class ExternalCalendarEvent(Base):
     start_time: Mapped[datetime] = mapped_column(nullable=False)
     end_time: Mapped[datetime] = mapped_column(nullable=False)
     is_all_day: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    pending_deletion: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     sync_hash: Mapped[str | None] = mapped_column(String(64))
     last_synced_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    @classmethod
+    def immovable_busy_clause(cls) -> tuple:
+        """External busy: not our mirror, and not a delete tombstone."""
+        return (
+            cls.scheduled_block_id.is_(None),
+            cls.pending_deletion.is_(False),
+        )

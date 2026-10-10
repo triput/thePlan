@@ -34,6 +34,7 @@ from app.services.task_dependencies import (
     edges_have_cycle,
     load_dependency_edges,
 )
+from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 from app.services.task_helpers import resolve_nesting_level
 
 
@@ -530,6 +531,7 @@ def apply_handoff(
     _validate_apply_cycles(db, user, payload)
 
     task_source_refs = source_json if source_json else None
+    scheduling_settings = lock_owner_scheduling(db, user.id)
 
     try:
         with db.begin_nested():
@@ -729,5 +731,12 @@ def apply_handoff(
             ) from exc
         raise
 
+    if (
+        created_counts["task"]
+        or created_counts["project"]
+        or created_counts["epic"]
+        or dep_count
+    ):
+        increment_scheduling_revision(db, scheduling_settings)
     db.flush()
     return result

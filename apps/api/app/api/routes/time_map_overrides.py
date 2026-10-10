@@ -13,6 +13,7 @@ from app.schemas.time_map_overrides import (
     TimeMapOverrideOut,
     TimeMapOverrideUpdate,
 )
+from app.services.scheduling_revision import bump_scheduling_revision, lock_owner_scheduling
 from app.services.time_map_overrides import create_time_map_override, update_time_map_override
 
 router = APIRouter(prefix="/focus-windows", tags=["focus-windows"])
@@ -82,6 +83,7 @@ def create_override(
     user: User = Depends(get_current_user),
 ) -> TimeMapOverrideOut:
     """Store a dated replacement. Does not replan."""
+    lock_owner_scheduling(db, user.id)
     window = _owned_window(db, window_id, user)
     row = create_time_map_override(
         db,
@@ -92,6 +94,7 @@ def create_override(
         strict_mode=body.strict_mode,
         bands=body.bands,
     )
+    bump_scheduling_revision(db, user.id)
     db.commit()
     row = _load_override(db, window, row.id, user)
     return TimeMapOverrideOut.model_validate(row)
@@ -118,11 +121,13 @@ def patch_time_map_override(
     user: User = Depends(get_current_user),
 ) -> TimeMapOverrideOut:
     """Update dates, timezone, strictness, or bands. Does not replan."""
+    lock_owner_scheduling(db, user.id)
     window = _owned_window(db, window_id, user)
     row = _load_override(db, window, override_id, user)
     updates = body.model_dump(exclude_unset=True)
     bands = body.bands if "bands" in updates and body.bands is not None else None
     update_time_map_override(db, window, row, updates, bands)
+    bump_scheduling_revision(db, user.id)
     db.commit()
     row = _load_override(db, window, override_id, user)
     return TimeMapOverrideOut.model_validate(row)
@@ -139,8 +144,10 @@ def delete_time_map_override(
     user: User = Depends(get_current_user),
 ) -> Response:
     """Delete one override. Does not replan. Expired rows stay until this call."""
+    lock_owner_scheduling(db, user.id)
     window = _owned_window(db, window_id, user)
     row = _load_override(db, window, override_id, user)
     db.delete(row)
+    bump_scheduling_revision(db, user.id)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

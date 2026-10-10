@@ -89,7 +89,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.55rem;
   min-height: 3rem;
 }
 
@@ -103,13 +103,15 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 0.45rem 0.5rem;
+  padding: 0.55rem 0.6rem 0.62rem;
   cursor: pointer;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
   min-height: 44px;
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .task-board-card:hover {
@@ -135,16 +137,18 @@
 
 .task-board-card-title {
   font-size: 0.88rem;
-  line-height: 1.3;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .task-board-card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.28rem 0.4rem;
   align-items: center;
   font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .task-board-breadcrumb {

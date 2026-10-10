@@ -17,7 +17,7 @@
 
 **Also in slice:** Alembic **`019_handoff_receipts`** (`handoff_receipts` + `source_refs` on epics/projects); Alembic **`020_task_source_refs`** (`source_refs` on **tasks** for task-only grafts); task dependency API + CLI; epic/project/section CLI CRUD; task complete/uncomplete CLI; web read-only **source refs** on epic, project, and task detail.
 
-**Not F1:** Outline ingest remains a separate propose/apply path and is still **non-idempotent** on re-import — [OUTLINE-INGEST.md](../OUTLINE-INGEST.md). Closeout P2 scheduling fixes shipped with this wave; [DEF-028](../DEFECTS.md#def-028--calendar-mirror-delete-failure-recovery-pending-deletion) (mirror delete recovery) stays deferred.
+**Not F1:** Outline ingest remains a separate propose/apply path and is still **non-idempotent** on re-import — [OUTLINE-INGEST.md](../OUTLINE-INGEST.md). Closeout P2 scheduling fixes shipped with this wave; [DEF-028](../DEFECTS.md#def-028--calendar-mirror-delete-failure-recovery-pending-deletion) (mirror delete recovery) was deferred here and closed 2026-10-09.
 
 ## Dex review corrections (addressed)
 
@@ -87,4 +87,4 @@ Canonical checkboxes (F1 section): **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md
 | **F1-B concurrent HTTP** | Service-level unique-key race + sequential replay covered; two live HTTP threads against TestClient are not in suite (session not thread-safe) — manual double-apply still useful |
 | **Outline vs handoff** | Do not use outline apply for agreed-plan idempotency; use `handoff apply` + receipt key |
 | **Receipt retention** | Receipts retained for this release; deleting created entities does not allow replay to recreate them (per spec) |
-| **DEF-028** | Calendar mirror delete failure recovery — deferred; unrelated to handoff writes |
+| **DEF-028** | Calendar mirror delete failure recovery — deferred at F1; closed 2026-10-09. Unrelated to handoff writes |

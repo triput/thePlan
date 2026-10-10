@@ -38,7 +38,12 @@ def emit_error(
 
 
 def handle_cli_error(exc: CliError) -> None:
-    emit_error(code=exc.code, message=exc.message, exit_code=exc.exit_code)
+    emit_error(
+        code=exc.code,
+        message=exc.message,
+        exit_code=exc.exit_code,
+        extra=exc.extra,
+    )
 
 
 def _write(body: dict[str, Any]) -> None:
@@ -50,6 +55,10 @@ def _write(body: dict[str, Any]) -> None:
                 print(f"{key}: {value}")
         else:
             print(f"error [{body.get('code')}]: {body.get('message')}", file=sys.stderr)
+            for key, value in body.items():
+                if key in {"ok", "code", "message"}:
+                    continue
+                print(f"{key}: {value}", file=sys.stderr)
         return
     json.dump(body, sys.stdout, indent=2, default=str)
     sys.stdout.write("\n")

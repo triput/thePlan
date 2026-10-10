@@ -16,6 +16,7 @@ from app.schemas import (
     AssistCreateTaskAction,
 )
 from app.services.auth_users import get_or_provision_user_settings
+from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 
 _DEFAULT_PROJECT_COLOR = "#0A8558"
 
@@ -232,6 +233,10 @@ def apply_assist_actions(
     results: list[AssistApplyResultItem] = []
     settings = get_or_provision_user_settings(db, user)
     default_estimated = settings.default_estimated_duration_minutes
+    # Every assist task lands with a duration (explicit or the user default).
+    # Take the owner lock before those inserts; project-only batches do not.
+    creates_task = any(isinstance(action, AssistCreateTaskAction) for action in actions)
+    scheduling_settings = lock_owner_scheduling(db, user.id) if creates_task else None
 
     for action in actions:
         if isinstance(action, AssistCreateProjectAction):
@@ -246,5 +251,9 @@ def apply_assist_actions(
                 )
             )
 
+    if scheduling_settings is not None and any(
+        item.ok and item.action_type == "create_task" for item in results
+    ):
+        increment_scheduling_revision(db, scheduling_settings)
     db.commit()
     return results

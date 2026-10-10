@@ -32,9 +32,115 @@
   gap: 0.25rem;
 }
 
-.cal-replan-btn {
+.cal-replan-btn,
+.cal-preview-btn {
   margin-right: 0.35rem;
   white-space: nowrap;
+}
+
+.schedule-preview-modal.modal {
+  max-width: 36rem;
+  width: calc(100% - 2rem);
+}
+
+.schedule-preview-section {
+  margin-bottom: 1rem;
+}
+
+.schedule-preview-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.schedule-preview-stats,
+.schedule-preview-diff-counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.schedule-preview-stats dt,
+.schedule-preview-diff-counts dt {
+  margin: 0;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.schedule-preview-stats dd,
+.schedule-preview-diff-counts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.schedule-preview-status {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.schedule-preview-status.ready {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.schedule-preview-status.warn {
+  background: color-mix(in srgb, var(--warning, #c90) 15%, transparent);
+}
+
+.schedule-preview-error,
+.schedule-preview-apply-error {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--danger, #c33) 12%, transparent);
+  font-size: 0.85rem;
+}
+
+.schedule-preview-block-list,
+.schedule-preview-outcomes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.schedule-preview-block-list li,
+.schedule-preview-outcomes > li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.schedule-preview-change-kind {
+  display: inline-block;
+  min-width: 5.5rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.schedule-preview-change-task {
+  margin-right: 0.35rem;
+}
+
+.schedule-preview-facts {
+  margin: 0.25rem 0 0;
+  padding-left: 1rem;
+  list-style: disc;
+}
+
+.schedule-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }
 
 .cal-time-map-overlay {

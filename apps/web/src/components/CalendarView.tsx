@@ -11,7 +11,10 @@ import {
   fetchTimeMapOverrides,
   fetchProjects,
   fetchScheduleRun,
+  fetchSchedulePreview,
   fetchScheduledBlocks,
+  postSchedulePreview,
+  postSchedulePreviewApply,
   fetchSettings,
   fetchTasks,
   postScheduleReplan,
@@ -19,8 +22,10 @@ import {
   updateScheduledBlock,
   updateTask,
   type Project,
+  type SchedulePreviewOut,
   type ScheduleRunOut,
   type ScheduledBlock,
+  type StaleCategory,
   type Task,
 } from "../api";
 import {
@@ -68,6 +73,7 @@ import {
   type ActiveDrag,
 } from "./CalendarDayColumn";
 import { CalendarToolbar } from "./CalendarToolbar";
+import { SchedulePreviewModal } from "./SchedulePreviewModal";
 import {
   blockDurationMinutesForTask,
   readTaskCalendarDrag,
@@ -355,6 +361,111 @@ export function CalendarView() {
       setReplanPolling(false);
     }
   }, [finishReplanRun, replanPolling]);
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewPolling, setPreviewPolling] = useState(false);
+  const [previewData, setPreviewData] = useState<SchedulePreviewOut | null>(null);
+  const [previewApplying, setPreviewApplying] = useState(false);
+  const [previewApplyError, setPreviewApplyError] = useState<{
+    message: string;
+    code?: string;
+    staleCategories?: StaleCategory[];
+  } | null>(null);
+
+  const pollPreviewUntilSettled = useCallback(async (previewId: string) => {
+    let preview = await fetchSchedulePreview(previewId);
+    const deadline = Date.now() + REPLAN_TIMEOUT_MS;
+    while (preview.status === "running" && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, REPLAN_POLL_MS));
+      preview = await fetchSchedulePreview(previewId);
+    }
+    if (preview.status === "running") {
+      preview = await fetchSchedulePreview(previewId);
+    }
+    return preview;
+  }, []);
+
+  const runSchedulePreview = useCallback(async () => {
+    setPreviewApplyError(null);
+    setPreviewPolling(true);
+    setPreviewOpen(true);
+    try {
+      const started = await postSchedulePreview();
+      const settled = await pollPreviewUntilSettled(started.id);
+      setPreviewData(settled);
+      if (settled.status === "running") {
+        emitToast("Preview is still running — refresh from the dialog in a moment");
+      }
+    } catch (err) {
+      emitToast(err instanceof Error ? err.message : "Couldn't start schedule preview");
+      setPreviewOpen(false);
+      setPreviewData(null);
+    } finally {
+      setPreviewPolling(false);
+    }
+  }, [pollPreviewUntilSettled]);
+
+  const refreshSchedulePreview = useCallback(async () => {
+    setPreviewApplyError(null);
+    setPreviewPolling(true);
+    try {
+      const started = await postSchedulePreview();
+      const settled = await pollPreviewUntilSettled(started.id);
+      setPreviewData(settled);
+    } catch (err) {
+      emitToast(err instanceof Error ? err.message : "Couldn't refresh preview");
+    } finally {
+      setPreviewPolling(false);
+    }
+  }, [pollPreviewUntilSettled]);
+
+  const closeSchedulePreview = useCallback(() => {
+    if (previewApplying) return;
+    setPreviewOpen(false);
+    setPreviewApplyError(null);
+  }, [previewApplying]);
+
+  const applySchedulePreview = useCallback(async () => {
+    if (!previewData || previewApplying) return;
+    setPreviewApplying(true);
+    setPreviewApplyError(null);
+    try {
+      const receipt = await postSchedulePreviewApply(previewData.id);
+      invalidateCalendar();
+      const parts: string[] = [];
+      if (receipt.blocks_created > 0) {
+        parts.push(`${receipt.blocks_created} block${receipt.blocks_created === 1 ? "" : "s"} created`);
+      }
+      if (receipt.overbooked_count > 0) {
+        parts.push(`${receipt.overbooked_count} overbooked`);
+      }
+      emitToast(
+        parts.length > 0 ? `Preview applied: ${parts.join(", ")}` : "Preview applied",
+      );
+      setPreviewOpen(false);
+      setPreviewData(null);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setPreviewApplyError({
+          message: err.message,
+          code: err.code,
+          staleCategories: err.body.stale_categories,
+        });
+        if (err.code === "PREVIEW_STALE" || err.code === "PREVIEW_EXPIRED") {
+          try {
+            const refreshed = await fetchSchedulePreview(previewData.id);
+            setPreviewData(refreshed);
+          } catch {
+            /* keep prior preview row */
+          }
+        }
+        return;
+      }
+      emitToast(err instanceof Error ? err.message : "Couldn't apply preview");
+    } finally {
+      setPreviewApplying(false);
+    }
+  }, [invalidateCalendar, previewApplying, previewData]);
 
   const createMutation = useMutation({
     mutationFn: createScheduledBlock,
@@ -724,6 +835,7 @@ export function CalendarView() {
         isNarrow={isNarrow}
         show24h={show24h}
         replanPolling={replanPolling}
+        previewPolling={previewPolling}
         clearUnpinnedPending={clearUnpinnedMutation.isPending}
         focusWindows={focusWindows}
         effectiveOverlayMapId={effectiveOverlayMapId}
@@ -732,9 +844,22 @@ export function CalendarView() {
         onToday={goToday}
         onClearUnpinned={handleClearUnpinned}
         onUpdateSchedule={handleUpdateSchedule}
+        onPreviewSchedule={runSchedulePreview}
         onToggleShow24h={toggleShow24h}
         onSetTimeMapOverlay={setTimeMapOverlay}
         onSetMode={setMode}
+      />
+
+      <SchedulePreviewModal
+        open={previewOpen}
+        preview={previewData}
+        loading={previewPolling}
+        applying={previewApplying}
+        applyError={previewApplyError}
+        tasksById={allTasksById}
+        onClose={closeSchedulePreview}
+        onRefresh={refreshSchedulePreview}
+        onApply={applySchedulePreview}
       />
 
       {(blocksQuery.isLoading || dueTasksQuery.isLoading) && (
