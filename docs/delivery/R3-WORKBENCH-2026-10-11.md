@@ -83,7 +83,7 @@ Full table: [R3-CAPABILITY-INVENTORY § Explicit DEFERRED](../redesign/R3-CAPABI
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Web unit tests | `cd apps/web && npm test` | Exit 0. **54** tests / **20** suites, **54 pass / 0 fail / 0 skipped**. |
+| Web unit tests | `cd apps/web && npm test` | Exit 0. **57** tests / **21** suites after R3-D2b (+3). |
 | Web production build | `cd apps/web && npm run build` | Exit 0. `tsc -b && vite build` (Vite 8.2.1). Existing JS chunk >500 kB warning only — not a failure. |
 | New regression modules | `supportDockState.test.ts`, `taskDetailDraft.test.ts`, calendar height/compact in `calendarUtils.test.ts` | Present and green; dock collapse/preview resolver and draft-reset/save-validation coverage expanded for D1–D4. |
 

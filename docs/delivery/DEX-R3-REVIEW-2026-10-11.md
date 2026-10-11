@@ -137,4 +137,4 @@ The delivered idle support is a combined summary rather than R3's tabbed Unsched
 
 **Jim:** R3-D1–D4 fixed and retested (D1/D3/D4 pass; D2 ordinary path pass). **R3-D2b** (Search-while-collapsed Collapse) Fixed (code) — awaiting focused Dex retest.
 
-**Dex (next):** Retest **R3-D2b** (clean + dirty Search → Collapse) on the post-D2b tip. Keep the wave **Open**. **HOLD** full manual acceptance. Negative-duration API validation remains a separate follow-up (not part of D2b).
+**Dex (next):** Retest **R3-D2b** (clean + dirty Search → Collapse) at **`43f5797`**. Keep the wave **Open**. **HOLD** full manual acceptance. Negative-duration API validation remains a separate follow-up (not part of D2b).
