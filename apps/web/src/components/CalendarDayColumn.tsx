@@ -15,6 +15,7 @@ import {
   formatShortDate,
   formatWeekday,
   heightPercentForDuration,
+  isCompactCalendarBlock,
   intersectIntervalWithHourBounds,
   isSameDay,
   isToday,
@@ -200,6 +201,7 @@ function ScheduledBlockItem({
   onClick,
   onMoveStart,
   onResizeStart,
+  stackOrder = 1,
 }: {
   block: ScheduledBlock;
   task: Task | undefined;
@@ -213,11 +215,14 @@ function ScheduledBlockItem({
   onClick: () => void;
   onMoveStart: (block: ScheduledBlock, clientY: number) => void;
   onResizeStart: (block: ScheduledBlock, clientY: number) => void;
+  stackOrder?: number;
 }) {
   const start = previewStart ?? new Date(block.start_time);
   const end = previewEnd ?? new Date(block.end_time);
+  const durationMin = blockDurationMinutes(start, end);
   const top = topPercentForTime(start, bounds);
-  const height = heightPercentForDuration(blockDurationMinutes(start, end), bounds);
+  const height = heightPercentForDuration(durationMin, bounds);
+  const compact = isCompactCalendarBlock(durationMin, bounds);
   const dragging = Boolean(previewStart || previewEnd);
   const isBundle = Boolean(block.bundle_meta?.kind === "bundle");
   const inactive = Boolean(block.bundle_inactive) || Boolean(isCompleted);
@@ -228,12 +233,13 @@ function ScheduledBlockItem({
     <div
       role="button"
       tabIndex={0}
-      className={`cal-block${block.is_pinned ? " pinned" : ""}${hasConflict ? " conflict" : ""}${inactive ? " completed" : ""}${isBundle ? " bundle" : ""}${dragging ? " dragging" : ""}`}
+      className={`cal-block${block.is_pinned ? " pinned" : " movable"}${hasConflict ? " conflict" : ""}${inactive ? " completed" : ""}${isBundle ? " bundle" : ""}${dragging ? " dragging" : ""}${compact ? " cal-block--compact" : ""}`}
       style={{
         top: `${top}%`,
         height: `${height}%`,
-        borderLeftColor: color,
-        backgroundColor: `color-mix(in srgb, ${color} 22%, var(--panel))`,
+        zIndex: stackOrder,
+        borderLeftColor: block.is_pinned ? undefined : color,
+        backgroundColor: `color-mix(in srgb, ${color} 20%, var(--panel))`,
       }}
       title={
         hasConflict
@@ -457,7 +463,13 @@ export function CalendarDayColumn({
               onDragStart={onDueDragStart}
             />
           ))}
-          {dayBlocks.map((block) => {
+          {[...dayBlocks]
+            .sort(
+              (a, b) =>
+                new Date(a.start_time).getTime() - new Date(b.start_time).getTime() ||
+                a.id.localeCompare(b.id),
+            )
+            .map((block, index) => {
             const task = tasksById.get(block.task_id);
             const preview =
               blockPreview &&
@@ -480,6 +492,7 @@ export function CalendarDayColumn({
                 onClick={() => onBlockClick(block)}
                 onMoveStart={onBlockMoveStart}
                 onResizeStart={onBlockResizeStart}
+                stackOrder={index + 1}
               />
             );
           })}

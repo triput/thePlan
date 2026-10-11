@@ -943,7 +943,7 @@ export function TaskBoard({ view, selectedTaskId, onSelectTask }: TaskBoardProps
     return (
       <article
         key={task.id}
-        className={`task-board-card${selectedTaskId === task.id ? " selected" : ""}${dropBefore ? " drop-before" : ""}${dropAfter ? " drop-after" : ""}`}
+        className={`task-board-card${selectedTaskId === task.id ? " selected" : ""}${column === DONE_COLUMN || task.is_completed ? " is-completed" : ""}${dropBefore ? " drop-before" : ""}${dropAfter ? " drop-after" : ""}`}
         draggable
         onDragStart={(e) => onCardDragStart(e, task.id)}
         onDragEnd={onCardDragEnd}

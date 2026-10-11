@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  heightPercentForDuration,
+  isCompactCalendarBlock,
   resolveHourBounds,
   startTimeFromSlotOffset,
 } from "../src/calendarUtils.ts";
@@ -22,6 +24,23 @@ describe("startTimeFromSlotOffset", () => {
     const windowEndMins = bounds.end * 60;
     const startMins = start.getHours() * 60 + start.getMinutes();
     assert.ok(startMins <= windowEndMins - 15);
+  });
+});
+
+describe("heightPercentForDuration", () => {
+  it("uses true duration without a visual floor", () => {
+    const bounds = resolveHourBounds(false);
+    const pct = heightPercentForDuration(5, bounds);
+    assert.ok(pct < 1);
+    assert.ok(pct > 0);
+  });
+});
+
+describe("isCompactCalendarBlock", () => {
+  it("flags very short blocks", () => {
+    const bounds = resolveHourBounds(false);
+    assert.equal(isCompactCalendarBlock(5, bounds), true);
+    assert.equal(isCompactCalendarBlock(60, bounds), false);
   });
 });
 

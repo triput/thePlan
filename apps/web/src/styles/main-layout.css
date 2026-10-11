@@ -76,12 +76,14 @@
   overflow: hidden;
 }
 
-.main-body.with-task-detail .main-content {
+.main-body.with-task-detail .main-content,
+.main-body.with-support-dock .main-content {
   flex: 1;
   min-width: 0;
 }
 
-.main-body.with-task-detail .task-detail-panel {
+.main-body.with-task-detail .task-detail-panel,
+.main-body.with-support-dock .support-dock {
   flex-shrink: 0;
 }
 

@@ -40,11 +40,15 @@ interface SidebarProps {
   view: ViewSelection;
   onSelectView: (view: ViewSelection) => void;
   onRequestClose?: () => void;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+  showCollapseControl?: boolean;
 }
 
 function NavItem({
   active,
   label,
+  mark,
   onClick,
   indent,
   swatchColor,
@@ -53,6 +57,7 @@ function NavItem({
 }: {
   active: boolean;
   label: string;
+  mark?: string;
   onClick: () => void;
   indent?: boolean;
   swatchColor?: string;
@@ -65,13 +70,23 @@ function NavItem({
     pending?: boolean;
   };
 }) {
+  const railMark = mark ?? label.charAt(0).toUpperCase();
   return (
     <div className={`nav-item-row${indent ? " indent" : ""}`}>
-      <button type="button" className={`nav-item${active ? " active" : ""}`} onClick={onClick}>
+      <button
+        type="button"
+        className={`nav-item${active ? " active" : ""}`}
+        onClick={onClick}
+        aria-label={label}
+        title={label}
+      >
         {swatchColor && (
           <span className="nav-swatch" style={{ backgroundColor: swatchColor }} aria-hidden />
         )}
-        {label}
+        <span className="nav-item-mark" aria-hidden>
+          {railMark}
+        </span>
+        <span className="nav-item-label">{label}</span>
       </button>
       {reorder && (
         <ReorderButtons
@@ -102,7 +117,14 @@ function NavItem({
   );
 }
 
-export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
+export function Sidebar({
+  view,
+  onSelectView,
+  onRequestClose,
+  collapsed = false,
+  onToggleCollapsed,
+  showCollapseControl = false,
+}: SidebarProps) {
   const queryClient = useQueryClient();
   const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
   const [showCreateEpic, setShowCreateEpic] = useState(false);
@@ -241,8 +263,13 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
               setExpandedEpics((prev) => new Set(prev).add(epic.id));
               onSelectView({ type: "epic", epicId: epic.id });
             }}
+            aria-label={epic.title}
+            title={epic.title}
           >
             <span className="nav-swatch" style={{ backgroundColor: epic.color_hex }} aria-hidden />
+            <span className="nav-item-mark epic-rail-mark" aria-hidden>
+              {epic.title.charAt(0).toUpperCase()}
+            </span>
             <span className="epic-title">{epic.title}</span>
           </button>
           <button
@@ -286,10 +313,24 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`}>
       <div className="sidebar-brand">
-        <span className="brand-mark">◆</span>
+        <span className="brand-mark" aria-hidden>
+          ◆
+        </span>
         <span className="brand-name">thePlan</span>
+        {showCollapseControl && onToggleCollapsed && (
+          <button
+            type="button"
+            className="sidebar-collapse-btn"
+            onClick={onToggleCollapsed}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+            title={collapsed ? "Expand navigation" : "Collapse navigation"}
+          >
+            <span aria-hidden>{collapsed ? "⟩" : "⟨"}</span>
+          </button>
+        )}
       </div>
 
       <nav className="sidebar-nav" aria-label="Main">
@@ -297,21 +338,25 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
         <NavItem
           active={view.type === "inbox"}
           label="Inbox"
+          mark="In"
           onClick={() => onSelectView({ type: "inbox" })}
         />
         <NavItem
           active={view.type === "work"}
           label="Work"
+          mark="W"
           onClick={() => onSelectView({ type: "work" })}
         />
         <NavItem
           active={view.type === "today"}
           label="Today"
+          mark="Td"
           onClick={() => onSelectView({ type: "today" })}
         />
         <NavItem
           active={view.type === "upcoming"}
           label="Upcoming"
+          mark="Up"
           onClick={() => onSelectView({ type: "upcoming" })}
         />
 
@@ -353,22 +398,26 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
         <NavItem
           active={view.type === "calendar"}
           label="Calendar"
+          mark="Cal"
           onClick={() => onSelectView({ type: "calendar" })}
         />
 
         <NavItem
           active={view.type === "labels"}
           label="Labels"
+          mark="#"
           onClick={() => onSelectView({ type: "labels" })}
         />
         <NavItem
           active={view.type === "archived"}
           label="Archived"
+          mark="Ar"
           onClick={() => onSelectView({ type: "archived" })}
         />
         <NavItem
           active={view.type === "trash"}
           label="Trash"
+          mark="Tr"
           onClick={() => onSelectView({ type: "trash" })}
         />
 
@@ -446,7 +495,7 @@ export function Sidebar({ view, onSelectView, onRequestClose }: SidebarProps) {
           <span className="settings-btn-icon" aria-hidden>
             ⚙
           </span>
-          <span>Settings</span>
+          <span className="settings-btn-label">Settings</span>
         </button>
       </footer>
 

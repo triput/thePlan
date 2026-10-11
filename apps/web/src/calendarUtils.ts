@@ -219,7 +219,15 @@ export function heightPercentForDuration(
   bounds: HourBounds = resolveHourBounds(false),
 ): number {
   const total = bounds.hours * 60;
-  return Math.max(2, (minutes / total) * 100);
+  if (total <= 0) return 0;
+  return (minutes / total) * 100;
+}
+
+/** True when a block is too short to show a readable title at the current zoom. */
+export function isCompactCalendarBlock(minutes: number, bounds: HourBounds): boolean {
+  const totalPx = bounds.hours * 48;
+  const heightPx = (minutes / (bounds.hours * 60)) * totalPx;
+  return heightPx < 22;
 }
 
 export function slotFromClick(

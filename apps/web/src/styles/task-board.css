@@ -102,25 +102,44 @@
 .task-board-card {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.55rem 0.6rem 0.62rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3) calc(var(--space-2) + 0.05rem);
   cursor: pointer;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1);
   min-height: 44px;
   overflow: visible;
   flex-shrink: 0;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 
 .task-board-card:hover {
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--panel-hover) 35%, var(--bg));
 }
 
 .task-board-card.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  background: var(--state-selection-bg);
+  border-color: var(--state-selection-border);
+  box-shadow: inset 0 0 0 1px var(--state-selection-border);
+}
+
+.task-board-card.is-completed {
+  opacity: var(--state-completed-opacity);
+  background: color-mix(in srgb, var(--panel) 90%, var(--bg));
+}
+
+.task-board-card.is-completed.selected {
+  opacity: 1;
+  background: color-mix(in srgb, var(--state-selection-bg) 82%, var(--panel));
+  border-color: var(--state-selection-border);
+}
+
+.task-board-card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .task-board-card[draggable="true"] {
@@ -136,19 +155,27 @@
 }
 
 .task-board-card-title {
-  font-size: 0.88rem;
-  line-height: 1.4;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight);
   overflow-wrap: anywhere;
   word-break: break-word;
+  hyphens: auto;
+}
+
+.task-board-card.is-completed .task-board-card-title {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--state-muted) 60%, transparent);
+  color: var(--state-muted);
 }
 
 .task-board-card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.28rem 0.4rem;
+  gap: var(--space-1) var(--space-2);
   align-items: center;
-  font-size: 0.72rem;
-  line-height: 1.35;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+  color: var(--state-muted);
 }
 
 .task-board-breadcrumb {

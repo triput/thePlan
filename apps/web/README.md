@@ -21,7 +21,7 @@ Pure `node:test` modules under `tests/` (no browser harness). From `apps/web`:
 npm test
 ```
 
-That runs `node --experimental-strip-types --test tests/*.test.ts`. Coverage includes saved-view filter drafts, presentation sort allowlist and mode merge, forest peer order, sidebar reorder (name tie-break), and load-more accumulation.
+That runs `node --experimental-strip-types --test tests/*.test.ts`. Coverage includes saved-view filter drafts, presentation sort allowlist and mode merge, forest peer order, sidebar reorder (name tie-break), load-more accumulation, R3 support-dock mode resolution, and task-detail dirty detection.
 
 ## Environment
 

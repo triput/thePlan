@@ -13,10 +13,23 @@ import { ImportPanel } from "./components/ImportPanel";
 import { ReminderPoller } from "./components/ReminderPoller";
 import { SearchBox, type SearchBoxHandle } from "./components/SearchBox";
 import { requestExpandEpic, Sidebar } from "./components/Sidebar";
-import { TaskDetailPanel } from "./components/TaskDetailPanel";
+import { SupportDock } from "./components/SupportDock";
 import { TaskList } from "./components/TaskList";
+import { UnsavedTaskChangesDialog } from "./components/UnsavedTaskChangesDialog";
 import { emitToast, ToastHost } from "./components/ToastHost";
+import type { TaskDetailPanelHandle } from "./components/TaskDetailPanel";
 import { NARROW_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
+import { loadNavCollapsed, saveNavCollapsed } from "./navPrefs";
+import {
+  loadSupportDockCollapsed,
+  saveSupportDockCollapsed,
+} from "./supportDockPrefs";
+import { SupportDockProvider, useSupportDock } from "./supportDockContext";
+import {
+  dirtyPromptFor,
+  resolveSupportDockMode,
+  type DirtyNavigationKind,
+} from "./supportDockState";
 import { UndoStackProvider, useUndoStack } from "./undoStack";
 import type { ViewSelection } from "./view";
 import "./App.css";
@@ -37,9 +50,18 @@ function AppInner() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(loadNavCollapsed);
+  const [supportCollapsed, setSupportCollapsed] = useState(loadSupportDockCollapsed);
+  const [dirtyNav, setDirtyNav] = useState<{
+    kind: DirtyNavigationKind;
+    proceed: () => void;
+  } | null>(null);
+  const [dirtySavePending, setDirtySavePending] = useState(false);
   const quickAddRef = useRef<QuickAddHandle>(null);
   const searchRef = useRef<SearchBoxHandle>(null);
+  const taskDetailRef = useRef<TaskDetailPanelHandle>(null);
   const { undo } = useUndoStack();
+  const { previewOpen, runSchedulePreview } = useSupportDock();
 
   const projectsQuery = useQuery({
     queryKey: ["projects"],
@@ -127,10 +149,55 @@ function AppInner() {
     }
   }, []);
 
+  const runWithDirtyGuard = (kind: DirtyNavigationKind, proceed: () => void) => {
+    if (selectedTaskId && taskDetailRef.current?.isDirty()) {
+      setDirtyNav({ kind, proceed });
+      return;
+    }
+    proceed();
+  };
+
+  const requestSelectTask = (taskId: string | null) => {
+    if (taskId === selectedTaskId) return;
+    if (taskId === null) {
+      runWithDirtyGuard("close_task", () => setSelectedTaskId(null));
+      return;
+    }
+    runWithDirtyGuard("switch_task", () => setSelectedTaskId(taskId));
+  };
+
   const selectView = (next: ViewSelection) => {
-    setView(next);
-    setNavOpen(false);
-    setSelectedTaskId(null);
+    runWithDirtyGuard("change_view", () => {
+      setView(next);
+      setNavOpen(false);
+      setSelectedTaskId(null);
+    });
+  };
+
+  const toggleSupportCollapsed = () => {
+    if (!supportCollapsed) {
+      runWithDirtyGuard("collapse_dock", () => {
+        setSupportCollapsed(true);
+        saveSupportDockCollapsed(true);
+      });
+      return;
+    }
+    setSupportCollapsed(false);
+    saveSupportDockCollapsed(false);
+    if (previewOpen) {
+      /* preview session stays warm; expanding dock reopens preview surface */
+    }
+  };
+
+  const handleCalendarPreview = () => {
+    if (selectedTaskId) {
+      runWithDirtyGuard("close_preview", () => {
+        setSelectedTaskId(null);
+        void runSchedulePreview();
+      });
+      return;
+    }
+    void runSchedulePreview();
   };
 
   useEffect(() => {
@@ -193,11 +260,40 @@ function AppInner() {
   }, [undo, navOpen]);
 
   const userLabel = user.display_name ?? user.username ?? user.email;
+  const toggleNavCollapsed = () => {
+    setNavCollapsed((prev) => {
+      const next = !prev;
+      saveNavCollapsed(next);
+      return next;
+    });
+  };
+
+  const dockMode = resolveSupportDockMode({
+    isCalendarView: showCalendar,
+    dockCollapsed: isNarrow ? false : supportCollapsed,
+    selectedTaskId,
+    previewOpen,
+  });
+
+  const supportDockActive =
+    showCalendar &&
+    (dockMode !== "hidden" || (!isNarrow && supportCollapsed && !selectedTaskId));
+
+  const mainBodyClass = [
+    "main-body",
+    selectedTaskId && isNarrow ? "with-task-detail" : "",
+    supportDockActive || selectedTaskId ? "with-support-dock" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   const shellClass = [
     "shell",
     isNarrow ? "is-narrow" : "",
     navOpen ? "nav-open" : "",
+    !isNarrow && navCollapsed ? "nav-collapsed" : "",
     selectedTaskId ? "has-task-detail" : "",
+    supportDockActive ? "has-support-dock" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -212,7 +308,14 @@ function AppInner() {
           onClick={() => setNavOpen(false)}
         />
       )}
-      <Sidebar view={view} onSelectView={selectView} onRequestClose={() => setNavOpen(false)} />
+      <Sidebar
+        view={view}
+        onSelectView={selectView}
+        onRequestClose={() => setNavOpen(false)}
+        collapsed={!isNarrow && navCollapsed}
+        onToggleCollapsed={toggleNavCollapsed}
+        showCollapseControl={!isNarrow}
+      />
       <div className="main">
         <header className="top-bar">
           <button
@@ -235,7 +338,7 @@ function AppInner() {
               }}
             />
           </div>
-          <SearchBox ref={searchRef} onSelectTask={setSelectedTaskId} />
+          <SearchBox ref={searchRef} onSelectTask={requestSelectTask} />
           <button
             type="button"
             className="icon-btn help-btn"
@@ -258,10 +361,13 @@ function AppInner() {
             </button>
           </div>
         </header>
-        <div className={`main-body${selectedTaskId ? " with-task-detail" : ""}`}>
+        <div className={mainBodyClass}>
           <main className="main-content">
             {showCalendar ? (
-              <CalendarView />
+              <CalendarView
+                onPreviewSchedule={handleCalendarPreview}
+                onSelectTask={requestSelectTask}
+              />
             ) : showArchived ? (
               <ArchivedView />
             ) : showTrash ? (
@@ -273,60 +379,46 @@ function AppInner() {
                 view={view}
                 projectTitle={projectTitle}
                 selectedTaskId={selectedTaskId}
-                onSelectTask={setSelectedTaskId}
+                onSelectTask={requestSelectTask}
               />
             )}
           </main>
-          {selectedTaskId && (
-            selectedTaskQuery.isLoading ? (
-              <aside className="task-detail-panel task-detail-sheet" aria-busy="true">
-                <header className="detail-header">
-                  <h2>Task details</h2>
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    onClick={() => setSelectedTaskId(null)}
-                    aria-label="Close panel"
-                  >
-                    ×
-                  </button>
-                </header>
-                <div className="detail-shell-body">
-                  <p className="muted">Loading task…</p>
-                </div>
-              </aside>
-            ) : selectedTaskQuery.isError ? (
-              <aside className="task-detail-panel task-detail-sheet">
-                <header className="detail-header">
-                  <h2>Task details</h2>
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    onClick={() => setSelectedTaskId(null)}
-                    aria-label="Close panel"
-                  >
-                    ×
-                  </button>
-                </header>
-                <div className="detail-shell-body">
-                  <p className="form-error">
-                    Failed to load task: {(selectedTaskQuery.error as Error).message}
-                  </p>
-                  <button type="button" className="btn secondary" onClick={() => setSelectedTaskId(null)}>
-                    Close
-                  </button>
-                </div>
-              </aside>
-            ) : (
-              <TaskDetailPanel
-                task={selectedTaskQuery.data ?? null}
-                allTasks={selectedTaskQuery.data ? [selectedTaskQuery.data] : []}
-                onClose={() => setSelectedTaskId(null)}
-              />
-            )
-          )}
+          <SupportDock
+            isCalendarView={showCalendar}
+            isNarrow={isNarrow}
+            dockCollapsed={supportCollapsed}
+            onToggleCollapse={toggleSupportCollapsed}
+            selectedTaskId={selectedTaskId}
+            selectedTaskQuery={selectedTaskQuery}
+            taskDetailRef={taskDetailRef}
+            onCloseTask={() => requestSelectTask(null)}
+            onSelectTask={(id) => requestSelectTask(id)}
+          />
         </div>
       </div>
+      <UnsavedTaskChangesDialog
+        open={dirtyNav !== null}
+        copy={dirtyPromptFor(dirtyNav?.kind ?? "close_task")}
+        pending={dirtySavePending}
+        onCancel={() => setDirtyNav(null)}
+        onDiscard={() => {
+          taskDetailRef.current?.discardDraft();
+          const proceed = dirtyNav?.proceed;
+          setDirtyNav(null);
+          proceed?.();
+        }}
+        onSave={() => {
+          void (async () => {
+            setDirtySavePending(true);
+            const ok = await taskDetailRef.current?.save(false);
+            setDirtySavePending(false);
+            if (!ok) return;
+            const proceed = dirtyNav?.proceed;
+            setDirtyNav(null);
+            proceed?.();
+          })();
+        }}
+      />
       <ToastHost />
       <ReminderPoller />
       <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
@@ -337,7 +429,9 @@ function AppInner() {
 function App() {
   return (
     <UndoStackProvider onToast={emitToast}>
-      <AppInner />
+      <SupportDockProvider>
+        <AppInner />
+      </SupportDockProvider>
     </UndoStackProvider>
   );
 }

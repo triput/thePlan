@@ -5,15 +5,21 @@ interface HelpOverlayProps {
   onClose: () => void;
 }
 
+const isMac =
+  typeof navigator !== "undefined" &&
+  /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+
+const mod = isMac ? "⌘" : "Ctrl";
+
 const SHORTCUTS: { keys: string; action: string }[] = [
-  { keys: "Q or Ctrl+K", action: "Focus quick-add" },
+  { keys: `Q or ${mod}+K`, action: "Focus quick-add" },
   { keys: "/", action: "Focus search" },
-  { keys: "Ctrl+Z", action: "Undo last action" },
+  { keys: `${mod}+Z`, action: "Undo last action" },
   { keys: "J / K or ↑ / ↓", action: "Navigate tasks" },
   { keys: "Enter", action: "Open focused task" },
   { keys: "X or Space", action: "Complete or uncomplete task" },
   { keys: "?", action: "Toggle this help" },
-  { keys: "Esc", action: "Close modals" },
+  { keys: "Esc", action: "Close modals and panels" },
 ];
 
 export function HelpOverlay({ open, onClose }: HelpOverlayProps) {

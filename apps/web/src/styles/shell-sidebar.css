@@ -5,22 +5,176 @@
 
 /* Sidebar */
 .sidebar {
-  width: 260px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
-  background: var(--panel);
+  background: var(--sidebar, var(--panel));
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 1rem 0.75rem;
+  padding: var(--space-4) var(--space-3);
+  transition: width 0.18s ease;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.5rem 1rem;
+  gap: var(--space-2);
+  padding: 0 var(--space-2) var(--space-4);
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: var(--font-size-lg);
+}
+
+.sidebar-collapse-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--panel-hover);
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.sidebar-collapse-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.epic-rail-mark {
+  display: none;
+}
+
+.nav-item-mark {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.nav-item-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shell.nav-collapsed .sidebar,
+.sidebar.is-collapsed {
+  width: var(--sidebar-rail-width);
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.shell.nav-collapsed .brand-name,
+.shell.nav-collapsed .nav-section-label,
+.shell.nav-collapsed .nav-item-label,
+.shell.nav-collapsed .settings-btn-label,
+.shell.nav-collapsed .epic-title,
+.shell.nav-collapsed .nav-edit-btn,
+.shell.nav-collapsed .nav-reorder-btns,
+.shell.nav-collapsed .nav-section-header .icon-btn,
+.shell.nav-collapsed .epic-header .icon-btn.tiny:not(.expand-btn),
+.sidebar.is-collapsed .brand-name,
+.sidebar.is-collapsed .nav-section-label,
+.sidebar.is-collapsed .nav-item-label,
+.sidebar.is-collapsed .settings-btn-label,
+.sidebar.is-collapsed .epic-title,
+.sidebar.is-collapsed .nav-edit-btn,
+.sidebar.is-collapsed .nav-reorder-btns,
+.sidebar.is-collapsed .nav-section-header .icon-btn,
+.sidebar.is-collapsed .epic-header .icon-btn.tiny:not(.expand-btn) {
+  display: none;
+}
+
+.shell.nav-collapsed .expand-btn,
+.sidebar.is-collapsed .expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  padding: 0;
+}
+
+.shell.nav-collapsed .nav-item-mark,
+.shell.nav-collapsed .epic-rail-mark,
+.sidebar.is-collapsed .nav-item-mark,
+.sidebar.is-collapsed .epic-rail-mark {
+  display: inline-flex;
+}
+
+.shell.nav-collapsed .sidebar-brand,
+.sidebar.is-collapsed .sidebar-brand {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+}
+
+.shell.nav-collapsed .sidebar-collapse-btn,
+.sidebar.is-collapsed .sidebar-collapse-btn {
+  margin-left: 0;
+}
+
+.shell.nav-collapsed .nav-item,
+.sidebar.is-collapsed .nav-item {
+  justify-content: center;
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.shell.nav-collapsed .nav-item-row.indent,
+.sidebar.is-collapsed .nav-item-row.indent {
+  padding-left: 0;
+}
+
+.shell.nav-collapsed .nav-swatch,
+.sidebar.is-collapsed .nav-swatch {
+  width: 10px;
+  height: 10px;
+}
+
+.shell.nav-collapsed .epic-header,
+.sidebar.is-collapsed .epic-header {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.shell.nav-collapsed .epic-title-btn,
+.sidebar.is-collapsed .epic-title-btn {
+  justify-content: center;
+  min-width: 0;
+  flex: 0;
+}
+
+.shell.nav-collapsed .settings-btn,
+.sidebar.is-collapsed .settings-btn {
+  justify-content: center;
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.shell.nav-collapsed .muted.small,
+.sidebar.is-collapsed .muted.small {
+  display: none;
 }
 
 .brand-mark {
@@ -102,9 +256,15 @@
 }
 
 .nav-item.active {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--state-selection-bg);
   color: var(--accent);
   font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--state-selection-border);
+}
+
+.nav-item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .nav-item.indent {

@@ -1,5 +1,7 @@
 import {
+  forwardRef,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -49,11 +51,24 @@ import { TaskDetailPromote } from "./TaskDetailPromote";
 import { TaskDetailRecurrence } from "./TaskDetailRecurrence";
 import { TaskDetailScheduling } from "./TaskDetailScheduling";
 import type { DetailSectionId } from "./TaskDetailSection";
+import {
+  buildTaskUpdateFromDraft,
+  isTaskDraftDirty,
+  type TaskDetailDraft,
+} from "../taskDetailDraft";
+
+export interface TaskDetailPanelHandle {
+  isDirty: () => boolean;
+  save: (closeAfterSave?: boolean) => Promise<boolean>;
+  discardDraft: () => void;
+}
 
 interface TaskDetailPanelProps {
   task: Task | null;
   allTasks: Task[];
   onClose: () => void;
+  showDockCollapse?: boolean;
+  onCollapseDock?: () => void;
 }
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
@@ -175,7 +190,11 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
   };
 }
 
-export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProps) {
+export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanelProps>(
+  function TaskDetailPanel(
+    { task, allTasks, onClose, showDockCollapse = false, onCollapseDock },
+    ref,
+  ) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("p4");
@@ -399,9 +418,11 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
     queryClient.invalidateQueries({ queryKey: ["schedule-explanation", taskId] });
   };
 
+  type SaveVariables = { body: TaskUpdate; closeAfterSave: boolean };
+
   const updateMutation = useMutation({
-    mutationFn: (body: TaskUpdate) => updateTask(task!.id, body),
-    onMutate: async (body) => {
+    mutationFn: ({ body }: SaveVariables) => updateTask(task!.id, body),
+    onMutate: async ({ body }) => {
       const taskKey = ["task", task!.id];
       await queryClient.cancelQueries({ queryKey: taskKey });
       const previousTask = queryClient.getQueryData<Task>(taskKey);
@@ -434,15 +455,90 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       }
       emitToast("Couldn't save — reverted");
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
       // Duration/deadline/map/style (and inheritance via project) are W1 fingerprint
       // inputs — drop the cached explanation so stale badges refresh on reopen.
       invalidateScheduleExplanation(task!.id);
-      onClose();
+      if (variables.closeAfterSave) onClose();
     },
   });
+
+  const readDraft = (): TaskDetailDraft => ({
+    title,
+    description,
+    priority,
+    dueAtLocal,
+    softTargetAtLocal,
+    deadlineAtLocal,
+    duration,
+    projectId,
+    sectionId,
+    parentTaskId,
+    labelIds,
+    preferredTimeWindowId,
+    scheduleStyle,
+    planId,
+  });
+
+  const applyTaskToForm = (source: Task) => {
+    setTitle(source.title);
+    setDescription(source.description ?? "");
+    setPriority(source.priority);
+    setDueAtLocal(toDatetimeLocal(source.due_at));
+    setSoftTargetAtLocal(toDatetimeLocal(source.soft_target_at));
+    setDeadlineAtLocal(toDatetimeLocal(source.deadline_at));
+    setDuration(
+      source.estimated_duration_minutes > 0 ? String(source.estimated_duration_minutes) : "",
+    );
+    setProjectId(source.project_id ?? "");
+    setSectionId(source.section_id ?? "");
+    setParentTaskId(source.parent_task_id ?? "");
+    setLabelIds(source.label_ids);
+    setPreferredTimeWindowId(source.preferred_time_window_id ?? "");
+    setScheduleStyle(source.schedule_style ?? "");
+    setPlanId(source.plan_id ?? "");
+  };
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      isDirty: () => (task ? isTaskDraftDirty(task, readDraft()) : false),
+      save: async (closeAfterSave = true) => {
+        if (!task) return false;
+        const body = buildTaskUpdateFromDraft(task, readDraft());
+        if (!body) return false;
+        try {
+          await updateMutation.mutateAsync({ body, closeAfterSave });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      discardDraft: () => {
+        if (task) applyTaskToForm(task);
+      },
+    }),
+    [
+      task,
+      title,
+      description,
+      priority,
+      dueAtLocal,
+      softTargetAtLocal,
+      deadlineAtLocal,
+      duration,
+      projectId,
+      sectionId,
+      parentTaskId,
+      labelIds,
+      preferredTimeWindowId,
+      scheduleStyle,
+      planId,
+      updateMutation,
+    ],
+  );
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -642,25 +738,9 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!task) return;
-    const trimmed = title.trim();
-    if (!trimmed) return;
-    const parsedDuration = duration.trim() ? parseInt(duration, 10) : 0;
-    updateMutation.mutate({
-      title: trimmed,
-      description: description.trim() || null,
-      priority,
-      due_at: fromDatetimeLocal(dueAtLocal),
-      soft_target_at: fromDatetimeLocal(softTargetAtLocal),
-      deadline_at: fromDatetimeLocal(deadlineAtLocal),
-      estimated_duration_minutes: Number.isFinite(parsedDuration) ? parsedDuration : 0,
-      project_id: projectId || null,
-      section_id: projectId && sectionId ? sectionId : null,
-      parent_task_id: parentTaskId || null,
-      label_ids: labelIds,
-      preferred_time_window_id: preferredTimeWindowId || null,
-      schedule_style: scheduleStyle || null,
-      plan_id: planId || null,
-    });
+    const body = buildTaskUpdateFromDraft(task, readDraft());
+    if (!body) return;
+    updateMutation.mutate({ body, closeAfterSave: true });
   };
 
   if (!task) return null;
@@ -668,7 +748,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
   return (
     <>
       <aside
-        className="task-detail-panel task-detail-sheet"
+        className="support-dock task-detail-panel task-detail-sheet"
         aria-label="Task details"
         style={{ ["--task-detail-width" as string]: `${panelWidth}px` }}
       >
@@ -710,7 +790,7 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             }
           }}
         />
-        <header className="detail-header">
+        <header className="detail-header support-dock-header">
           <h2>Task details</h2>
           <div className="detail-header-actions">
             <button
@@ -721,6 +801,16 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
             >
               {updateMutation.isPending ? "Saving…" : "Save"}
             </button>
+            {showDockCollapse && onCollapseDock ? (
+              <button
+                type="button"
+                className="btn ghost small support-dock-collapse-btn"
+                onClick={onCollapseDock}
+                aria-label="Collapse support panel"
+              >
+                Collapse
+              </button>
+            ) : null}
             <button type="button" className="icon-btn" onClick={onClose} aria-label="Close panel">
               ×
             </button>
@@ -943,4 +1033,5 @@ export function TaskDetailPanel({ task, allTasks, onClose }: TaskDetailPanelProp
       />
     </>
   );
-}
+},
+);

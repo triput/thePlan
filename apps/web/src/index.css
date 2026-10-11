@@ -1,15 +1,15 @@
 :root,
 [data-theme="dark"] {
-  --bg: #0b0f19;
-  --panel: #121827;
-  --panel-hover: #1a2236;
-  --border: #2a3247;
-  --text: #e6eaf2;
-  --text-muted: #9aa4b2;
-  --accent: #059669;
-  --accent-hover: #047857;
+  --bg: #0c111b;
+  --panel: #141b2a;
+  --panel-hover: #1a2438;
+  --border: #2a3348;
+  --text: #e7ecf5;
+  --text-muted: #9aa6b8;
+  --accent: #3d9b84;
+  --accent-hover: #358f78;
   --error: #f87171;
-  --sidebar: #121827;
+  --sidebar: #141b2a;
   --danger: #f87171;
   color-scheme: dark;
 }
@@ -135,9 +135,45 @@
 }
 
 :root {
+  /* Workbench layout tokens (theme-agnostic) */
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 0.9375rem;
+  --font-size-lg: 1.125rem;
+  --line-height-tight: 1.35;
+  --line-height-normal: 1.5;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --sidebar-width: 260px;
+  --sidebar-rail-width: 3.25rem;
+  --focus-ring-color: var(--accent);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring: 0 0 0 var(--focus-ring-offset) var(--bg),
+    0 0 0 calc(var(--focus-ring-offset) + var(--focus-ring-width)) var(--focus-ring-color);
+
+  /* Semantic surface states */
+  --state-selection-bg: color-mix(in srgb, var(--accent) 14%, var(--panel));
+  --state-selection-border: color-mix(in srgb, var(--accent) 42%, var(--border));
+  --state-selection-strong: color-mix(in srgb, var(--accent) 22%, transparent);
+  --state-completed-opacity: 0.52;
+  --state-muted: var(--text-muted);
+  --state-pin: #c9a227;
+  --state-proposal: #6b9bd1;
+  --time-map-preferred: #22c55e;
+  --time-map-acceptable: #eab308;
+  --time-map-excluded: #ef4444;
+  --cal-block-external: var(--text-muted);
+  --cal-block-movable: var(--panel);
+
   font-family: "DM Sans", "Segoe UI", system-ui, sans-serif;
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   font-weight: 400;
+  font-size: var(--font-size-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

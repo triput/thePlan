@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased] — R3 Midnight Workbench UI (2026-10-11)
+
+- **R3 Slices 0–3 (web):** Capability inventory ([R3-CAPABILITY-INVENTORY](docs/redesign/R3-CAPABILITY-INVENTORY.md)); Workbench tokens + default **Dark** preset; collapsible desktop sidebar rail; list/board shell restyle; shared **support dock** (calendar idle, **Preview schedule changes**, task details); dirty-edit navigation guards; quieter calendar Time Map bands with **Preferred / Acceptable / Excluded** tiers preserved; **Preview changes** vs **Update Schedule** unchanged; Windows **Ctrl** labels in help — [R3-WORKBENCH-2026-10-11](docs/delivery/R3-WORKBENCH-2026-10-11.md), [USER-GUIDE](docs/USER-GUIDE.md)
+- **Quality (Renee exit):** web `npm test` **50/50** green, `npm run build` green (chunk-size advisory only) — [R3-WORKBENCH-2026-10-11](docs/delivery/R3-WORKBENCH-2026-10-11.md); R3 **not Closed/shipped** (Slice 4 manual checklist open)
+
 ## [Unreleased] — F7 Saved views W1–W3 (2026-10-10)
 
 - **Dex Wave 1 retest (2026-10-10):** F6 **P1 R1** (`epic_id` / epic `target_date`) **verified closed** — **37** API integration tests on isolated PostgreSQL incl. concurrent apply/reparent ([DEX-WAVE1-RETEST](docs/delivery/DEX-WAVE1-RETEST-2026-10-10.md)). F4 Wave 1 **verified closed** — CLI overrides, day overlay, F4-D red/pins/legend/small-run + **W1-R1** volume stale; web **36** + CLI **36** tests green

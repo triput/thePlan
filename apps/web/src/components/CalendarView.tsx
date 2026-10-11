@@ -22,10 +22,7 @@ import {
   fetchScheduleRun,
   fetchScheduleRunStaleSummary,
   fetchScheduleRuns,
-  fetchSchedulePreview,
   fetchScheduledBlocks,
-  postSchedulePreview,
-  postSchedulePreviewApply,
   fetchSettings,
   fetchTasks,
   postScheduleReplan,
@@ -33,7 +30,6 @@ import {
   updateScheduledBlock,
   updateTask,
   type Project,
-  type SchedulePreviewOut,
   type ScheduleRunOut,
   type ScheduledBlock,
   type StaleCategory,
@@ -84,7 +80,7 @@ import {
   type ActiveDrag,
 } from "./CalendarDayColumn";
 import { CalendarToolbar } from "./CalendarToolbar";
-import { SchedulePreviewModal } from "./SchedulePreviewModal";
+import { useSupportDock } from "../supportDockContext";
 import {
   blockDurationMinutesForTask,
   readTaskCalendarDrag,
@@ -103,9 +99,15 @@ function dayFromPoint(clientX: number, clientY: number): Date | null {
   return new Date(raw);
 }
 
-export function CalendarView() {
+export interface CalendarViewProps {
+  onPreviewSchedule: () => void;
+  onSelectTask: (taskId: string) => void;
+}
+
+export function CalendarView({ onPreviewSchedule }: CalendarViewProps) {
   const queryClient = useQueryClient();
   const isNarrow = useMediaQuery(NARROW_QUERY);
+  const { previewPolling, setCalendarSupport } = useSupportDock();
   const [mode, setMode] = useState<CalendarMode>("day");
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [show24h, setShow24h] = useState(() => loadShow24h());
@@ -428,111 +430,6 @@ export function CalendarView() {
       setReplanPolling(false);
     }
   }, [finishReplanRun, replanPolling]);
-
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewPolling, setPreviewPolling] = useState(false);
-  const [previewData, setPreviewData] = useState<SchedulePreviewOut | null>(null);
-  const [previewApplying, setPreviewApplying] = useState(false);
-  const [previewApplyError, setPreviewApplyError] = useState<{
-    message: string;
-    code?: string;
-    staleCategories?: StaleCategory[];
-  } | null>(null);
-
-  const pollPreviewUntilSettled = useCallback(async (previewId: string) => {
-    let preview = await fetchSchedulePreview(previewId);
-    const deadline = Date.now() + REPLAN_TIMEOUT_MS;
-    while (preview.status === "running" && Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, REPLAN_POLL_MS));
-      preview = await fetchSchedulePreview(previewId);
-    }
-    if (preview.status === "running") {
-      preview = await fetchSchedulePreview(previewId);
-    }
-    return preview;
-  }, []);
-
-  const runSchedulePreview = useCallback(async () => {
-    setPreviewApplyError(null);
-    setPreviewPolling(true);
-    setPreviewOpen(true);
-    try {
-      const started = await postSchedulePreview();
-      const settled = await pollPreviewUntilSettled(started.id);
-      setPreviewData(settled);
-      if (settled.status === "running") {
-        emitToast("Preview is still running — refresh from the dialog in a moment");
-      }
-    } catch (err) {
-      emitToast(err instanceof Error ? err.message : "Couldn't start schedule preview");
-      setPreviewOpen(false);
-      setPreviewData(null);
-    } finally {
-      setPreviewPolling(false);
-    }
-  }, [pollPreviewUntilSettled]);
-
-  const refreshSchedulePreview = useCallback(async () => {
-    setPreviewApplyError(null);
-    setPreviewPolling(true);
-    try {
-      const started = await postSchedulePreview();
-      const settled = await pollPreviewUntilSettled(started.id);
-      setPreviewData(settled);
-    } catch (err) {
-      emitToast(err instanceof Error ? err.message : "Couldn't refresh preview");
-    } finally {
-      setPreviewPolling(false);
-    }
-  }, [pollPreviewUntilSettled]);
-
-  const closeSchedulePreview = useCallback(() => {
-    if (previewApplying) return;
-    setPreviewOpen(false);
-    setPreviewApplyError(null);
-  }, [previewApplying]);
-
-  const applySchedulePreview = useCallback(async () => {
-    if (!previewData || previewApplying) return;
-    setPreviewApplying(true);
-    setPreviewApplyError(null);
-    try {
-      const receipt = await postSchedulePreviewApply(previewData.id);
-      invalidateCalendar();
-      const parts: string[] = [];
-      if (receipt.blocks_created > 0) {
-        parts.push(`${receipt.blocks_created} block${receipt.blocks_created === 1 ? "" : "s"} created`);
-      }
-      if (receipt.overbooked_count > 0) {
-        parts.push(`${receipt.overbooked_count} overbooked`);
-      }
-      emitToast(
-        parts.length > 0 ? `Preview applied: ${parts.join(", ")}` : "Preview applied",
-      );
-      setPreviewOpen(false);
-      setPreviewData(null);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setPreviewApplyError({
-          message: err.message,
-          code: err.code,
-          staleCategories: err.body.stale_categories,
-        });
-        if (err.code === "PREVIEW_STALE" || err.code === "PREVIEW_EXPIRED") {
-          try {
-            const refreshed = await fetchSchedulePreview(previewData.id);
-            setPreviewData(refreshed);
-          } catch {
-            /* keep prior preview row */
-          }
-        }
-        return;
-      }
-      emitToast(err instanceof Error ? err.message : "Couldn't apply preview");
-    } finally {
-      setPreviewApplying(false);
-    }
-  }, [invalidateCalendar, previewApplying, previewData]);
 
   const createMutation = useMutation({
     mutationFn: createScheduledBlock,
@@ -902,6 +799,41 @@ export function CalendarView() {
     drag && (drag.kind === "block-move" || drag.kind === "block-resize") ? drag : null;
   const dueDrag = drag && drag.kind === "due-move" ? drag : null;
 
+  const scheduledTaskIds = useMemo(
+    () => new Set(blocks.map((b) => b.task_id)),
+    [blocks],
+  );
+  const unscheduledTasks = useMemo(
+    () => incompleteTasks.filter((t) => !scheduledTaskIds.has(t.id)),
+    [incompleteTasks, scheduledTaskIds],
+  );
+
+  useEffect(() => {
+    setCalendarSupport({
+      tasksById: allTasksById,
+      unscheduledTotal: unscheduledTasks.length,
+      unscheduledSample: unscheduledTasks
+        .slice(0, 12)
+        .map((t) => ({ id: t.id, title: t.title })),
+      scheduleStaleHint,
+      legend: {
+        overlayMapName: effectiveOverlayMapId ? overlayMapName : null,
+        pinnedBlockCount,
+        busyInRangeCount,
+      },
+    });
+    return () => setCalendarSupport(null);
+  }, [
+    allTasksById,
+    unscheduledTasks,
+    scheduleStaleHint,
+    effectiveOverlayMapId,
+    overlayMapName,
+    pinnedBlockCount,
+    busyInRangeCount,
+    setCalendarSupport,
+  ]);
+
   return (
     <div className={`calendar-view${drag ? " is-dragging" : ""}`}>
       <CalendarToolbar
@@ -921,22 +853,10 @@ export function CalendarView() {
         onToday={goToday}
         onClearUnpinned={handleClearUnpinned}
         onUpdateSchedule={handleUpdateSchedule}
-        onPreviewSchedule={runSchedulePreview}
+        onPreviewSchedule={onPreviewSchedule}
         onToggleShow24h={toggleShow24h}
         onSetTimeMapOverlay={setTimeMapOverlay}
         onSetMode={setMode}
-      />
-
-      <SchedulePreviewModal
-        open={previewOpen}
-        preview={previewData}
-        loading={previewPolling}
-        applying={previewApplying}
-        applyError={previewApplyError}
-        tasksById={allTasksById}
-        onClose={closeSchedulePreview}
-        onRefresh={refreshSchedulePreview}
-        onApply={applySchedulePreview}
       />
 
       {(blocksQuery.isLoading || dueTasksQuery.isLoading) && (
@@ -999,29 +919,6 @@ export function CalendarView() {
           ? "Drag a task from the list onto the calendar, or click a slot to schedule. Drag blocks to move, bottom edge to resize; drag due dots to reschedule."
           : "Tap a time slot to schedule a task. Tap a due dot or block to edit."}
       </p>
-      {effectiveOverlayMapId && (
-        <p className="muted small cal-overlay-legend" role="note">
-          <span className="cal-overlay-legend-map">{overlayMapName}</span> overlay is visual only
-          (does not replan).{" "}
-          <span className="cal-overlay-legend-red">Red</span> bands take precedence over green/yellow.{" "}
-          {pinnedBlockCount > 0 && (
-            <>
-              <span className="cal-overlay-legend-pin" aria-hidden>
-                📌
-              </span>{" "}
-              {pinnedBlockCount} pinned block{pinnedBlockCount === 1 ? "" : "s"} stay fixed during
-              replan.{" "}
-            </>
-          )}
-          {busyInRangeCount > 0 && (
-            <>
-              Gray <span className="cal-overlay-legend-busy">busy</span> blocks are external calendar
-              time ({busyInRangeCount} in view) — unchanged by Time Map overrides.
-            </>
-          )}
-        </p>
-      )}
-
       <CalendarBlockMenu
         open={blockForm !== null}
         title={

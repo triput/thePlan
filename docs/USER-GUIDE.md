@@ -11,7 +11,8 @@ For developer setup, see the root [README](../README.md). For doc inventory and 
 thePlan is a personal task and calendar app (Todoist + SkedPal style) on your machine or home server:
 
 - **Hierarchy** — Epic → Project → Section → Task → subtask (up to two nesting levels below a top-level task)
-- **Smart views** — Inbox, Today, Upcoming, epic aggregate, projects, labels
+- **Smart views** — Inbox, Work, Today, Upcoming, saved views, epic aggregate, projects, labels
+- **Board view** — Kanban columns (Ready, In progress, Waiting, Done) on supported views; toggle **List** / **Board** in the list header
 - **Batch selection** — Multi-select tasks for priority, due, labels, move, schedule style, delete, or **block as bundle**
 - **Calendar** — Day/week grid, due markers, manual blocks, bundles, drag from lists, drag move/resize on desktop, **Update Schedule** auto-placement, Google/Microsoft busy overlay
 - **Quick-add** — Natural-language capture (priority, due, duration, project, epic, recurrence)
@@ -29,7 +30,7 @@ thePlan is a personal task and calendar app (Todoist + SkedPal style) on your ma
 | Assist topology, Ollama, env vars | [SLM-ASSIST.md](./SLM-ASSIST.md) |
 | Outline JSON shape and attach-under | [OUTLINE-INGEST.md](./OUTLINE-INGEST.md) |
 
-**Not shipped yet:** Kanban board, filter query language, calendar month view, Assist auto-apply or schedule mutations, voice. See [07-wave-roadmap.md](./07-wave-roadmap.md).
+**Not shipped yet:** filter query language, calendar month view, unified command palette, Assist auto-apply or schedule mutations, voice. See [07-wave-roadmap.md](./07-wave-roadmap.md).
 
 ---
 
@@ -127,29 +128,48 @@ With `SEED_DEMO_USER=true` (Compose default), a non-admin **nebula** user is see
 
 ## Layout and navigation
 
+The **Workbench shell** (R3 UI refresh) is three regions on desktop: **collapsible sidebar**, **main** (lists, board, or calendar), and an optional **support panel** on the right. Calendar scheduling, preview, and task editing share that panel so the grid keeps width.
+
 ```
-┌ Sidebar ──────────────┬─ Top bar: Quick-add | Assist | Outline | Search | ? | You | Sign out ─┐
-│ Views                 ├─ Main: task list, calendar, labels, trash, archived ────────────────┤
-│  Inbox / Today / …    │  [Task detail panel when a task is selected]                      │
-│  Archived / Trash     │                                                                   │
-│  Labels               │                                                                   │
-│  Epics & projects     │                                                                   │
-│ Settings (footer)     └───────────────────────────────────────────────────────────────────┘
+┌ Sidebar (or icon rail) ┬─ Top bar: Quick-add | Assist | Import | Search | ? | You | Sign out ─┐
+│ Views                  ├─ Main: task list, calendar, labels, trash, archived ───────────────┤
+│  Inbox / Work / …      │  [Support panel: calendar help, preview, or task details]         │
+│  Saved views           │                                                                   │
+│  Epics & projects      │                                                                   │
+│ Settings (footer)      └───────────────────────────────────────────────────────────────────┘
 ```
 
 | View | Shows |
 |------|--------|
 | **Inbox** | Tasks with no project |
+| **Work** | Open tasks across projects (smart view) |
 | **Today** | Incomplete due today or with a scheduled block today |
 | **Upcoming** | Incomplete due or blocked in the next 7 days |
-| **Calendar** | Day/week scheduling grid |
+| **Calendar** | Day/week scheduling grid + support panel (desktop) |
 | **Labels** | Label CRUD |
 | **Archived** | Archived epics and projects (restore here) |
 | **Trash** | Soft-deleted tasks (restore or purge) |
 | **By label** | Sidebar links when labels exist |
+| **Saved view** | Sidebar entries you create; filters and list/board mode persist |
 | **Epic / project** | Filtered task lists; epic view groups by project |
 
-**Phone:** ☰ drawer nav; calendar stays **Day** mode; task detail is full-screen until closed.
+### Collapsible sidebar (desktop)
+
+On wide screens, use **`⟨` / `⟩`** beside the brand to **collapse navigation** to a narrow icon rail (flyouts still expose long titles). Your choice is remembered in this browser. On phones and narrow widths, use **☰** for the drawer instead; the rail collapse control is hidden.
+
+### Support panel (right)
+
+The **support panel** sits beside the main content on desktop:
+
+| Context | Panel shows |
+|---------|-------------|
+| **Calendar**, nothing selected | **Calendar support** — schedule hints, **Preview changes**, unscheduled tasks, **Map & blocks** legend |
+| **Calendar**, preview running or ready | **Preview schedule changes** — same proposal flow as before (**Refresh preview**, **Apply whole proposal**) |
+| **Any view**, task selected | **Task details** — full edit form; on Calendar, **Collapse** returns to calendar support |
+
+When the panel is collapsed on Calendar, a **Support** tab on the edge reopens it. On narrow screens the panel is a full-height sheet (calendar stays **Day** mode; drag scheduling may be disabled — use the block modal).
+
+**Phone:** ☰ drawer nav; task/support UI is full-screen until closed.
 
 ---
 
@@ -183,13 +203,17 @@ Parsed metadata shows as chips after submit.
 
 ### Task detail panel
 
-Select a task to edit:
+Select a task to open **Task details** in the support panel (desktop) or full-screen sheet (narrow):
 
 - Title, description, priority (P1–P4), due, duration
 - Project, section, parent (subtasks)
 - Labels, recurrence, reminders
 - Scheduling: plan, soft target, deadline, schedule style, status (including **overbooked** — see [Scheduler vs calendar conflicts](#scheduler-vs-calendar-conflicts))
 - **Save** applies; **Delete task** sends the task to **Trash** (soft delete)
+
+### Unsaved changes
+
+If you edit fields and navigate away (another task, another view, **Collapse** on the support panel, or **Preview changes** while task details are open), thePlan prompts with context-specific actions such as **Save and open**, **Save and switch**, **Save and collapse**, or **Discard**. A failed **Save** keeps your draft and stays on the current task; closing the dialog cancels the navigation.
 
 ### Complete and subtasks
 
@@ -279,7 +303,7 @@ Toggle labels on tasks in the detail panel; **By label** filters lists.
 
 ## Calendar
 
-Open **Calendar**. **Day** / **Week**, prev/next/**Today**. Titles include day-of-year and ISO week numbers.
+Open **Calendar**. **Day** / **Week**, prev/next/**Today**. Titles include day-of-year and ISO week numbers. On desktop, the **Calendar support** panel summarizes schedule state, links a few unscheduled tasks, and documents block/Time Map legend (**Preferred**, **Acceptable**, **Excluded**, external busy, pinned vs movable).
 
 ### Due markers and blocks
 
@@ -298,6 +322,29 @@ Open **Calendar**. **Day** / **Week**, prev/next/**Today**. Titles include day-o
 
 **Clear unpinned** (toolbar) removes unpinned blocks in the visible day or week (confirm). Pinned blocks stay.
 
+### Time Map overlay (three tiers)
+
+Toolbar **Time Map** chooses a map or **Neutral** (no band tint). When a map is selected, the grid draws **quieter** green / yellow / red bands:
+
+| Tier | Meaning |
+|------|---------|
+| **Preferred** (green) | Best windows for auto-schedule |
+| **Acceptable** (yellow) | Allowed with lower preference |
+| **Excluded** (red) | Forbidden; wins when bands stack |
+
+External **busy** blocks stay gray and ignore the overlay. Day/week bounds, overrides, and settings timezone behave as before — only the visual density changed in the Workbench refresh.
+
+### Preview changes vs Update Schedule
+
+These stay **different** operations:
+
+| Control | What it does |
+|---------|----------------|
+| **Preview changes** (toolbar or calendar support) | Calculates a proposal and stores it **without** changing live blocks. Review in **Preview schedule changes** (support panel on desktop). **Apply whole proposal** commits the shown proposal; **Refresh preview** / **Generate fresh preview** when stale. |
+| **Update Schedule** | Runs collect → calculate → **apply** in one flow (direct replan). |
+
+Opening a preview does not move committed placements. Editing tasks can invalidate an open preview; apply still enforces server checks (stale, expired, conflicts).
+
 ### Drag and drop
 
 | Gesture | Where |
@@ -307,7 +354,7 @@ Open **Calendar**. **Day** / **Week**, prev/next/**Today**. Titles include day-o
 
 ### Update Schedule
 
-Toolbar **Update Schedule** runs the fuzzy planner: places eligible tasks into open time using Time Maps, workday settings, dependencies, and task metadata. **Manual**, **bundle**, and pinned blocks are respected per rules in Settings and task schedule style.
+Toolbar **Update Schedule** runs the fuzzy planner and **applies** results: places eligible tasks into open time using Time Maps, workday settings, dependencies, and task metadata. **Manual**, **bundle**, and pinned blocks are respected per rules in Settings and task schedule style. Use **Preview changes** first when you want to inspect diffs without touching live blocks.
 
 When replan finishes, a toast summarizes moves and any **overbooked** count.
 
@@ -388,7 +435,7 @@ Top bar **Outline** (beside Assist) → choose template → paste or upload JSON
 | Section | Purpose |
 |---------|---------|
 | **Account** | Display name, email, password (all users) |
-| **Theme / custom colors** | Nine presets + optional hex overrides (browser localStorage) |
+| **Theme / custom colors** | Presets + optional hex overrides (browser localStorage). Default **Dark** is the cool Workbench look; **Midnight** is a separate **light** navy preset (not the dark Workbench theme) |
 | **Scheduling defaults** | Timezone, locale, workday/workweek, default duration, default schedule style, focus windows hook |
 | **Calendar display** | 24h vs 6–22, overlay preferences |
 | **Time Maps** | When you may be scheduled (tiers for Update Schedule) |
@@ -423,18 +470,18 @@ No background auto-purge — clean up manually. Subtasks deleted with a parent a
 
 ## Keyboard shortcuts
 
-Press **?** (outside text fields) for the overlay:
+Press **?** (outside text fields) for the overlay. On **Windows**, the help dialog shows **Ctrl+K** and **Ctrl+Z** (on Mac it shows ⌘). Shortcuts are suppressed while you type in a field or a modal is open.
 
 | Keys | Action |
 |------|--------|
-| **Q** or **Ctrl+K** | Focus quick-add |
+| **Q** or **Ctrl+K** (⌘K on Mac) | Focus quick-add |
 | **/** | Focus search |
-| **Ctrl+Z** | Undo |
+| **Ctrl+Z** (⌘Z on Mac) | Undo |
 | **J** / **K** or **↑** / **↓** | Move focus in lists |
 | **Enter** | Open focused task |
 | **X** or **Space** | Complete / uncomplete focused task |
 | **?** | Shortcuts help |
-| **Esc** | Close modals |
+| **Esc** | Close modals and panels |
 
 ---
 
