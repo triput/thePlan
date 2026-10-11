@@ -1,16 +1,17 @@
 :root,
 [data-theme="dark"] {
-  --bg: #0c111b;
-  --panel: #141b2a;
-  --panel-hover: #1a2438;
-  --border: #2a3348;
-  --text: #e7ecf5;
-  --text-muted: #9aa6b8;
-  --accent: #3d9b84;
-  --accent-hover: #358f78;
-  --error: #f87171;
-  --sidebar: #141b2a;
-  --danger: #f87171;
+  /* R3 Midnight Workbench (thePlan-R3-review/source/r3.css) */
+  --bg: #0b1020;
+  --panel: #10172e;
+  --panel-hover: #18213f;
+  --border: #2a3560;
+  --text: #e8ecf7;
+  --text-muted: #9aa5c4;
+  --accent: #7ea6ff;
+  --accent-hover: #a9c2ff;
+  --error: #ffa273;
+  --sidebar: #10172e;
+  --danger: #ffa273;
   color-scheme: dark;
 }
 
@@ -162,15 +163,15 @@
   --state-selection-strong: color-mix(in srgb, var(--accent) 22%, transparent);
   --state-completed-opacity: 0.52;
   --state-muted: var(--text-muted);
-  --state-pin: #c9a227;
-  --state-proposal: #6b9bd1;
+  --state-pin: #7193ee;
+  --state-proposal: #62d3c5;
   --time-map-preferred: #22c55e;
   --time-map-acceptable: #eab308;
   --time-map-excluded: #ef4444;
   --cal-block-external: var(--text-muted);
   --cal-block-movable: var(--panel);
 
-  font-family: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   line-height: var(--line-height-normal);
   font-weight: 400;
   font-size: var(--font-size-base);
