@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   dirtyPromptFor,
+  nextSupportDockToggleAction,
   resolveSupportDockMode,
   shouldOfferDirtyPrompt,
 } from "../src/supportDockState.ts";
@@ -121,5 +122,37 @@ describe("shouldOfferDirtyPrompt", () => {
   it("only prompts when dirty", () => {
     assert.equal(shouldOfferDirtyPrompt(false), false);
     assert.equal(shouldOfferDirtyPrompt(true), true);
+  });
+});
+
+describe("nextSupportDockToggleAction", () => {
+  it("collapses when a task is visible even if preference is already collapsed", () => {
+    assert.equal(
+      nextSupportDockToggleAction({
+        supportCollapsed: true,
+        selectedTaskId: "from-search",
+      }),
+      "collapse",
+    );
+  });
+
+  it("reveals only when collapsed with no selected task", () => {
+    assert.equal(
+      nextSupportDockToggleAction({
+        supportCollapsed: true,
+        selectedTaskId: null,
+      }),
+      "reveal",
+    );
+  });
+
+  it("collapses when the dock is expanded", () => {
+    assert.equal(
+      nextSupportDockToggleAction({
+        supportCollapsed: false,
+        selectedTaskId: null,
+      }),
+      "collapse",
+    );
   });
 });

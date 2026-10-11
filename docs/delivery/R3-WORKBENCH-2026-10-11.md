@@ -1,6 +1,6 @@
 # R3 Midnight Workbench — delivery note (Slices 0–3)
 
-**Dex review 2026-10-11 · prior tip `7ba37e4` · post-fix tip after fix commit:** **HOLD full manual acceptance.** R3-D1–D4 **Fixed (code), awaiting Dex retest** (narrow support dismissible, collapse clears task selection, preview expands collapsed dock, failed save retains draft + readable errors). Quality automated still **54/54** web tests and build pass. Focused retest + remaining manual coverage: [DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md). Wave **Open / not Closed / not shipped** — no blanket manual row signed off.
+**Dex retest 2026-10-11:** **HOLD full manual acceptance.** D1/D3/D4 **Pass**; D2 ordinary collapse **Pass**; residual **R3-D2b** (Search-while-collapsed Collapse) **Fixed (code), awaiting Dex retest**. See [DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md). Wave **Open / not Closed / not shipped**.
 
 <!--
 ==============================================================================

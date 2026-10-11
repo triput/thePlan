@@ -27,6 +27,7 @@ import {
 import { SupportDockProvider, useSupportDock } from "./supportDockContext";
 import {
   dirtyPromptFor,
+  nextSupportDockToggleAction,
   resolveSupportDockMode,
   type DirtyNavigationKind,
 } from "./supportDockState";
@@ -186,7 +187,14 @@ function AppInner() {
   };
 
   const toggleSupportCollapsed = () => {
-    if (!supportCollapsed) {
+    // Search can open a task while the saved preference is still collapsed;
+    // Collapse must clear that task (with dirty guard), not call reveal.
+    if (
+      nextSupportDockToggleAction({
+        supportCollapsed,
+        selectedTaskId,
+      }) === "collapse"
+    ) {
       runWithDirtyGuard("collapse_dock", () => {
         collapseSupportDock();
       });

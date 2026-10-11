@@ -99,3 +99,17 @@ export function dirtyPromptFor(
 export function shouldOfferDirtyPrompt(isDirty: boolean): boolean {
   return isDirty;
 }
+
+/**
+ * Decide Collapse/Support-tab toggle direction.
+ * A visible task (e.g. opened via Search while the dock preference is
+ * already collapsed) must still run the collapse path — clearing selection
+ * after the dirty guard — not expand.
+ */
+export function nextSupportDockToggleAction(input: {
+  supportCollapsed: boolean;
+  selectedTaskId: string | null;
+}): "collapse" | "reveal" {
+  if (input.selectedTaskId || !input.supportCollapsed) return "collapse";
+  return "reveal";
+}

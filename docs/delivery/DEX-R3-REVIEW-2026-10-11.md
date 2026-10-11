@@ -3,13 +3,49 @@
   File: docs/delivery/DEX-R3-REVIEW-2026-10-11.md
   Description: Independent Wave 1 review, browser reproductions, and open gates.
   Component: Docs/Delivery
-  Version: 1.1
+  Version: 1.3
   Created: 2026-10-11
   Last Update: 2026-10-11
 ==============================================================================
 -->
 
 # Dex R3 Wave 1 review
+
+## Dex focused retest, 2026-10-11
+
+**Wave remains Open / HOLD.** Independently tested code tip `4b51af7`, documentation HEAD `6f80e43`. **54/54 web tests pass (20 suites); production build passes**, with the existing large-chunk warning. Browser used the isolated Vite/API/database setup described below. No product code changed or push performed on the retest pass.
+
+| Item | Retest result |
+| --- | --- |
+| R3-D1 | **Pass, focused paths.** At 683 x 384 CSS pixels, idle support has a working Close and exposes the Support tab. Task-close and preview-close return to dismissible idle support. This is responsive testing, not actual browser zoom acceptance. |
+| R3-D2 | **Partial on tip `4b51af7`; residual R3-D2b Fixed (code) below — awaiting Dex retest.** Ordinary task selection from support collapses cleanly. Dirty Cancel retains the title; Discard collapses; Save and collapse persists and collapses. |
+| R3-D3 | **Pass.** Toolbar Preview changes from collapsed support reveals the calculation surface. Collapse followed by another toolbar preview also reveals it; ready results are visible. No proposal was applied. |
+| R3-D4 | **Pass, exercised recovery paths.** A 501-character title is rejected with readable client validation and retained draft. A failed API update and an offline API preserve title, description, and duration in Save and switch. Successful retry navigates to Work; independent API read confirms all three values persisted. |
+
+### R3-D2b P2 Collapse after opening a Search result does not collapse or guard
+
+**Status:** **Fixed (code), awaiting Dex retest.**
+
+**Fix (Jim):** `nextSupportDockToggleAction` — if a task is selected, Collapse always runs the guarded collapse/clear-selection path even when `supportCollapsed` preference is already true (Search-while-collapsed). Expand only when collapsed with no selected task. Unit coverage in `supportDockState.test.ts`.
+
+**Retest tip:** tip after R3-D2b fix commit (parent stamps SHA).
+
+**Repro (Dex retest residual on `4b51af7`):**
+
+1. On Calendar, collapse support so the Support tab is visible.
+2. Search for a task in the top bar and open the result.
+3. Click **Collapse** in the task panel.
+4. The task remains visible. With an edited description, the same click also skips the dirty prompt. Reproduced with both clean and dirty tasks.
+
+**Cause:** `toggleSupportCollapsed` branched only on the saved `supportCollapsed` preference. Search can display a selected task while that preference remains true, so Collapse called `revealSupportDock()` instead of the guarded collapse path.
+
+Evidence screenshot: `docs/redesign/screenshots/r3-d2-retest-residual.png` (task remains open after Collapse, dirty description, no dialog).
+
+### Additional observation and limits
+
+The negative-duration failure fixture (`-1` minute through Save and switch) reaches the database check constraint and produces an unhandled API error. The browser shows `Failed to fetch` in this cross-origin test setup; draft recovery works. The current TaskUpdate schema has no nonnegative constraint. This is a separate API/input-validation follow-up, not evidence that structured API validation messages have been browser-verified. The original overlong-title path is now intercepted client-side.
+
+The broad acceptance matrix below remains open. Disposable container/database removed after testing; temporary Vite stopped and viewport override reset. The sections below preserve the original review and pre-retest handoff history; this retest section supersedes their pending statuses for the explicitly exercised paths.
 
 **HOLD full manual acceptance.** Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** `4b51af7` (docs stamp `d910f60`).
 
@@ -99,6 +135,6 @@ The delivered idle support is a combined summary rather than R3's tabbed Unsched
 
 ## Jim handoff
 
-**Jim (fixes landed):** R3-D1–D4 addressed in working tree; +4 web unit tests green (**54/54** total).
+**Jim:** R3-D1–D4 fixed and retested (D1/D3/D4 pass; D2 ordinary path pass). **R3-D2b** (Search-while-collapsed Collapse) Fixed (code) — awaiting focused Dex retest.
 
-**Dex (next):** Ready for **focused retest of R3-D1–D4** at **4b51af7**. Keep the wave **Open**. **HOLD** full manual acceptance until those four paths pass in browser and the remaining matrix rows are exercised. No push, rebuild of the live stack, or production acceptance was performed by Dex on the original pass.
+**Dex (next):** Retest **R3-D2b** (clean + dirty Search → Collapse) on the post-D2b tip. Keep the wave **Open**. **HOLD** full manual acceptance. Negative-duration API validation remains a separate follow-up (not part of D2b).
