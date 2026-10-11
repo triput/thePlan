@@ -11,7 +11,7 @@
 
 # Dex R3 Wave 1 review
 
-**HOLD full manual acceptance.** Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** 4b51af7 (parent commits soon).
+**HOLD full manual acceptance.** Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** `4b51af7` (docs stamp `d910f60`).
 
 ## Verified environment and checks
 
