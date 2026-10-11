@@ -3,13 +3,29 @@
   File: docs/delivery/DEX-R3-REVIEW-2026-10-11.md
   Description: Independent Wave 1 review, browser reproductions, and open gates.
   Component: Docs/Delivery
-  Version: 1.3
+  Version: 1.4
   Created: 2026-10-11
   Last Update: 2026-10-11
 ==============================================================================
 -->
 
 # Dex R3 Wave 1 review
+
+## D2b focused closure, 2026-10-11
+
+**R3-D2b: Pass / Closed by Dex.** Retested code `43f5797`, docs HEAD `db20a21`, using a fresh disposable database `dex_r3_d2b_review`, isolated API on 8001, and working-tree Vite on 5174. Independently ran **57/57 web tests (21 suites)** and production build: pass, existing large-chunk warning only.
+
+Browser checks all began with Calendar Support already collapsed and task entry through top-bar Search:
+
+- Clean Collapse removes task details and exposes Support.
+- Dirty Collapse now displays the guard. Cancel retains the edited description and task.
+- Discard collapses; reopening through Search confirms the discarded description is absent.
+- Save and collapse removes task details and exposes Support. An independent API read confirms `D2b saved via guarded collapse` persisted.
+- Opening Support with no selected task still reveals normal calendar support.
+
+Evidence: `docs/redesign/screenshots/r3-d2b-dirty-guard-pass.png`. No new defect found in this focused pass. D1/D3/D4 retain their previous focused Pass results; all reported R3 dock/draft defects are now closed. This does not close the broad manual acceptance matrix or the separate negative-duration validation follow-up. Post-refresh tidy/refactor remains deferred. No product code changes, commit, or push by Dex. Disposable API/database and Vite cleaned up after testing.
+
+The dated sections below retain earlier review history; this closure supersedes their D2b pending status.
 
 ## Dex focused retest, 2026-10-11
 
@@ -18,17 +34,15 @@
 | Item | Retest result |
 | --- | --- |
 | R3-D1 | **Pass, focused paths.** At 683 x 384 CSS pixels, idle support has a working Close and exposes the Support tab. Task-close and preview-close return to dismissible idle support. This is responsive testing, not actual browser zoom acceptance. |
-| R3-D2 | **Partial on tip `4b51af7`; residual R3-D2b Fixed (code) below — awaiting Dex retest.** Ordinary task selection from support collapses cleanly. Dirty Cancel retains the title; Discard collapses; Save and collapse persists and collapses. |
+| R3-D2 | **Pass** (ordinary path on `4b51af7`). Residual **R3-D2b Pass / Closed** on `43f5797` — see closure section above. |
 | R3-D3 | **Pass.** Toolbar Preview changes from collapsed support reveals the calculation surface. Collapse followed by another toolbar preview also reveals it; ready results are visible. No proposal was applied. |
 | R3-D4 | **Pass, exercised recovery paths.** A 501-character title is rejected with readable client validation and retained draft. A failed API update and an offline API preserve title, description, and duration in Save and switch. Successful retry navigates to Work; independent API read confirms all three values persisted. |
 
 ### R3-D2b P2 Collapse after opening a Search result does not collapse or guard
 
-**Status:** **Fixed (code), awaiting Dex retest.**
+**Status:** **Pass / Closed by Dex** (2026-10-11) on `43f5797` — see **D2b focused closure** above.
 
 **Fix (Jim):** `nextSupportDockToggleAction` — if a task is selected, Collapse always runs the guarded collapse/clear-selection path even when `supportCollapsed` preference is already true (Search-while-collapsed). Expand only when collapsed with no selected task. Unit coverage in `supportDockState.test.ts`.
-
-**Retest tip:** `43f5797`.
 
 **Repro (Dex retest residual on `4b51af7`):**
 
@@ -135,6 +149,4 @@ The delivered idle support is a combined summary rather than R3's tabbed Unsched
 
 ## Jim handoff
 
-**Jim:** R3-D1–D4 fixed and retested (D1/D3/D4 pass; D2 ordinary path pass). **R3-D2b** (Search-while-collapsed Collapse) Fixed (code) — awaiting focused Dex retest.
-
-**Dex (next):** Retest **R3-D2b** (clean + dirty Search → Collapse) at **`43f5797`**. Keep the wave **Open**. **HOLD** full manual acceptance. Negative-duration API validation remains a separate follow-up (not part of D2b).
+**Jim / Dex:** All reported R3 dock/draft defects (**D1–D4 + D2b**) focused-Pass / Closed. Wave stays **Open** — broad manual matrix + negative-duration API follow-up + post-refresh tidy still deferred. **HOLD** full acceptance / not Closed-shipped.

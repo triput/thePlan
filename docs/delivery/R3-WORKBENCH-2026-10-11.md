@@ -1,13 +1,13 @@
 # R3 Midnight Workbench — delivery note (Slices 0–3)
 
-**Dex retest 2026-10-11:** **HOLD full manual acceptance.** D1/D3/D4 **Pass**; D2 ordinary collapse **Pass**; residual **R3-D2b** (Search-while-collapsed Collapse) **Fixed (code), awaiting Dex retest**. See [DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md). Wave **Open / not Closed / not shipped**.
+**Dex retest 2026-10-11:** D1/D3/D4 and D2 ordinary collapse **Pass**; residual **R3-D2b Pass / Closed** on `43f5797` (docs `db20a21`): clean collapse, dirty Cancel/Discard/Save and collapse, persisted save, and Support re-expansion verified in browser. Independent web tests **57/57** and build green. See [DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md). **HOLD full manual acceptance**; broad matrix remains **Open / not Closed / not shipped**. Post-refresh tidy remains deferred.
 
 <!--
 ==============================================================================
   File: docs/delivery/R3-WORKBENCH-2026-10-11.md
   Description: R3 Workbench UI wave delivery — Slices 0–3 scope, deferred items, open manual gate.
   Component: Docs/Delivery
-  Version: 1.1
+  Version: 1.2
   Created: 2026-10-11
   Last Update: 2026-10-11
 ==============================================================================
