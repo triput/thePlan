@@ -28,7 +28,7 @@
 
 **Fix (Jim):** `nextSupportDockToggleAction` — if a task is selected, Collapse always runs the guarded collapse/clear-selection path even when `supportCollapsed` preference is already true (Search-while-collapsed). Expand only when collapsed with no selected task. Unit coverage in `supportDockState.test.ts`.
 
-**Retest tip:** tip after R3-D2b fix commit (parent stamps SHA).
+**Retest tip:** `43f5797`.
 
 **Repro (Dex retest residual on `4b51af7`):**
 
