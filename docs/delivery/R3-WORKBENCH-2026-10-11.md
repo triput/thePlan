@@ -20,7 +20,7 @@
 | [R3_DEX_REVIEW_AND_JIM_HANDOFF.md](../redesign/R3_DEX_REVIEW_AND_JIM_HANDOFF.md) | Design direction, corrections, acceptance themes, slice order |
 | [R3-CAPABILITY-INVENTORY.md](../redesign/R3-CAPABILITY-INVENTORY.md) | Slice 0 capability truth + **Deferred** boundary |
 
-**Theme naming (operator note):** R3 art is “Midnight Workbench,” but **Settings → Theme** presets keep historical ids. **`Dark`** (default) is the cool-dark Workbench chrome (`#0C111B` / `#141B2A`). The preset labeled **`Midnight`** remains the **light navy** palette — not the R3 dark look. Do not rename presets in docs without an explicit product decision.
+**Theme naming (operator note):** R3 art is “Midnight Workbench,” but **Settings → Theme** presets keep historical ids. **`Dark`** (default) matches R3 `r3.css` cool-dark chrome (`#0B1020` / `#10172E`, accent `#7EA6FF`, IBM Plex Sans). The preset labeled **`Midnight`** remains the **light navy** palette — not the R3 dark look. Do not rename presets in docs without an explicit product decision.
 
 ---
 
