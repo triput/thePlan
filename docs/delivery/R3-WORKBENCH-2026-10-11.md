@@ -1,11 +1,13 @@
 # R3 Midnight Workbench — delivery note (Slices 0–3)
 
+**Dex review 2026-10-11 · prior tip `7ba37e4` · post-fix tip after fix commit:** **HOLD full manual acceptance.** R3-D1–D4 **Fixed (code), awaiting Dex retest** (narrow support dismissible, collapse clears task selection, preview expands collapsed dock, failed save retains draft + readable errors). Quality automated still **54/54** web tests and build pass. Focused retest + remaining manual coverage: [DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md). Wave **Open / not Closed / not shipped** — no blanket manual row signed off.
+
 <!--
 ==============================================================================
   File: docs/delivery/R3-WORKBENCH-2026-10-11.md
   Description: R3 Workbench UI wave delivery — Slices 0–3 scope, deferred items, open manual gate.
   Component: Docs/Delivery
-  Version: 1.0
+  Version: 1.1
   Created: 2026-10-11
   Last Update: 2026-10-11
 ==============================================================================
@@ -77,17 +79,17 @@ Full table: [R3-CAPABILITY-INVENTORY § Explicit DEFERRED](../redesign/R3-CAPABI
 
 ## Quality evidence
 
-**Automated (Renee, 2026-10-11):** cwd `apps/web`. No product fixes required for green.
+**Automated (Renee, 2026-10-11):** cwd `apps/web`. Green after Jim’s D1–D4 fixes (+4 tests vs pre-fix **50/50**).
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Web unit tests | `cd apps/web && npm test` | Exit 0. **50** tests / **20** suites, **50 pass / 0 fail / 0 skipped** (~201 ms). |
+| Web unit tests | `cd apps/web && npm test` | Exit 0. **54** tests / **20** suites, **54 pass / 0 fail / 0 skipped**. |
 | Web production build | `cd apps/web && npm run build` | Exit 0. `tsc -b && vite build` (Vite 8.2.1). Existing JS chunk >500 kB warning only — not a failure. |
-| New regression modules | `supportDockState.test.ts`, `taskDetailDraft.test.ts`, calendar height/compact in `calendarUtils.test.ts` | Present and green. |
+| New regression modules | `supportDockState.test.ts`, `taskDetailDraft.test.ts`, calendar height/compact in `calendarUtils.test.ts` | Present and green; dock collapse/preview resolver and draft-reset/save-validation coverage expanded for D1–D4. |
 
-**Not run:** browser Dex / manual UI acceptance rows below; `apps/api` pytest; `npm run lint`.
+**Not run:** browser Dex retest of D1–D4; full manual UI acceptance rows below; `apps/api` pytest; `npm run lint`.
 
-Wave remains **Open / not Closed** until Dex/manual checklist and Trish sign-off.
+Wave remains **Open / HOLD full manual acceptance / not Closed / not shipped** until Dex retest of D1–D4, remaining checklist rows, and Trish sign-off.
 
 ---
 

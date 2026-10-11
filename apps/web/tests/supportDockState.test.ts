@@ -78,6 +78,30 @@ describe("resolveSupportDockMode", () => {
       "task",
     );
   });
+
+  it("still resolves task when collapsed until selection is cleared", () => {
+    assert.equal(
+      resolveSupportDockMode({
+        isCalendarView: true,
+        dockCollapsed: true,
+        selectedTaskId: "task-1",
+        previewOpen: false,
+      }),
+      "task",
+    );
+  });
+
+  it("honors collapse on calendar when no task is selected", () => {
+    assert.equal(
+      resolveSupportDockMode({
+        isCalendarView: true,
+        dockCollapsed: true,
+        selectedTaskId: null,
+        previewOpen: true,
+      }),
+      "hidden",
+    );
+  });
 });
 
 describe("dirtyPromptFor", () => {

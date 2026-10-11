@@ -27,6 +27,7 @@ import {
   promoteTaskToProject,
   putTaskRecurrence,
   updateTask,
+  describeApiError,
   type Epic,
   type FocusWindow,
   type Label,
@@ -54,6 +55,8 @@ import type { DetailSectionId } from "./TaskDetailSection";
 import {
   buildTaskUpdateFromDraft,
   isTaskDraftDirty,
+  shouldResetTaskDetailDraft,
+  validateTaskDraftForSave,
   type TaskDetailDraft,
 } from "../taskDetailDraft";
 
@@ -227,6 +230,7 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
   const [newProjectTitle, setNewProjectTitle] = useState("");
   const [newProjectEpicId, setNewProjectEpicId] = useState("");
   const resizeDragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const syncedTaskIdRef = useRef<string | null>(null);
   const queryClient = useQueryClient();
   const { push } = useUndoStack();
 
@@ -328,34 +332,6 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
   });
   const parentCandidates = parentCandidatesQuery.data?.items ?? [];
 
-  useEffect(() => {
-    if (!task) return;
-    setTitle(task.title);
-    setDescription(task.description ?? "");
-    setPriority(task.priority);
-    setDueAtLocal(toDatetimeLocal(task.due_at));
-    setSoftTargetAtLocal(toDatetimeLocal(task.soft_target_at));
-    setDeadlineAtLocal(toDatetimeLocal(task.deadline_at));
-    setDuration(task.estimated_duration_minutes > 0 ? String(task.estimated_duration_minutes) : "");
-    setProjectId(task.project_id ?? "");
-    setSectionId(task.section_id ?? "");
-    setParentTaskId(task.parent_task_id ?? "");
-    setLabelIds(task.label_ids);
-    setPreferredTimeWindowId(task.preferred_time_window_id ?? "");
-    setScheduleStyle(task.schedule_style ?? "");
-    setPlanId(task.plan_id ?? "");
-    setRecurrenceText("");
-    setStartsOn(task.recurrence?.starts_on ?? "");
-    setEndsOn(task.recurrence?.ends_on ?? "");
-    setReminderAtLocal("");
-    setReminderChannel("in_app");
-    setLabelFilter("");
-    setChildTitle("");
-    setCreateProjectOpen(false);
-    setNewProjectTitle("");
-    setNewProjectEpicId("");
-  }, [task]);
-
   const remindersQuery = useQuery({
     queryKey: ["reminders", task?.id],
     queryFn: () => fetchTaskReminders(task!.id),
@@ -446,16 +422,18 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
 
       return { previousTask, previousTasksEntries, taskKey };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       if (context?.previousTask) {
         queryClient.setQueryData(context.taskKey, context.previousTask);
       }
       for (const { key, data } of context?.previousTasksEntries ?? []) {
         queryClient.setQueryData(key, data);
       }
-      emitToast("Couldn't save — reverted");
+      emitToast(`Couldn't save — ${describeApiError(err)}`);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      applyTaskToForm(data);
+      syncedTaskIdRef.current = data.id;
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
       // Duration/deadline/map/style (and inheritance via project) are W1 fingerprint
@@ -501,12 +479,44 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
     setPlanId(source.plan_id ?? "");
   };
 
+  const resetEphemeralFields = (source: Task | null) => {
+    setRecurrenceText("");
+    setStartsOn(source?.recurrence?.starts_on ?? "");
+    setEndsOn(source?.recurrence?.ends_on ?? "");
+    setReminderAtLocal("");
+    setReminderChannel("in_app");
+    setLabelFilter("");
+    setChildTitle("");
+    setCreateProjectOpen(false);
+    setNewProjectTitle("");
+    setNewProjectEpicId("");
+  };
+
+  useEffect(() => {
+    if (!shouldResetTaskDetailDraft(syncedTaskIdRef.current, task)) {
+      if (!task) syncedTaskIdRef.current = null;
+      return;
+    }
+    if (!task) {
+      syncedTaskIdRef.current = null;
+      return;
+    }
+    syncedTaskIdRef.current = task.id;
+    applyTaskToForm(task);
+    resetEphemeralFields(task);
+  }, [task]);
+
   useImperativeHandle(
     ref,
     () => ({
       isDirty: () => (task ? isTaskDraftDirty(task, readDraft()) : false),
       save: async (closeAfterSave = true) => {
         if (!task) return false;
+        const validationError = validateTaskDraftForSave(readDraft());
+        if (validationError) {
+          emitToast(validationError);
+          return false;
+        }
         const body = buildTaskUpdateFromDraft(task, readDraft());
         if (!body) return false;
         try {
@@ -517,7 +527,10 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
         }
       },
       discardDraft: () => {
-        if (task) applyTaskToForm(task);
+        if (task) {
+          applyTaskToForm(task);
+          resetEphemeralFields(task);
+        }
       },
     }),
     [

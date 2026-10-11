@@ -174,30 +174,41 @@ function AppInner() {
     });
   };
 
+  const revealSupportDock = () => {
+    setSupportCollapsed(false);
+    saveSupportDockCollapsed(false);
+  };
+
+  const collapseSupportDock = () => {
+    setSupportCollapsed(true);
+    saveSupportDockCollapsed(true);
+    setSelectedTaskId(null);
+  };
+
   const toggleSupportCollapsed = () => {
     if (!supportCollapsed) {
       runWithDirtyGuard("collapse_dock", () => {
-        setSupportCollapsed(true);
-        saveSupportDockCollapsed(true);
+        collapseSupportDock();
       });
       return;
     }
-    setSupportCollapsed(false);
-    saveSupportDockCollapsed(false);
-    if (previewOpen) {
-      /* preview session stays warm; expanding dock reopens preview surface */
-    }
+    revealSupportDock();
+  };
+
+  const startCalendarPreview = () => {
+    revealSupportDock();
+    void runSchedulePreview();
   };
 
   const handleCalendarPreview = () => {
     if (selectedTaskId) {
       runWithDirtyGuard("close_preview", () => {
         setSelectedTaskId(null);
-        void runSchedulePreview();
+        startCalendarPreview();
       });
       return;
     }
-    void runSchedulePreview();
+    startCalendarPreview();
   };
 
   useEffect(() => {
@@ -270,14 +281,13 @@ function AppInner() {
 
   const dockMode = resolveSupportDockMode({
     isCalendarView: showCalendar,
-    dockCollapsed: isNarrow ? false : supportCollapsed,
+    dockCollapsed: supportCollapsed,
     selectedTaskId,
     previewOpen,
   });
 
   const supportDockActive =
-    showCalendar &&
-    (dockMode !== "hidden" || (!isNarrow && supportCollapsed && !selectedTaskId));
+    showCalendar && (dockMode !== "hidden" || (supportCollapsed && !selectedTaskId));
 
   const mainBodyClass = [
     "main-body",
@@ -388,6 +398,7 @@ function AppInner() {
             isNarrow={isNarrow}
             dockCollapsed={supportCollapsed}
             onToggleCollapse={toggleSupportCollapsed}
+            onOpenPreview={handleCalendarPreview}
             selectedTaskId={selectedTaskId}
             selectedTaskQuery={selectedTaskQuery}
             taskDetailRef={taskDetailRef}

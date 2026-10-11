@@ -214,6 +214,38 @@ export interface ApiErrorBody {
   stale_categories?: StaleCategory[];
 }
 
+export function describeApiDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        if (item && typeof item === "object" && "msg" in item) {
+          const loc =
+            "loc" in item && Array.isArray(item.loc) ? item.loc.filter(Boolean).join(".") : "";
+          const msg = String((item as { msg: unknown }).msg);
+          return loc ? `${loc}: ${msg}` : msg;
+        }
+        return String(item);
+      })
+      .join("; ");
+  }
+  if (detail && typeof detail === "object" && "message" in detail) {
+    return String((detail as { message: unknown }).message);
+  }
+  if (detail == null || detail === "") return "Request failed";
+  return typeof detail === "object" ? "Request failed" : String(detail);
+}
+
+export function describeApiError(err: unknown): string {
+  if (err instanceof ApiError) {
+    return describeApiDetail(err.body.detail);
+  }
+  if (err instanceof Error && err.message) {
+    return err.message === "[object Object]" ? "Request failed" : err.message;
+  }
+  return "Request failed";
+}
+
 export class ApiError extends Error {
   status: number;
   code?: string;
@@ -221,7 +253,7 @@ export class ApiError extends Error {
   body: ApiErrorBody;
 
   constructor(status: number, body: ApiErrorBody) {
-    super(body.detail);
+    super(describeApiDetail(body.detail));
     this.name = "ApiError";
     this.status = status;
     this.code = body.code;

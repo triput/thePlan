@@ -22,7 +22,11 @@ export interface ResolveSupportDockModeInput {
   previewOpen: boolean;
 }
 
-/** Pure mode resolver for the shared support dock. */
+/**
+ * Pure mode resolver for the shared support dock.
+ * When collapsed, calendar preview/idle surfaces hide; callers should clear
+ * `selectedTaskId` on collapse so an open task does not stay visible.
+ */
 export function resolveSupportDockMode(input: ResolveSupportDockModeInput): SupportDockMode {
   if (input.selectedTaskId) return "task";
   if (input.isCalendarView && input.previewOpen && !input.dockCollapsed) return "preview";

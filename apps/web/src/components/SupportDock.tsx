@@ -21,6 +21,7 @@ export interface SupportDockProps {
   isNarrow: boolean;
   dockCollapsed: boolean;
   onToggleCollapse: () => void;
+  onOpenPreview: () => void;
   selectedTaskId: string | null;
   selectedTaskQuery: UseQueryResult<Task, Error>;
   taskDetailRef: RefObject<TaskDetailPanelHandle | null>;
@@ -33,6 +34,7 @@ export function SupportDock({
   isNarrow,
   dockCollapsed,
   onToggleCollapse,
+  onOpenPreview,
   selectedTaskId,
   selectedTaskQuery,
   taskDetailRef,
@@ -46,7 +48,6 @@ export function SupportDock({
     previewData,
     previewApplying,
     previewApplyError,
-    runSchedulePreview,
     refreshSchedulePreview,
     closeSchedulePreview,
     applySchedulePreview,
@@ -54,13 +55,13 @@ export function SupportDock({
 
   const mode: SupportDockMode = resolveSupportDockMode({
     isCalendarView,
-    dockCollapsed: isNarrow ? false : dockCollapsed,
+    dockCollapsed,
     selectedTaskId,
     previewOpen,
   });
 
   if (mode === "hidden") {
-    if (isCalendarView && !isNarrow && dockCollapsed && !selectedTaskId) {
+    if (isCalendarView && dockCollapsed && !selectedTaskId) {
       return (
         <button
           type="button"
@@ -134,7 +135,18 @@ export function SupportDock({
       <header className="detail-header support-dock-header">
         <h2>{dockTitle}</h2>
         <div className="detail-header-actions">
-          {!isNarrow && (
+          {isNarrow ? (
+            mode === "calendar-idle" ? (
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={onToggleCollapse}
+                aria-label="Close calendar support"
+              >
+                ×
+              </button>
+            ) : null
+          ) : (
             <button
               type="button"
               className="btn ghost small support-dock-collapse-btn"
@@ -176,7 +188,7 @@ export function SupportDock({
         <div className="support-dock-scroll">
           <CalendarSupportIdle
             snapshot={calendarSupport}
-            onOpenPreview={() => void runSchedulePreview()}
+            onOpenPreview={onOpenPreview}
             previewReady={previewOpen && Boolean(previewData)}
             previewPolling={previewPolling}
             onSelectTask={onSelectTask}

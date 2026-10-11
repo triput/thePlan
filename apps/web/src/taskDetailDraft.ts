@@ -1,5 +1,7 @@
 import type { ScheduleStyle, Task, TaskPriority, TaskUpdate } from "./api";
 
+export const TASK_TITLE_MAX_LENGTH = 500;
+
 export interface TaskDetailDraft {
   title: string;
   description: string;
@@ -61,9 +63,27 @@ export function isTaskDraftDirty(task: Task, draft: TaskDetailDraft): boolean {
   return false;
 }
 
-export function buildTaskUpdateFromDraft(_task: Task, draft: TaskDetailDraft): TaskUpdate | null {
+/** When true, form state should be re-initialized from the server task (not on cache rollback). */
+export function shouldResetTaskDetailDraft(
+  syncedTaskId: string | null,
+  task: Task | null | undefined,
+): boolean {
+  if (!task) return syncedTaskId !== null;
+  return syncedTaskId !== task.id;
+}
+
+export function validateTaskDraftForSave(draft: TaskDetailDraft): string | null {
   const trimmed = draft.title.trim();
-  if (!trimmed) return null;
+  if (!trimmed) return "Title is required";
+  if (trimmed.length > TASK_TITLE_MAX_LENGTH) {
+    return `Title must be ${TASK_TITLE_MAX_LENGTH} characters or fewer`;
+  }
+  return null;
+}
+
+export function buildTaskUpdateFromDraft(_task: Task, draft: TaskDetailDraft): TaskUpdate | null {
+  if (validateTaskDraftForSave(draft)) return null;
+  const trimmed = draft.title.trim();
   const parsedDuration = draft.duration.trim() ? parseInt(draft.duration, 10) : 0;
   return {
     title: trimmed,
