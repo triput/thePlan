@@ -11,7 +11,7 @@
 
 # Dex R3 Wave 1 review
 
-**HOLD full manual acceptance.** Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** tip after fix commit (parent commits soon).
+**HOLD full manual acceptance.** Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** 4b51af7 (parent commits soon).
 
 ## Verified environment and checks
 
@@ -101,4 +101,4 @@ The delivered idle support is a combined summary rather than R3's tabbed Unsched
 
 **Jim (fixes landed):** R3-D1–D4 addressed in working tree; +4 web unit tests green (**54/54** total).
 
-**Dex (next):** Ready for **focused retest of R3-D1–D4** at **tip after fix commit**. Keep the wave **Open**. **HOLD** full manual acceptance until those four paths pass in browser and the remaining matrix rows are exercised. No push, rebuild of the live stack, or production acceptance was performed by Dex on the original pass.
+**Dex (next):** Ready for **focused retest of R3-D1–D4** at **4b51af7**. Keep the wave **Open**. **HOLD** full manual acceptance until those four paths pass in browser and the remaining matrix rows are exercised. No push, rebuild of the live stack, or production acceptance was performed by Dex on the original pass.
