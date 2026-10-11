@@ -3,13 +3,15 @@
   File: docs/delivery/DEX-R3-REVIEW-2026-10-11.md
   Description: Independent Wave 1 review, browser reproductions, and open gates.
   Component: Docs/Delivery
-  Version: 1.4
+  Version: 1.5
   Created: 2026-10-11
   Last Update: 2026-10-11
 ==============================================================================
 -->
 
 # Dex R3 Wave 1 review
+
+**Wave disposition:** **Closed / shipped — Trish 2026-10-11.** Trish ran the full manual acceptance matrix (morning) and authorized ship. All reported dock/draft defects (**D1–D4 + D2b**) **Pass / Closed**; broad matrix no longer **Open** or **HOLD**. Negative-duration API validation and post-refresh tidy remain deferred non-blockers. Detail: [R3-WORKBENCH-2026-10-11.md](./R3-WORKBENCH-2026-10-11.md).
 
 ## D2b focused closure, 2026-10-11
 
@@ -23,13 +25,13 @@ Browser checks all began with Calendar Support already collapsed and task entry 
 - Save and collapse removes task details and exposes Support. An independent API read confirms `D2b saved via guarded collapse` persisted.
 - Opening Support with no selected task still reveals normal calendar support.
 
-Evidence: `docs/redesign/screenshots/r3-d2b-dirty-guard-pass.png`. No new defect found in this focused pass. D1/D3/D4 retain their previous focused Pass results; all reported R3 dock/draft defects are now closed. This does not close the broad manual acceptance matrix or the separate negative-duration validation follow-up. Post-refresh tidy/refactor remains deferred. No product code changes, commit, or push by Dex. Disposable API/database and Vite cleaned up after testing.
+Evidence: `docs/redesign/screenshots/r3-d2b-dirty-guard-pass.png`. No new defect found in this focused pass. D1/D3/D4 retain their previous focused Pass results; all reported R3 dock/draft defects are now closed. **Trish closed the broad manual matrix 2026-10-11** (ship authorization). The separate negative-duration validation follow-up and post-refresh tidy/refactor remain deferred non-blockers. No product code changes, commit, or push by Dex. Disposable API/database and Vite cleaned up after testing.
 
 The dated sections below retain earlier review history; this closure supersedes their D2b pending status.
 
 ## Dex focused retest, 2026-10-11
 
-**Wave remains Open / HOLD.** Independently tested code tip `4b51af7`, documentation HEAD `6f80e43`. **54/54 web tests pass (20 suites); production build passes**, with the existing large-chunk warning. Browser used the isolated Vite/API/database setup described below. No product code changed or push performed on the retest pass.
+**Historical (pre-ship):** Wave was **Open / HOLD** at this retest. Independently tested code tip `4b51af7`, documentation HEAD `6f80e43`. **54/54 web tests pass (20 suites); production build passes**, with the existing large-chunk warning. Browser used the isolated Vite/API/database setup described below. No product code changed or push performed on the retest pass. **Superseded:** Trish **Closed / shipped 2026-10-11** after full manual matrix.
 
 | Item | Retest result |
 | --- | --- |
@@ -59,9 +61,9 @@ Evidence screenshot: `docs/redesign/screenshots/r3-d2-retest-residual.png` (task
 
 The negative-duration failure fixture (`-1` minute through Save and switch) reaches the database check constraint and produces an unhandled API error. The browser shows `Failed to fetch` in this cross-origin test setup; draft recovery works. The current TaskUpdate schema has no nonnegative constraint. This is a separate API/input-validation follow-up, not evidence that structured API validation messages have been browser-verified. The original overlong-title path is now intercepted client-side.
 
-The broad acceptance matrix below remains open. Disposable container/database removed after testing; temporary Vite stopped and viewport override reset. The sections below preserve the original review and pre-retest handoff history; this retest section supersedes their pending statuses for the explicitly exercised paths.
+Disposable container/database removed after testing; temporary Vite stopped and viewport override reset. The sections below preserve the original review and pre-retest handoff history; this retest section supersedes their pending statuses for the explicitly exercised paths.
 
-**HOLD full manual acceptance.** Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** `4b51af7` (docs stamp `d910f60`).
+**Historical:** **HOLD full manual acceptance** at this retest. Four defects were reproduced on the prior tip; Jim landed code fixes for R3-D1–D4 (**Fixed (code), awaiting Dex retest**). Original review: `301e8a9`, `13eea80`, and `7ba37e4` against `0b74800`. **Retest tip:** `4b51af7` (docs stamp `d910f60`). **Broad matrix closed Trish 2026-10-11.**
 
 ## Verified environment and checks
 
@@ -143,10 +145,10 @@ The broad acceptance matrix below remains open. Disposable container/database re
 
 ## Remaining acceptance work
 
-Keep the delivery checklist **Open**. **Retest R3-D1–D4 first** on the post-fix tip, then complete: populated 1440/1366 layouts; actual 125%/200% browser zoom; keyboard focus and modal containment; busy/overlapping/short blocks; Time Map tiers, override, timezone and clipping behavior; preview stale/expiry/conflict/apply/retry; board recurrence/child/revision/ordering behavior; saved-view sorting/counts/pagination; and full draft recovery.
+**Closed 2026-10-11 (Trish):** Delivery checklist in [R3-WORKBENCH-2026-10-11.md](./R3-WORKBENCH-2026-10-11.md) — full manual matrix **Pass** after Dex D1–D4/D2b retest. Wave **Closed / shipped**.
 
-The delivered idle support is a combined summary rather than R3's tabbed Unscheduled/Preview/Key panel, and task details retain the older field layout and deadline copy. Treat visual fidelity as a separate explicit review item. Token alignment and these focused passing flows do not establish that the complete R3 interaction design is implemented.
+The delivered idle support is a combined summary rather than R3's tabbed Unscheduled/Preview/Key panel, and task details retain the older field layout and deadline copy. Visual fidelity vs mockups remains a **future explicit review** item, not a ship blocker for this wave. Negative-duration API validation and post-refresh tidy stay **deferred**.
 
 ## Jim handoff
 
-**Jim / Dex:** All reported R3 dock/draft defects (**D1–D4 + D2b**) focused-Pass / Closed. Wave stays **Open** — broad manual matrix + negative-duration API follow-up + post-refresh tidy still deferred. **HOLD** full acceptance / not Closed-shipped.
+**Jim / Dex:** All reported R3 dock/draft defects (**D1–D4 + D2b**) focused-Pass / Closed. **Trish Closed / shipped 2026-10-11** — broad manual matrix complete; negative-duration API follow-up + post-refresh tidy deferred non-blockers.

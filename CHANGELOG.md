@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased] — R3 Midnight Workbench UI (2026-10-11)
+## [Unreleased] — R3 Midnight Workbench UI (shipped 2026-10-11)
 
 - **R3 Slices 0–3 (web):** Capability inventory ([R3-CAPABILITY-INVENTORY](docs/redesign/R3-CAPABILITY-INVENTORY.md)); Workbench tokens + default **Dark** preset; collapsible desktop sidebar rail; list/board shell restyle; shared **support dock** (calendar idle, **Preview schedule changes**, task details); dirty-edit navigation guards; quieter calendar Time Map bands with **Preferred / Acceptable / Excluded** tiers preserved; **Preview changes** vs **Update Schedule** unchanged; Windows **Ctrl** labels in help — [R3-WORKBENCH-2026-10-11](docs/delivery/R3-WORKBENCH-2026-10-11.md), [USER-GUIDE](docs/USER-GUIDE.md)
-- **Quality (Renee exit):** web `npm test` **50/50** green, `npm run build` green (chunk-size advisory only) — [R3-WORKBENCH-2026-10-11](docs/delivery/R3-WORKBENCH-2026-10-11.md); R3 **not Closed/shipped** (Slice 4 manual checklist open)
+- **Quality (Renee exit):** web `npm test` **57/57** green (21 suites), `npm run build` green (chunk-size advisory only) — [R3-WORKBENCH-2026-10-11](docs/delivery/R3-WORKBENCH-2026-10-11.md), [DEX-R3-REVIEW-2026-10-11](docs/delivery/DEX-R3-REVIEW-2026-10-11.md)
+- **R3 status:** **Closed / shipped 2026-10-11** — Trish manual acceptance matrix **Pass**; Dex **D1–D4 + D2b** focused Pass; tip **`ab88fa2`**. Deferred: negative-duration API validation, post-refresh tidy (non-blockers)
 
 ## [Unreleased] — F7 Saved views W1–W3 (2026-10-10)
 

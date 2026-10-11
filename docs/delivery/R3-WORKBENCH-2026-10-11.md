@@ -1,19 +1,19 @@
 # R3 Midnight Workbench — delivery note (Slices 0–3)
 
-**Dex retest 2026-10-11:** D1/D3/D4 and D2 ordinary collapse **Pass**; residual **R3-D2b Pass / Closed** on `43f5797` (docs `db20a21`): clean collapse, dirty Cancel/Discard/Save and collapse, persisted save, and Support re-expansion verified in browser. Independent web tests **57/57** and build green. See [DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md). **HOLD full manual acceptance**; broad matrix remains **Open / not Closed / not shipped**. Post-refresh tidy remains deferred.
+**Closed / shipped — Trish 2026-10-11.** Manual acceptance matrix run (morning); Dex **D1–D4 + D2b** focused **Pass** ([DEX-R3-REVIEW-2026-10-11.md](DEX-R3-REVIEW-2026-10-11.md)). Code tip **`ab88fa2`**. Web **57/57** tests + build green (Renee prior exit; Trish ship authorization). Post-refresh tidy and negative-duration API validation remain **deferred non-blockers** — not open acceptance rows.
 
 <!--
 ==============================================================================
   File: docs/delivery/R3-WORKBENCH-2026-10-11.md
-  Description: R3 Workbench UI wave delivery — Slices 0–3 scope, deferred items, open manual gate.
+  Description: R3 Workbench UI wave delivery — Slices 0–3 scope, deferred items, manual gate.
   Component: Docs/Delivery
-  Version: 1.2
+  Version: 1.3
   Created: 2026-10-11
   Last Update: 2026-10-11
 ==============================================================================
 -->
 
-**Status:** **Implemented (Slices 0–3)** in working tree · **Not Closed / not shipped** — Slice 4 verification and manual acceptance remain open; phase gates apply (Renee Quality exit before Page marks Closed).
+**Status:** **Closed / shipped** — Trish **2026-10-11** (manual matrix + Dex focused defect closure). Slices 0–3 implemented; acceptance checklist below **Pass**.
 
 **Authority**
 
@@ -69,9 +69,11 @@ From inventory and handoff — **do not treat as shipped** in Slices 0–3:
 | “Done, last 7 days” default | Board/saved views use API pagination + completion predicate |
 | Coursera / external-busy reinterpretation | External busy stays gray occupancy |
 | Hard-coded mockup counts | API/pagination truth |
-| Slice 4 integrated verification | Browser matrix, focused regression, Dex/manual sign-off |
+| Slice 4 integrated verification | **Closed 2026-10-11** — Trish manual matrix + Dex D1–D4/D2b; post-refresh tidy still deferred |
 | Overlap cascade layout (if not meeting reachability) | Keep prior overlap behavior until validated |
 | Extra confirmation on **Update Schedule** | First slice keeps existing direct replan unless Trish opts in |
+| Negative-duration API validation | Known follow-up (DB constraint / schema); not an R3 acceptance blocker |
+| Post-refresh tidy / refactor | Deferred polish |
 
 Full table: [R3-CAPABILITY-INVENTORY § Explicit DEFERRED](../redesign/R3-CAPABILITY-INVENTORY.md#explicit-deferred-list-r3-pictured-or-handoff--not-this-wave).
 
@@ -87,49 +89,51 @@ Full table: [R3-CAPABILITY-INVENTORY § Explicit DEFERRED](../redesign/R3-CAPABI
 | Web production build | `cd apps/web && npm run build` | Exit 0. `tsc -b && vite build` (Vite 8.2.1). Existing JS chunk >500 kB warning only — not a failure. |
 | New regression modules | `supportDockState.test.ts`, `taskDetailDraft.test.ts`, calendar height/compact in `calendarUtils.test.ts` | Present and green; dock collapse/preview resolver and draft-reset/save-validation coverage expanded for D1–D4. |
 
-**Not run:** browser Dex retest of D1–D4; full manual UI acceptance rows below; `apps/api` pytest; `npm run lint`.
+**Manual (Trish, 2026-10-11):** Full R3 acceptance matrix below — **Pass** (authorized ship).
 
-Wave remains **Open / HOLD full manual acceptance / not Closed / not shipped** until Dex retest of D1–D4, remaining checklist rows, and Trish sign-off.
+**Not run for closeout:** `apps/api` pytest; `npm run lint`.
+
+Wave **Closed / shipped** **2026-10-11** per Trish authorization after Renee Quality exit (**57** web tests) and manual matrix.
 
 ---
 
-## Open Dex / manual checklist (R3 acceptance)
+## Dex / manual checklist (R3 acceptance — Closed)
 
-Adapted from handoff [§ Acceptance evidence for Renee and Dex](../redesign/R3_DEX_REVIEW_AND_JIM_HANDOFF.md#acceptance-evidence-for-renee-and-dex). **All rows Open** — not Closed, not shipped.
+Adapted from handoff [§ Acceptance evidence for Renee and Dex](../redesign/R3_DEX_REVIEW_AND_JIM_HANDOFF.md#acceptance-evidence-for-renee-and-dex). **All rows Pass** — Trish manual **2026-10-11** (Dex D1–D4/D2b focused Pass on prior retest).
 
 ### Layout and responsive
 
-- [ ] **Open** — At **1440×900** and **1366×768**, expanded/collapsed navigation and support panel usable with real long titles.
-- [ ] **Open** — At **125%** and **200%** browser zoom, every action and all content reachable via scroll or intentional responsive layout (125% export crop alone is not a failure).
+- [x] **Pass** — At **1440×900** and **1366×768**, expanded/collapsed navigation and support panel usable with real long titles. Trish manual **2026-10-11**.
+- [x] **Pass** — At **125%** and **200%** browser zoom, every action and all content reachable via scroll or intentional responsive layout (125% export crop alone is not a failure). Trish manual **2026-10-11**.
 
 ### Keyboard and focus
 
-- [ ] **Open** — Focus visible and sensible through flyout, calendar item, details, dirty-edit prompt, return, and collapse.
-- [ ] **Open** — Non-drag move actions work; typing in fields does not trigger global mutations.
+- [x] **Pass** — Focus visible and sensible through flyout, calendar item, details, dirty-edit prompt, return, and collapse. Trish manual **2026-10-11**.
+- [x] **Pass** — Non-drag move actions work; typing in fields does not trigger global mutations. Trish manual **2026-10-11**.
 
 ### Calendar grid
 
-- [ ] **Open** — Three-way overlaps, short adjacent blocks, multiple placements for one task, and mixed external/pinned/movable/proposed blocks remain distinguishable and selectable.
-- [ ] **Open** — Green/yellow/red bands, overrides, settings timezone, clipping, and selected-map scope behave as before (quieter paint only).
+- [x] **Pass** — Three-way overlaps, short adjacent blocks, multiple placements for one task, and mixed external/pinned/movable/proposed blocks remain distinguishable and selectable. Trish manual **2026-10-11**.
+- [x] **Pass** — Green/yellow/red bands, overrides, settings timezone, clipping, and selected-map scope behave as before (quieter paint only). Trish manual **2026-10-11**.
 
 ### Preview and replan
 
-- [ ] **Open** — Preview create causes no live placement changes; apply uses the displayed valid proposal.
-- [ ] **Open** — Stale/expired/running-conflict cases fail honestly; retry cannot duplicate work; edits invalidate relevant explanations and previews.
+- [x] **Pass** — Preview create causes no live placement changes; apply uses the displayed valid proposal. Trish manual **2026-10-11**.
+- [x] **Pass** — Stale/expired/running-conflict cases fail honestly; retry cannot duplicate work; edits invalidate relevant explanations and previews. Trish manual **2026-10-11**.
 
 ### Tasks, board, saved views
 
-- [ ] **Open** — Board moves, within-column ordering, Waiting notes, completion/uncompletion, recurrence, child policy, and stale revision recovery unchanged; repeated moves do not blank accumulated pages.
-- [ ] **Open** — Saved views preserve filters, sort, presentation, completion membership, pagination, and sidebar ordering; counts do not claim completeness while pages remain.
+- [x] **Pass** — Board moves, within-column ordering, Waiting notes, completion/uncompletion, recurrence, child policy, and stale revision recovery unchanged; repeated moves do not blank accumulated pages. Trish manual **2026-10-11**.
+- [x] **Pass** — Saved views preserve filters, sort, presentation, completion membership, pagination, and sidebar ordering; counts do not claim completeness while pages remain. Trish manual **2026-10-11**.
 
 ### Dirty edits and panel safety
 
-- [ ] **Open** — Task draft survives failed save and cancelled navigation; unschedule preserves the task; delete remains distinct.
-- [ ] **Open** — Collapsing or switching panels does not discard a draft or apply a preview.
+- [x] **Pass** — Task draft survives failed save and cancelled navigation; unschedule preserves the task; delete remains distinct. Trish manual **2026-10-11**.
+- [x] **Pass** — Collapsing or switching panels does not discard a draft or apply a preview. Trish manual **2026-10-11**.
 
 ### Data honesty
 
-- [ ] **Open** — No pictured placeholder became a hard-coded production count, reason, grouping, seven-day limit, or unsupported command.
+- [x] **Pass** — No pictured placeholder became a hard-coded production count, reason, grouping, seven-day limit, or unsupported command. Trish manual **2026-10-11**.
 
 ---
 
@@ -143,4 +147,4 @@ Adapted from handoff [§ Acceptance evidence for Renee and Dex](../redesign/R3_D
 | Preview UI | [`SchedulePreviewPanelContent.tsx`](../../apps/web/src/components/SchedulePreviewPanelContent.tsx) |
 | Tests | [`supportDockState.test.ts`](../../apps/web/tests/supportDockState.test.ts), [`taskDetailDraft.test.ts`](../../apps/web/tests/taskDetailDraft.test.ts) |
 
-**Next:** Slice 4 — run checklist above, record evidence in this doc, link Renee Quality exit; Trish/Dex sign-off before Closed/shipped.
+**Closeout:** Wave **Closed / shipped** **2026-10-11** — Trish manual matrix + Dex dock/draft defects; deferred items remain out of scope per inventory.

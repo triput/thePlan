@@ -1,12 +1,14 @@
 # Manual checklist (Trish)
 
+**R3 Midnight Workbench (2026-10-11):** **Closed / shipped** — Trish manual acceptance matrix **2026-10-11**; Dex **D1–D4 + D2b** focused Pass; web **57** tests (Renee). Matrix: [R3-WORKBENCH-2026-10-11.md](./R3-WORKBENCH-2026-10-11.md). F1–F7 sign-off Notes unchanged (PARTIAL residue **not Closed** where stated).
+
 **Latest Dex gate, 2026-10-10:** **W1-R1 verified closed** — volume stale via **`GET …/stale-summary`** + Calendar (**202** explanations, stale only after offset 200). **IM-R1 verified closed** — Import tab draft/review/receipt/idempotency survive tab navigation ([DEX-IMPORT-VOLUME-2026-10-10.md](./DEX-IMPORT-VOLUME-2026-10-10.md)). F6 R1 verified closed (**37** API integration tests incl. concurrent reparent). F4 Wave 1 **verified closed** — CLI overrides, day overlay, F4-D incl. volume stale ([DEX-WAVE1-RETEST-2026-10-10.md](./DEX-WAVE1-RETEST-2026-10-10.md)). Web **36** + CLI **36** green. **Trish Done sign-off recorded 2026-10-10** (Setup–F7) — see [§ Sign-off](#sign-off); PARTIAL / operator residue rows still **not Closed** per Notes.
 
 **Filename:** MANUAL-CHECKLIST.md
 
-**Last modified:** 2026-10-10 (Page — Trish Done sign-off Setup–F7; W1-R1 + IM-R1 gate)
+**Last modified:** 2026-10-11 (Page — R3 Closed/shipped Trish manual matrix)
 
-**File version:** 4.4
+**File version:** 4.5
 
 **Dex coverage, 2026-10-09:** Checked boxes below mean the stated local check has Dex evidence; Trish may independently rerun them. Checked boxes are not a substitute for the [§ Sign-off](#sign-off) Done column (Trish **10/10/26 OK** for Setup–F7). **F1–F3: 31 pass, 5 partial, 1 user-only; prior lifecycle failure retested successfully.** Original pass uses frozen `cc87349`; reused `0199edf` browser evidence is labeled. CLI/API checks are identified separately from browser checks. See [original Dex evidence](./DEX-MANUAL-2026-10-09.md) and [F4 verification / three web P2s](./DEX-F4-MANUAL-2026-10-09.md). **F4 W3 web slice (2026-10-09):** Settings/week overlay Dex-verified; residual P2s **Verified closed**. **Wave 1 (2026-10-10):** CLI `theplan overrides` CRUD, day-mode override overlay, F4-D red/stale/legend incl. **W1-R1** volume stale — **Dex verified closed**; Trish Done **10/10/26 OK**; **F4 not Closed** (optional DST); no push. **F5:** all seven findings verified closed by Dex; **B-F5-1** Import merge **Dex verified closed** (**IM-R1**) — [`ImportPanel.tsx`](../../apps/web/src/components/ImportPanel.tsx); see [F5 evidence](./DEX-F5-MANUAL-2026-10-09.md) and [DEX-IMPORT-VOLUME](./DEX-IMPORT-VOLUME-2026-10-10.md). F5 remains Open for PARTIAL operator rows — **not Closed**; no push. Optional F4 DST browser spot-check remains open.
 
