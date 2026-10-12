@@ -2,21 +2,43 @@
 
 **Date:** 2026-10-12  
 **Mode:** Full hygiene wave (not a quick scan)  
-**Result:** **Open / in progress** — safe web batch + Pydantic reconcile applied 2026-10-12; FastAPI/Starlette/SQLAlchemy/TS7/desktop/Tauri still **Hold**  
-**Recorded for:** **0.7.0 Scheduling/Settings** train after R3 / F-series freeze; gates **S1** scheduler feature work  
+**Result:** **Exit / pass** — 2026-10-12 (Trish authorized exit with remaining majors **held**)  
+**Recorded for:** **0.7.0 Scheduling/Settings** train after R3 / F-series freeze; **S1** unblocked for planning/implementation after [0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md)  
 **Hygiene tip SHA (start):** `ef838bc5f71e29e30d1ca17feda11088c8cedfd9` (`main` @ `cursor/main`)  
+**Compose smoke docs SHA:** `5d32ec8bdc7fc4d6f6893efbeb3adc722b8908a7`  
+**Hygiene exit SHA:** `2dbe3214fd0c376a7c6a4565d9cd4b70eb354bc3`  
 **Product locks:** Dex discovery **v1.16**; [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) **v1.4.3**  
 **Basis:** [HYGIENE-W3.md](./HYGIENE-W3.md) + [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) + live pin / outdated audit 2026-10-12
+
+## Applied this exit (2026-10-12)
+
+| Item | Evidence |
+|------|----------|
+| Product version **0.7.0** | api / cli / web / desktop strings aligned (see Product version alignment) |
+| Pydantic **2.14.x** reconcile | pins + venv + container import **2.14.1** — safe-batch + Compose smoke sections below |
+| Safe web batch | React 19.3.0, Vite 8.3.4, RQ 5.104.2, oxlint, etc. — safe-batch test evidence |
+| Compose smoke (no tunnel) | [Compose smoke](#compose-smoke-2026-10-12-no-tunnel) — tip `5d32ec8…` |
+
+## Hold for this exit (explicit)
+
+| Item | Status |
+|------|--------|
+| FastAPI / Starlette majors | **Hold** — dedicated review |
+| SQLAlchemy **2.1** (+ Alembic with that plan) | **Hold** |
+| TypeScript **7** | **Hold** — explicit greenlight only |
+| Desktop `@tauri-apps/cli` → 2.12.x | **Hold** (optional) |
+| cryptography / psycopg minors | **Hold** (optional; OAuth + DB smoke when scheduled) |
+| Base-image CVE deep scan | Deferred (same as W3 / R4) |
 
 ## Scope
 
 | In this wave | Out / deferred |
 |--------------|----------------|
 | Toolchain + container pin review | Blind major upgrades (need Trish greenlight) |
-| api / web / cli / desktop dep inventory | S1+ Scheduling/Settings feature code |
+| api / web / cli / desktop dep inventory | Large S1 feature code (waits contract + no Trish objection) |
 | Doc pins + CHANGELOG **[0.7.0]** section | Settings **About** UI (product: **S3**) |
 | Product version strings → **0.7.0** | Single cross-app version source (follow-up below) |
-| Record proposed upgrade set for Trish | Compose rebuild / tunnel recreate (ask first) |
+| Safe batch + Compose smoke + **exit / pass** | Held majors / optional minors above |
 
 ## Toolchain pins
 
@@ -117,8 +139,9 @@
 
 - Spec: [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) v1.4.3
 - Dex ledger: [redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md](./redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) v1.16
-- Roadmap: [07-wave-roadmap.md](./07-wave-roadmap.md) — 0.7.0 train after hygiene
+- Roadmap: [07-wave-roadmap.md](./07-wave-roadmap.md) — 0.7.0 hygiene exited; S1 via migration contract
 - Changelog: root [CHANGELOG.md](../CHANGELOG.md) **[0.7.0]** Unreleased / in-progress
+- Pre-S1 contract: [delivery/0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md)
 - Prior full pass: [HYGIENE-W3.md](./HYGIENE-W3.md); last quick scan: [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md)
 
 ## Checklist
@@ -131,11 +154,12 @@
 - [x] Update CHANGELOG + roadmap note + docs index pin
 - [x] Reconcile API requirements.txt vs venv (Pydantic) — **2026-10-12**
 - [x] Safe upgrade batch (web + Pydantic) — Trish authorized **2026-10-12**
-- [ ] Desktop: `@tauri-apps/cli` → 2.12.x + sidecar smoke (optional)
-- [ ] API optional minors: cryptography, psycopg (OAuth + DB smoke)
+- [x] Compose smoke (api/web/scheduler rebuild, no tunnel) — **2026-10-12** / commit `5d32ec8`
+- [x] Hygiene **exit / pass** — 2026-10-12; FastAPI/Starlette/SQLAlchemy 2.1 / TS7 / optional desktop+crypto/psycopg **held**
+- [x] S1 planning/implementation — **unblocked** after [0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md) (large S1 code waits Trish non-objection to contract)
+- [ ] Desktop: `@tauri-apps/cli` → 2.12.x + sidecar smoke (**optional / held**)
+- [ ] API optional minors: cryptography, psycopg (**optional / held**)
 - [ ] Optional CVE deep scan — deferred
-- [ ] Hygiene **exit / pass** — majors held + remaining optional items + Compose smoke when Trish wants
-- [ ] S1 feature work — **blocked** until hygiene exit
 
 ## Safe batch — test evidence (2026-10-12)
 
@@ -158,19 +182,20 @@
 | `GET http://127.0.0.1:8080/` | **200** (login shell) |
 | Assist `/api/v1/assist/status` unauthenticated | **401** `UNAUTHENTICATED` (expected) |
 
-## Remaining hygiene actions (for Trish)
+## Remaining (held — not exit blockers)
 
-1. **Desktop CLI:** `@tauri-apps/cli` → 2.12.x + sidecar smoke (optional same day).
-2. **API — hold FastAPI/Starlette/SQLAlchemy 2.1** until a dedicated review; optionally schedule cryptography + psycopg minor with OAuth + DB smoke.
+1. **Desktop CLI:** `@tauri-apps/cli` → 2.12.x + sidecar smoke (optional).
+2. **API majors:** FastAPI / Starlette / SQLAlchemy 2.1 — dedicated review wave.
 3. **TypeScript 7** — explicit greenlight only.
-4. **Exit criteria:** checklist complete, no forced majors without greenlight, tip commit on `cursor` when Trish asks to push.
+4. **Optional minors:** cryptography + psycopg with OAuth + DB smoke.
+5. **CVE deep scan** — deferred.
 
 ## Operator note
 
-Pydantic + web pins changed this wave — **no** Compose recreate required until Trish wants a container rebuild. After API/web image rebuild:
+Compose smoke for the Pydantic/web rebuild **ran 2026-10-12** (`up -d --build api web scheduler`, no tunnel). Re-run only if pins change again:
 
 ```powershell
-docker compose -f infra/compose/compose.yaml up -d --build api web
+docker compose -f infra/compose/compose.yaml up -d --build api web scheduler
 ```
 
 Do **not** `--profile tunnel` on the shared SUPERNOVA token unless Trish asks.

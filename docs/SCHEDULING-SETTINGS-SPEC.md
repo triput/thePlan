@@ -3,7 +3,7 @@
   File: docs/SCHEDULING-SETTINGS-SPEC.md
   Description: Scheduling and Settings design handoff, including Assist and CLI parity.
   Component: Scheduling / Settings / Assist / CLI
-  Version: 1.4.3 (Approved product contract)
+  Version: 1.4.4 (Approved product contract)
   Created: 2026-10-12
   Last Update: 2026-10-12
 ==============================================================================
@@ -207,7 +207,7 @@ Deliver block-size controls and effort-progress through shared UI and CLI (exist
 
 **Pinned reservations:** Future pins reserve part of **remaining** work, not completed effort. Past blocks are not completion evidence. Excess reservation vs remaining → surface mismatch.
 
-**Operational TBD (pre-S1):** Migration contract for existing tasks, in-progress block boundaries, and progress initialization without inferring past work — see Dex handoff and section 12.
+**Operational TBD (pre-S1):** Migration contract for existing tasks, in-progress block boundaries, and progress initialization without inferring past work — **closed in-repo** at [delivery/0.7-S0-MIGRATION-CONTRACT.md](delivery/0.7-S0-MIGRATION-CONTRACT.md) (2026-10-12); see also Dex handoff and section 12.
 
 ## 6. Settings and task UI
 
@@ -307,7 +307,7 @@ All rows initially **Open**. Renee should keep automated evidence separate from 
 | SS-27 | Dated availability overlap resolution; atomic reject on conflict; empty replacement and restoration. |
 | SS-28 | Retire/replace/delete referenced maps and contexts; preset save-only vs update selected uses; stale apply under concurrency. |
 | SS-29 | Atomic configuration apply: success, mid-failure rollback, stale rejection, idempotent retry, handoff failure after commit. |
-| SS-30 | **Buffer verification (requested):** 0/5/10 min between auto blocks; before/after pinned and external busy events; split-block policy; travel allowance interaction; preview/apply agreement — establish intended policy and record results (operational, pre/during S2). |
+| SS-30 | **Buffer verification (requested):** 0/5/10 min between auto blocks; before/after pinned and external busy events; split-block policy; travel allowance interaction; preview/apply agreement. **Pre-S1:** agree intended **policy** and **test plan** (no circular wait on full evidence). **S2:** run verification on the implemented scheduler and record results/defects. |
 | SS-14 | Configuration saves do not move blocks; old/in-flight previews become stale appropriately; pins, manual tasks, busy time, prerequisites, and capacity retain their contracts. |
 | SS-15 | Live effective-rule explanations and historical run explanations remain distinct; provenance and stale status are correct. |
 | SS-16 | Assist completes the example with only necessary questions; malformed output/failure causes no partial writes; shared-map ambiguity prompts review. |
@@ -344,8 +344,8 @@ May/Must/Prefer composition; General availability; purpose defaults; **Change se
 | Item | Owner / note |
 | --- | --- |
 | **Hygiene starting tip SHA** | Version name **locked `0.7.0`**; tip SHA when hygiene opens; micro-passes may use `0.7.x`. |
-| **Schema/API and migration contract pre-S1** | Progress initialization without inferring past work; in-progress pinned blocks without double counting; legacy block settings as defaults/inheritance. Jim. |
-| **Buffer semantics verification** | Trish-requested pass: pinned tasks, external events, split blocks, travel interaction (SS-30). Renee/Jim establish policy and test. |
+| **Schema/API and migration contract pre-S1** | **In-repo** [delivery/0.7-S0-MIGRATION-CONTRACT.md](delivery/0.7-S0-MIGRATION-CONTRACT.md) (2026-10-12) — progress init, in-progress pins, legacy block defaults/inheritance, Working/General seed. |
+| **Buffer semantics (SS-30)** | **Pre-S1:** Renee/Jim agree policy + test plan. **S2:** verify implemented behavior (pins, external busy, split blocks, travel interaction) and record evidence — not a full SS-30 gate before S1. |
 | **Make it pretty go/no-go** | After normal scheduling passes acceptance; Jim brings concrete recommendation. |
 | **User-facing vocabulary** | Composable rules naming; general-label attachment still deferred. Design during S3. |
 | **Legacy migration compatibility table** | Explicit opt-in/conversion for strict maps, overrides, global bounds — implementation contract. |
