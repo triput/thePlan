@@ -139,6 +139,20 @@ def api_logout() -> None:
     clear_session_file()
 
 
+def availability_policy_path(policy_ref: str | None = None, *, suffix: str | None = None) -> str:
+    """Availability policy routes; ``policy_ref`` is slug or UUID."""
+    base = "/api/v1/availability-policies"
+    if policy_ref is None:
+        return base
+    if suffix:
+        return f"{base}/{policy_ref}/{suffix}"
+    return f"{base}/{policy_ref}"
+
+
+def task_scheduling_effective_path(task_id: str) -> str:
+    return f"/api/v1/tasks/{task_id}/scheduling/effective"
+
+
 def focus_window_overrides_path(map_id: str, override_id: str | None = None) -> str:
     """Nested F4 override routes under one owned focus window."""
     base = f"/api/v1/focus-windows/{map_id}/overrides"

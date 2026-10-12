@@ -175,6 +175,22 @@ Uses the same session file as M2. Spec: [NEXT-FEATURES-SPEC.md §10](./NEXT-FEAT
 
 CRUD maps to `/api/v1/views`; **query** maps to `/api/v1/views/{id}/tasks` or `/api/v1/views/by-slug/{slug}/tasks`. System views are read-only at the API (CLI surfaces **`SYSTEM_VIEW_READ_ONLY`**). Prefer **query** over ad hoc `tasks list` for saved-view predicates.
 
+### S1 — Scheduling / Settings foundations (HTTP)
+
+Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCHEDULING-SETTINGS-SPEC.md#11-delivery-sequence-and-responsibilities). Delivery: [delivery/0.7-S1-CLI-PARITY-2026-10-12.md](./delivery/0.7-S1-CLI-PARITY-2026-10-12.md) (Quality PASS for this CLI vertical only — **not** full S1 or 0.7.0 Closed/shipped). Legacy placer semantics: [delivery/0.7-S1-LEGACY-TIME-MAP-COMPAT.md](./delivery/0.7-S1-LEGACY-TIME-MAP-COMPAT.md).
+
+**S1 placement note:** Saved **Working** and **General** availability policies are **config-only** (`scheduling_effective: false` on policy reads). The scheduler still uses legacy **Time Maps** (`preferred_time_window_id` → `focus_windows`, F4 overrides) and **workweek / workday** settings for placement. A Monday-first, same-hours **Working** window PATCH may mirror into legacy workweek fields; other patterns stay config-only. There is **no** focus-window / Time Map CRUD in this slice — DEF-040 remains Open.
+
+| Area | Commands | Maps to |
+|------|----------|---------|
+| **Settings** | `settings get`, `settings patch` (flags and/or `--file` / `--stdin`) | `GET` / `PATCH /api/v1/settings` — includes `nominal_workday_minutes` and legacy placement fields |
+| **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `/api/v1/availability-policies` … `/effective` — output discloses config-only in S1 |
+| **Progress** | `tasks progress add --id UUID --idempotency-key UUID --minutes-worked N --remaining-minutes N --expected-revision N` [`--note`] | `POST /api/v1/tasks/{id}/progress` — idempotent replay; requires scheduling revision |
+| **Remaining edit** | `tasks patch --id UUID --remaining-estimate-minutes N --expected-revision N` | `PATCH /api/v1/tasks/{id}` — **`--expected-revision` required** with remaining; omitting it is usage error (exit **1**). Changing original estimate via `--estimated-duration-minutes` is rejected (**422** → exit **1**, e.g. **`ORIGINAL_ESTIMATE_IMMUTABLE`**, **`CHUNKING_CUTOVER_PENDING`**) |
+| **Scheduling effective** | `tasks scheduling-effective --id UUID`; `schedule effective --task-id UUID` (alias) | `GET /api/v1/tasks/{id}/scheduling/effective` — active vs inactive layers for S1 bridge |
+
+Stale scheduling revision on progress or remaining PATCH → exit **5** / **`SCHEDULING_REVISION_CONFLICT`**. Subcommand `--help` text calls out S1 config-only availability where relevant.
+
 ## Session revocation (`session_epoch`)
 
 Password changes and host recovery bump per-user `session_epoch` in PostgreSQL (migration `017_session_epoch`). The API stores the epoch in the session cookie at login; requests with a stale epoch are treated as unauthenticated. This satisfies DEF-027’s requirement to invalidate sessions after recovery without email. Details: [09-technical-architecture.md](./09-technical-architecture.md) §7.

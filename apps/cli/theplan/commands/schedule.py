@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from theplan.api_client import api_json
+from theplan.api_client import api_json, task_scheduling_effective_path
 from theplan.errors import CliError
 from theplan.output import emit_ok, get_output_format
 
@@ -60,6 +60,17 @@ def register_schedule(sub: argparse._SubParsersAction) -> None:
     )
     apply_preview.add_argument("--id", dest="preview_id", required=True, metavar="UUID")
 
+    _effective_help = (
+        "Alias of tasks scheduling-effective "
+        "(S1: General and Working policies are not scheduling-effective)"
+    )
+    effective_p = schedule_sub.add_parser(
+        "effective",
+        help=_effective_help,
+        description=_effective_help,
+    )
+    effective_p.add_argument("--task-id", dest="task_id", required=True, metavar="UUID")
+
 
 _FRESH_PREVIEW = "Create a fresh preview."
 
@@ -71,6 +82,16 @@ def _pagination_params(args: argparse.Namespace) -> dict[str, Any]:
         if value is not None:
             params[key] = value
     return params
+
+
+def _emit_scheduling_effective(body: dict[str, Any]) -> None:
+    from theplan.commands.tasks import _summarize_scheduling_effective
+
+    payload = dict(body)
+    if get_output_format() == "text":
+        _summarize_scheduling_effective(payload)
+        return
+    emit_ok(payload)
 
 
 def _emit_explain(body: dict[str, Any]) -> None:
@@ -144,6 +165,14 @@ def run_schedule(args: argparse.Namespace) -> None:
             persist_session=True,
         )
         _emit_explain(body or {})
+        return
+    if cmd == "effective":
+        body = api_json(
+            "GET",
+            task_scheduling_effective_path(args.task_id),
+            persist_session=True,
+        )
+        _emit_scheduling_effective(body or {})
         return
     if cmd == "runs":
         runs_cmd = args.runs_command

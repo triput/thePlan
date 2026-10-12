@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from theplan.api_client import api_json
+from theplan.api_client import api_json, task_scheduling_effective_path
 from theplan.errors import CliError
-from theplan.output import emit_ok
+from theplan.output import emit_ok, get_output_format
 
 
 def register_tasks(sub: argparse._SubParsersAction) -> None:
@@ -92,6 +92,65 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
         metavar="N",
     )
     patch_p.add_argument("--description", default=None)
+    patch_p.add_argument(
+        "--remaining-estimate-minutes",
+        dest="remaining_estimate_minutes",
+        type=int,
+        default=None,
+        metavar="N",
+    )
+    patch_p.add_argument(
+        "--expected-revision",
+        dest="expected_revision",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Required when patching remaining estimate (scheduling revision token)",
+    )
+
+    progress = tasks_sub.add_parser("progress", help="Record task progress")
+    progress_sub = progress.add_subparsers(dest="progress_command", required=True)
+    progress_add = progress_sub.add_parser("add", help="Append a progress entry")
+    progress_add.add_argument("--id", required=True, dest="task_id", metavar="UUID")
+    progress_add.add_argument(
+        "--idempotency-key",
+        dest="idempotency_key",
+        required=True,
+        metavar="UUID",
+    )
+    progress_add.add_argument(
+        "--minutes-worked",
+        dest="minutes_worked",
+        type=int,
+        required=True,
+        metavar="N",
+    )
+    progress_add.add_argument(
+        "--remaining-minutes",
+        dest="remaining_minutes",
+        type=int,
+        required=True,
+        metavar="N",
+    )
+    progress_add.add_argument(
+        "--expected-revision",
+        dest="expected_revision",
+        type=int,
+        required=True,
+        metavar="N",
+    )
+    progress_add.add_argument("--note", default=None)
+
+    _scheduling_effective_help = (
+        "Show placer inputs for one task (S1: legacy working hours and Time Maps; "
+        "General and Working policies are not scheduling-effective)"
+    )
+    sched_eff_p = tasks_sub.add_parser(
+        "scheduling-effective",
+        help=_scheduling_effective_help,
+        description=_scheduling_effective_help,
+    )
+    sched_eff_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
 
     complete_p = tasks_sub.add_parser("complete", help="Mark task complete")
     complete_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
@@ -184,6 +243,8 @@ def _optional_task_fields(args: argparse.Namespace, *, for_create: bool) -> dict
         ("due_at", "due_at"),
         ("priority", "priority"),
         ("estimated_duration_minutes", "estimated_duration_minutes"),
+        ("remaining_estimate_minutes", "remaining_estimate_minutes"),
+        ("expected_revision", "expected_revision"),
         ("description", "description"),
     )
     for arg_name, json_key in field_map:
@@ -202,7 +263,86 @@ def _optional_task_fields(args: argparse.Namespace, *, for_create: bool) -> dict
             message="Provide at least one field to patch",
             exit_code=1,
         )
+    remaining = body.get("remaining_estimate_minutes")
+    expected = body.get("expected_revision")
+    if remaining is not None and expected is None:
+        raise CliError(
+            code="INVALID_USAGE",
+            message="--expected-revision is required when patching --remaining-estimate-minutes",
+            exit_code=1,
+        )
+    if expected is not None and remaining is None:
+        body.pop("expected_revision", None)
+        if not for_create and not body:
+            raise CliError(
+                code="INVALID_USAGE",
+                message=(
+                    "--expected-revision applies only with --remaining-estimate-minutes; "
+                    "provide a field to patch"
+                ),
+                exit_code=1,
+            )
     return body
+
+
+def _progress_line(task: dict[str, Any]) -> str:
+    return (
+        f"progress: original={task.get('original_estimate_minutes')} "
+        f"worked={task.get('time_worked_minutes')} "
+        f"remaining={task.get('remaining_estimate_minutes')}"
+    )
+
+
+def _summarize_task(task: dict[str, Any]) -> None:
+    print(f"id: {task.get('id')}")
+    print(f"title: {task.get('title')}")
+    print(_progress_line(task))
+    for key in (
+        "is_completed",
+        "priority",
+        "due_at",
+        "estimated_duration_minutes",
+        "board_column",
+        "workflow_state",
+    ):
+        if key in task:
+            print(f"{key}: {task.get(key)}")
+
+
+def _summarize_task_list(body: dict[str, Any]) -> None:
+    total = body.get("total", 0)
+    print(f"total: {total}  limit: {body.get('limit')}  offset: {body.get('offset')}")
+    items = body.get("items") or []
+    if not items:
+        print("(no tasks)")
+        return
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = item.get("title", "")
+        tid = item.get("id", "?")
+        print(f"{tid}: {title}")
+        print(f"  {_progress_line(item)}")
+
+
+def _summarize_scheduling_effective(body: dict[str, Any]) -> None:
+    print(f"task_id: {body.get('task_id')}")
+    print(f"placement_effort_minutes: {body.get('placement_effort_minutes')}")
+    note = body.get("scheduling_effective_note")
+    if note:
+        print(f"scheduling_effective_note: {note}")
+    print(f"working_hours_placer_active: {body.get('working_hours_placer_active')}")
+    print(
+        f"general_policy_scheduling_effective: {body.get('general_policy_scheduling_effective')}"
+    )
+    sources = body.get("sources") or []
+    if sources:
+        print("sources:")
+        for source in sources:
+            if not isinstance(source, dict):
+                continue
+            active = "active" if source.get("placer_active") else "inactive"
+            print(f"  {source.get('kind')} ({active}): {source.get('label')}")
 
 
 def run_tasks(args: argparse.Namespace) -> None:
@@ -214,7 +354,11 @@ def run_tasks(args: argparse.Namespace) -> None:
             params=_list_params(args),
             persist_session=True,
         )
-        emit_ok(body or {})
+        payload = body or {}
+        if get_output_format() == "text":
+            _summarize_task_list(payload)
+            return
+        emit_ok(payload)
         return
     if cmd == "get":
         body = api_json(
@@ -222,7 +366,11 @@ def run_tasks(args: argparse.Namespace) -> None:
             f"/api/v1/tasks/{args.task_id}",
             persist_session=True,
         )
-        emit_ok(body or {})
+        payload = body or {}
+        if get_output_format() == "text":
+            _summarize_task(payload)
+            return
+        emit_ok(payload)
         return
     if cmd == "create":
         payload = _optional_task_fields(args, for_create=True)
@@ -243,6 +391,41 @@ def run_tasks(args: argparse.Namespace) -> None:
             persist_session=True,
         )
         emit_ok(body or {})
+        return
+    if cmd == "progress":
+        if args.progress_command != "add":
+            raise CliError(
+                code="INVALID_USAGE",
+                message=f"Unknown progress command: {args.progress_command}",
+                exit_code=1,
+            )
+        payload = {
+            "idempotency_key": args.idempotency_key,
+            "minutes_worked": args.minutes_worked,
+            "remaining_minutes": args.remaining_minutes,
+            "expected_revision": args.expected_revision,
+        }
+        if args.note is not None:
+            payload["note"] = args.note
+        body = api_json(
+            "POST",
+            f"/api/v1/tasks/{args.task_id}/progress-entries",
+            json_body=payload,
+            persist_session=True,
+        )
+        emit_ok(body or {})
+        return
+    if cmd == "scheduling-effective":
+        body = api_json(
+            "GET",
+            task_scheduling_effective_path(args.task_id),
+            persist_session=True,
+        )
+        payload = body or {}
+        if get_output_format() == "text":
+            _summarize_scheduling_effective(payload)
+            return
+        emit_ok(payload)
         return
     if cmd == "complete":
         body = api_json(

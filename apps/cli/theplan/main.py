@@ -21,6 +21,8 @@ from theplan.commands.schedule import register_schedule, run_schedule
 from theplan.commands.status import register_status, run_status
 from theplan.commands.tasks import register_tasks, run_tasks
 from theplan.commands.overrides import register_overrides, run_overrides
+from theplan.commands.settings import register_settings, run_settings
+from theplan.commands.availability import register_availability, run_availability
 from theplan.commands.views import register_views, run_views
 from theplan.errors import CliError
 from theplan.output import emit_ok, handle_cli_error, set_output_format
@@ -58,6 +60,8 @@ def _build_parser() -> argparse.ArgumentParser:
     register_schedule(sub)
     register_views(sub)
     register_overrides(sub)
+    register_settings(sub)
+    register_availability(sub)
 
     return parser
 
@@ -108,6 +112,12 @@ def _dispatch(args: argparse.Namespace) -> None:
         return
     if args.command == "overrides":
         run_overrides(args)
+        return
+    if args.command == "settings":
+        run_settings(args)
+        return
+    if args.command == "availability":
+        run_availability(args)
         return
     raise CliError(code="INVALID_USAGE", message=f"Unknown command: {args.command}", exit_code=1)
 
