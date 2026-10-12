@@ -29,6 +29,12 @@ import { EditEpicForm } from "./EditEpicForm";
 import { EditProjectForm } from "./EditProjectForm";
 import { ReorderButtons } from "./ReorderButtons";
 import { SettingsPanel } from "./SettingsPanel";
+import {
+  loadNavSectionCollapsed,
+  saveNavSectionCollapsed,
+  type NavSectionId,
+  type NavSectionCollapsed,
+} from "../navPrefs";
 
 const EXPAND_EPIC_EVENT = "theplan:expand-epic";
 
@@ -135,6 +141,15 @@ export function Sidebar({
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showCreateSavedView, setShowCreateSavedView] = useState(false);
+  const [sectionCollapsed, setSectionCollapsed] = useState<NavSectionCollapsed>(loadNavSectionCollapsed);
+
+  const toggleNavSection = (id: NavSectionId) => {
+    setSectionCollapsed((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      saveNavSectionCollapsed(next);
+      return next;
+    });
+  };
 
   const viewsQuery = useQuery({ queryKey: ["views"], queryFn: listViews });
   const userSavedViews = useMemo(() => {
@@ -404,7 +419,7 @@ export function Sidebar({
 
         <NavItem
           active={view.type === "labels"}
-          label="Labels"
+          label="Manage labels"
           mark="#"
           onClick={() => onSelectView({ type: "labels" })}
         />
@@ -422,63 +437,105 @@ export function Sidebar({
         />
 
         {labels.length > 0 && (
-          <>
-            <p className="nav-section-label">By label</p>
-            {labels.map((label) => (
-              <NavItem
-                key={label.id}
-                active={isLabelActive(label.id)}
-                label={label.name}
-                swatchColor={label.color_hex}
-                indent
-                onClick={() => onSelectView({ type: "label", labelId: label.id })}
-              />
-            ))}
-          </>
+          <div className="nav-collapsible-section">
+            <div className="nav-section-header">
+              <button
+                type="button"
+                className="nav-section-toggle"
+                aria-expanded={!sectionCollapsed.labels}
+                onClick={() => toggleNavSection("labels")}
+              >
+                <span className="nav-section-chevron" aria-hidden>
+                  {sectionCollapsed.labels ? "▸" : "▾"}
+                </span>
+                <span className="nav-section-label">Labels</span>
+              </button>
+            </div>
+            {!sectionCollapsed.labels &&
+              labels.map((label) => (
+                <NavItem
+                  key={label.id}
+                  active={isLabelActive(label.id)}
+                  label={label.name}
+                  swatchColor={label.color_hex}
+                  indent
+                  onClick={() => onSelectView({ type: "label", labelId: label.id })}
+                />
+              ))}
+          </div>
         )}
 
-        <div className="nav-section-header">
-          <p className="nav-section-label">Epics</p>
-          <button
-            type="button"
-            className="icon-btn tiny"
-            title="New epic"
-            onClick={() => setShowCreateEpic(true)}
-          >
-            +
-          </button>
+        <div className="nav-collapsible-section">
+          <div className="nav-section-header">
+            <button
+              type="button"
+              className="nav-section-toggle"
+              aria-expanded={!sectionCollapsed.epics}
+              onClick={() => toggleNavSection("epics")}
+            >
+              <span className="nav-section-chevron" aria-hidden>
+                {sectionCollapsed.epics ? "▸" : "▾"}
+              </span>
+              <span className="nav-section-label">Epics</span>
+            </button>
+            <button
+              type="button"
+              className="icon-btn tiny"
+              title="New epic"
+              onClick={() => setShowCreateEpic(true)}
+            >
+              +
+            </button>
+          </div>
+          {!sectionCollapsed.epics && (
+            <>
+              {epicsQuery.isLoading && <p className="muted small">Loading…</p>}
+              {epics.map(renderEpic)}
+            </>
+          )}
         </div>
-        {epicsQuery.isLoading && <p className="muted small">Loading…</p>}
-        {epics.map(renderEpic)}
 
-        <div className="nav-section-header">
-          <p className="nav-section-label">Projects</p>
-          <button
-            type="button"
-            className="icon-btn tiny"
-            title="New standalone project"
-            onClick={() => setCreateProjectEpicId(null)}
-          >
-            +
-          </button>
+        <div className="nav-collapsible-section">
+          <div className="nav-section-header">
+            <button
+              type="button"
+              className="nav-section-toggle"
+              aria-expanded={!sectionCollapsed.projects}
+              onClick={() => toggleNavSection("projects")}
+            >
+              <span className="nav-section-chevron" aria-hidden>
+                {sectionCollapsed.projects ? "▸" : "▾"}
+              </span>
+              <span className="nav-section-label">Projects</span>
+            </button>
+            <button
+              type="button"
+              className="icon-btn tiny"
+              title="New standalone project"
+              onClick={() => setCreateProjectEpicId(null)}
+            >
+              +
+            </button>
+          </div>
+          {!sectionCollapsed.projects &&
+            standaloneProjects.map((project) => (
+              <NavItem
+                key={project.id}
+                active={isProjectActive(project.id)}
+                label={project.title}
+                swatchColor={project.color_hex}
+                onClick={() => onSelectView({ type: "project", projectId: project.id })}
+                onEdit={() => setEditingProject(project)}
+                reorder={{
+                  canMoveUp: canReorderUp(standaloneProjects, project.id),
+                  canMoveDown: canReorderDown(standaloneProjects, project.id),
+                  onMoveUp: () => handleReorderProject(standaloneProjects, project.id, "up"),
+                  onMoveDown: () => handleReorderProject(standaloneProjects, project.id, "down"),
+                  pending: reorderProjectsMutation.isPending,
+                }}
+              />
+            ))}
         </div>
-        {standaloneProjects.map((project) => (
-          <NavItem
-            key={project.id}
-            active={isProjectActive(project.id)}
-            label={project.title}
-            swatchColor={project.color_hex}
-            onClick={() => onSelectView({ type: "project", projectId: project.id })}
-            onEdit={() => setEditingProject(project)}
-            reorder={{
-              canMoveUp: canReorderUp(standaloneProjects, project.id),
-              canMoveDown: canReorderDown(standaloneProjects, project.id),
-              onMoveUp: () => handleReorderProject(standaloneProjects, project.id, "up"),
-              onMoveDown: () => handleReorderProject(standaloneProjects, project.id, "down"),
-              pending: reorderProjectsMutation.isPending,
-            }}
-          />
-        ))}
       </nav>
 
       <footer className="sidebar-footer">

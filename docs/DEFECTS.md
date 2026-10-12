@@ -2,9 +2,9 @@
 
 **Filename:** DEFECTS.md
 
-**Last modified:** 2026-10-09
+**Last modified:** 2026-10-12
 
-**File version:** 1.1
+**File version:** 1.2
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
@@ -1021,3 +1021,31 @@ Epic, project, and section patch handlers in the current local tree already incl
 - A task patch with title and description sends both fields.
 - Task create retains its existing title handling; an empty patch still fails.
 - Confirm the corrected CLI is installed where Julie will run it before retrying the lab renames.
+
+---
+
+## DEF-031 — List → calendar drag does not make sense in current shell
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (misleading affordance / incomplete W2c UX; not data loss) |
+| **Status** | Open |
+| **Found** | 2026-10-12 (Trish) |
+| **Surface** | TaskList ⠿ handle, `CalendarView` drop, `App.tsx` shell layout |
+| **Wave** | Backlog — post-R3 tidy / calendar UX; not urgent |
+
+### Symptom
+
+On a project/list screen, task rows show a ⠿ handle with tooltip **“Drag to calendar to schedule.”** The handle starts an HTML5 drag (`application/x-theplan-task-calendar-drag`). The only drop targets are Calendar day-slot columns (`CalendarDayColumn` → `CalendarView.handleTaskDrop`), which create a scheduled block. The sidebar **Calendar** nav link is not a drop target.
+
+The app shell shows **List OR Calendar** as mutually exclusive main panes (`App.tsx`). While the operator is on the list, the calendar grid is not mounted — the gesture cannot complete from that screen. Desktop-only (`!isNarrow`). [USER-GUIDE](./USER-GUIDE.md) and cal-hint copy also assume list and calendar are visible together.
+
+### Expected
+
+The affordance is honest and usable: the operator can schedule from the list without a dead-end drag, or the UI does not promise a drop target that is unreachable from the current view.
+
+Design options (pick one coherent path; do not prescribe here): split or list+calendar layout; park drag until Calendar is open with a reachable source; change tooltip and offer **Schedule…** that opens Calendar or a modal; or another operator-valid flow.
+
+### Notes
+
+Trish confirmed context 2026-10-12. Cross-ref: [USER-GUIDE — Drag and drop](./USER-GUIDE.md#drag-and-drop).

@@ -91,6 +91,7 @@
 .shell.nav-collapsed .nav-edit-btn,
 .shell.nav-collapsed .nav-reorder-btns,
 .shell.nav-collapsed .nav-section-header .icon-btn,
+.shell.nav-collapsed .nav-section-toggle,
 .shell.nav-collapsed .epic-header .icon-btn.tiny:not(.expand-btn),
 .sidebar.is-collapsed .brand-name,
 .sidebar.is-collapsed .nav-section-label,
@@ -100,6 +101,7 @@
 .sidebar.is-collapsed .nav-edit-btn,
 .sidebar.is-collapsed .nav-reorder-btns,
 .sidebar.is-collapsed .nav-section-header .icon-btn,
+.sidebar.is-collapsed .nav-section-toggle,
 .sidebar.is-collapsed .epic-header .icon-btn.tiny:not(.expand-btn) {
   display: none;
 }
@@ -234,6 +236,47 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 0.5rem;
+  gap: 0.25rem;
+}
+
+.nav-section-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.nav-section-toggle .nav-section-label {
+  margin: 0.75rem 0 0.35rem;
+}
+
+.nav-section-chevron {
+  display: inline-flex;
+  width: 0.85rem;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-top: 0.4rem;
+}
+
+.nav-section-toggle:hover .nav-section-label,
+.nav-section-toggle:hover .nav-section-chevron {
+  color: var(--text);
+}
+
+.nav-section-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
 .nav-item {

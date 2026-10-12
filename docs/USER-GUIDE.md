@@ -149,7 +149,7 @@ The **Workbench shell** (R3 UI refresh) is three regions on desktop: **collapsib
 | **Labels** | Label CRUD |
 | **Archived** | Archived epics and projects (restore here) |
 | **Trash** | Soft-deleted tasks (restore or purge) |
-| **By label** | Sidebar links when labels exist |
+| **Labels** (sidebar section) | Collapsible list of label filters when labels exist; **Manage labels** opens the label editor |
 | **Saved view** | Sidebar entries you create; filters and list/board mode persist |
 | **Epic / project** | Filtered task lists; epic view groups by project |
 
@@ -297,7 +297,7 @@ Label tokens in quick-add are not shipped; use task detail or Labels.
 
 Deleting a label can reassign tasks to other labels you check first.
 
-Toggle labels on tasks in the detail panel; **By label** filters lists.
+Toggle labels on tasks in the detail panel; the sidebar **Labels** section filters lists (collapse it to reach **Epics** / **Projects** faster).
 
 ---
 
@@ -349,7 +349,7 @@ Opening a preview does not move committed placements. Editing tasks can invalida
 
 | Gesture | Where |
 |---------|--------|
-| **⠿ handle** on a task row | Drag onto calendar grid → creates a block at drop time (uses task duration) |
+| **⠿ handle** on a task row | Drag onto calendar grid → creates a block at drop time (uses task duration). *Shell caveat:* list and calendar are not shown together today — see [DEF-031](./DEFECTS.md#def-031--list--calendar-drag-does-not-make-sense-in-current-shell). |
 | **Block / due marker** | Drag to move; drag edges to resize (desktop day/week; narrow screens may prefer the modal) |
 
 ### Update Schedule
