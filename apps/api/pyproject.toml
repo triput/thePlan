@@ -9,7 +9,7 @@ dependencies = [
     "sqlalchemy==2.0.51",
     "alembic==1.14.0",
     "psycopg[binary]==3.2.13",
-    "pydantic-settings==2.7.0",
+    "pydantic-settings==2.14.2",
     "python-dateutil==2.9.0.post0",
 ]
 
