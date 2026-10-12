@@ -236,12 +236,14 @@ def seeded(client: TestClient, db_session: Session) -> Seeded:
         {"open_id": open_id, "completed_id": completed_id, "trashed_id": trashed_id},
     )
 
+    db_session.refresh(settings)
     progress = client.post(
         f"/api/v1/tasks/{logged_id}/progress-entries",
         json={
             "idempotency_key": str(uuid.uuid4()),
             "minutes_worked": 4,
             "remaining_minutes": 12,
+            "expected_revision": settings.scheduling_revision,
         },
     )
     assert progress.status_code == 200, progress.text

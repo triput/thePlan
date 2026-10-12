@@ -1,4 +1,10 @@
-"""Availability policy read/update (S1 config-only except Working → workweek mirrors)."""
+"""Availability policy read/update (S1 config-only).
+
+Working windows update deprecated ``workweek_*`` mirrors only when the pattern
+is Monday-first and same-hours. A shifted contiguous pattern is stored on the
+policy and does not retarget the legacy placer. ``scheduling_effective`` stays
+false either way. Ambiguous, gapped, and mixed-hours patterns are still rejected.
+"""
 
 from __future__ import annotations
 
@@ -80,11 +86,21 @@ def _build_windows(
     return built
 
 
-def _sync_workweek_from_working_windows(settings: UserSettings, windows: list[AvailabilityWindow]) -> None:
-    """Keep deprecated workweek_* coherent while Working is Mon-first same-hours."""
+def _sync_workweek_from_working_windows(settings: UserSettings, windows: list[AvailabilityWindow]) -> bool:
+    """Update deprecated workweek_* only for a Monday-first same-hours pattern.
+
+    ``is_workday`` treats ``workweek_days`` as Monday through N (``weekday() < N``).
+    A Tuesday–Saturday block is contiguous and same-hours, but writing ``N = 5``
+    would make Monday eligible and Saturday excluded. That pattern is stored on
+    the Working policy and left config-only: this returns False and does not
+    change ``workweek_days``, ``workday_start_local``, or ``workday_minutes``.
+
+    Ambiguous, noncontiguous, and heterogeneous patterns still reject. Those
+    writes roll back with the request, so legacy eligibility is unchanged.
+    """
     if not windows:
         settings.workweek_days = 0
-        return
+        return True
     by_weekday: dict[int, AvailabilityWindow] = {}
     for window in windows:
         if window.weekday in by_weekday:
@@ -109,10 +125,15 @@ def _sync_workweek_from_working_windows(settings: UserSettings, windows: list[Av
             "Working policy must use the same start and duration on each day for S1 mirror sync",
             "WORKING_POLICY_HETEROGENEOUS",
         )
+    # Legacy mirror is Monday-first only. Contiguous blocks that start later
+    # (Tue–Sat, weekend-only) cannot round-trip through workweek_days.
+    if weekdays != list(range(len(weekdays))):
+        return False
     anchor = by_weekday[weekdays[0]]
     settings.workweek_days = len(weekdays)
     settings.workday_start_local = anchor.start_time
     settings.workday_minutes = anchor.duration_minutes
+    return True
 
 
 def update_policy(
@@ -147,8 +168,8 @@ def update_policy(
 
     if policy.slug == AvailabilityPolicySlug.work and body.windows is not None:
         settings = get_or_provision_user_settings(db, user)
-        _sync_workweek_from_working_windows(settings, list(policy.windows))
-        if scheduling_settings is not None:
+        mirrored = _sync_workweek_from_working_windows(settings, list(policy.windows))
+        if mirrored and scheduling_settings is not None:
             increment_scheduling_revision(db, scheduling_settings)
 
     db.flush()

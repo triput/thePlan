@@ -5,12 +5,17 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
-from app.models import Task, TaskProgressEntry, User
-from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+from app.models import Task, TaskProgressEntry, User, UserSettings
+from app.services.scheduling_revision import (
+    assert_scheduling_revision,
+    increment_scheduling_revision,
+    lock_owner_scheduling,
+)
 
 
 @dataclass(frozen=True)
@@ -30,17 +35,41 @@ def _intent_from_entry(entry: TaskProgressEntry) -> ProgressIntent:
     )
 
 
-def _assert_scheduling_revision(settings_revision: int, expected: int | None) -> None:
-    if expected is None:
-        return
-    if settings_revision != expected:
+def _lookup_idempotency_entry(
+    db: Session,
+    owner_id: uuid.UUID,
+    idempotency_key: uuid.UUID,
+) -> TaskProgressEntry | None:
+    return (
+        db.query(TaskProgressEntry)
+        .filter(
+            TaskProgressEntry.owner_id == owner_id,
+            TaskProgressEntry.idempotency_key == idempotency_key,
+        )
+        .one_or_none()
+    )
+
+
+def _assert_idempotency_intent(existing: TaskProgressEntry, intent: ProgressIntent) -> None:
+    stored = _intent_from_entry(existing)
+    if (
+        stored.task_id != intent.task_id
+        or stored.minutes_worked != intent.minutes_worked
+        or stored.remaining_minutes != intent.remaining_minutes
+        or stored.note != intent.note
+    ):
         raise ApiError(
             409,
-            "Scheduling inputs changed since this action was prepared",
-            "SCHEDULING_REVISION_CONFLICT",
-            expected_revision=expected,
-            current_revision=settings_revision,
+            "Idempotency key already used with a different payload",
+            "IDEMPOTENCY_KEY_REUSE",
         )
+
+
+def _replay_progress_entry(
+    settings: UserSettings,
+    existing: TaskProgressEntry,
+) -> tuple[TaskProgressEntry, int, bool]:
+    return existing, int(settings.scheduling_revision), True
 
 
 def append_progress_entry(
@@ -51,7 +80,7 @@ def append_progress_entry(
     idempotency_key: uuid.UUID,
     minutes_worked: int,
     remaining_minutes: int,
-    expected_revision: int | None,
+    expected_revision: int,
     note: str | None,
 ) -> tuple[TaskProgressEntry, int, bool]:
     """Return (entry, scheduling_revision_after, replayed)."""
@@ -67,37 +96,28 @@ def append_progress_entry(
         note=note,
     )
 
-    existing = (
-        db.query(TaskProgressEntry)
-        .filter(
-            TaskProgressEntry.owner_id == user.id,
-            TaskProgressEntry.idempotency_key == idempotency_key,
-        )
-        .one_or_none()
-    )
+    existing = _lookup_idempotency_entry(db, user.id, idempotency_key)
     if existing is not None:
-        stored = _intent_from_entry(existing)
-        if (
-            stored.task_id != intent.task_id
-            or stored.minutes_worked != intent.minutes_worked
-            or stored.remaining_minutes != intent.remaining_minutes
-            or stored.note != intent.note
-        ):
-            raise ApiError(
-                409,
-                "Idempotency key already used with a different payload",
-                "IDEMPOTENCY_KEY_REUSE",
-            )
+        _assert_idempotency_intent(existing, intent)
         settings = lock_owner_scheduling(db, user.id)
-        return existing, int(settings.scheduling_revision), True
+        return _replay_progress_entry(settings, existing)
 
     settings = lock_owner_scheduling(db, user.id)
-    _assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+
+    # Same-key retries can arrive while the first write still holds this lock.
+    # Re-read after the lock so a waiter sees the committed row and replays.
+    existing = _lookup_idempotency_entry(db, user.id, idempotency_key)
+    if existing is not None:
+        _assert_idempotency_intent(existing, intent)
+        return _replay_progress_entry(settings, existing)
+
+    assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
 
     locked_task = (
         db.query(Task)
         .filter(Task.id == task.id, Task.owner_id == user.id)
         .with_for_update()
+        .populate_existing()
         .one()
     )
 
@@ -114,32 +134,21 @@ def append_progress_entry(
         db.flush()
     except IntegrityError:
         db.rollback()
-        raced = (
-            db.query(TaskProgressEntry)
-            .filter(
-                TaskProgressEntry.owner_id == user.id,
-                TaskProgressEntry.idempotency_key == idempotency_key,
-            )
-            .one_or_none()
-        )
+        settings = lock_owner_scheduling(db, user.id)
+        raced = _lookup_idempotency_entry(db, user.id, idempotency_key)
         if raced is None:
             raise
-        stored = _intent_from_entry(raced)
-        if (
-            stored.task_id != intent.task_id
-            or stored.minutes_worked != intent.minutes_worked
-            or stored.remaining_minutes != intent.remaining_minutes
-            or stored.note != intent.note
-        ):
-            raise ApiError(
-                409,
-                "Idempotency key already used with a different payload",
-                "IDEMPOTENCY_KEY_REUSE",
-            ) from None
-        settings = lock_owner_scheduling(db, user.id)
-        return raced, int(settings.scheduling_revision), True
+        _assert_idempotency_intent(raced, intent)
+        return _replay_progress_entry(settings, raced)
 
-    locked_task.worked_minutes = int(locked_task.worked_minutes) + minutes_worked
-    locked_task.remaining_minutes = remaining_minutes
+    db.execute(
+        update(Task)
+        .where(Task.id == locked_task.id, Task.owner_id == user.id)
+        .values(
+            worked_minutes=Task.worked_minutes + minutes_worked,
+            remaining_minutes=remaining_minutes,
+        )
+    )
+    db.refresh(locked_task)
     revision = increment_scheduling_revision(db, settings)
     return entry, revision, False

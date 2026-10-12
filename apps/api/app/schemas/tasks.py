@@ -85,6 +85,7 @@ class TaskUpdate(BaseModel):
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int | None = None
     remaining_estimate_minutes: int | None = Field(default=None, ge=0)
+    expected_revision: int | None = Field(default=None, ge=0)
     min_block_duration_minutes: int | None = Field(default=None, gt=0)
     max_block_duration_minutes: int | None = Field(default=None, gt=0)
     max_block_unbounded: bool | None = None

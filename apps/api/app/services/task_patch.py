@@ -19,6 +19,7 @@ from app.services.ownership import (
     verify_owned_task,
 )
 from app.services.scheduling_revision import (
+    assert_scheduling_revision,
     increment_scheduling_revision,
     lock_owner_scheduling,
     task_patch_touches_scheduling,
@@ -110,6 +111,7 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     soft_target_at = updates.pop("soft_target_at", MISSING)
     plan_id = updates.pop("plan_id", MISSING)
     remaining_estimate = updates.pop("remaining_estimate_minutes", MISSING)
+    expected_revision = updates.pop("expected_revision", MISSING)
     section_explicit = "section_id" in updates
 
     reject_chunking_cutover_writes(updates)
@@ -143,6 +145,14 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     scheduling_settings = (
         lock_owner_scheduling(db, task.owner_id) if touches_scheduling else None
     )
+
+    if remaining_estimate is not MISSING:
+        if scheduling_settings is None:
+            scheduling_settings = lock_owner_scheduling(db, task.owner_id)
+        assert_scheduling_revision(
+            int(scheduling_settings.scheduling_revision),
+            None if expected_revision is MISSING else expected_revision,
+        )
 
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()

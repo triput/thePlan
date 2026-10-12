@@ -4,7 +4,7 @@
 #  Component: Replan Preview
 #  Version: 1.0
 #  Created: 2026-10-09
-#  Last Update: 2026-10-10
+#  Last Update: 2026-10-12
 # ==============================================================================
 
 from __future__ import annotations
@@ -14,9 +14,28 @@ from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.api.errors import ApiError
 from app.models import UserSettings
 
 _OWNER_LOCK_NAMESPACE = 1_886_415_951
+
+
+def assert_scheduling_revision(settings_revision: int, expected: int | None) -> None:
+    """Reject missing or stale scheduling_revision tokens (F6 / §1.2)."""
+    if expected is None:
+        raise ApiError(
+            422,
+            "expected_revision is required for this operation",
+            "SCHEDULING_REVISION_REQUIRED",
+        )
+    if settings_revision != expected:
+        raise ApiError(
+            409,
+            "Scheduling inputs changed since this action was prepared",
+            "SCHEDULING_REVISION_CONFLICT",
+            expected_revision=expected,
+            current_revision=settings_revision,
+        )
 
 
 def owner_scheduling_lock_key(owner_id: UUID) -> int:

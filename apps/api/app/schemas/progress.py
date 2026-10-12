@@ -8,7 +8,7 @@ class TaskProgressEntryCreate(BaseModel):
     idempotency_key: UUID
     minutes_worked: int = Field(gt=0)
     remaining_minutes: int = Field(ge=0)
-    expected_revision: int | None = Field(default=None, ge=0)
+    expected_revision: int = Field(ge=0)
     note: str | None = Field(default=None, max_length=2000)
 
 
