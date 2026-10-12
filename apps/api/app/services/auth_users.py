@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.api.errors import ApiError
 from app.bootstrap import BOOTSTRAP_USER_ID, SYSTEM_FILTERS
 from app.models import SavedFilter, User, UserSettings
+from app.services.availability_seed import ensure_default_availability_policies
 from app.services.focus_windows import ensure_default_focus_windows
 from app.services.passwords import hash_password
 
@@ -86,6 +87,7 @@ def provision_user_settings_and_filters(db: Session, user_id: uuid.UUID) -> None
             )
 
     ensure_default_focus_windows(db, user_id)
+    ensure_default_availability_policies(db, user_id)
 
 
 def get_or_provision_user_settings(db: Session, user: User) -> UserSettings:

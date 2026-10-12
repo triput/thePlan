@@ -20,6 +20,8 @@ from app.services.schedule_explanations import latest_for_task, page_for_run, st
 from app.services.schedule_preview_dispatch import admit_preview, dispatch_preview
 from app.services.schedule_preview_apply import apply_schedule_preview
 from app.services.schedule_previews import preview_to_dict, refresh_preview_staleness
+from app.schemas.task_scheduling import TaskSchedulingEffectiveOut
+from app.services.task_scheduling_effective import build_task_scheduling_effective
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 task_schedule_router = APIRouter(prefix="/tasks", tags=["schedule"])
@@ -153,6 +155,21 @@ def get_run_stale_summary(
     """
     run = _get_owned_run(db, run_id, user)
     return stale_summary_for_run(db, run)
+
+
+@task_schedule_router.get(
+    "/{task_id}/scheduling/effective",
+    response_model=TaskSchedulingEffectiveOut,
+)
+def get_task_scheduling_effective(
+    task_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TaskSchedulingEffectiveOut:
+    task = db.get(Task, task_id)
+    if task is None or task.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    return build_task_scheduling_effective(db, user, task)
 
 
 @task_schedule_router.get(

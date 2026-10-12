@@ -35,6 +35,7 @@ from app.services.task_dependencies import (
     load_dependency_edges,
 )
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+from app.services.task_effort_init import initialize_task_effort_on_create
 from app.services.task_helpers import resolve_nesting_level
 
 
@@ -652,12 +653,12 @@ def apply_handoff(
                         nesting_level=nesting,
                         priority=entity.priority,
                         sort_order=entity.sort_order,
-                        estimated_duration_minutes=entity.estimated_duration_minutes,
                         due_at=entity.due_at,
                         deadline_at=entity.deadline_at,
                         schedule_style=style,
                         source_refs=task_source_refs,
                     )
+                    initialize_task_effort_on_create(task, entity.estimated_duration_minutes)
                     db.add(task)
                     db.flush()
                     label_ids, _ = _ensure_labels(db, user, entity.label_names)

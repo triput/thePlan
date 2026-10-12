@@ -115,7 +115,20 @@ from app.schemas.outlines import (
     OutlineProposeSummary,
 )
 from app.schemas.search import SearchLabelOut, SearchTaskOut
+from app.schemas.availability import (
+    AvailabilityPolicyEffectiveOut,
+    AvailabilityPolicyOut,
+    AvailabilityPolicyUpdate,
+    AvailabilityWindowIn,
+    AvailabilityWindowOut,
+)
+from app.schemas.progress import (
+    TaskProgressApplyResult,
+    TaskProgressEntryCreate,
+    TaskProgressEntryOut,
+)
 from app.schemas.settings import UserSettingsOut, UserSettingsUpdate
+from app.schemas.task_scheduling import TaskSchedulingEffectiveOut
 from app.schemas.time_map_overrides import (
     TimeMapOverrideCreate,
     TimeMapOverrideOut,
@@ -142,6 +155,11 @@ from app.schemas.tasks import (
 __all__ = [
     "AssistAction",
     "AssistApplyRequest",
+    "AvailabilityPolicyEffectiveOut",
+    "AvailabilityPolicyOut",
+    "AvailabilityPolicyUpdate",
+    "AvailabilityWindowIn",
+    "AvailabilityWindowOut",
     "AssistApplyResponse",
     "AssistApplyResultItem",
     "AssistCreateProjectAction",
@@ -249,6 +267,10 @@ __all__ = [
     "TaskDependencyOut",
     "TaskCreate",
     "TaskOut",
+    "TaskProgressApplyResult",
+    "TaskProgressEntryCreate",
+    "TaskProgressEntryOut",
+    "TaskSchedulingEffectiveOut",
     "TaskPromoteToProjectBody",
     "TaskPromoteToProjectOut",
     "TaskUpdate",

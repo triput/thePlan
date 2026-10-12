@@ -19,6 +19,7 @@ from app.scheduler.candidates import (
 )
 from app.scheduler.collect import SchedulingInputs
 from app.scheduler.placement import ProposedBlock, ProjectDailyUsage, place_one_block
+from app.scheduler.task_effort import placement_effort_minutes
 from app.scheduler.reasons import (
     REASON_BLOCKED_DEPENDENCY_CYCLE,
     REASON_BLOCKED_PREREQUISITE,
@@ -206,7 +207,7 @@ def _remaining_including_external_blockers(
             merged[task.id] = 0
             continue
         pinned = pinned_minutes_from_blocks(pins_by_task.get(task.id, []))
-        merged[task.id] = max(0, task.estimated_duration_minutes - pinned)
+        merged[task.id] = max(0, placement_effort_minutes(task) - pinned)
     for blocker_id in missing:
         merged.setdefault(blocker_id, 0)
     return merged

@@ -11,6 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api.routes import (
     auth,
     assist,
+    availability_policies,
     calendar,
     epics,
     focus_windows,
@@ -129,6 +130,7 @@ def create_app() -> FastAPI:
     api_router.include_router(calendar.router)
     api_router.include_router(search.router)
     api_router.include_router(settings_routes.router)
+    api_router.include_router(availability_policies.router)
     api_router.include_router(views.router)
     app.include_router(api_router)
     _maybe_mount_web(app)

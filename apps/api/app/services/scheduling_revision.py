@@ -48,6 +48,11 @@ TASK_SCHEDULING_PATCH_FIELDS = frozenset(
         "due_at",
         "deadline_at",
         "estimated_duration_minutes",
+        "remaining_minutes",
+        "min_block_duration_minutes",
+        "max_block_duration_minutes",
+        "max_block_unbounded",
+        "keep_in_one_block",
         "preferred_time_window_id",
         "schedule_style",
     }

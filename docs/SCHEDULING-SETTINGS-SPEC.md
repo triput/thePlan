@@ -11,7 +11,7 @@
 
 # Scheduling and Settings pass
 
-**Status: approved product contract for the next version's Scheduling/Settings pass** (Trish, 2026-10-12). **Not** implementation authorization by itself: **Dependency Hygiene** must exit before **S1**; no dependent implementation was started by this documentation stamp. **Decision ledger and rationale:** [Dex discovery review v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md).
+**Status: approved product contract for the next version's Scheduling/Settings pass** (Trish, 2026-10-12). Hygiene **exited** 2026-10-12; **S1 first slice** (contract §10) **landed** with Renee Quality **PASS** on migration tests (§10 item 7) — [delivery/0.7-S1-FIRST-SLICE-2026-10-12.md](delivery/0.7-S1-FIRST-SLICE-2026-10-12.md). **Full S1 / 0.7.0 train not Closed/shipped.** **Decision ledger and rationale:** [Dex discovery review v1.18](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md).
 
 **Version (locked Trish 2026-10-12):** product SemVer **`0.7.0`** for this Scheduling/Settings train (subtitle OK: “Scheduling & Settings”). Micro follow-ups may ship as **`0.7.x`** (e.g. `0.7.5`). Path to **`1.0`:** on the order of three more major chunks after this train — not a promise of calendar dates. Hygiene starting tip = commit that opens **`0.7.0`** work and aligns API/CLI/web/desktop to a **single shared product version** (retire today’s `0.0.0` / `0.1.0` disagreement); tip SHA when hygiene opens.
 
@@ -326,7 +326,7 @@ All rows initially **Open**. Renee should keep automated evidence separate from 
 | --- | --- |
 | S0 Discovery | **Exit:** Trish-approved product contract (this spec + [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md)). Jim: schema/API + **migration contract** (progress init, in-progress pins, legacy block defaults/inheritance) before dependent S1. Renee: fixtures including A1/A2 and expanded rows. **Version locked:** **`0.7.0`**. |
 | Hygiene | Dependency Hygiene for **`0.7.0`** exits before **S1**; align package/web/desktop versions to shared product version source; record tip SHA. |
-| S1 Shared foundations | Availability/duration/rule schemas, validation, revisions, compatibility migration, effective resolution, General availability. Full API + **full CLI** contracts together — **no** early partial map CRUD slice. Migration and negative-input tests pass. |
+| S1 Shared foundations | Availability/duration/rule schemas, validation, revisions, compatibility migration, effective resolution, General availability. Full API + **full CLI** contracts together — **no** early partial map CRUD slice. Migration and negative-input tests pass. **In progress:** first vertical (**`028_availability_progress`**, API bridge) — §10 item 7 Quality **PASS** 2026-10-12; remainder + full CLI/UI still Open. |
 | S2 Scheduler and explanation | Composition, scoped exceptions, normal ranking, day-scoped ops, context/travel (event allowances; matrix deferred), DST/overnight/split, chunking/progress, buffer policy verification (SS-30). SS-04–15, 25–27 automated where applicable. |
 | S3 UI and CLI parity | Focused Settings sections including **About** (product version); task review surfaces; **complete CLI** over same services; context configuration homes (defaults, presets, declarations) in UI + CLI. Installed-CLI integration evidence; version string parity UI/CLI/API. |
 | S4 Assist and integrated acceptance | Assist on Llama 3.2; conversational proposal/apply; full Julie scenario; collaborator receipts/handoff; regression and operator acceptance. Optional **Make it pretty** only if post–normal-scheduling go/no-go selects it — not required for core closure. Unfinished matrix rows remain Open in docs. |
@@ -352,6 +352,6 @@ May/Must/Prefer composition; General availability; purpose defaults; **Change se
 
 ## 13. Handoff and completion
 
-S0 product discovery is **closed** at the contract level. Next engineering handoff: migration/schema packet and hygiene exit, then S1. A capability is **shipped** only when UI, API, full CLI, Assist (where in scope), migration, explanations, and acceptance evidence agree per phase gates — defects in [DEFECTS.md](DEFECTS.md) stay **Open** until Quality evidence.
+S0 product discovery is **closed** at the contract level. Hygiene **exited**; S1 **first slice** implemented with migration-test Quality PASS — see [0.7-S1-FIRST-SLICE-2026-10-12.md](delivery/0.7-S1-FIRST-SLICE-2026-10-12.md). **S2** cutover and full S1/UI/CLI parity remain the active engineering path. A capability is **shipped** only when UI, API, full CLI, Assist (where in scope), migration, explanations, and acceptance evidence agree per phase gates — defects in [DEFECTS.md](DEFECTS.md) stay **Open** until Quality evidence.
 
-Record phased exclusions (travel matrix, w/mo effort, errand suggestions, optional refinement if deferred) explicitly. This stamp does not authorize deployment, live configuration changes, commits, or implementation start without hygiene and S1 planning.
+Record phased exclusions (travel matrix, w/mo effort, errand suggestions, optional refinement if deferred) explicitly. Operator migrate to **`028`** is required before live DB picks up S1 schema; household DBs may still be at **`027`** until then.

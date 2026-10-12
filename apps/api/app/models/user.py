@@ -31,6 +31,10 @@ class User(Base, TimestampMixin):
 
     settings: Mapped["UserSettings"] = relationship(back_populates="owner", uselist=False)
     saved_filters: Mapped[list["SavedFilter"]] = relationship(back_populates="owner")
+    availability_policies: Mapped[list["AvailabilityPolicy"]] = relationship(
+        back_populates="owner",
+        order_by="AvailabilityPolicy.sort_order",
+    )
 
 
 class UserSettings(Base, TimestampMixin):
@@ -43,6 +47,10 @@ class UserSettings(Base, TimestampMixin):
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, server_default="UTC")
     locale: Mapped[str] = mapped_column(String(16), nullable=False, server_default="en-US")
     workday_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="480")
+    # Nominal effort conversion. Not an availability window and not a fingerprint input.
+    nominal_workday_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=480, server_default="480"
+    )
     workday_start_local: Mapped[time] = mapped_column(
         Time, nullable=False, server_default="08:00:00"
     )
@@ -59,6 +67,13 @@ class UserSettings(Base, TimestampMixin):
     )
     default_min_block_duration_minutes: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default="15"
+    )
+    default_max_block_duration_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=120, server_default="120"
+    )
+    # User-level No limit. Distinct from a null task max (inherit) and from 0.
+    default_max_block_unbounded: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
     )
     default_schedule_style: Mapped[ScheduleStyle] = mapped_column(
         SAEnum(ScheduleStyle, name="schedule_style", native_enum=True),

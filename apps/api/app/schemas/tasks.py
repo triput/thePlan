@@ -84,6 +84,11 @@ class TaskUpdate(BaseModel):
     deadline_at: datetime | None = None
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int | None = None
+    remaining_estimate_minutes: int | None = Field(default=None, ge=0)
+    min_block_duration_minutes: int | None = Field(default=None, gt=0)
+    max_block_duration_minutes: int | None = Field(default=None, gt=0)
+    max_block_unbounded: bool | None = None
+    keep_in_one_block: bool | None = None
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
     schedule_style: ScheduleStyle | None = None
@@ -125,6 +130,9 @@ class TaskOut(BaseModel):
     deadline_at: datetime | None
     soft_target_at: datetime | None
     estimated_duration_minutes: int
+    original_estimate_minutes: int
+    time_worked_minutes: int
+    remaining_estimate_minutes: int
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
     plan_name: str | None = None

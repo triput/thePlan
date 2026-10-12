@@ -1,7 +1,9 @@
 """SQLAlchemy ORM models — domain modules with barrel re-exports."""
 
+from app.models.availability import AvailabilityPolicy, AvailabilityWindow
 from app.models.calendar import CalendarAccount, CalendarSubscription, ExternalCalendarEvent
 from app.models.enums import (
+    AvailabilityPolicySlug,
     CalendarProvider,
     CalendarSubscriptionRole,
     ReminderChannel,
@@ -15,7 +17,14 @@ from app.models.hierarchy import Epic, FocusWindow, Plan, Project, Section, Time
 from app.models.label import Label, TaskLabel
 from app.models.mixins import TimestampMixin
 from app.models.schedule import SchedulePreview, ScheduleRun, ScheduleTaskOutcome
-from app.models.task import RecurrenceRule, Reminder, ScheduledBlock, Task, TaskDependency
+from app.models.task import (
+    RecurrenceRule,
+    Reminder,
+    ScheduledBlock,
+    Task,
+    TaskDependency,
+    TaskProgressEntry,
+)
 from app.models.time_map_override import TimeMapOverride, TimeMapOverrideBand
 from app.models.user import SavedFilter, User, UserSettings
 
@@ -23,6 +32,9 @@ __all__ = [
     "CalendarAccount",
     "CalendarProvider",
     "CalendarSubscription",
+    "AvailabilityPolicy",
+    "AvailabilityPolicySlug",
+    "AvailabilityWindow",
     "CalendarSubscriptionRole",
     "Epic",
     "ExternalCalendarEvent",
@@ -45,6 +57,7 @@ __all__ = [
     "Task",
     "TaskDependency",
     "TaskLabel",
+    "TaskProgressEntry",
     "TaskPriority",
     "TimeMapBand",
     "TimeMapBandTier",

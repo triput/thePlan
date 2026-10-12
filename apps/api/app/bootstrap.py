@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models import SavedFilter, User, UserSettings
+from app.services.availability_seed import ensure_default_availability_policies
 from app.services.focus_windows import ensure_default_focus_windows
 from app.services.saved_filter_v1 import (
     INBOX_PREDICATE_V1,
@@ -56,6 +57,7 @@ def ensure_bootstrap_user(db: Session, *, commit: bool = True) -> User:
             )
 
     ensure_default_focus_windows(db, user.id)
+    ensure_default_availability_policies(db, user.id)
 
     if commit:
         db.commit()

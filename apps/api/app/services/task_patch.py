@@ -23,7 +23,13 @@ from app.services.scheduling_revision import (
     lock_owner_scheduling,
     task_patch_touches_scheduling,
 )
+from app.services.task_chunking_guard import reject_chunking_cutover_writes
 from app.services.task_helpers import collect_descendant_ids, resolve_nesting_level
+
+_ORIGINAL_ESTIMATE_MSG = (
+    "Original estimate is immutable after progress tracking shipped. "
+    "Update remaining_estimate_minutes or POST progress-entries instead."
+)
 
 # Sentinel for "field omitted" vs explicit null on soft_target_at / plan_id.
 MISSING = object()
@@ -103,7 +109,32 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     label_ids = updates.pop("label_ids", None)
     soft_target_at = updates.pop("soft_target_at", MISSING)
     plan_id = updates.pop("plan_id", MISSING)
+    remaining_estimate = updates.pop("remaining_estimate_minutes", MISSING)
     section_explicit = "section_id" in updates
+
+    reject_chunking_cutover_writes(updates)
+
+    if "estimated_duration_minutes" in updates:
+        new_estimate = updates["estimated_duration_minutes"]
+        if new_estimate is not None and new_estimate != task.estimated_duration_minutes:
+            raise ApiError(422, _ORIGINAL_ESTIMATE_MSG, "ORIGINAL_ESTIMATE_IMMUTABLE")
+        updates.pop("estimated_duration_minutes", None)
+
+    if remaining_estimate is not MISSING:
+        if remaining_estimate is None:
+            raise ApiError(
+                422,
+                "remaining_estimate_minutes cannot be cleared",
+                "INVALID_REMAINING_MINUTES",
+            )
+        if remaining_estimate < 0:
+            raise ApiError(
+                422,
+                "remaining_estimate_minutes must be non-negative",
+                "INVALID_REMAINING_MINUTES",
+            )
+        updates["remaining_minutes"] = remaining_estimate
+
     touches_scheduling = task_patch_touches_scheduling(
         updates,
         plan_touched=plan_id is not MISSING,

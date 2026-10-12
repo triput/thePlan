@@ -2,6 +2,7 @@
 
 ## [0.7.0] — Unreleased / in progress (Scheduling / Settings)
 
+- **S1 first slice — Quality 2026-10-12:** Alembic **`028_availability_progress`**; S1→S2 API bridge (progress columns + atomic progress path, availability policies **config-only**, chunking-write reject, original-estimate reject, remaining read shim). Renee exit — **12** API pytest on disposable DB **`theplan_s1_test`** ([`test_s1_migration_contract.py`](apps/api/tests/test_s1_migration_contract.py)) — [0.7-S0-MIGRATION-CONTRACT.md](docs/delivery/0.7-S0-MIGRATION-CONTRACT.md) §10 item 7 / [0.7-S1-FIRST-SLICE-2026-10-12.md](docs/delivery/0.7-S1-FIRST-SLICE-2026-10-12.md). **S1 not Closed** (remaining foundations + full CLI/UI per spec §11); household DB still at **`027`** until operator migrate; **S2** cutover and SS-30 execution **Open**
 - **Hygiene exit 2026-10-12:** Dependency Hygiene **Exit / pass** — version **0.7.0**, Pydantic 2.14.x reconcile, safe web batch, Compose smoke; FastAPI/Starlette/SQLAlchemy 2.1/TS7/optional desktop+crypto/psycopg **held** — [HYGIENE-0.7.md](docs/HYGIENE-0.7.md)
 - **S0 buffer approved / S1 unblocked 2026-10-12:** [0.7-S0-MIGRATION-CONTRACT.md](docs/delivery/0.7-S0-MIGRATION-CONTRACT.md) **v1.3** — Trish explicit approve of SS-30 §6.1; Dex ledger **v1.18** (R1–R3 closed)
 - **S0 migration contract:** [0.7-S0-MIGRATION-CONTRACT.md](docs/delivery/0.7-S0-MIGRATION-CONTRACT.md) **v1.2→v1.3** — progress init, pins, legacy bounds, Working/General seed; Dex R1–R3 (chunking activation at S2, reject original-field writes, atomic progress, buffer approved)

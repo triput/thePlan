@@ -14,6 +14,7 @@ from app.scheduler.reasons import (
     REASON_EXCLUDED_LIFECYCLE_TRASHED,
 )
 from app.scheduler.style import effective_schedule_style, effective_schedule_style_source
+from app.scheduler.task_effort import placement_effort_minutes
 
 
 @dataclass(frozen=True)
@@ -109,7 +110,8 @@ def load_candidates(
             pinned_minutes = pinned_minutes_by_task.get(task.id, 0)
         else:
             pinned_minutes = pinned_minutes_for_task(db, task.id)
-        remaining = task.estimated_duration_minutes - pinned_minutes
+        effort = placement_effort_minutes(task)
+        remaining = effort - pinned_minutes
         if remaining > 0:
             candidates.append(TaskCandidate(task=task, remaining_minutes=remaining))
     return candidates
@@ -177,7 +179,7 @@ def load_excluded_tasks(
             pinned_minutes = pinned_minutes_by_task.get(task.id, 0)
         else:
             pinned_minutes = pinned_minutes_for_task(db, task.id)
-        requested = task.estimated_duration_minutes
+        requested = placement_effort_minutes(task)
         remaining = requested - pinned_minutes
         if style in {ScheduleStyle.bundle, ScheduleStyle.manual}:
             excluded.append(

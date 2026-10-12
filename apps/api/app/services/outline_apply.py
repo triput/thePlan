@@ -181,6 +181,8 @@ def _apply_one(
         if estimated is None:
             estimated = default_estimated
 
+        from app.services.task_effort_init import initialize_task_effort_on_create
+
         task = Task(
             owner_id=user.id,
             title=action.title.strip(),
@@ -189,8 +191,8 @@ def _apply_one(
             section_id=section_id,
             priority=TaskPriority.p4,
             sort_order=action.sort_order,
-            estimated_duration_minutes=estimated,
         )
+        initialize_task_effort_on_create(task, estimated)
         db.add(task)
         db.flush()
         for label_id in label_ids:

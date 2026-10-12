@@ -28,6 +28,7 @@ from app.schemas import (
     TaskPromoteToProjectOut,
     TaskUpdate,
 )
+from app.schemas.progress import TaskProgressApplyResult, TaskProgressEntryCreate, TaskProgressEntryOut
 from app.services.auth_users import get_or_provision_user_settings
 from app.services.bundle_blocks import shrink_bundle_blocks_for_completed_members
 from app.services.hierarchy_promote import promote_task_to_project
@@ -54,6 +55,8 @@ from app.services.task_helpers import (
     restore_task_subtree,
     soft_delete_task_subtree,
 )
+from app.services.task_effort_init import initialize_task_effort_on_create
+from app.services.task_progress import append_progress_entry
 from app.services.task_workflow import board_column_for_task, transition_task_workflow
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 from app.services.task_patch import (
@@ -138,6 +141,9 @@ def task_to_out(
             plan_name = plan.name if plan is not None else None
     mapper = sa_inspect(Task)
     payload = {attr.key: getattr(task, attr.key) for attr in mapper.column_attrs}
+    remaining = task.remaining_minutes
+    if remaining is None:
+        remaining = task.estimated_duration_minutes
     payload.update(
         {
             "board_column": board_column_for_task(task),
@@ -147,6 +153,9 @@ def task_to_out(
             "recurrence_advanced": recurrence_advanced,
             "previous_due_at": previous_due_at,
             "plan_name": plan_name,
+            "original_estimate_minutes": task.estimated_duration_minutes,
+            "time_worked_minutes": task.worked_minutes,
+            "remaining_estimate_minutes": remaining,
         }
     )
     return TaskOut.model_validate(payload)
@@ -360,12 +369,12 @@ def create_task(
         due_at=body.due_at,
         deadline_at=body.deadline_at,
         soft_target_at=soft_target_at,
-        estimated_duration_minutes=estimated_duration_minutes,
         preferred_time_window_id=body.preferred_time_window_id,
         plan_id=body.plan_id,
         schedule_style=body.schedule_style,
         board_rank=next_board_rank(db, user.id),
     )
+    initialize_task_effort_on_create(task, estimated_duration_minutes)
     db.add(task)
     db.flush()
 
@@ -433,6 +442,39 @@ def empty_trash(
     """Permanently delete soft-deleted tasks for the current user."""
     empty_trash_for_user(db, user.id, older_than_days=older_than_days)
     db.commit()
+
+
+@router.post("/{task_id}/progress-entries", response_model=TaskProgressApplyResult)
+def create_task_progress_entry(
+    task_id: UUID,
+    body: TaskProgressEntryCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TaskProgressApplyResult:
+    task = _get_owned_task(db, task_id, user)
+    entry, scheduling_revision, replayed = append_progress_entry(
+        db,
+        user,
+        task,
+        idempotency_key=body.idempotency_key,
+        minutes_worked=body.minutes_worked,
+        remaining_minutes=body.remaining_minutes,
+        expected_revision=body.expected_revision,
+        note=body.note,
+    )
+    db.commit()
+    task = _get_owned_task(db, task_id, user)
+    remaining = task.remaining_minutes
+    if remaining is None:
+        remaining = task.estimated_duration_minutes
+    return TaskProgressApplyResult(
+        entry=TaskProgressEntryOut.model_validate(entry),
+        original_estimate_minutes=task.estimated_duration_minutes,
+        time_worked_minutes=task.worked_minutes,
+        remaining_estimate_minutes=remaining,
+        scheduling_revision=scheduling_revision,
+        replayed=replayed,
+    )
 
 
 @router.get("/{task_id}", response_model=TaskOut)

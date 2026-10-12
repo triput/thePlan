@@ -157,6 +157,7 @@
 - [x] Compose smoke (api/web/scheduler rebuild, no tunnel) — **2026-10-12** / commit `5d32ec8`
 - [x] Hygiene **exit / pass** — 2026-10-12; FastAPI/Starlette/SQLAlchemy 2.1 / TS7 / optional desktop+crypto/psycopg **held**
 - [x] S1 planning/implementation — **unblocked** after [0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md) (large S1 code waits Trish non-objection to contract)
+- [x] S1 **first slice** (contract §10) — schema **`028`** + bridge; Renee **PASS** on §10 item 7 only — [0.7-S1-FIRST-SLICE-2026-10-12.md](./delivery/0.7-S1-FIRST-SLICE-2026-10-12.md) (**S1 not Closed**; operator DB may still be **`027`**)
 - [ ] Desktop: `@tauri-apps/cli` → 2.12.x + sidecar smoke (**optional / held**)
 - [ ] API optional minors: cryptography, psycopg (**optional / held**)
 - [ ] Optional CVE deep scan — deferred

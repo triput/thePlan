@@ -16,7 +16,7 @@ Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W2c poli
 
 **Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). **W2c** parked (after W3 or as fallout). **W3 cut locked 2026-08-12:** Account → MS Calendar → Tauri; see [Wave 3](#wave-3--w3--w4--cut-locked-2026-08-12).
 
-**Next train — 0.7.0 Scheduling / Settings (2026-10-12):** Dependency Hygiene **exited** — [HYGIENE-0.7.md](./HYGIENE-0.7.md) (start `ef838bc…`, smoke `5d32ec8…`); product contract [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) v1.4.3 / Dex v1.16; pre-S1 packet [0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md). **S1** scheduler foundations unblocked for planning/implementation; Settings About in **S3**.
+**Next train — 0.7.0 Scheduling / Settings (2026-10-12):** Dependency Hygiene **exited** — [HYGIENE-0.7.md](./HYGIENE-0.7.md) (start `ef838bc…`, smoke `5d32ec8…`); product contract [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) v1.4.4 / Dex v1.18; pre-S1 packet [0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md) **v1.4**. **S1 first slice** — Alembic **`028_availability_progress`** + API bridge; contract §10 item 7 **Quality PASS** — [0.7-S1-FIRST-SLICE-2026-10-12.md](./delivery/0.7-S1-FIRST-SLICE-2026-10-12.md). **S1 foundations in progress** toward **S2** (not Closed/shipped); Settings About in **S3**.
 
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 

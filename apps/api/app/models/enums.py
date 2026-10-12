@@ -58,3 +58,11 @@ class TimeMapBandTier(str, enum.Enum):
     green = "green"
     yellow = "yellow"
     red = "red"
+
+
+class AvailabilityPolicySlug(str, enum.Enum):
+    """Stable availability policy identities. Display names are separate."""
+
+    general = "general"
+    work = "work"
+    personal = "personal"

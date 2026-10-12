@@ -9,6 +9,7 @@ from sqlalchemy import (
     Date,
     Enum as SAEnum,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     String,
@@ -38,6 +39,24 @@ class Task(Base, TimestampMixin):
         CheckConstraint(
             "section_id IS NULL OR project_id IS NOT NULL",
             name="task_section_project_consistency",
+        ),
+        CheckConstraint(
+            "min_block_duration_minutes IS NULL OR min_block_duration_minutes > 0",
+            name="tasks_min_block_duration_positive",
+        ),
+        CheckConstraint(
+            "max_block_duration_minutes IS NULL OR max_block_duration_minutes > 0",
+            name="tasks_max_block_duration_positive",
+        ),
+        CheckConstraint(
+            "min_block_duration_minutes IS NULL OR max_block_duration_minutes IS NULL "
+            "OR max_block_unbounded OR max_block_duration_minutes >= min_block_duration_minutes",
+            name="tasks_block_bounds_order",
+        ),
+        CheckConstraint("worked_minutes >= 0", name="tasks_worked_minutes_nonnegative"),
+        CheckConstraint(
+            "remaining_minutes IS NULL OR remaining_minutes >= 0",
+            name="tasks_remaining_minutes_nonnegative",
         ),
         Index("idx_tasks_owner", "owner_id"),
         Index("idx_tasks_project", "project_id"),
@@ -74,8 +93,25 @@ class Task(Base, TimestampMixin):
     nesting_level: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     estimated_duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="30")
-    min_block_duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="15")
-    max_block_duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="120")
+    # NULL = inherit that bound (S2). Omitted inserts stay explicit via server defaults.
+    # 028 does not rewrite stored 15/120 (or any other integer) to NULL.
+    min_block_duration_minutes: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, server_default="15"
+    )
+    max_block_duration_minutes: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, server_default="120"
+    )
+    max_block_unbounded: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    keep_in_one_block: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    worked_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    # NULL only as a mid-deploy fallback. Seed and create set a real remaining.
+    remaining_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     due_at: Mapped[datetime | None] = mapped_column()
     deadline_at: Mapped[datetime | None] = mapped_column()
     soft_target_at: Mapped[datetime | None] = mapped_column()
@@ -116,6 +152,11 @@ class Task(Base, TimestampMixin):
     )
     reminders: Mapped[list["Reminder"]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
+    )
+    progress_entries: Mapped[list["TaskProgressEntry"]] = relationship(
+        back_populates="task",
+        order_by="TaskProgressEntry.created_at",
+        passive_deletes=True,
     )
 
 
@@ -220,3 +261,75 @@ class Reminder(Base, TimestampMixin):
     is_fired: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
 
     task: Mapped["Task"] = relationship(back_populates="reminders")
+
+
+class TaskProgressEntry(Base):
+    """Append-only worked entry. A correction is a new row, not an update.
+
+    ``028`` seeds zero rows. ``idempotency_key`` is a UUID, same as handoff
+    receipts. Same key replays; Jules compares stored minutes, remaining, and
+    note for intent conflicts. ``corrects_entry_id`` points at the entry this
+    row corrects and must be the same task and owner.
+    """
+
+    __tablename__ = "task_progress_entries"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "idempotency_key",
+            name="uq_task_progress_entries_owner_idempotency",
+        ),
+        # Target for the composite correction FK. id is already the primary key;
+        # Postgres still requires a unique constraint that covers every referenced column.
+        UniqueConstraint(
+            "id",
+            "task_id",
+            "owner_id",
+            name="uq_task_progress_entries_id_task_owner",
+        ),
+        ForeignKeyConstraint(
+            ["corrects_entry_id", "task_id", "owner_id"],
+            [
+                "task_progress_entries.id",
+                "task_progress_entries.task_id",
+                "task_progress_entries.owner_id",
+            ],
+            name="task_progress_entries_correction_same_task",
+            ondelete="NO ACTION",
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        CheckConstraint(
+            "minutes_worked > 0",
+            name="task_progress_entries_minutes_positive",
+        ),
+        CheckConstraint(
+            "remaining_minutes >= 0",
+            name="task_progress_entries_remaining_nonnegative",
+        ),
+        Index("idx_task_progress_entries_owner", "owner_id"),
+        Index("idx_task_progress_entries_task_created", "task_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    task_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False
+    )
+    idempotency_key: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    minutes_worked: Mapped[int] = mapped_column(Integer, nullable=False)
+    remaining_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    note: Mapped[str | None] = mapped_column(Text)
+    corrects_entry_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    task: Mapped["Task"] = relationship(
+        back_populates="progress_entries",
+        foreign_keys="TaskProgressEntry.task_id",
+    )
+    corrects_entry: Mapped["TaskProgressEntry | None"] = relationship(
+        remote_side="TaskProgressEntry.id",
+        foreign_keys="TaskProgressEntry.corrects_entry_id",
+    )
