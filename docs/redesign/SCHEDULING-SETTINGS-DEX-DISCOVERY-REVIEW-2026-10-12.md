@@ -3,7 +3,7 @@
   File: docs/redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md
   Description: Dex discovery review and decision clarifications for Jim.
   Component: Scheduling / Settings
-  Version: 1.16 (Optional refinement release boundary clarified)
+  Version: 1.17 (S0 packet v1.1 recheck findings added)
   Created: 2026-10-12
   Last Update: 2026-10-12
 ==============================================================================
@@ -12,11 +12,32 @@
 # Scheduling / Settings: Dex discovery review
 
 **For:** Jim and the team; Trish retains product decisions.
-**Status:** Trish approved the recommendations and follow-on decisions below on 2026-10-12. Product decisions are approved; existing discovery, hygiene, and implementation gates remain in force.
+**Status:** The product decisions through v1.16 were approved by Trish on 2026-10-12. The v1.17 S0 recheck below records unresolved review findings, not additional product approval. Existing discovery, hygiene, and implementation gates remain in force.
 **Working plan:** `C:\Users\trish\.cursor\plans\scheduling_settings_discovery_ce6c2e9b.plan.md`
-**Related spec:** [Scheduling / Settings spec](../SCHEDULING-SETTINGS-SPEC.md), v1.4 (approved product contract; stamped from this handoff).
+**Related spec:** [Scheduling / Settings spec](../SCHEDULING-SETTINGS-SPEC.md), v1.4.4 (approved product contract; stamped from this handoff).
 
 ## Assessment
+
+### S0 packet v1.1 recheck — 2026-10-12 (open findings)
+
+**Reviewed:** [0.7-S0-MIGRATION-CONTRACT.md](../delivery/0.7-S0-MIGRATION-CONTRACT.md), v1.1, against the approved decisions, plan/spec gates, and relevant existing source readers. This is a contract/source cross-check, not an implementation test run. The packet is substantially improved but the recheck is not yet closed.
+
+| Original finding | Recheck result |
+| --- | --- |
+| S1→S2 compatibility bridge | Partial: resolver/rejection path specified, but reader coverage and activation timing still conflict. |
+| Original-estimate protection | Mostly resolved: remove the option to ignore legacy estimate edits and clarify activation timing. |
+| Atomic worked entry plus confirmed remaining | Pass at contract level: one idempotent operation, stale revision rejection, separate remaining-only edit. |
+| Pre-S1 buffer policy/test plan versus S2 evidence | Sequencing fixed; concrete answers proposed, but approval by silence is not valid. |
+
+**R1 — Complete the compatibility bridge and choose one activation point.** Packet §3.1 allows inherit/No limit/keep-in-one to affect placement in S1; §7 says chunking arrives in S2. The bridge must cover every reader, not placement alone. Existing `apps/api/app/scheduler/outcomes.py` supplies raw task bounds to `input_fingerprint.py`, whose duration snapshot converts them with `int()`; nullable bounds can therefore break snapshot generation even after placement is fixed. Either reject unsupported writes until S2, or support all readers and actual placement semantics in S1. A numeric bounds resolver alone cannot enforce keep-in-one. Protect previews through revision handling when new scheduling-relevant writes become available, rather than waiting only for v4 cutover. Recheck expectations: one consistent activation contract; inherited/unbounded bounds safe through calculation and snapshots; keep-in-one genuinely enforced when writable; affected old previews rejected after supported edits.
+
+**R2 — Reject, do not ignore, original-estimate edits.** Packet §1 says “Reject or ignore” legacy field writes. Require rejection with the documented error, so an older client cannot report success for an estimate change that never happened. Define the start of immutability consistently: the preceding table says migration, while later wording says cutover. Update supported everyday estimate edits to the remaining-work operation at that same boundary. Recheck expectations: stale clients receive an actionable rejection, supported clients change remaining without overwriting original, and the transition timing is explicit.
+
+**R3 — Buffer policy needs explicit approval; clarify order independence.** Packet §6 proposes good concrete answers but says to treat them as settled unless Trish objects. Keep them proposed until approved. Dex recommends buffers on both sides of fixed busy time, between same-task split blocks as well as different tasks, and travel satisfying required separation without a second full buffer. This recommendation is not Trish's approval. Define order independence as enforcement of required minimum separation regardless of placement/insertion order, not identical gaps or an identical schedule after changing task priorities. Pre-S1 policy/test-plan and S2 execution-evidence sequencing are otherwise correct.
+
+**Status cleanup:** At review, the Cursor plan still listed formal hygiene exit pending while `HYGIENE-0.7.md` recorded Exit / pass. Reconcile the status; this is not a new engineering blocker or a request to rerun smoke.
+
+**Requested disposition:** Jim/Tesla/Jules resolve R1–R2 in the contract; present the buffer policy for Trish's explicit decision and correct its order-independence wording. Preserve the already-resolved atomic progress contract. No broad product redesign is requested.
 
 The discovery plan is coherent. The earlier four clarifications are captured: distinct nominal workday conversion, explicit context delivery homes, hygiene and installed-CLI sequencing, and honest limits for any partial map CRUD release. Ambiguous calendar events remain busy-only without invented commute or location.
 

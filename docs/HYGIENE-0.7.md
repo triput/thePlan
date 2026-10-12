@@ -6,8 +6,8 @@
 **Recorded for:** **0.7.0 Scheduling/Settings** train after R3 / F-series freeze; **S1** unblocked for planning/implementation after [0.7-S0-MIGRATION-CONTRACT.md](./delivery/0.7-S0-MIGRATION-CONTRACT.md)  
 **Hygiene tip SHA (start):** `ef838bc5f71e29e30d1ca17feda11088c8cedfd9` (`main` @ `cursor/main`)  
 **Compose smoke docs SHA:** `5d32ec8bdc7fc4d6f6893efbeb3adc722b8908a7`  
-**Hygiene exit SHA:** `2dbe3214fd0c376a7c6a4565d9cd4b70eb354bc3`  
-**Product locks:** Dex discovery **v1.16**; [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) **v1.4.3**  
+**Hygiene exit SHA:** `f18e48783122c352f7fc794800c02cd2b1bdf5f6`  
+**Product locks:** Dex discovery **v1.17** (product through v1.16); [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) **v1.4.4**  
 **Basis:** [HYGIENE-W3.md](./HYGIENE-W3.md) + [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) + live pin / outdated audit 2026-10-12
 
 ## Applied this exit (2026-10-12)
