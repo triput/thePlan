@@ -34,9 +34,11 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) | W2 dependency hygiene quick scan (gate exited) |
 | [HYGIENE-W3.md](./HYGIENE-W3.md) | W3 entry full hygiene (gate exited 2026-08-12) |
 | [HYGIENE-R4-QUICKSCAN.md](./HYGIENE-R4-QUICKSCAN.md) | Round 4 dependency hygiene quick scan (2026-08-27) |
+| [HYGIENE-0.7.md](./HYGIENE-0.7.md) | **0.7.0** Scheduling/Settings hygiene entry (open 2026-10-12; gates S1) |
 | [USER-GUIDE.md](./USER-GUIDE.md) | Operator guide — Compose, auth/recovery CLI, batch & calendar, Assist, trash/archive |
 | [guides/QUICK-START.md](./guides/QUICK-START.md) | Guest quick start — live instance UI tour (no ops/setup) |
 | [guides/AGENT-COURSE-IMPORT.md](./guides/AGENT-COURSE-IMPORT.md) | Julie-facing course import through the CLI; reusable workflow, verification, and handoff template |
+| [guides/COLLABORATIVE-PLANNING-WORKFLOW.md](./guides/COLLABORATIVE-PLANNING-WORKFLOW.md) | Approved baseline for human-led planning, decision capture, reconciliation, and evidence-based delivery; open to refinement |
 | [CLOUDFLARE-TUNNEL.md](./CLOUDFLARE-TUNNEL.md) | Optional Cloudflare Tunnel (+ Access) for remote access |
 | [MICROSOFT-CALENDAR.md](./MICROSOFT-CALENDAR.md) | Microsoft Calendar Entra app setup (W3 Slice 2) |
 | [DESKTOP.md](./DESKTOP.md) | Tauri desktop prove-it operator note (W3 Slice 3) |
@@ -44,6 +46,15 @@ Product documentation package written for Wave 1 (MVP); kept as the baseline for
 | [CHANGELOG.md](../CHANGELOG.md) | Release history (root) |
 
 **Status:** Wave 1 exited **2026-08-10**. Wave 1.5 exited **2026-08-10** ([WAVE-1.5-EXIT.md](./WAVE-1.5-EXIT.md)); W1.6 shipped. **W2a/W2b core complete.** **W2c parked.** **W3 Slice 1–3 shipped.** **W3+ SLM Assist + Theme F outline ingest shipped** — [ADR-010](./adr/ADR-010-slm-assist.md), [ADR-011](./adr/ADR-011-templates-outline-ingest.md) — system map [09-technical-architecture.md](./09-technical-architecture.md) — [07-wave-roadmap.md](./07-wave-roadmap.md).
+
+## Scheduling / Settings pass (next version)
+
+| Document | Description |
+|----------|-------------|
+| [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) | Approved product contract (v1.4.3) — **0.7.0** Scheduling/Settings pass; About/version; acceptance matrix |
+| [redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md](./redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) | Dex discovery decision ledger (v1.16) — rationale and fixtures |
+
+Traces [DEF-032–033, DEF-036–041](./DEFECTS.md). Hygiene entry open — [HYGIENE-0.7.md](./HYGIENE-0.7.md); gates S1. Implementation not started by the documentation stamp alone.
 
 ## Dev
 

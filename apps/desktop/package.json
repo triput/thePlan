@@ -1,7 +1,7 @@
 {
   "name": "theplan-desktop",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.7.0",
   "description": "thePlan Tauri 2 desktop shell (W3 Slice 3 prove-it)",
   "scripts": {
     "build:web": "node ./scripts/build-web.mjs",

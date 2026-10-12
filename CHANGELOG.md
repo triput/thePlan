@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0] — Unreleased / in progress (Scheduling / Settings)
+
+- **Train open 2026-10-12:** product version **0.7.0**; Dependency Hygiene entry — tip `ef838bc5f71e29e30d1ca17feda11088c8cedfd9`; full wave record [HYGIENE-0.7.md](docs/HYGIENE-0.7.md) (no blind dep upgrades this turn)
+- **Product contract locked:** Dex discovery **v1.16** + [SCHEDULING-SETTINGS-SPEC.md](docs/SCHEDULING-SETTINGS-SPEC.md) **v1.4.3** — eligibility/ranking, General availability, chunking/progress, context presets, buffer verification this pass; Settings **About** deferred to **S3**
+- **Version alignment:** api / cli / web / desktop product strings synced to **0.7.0** (shared SoT follow-up in hygiene doc)
+- **Prior Unreleased piles below** (R3, F7, F2, F1, W2c, W3, …) remain historical in-progress notes absorbed into the 0.7.0 line until cut; do not treat them as a separate release
+
 ## [Unreleased] — R3 Midnight Workbench UI (shipped 2026-10-11)
 
 - **R3 Slices 0–3 (web):** Capability inventory ([R3-CAPABILITY-INVENTORY](docs/redesign/R3-CAPABILITY-INVENTORY.md)); Workbench tokens + default **Dark** preset; collapsible desktop sidebar rail; list/board shell restyle; shared **support dock** (calendar idle, **Preview schedule changes**, task details); dirty-edit navigation guards; quieter calendar Time Map bands with **Preferred / Acceptable / Excluded** tiers preserved; **Preview changes** vs **Update Schedule** unchanged; Windows **Ctrl** labels in help — [R3-WORKBENCH-2026-10-11](docs/delivery/R3-WORKBENCH-2026-10-11.md), [USER-GUIDE](docs/USER-GUIDE.md)

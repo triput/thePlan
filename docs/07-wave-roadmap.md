@@ -16,6 +16,8 @@ Feature waves (MVP → W1.5 → W1.6 → W2a GCal → W2b Scheduler → W2c poli
 
 **Post-1.5 build order (locked):** Google Calendar (W2a) → Scheduler (W2b). **W2c** parked (after W3 or as fallout). **W3 cut locked 2026-08-12:** Account → MS Calendar → Tauri; see [Wave 3](#wave-3--w3--w4--cut-locked-2026-08-12).
 
+**Next train — 0.7.0 Scheduling / Settings (2026-10-12):** Dependency Hygiene open — [HYGIENE-0.7.md](./HYGIENE-0.7.md) (tip `ef838bc…`); product contract [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) v1.4.3 / Dex v1.16. Hygiene exits before **S1** scheduler foundations; Settings About in **S3**.
+
 Dependency Hygiene is a gate: feature work for a new version does not start until hygiene exits or a documented quick-scan pass is recorded.
 
 ---
@@ -372,6 +374,7 @@ Run before each major version's feature waves:
 - [x] W1.6 entry: quick-scan only (reuse W1.5 pins unless drift found) — exited with W1.6 ship 2026-08-10
 - [x] W2 entry: quick-scan — [HYGIENE-W2-QUICKSCAN.md](./HYGIENE-W2-QUICKSCAN.md) (2026-08-10)
 - [x] **W3 entry: full hygiene** — [HYGIENE-W3.md](./HYGIENE-W3.md) (2026-08-12); cloudflared pinned to `2026.7.3`
+- [ ] **0.7.0 entry: full hygiene** — [HYGIENE-0.7.md](./HYGIENE-0.7.md) (opened 2026-10-12; tip `ef838bc5f71e29e30d1ca17feda11088c8cedfd9`) — exit before S1
 
 ---
 

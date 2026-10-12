@@ -83,7 +83,7 @@ async def lifespan(_: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="thePlan API", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="thePlan API", version="0.7.0", lifespan=lifespan)
     register_exception_handlers(app)
 
     app.add_middleware(PasswordChangeGateMiddleware)

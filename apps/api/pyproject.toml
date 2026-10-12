@@ -1,6 +1,6 @@
 [project]
 name = "theplan-api"
-version = "0.1.0"
+version = "0.7.0"
 description = "Personal task + scheduling API (Wave 0 scaffold)"
 requires-python = ">=3.11"
 dependencies = [

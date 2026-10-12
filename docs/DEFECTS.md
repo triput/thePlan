@@ -4,7 +4,7 @@
 
 **Last modified:** 2026-10-12
 
-**File version:** 1.2
+**File version:** 1.8
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
@@ -1049,3 +1049,292 @@ Design options (pick one coherent path; do not prescribe here): split or list+ca
 ### Notes
 
 Trish confirmed context 2026-10-12. Cross-ref: [USER-GUIDE — Drag and drop](./USER-GUIDE.md#drag-and-drop).
+
+---
+
+## DEF-032 — Human-friendly duration entry (not raw minutes everywhere)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (operator friction / mental math on every duration field; not data loss) |
+| **Status** | Open |
+| **Found** | 2026-10-12 (Trish) |
+| **Surface** | Settings scheduling defaults; task detail duration; calendar/block duration; list metadata display; any other minute-only entry/display |
+| **Wave** | Backlog — UX duration entry; storage can remain minutes |
+
+### Symptom
+
+Durations and related scheduling quantities are entered and shown almost entirely as **minutes**. That is fine for short clips; for anything beyond an hour or two it forces wetware math (e.g. workday length, default task duration, buffers, max auto-schedule per project per day).
+
+### Expected
+
+Operators can enter and read durations in **human-friendly units**: months / weeks / days / hours / minutes (composites such as `1d 2h 30m` or structured fields). Values still persist in the existing minute-based API fields unless a later schema change is explicitly scoped. Display should prefer readable units when values are large.
+
+### Notes
+
+Trish 2026-10-12: “Minutes and seconds are lovely for computers… not so great for wetware folks dealing with anything beyond an hour or two.” Scope includes Settings and in-app UI entry paths, not necessarily CLI in the first cut.
+
+Related Settings/calendar subitem: [DEF-036](#def-036--distinguish-effort-elapsed-days-and-workday-units). Support both day and workday explicitly; do not silently convert calendar months or variable-length workdays to fixed minutes without a defined interpretation.
+
+---
+
+## DEF-033 — Settings IA: what belongs in Settings vs elsewhere
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (discoverability / information architecture; not data loss) |
+| **Status** | Open — IA/product grouping approved in spec §6; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish) |
+| **Surface** | Settings panel; sidebar (**Manage labels**, Archived, Trash, Time Maps, etc.); other “management” surfaces |
+| **Wave** | Next version Scheduling/Settings pass (S3 UI parity) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4.3 §6 (incl. **About**), §10 SS-23; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### Symptom
+
+Some operator configuration and management lives outside Settings (example: **Manage labels** in the sidebar). Other controls sit in Settings. The split is hard to predict, and it is unclear whether Settings should grow into a fuller set of user options.
+
+### Expected
+
+A deliberate pass on Settings information architecture: inventory what is configured today, decide what belongs in Settings vs contextual/sidebar management, and whether to expand user options (preferences, defaults, account, calendars, themes, labels, Time Maps, etc.) into a coherent Settings home. Document the decision before a large UI move.
+
+### Notes
+
+Trish 2026-10-12: revisit Settings; things that “should be in settings” appear elsewhere (labels called out); consider a more extensive set of user options. Design/discovery first — not a blind merge of every sidebar link into the modal.
+
+### Availability and scheduling subitems
+
+**Approved contract:** [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4.3 (2026-10-12); decision ledger [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md). Product version **`0.7.0`**. Focused Settings sections/tabs (incl. About), General availability, configurable defaults, full delivery sequence S0–S4 + hygiene before S1. DEF-033 and linked DEFs remain **Open** until Quality evidence — not Closed by documentation stamp.
+
+Trish's explicit UI requirement: Settings must use tabs or equivalent focused section navigation, not a single monolithic page. Defaults must be user-configurable. Preserve drafts across section navigation and support direct contextual entry, keyboard access, and narrow screens.
+
+**About (S3, same Settings pass):** Include an About section/tab showing the official product SemVer (**`0.7.0`** locked for this train; micro-passes `0.7.x`) from a single shared source, with CLI/API/web/desktop identity agreeing. Hygiene entry **2026-10-12** synced literals to **0.7.0** ([HYGIENE-0.7.md](./HYGIENE-0.7.md)); shared SoT + on-page About still deferred to S3.
+
+Treat these as related requirements within the general Settings discussion **and** calendar/scheduling design:
+
+- [DEF-036](#def-036--distinguish-effort-elapsed-days-and-workday-units): explicit day/workday meanings, extending DEF-032 duration entry.
+- [DEF-037](#def-037--configurable-working-days-hours-and-changing-schedules): chosen working days and hours, plus dated schedule changes.
+- [DEF-038](#def-038--separate-weekdayweekend-placement-from-working-day-availability): business and personal placement without a global workweek veto.
+- [DEF-039](#def-039--assist-guided-scheduling-preferences-and-combined-rules): conversational setup, review, and explainable conflict handling.
+- [DEF-040](#def-040--cli-scheduling-configuration-parity-for-julie): complete supported CLI workflow, including Julie's end-to-end acceptance scenario.
+- [DEF-041](#def-041--context-modes-defaults-and-planned-locationresource-availability): reusable contexts, calendar/travel interactions, and activity alignment.
+
+Product discovery for this pass is closed at contract level; implementation remains gated (hygiene → S1). These entries do not authorize a scheduler rewrite outside the approved spec.
+
+---
+
+## DEF-034 — Unscheduled support list: breadcrumbs / tooltips for same-named tasks
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P3** (ambiguity when many tasks share titles across projects) |
+| **Status** | Open |
+| **Found** | 2026-10-12 (Trish) |
+| **Surface** | Calendar support dock — **Unscheduled in horizon** (`CalendarSupportIdle`, sample from `CalendarView`) |
+| **Wave** | Backlog — calendar support polish |
+
+### Symptom
+
+The unscheduled sample shows **title only**. Duplicate or near-duplicate names (common in coursework imports) are indistinguishable. No hover tooltip or breadcrumb (epic → project → section).
+
+### Expected
+
+Hover (and accessible name) exposes enough context to tell tasks apart — at minimum project (and ideally epic/section) breadcrumb. Optionally show a short breadcrumb under the title in the list itself when space allows.
+
+### Notes
+
+Trish 2026-10-12: support panel is useful, but same-named tasks from different projects need breadcrumbs on hover. Snapshot today is `{ id, title }` only — needs richer task context when building the sample.
+
+---
+
+## DEF-035 — Unscheduled support list cannot drag onto calendar (copy lies)
+
+| Field | Value |
+|-------|--------|
+| **Severity** | **P2** (dead-end affordance; same class of bug as DEF-031) |
+| **Status** | Open |
+| **Found** | 2026-10-12 (Trish) |
+| **Surface** | Calendar support **Unscheduled in horizon** pills; calendar footer hint; related to [DEF-031](#def-031--list--calendar-drag-does-not-make-sense-in-current-shell) |
+| **Wave** | Backlog — calendar support + drag UX (pair with DEF-031) |
+
+### Symptom
+
+On Calendar, the support list shows unscheduled tasks as title buttons. Click opens task details only — **not** HTML5 drag onto the day grid. Footer and “N more — drag from the task list…” copy tell the operator to drag from the list, but (a) these pills are not draggable, and (b) the task list is not on screen while Calendar is open (DEF-031).
+
+### Expected
+
+A coherent action path from this panel: e.g. make sample rows draggable onto the grid (same MIME as list ⠿), and/or **Schedule…** / click-slot flow, and honest copy that does not promise drag-from-list when that surface is unreachable. Pair design with DEF-031 so list and support tell the same story.
+
+### Notes
+
+Trish 2026-10-12 calendar screenshot. Code: `CalendarSupportIdle` uses `onSelectTask` only; no `draggable` / `TASK_CALENDAR_DRAG_MIME`.
+
+---
+
+## DEF-036 — Distinguish effort, elapsed days, and workday units
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P3** (enhancement / ambiguous duration semantics) |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish / Dex discussion) |
+| **Surface** | Settings duration conventions; task estimates; calendar/scheduling |
+| **Parent / related** | DEF-033; DEF-032; DEF-037 |
+| **Wave** | Next version Scheduling/Settings pass (S1) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §5; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### Approved contract (SS-03, SS-25)
+
+**Nominal workday** is separate from scheduling availability: default 8h for new accounts; save-time conversion to stored minutes; changing nominal or availability settings does **not** rewrite existing task effort; visible conversion before save; “workday” vs calendar “day” / “tomorrow.” Effort ≠ one continuous block per date. Week/month **effort** units **V.Next-Not-Now** (clarify ambiguous input; calendar due phrases unchanged).
+
+### Verification
+
+Save-time conversion; stability after settings/task edits; explicit re-estimate in workdays; calendar vs workday distinction; pair with DEF-032 friendly entry.
+
+---
+
+## DEF-037 — Configurable working days, hours, and changing schedules
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (scheduling limitation for non-Monday-first or changing work patterns) |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish / Dex discussion; current code inspected by Dex) |
+| **Surface** | Settings availability; scheduler day eligibility and daily bounds; Time Map interaction; General availability |
+| **Parent / related** | DEF-033; DEF-036; DEF-038 |
+| **Wave** | Next version Scheduling/Settings pass (S1–S2) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §4.2, §6; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### Current limitation (pre-implementation)
+
+`is_workday` uses `day.weekday() < workweek_days` with one global start/duration — cannot express Tuesday–Saturday or per-day hours today.
+
+### Approved contract (SS-04, SS-13)
+
+Chosen working days and per-day hours; recurring baseline plus dated replacement; **General availability** policy (M–F 09:00–17:00 default for fresh accounts); multiple windows per day and explicit overnight shifts; schedule timezone + DST; migration preserves equivalent effective availability for existing users.
+
+---
+
+## DEF-038 — Separate weekday/weekend placement from working-day availability
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (global workweek can prevent valid personal/weekend auto-placement) |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish / Dex discussion; current code inspected by Dex) |
+| **Surface** | Task/Time Map placement rules; Settings availability; calendar/scheduler |
+| **Parent / related** | DEF-033; DEF-037; DEF-036 |
+| **Wave** | Next version Scheduling/Settings pass (S2) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §4.1–4.2; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### Current limitation (pre-implementation)
+
+Global nonworking-day rejection and workday clipping in `placement.py` can veto weekend/personal bands.
+
+### Approved contract (SS-05)
+
+Distinct Work / Personal / General availability; business hours are not an undocumented universal cap on personal work; May/Must/Prefer composition; personal evening/weekend eligibility without a fake seven-day business workweek.
+
+---
+
+## DEF-039 — Assist-guided scheduling preferences and combined rules
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P3** (enhancement / conversational configuration) |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish / Dex discussion) |
+| **Surface** | Assist; Settings; Time Maps; calendar/scheduler; scheduling explanations |
+| **Parent / related** | DEF-033; DEF-036–038; DEF-040 |
+| **Wave** | Next version Scheduling/Settings pass (S4 Assist + shared services) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §4.2–4.4, §8; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### Overall scenario
+
+Trish tells Assist, "I usually do coursework in the evenings." Assist asks only for missing information (days, hours, preference versus requirement, applicable work), then proposes an understandable configuration: create or reuse a Time Map and attach it to the intended epic/project or other supported scope. Review shows days, hours, timezone, rule strength, attachment, and affected existing tasks before application. Information already supplied should not be asked again. Useful defaults remain available without requiring an extensive setup interview or unrelated personal information.
+
+Example: "Sunday through Thursday, seven to nine, evenings preferred, for Education." Assist proposes the map and attachment, explains inheritance and existing explicit overrides, and applies the approved configuration. Saving configuration and applying a new schedule remain distinct actions; offer schedule preview to inspect consequences.
+
+### Combinations and conflicts
+
+Support the scenario "coursework preferably in the evenings, but only when I am home." Requirements constrain eligible time; preferences rank eligible time. Two requirements with no overlap leave work unscheduled with an explanation, rather than silently weakening an "only" rule. Conflicting preferences require a documented ranking. Explain each effective rule, its origin, and which preference could not be met.
+
+Distinguish adding a rule from deliberately replacing an inherited one. A task-specific rule does not automatically erase inherited requirements. Proposed exceptions have explicit scope: this task, a date range, or a standing-rule change. DEF-041 supersedes the initial unknown-home assumption: configurable Home/computer/phone defaults apply unless overridden or contradicted. Distinguish default assumptions, explicit declarations, derived calendar evidence, and unresolved ambiguity without assuming location tracking.
+
+### Design boundaries and acceptance
+
+- Exercise evening preference plus home requirement; incompatible required windows; additive inheritance; an explicit one-time exception; and a temporary roster that returns to its baseline.
+- Provide a readable answer to "What preferences are affecting this task?", building on scheduling explanations where appropriate.
+- Decide whether the user-facing model is profiles, distinct scheduling tags, or another representation. General labels must not acquire surprising scheduling side effects. Label-based attachment and conflict precedence remain design questions, not implemented capabilities.
+- The current Assist action schema supports task/project creation, not Time Map configuration. Extend shared API/scheduler behavior for both built-in Assist and external collaborators; do not make separate rule engines.
+### Approved contract highlights (SS-06–07, SS-16, A1/A2)
+
+May/Must/Prefer; General availability; **Change selected days** vs **Only allow**; normal ranking; scoped exceptions before stack; configuration proposal distinct from schedule apply; Assist on **Llama 3.2** (model eval after build); shared backend — no separate rule engine. Vocabulary for profiles/tags still design-time in S3.
+
+---
+
+## DEF-040 — CLI scheduling configuration parity for Julie
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (blocks intended external-AI configuration workflow without workarounds) |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish / Dex; local CLI code inspected) |
+| **Surface** | CLI; Time Map API; assignments/inheritance; Settings availability; preview/explain |
+| **Parent / related** | DEF-033; DEF-036–039; DEF-041 |
+| **Wave** | Next version Scheduling/Settings pass (S1 full CLI with API; S3 parity; S4 Julie scenario) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §7, §9; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### Verified current gaps and existing capability
+
+The local CLI has no standing Time Map list/get/create/edit/delete command group. Epic/project create and patch accept `--preferred-time-window-id`, but task create/patch do not expose that API field. Explicit assignment clearing/inheritance restoration also needs a supported path. Existing `overrides` commands manage temporary overrides for a known map; `schedule` provides preview create/get/apply and explanation/run inspection. `assist propose/apply` currently supports task/project creation, not scheduling configuration. Independent rule combinations are a scheduling-model gap, not something CLI flags alone can implement.
+
+Evidence locations: `apps/cli/theplan/main.py`, `commands/hierarchy.py`, `commands/tasks.py`, `commands/overrides.py`, `commands/schedule.py`, and `apps/api/app/schemas/assist.py`. This inspection does not verify the version installed on supernova.
+
+### Expected CLI contract
+
+Provide supported discovery and CRUD for standing Time Maps; assign, change, and clear assignments on all supported scopes; inspect effective inherited rules and their sources; and expose the availability, combined-rule, and exception configuration delivered by DEF-037–039. Preserve machine-readable outputs, actionable validation/conflict errors, read-back verification, and schedule preview/explain support. Define safe retry behavior for configuration creation so retries do not duplicate maps or rules.
+
+**No workarounds required:** Julie must not need raw HTTP calls, direct database edits, custom helper scripts, browser-only steps, or a human to look up undiscoverable IDs to complete this supported workflow. Existing supported CLI capabilities should be reused and extended, not replaced by a separate agent-only model.
+
+### Julie's end-to-end acceptance scenario
+
+1. Trish delegates work and asks Julie to configure scheduling appropriately: for example, coursework preferably in the evenings and only when home, attached to the intended Education/course scope.
+2. Julie uses the CLI to inspect existing maps, relevant settings, assignments, and effective inheritance; she asks Trish only for missing decisions, including home-availability information and preference versus requirement.
+3. Julie presents a concrete proposal identifying reused/new maps or rules, days/hours/timezone, strengths, attachment scope, existing overrides, affected work, and any conflict. Human clarification remains part of the workflow, not a workaround.
+4. Within Trish's authorization, Julie applies the configuration entirely through supported CLI commands, then reads it back to verify the intended effective result. An interrupted/retried operation does not create duplicate configuration.
+5. Julie creates and inspects a schedule preview, reports placements or explained unscheduled conflicts, and applies the schedule only when that action is authorized. Configuration changes alone do not silently apply a replan.
+6. Exercise conflicting requirements, an explicit task/date-limited exception, assignment clearing back to inheritance, and an existing task override. Changes respect the same semantics in CLI, built-in Assist, and UI.
+
+**Approved:** **Skip early partial CLI map CRUD** — deliver **full** supported CLI with shared API (S1+). Do not close on partial CRUD. Atomic configuration apply, idempotent retries, installed-CLI on supernova (SS-17, SS-18, SS-29). Collaborator workflow: Trish, Julie, Dex, Assist — receipts and Julie handoff without new messaging integration.
+
+Context-mode configuration in DEF-041 is included: defaults, presets, declarations, event travel (matrix deferred), scoped corrections, provenance — no browser-only workarounds (SS-24).
+
+---
+
+## DEF-041 — Context modes, defaults, and planned location/resource availability
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P3** (enhancement / context-aware scheduling) |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Found** | 2026-10-12 (Trish / Dex discussion) |
+| **Surface** | Context control; calendar; Settings; task/project/epic rules; Assist; CLI |
+| **Parent / related** | DEF-033; DEF-037–040; [spec §4.5, §6, §9–10](SCHEDULING-SETTINGS-SPEC.md) |
+| **Wave** | Next version Scheduling/Settings pass (S2–S3 context homes) |
+| **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §4.5; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
+
+### User requirements
+
+Provide a presence-like control for current or future context, with manual declarations of at least 30 minutes and an unobtrusive calendar indication. Contexts include Home, At work, At theatre, Away, Travel, and user-defined recurring places/circumstances. Resources such as computer/phone and suitability for work/personal activities are separate from location and busy/free time.
+
+Initial baseline is **Home, computer available, phone available** when nothing overrides or contradicts it. All defaults and presets are user-configurable. Do not force other users into Trish's particular settings. Off-site appointments and travel establish Away/unavailable unless explicitly qualified; possessing a phone/laptop does not itself clear busy time. Named At work can permit work tasks and calls in free gaps; At theatre can have its own resources and permitted activities. Work at home must remain possible.
+
+Plan a week away with phone and specified computer availability; allow regularly occurring contexts and temporary changes, then restore the underlying baseline. Task/project/epic rules can align purpose, location, and required resources with contexts through explicit scheduling relationships. Ordinary labels must not gain implicit side effects.
+
+### Required examples and design work
+
+An off-site 14:00–16:00 appointment with 30 minutes travel each side gives Away/unavailable 13:30–16:30. A 19:00–20:30 board meeting with 20 minutes each side gives 18:40–20:50. Derived travel intervals keep their actual duration despite the manual 30-minute minimum. Calendar classification must use reliable metadata or explicit mapping; generic meeting titles cannot establish physical location. Busy meetings remain busy even with available devices.
+
+### Approved contract (SS-19–24, SS-28)
+
+Five-layer precedence (baseline → recurring → dated → event/travel → scoped correction); event **travel allowances** shipped; **place-to-place matrix deferred**; preset save-only vs update selected uses; retire/delete semantics; 13:30–16:30 / 18:40–20:50 fixtures; no location tracking; preview invalidation without silent replan; UI/CLI/Assist parity.
