@@ -146,6 +146,18 @@
 | Web unit | `npm test` (`apps/web`) | **57 passed** (21 suites) |
 | Web build | `npm run build` | **green** (Vite 8.3.4) |
 
+## Compose smoke (2026-10-12, no tunnel)
+
+`docker compose -f infra/compose/compose.yaml up -d --build api web scheduler`
+
+| Check | Result |
+|-------|--------|
+| `GET /health` | `{"status":"ok"}` |
+| OpenAPI `info.version` | **0.7.0** |
+| API container `pydantic.__version__` | **2.14.1** |
+| `GET http://127.0.0.1:8080/` | **200** (login shell) |
+| Assist `/api/v1/assist/status` unauthenticated | **401** `UNAUTHENTICATED` (expected) |
+
 ## Remaining hygiene actions (for Trish)
 
 1. **Desktop CLI:** `@tauri-apps/cli` → 2.12.x + sidecar smoke (optional same day).
