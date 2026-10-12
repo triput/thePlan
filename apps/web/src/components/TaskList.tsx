@@ -894,8 +894,8 @@ export function TaskList({
             aria-label={`Select "${task.title}"`}
             title={
               hasLoadedDescendants(tasks, task.id)
-                ? "Select task (Alt+click to include visible subtasks)"
-                : undefined
+                ? "Select for batch (Alt+click includes visible subtasks)"
+                : "Select for batch"
             }
           />
           {hasLoadedDescendants(tasks, task.id) && (
@@ -918,6 +918,7 @@ export function TaskList({
             checked={task.is_completed}
             onChange={() => handleToggleComplete(task)}
             aria-label={`Mark "${task.title}" complete`}
+            title={task.is_completed ? "Mark incomplete" : "Mark complete"}
           />
         </div>
         <div className="task-row-body">
