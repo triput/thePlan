@@ -3,9 +3,10 @@
 ## [0.7.0] — Unreleased / in progress (Scheduling / Settings)
 
 - **Hygiene exit 2026-10-12:** Dependency Hygiene **Exit / pass** — version **0.7.0**, Pydantic 2.14.x reconcile, safe web batch, Compose smoke; FastAPI/Starlette/SQLAlchemy 2.1/TS7/optional desktop+crypto/psycopg **held** — [HYGIENE-0.7.md](docs/HYGIENE-0.7.md)
-- **S0 migration contract:** [0.7-S0-MIGRATION-CONTRACT.md](docs/delivery/0.7-S0-MIGRATION-CONTRACT.md) **v1.2** — progress init, pins, legacy bounds, Working/General seed; Dex v1.17 R1–R3 (one chunking activation at S2, reject original-field writes, atomic progress, buffer §6 proposed pending Trish); S1 planning unblocked after R1–R2; buffer approval still required before dependent S1 code
+- **S0 buffer approved / S1 unblocked 2026-10-12:** [0.7-S0-MIGRATION-CONTRACT.md](docs/delivery/0.7-S0-MIGRATION-CONTRACT.md) **v1.3** — Trish explicit approve of SS-30 §6.1; Dex ledger **v1.18** (R1–R3 closed)
+- **S0 migration contract:** [0.7-S0-MIGRATION-CONTRACT.md](docs/delivery/0.7-S0-MIGRATION-CONTRACT.md) **v1.2→v1.3** — progress init, pins, legacy bounds, Working/General seed; Dex R1–R3 (chunking activation at S2, reject original-field writes, atomic progress, buffer approved)
 - **Train open 2026-10-12:** product version **0.7.0**; Dependency Hygiene entry — tip `ef838bc5f71e29e30d1ca17feda11088c8cedfd9`; full wave record [HYGIENE-0.7.md](docs/HYGIENE-0.7.md)
-- **Product contract locked:** Dex discovery **v1.17** (product through v1.16) + [SCHEDULING-SETTINGS-SPEC.md](docs/SCHEDULING-SETTINGS-SPEC.md) **v1.4.4** — eligibility/ranking, General availability, chunking/progress, context presets, buffer verification this pass; Settings **About** deferred to **S3**
+- **Product contract locked:** Dex discovery **v1.18** (product through v1.16; R1–R3 closed) + [SCHEDULING-SETTINGS-SPEC.md](docs/SCHEDULING-SETTINGS-SPEC.md) **v1.4.4** — eligibility/ranking, General availability, chunking/progress, context presets, buffer policy approved this pass; Settings **About** deferred to **S3**
 - **Version alignment:** api / cli / web / desktop product strings synced to **0.7.0** (shared SoT follow-up in hygiene doc)
 - **Prior Unreleased piles below** (R3, F7, F2, F1, W2c, W3, …) remain historical in-progress notes absorbed into the 0.7.0 line until cut; do not treat them as a separate release
 

@@ -345,7 +345,7 @@ May/Must/Prefer composition; General availability; purpose defaults; **Change se
 | --- | --- |
 | **Hygiene starting tip SHA** | Version name **locked `0.7.0`**; tip SHA when hygiene opens; micro-passes may use `0.7.x`. |
 | **Schema/API and migration contract pre-S1** | **In-repo** [delivery/0.7-S0-MIGRATION-CONTRACT.md](delivery/0.7-S0-MIGRATION-CONTRACT.md) (2026-10-12) — progress init, in-progress pins, legacy block defaults/inheritance, Working/General seed. |
-| **Buffer semantics (SS-30)** | **Pre-S1:** Renee/Jim agree policy + test plan. **S2:** verify implemented behavior (pins, external busy, split blocks, travel interaction) and record evidence — not a full SS-30 gate before S1. |
+| **Buffer semantics (SS-30)** | **Pre-S1 policy approved** 2026-10-12 — [0.7-S0-MIGRATION-CONTRACT.md](delivery/0.7-S0-MIGRATION-CONTRACT.md) §6.1 (v1.3). Test plan §6.2. **S2:** verify implemented behavior and record evidence — not a full SS-30 execution gate before S1. |
 | **Make it pretty go/no-go** | After normal scheduling passes acceptance; Jim brings concrete recommendation. |
 | **User-facing vocabulary** | Composable rules naming; general-label attachment still deferred. Design during S3. |
 | **Legacy migration compatibility table** | Explicit opt-in/conversion for strict maps, overrides, global bounds — implementation contract. |
