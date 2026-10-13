@@ -25,8 +25,9 @@ REASON_EXCLUDED_LIFECYCLE_COMPLETED = "excluded_lifecycle_completed"
 REASON_EXCLUDED_LIFECYCLE_TRASHED = "excluded_lifecycle_trashed"
 REASON_EXCLUDED_LIFECYCLE_ARCHIVED = "excluded_lifecycle_archived"
 REASON_EXCLUDED_KEEP_IN_ONE_RESERVED = "excluded_keep_in_one_reserved"
-# Secondary outcome fact when a reserved pin misses Working availability.
-# Primary placement reason stays excluded_keep_in_one_reserved.
+# Secondary outcome fact when a reserved pin is not fully inside Working
+# availability (wholly outside or an uncovered partial). Primary placement
+# reason stays excluded_keep_in_one_reserved.
 REASON_OUTSIDE_WORKING_AVAILABILITY = "outside_working_availability"
 REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT = "unplaced_block_bounds_conflict"
 REASON_UNPLACED_PIN_RESERVATION_EXCESS = "unplaced_pin_reservation_excess"

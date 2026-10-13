@@ -170,35 +170,81 @@ def _zone(settings: Any) -> ZoneInfo | None:
         return None
 
 
-def _overlaps(start: datetime, end: datetime, window_start: datetime, window_end: datetime) -> bool:
-    return start < window_end and window_start < end
+def _reserved_span(
+    start: datetime, end: datetime, now: datetime
+) -> tuple[datetime, datetime] | None:
+    """Future tail of a pin. The elapsed head is not the relevant reservation."""
+    start_utc = _utc(start)
+    end_utc = _utc(end)
+    now_utc = _utc(now)
+    if end_utc <= now_utc or end_utc <= start_utc:
+        return None
+    reserved_start = now_utc if start_utc < now_utc else start_utc
+    if reserved_start >= end_utc:
+        return None
+    return reserved_start, end_utc
 
 
-def _pin_entirely_outside_working(start: datetime, end: datetime, settings: Any) -> bool:
-    """True when the pin interval shares no time with a Working window.
+def _merge_intervals(
+    windows: list[tuple[datetime, datetime]],
+) -> list[tuple[datetime, datetime]]:
+    if not windows:
+        return []
+    ordered = sorted(windows, key=lambda item: (item[0], item[1]))
+    merged: list[tuple[datetime, datetime]] = [ordered[0]]
+    for window_start, window_end in ordered[1:]:
+        last_start, last_end = merged[-1]
+        if window_start <= last_end:
+            merged[-1] = (last_start, max(last_end, window_end))
+        else:
+            merged.append((window_start, window_end))
+    return merged
 
-    Partial overlap is not this case. Missing Working fields mean the check
-    is not in scope for this call.
+
+def _uncovered_outside_working(
+    start: datetime,
+    end: datetime,
+    settings: Any,
+) -> list[tuple[datetime, datetime]] | None:
+    """Sub-intervals of ``[start, end)`` that miss eligible Working time.
+
+    ``None`` means Working fields are missing or the zone is unusable, so
+    this call does not report a conflict. An empty list means the interval
+    is fully contained, including a reservation that ends on the window
+    boundary. Wholly outside and partial overlap both return the uncovered
+    gaps. Sharing some time with a window is not full containment.
     """
     if not _working_configured(settings):
-        return False
+        return None
     tz = _zone(settings)
     if tz is None:
-        return False
+        return None
     start_utc = _utc(start)
     end_utc = _utc(end)
     if end_utc <= start_utc:
-        return False
+        return None
     day: date = start_utc.astimezone(tz).date() - timedelta(days=1)
     last = end_utc.astimezone(tz).date()
     workweek = int(settings.workweek_days)
+    covered: list[tuple[datetime, datetime]] = []
     while day <= last:
         if is_workday(day, workweek):
             window_start, window_end = workday_bounds(day, settings, tz)
-            if _overlaps(start_utc, end_utc, window_start, window_end):
-                return False
+            clip_start = max(start_utc, window_start)
+            clip_end = min(end_utc, window_end)
+            if clip_start < clip_end:
+                covered.append((clip_start, clip_end))
         day += timedelta(days=1)
-    return True
+    uncovered: list[tuple[datetime, datetime]] = []
+    cursor = start_utc
+    for window_start, window_end in _merge_intervals(covered):
+        if cursor < window_start:
+            uncovered.append((cursor, window_start))
+        if window_end > cursor:
+            cursor = window_end
+    if cursor < end_utc:
+        uncovered.append((cursor, end_utc))
+    return uncovered
 
 
 def _relevant_pin_intervals(blocks: list[Any], now: datetime) -> list[tuple[datetime, datetime]]:
@@ -221,8 +267,14 @@ def _outside_working_conflict(
 ) -> dict[str, Any] | None:
     outside: list[dict[str, str]] = []
     for start, end in _relevant_pin_intervals(blocks, now):
-        if _pin_entirely_outside_working(start, end, settings):
-            outside.append({"start": _utc(start).isoformat(), "end": _utc(end).isoformat()})
+        span = _reserved_span(start, end, now)
+        if span is None:
+            continue
+        uncovered = _uncovered_outside_working(span[0], span[1], settings)
+        if not uncovered:
+            continue
+        for gap_start, gap_end in uncovered:
+            outside.append({"start": gap_start.isoformat(), "end": gap_end.isoformat()})
     if not outside:
         return None
     return _conflict(
@@ -278,9 +330,11 @@ def evaluate_auto_placement(
     placer's slice rule, not this budget.
 
     Exact keep-in-one cover still reports independent constraints. Working
-    availability is checked when settings carry workday fields. Pass
-    ``context_conflicts`` for later context inputs; this function does not
-    invent them.
+    availability is checked when settings carry workday fields. A relevant
+    reservation that is not fully contained — wholly outside or only partly
+    overlapping — reports the uncovered portion. A pin that ends on the
+    window boundary is contained. Pass ``context_conflicts`` for later
+    context inputs; this function does not invent them.
     """
     bounds = resolve_block_bounds(task, settings)
     effort = placement_effort_minutes(task)

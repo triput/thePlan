@@ -2,6 +2,8 @@
 
 No database. A pin that matches remaining effort is reserved and adds no
 automatic work. That shape is not proof the pin sits inside Working hours.
+Partial overlap reports the uncovered portion. Ending on the window boundary
+is contained; starting on that boundary is not.
 """
 
 from __future__ import annotations
@@ -92,6 +94,12 @@ def test_exact_cover_outside_working_keeps_pin_and_reports_conflict() -> None:
     assert decision.conflicts[0]["code"] == CONFLICT_OUTSIDE_WORKING
     assert decision.conflicts[0]["detail"]["pins_protected"] is True
     assert decision.conflicts[0]["detail"]["automatic_work_minutes"] == 0
+    assert decision.conflicts[0]["detail"]["outside_intervals"] == [
+        {
+            "start": "2026-10-12T20:00:00+00:00",
+            "end": "2026-10-13T00:00:00+00:00",
+        }
+    ]
 
     codes, outcome = _outcome_codes(decision)
     assert codes[0] == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
@@ -145,3 +153,81 @@ def test_context_conflict_hook_survives_exact_cover() -> None:
     assert codes[0] == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
     assert "context_not_in_scope" in codes
     assert REASON_OUTSIDE_WORKING_AVAILABILITY not in codes
+
+
+def test_exact_cover_partial_overlap_reports_uncovered_portion() -> None:
+    """Dex residual: 16:00–20:00 overlaps 09:00–17:00 and still leaves 17:00–20:00 out."""
+    pin = _pin(
+        datetime(2026, 10, 13, 16, 0, tzinfo=timezone.utc),
+        datetime(2026, 10, 13, 20, 0, tzinfo=timezone.utc),
+    )
+    start, end = pin.start_time, pin.end_time
+    decision = evaluate_auto_placement(_task(), _working_settings(), [pin], NOW)
+
+    assert pin.start_time == start
+    assert pin.end_time == end
+    assert decision.auto_place is False
+    assert decision.minutes_to_place == 0
+    assert decision.effort_minutes == 240
+    assert decision.reserved_minutes == 240
+    assert decision.reason_code == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
+    assert decision.conflicts[0]["code"] == CONFLICT_OUTSIDE_WORKING
+    assert decision.conflicts[0]["detail"]["pins_protected"] is True
+    assert decision.conflicts[0]["detail"]["automatic_work_minutes"] == 0
+    assert decision.conflicts[0]["detail"]["outside_intervals"] == [
+        {
+            "start": "2026-10-13T17:00:00+00:00",
+            "end": "2026-10-13T20:00:00+00:00",
+        }
+    ]
+
+    codes, outcome = _outcome_codes(decision)
+    assert codes[0] == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
+    assert REASON_OUTSIDE_WORKING_AVAILABILITY in codes
+    assert outcome.placed_minutes == 0
+    assert outcome.remaining_minutes == 0
+    summary = format_summary_text(outcome.reason_facts)
+    assert "reserved in one pinned block" in summary
+    assert "outside Working availability" in summary
+
+
+def test_exact_cover_ending_on_window_boundary_is_contained() -> None:
+    pin = _pin(
+        datetime(2026, 10, 13, 13, 0, tzinfo=timezone.utc),
+        datetime(2026, 10, 13, 17, 0, tzinfo=timezone.utc),
+    )
+    decision = evaluate_auto_placement(_task(), _working_settings(), [pin], NOW)
+
+    assert decision.auto_place is False
+    assert decision.minutes_to_place == 0
+    assert decision.reason_code == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
+    assert decision.conflicts == ()
+    assert "constraint_conflicts" not in decision.reason_params
+    codes, _outcome = _outcome_codes(decision)
+    assert codes == [REASON_EXCLUDED_KEEP_IN_ONE_RESERVED]
+
+
+def test_exact_cover_starting_on_window_boundary_is_outside() -> None:
+    pin = _pin(
+        datetime(2026, 10, 13, 17, 0, tzinfo=timezone.utc),
+        datetime(2026, 10, 13, 21, 0, tzinfo=timezone.utc),
+    )
+    start, end = pin.start_time, pin.end_time
+    decision = evaluate_auto_placement(_task(), _working_settings(), [pin], NOW)
+
+    assert pin.start_time == start
+    assert pin.end_time == end
+    assert decision.auto_place is False
+    assert decision.minutes_to_place == 0
+    assert decision.reason_code == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
+    assert decision.conflicts[0]["code"] == CONFLICT_OUTSIDE_WORKING
+    assert decision.conflicts[0]["detail"]["automatic_work_minutes"] == 0
+    assert decision.conflicts[0]["detail"]["outside_intervals"] == [
+        {
+            "start": "2026-10-13T17:00:00+00:00",
+            "end": "2026-10-13T21:00:00+00:00",
+        }
+    ]
+    codes, _outcome = _outcome_codes(decision)
+    assert codes[0] == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED
+    assert REASON_OUTSIDE_WORKING_AVAILABILITY in codes
