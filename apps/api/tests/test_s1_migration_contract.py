@@ -199,6 +199,9 @@ def seeded(client: TestClient, db_session: Session) -> Seeded:
     settings.workday_start_local = time(10, 0)
     settings.workday_minutes = 360
     settings.scheduling_revision = 42
+    # Task create locks this row with populate_existing(). Flush first or the
+    # lock reloads the committed workday and the 028 replay copies the wrong one.
+    db_session.flush()
 
     open_task = _create_task(client, f"s1-open-{_uid()}", estimated_duration_minutes=90)
     completed_body = _create_task(

@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-from app.scheduler.busy_map import add_busy_interval
+from app.scheduler.busy_map import add_busy_interval, busy_from_sources
 from app.scheduler.input_fingerprint import (
     SCHEDULING_ACTIVATIONS,
     SNAPSHOT_VERSION,
@@ -17,6 +17,7 @@ from app.scheduler.input_fingerprint import (
     STALE_SCHEDULING_ACTIVATION,
     assemble_snapshot,
     diff_stale_categories,
+    normalize_duration_category_v4,
     owner_snapshot_predates_activation,
 )
 from app.scheduler.pin_reservation import (
@@ -221,6 +222,68 @@ def test_keep_in_one_table() -> None:
     both = evaluate_auto_placement(task, settings, [tail, short], NOW)
     assert both.conflicts[0]["code"] == CONFLICT_MULTIPLE_PINS
     assert both.minutes_to_place == 0
+
+    # In-progress tail longer than remaining is excess, not a clamp or an extend.
+    long_tail = _pin(NOW - timedelta(hours=1), NOW + timedelta(hours=3))
+    pin_end = long_tail.end_time
+    excess_tail = evaluate_auto_placement(
+        _task(keep_in_one_block=True, remaining_minutes=120, max_block_unbounded=True),
+        settings,
+        [long_tail],
+        NOW,
+    )
+    assert excess_tail.auto_place is False
+    assert excess_tail.minutes_to_place == 0
+    assert excess_tail.effort_minutes == 120
+    assert excess_tail.reserved_minutes == 180
+    assert excess_tail.conflicts[0]["code"] == CONFLICT_EXCESS_PIN
+    assert excess_tail.conflicts[0]["detail"]["automatic_work_minutes"] == 0
+    assert long_tail.end_time == pin_end
+
+
+def test_keep_in_one_is_not_inferred_when_max_covers_remaining() -> None:
+    task = _task(
+        keep_in_one_block=False,
+        remaining_minutes=240,
+        max_block_duration_minutes=240,
+    )
+    decision = evaluate_auto_placement(task, _settings(), [], NOW)
+    assert decision.auto_place is True
+    assert decision.minutes_to_place == 240
+    assert resolve_block_bounds(task, _settings()).keep_in_one_block is False
+    sizes = slice_sizes_for_remaining(240, min_block=15, max_block=120, keep_in_one=False)
+    assert sizes != [240]
+    assert sizes[0] <= 120
+
+
+def test_past_pin_reserves_zero_and_still_occupies_busy() -> None:
+    past = SimpleNamespace(
+        start_time=NOW - timedelta(hours=2),
+        end_time=NOW,
+    )
+    assert reservation_minutes(past.start_time, past.end_time, NOW) == 0
+    busy = busy_from_sources([past], [])
+    assert len(busy) == 1
+    assert busy[0].source == "pinned"
+    assert busy[0].start == past.start_time
+    assert busy[0].end == past.end_time
+
+
+def test_v4_duration_records_no_limit() -> None:
+    payload = normalize_duration_category_v4(
+        original_minutes=400,
+        worked_minutes=0,
+        remaining_minutes=400,
+        stored_min=15,
+        stored_max=30,
+        max_unbounded=True,
+        keep_in_one_block=False,
+    )
+    assert payload["max_block_unbounded"] is True
+    assert payload["max_block_duration_minutes"] is None
+    assert payload["effective_max_minutes"] is None
+    assert payload["max_block_source"] == "no_limit"
+    assert payload["max_inherit"] is False
 
 
 def test_v3_snapshot_is_provenance_and_activation_token_stales_v4() -> None:
