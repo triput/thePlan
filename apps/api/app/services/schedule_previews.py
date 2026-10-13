@@ -16,6 +16,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models import SchedulePreview, UserSettings
+from app.scheduler.input_fingerprint import owner_snapshot_predates_activation
 from app.scheduler.preview_inputs import collected_at_from_snapshot, live_owner_fingerprint
 
 
@@ -42,6 +43,13 @@ def refresh_preview_staleness(db: Session, preview: SchedulePreview) -> None:
         .one_or_none()
     )
     if settings is None:
+        return
+
+    # Activation boundary (S2-P3 / A5): previews from before v4 chunking/pin
+    # semantics are stale even when scheduling_revision has not moved yet.
+    # Does not rewrite explanation or preview JSON.
+    if owner_snapshot_predates_activation(preview.input_snapshot):
+        preview.status = "stale"
         return
 
     if settings.scheduling_revision != preview.scheduling_revision:

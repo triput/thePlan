@@ -19,7 +19,7 @@ from app.models import (
     UserSettings,
 )
 from app.scheduler.calculate import calculate
-from app.scheduler.input_fingerprint import SNAPSHOT_VERSION
+from app.scheduler.input_fingerprint import live_snapshot_version
 from app.scheduler.collect import collect_inputs
 from app.scheduler.outcomes import (
     persist_calculation_outcomes,
@@ -198,7 +198,7 @@ def test_collect_captures_input_snapshots(
 
     inputs = collect_inputs(db_session, owner_id, FIXED_NOW)
     assert task_id in inputs.input_snapshots
-    assert inputs.input_snapshots[task_id]["v"] == SNAPSHOT_VERSION
+    assert inputs.input_snapshots[task_id]["v"] == live_snapshot_version()
     assert "pins" in inputs.input_snapshots[task_id]
     assert "priority_ups" not in inputs.input_snapshots[task_id]
     assert "deps" in inputs.input_snapshots[task_id]

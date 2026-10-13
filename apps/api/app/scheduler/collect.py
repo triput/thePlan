@@ -31,7 +31,6 @@ from app.scheduler.candidates import (
     load_candidates,
     load_excluded_tasks,
     load_lifecycle_excluded_tasks,
-    pinned_minutes_from_blocks,
 )
 from app.scheduler.dependencies import order_candidates
 from app.scheduler.horizon import compute_horizon
@@ -105,19 +104,17 @@ def collect_inputs(
         range_end=horizon_end,
     )
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] = defaultdict(list)
-    pinned_minutes_by_task: dict[UUID, int] = {}
     for block in pinned_blocks:
         if block.task_id is None:
             continue
         pinned_blocks_by_task[block.task_id].append(block)
-    for task_id, blocks in pinned_blocks_by_task.items():
-        pinned_minutes_by_task[task_id] = pinned_minutes_from_blocks(blocks)
 
     candidates = load_candidates(
         db,
         owner_id,
         user_settings,
-        pinned_minutes_by_task=pinned_minutes_by_task,
+        now_utc=now_utc,
+        pinned_blocks_by_task=pinned_blocks_by_task,
     )
     candidate_ids = {item.task.id for item in candidates}
     excluded_tasks = load_excluded_tasks(
@@ -125,7 +122,8 @@ def collect_inputs(
         owner_id,
         user_settings,
         candidate_ids,
-        pinned_minutes_by_task=pinned_minutes_by_task,
+        now_utc=now_utc,
+        pinned_blocks_by_task=pinned_blocks_by_task,
     )
     already_evaluated = candidate_ids | {item.task.id for item in excluded_tasks}
     lifecycle_excluded_tasks = load_lifecycle_excluded_tasks(

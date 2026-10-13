@@ -28,14 +28,17 @@ from app.scheduler.time_map_overrides import (
 from app.models.enums import TimeMapBandTier
 from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_overlaps_busy
 from app.scheduler.reasons import (
+    REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT,
     REASON_UNPLACED_BUSY_CONFLICT,
     REASON_UNPLACED_DEADLINE_LIMIT,
     REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK,
+    REASON_UNPLACED_KEEP_IN_ONE_CONFLICT,
     REASON_UNPLACED_NO_TIME_MAP_INTERVAL,
     REASON_UNPLACED_PINNED_CONFLICT,
     REASON_UNPLACED_PROJECT_DAILY_CAP,
     REASON_UNPLACED_RED_EXCLUSION,
 )
+from app.services.chunking_effective import resolve_block_bounds
 from app.services.busy_intervals import TimeInterval, ranges_overlap, subtract_intervals_from_range
 
 
@@ -727,6 +730,28 @@ def _pass_hints(
     return hints
 
 
+def slice_sizes_for_remaining(
+    remaining: int,
+    *,
+    min_block: int,
+    max_block: int | None,
+    keep_in_one: bool,
+) -> list[int]:
+    """Slice lengths the placer may try, preferred size first.
+
+    No limit (``max_block is None``) does not invent a synthetic cap.
+    Keep-in-one is exactly one slice of the whole remaining budget, including
+    a final remainder shorter than ``min_block``. Chunked placement may also
+    end on a remainder shorter than min. Buffer minutes are not included.
+    """
+    if remaining <= 0:
+        return []
+    if keep_in_one:
+        return [remaining]
+    cap = remaining if max_block is None else max_block
+    return _decreasing_slice_sizes(remaining, min_block, cap)
+
+
 def _decreasing_slice_sizes(remaining: int, mbl: int, max_block: int) -> list[int]:
     """Preferred slice first, then smaller multiples of min block down to mbl."""
     preferred = _slice_size(remaining, mbl, max_block)
@@ -743,6 +768,35 @@ def _decreasing_slice_sizes(remaining: int, mbl: int, max_block: int) -> list[in
     if 0 < remaining < mbl and remaining not in sizes:
         sizes.append(remaining)
     return sizes
+
+
+def _refuse_placement(
+    task: Task,
+    db: Session,
+    *,
+    remaining: int,
+    busy: list[BusyInterval],
+    reason_code: str,
+    params: dict[str, Any],
+    finalize_status: bool,
+    persist_blocks: bool,
+) -> tuple[PlacementResult, list[BusyInterval]]:
+    """Place nothing. Does not resize, move, or unpin existing blocks."""
+    hint = {"code": reason_code, "reason_code": reason_code, "params": dict(params)}
+    if finalize_status and persist_blocks:
+        task.status = ScheduleStatus.overbooked
+        db.flush()
+    return (
+        PlacementResult(
+            blocks_created=0,
+            overbooked=True if finalize_status else False,
+            remaining_minutes=remaining,
+            observed_constraints=[reason_code],
+            last_failure=hint,
+            pass_hints=[hint],
+        ),
+        busy,
+    )
 
 
 def place_task(
@@ -769,9 +823,50 @@ def place_task(
     # Operator zone for workday and band wall-clock. Override date match uses
     # each row's stored IANA zone; it does not move these band instants.
     tz = ZoneInfo(settings.timezone)
-    mbl = task.min_block_duration_minutes or settings.default_min_block_duration_minutes
-    max_block = task.max_block_duration_minutes
+    bounds = resolve_block_bounds(task, settings)
+    mbl = bounds.effective_min_minutes
+    keep_in_one = bounds.keep_in_one_block
+    # None means No limit: slice sizing must not clamp to a synthetic max.
+    max_block = None if bounds.max_unbounded else bounds.effective_max_minutes
     buffer_minutes = settings.inter_block_buffer_minutes
+    if bounds.bounds_conflict():
+        return _refuse_placement(
+            task,
+            db,
+            remaining=remaining_minutes,
+            busy=busy,
+            reason_code=REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT,
+            params={
+                "remaining_minutes": remaining_minutes,
+                "min_block_minutes": bounds.effective_min_minutes,
+                "max_block_minutes": bounds.effective_max_minutes,
+                "min_source": bounds.min_source,
+                "max_source": bounds.max_source,
+            },
+            finalize_status=finalize_status,
+            persist_blocks=persist_blocks,
+        )
+    if (
+        keep_in_one
+        and max_block is not None
+        and remaining_minutes > max_block
+    ):
+        return _refuse_placement(
+            task,
+            db,
+            remaining=remaining_minutes,
+            busy=busy,
+            reason_code=REASON_UNPLACED_KEEP_IN_ONE_CONFLICT,
+            params={
+                "remaining_minutes": remaining_minutes,
+                "arrangement": "exceeds_max",
+                "max_block_minutes": max_block,
+                "pins_protected": True,
+                "automatic_work_minutes": 0,
+            },
+            finalize_status=finalize_status,
+            persist_blocks=persist_blocks,
+        )
     window_id = preferred_window_id if preferred_window_id is not None else task.preferred_time_window_id
     preferred = preferred_windows.get(window_id) if window_id else None
 
@@ -827,7 +922,12 @@ def place_task(
             while remaining > 0:
                 if blocks_limit is not None and blocks_created >= blocks_limit:
                     break
-                slice_candidates = _decreasing_slice_sizes(remaining, mbl, max_block)
+                slice_candidates = slice_sizes_for_remaining(
+                    remaining,
+                    min_block=mbl,
+                    max_block=None if keep_in_one or max_block is None else max_block,
+                    keep_in_one=keep_in_one,
+                )
                 if not slice_candidates:
                     break
 
@@ -883,6 +983,12 @@ def place_task(
                     not_before = end
                     last_block_end = end
                     last_placed_tier = window_tier
+                    # SS-30 / A15 is not closed. Buffer is separation, not work
+                    # duration: ``remaining`` drops by slice_minutes only.
+                    # add_busy_interval still pads the trailing edge of this
+                    # new auto block. Evidence still owed on this path: both
+                    # sides of fixed busy (pins and external) and the same gap
+                    # between consecutive auto blocks of one task.
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
                     _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
                     if day_override is not None:
@@ -949,7 +1055,7 @@ def place_task(
             not_before=not_before,
             deadline=deadline,
             mbl=mbl,
-            max_block=max_block,
+            max_block=remaining if max_block is None else int(max_block),
             daily_cap=daily_cap,
             project_daily_usage=project_daily_usage,
             day_cap_blocked=day_cap_blocked_ever,

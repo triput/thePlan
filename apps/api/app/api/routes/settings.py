@@ -23,6 +23,7 @@ from app.services.scheduling_revision import (
     increment_scheduling_revision,
     lock_owner_scheduling,
 )
+from app.services.task_chunking_guard import reject_chunking_cutover_writes
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -46,6 +47,7 @@ def update_settings(
     user: User = Depends(get_current_user),
 ) -> UserSettingsOut:
     updates = body.model_dump(exclude_unset=True)
+    reject_chunking_cutover_writes(updates)
     duration_conversion_note: str | None = None
     settings = get_or_provision_user_settings(db, user)
     # Resolve requested nominal first (int or string) so same-request workday

@@ -29,13 +29,16 @@ from app.models import (
 from app.scheduler.busy_map import BusyInterval, load_immovable_busy
 from app.scheduler.input_fingerprint import (
     ALGORITHM_VERSION,
+    SNAPSHOT_VERSION_V4,
     assemble_snapshot,
     fingerprint_snapshot,
+    live_snapshot_version,
     normalize_busy_intervals,
     normalize_pin_intervals,
     normalize_prerequisite_states,
     outcome_family,
 )
+from app.services.chunking_effective import resolve_block_bounds
 from app.scheduler.reasons import ReasonFact, TaskSchedulingOutcome, format_summary_text
 from app.scheduler.style import effective_schedule_style
 from app.scheduler.time_map_overrides import load_time_map_overrides_for_maps
@@ -159,10 +162,39 @@ def snapshots_from_collected(
         window = preferred_windows.get(window_id) if window_id is not None else None
         blocking_ids = blockers_by_task.get(task.id, [])
         pinned_minutes, pin_intervals = normalize_pin_intervals(pins_by_task.get(task.id, []))
+        bounds = resolve_block_bounds(task, user_settings)
+        remaining = task.remaining_minutes
+        if remaining is None:
+            remaining = task.estimated_duration_minutes
+        if live_snapshot_version() == SNAPSHOT_VERSION_V4:
+            snap_min = task.min_block_duration_minutes
+            snap_max = task.max_block_duration_minutes
+            effective_min = bounds.effective_min_minutes
+            effective_max = bounds.effective_max_minutes
+            min_source = bounds.min_source
+            max_source = bounds.max_source
+        else:
+            v3_max = bounds.effective_max_minutes
+            if v3_max is None:
+                v3_max = user_settings.default_max_block_duration_minutes
+            snap_min = bounds.effective_min_minutes
+            snap_max = int(v3_max)
+            effective_min = None
+            effective_max = None
+            min_source = None
+            max_source = None
         snapshots[task.id] = assemble_snapshot(
             estimated_duration_minutes=task.estimated_duration_minutes,
-            min_block_duration_minutes=task.min_block_duration_minutes,
-            max_block_duration_minutes=task.max_block_duration_minutes,
+            min_block_duration_minutes=snap_min,
+            max_block_duration_minutes=snap_max,
+            worked_minutes=int(task.worked_minutes or 0),
+            remaining_minutes=int(remaining),
+            max_block_unbounded=bounds.max_unbounded,
+            keep_in_one_block=bounds.keep_in_one_block,
+            effective_min_minutes=effective_min,
+            effective_max_minutes=effective_max,
+            min_block_source=min_source,
+            max_block_source=max_source,
             deadline_at=task.deadline_at,
             schedule_style=style.value,
             time_window_id=window_id,

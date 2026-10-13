@@ -15,9 +15,9 @@ from app.scheduler.busy_map import BusyInterval
 from app.scheduler.candidates import (
     LifecycleExcludedTask,
     TaskCandidate,
-    pinned_minutes_from_blocks,
 )
 from app.scheduler.collect import SchedulingInputs
+from app.scheduler.pin_reservation import reserved_minutes_from_blocks
 from app.scheduler.placement import ProposedBlock, ProjectDailyUsage, place_one_block
 from app.scheduler.task_effort import placement_effort_minutes
 from app.scheduler.reasons import (
@@ -179,6 +179,7 @@ def _remaining_including_external_blockers(
     remaining_by_task: dict[UUID, int],
     blockers_by_dependent: dict[UUID, list[UUID]],
     *,
+    now_utc: datetime,
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
 ) -> dict[UUID, int]:
     """Remaining minutes for blockers outside the candidate set.
@@ -206,8 +207,10 @@ def _remaining_including_external_blockers(
         if task.is_completed or task.deleted_at is not None:
             merged[task.id] = 0
             continue
-        pinned = pinned_minutes_from_blocks(pins_by_task.get(task.id, []))
-        merged[task.id] = max(0, placement_effort_minutes(task) - pinned)
+        effort = placement_effort_minutes(task)
+        reserved = reserved_minutes_from_blocks(pins_by_task.get(task.id, []), now_utc)
+        # Excess reservation: nothing further to place. Do not clamp stored remaining.
+        merged[task.id] = 0 if reserved > effort else effort - reserved
     for blocker_id in missing:
         merged.setdefault(blocker_id, 0)
     return merged
@@ -338,6 +341,8 @@ def _outcomes_for_excluded(inputs: SchedulingInputs) -> list[TaskSchedulingOutco
                     },
                 )
             ]
+        elif item.reason_code:
+            facts = [ReasonFact(item.reason_code, dict(item.reason_params))]
         else:
             facts = [
                 ReasonFact(
@@ -371,7 +376,6 @@ def _finalize_candidate_outcomes(
     tiers_by_task: dict[UUID, list[str | None]],
     last_no_slot: dict[UUID, bool],
     blockers_by_dependent: dict[UUID, list[UUID]],
-    initial_remaining: dict[UUID, int],
     observed_constraints_by_task: dict[UUID, list[str]],
     cycle_task_ids: set[UUID],
     cycle_members_by_task: dict[UUID, list[str]],
@@ -384,7 +388,7 @@ def _finalize_candidate_outcomes(
         task = candidate.task
         task_id = task.id
         requested = task.estimated_duration_minutes
-        pinned = max(0, requested - initial_remaining.get(task_id, candidate.remaining_minutes))
+        pinned = candidate.reserved_minutes
         remaining = remaining_by_task.get(task_id, 0)
         placed = placed_minutes_by_task.get(task_id, 0)
 
@@ -537,7 +541,6 @@ def calculate(
 
     ordered = inputs.ordered_candidates
     remaining_by_task = {item.task.id: item.remaining_minutes for item in inputs.candidates}
-    initial_remaining = dict(remaining_by_task)
 
     cycle_task_ids_str = list(inputs.dependency_stats.get("cycle_task_ids") or [])
     cycle_task_ids = {UUID(value) for value in cycle_task_ids_str}
@@ -558,6 +561,7 @@ def calculate(
         inputs.owner_id,
         remaining_by_task,
         blockers_by_dependent,
+        now_utc=inputs.now_utc,
         pinned_blocks_by_task=inputs.pinned_blocks_by_task,
     )
 
@@ -749,7 +753,6 @@ def calculate(
         tiers_by_task=tiers_by_task,
         last_no_slot=last_no_slot,
         blockers_by_dependent=blockers_by_dependent,
-        initial_remaining=initial_remaining,
         observed_constraints_by_task=observed_constraints_by_task,
         cycle_task_ids=cycle_task_ids,
         cycle_members_by_task=cycle_members_by_task,

@@ -16,7 +16,11 @@ from typing import Any
 from uuid import UUID
 
 from app.scheduler.collect import SchedulingInputs
-from app.scheduler.input_fingerprint import SNAPSHOT_VERSION, fingerprint_snapshot
+from app.scheduler.input_fingerprint import (
+    SCHEDULING_ACTIVATIONS,
+    fingerprint_snapshot,
+    live_snapshot_version,
+)
 
 
 def _canonical(value: Any) -> str:
@@ -58,7 +62,8 @@ def owner_input_snapshot(inputs: SchedulingInputs) -> dict[str, Any]:
 
     return {
         "v": 1,
-        "snapshot_version": SNAPSHOT_VERSION,
+        "snapshot_version": live_snapshot_version(),
+        "scheduling_activation": {"ids": list(SCHEDULING_ACTIVATIONS)},
         "task_fingerprints": task_fps,
         "dependency_edges": edges,
         "ups_scores": ups,

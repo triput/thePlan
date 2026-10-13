@@ -24,7 +24,11 @@ from app.services.scheduling_revision import (
     lock_owner_scheduling,
     task_patch_touches_scheduling,
 )
-from app.services.task_chunking_guard import reject_chunking_cutover_writes
+from app.services.task_chunking_guard import (
+    reject_chunking_cutover_writes,
+    validate_effective_chunking_bounds_after_patch,
+)
+from app.services.auth_users import get_or_provision_user_settings
 from app.services.task_helpers import collect_descendant_ids, resolve_nesting_level
 
 _ORIGINAL_ESTIMATE_MSG = (
@@ -115,6 +119,18 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     section_explicit = "section_id" in updates
 
     reject_chunking_cutover_writes(updates)
+
+    chunking_touched = bool(
+        {
+            "min_block_duration_minutes",
+            "max_block_duration_minutes",
+            "max_block_unbounded",
+            "keep_in_one_block",
+        }.intersection(updates)
+    )
+    if chunking_touched:
+        settings_for_bounds = get_or_provision_user_settings(db, user)
+        validate_effective_chunking_bounds_after_patch(task, settings_for_bounds, updates)
 
     if "estimated_duration_minutes" in updates:
         new_estimate = updates["estimated_duration_minutes"]

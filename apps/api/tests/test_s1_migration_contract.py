@@ -669,7 +669,7 @@ def test_patch_same_original_estimate_is_accepted(client: TestClient) -> None:
         {"keep_in_one_block": True},
     ],
 )
-def test_chunking_cutover_writes_are_rejected(
+def test_chunking_cutover_writes_are_accepted(
     client: TestClient, db_session: Session, payload: dict
 ) -> None:
     task = _create_task(client, f"s1-chunk-{_uid()}", estimated_duration_minutes=30)
@@ -679,18 +679,21 @@ def test_chunking_cutover_writes_are_rejected(
     revision_before = settings.scheduling_revision
 
     response = client.patch(f"/api/v1/tasks/{task_id}", json=payload)
-    assert response.status_code == 422, response.text
-    assert response.json()["code"] == "CHUNKING_CUTOVER_PENDING"
+    assert response.status_code == 200, response.text
 
     stored = db_session.get(Task, task_id)
     assert stored is not None
     db_session.refresh(stored)
-    assert stored.min_block_duration_minutes == 15
-    assert stored.max_block_duration_minutes == 120
-    assert stored.max_block_unbounded is False
-    assert stored.keep_in_one_block is False
+    if "min_block_duration_minutes" in payload:
+        assert stored.min_block_duration_minutes is payload["min_block_duration_minutes"]
+    if "max_block_duration_minutes" in payload:
+        assert stored.max_block_duration_minutes is payload["max_block_duration_minutes"]
+    if payload.get("max_block_unbounded") is True:
+        assert stored.max_block_unbounded is True
+    if payload.get("keep_in_one_block") is True:
+        assert stored.keep_in_one_block is True
     db_session.refresh(settings)
-    assert settings.scheduling_revision == revision_before
+    assert settings.scheduling_revision == revision_before + 1
 
 
 def test_explicit_numeric_bounds_remain_writable(client: TestClient, db_session: Session) -> None:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, time
+from datetime import date, datetime, time, timezone
 from typing import Literal
 from uuid import UUID
 
@@ -49,6 +49,9 @@ from app.schemas.task_scheduling import (
     TimeMapOriginOut,
 )
 from app.services.auth_users import get_or_provision_user_settings
+from app.services.chunking_effective import resolve_block_bounds
+from app.services.keep_in_one_conflicts import keep_in_one_scheduling_conflicts
+from app.services.task_chunking_guard import chunking_cutover_writes_unlocked
 
 
 def _policy_for_slug(
@@ -516,10 +519,11 @@ def build_task_scheduling_effective(
     remaining = task.remaining_minutes
     if remaining is None:
         remaining = task.estimated_duration_minutes
+    chunking_live = chunking_cutover_writes_unlocked()
+    bounds = resolve_block_bounds(task, settings)
     inherited_preview = None
-    if (
-        task.min_block_duration_minutes is None
-        or task.max_block_duration_minutes is None
+    if not chunking_live and (
+        task.min_block_duration_minutes is None or task.max_block_duration_minutes is None
     ):
         inherited_preview = InheritedBlockBoundsPreview(
             min_block_duration_minutes=settings.default_min_block_duration_minutes
@@ -532,6 +536,29 @@ def build_task_scheduling_effective(
             if task.max_block_duration_minutes is None
             else task.max_block_unbounded,
         )
+    duration_note = (
+        "Chunking bounds and keep-in-one are scheduling-effective for placement "
+        "and fingerprint v4. "
+        "estimated_duration_minutes is the original-estimate alias. "
+        "placement_effort_minutes follows remaining estimate when set. "
+        "keep_in_one_scheduling_conflicts lists pin/scheduling mismatches without "
+        "blocking save (§0.1 saving vs scheduling)."
+        if chunking_live
+        else (
+            "estimated_duration_minutes is the original-estimate alias. "
+            "placement_effort_minutes follows remaining estimate when set, else that alias. "
+            "Stored inherit / No limit / keep-in-one are preview-only until S2 cutover. "
+            "Pin-adjusted placement effort is not computed on this read."
+        )
+    )
+    pin_conflicts = []
+    if chunking_live and bounds.keep_in_one_block:
+        pin_conflicts = keep_in_one_scheduling_conflicts(
+            db,
+            owner_id=user.id,
+            task=task,
+            run_now=datetime.now(timezone.utc),
+        )
     duration = DurationEffectiveOut(
         original_estimate_minutes=task.estimated_duration_minutes,
         estimated_duration_minutes=task.estimated_duration_minutes,
@@ -543,6 +570,14 @@ def build_task_scheduling_effective(
         max_block_unbounded=task.max_block_unbounded,
         keep_in_one_block=task.keep_in_one_block,
         inherited_bounds_preview=inherited_preview,
+        chunking_scheduling_effective=chunking_live,
+        effective_min_block_duration_minutes=bounds.effective_min_minutes,
+        effective_max_block_duration_minutes=bounds.effective_max_minutes,
+        min_block_source=bounds.min_source,
+        max_block_source=bounds.max_source,
+        effective_bounds_conflict=bounds.bounds_conflict(),
+        keep_in_one_scheduling_conflicts=pin_conflicts,
+        note=duration_note,
     )
 
     sources = _build_sources(

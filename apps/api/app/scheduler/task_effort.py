@@ -1,9 +1,9 @@
-"""S1 placement effort read shim (§0.2 migration contract).
+"""Placement effort read (§0.2).
 
 Placer and candidate selection use remaining unfinished estimate, falling back to
 legacy ``estimated_duration_minutes`` only when ``remaining_minutes`` is unset
-(mid-deploy). Fingerprint v3 keeps hashing explicit stored bounds and legacy
-estimate fields until S2 v4 cutover.
+(mid-deploy). Future-tail pin reservation is applied by the placement budget,
+not here. Fingerprint v4 hashes original, worked, and remaining separately.
 """
 
 from __future__ import annotations

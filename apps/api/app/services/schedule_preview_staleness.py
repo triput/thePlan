@@ -17,7 +17,12 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.scheduler.collect import collect_inputs
-from app.scheduler.input_fingerprint import STALE_PROVENANCE, diff_stale_categories, fingerprint_snapshot
+from app.scheduler.input_fingerprint import (
+    STALE_PROVENANCE,
+    diff_stale_categories,
+    fingerprint_snapshot,
+    owner_snapshot_predates_activation,
+)
 from app.scheduler.preview_inputs import collected_at_from_snapshot, owner_input_fingerprint
 
 
@@ -33,8 +38,15 @@ def preview_stale_categories(
     scheduling_revision: int,
     settings_revision: int,
 ) -> list[str]:
-    """F3-shaped category list when a preview no longer matches live inputs."""
+    """F3-shaped category list when a preview no longer matches live inputs.
+
+    Previews captured before the current chunking/pin activation are
+    ``provenance`` and are not category-diffed against v4. Stored JSON is
+    left as written.
+    """
     if not isinstance(input_snapshot, dict):
+        return [STALE_PROVENANCE]
+    if owner_snapshot_predates_activation(input_snapshot):
         return [STALE_PROVENANCE]
 
     replay = collected_at_from_snapshot(input_snapshot) or datetime.now(timezone.utc)

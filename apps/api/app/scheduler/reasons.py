@@ -24,6 +24,10 @@ REASON_UNPLACED_PINNED_CONFLICT = "unplaced_pinned_conflict"
 REASON_EXCLUDED_LIFECYCLE_COMPLETED = "excluded_lifecycle_completed"
 REASON_EXCLUDED_LIFECYCLE_TRASHED = "excluded_lifecycle_trashed"
 REASON_EXCLUDED_LIFECYCLE_ARCHIVED = "excluded_lifecycle_archived"
+REASON_EXCLUDED_KEEP_IN_ONE_RESERVED = "excluded_keep_in_one_reserved"
+REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT = "unplaced_block_bounds_conflict"
+REASON_UNPLACED_PIN_RESERVATION_EXCESS = "unplaced_pin_reservation_excess"
+REASON_UNPLACED_KEEP_IN_ONE_CONFLICT = "unplaced_keep_in_one_conflict"
 
 
 @dataclass
@@ -176,6 +180,68 @@ def format_summary_text(facts: list[ReasonFact]) -> str:
             lines.append("External calendar busy time blocks placement in available windows.")
         elif code == REASON_UNPLACED_PINNED_CONFLICT:
             lines.append("Pinned blocks conflict with the remaining work in available windows.")
+        elif code == REASON_EXCLUDED_KEEP_IN_ONE_RESERVED:
+            reserved = p.get("pinned_minutes")
+            remaining = p.get("remaining_minutes", p.get("requested_minutes"))
+            if reserved is not None and remaining is not None:
+                lines.append(
+                    "Remaining work is already reserved in one pinned block "
+                    f"({reserved} of {remaining} minutes). Other constraints are separate."
+                )
+            else:
+                lines.append(
+                    "Remaining work is already reserved in one pinned block. "
+                    "Other constraints are separate."
+                )
+        elif code == REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT:
+            minimum = p.get("min_block_minutes")
+            maximum = p.get("max_block_minutes")
+            if minimum is not None and maximum is not None:
+                lines.append(
+                    f"Effective minimum block ({minimum} min) exceeds effective maximum "
+                    f"({maximum} min). Correct the bounds before scheduling."
+                )
+            else:
+                lines.append(
+                    "Effective minimum and maximum block bounds conflict. "
+                    "Correct the bounds before scheduling."
+                )
+        elif code == REASON_UNPLACED_PIN_RESERVATION_EXCESS:
+            reserved = p.get("reserved_minutes", p.get("pinned_minutes"))
+            remaining = p.get("remaining_estimate_minutes", p.get("remaining_minutes"))
+            if reserved is not None and remaining is not None:
+                lines.append(
+                    f"Pinned reservation ({reserved} minutes) exceeds remaining effort "
+                    f"({remaining} minutes). The pin was not shortened and remaining was not clamped."
+                )
+            else:
+                lines.append(
+                    "Pinned reservation exceeds remaining effort. "
+                    "The pin was not shortened and remaining was not clamped."
+                )
+        elif code == REASON_UNPLACED_KEEP_IN_ONE_CONFLICT:
+            arrangement = p.get("arrangement")
+            remaining = p.get("remaining_minutes")
+            reserved = p.get("reserved_minutes")
+            if arrangement == "shorter" and remaining is not None and reserved is not None:
+                lines.append(
+                    f"This task needs one {remaining}-minute block, but its pinned block "
+                    f"reserves {reserved} minutes."
+                )
+            elif arrangement == "multiple":
+                lines.append(
+                    "Pinned reservations are separate blocks and cannot satisfy keep-in-one. "
+                    "No automatic work was added."
+                )
+            elif arrangement == "exceeds_max":
+                lines.append(
+                    "Keep-in-one needs one block for the remaining effort, which exceeds "
+                    "the effective maximum. No automatic work was added."
+                )
+            else:
+                lines.append(
+                    "Keep-in-one conflicts with the pinned arrangement. No automatic work was added."
+                )
         elif code == REASON_EXCLUDED_LIFECYCLE_COMPLETED:
             lines.append("Excluded from auto-scheduling (task completed).")
         elif code == REASON_EXCLUDED_LIFECYCLE_TRASHED:

@@ -454,4 +454,4 @@ def test_a6_api_structured_fields_present(client: TestClient, db_session: Sessio
         assert key in body
     assert body["duration"]["placement_effort_minutes"] == body["placement_effort_minutes"]
     assert body["duration"]["estimated_duration_minutes"] == body["duration"]["original_estimate_minutes"]
-    assert "pin-adjusted" in body["duration"]["note"].lower()
+    assert body["duration"]["chunking_scheduling_effective"] is True

@@ -140,7 +140,13 @@ def add_busy_interval(
     end: datetime,
     buffer_minutes: int,
 ) -> list[BusyInterval]:
-    """Append a busy interval including post-block buffer and re-merge."""
+    """Append a busy interval including trailing buffer and re-merge.
+
+    SS-30 / A15 is not closed. The buffer is separation, not work duration.
+    Padding is the trailing edge of a newly placed auto block only. Evidence
+    still owed: both sides of fixed busy (pins and external events) and the
+    same gap between consecutive auto blocks of one task.
+    """
     buffered_end = end + timedelta(minutes=buffer_minutes)
     return _merge_busy([*busy, BusyInterval(start, buffered_end, source="scheduled")])
 

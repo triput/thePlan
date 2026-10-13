@@ -95,6 +95,8 @@ SETTINGS_SCHEDULING_FIELDS = frozenset(
         "upcoming_horizon_days",
         "default_estimated_duration_minutes",
         "default_min_block_duration_minutes",
+        "default_max_block_duration_minutes",
+        "default_max_block_unbounded",
         "default_schedule_style",
         "auto_defer_enabled",
         "max_auto_schedule_minutes_per_project_per_day",

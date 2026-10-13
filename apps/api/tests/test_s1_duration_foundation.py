@@ -116,7 +116,7 @@ def test_d_a4_nominal_change_does_not_rewrite_estimates(
     assert still["estimated_duration_minutes"] == 480
 
 
-def test_d_a5_bounds_inherit_write_rejected_explicit_ok(
+def test_d_a5_bounds_inherit_and_no_limit_writes_accepted(
     client: TestClient, db_session: Session
 ) -> None:
     _require_s1_head(db_session)
@@ -125,13 +125,17 @@ def test_d_a5_bounds_inherit_write_rejected_explicit_ok(
         json={"title": f"bounds-{_uid()}", "estimated_duration_minutes": 30},
     )
     task_id = created.json()["id"]
-    for payload in (
-        {"min_block_duration_minutes": None},
-        {"max_block_unbounded": True},
-    ):
-        blocked = client.patch(f"/api/v1/tasks/{task_id}", json=payload)
-        assert blocked.status_code == 422
-        assert blocked.json()["code"] == "CHUNKING_CUTOVER_PENDING"
+    inherit_min = client.patch(
+        f"/api/v1/tasks/{task_id}",
+        json={"min_block_duration_minutes": None},
+    )
+    assert inherit_min.status_code == 200, inherit_min.text
+
+    no_limit = client.patch(
+        f"/api/v1/tasks/{task_id}",
+        json={"max_block_unbounded": True},
+    )
+    assert no_limit.status_code == 200, no_limit.text
 
     ok = client.patch(
         f"/api/v1/tasks/{task_id}",
@@ -158,10 +162,11 @@ def test_d_a5_effective_inherited_bounds_preview(
     effective = client.get(f"/api/v1/tasks/{task_id}/scheduling/effective")
     assert effective.status_code == 200, effective.text
     duration = effective.json()["duration"]
-    preview = duration.get("inherited_bounds_preview")
-    assert preview is not None
-    assert preview["min_block_duration_minutes"] is not None
-    assert preview["max_block_duration_minutes"] is not None
+    assert duration["chunking_scheduling_effective"] is True
+    assert duration["effective_min_block_duration_minutes"] is not None
+    assert duration["effective_max_block_duration_minutes"] is not None
+    assert duration.get("inherited_bounds_preview") is None
+    assert "preview-only" not in duration["note"].lower()
 
 
 def test_d_a6_rejects_ambiguous_day_shorthand(client: TestClient, db_session: Session) -> None:
@@ -196,4 +201,4 @@ def test_d_a7_effective_duration_labels_match_task_progress(
     assert duration["time_worked_minutes"] == task["time_worked_minutes"]
     assert duration["remaining_estimate_minutes"] == task["remaining_estimate_minutes"]
     assert duration["placement_effort_minutes"] == 25
-    assert "pin-adjusted" in duration["note"].lower()
+    assert duration["chunking_scheduling_effective"] is True

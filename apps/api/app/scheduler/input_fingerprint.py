@@ -3,13 +3,15 @@
 Compared on read against live effective inputs. A mismatch sets ``is_stale``
 and names the category. This does not replan.
 
-Snapshot version 3. Placement ``ALGORITHM_VERSION`` stays ``f3-w2``; ``v`` is
-the fingerprint contract, not the placer. A stored snapshot whose ``v`` is
-not 3 (including F3 v2) is ``provenance`` — categories are not guessed across
-versions.
+Snapshot version 3 (S1) and **4** (S2 chunking cutover). Placement
+``ALGORITHM_VERSION`` stays ``f3-w2``; ``v`` is the fingerprint contract, not
+the placer. A stored snapshot whose ``v`` is not the live version (including
+F3 v2 or cross-version v3↔v4) is ``provenance`` — categories are not guessed
+across versions.
 
 Compared:
-- ``duration`` — estimated, min-block, and max-block minutes
+- ``duration`` — v3: estimated, min-block, and max-block minutes. v4: also
+  original / worked / remaining, inherit vs explicit vs No limit, keep-in-one
 - ``deadline`` — ``deadline_at`` only
 - ``map_style`` — effective schedule style, effective time-map id, strict mode,
   and band contents (tier, times, days, sort). Inheritance source is not part
@@ -50,6 +52,16 @@ from typing import Any
 from uuid import UUID
 
 SNAPSHOT_VERSION = 3
+SNAPSHOT_VERSION_V4 = 4
+
+# Concrete invalidation tokens (S2-P3). Later semantic activations append here.
+# A stored v4 snapshot missing a token is stale on ``scheduling_activation``
+# even when the other category hashes would still match. v3 rows stay
+# ``provenance`` via the version check and are not rewritten.
+SCHEDULING_ACTIVATIONS: tuple[str, ...] = (
+    "s2-v1-duration-bounds",
+    "s2-v2-pin-reservation",
+)
 
 STALE_DURATION = "duration"
 STALE_DEADLINE = "deadline"
@@ -84,14 +96,108 @@ W2_STALE_CATEGORIES: tuple[str, ...] = (
 
 F4_W2_STALE_CATEGORIES: tuple[str, ...] = (STALE_TIME_MAP_OVERRIDES,)
 
+STALE_SCHEDULING_ACTIVATION = "scheduling_activation"
+
 COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
-    W1_STALE_CATEGORIES + W2_STALE_CATEGORIES + F4_W2_STALE_CATEGORIES
+    W1_STALE_CATEGORIES
+    + W2_STALE_CATEGORIES
+    + F4_W2_STALE_CATEGORIES
+    + (STALE_SCHEDULING_ACTIVATION,)
 )
 
 # Not compared in v3. Do not treat a matching fingerprint as proof these held still.
 DEFERRED_STALE_CATEGORIES: tuple[str, ...] = ("priority_ups",)
 
 ALGORITHM_VERSION = "f3-w2"
+
+
+def live_snapshot_version() -> int:
+    """Task snapshot ``v`` for new collects.
+
+    v4 is live with the placer/resolver, not with Jules's write-guard flip.
+    Stored v3 rows compare as ``provenance``. Historical explanation JSON is
+    not rewritten.
+    """
+    return SNAPSHOT_VERSION_V4
+
+
+def owner_snapshot_predates_activation(snapshot: dict[str, Any] | None) -> bool:
+    """True when a preview was captured before the current scheduling activations.
+
+    v3 owner snapshots and v4 snapshots missing a later activation token are
+    included. This does not rewrite the stored JSON.
+    """
+    if not isinstance(snapshot, dict):
+        return True
+    raw = snapshot.get("snapshot_version")
+    if raw is None:
+        return True
+    try:
+        version = int(raw)
+    except (TypeError, ValueError):
+        return True
+    if version < SNAPSHOT_VERSION_V4:
+        return True
+    payload = snapshot.get("scheduling_activation")
+    present = payload.get("ids") if isinstance(payload, dict) else None
+    if not isinstance(present, list):
+        return True
+    return any(token not in present for token in SCHEDULING_ACTIVATIONS)
+
+
+def normalize_duration_category_v4(
+    *,
+    original_minutes: int,
+    worked_minutes: int,
+    remaining_minutes: int,
+    stored_min: int | None,
+    stored_max: int | None,
+    max_unbounded: bool,
+    keep_in_one_block: bool,
+    effective_min_minutes: int | None = None,
+    effective_max_minutes: int | None = None,
+    min_block_source: str | None = None,
+    max_block_source: str | None = None,
+) -> dict[str, Any]:
+    """S0 §5 duration category after S2-V1 activation.
+
+    Inherit vs explicit vs No limit is hashed beside the effective minutes so a
+    user-default change stales inheriting tasks. Buffers are not in this category.
+    """
+    eff_min = effective_min_minutes if effective_min_minutes is not None else stored_min
+    if max_unbounded:
+        eff_max = None
+    elif effective_max_minutes is not None:
+        eff_max = effective_max_minutes
+    else:
+        eff_max = stored_max
+    if min_block_source is None:
+        min_block_source = "user_default" if stored_min is None else "task_explicit"
+    if max_block_source is None:
+        if max_unbounded:
+            max_block_source = "no_limit"
+        elif stored_max is None:
+            max_block_source = "user_default"
+        else:
+            max_block_source = "task_explicit"
+    return {
+        "original_minutes": int(original_minutes),
+        "estimated_duration_minutes": int(original_minutes),
+        "worked_minutes": int(worked_minutes),
+        "remaining_minutes": int(remaining_minutes),
+        "min_block_duration_minutes": int(stored_min) if stored_min is not None else None,
+        "max_block_duration_minutes": (
+            None if max_unbounded else (int(stored_max) if stored_max is not None else None)
+        ),
+        "effective_min_minutes": int(eff_min) if eff_min is not None else None,
+        "effective_max_minutes": int(eff_max) if eff_max is not None else None,
+        "min_inherit": stored_min is None,
+        "max_inherit": stored_max is None and not max_unbounded,
+        "min_block_source": min_block_source,
+        "max_block_source": max_block_source,
+        "max_block_unbounded": bool(max_unbounded),
+        "keep_in_one_block": bool(keep_in_one_block),
+    }
 
 
 def _iso_datetime(value: datetime | None) -> str | None:
@@ -303,8 +409,8 @@ def normalize_prerequisite_states(
 def assemble_snapshot(
     *,
     estimated_duration_minutes: int,
-    min_block_duration_minutes: int,
-    max_block_duration_minutes: int,
+    min_block_duration_minutes: int | None,
+    max_block_duration_minutes: int | None,
     deadline_at: datetime | None,
     schedule_style: str | None,
     time_window_id: UUID | str | None,
@@ -330,24 +436,63 @@ def assemble_snapshot(
     soft_target_at: datetime | None = None,
     auto_defer_enabled: bool | None = None,
     time_map_overrides: list[Any] | None = None,
+    worked_minutes: int = 0,
+    remaining_minutes: int | None = None,
+    max_block_unbounded: bool = False,
+    keep_in_one_block: bool = False,
+    snapshot_version: int | None = None,
+    effective_min_minutes: int | None = None,
+    effective_max_minutes: int | None = None,
+    min_block_source: str | None = None,
+    max_block_source: str | None = None,
 ) -> dict[str, Any]:
-    """Canonical v3 snapshot. Callers pass the effective map, not the inherit source.
+    """Canonical task input snapshot (v3 or v4). Callers pass the effective map.
 
     Omitted W2 inputs use empty defaults so two default assemblies still match.
     Collect and live reads must pass the real values; defaults are not a claim
     that the owner has no settings. ``time_map_overrides`` defaults to empty,
     which is the unbound-task value — a bound map's rows must be passed in.
+
+    v3 ``duration`` uses **scheduling-effective** min/max integers (resolved
+    inherit / No limit). v4 stores stored-layer bounds plus progress fields.
     """
+    version = snapshot_version if snapshot_version is not None else live_snapshot_version()
     window = str(time_window_id) if time_window_id else None
     blockers = sorted({str(task_id) for task_id in blocking_task_ids})
     pins = list(pin_intervals or [])
-    return {
-        "v": SNAPSHOT_VERSION,
-        "duration": {
+    remaining = (
+        int(remaining_minutes)
+        if remaining_minutes is not None
+        else int(estimated_duration_minutes)
+    )
+    if version == SNAPSHOT_VERSION_V4:
+        duration = normalize_duration_category_v4(
+            original_minutes=int(estimated_duration_minutes),
+            worked_minutes=int(worked_minutes),
+            remaining_minutes=remaining,
+            stored_min=min_block_duration_minutes,
+            stored_max=max_block_duration_minutes,
+            max_unbounded=max_block_unbounded,
+            keep_in_one_block=keep_in_one_block,
+            effective_min_minutes=effective_min_minutes,
+            effective_max_minutes=effective_max_minutes,
+            min_block_source=min_block_source,
+            max_block_source=max_block_source,
+        )
+    else:
+        if min_block_duration_minutes is None or max_block_duration_minutes is None:
+            raise ValueError(
+                "v3 duration snapshots require scheduling-effective min/max integers; "
+                "resolve inherit / No limit before assemble_snapshot"
+            )
+        duration = {
             "estimated_duration_minutes": int(estimated_duration_minutes),
             "min_block_duration_minutes": int(min_block_duration_minutes),
             "max_block_duration_minutes": int(max_block_duration_minutes),
-        },
+        }
+    snapshot = {
+        "v": version,
+        "duration": duration,
         "deadline": {"deadline_at": _iso_datetime(deadline_at)},
         "map_style": {
             "schedule_style": schedule_style,
@@ -388,6 +533,9 @@ def assemble_snapshot(
             "overrides": normalize_time_map_overrides(time_map_overrides),
         },
     }
+    if version == SNAPSHOT_VERSION_V4:
+        snapshot["scheduling_activation"] = {"ids": list(SCHEDULING_ACTIVATIONS)}
+    return snapshot
 
 
 def _canonical(value: Any) -> str:
@@ -405,11 +553,18 @@ def diff_stale_categories(stored: dict[str, Any] | None, live: dict[str, Any]) -
     """Category names that differ. Empty means the compared inputs still match.
 
     ``priority_ups`` is ignored even if a caller stuffs it into the dict.
-    ``time_map_overrides`` is compared on v3 snapshots.
+    ``time_map_overrides`` is compared on v3+ snapshots. Cross-version pairs
+    (v3 stored vs v4 live, etc.) return ``provenance`` only.
     """
-    if not isinstance(stored, dict) or stored.get("v") != SNAPSHOT_VERSION:
+    if not isinstance(stored, dict) or not isinstance(live, dict):
         return [STALE_PROVENANCE]
-    if not isinstance(live, dict) or live.get("v") != SNAPSHOT_VERSION:
+    stored_v = stored.get("v")
+    live_v = live.get("v")
+    if stored_v not in (SNAPSHOT_VERSION, SNAPSHOT_VERSION_V4):
+        return [STALE_PROVENANCE]
+    if live_v not in (SNAPSHOT_VERSION, SNAPSHOT_VERSION_V4):
+        return [STALE_PROVENANCE]
+    if stored_v != live_v:
         return [STALE_PROVENANCE]
     changed: list[str] = []
     for key in COMPARED_STALE_CATEGORIES:

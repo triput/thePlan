@@ -21,8 +21,8 @@ from app.models import CalendarAccount, ExternalCalendarEvent, ScheduledBlock, T
 from app.models.enums import CalendarProvider
 from app.scheduler.input_fingerprint import (
     DEFERRED_STALE_CATEGORIES,
-    SNAPSHOT_VERSION,
     W2_STALE_CATEGORIES,
+    live_snapshot_version,
 )
 from app.scheduler.reasons import ReasonFact, format_summary_text
 from test_f3_w1_acceptance import (
@@ -212,7 +212,7 @@ def test_deadline_limit_is_primary_when_nothing_placed(
     assert explanation["placed_minutes"] == 0
     assert "before the deadline" in body["summary_text"]
     assert explanation["algorithm_version"] == "f3-w2"
-    assert explanation["input_snapshot"]["v"] == SNAPSHOT_VERSION
+    assert explanation["input_snapshot"]["v"] == live_snapshot_version()
 
 
 def test_dependency_cycle_blocks_both_members(
@@ -585,7 +585,7 @@ def test_placed_task_persists_placement_facts(
     assert explanation["outcome"] == "placed"
     assert explanation["placed_minutes"] == 30
     assert explanation["algorithm_version"] == "f3-w2"
-    assert explanation["input_snapshot"]["v"] == SNAPSHOT_VERSION
+    assert explanation["input_snapshot"]["v"] == live_snapshot_version()
     assert body["is_stale"] is False
 
     facts = explanation["placement_facts"]
@@ -676,7 +676,7 @@ def test_stale_v2_categories_and_w3_keys_stay_quiet(
     fresh = _explanation(client, task["id"])
     assert fresh["is_stale"] is False
     assert fresh["stale_categories"] == []
-    assert fresh["explanation"]["input_snapshot"]["v"] == SNAPSHOT_VERSION
+    assert fresh["explanation"]["input_snapshot"]["v"] == live_snapshot_version()
     for category in W2_STALE_CATEGORIES:
         assert category in fresh["explanation"]["input_snapshot"]
     for deferred in DEFERRED_STALE_CATEGORIES:

@@ -109,6 +109,12 @@ class InheritedBlockBoundsPreview(BaseModel):
     )
 
 
+class KeepInOneSchedulingConflictOut(BaseModel):
+    code: str
+    message: str
+    detail: dict | None = None
+
+
 class DurationEffectiveOut(BaseModel):
     original_estimate_minutes: int
     time_worked_minutes: int
@@ -120,6 +126,15 @@ class DurationEffectiveOut(BaseModel):
     max_block_unbounded: bool
     keep_in_one_block: bool
     inherited_bounds_preview: InheritedBlockBoundsPreview | None = None
+    chunking_scheduling_effective: bool = False
+    effective_min_block_duration_minutes: int | None = None
+    effective_max_block_duration_minutes: int | None = None
+    min_block_source: str | None = None
+    max_block_source: str | None = None
+    effective_bounds_conflict: bool = False
+    keep_in_one_scheduling_conflicts: list[KeepInOneSchedulingConflictOut] = Field(
+        default_factory=list
+    )
     note: str = (
         "estimated_duration_minutes is the original-estimate alias. "
         "placement_effort_minutes follows remaining estimate when set, else that alias. "

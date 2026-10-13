@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -14,18 +16,20 @@ from app.scheduler.reasons import (
     REASON_EXCLUDED_LIFECYCLE_TRASHED,
 )
 from app.scheduler.style import effective_schedule_style, effective_schedule_style_source
-from app.scheduler.task_effort import placement_effort_minutes
+from app.scheduler.pin_reservation import evaluate_auto_placement
 
 
 @dataclass(frozen=True)
 class TaskCandidate:
     task: Task
     remaining_minutes: int
+    reserved_minutes: int = 0
+    effort_minutes: int = 0
 
 
 @dataclass(frozen=True)
 class ExcludedTask:
-    """Open task evaluated but not auto-placed (manual/bundle or fully pinned)."""
+    """Open task evaluated but not auto-placed (manual/bundle, pins, or chunking conflict)."""
 
     task: Task
     requested_minutes: int
@@ -33,6 +37,8 @@ class ExcludedTask:
     remaining_minutes: int
     schedule_style: ScheduleStyle
     style_source: str
+    reason_code: str | None = None
+    reason_params: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -45,7 +51,33 @@ class LifecycleExcludedTask:
     archived_scope: str | None = None
 
 
+def _pinned_blocks_for_task(
+    db: Session,
+    task_id: UUID,
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None,
+) -> list[ScheduledBlock]:
+    if pinned_blocks_by_task is not None:
+        return list(pinned_blocks_by_task.get(task_id, []))
+    return (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.task_id == task_id,
+            ScheduledBlock.is_pinned.is_(True),
+        )
+        .all()
+    )
+
+
+def _run_now(now_utc: datetime | None) -> datetime:
+    if now_utc is None:
+        return datetime.now(timezone.utc)
+    if now_utc.tzinfo is None:
+        return now_utc.replace(tzinfo=timezone.utc)
+    return now_utc
+
+
 def pinned_minutes_for_task(db: Session, task_id: UUID) -> int:
+    """Full pinned occupancy. Placement budget uses future-tail reservation instead."""
     blocks = (
         db.query(ScheduledBlock)
         .filter(
@@ -70,9 +102,14 @@ def load_candidates(
     owner_id: UUID,
     settings: UserSettings,
     *,
-    pinned_minutes_by_task: dict[UUID, int] | None = None,
+    now_utc: datetime | None = None,
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
 ) -> list[TaskCandidate]:
-    """Incomplete tasks with remaining duration > 0; bundle/manual exclude auto-placement."""
+    """Incomplete tasks with minutes left to place; bundle/manual stay out.
+
+    Minutes left use remaining effort minus future-tail pin reservation at
+    ``now_utc``. Keep-in-one conflicts and excess reservations are not candidates.
+    """
     tasks = (
         db.query(Task)
         .filter(
@@ -95,6 +132,7 @@ def load_candidates(
             for epic in db.query(Epic).filter(Epic.id.in_(epic_ids)).all():
                 epics[epic.id] = epic
 
+    run_now = _run_now(now_utc)
     candidates: list[TaskCandidate] = []
     for task in tasks:
         project = projects.get(task.project_id) if task.project_id else None
@@ -106,14 +144,18 @@ def load_candidates(
             continue
         if _task_archived_scope(task, projects, epics) is not None:
             continue
-        if pinned_minutes_by_task is not None:
-            pinned_minutes = pinned_minutes_by_task.get(task.id, 0)
-        else:
-            pinned_minutes = pinned_minutes_for_task(db, task.id)
-        effort = placement_effort_minutes(task)
-        remaining = effort - pinned_minutes
-        if remaining > 0:
-            candidates.append(TaskCandidate(task=task, remaining_minutes=remaining))
+        blocks = _pinned_blocks_for_task(db, task.id, pinned_blocks_by_task)
+        decision = evaluate_auto_placement(task, settings, blocks, run_now)
+        if not decision.auto_place or decision.minutes_to_place <= 0:
+            continue
+        candidates.append(
+            TaskCandidate(
+                task=task,
+                remaining_minutes=decision.minutes_to_place,
+                reserved_minutes=decision.reserved_minutes,
+                effort_minutes=decision.effort_minutes,
+            )
+        )
     return candidates
 
 
@@ -123,7 +165,8 @@ def load_excluded_tasks(
     settings: UserSettings,
     candidate_ids: set[UUID],
     *,
-    pinned_minutes_by_task: dict[UUID, int] | None = None,
+    now_utc: datetime | None = None,
+    pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
 ) -> list[ExcludedTask]:
     """Classify open tasks skipped by ``load_candidates`` (not already candidates).
 
@@ -167,6 +210,7 @@ def load_excluded_tasks(
             for epic in db.query(Epic).filter(Epic.id.in_(epic_ids)).all():
                 epics[epic.id] = epic
 
+    run_now = _run_now(now_utc)
     excluded: list[ExcludedTask] = []
     for task in tasks:
         project = projects.get(task.project_id) if task.project_id else None
@@ -175,32 +219,30 @@ def load_excluded_tasks(
             continue
         style = effective_schedule_style(task, project, epic, settings)
         style_source = effective_schedule_style_source(task, project, epic)
-        if pinned_minutes_by_task is not None:
-            pinned_minutes = pinned_minutes_by_task.get(task.id, 0)
-        else:
-            pinned_minutes = pinned_minutes_for_task(db, task.id)
-        requested = placement_effort_minutes(task)
-        remaining = requested - pinned_minutes
+        blocks = _pinned_blocks_for_task(db, task.id, pinned_blocks_by_task)
+        decision = evaluate_auto_placement(task, settings, blocks, run_now)
         if style in {ScheduleStyle.bundle, ScheduleStyle.manual}:
             excluded.append(
                 ExcludedTask(
                     task=task,
-                    requested_minutes=requested,
-                    pinned_minutes=pinned_minutes,
-                    remaining_minutes=max(0, remaining),
+                    requested_minutes=decision.effort_minutes,
+                    pinned_minutes=decision.reserved_minutes,
+                    remaining_minutes=max(0, decision.minutes_to_place),
                     schedule_style=style,
                     style_source=style_source,
                 )
             )
-        elif remaining <= 0:
+        elif not decision.auto_place:
             excluded.append(
                 ExcludedTask(
                     task=task,
-                    requested_minutes=requested,
-                    pinned_minutes=pinned_minutes,
-                    remaining_minutes=0,
+                    requested_minutes=decision.effort_minutes,
+                    pinned_minutes=decision.reserved_minutes,
+                    remaining_minutes=decision.outcome_remaining_minutes,
                     schedule_style=style,
                     style_source=style_source,
+                    reason_code=decision.reason_code,
+                    reason_params=dict(decision.reason_params),
                 )
             )
     return excluded

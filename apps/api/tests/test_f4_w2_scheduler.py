@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models import FocusWindow, ScheduleRun, Task, TimeMapOverride, UserSettings
 from app.models.enums import TimeMapBandTier
-from app.scheduler.input_fingerprint import SNAPSHOT_VERSION
+from app.scheduler.input_fingerprint import SNAPSHOT_VERSION_V4, live_snapshot_version
 from app.scheduler.placement import place_task
 from app.scheduler.time_map_overrides import override_utc_bounds
 from test_f3_w1_acceptance import (
@@ -140,7 +140,7 @@ def test_override_create_patch_delete_stales_fingerprint_without_replan(
     fresh = _explanation(client, task["id"])
     assert fresh["is_stale"] is False
     snapshot = fresh["explanation"]["input_snapshot"]
-    assert snapshot["v"] == SNAPSHOT_VERSION == 3
+    assert snapshot["v"] == live_snapshot_version() == SNAPSHOT_VERSION_V4
     assert snapshot["time_map_overrides"] == {"overrides": []}
     fingerprint = fresh["explanation"]["input_fingerprint"]
     run_id = fresh["explanation"]["schedule_run_id"]
