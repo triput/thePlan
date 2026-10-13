@@ -3,7 +3,7 @@
   File: docs/redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md
   Description: Dex discovery review and decision clarifications for Jim.
   Component: Scheduling / Settings
-  Version: 1.19 (S2 cutover packet review and recommended sequence)
+  Version: 1.20 (Trish approved S2-P4 keep-in-one / pins contract)
   Created: 2026-10-12
   Last Update: 2026-10-12
 ==============================================================================
@@ -13,13 +13,13 @@
 
 **For:** Jim and the team; Trish retains product decisions.
 **Status:** Product decisions through v1.16 approved 2026-10-12. v1.17 S0 recheck findings **R1–R3 closed** in packet **v1.3**; Trish **explicitly approved** buffer §6.1 on 2026-10-12. S1 may proceed.
-**Latest handoff:** Trish endorsed the S2 review below on 2026-10-12. Steve reconciled findings into [0.7-S2-CUTOVER.md](../delivery/0.7-S2-CUTOVER.md) **v1.1** (S2-P1–P3 + order + `workweek_*` stamped; **S2-P4** still open for Trish). Awaiting Trish on S2-P4 and Dex re-ack; this is not implementation or release clearance.
+**Latest handoff:** Trish endorsed the S2 review below on 2026-10-12. **S2-P4 product decision approved** by Trish (contract below). Steve folded it into [0.7-S2-CUTOVER.md](../delivery/0.7-S2-CUTOVER.md) **v1.2**. Dex re-review of the integrated packet remains pending; this is not implementation or release clearance.
 **Working plan:** `C:\Users\trish\.cursor\plans\scheduling_settings_discovery_ce6c2e9b.plan.md`
 **Related spec:** [Scheduling / Settings spec](../SCHEDULING-SETTINGS-SPEC.md), v1.4.4 (approved product contract; stamped from this handoff).
 
 ## Assessment
 
-### S2 cutover packet v1.0 review — 2026-10-12 (reconciled in packet v1.1; S2-P4 open)
+### S2 cutover packet v1.0 review — 2026-10-12 (packet reconciliation recorded; S2-P4 decision approved)
 
 **Reviewed:** [0.7-S2-CUTOVER.md](../delivery/0.7-S2-CUTOVER.md), v1.0, against the approved spec, S0 migration contract, and legacy compatibility inventory. Documentation/contract review only; no implementation tests or release operations performed for this review.
 
@@ -30,7 +30,29 @@
 | S2-P1 | Full-S2 scope omits approved behavior; the OUT table groups context timelines with deferred travel matrices. | Context resolution and explicit event travel belong in S2. Only the travel matrix and standing commutes remain deferred. Give explicit slices/acceptance homes to day-scoped replacement versus exclusive requirements (empty replacement and expiry included), split/overnight/DST rules, normal preference ranking with deadline and higher-priority protection, and context precedence/resources/event travel. These may follow the first vertical; they cannot disappear behind “where in scope.” SPEC §11 remains authoritative. |
 | S2-P2 | FK-or-null does not resolve mixed legacy/new-rule inheritance. | Define deterministic resolution and provenance when a task has new rules under an inherited legacy project/epic map, and when an explicit legacy task map sits under new project rules. Define clearing/reverting assignments. General applies only when neither an applicable legacy assignment nor a new assignment resolves. Existing/new references may suffice; a new discriminator column is not prescribed. No silent composition or conversion. |
 | S2-P3 | A separate V5 fingerprint finish could lag V3/V4 scheduling behavior. | Make snapshots, revision-locking writers, effective reads, explanations, and stale-preview protection part of each activation boundary. Duration-focused v4 is acceptable as a proposed first stage only with a concrete mechanism that also invalidates previews made before later semantic activations. Sharing the v4 label does not prove safety. V5 should be a cross-cutting gate, not post-activation cleanup. Preserve historical JSON. |
-| S2-P4 | Keep-in-one and future-pin reservation have an unresolved interaction. | Specify the result for four hours remaining with a future two-hour pin when keep-in-one is enabled: does the arrangement satisfy the requirement, conflict, or permit a defined treatment of unreserved effort? Protect pins and prevent double scheduling. Add past, future, and in-progress pin cases. Do not invent the product answer in implementation. |
+| S2-P4 | Keep-in-one and future-pin reservation interaction. | **Product decision settled by Trish, 2026-10-12.** Approved contract below; folded into packet **v1.2**. Implementation and acceptance evidence remain pending; Dex re-ack of integrated packet remains pending. |
+
+#### S2-P4 approved contract: keep remaining work in one block
+
+**Locked by Trish, 2026-10-12.** Keep-in-one governs the whole unfinished task, including relevant pinned reservations. It does not mean one automatic block plus arbitrary pinned pieces. Pins are protected commitments: the scheduler must not resize, extend, move, unpin, or merge them automatically to satisfy this requirement.
+
+**Canonical case:** four hours remaining plus a future two-hour pin produces an actionable conflict: “This task needs one four-hour block, but its pinned block reserves two hours.” Preserve the pin and add no automatic work for this task. Offer explicit choices: resize or unpin the existing block, allow splitting, or correct remaining effort if the estimate is wrong. Free adjacent time is not permission to extend the pin.
+
+| Relevant pinned arrangement | Required behavior / acceptance case |
+| --- | --- |
+| No relevant pin | Place all remaining effort in one continuous eligible block, or explain why it cannot fit. |
+| One future pin exactly covers remaining | Already reserved in one block; add no automatic work. Independently check other constraints. |
+| One future pin shorter than remaining | Preserve pin, report keep-in-one conflict, and add no separate automatic remainder. |
+| One future pin exceeds remaining | Preserve pin, add no automatic work, and report excess-reservation mismatch. Do not clamp remaining or shorten the pin. |
+| Multiple future pins | Report incompatible pinned arrangement; do not combine, move, or supplement the pins automatically. Adjacent pinned rows do not silently become one block. |
+| Entirely past pin (`end <= run now`) | Reserves zero remaining effort and does not prevent placing remaining effort in one new block. Elapsed time is not logged work. |
+| In-progress pin | Compare remaining with only its unelapsed tail (`run now` to end). Two hours remaining with two hours of tail is covered; four hours remaining with two hours of tail conflicts. Apply the same excess-reservation rule when the tail exceeds remaining. Multiple relevant reservations, including an in-progress tail plus a future pin, must not bypass the one-block requirement. |
+
+**Saving versus scheduling:** Allow enabling keep-in-one despite an incompatible pinned arrangement, provided the conflict is clearly returned and visible in effective rules. Saving changes no blocks. The next preview reports the conflict and proposes no automatic work for this task. This is a schedulability conflict, not a requirement to undo pins before expressing the desired rule; other input-validation rules still apply.
+
+**Other constraints remain independent:** A single pin may satisfy the one-block shape while violating context, availability, or another requirement. Preserve the pin and report those conflicts too. “Already reserved” is not a claim that all constraints pass. Resizing/unpinning requires an explicit authorized action; a possible future merge operation is not introduced by this decision.
+
+**Evidence required:** Cover the table in placement/outcome/effective-read tests, including protected pins, no duplicate effort, no automatic remainder on conflict, and save-with-conflict leaving blocks unchanged. Product decision closed; implementation/test status is not closed by this handoff.
 
 **Additional V3 acceptance requirement: saved/active divergence.** S1 deliberately permits stored Working/General policies to differ from active legacy settings. Exercise that state, not only unchanged seeds. Show which stored configuration becomes effective at cutover; invalidate older previews; leave existing blocks alone until an authorized scheduling operation. Preserve legacy map interpretation while changing its global clip to Working as approved.
 
@@ -48,7 +70,7 @@ Trish agreed this recommendation makes sense and requested it be handed back. Fi
 
 **Other packet questions:** Recommend rejecting deprecated `workweek_*` / placement `workday_*` settings writes once the scheduler no longer consumes them, with actionable guidance to the supported replacement. Update/hide the obsolete editor so it cannot report an ineffective save as useful configuration. This does not concern the distinct nominal-workday setting. Tesla/Jules should determine whether a migration is needed and how activation is recorded safely, then supply the concrete operator procedure; Trish need not invent the engineering mechanism.
 
-**Next handoff:** Packet reconciliation landed in [0.7-S2-CUTOVER.md](../delivery/0.7-S2-CUTOVER.md) **v1.1**. Bring back Trish’s **S2-P4** answer and Dex re-ack of v1.1 (activation/release boundaries proposed there). No push, rebuild, household migration, or implementation gate was cleared by this review.
+**Next handoff:** Steve folded **S2-P4** into [0.7-S2-CUTOVER.md](../delivery/0.7-S2-CUTOVER.md) **v1.2**. Dex re-reviews the integrated packet and activation/release boundaries. No rebuild, household migration, or implementation gate was cleared by this review; Jim clears V1 coding only after Dex re-ack.
 
 ### S0 packet v1.1 recheck — 2026-10-12 (**closed** in packet v1.3)
 
