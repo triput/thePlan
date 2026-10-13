@@ -44,7 +44,13 @@ def owner_scheduling_lock_key(owner_id: UUID) -> int:
 
 
 def lock_owner_scheduling(db: Session, owner_id: UUID) -> UserSettings:
-    """Transaction-scoped advisory lock plus settings row FOR UPDATE."""
+    """Transaction-scoped advisory lock plus settings row FOR UPDATE.
+
+    ``populate_existing()`` refreshes any identity-map copy so waiters see the
+    post-lock ``scheduling_revision`` (same pattern as task row locks). Without
+    it, a pre-loaded UserSettings can keep a stale revision and pass conflict
+    checks that should 409.
+    """
     db.execute(
         text("SELECT pg_advisory_xact_lock(:namespace, :key)"),
         {"namespace": _OWNER_LOCK_NAMESPACE, "key": owner_scheduling_lock_key(owner_id)},
@@ -53,6 +59,7 @@ def lock_owner_scheduling(db: Session, owner_id: UUID) -> UserSettings:
         db.query(UserSettings)
         .filter(UserSettings.owner_id == owner_id)
         .with_for_update()
+        .populate_existing()
         .one()
     )
     return settings
