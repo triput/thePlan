@@ -32,6 +32,9 @@ REASON_OUTSIDE_WORKING_AVAILABILITY = "outside_working_availability"
 REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT = "unplaced_block_bounds_conflict"
 REASON_UNPLACED_PIN_RESERVATION_EXCESS = "unplaced_pin_reservation_excess"
 REASON_UNPLACED_KEEP_IN_ONE_CONFLICT = "unplaced_keep_in_one_conflict"
+# Pre-existing pins and external events sit closer than the buffer. They are
+# not moved. Not an unplaced-* code: the task may still place elsewhere.
+REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER = "fixed_items_closer_than_buffer"
 
 
 @dataclass
@@ -250,6 +253,24 @@ def format_summary_text(facts: list[ReasonFact]) -> str:
             else:
                 lines.append(
                     "Keep-in-one conflicts with the pinned arrangement. No automatic work was added."
+                )
+        elif code == REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER:
+            buffer = p.get("buffer_minutes")
+            gap = p.get("gap_minutes")
+            if buffer is not None and gap is not None:
+                lines.append(
+                    f"Pinned blocks and external events are {gap} minute(s) apart, "
+                    f"closer than the {buffer}-minute buffer. They were not moved."
+                )
+            elif buffer is not None:
+                lines.append(
+                    "Pinned blocks and external events are closer than the "
+                    f"{buffer}-minute buffer. They were not moved."
+                )
+            else:
+                lines.append(
+                    "Pinned blocks and external events are closer than the required buffer. "
+                    "They were not moved."
                 )
         elif code == REASON_EXCLUDED_LIFECYCLE_COMPLETED:
             lines.append("Excluded from auto-scheduling (task completed).")

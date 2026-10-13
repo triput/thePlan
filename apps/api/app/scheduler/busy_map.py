@@ -15,11 +15,32 @@ from app.models import ExternalCalendarEvent, ScheduledBlock
 from app.services.busy_intervals import TimeInterval, merge_intervals, ranges_overlap
 
 
+# Pins and external events are fixed. Scheduled auto blocks are not.
+FIXED_BUSY_SOURCES = frozenset({"pinned", "external"})
+
+
 @dataclass(frozen=True)
 class BusyInterval:
     start: datetime
     end: datetime
     source: str = "external"  # "pinned" | "external" | "scheduled"
+
+
+@dataclass(frozen=True)
+class FixedBufferConflict:
+    """Two fixed items whose separation is tighter than the buffer.
+
+    Bounds are the stored occupancy. Nothing here is a proposal to move them.
+    """
+
+    earlier_source: str
+    later_source: str
+    earlier_start: datetime
+    earlier_end: datetime
+    later_start: datetime
+    later_end: datetime
+    gap_minutes: int
+    buffer_minutes: int
 
 
 def _to_time_intervals(intervals: list[BusyInterval]) -> list[TimeInterval]:
@@ -140,15 +161,79 @@ def add_busy_interval(
     end: datetime,
     buffer_minutes: int,
 ) -> list[BusyInterval]:
-    """Append a busy interval including trailing buffer and re-merge.
+    """Append a newly placed auto block plus one trailing buffer, then re-merge.
 
-    SS-30 / A15 is not closed. The buffer is separation, not work duration.
-    Padding is the trailing edge of a newly placed auto block only. Evidence
-    still owed: both sides of fixed busy (pins and external events) and the
-    same gap between consecutive auto blocks of one task.
+    The buffer is separation, not work duration. The trailing pad is the whole
+    auto–auto gap (and the gap between consecutive splits of one task). Pins
+    and external events stay at their real bounds; ``find_slot`` consults
+    ``expand_fixed_busy_for_placement`` so those fixed items keep clearance on
+    both sides without a second pad between autos. Fixed items are not moved.
+    Travel is not applied.
     """
-    buffered_end = end + timedelta(minutes=buffer_minutes)
+    buffered_end = end + timedelta(minutes=max(buffer_minutes, 0))
     return _merge_busy([*busy, BusyInterval(start, buffered_end, source="scheduled")])
+
+
+def expand_fixed_busy_for_placement(
+    busy: list[BusyInterval],
+    buffer_minutes: int,
+) -> list[BusyInterval]:
+    """Consult view: grow pins and external events by the buffer on both sides.
+
+    Scheduled intervals are returned unchanged. They already carry one trailing
+    pad, and expanding them again would make the auto–auto gap twice the buffer.
+    Does not replace the stored busy list.
+    """
+    if buffer_minutes <= 0:
+        return busy
+    pad = timedelta(minutes=buffer_minutes)
+    expanded: list[BusyInterval] = []
+    for item in busy:
+        if item.source in FIXED_BUSY_SOURCES:
+            expanded.append(
+                BusyInterval(item.start - pad, item.end + pad, source=item.source)
+            )
+        else:
+            expanded.append(item)
+    return expanded
+
+
+def fixed_buffer_conflicts(
+    busy: list[BusyInterval],
+    buffer_minutes: int,
+) -> list[FixedBufferConflict]:
+    """Report pre-existing fixed items closer than the buffer. Do not move them.
+
+    S0 §6.1 row 8. Buffer 0 allows adjacency, including a zero gap. Overlap or
+    a positive gap shorter than a positive buffer is a conflict. Scheduled
+    auto blocks are not fixed items.
+    """
+    if buffer_minutes <= 0:
+        return []
+    fixed = [item for item in busy if item.source in FIXED_BUSY_SOURCES]
+    fixed.sort(key=lambda item: (item.start, item.end, item.source))
+    pad = timedelta(minutes=buffer_minutes)
+    conflicts: list[FixedBufferConflict] = []
+    for index, earlier in enumerate(fixed):
+        for later in fixed[index + 1 :]:
+            if later.start >= earlier.end + pad:
+                break
+            gap_minutes = int((later.start - earlier.end).total_seconds() // 60)
+            if gap_minutes >= buffer_minutes:
+                continue
+            conflicts.append(
+                FixedBufferConflict(
+                    earlier_source=earlier.source,
+                    later_source=later.source,
+                    earlier_start=earlier.start,
+                    earlier_end=earlier.end,
+                    later_start=later.start,
+                    later_end=later.end,
+                    gap_minutes=gap_minutes,
+                    buffer_minutes=buffer_minutes,
+                )
+            )
+    return conflicts
 
 
 def interval_overlaps_busy(

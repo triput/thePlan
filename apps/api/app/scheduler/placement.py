@@ -26,8 +26,16 @@ from app.scheduler.time_map_overrides import (
     select_override_for_scheduling_day,
 )
 from app.models.enums import TimeMapBandTier
-from app.scheduler.busy_map import BusyInterval, add_busy_interval, interval_overlaps_busy
+from app.scheduler.busy_map import (
+    BusyInterval,
+    FixedBufferConflict,
+    add_busy_interval,
+    expand_fixed_busy_for_placement,
+    fixed_buffer_conflicts,
+    interval_overlaps_busy,
+)
 from app.scheduler.reasons import (
+    REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER,
     REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT,
     REASON_UNPLACED_BUSY_CONFLICT,
     REASON_UNPLACED_DEADLINE_LIMIT,
@@ -65,8 +73,9 @@ class PlacementResult:
     proposed_blocks: list[ProposedBlock] | None = None
     # Jules' reason codes, priority order. First entry is the primary constraint.
     observed_constraints: list[str] = field(default_factory=list)
-    # Short hints for the same pass. ``last_failure`` is set only when this call
-    # placed zero blocks; ``pass_hints`` lists every observed hint in that case.
+    # ``last_failure`` is set only when this call placed zero blocks.
+    # ``pass_hints`` lists those failure hints. A pre-existing fixed-buffer
+    # conflict is also listed there, including when this call still placed.
     last_failure: dict[str, Any] | None = None
     pass_hints: list[dict[str, Any]] = field(default_factory=list)
     applicable_override: dict[str, Any] | None = None
@@ -81,6 +90,7 @@ HINT_NO_TIME_MAP_INTERVAL = "no_time_map_interval"
 HINT_RED_EXCLUSION = "red_exclusion"
 HINT_BUSY_CONFLICT = "busy_conflict"
 HINT_PINNED_CONFLICT = "pinned_conflict"
+HINT_FIXED_BUFFER_CONFLICT = "fixed_buffer_conflict"
 
 _HINT_BY_REASON: dict[str, str] = {
     REASON_UNPLACED_DEADLINE_LIMIT: HINT_DEADLINE_LIMIT,
@@ -90,6 +100,7 @@ _HINT_BY_REASON: dict[str, str] = {
     REASON_UNPLACED_RED_EXCLUSION: HINT_RED_EXCLUSION,
     REASON_UNPLACED_BUSY_CONFLICT: HINT_BUSY_CONFLICT,
     REASON_UNPLACED_PINNED_CONFLICT: HINT_PINNED_CONFLICT,
+    REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER: HINT_FIXED_BUFFER_CONFLICT,
 }
 
 
@@ -276,9 +287,16 @@ def find_slot(
     duration_minutes: int,
     not_before: datetime,
     deadline: datetime | None,
+    buffer_minutes: int = 0,
 ) -> tuple[datetime, datetime] | None:
     if duration_minutes <= 0:
         return None
+
+    # Fixed busy (pins, external events) blocks the buffer on both sides.
+    # Scheduled intervals already include one trailing pad, so they are not
+    # expanded here — that would double the auto–auto gap.
+    if buffer_minutes > 0:
+        busy = expand_fixed_busy_for_placement(busy, buffer_minutes)
 
     search_start = max(window_start, not_before)
     if deadline is not None:
@@ -343,7 +361,10 @@ def _max_contiguous_minutes(
     window_end: datetime,
     not_before: datetime,
     deadline: datetime | None,
+    buffer_minutes: int = 0,
 ) -> int:
+    if buffer_minutes > 0:
+        busy = expand_fixed_busy_for_placement(busy, buffer_minutes)
     search_start = max(window_start, not_before)
     if deadline is not None:
         deadline = _ensure_utc(deadline)
@@ -467,6 +488,7 @@ def _observe_unplaced_constraints(
     project_daily_usage: ProjectDailyUsage | None,
     day_cap_blocked: bool,
     cap_blocked_day: date | None,
+    buffer_minutes: int = 0,
 ) -> list[str]:
     """Observed placement constraints for F3 (not a unique root-cause proof)."""
     if remaining <= 0:
@@ -513,6 +535,7 @@ def _observe_unplaced_constraints(
                                 slice_minutes,
                                 not_before,
                                 deadline_utc,
+                                buffer_minutes=buffer_minutes,
                             )
                             is not None
                         ):
@@ -525,6 +548,7 @@ def _observe_unplaced_constraints(
                                 slice_minutes,
                                 not_before,
                                 None,
+                                buffer_minutes=buffer_minutes,
                             )
                             is not None
                         ):
@@ -567,6 +591,7 @@ def _observe_unplaced_constraints(
                 min(window_end, horizon_end),
                 not_before,
                 deadline_utc,
+                buffer_minutes=buffer_minutes,
             )
             if gap > max_gap:
                 max_gap = gap
@@ -639,6 +664,7 @@ def _observe_unplaced_constraints(
                     slice_minutes,
                     not_before,
                     deadline_utc,
+                    buffer_minutes=buffer_minutes,
                 )
                 if full_slot is not None:
                     continue
@@ -650,6 +676,7 @@ def _observe_unplaced_constraints(
                         slice_minutes,
                         not_before,
                         deadline_utc,
+                        buffer_minutes=buffer_minutes,
                     )
                     is not None
                 ):
@@ -662,6 +689,7 @@ def _observe_unplaced_constraints(
                         slice_minutes,
                         not_before,
                         deadline_utc,
+                        buffer_minutes=buffer_minutes,
                     )
                     is not None
                 ):
@@ -702,6 +730,8 @@ def _pass_hints(
     mbl: int,
     window_id: UUID | None,
     strict_mode: bool | None,
+    buffer_minutes: int = 0,
+    fixed_conflicts: list[FixedBufferConflict] | None = None,
 ) -> list[dict[str, Any]]:
     """Structured hints in the same order as ``codes`` (Jules' priority)."""
     hints: list[dict[str, Any]] = []
@@ -724,8 +754,19 @@ def _pass_hints(
             params["strict_mode"] = strict_mode
         elif short == HINT_BUSY_CONFLICT:
             params["sources"] = ["external"]
+            if buffer_minutes > 0:
+                params["buffer_minutes"] = buffer_minutes
         elif short == HINT_PINNED_CONFLICT:
             params["sources"] = ["pinned"]
+            if buffer_minutes > 0:
+                params["buffer_minutes"] = buffer_minutes
+        elif short == HINT_FIXED_BUFFER_CONFLICT:
+            params["buffer_minutes"] = buffer_minutes
+            if fixed_conflicts:
+                first = fixed_conflicts[0]
+                params["gap_minutes"] = first.gap_minutes
+                params["sources"] = [first.earlier_source, first.later_source]
+                params["fixed_pair_count"] = len(fixed_conflicts)
         hints.append({"code": short, "reason_code": code, "params": params})
     return hints
 
@@ -948,6 +989,7 @@ def place_task(
                         slice_minutes,
                         not_before,
                         deadline,
+                        buffer_minutes=buffer_minutes,
                     )
                     if slot is None:
                         continue
@@ -983,12 +1025,10 @@ def place_task(
                     not_before = end
                     last_block_end = end
                     last_placed_tier = window_tier
-                    # SS-30 / A15 is not closed. Buffer is separation, not work
-                    # duration: ``remaining`` drops by slice_minutes only.
-                    # add_busy_interval still pads the trailing edge of this
-                    # new auto block. Evidence still owed on this path: both
-                    # sides of fixed busy (pins and external) and the same gap
-                    # between consecutive auto blocks of one task.
+                    # Buffer is separation, not work duration: ``remaining``
+                    # drops by slice_minutes only. Trailing pad is the single
+                    # auto–auto gap. Fixed clearance is the consult view inside
+                    # find_slot, so this pad is not applied again to pins.
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
                     _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
                     if day_override is not None:
@@ -1060,7 +1100,14 @@ def place_task(
             project_daily_usage=project_daily_usage,
             day_cap_blocked=day_cap_blocked_ever,
             cap_blocked_day=cap_blocked_day,
+            buffer_minutes=buffer_minutes,
         )
+
+    # Row 8: pre-existing pins/events closer than the buffer are reported.
+    # Their stored bounds are unchanged (add_busy_interval does not move them).
+    conflicts = fixed_buffer_conflicts(busy, buffer_minutes)
+    if conflicts and REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER not in observed:
+        observed.append(REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER)
 
     hints: list[dict[str, Any]] = []
     last_failure: dict[str, Any] | None = None
@@ -1074,8 +1121,25 @@ def place_task(
             mbl=mbl,
             window_id=window_id,
             strict_mode=preferred.strict_mode if preferred is not None else None,
+            buffer_minutes=buffer_minutes,
+            fixed_conflicts=conflicts,
         )
         last_failure = hints[0] if hints else None
+    elif conflicts:
+        # Placement may still succeed elsewhere on the day. The tight fixed
+        # pair is a pass fact, not a failure of this block.
+        hints = _pass_hints(
+            [REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER],
+            remaining=remaining,
+            deadline=deadline,
+            daily_cap=daily_cap,
+            cap_day=cap_blocked_day,
+            mbl=mbl,
+            window_id=window_id,
+            strict_mode=preferred.strict_mode if preferred is not None else None,
+            buffer_minutes=buffer_minutes,
+            fixed_conflicts=conflicts,
+        )
 
     return (
         PlacementResult(

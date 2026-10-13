@@ -1,6 +1,6 @@
 """S2-V1/V2 placer budget, fingerprint v4, and stale-preview activation.
 
-No database. SS-30 buffer evidence is a hook only — A15 is not closed.
+No database. A15 / SS-30 buffer evidence lives in test_s2_a15_ss30_buffer.py.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-from app.scheduler.busy_map import add_busy_interval, busy_from_sources
+from app.scheduler.busy_map import busy_from_sources
 from app.scheduler.input_fingerprint import (
     SCHEDULING_ACTIVATIONS,
     SNAPSHOT_VERSION,
@@ -314,11 +314,3 @@ def test_v3_snapshot_is_provenance_and_activation_token_stales_v4() -> None:
     ) is False
     assert chunking_activation_revision(7) == 8
 
-
-def test_buffer_pad_is_trailing_only_and_a15_is_open() -> None:
-    start = NOW
-    end = NOW + timedelta(minutes=30)
-    busy = add_busy_interval([], start, end, 5)
-    assert busy[0].start == start
-    assert busy[0].end == end + timedelta(minutes=5)
-    # A15 is not closed: this is not both-sides clearance against fixed busy.
