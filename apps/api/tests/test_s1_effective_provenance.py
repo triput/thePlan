@@ -168,14 +168,15 @@ def test_a3_empty_map_distinctions(client: TestClient, db_session: Session) -> N
     assert loose_body["time_map"]["strict_mode"] is False
 
 
-def test_empty_kind_ignores_weekday_mask_when_on_is_set(
+def test_d6_dated_empty_kind_uses_resolved_day_not_whole_map(
     client: TestClient, db_session: Session
 ) -> None:
-    """Map-level empty_kind must not flip on a day outside the band weekday mask."""
+    """D6: dated read classifies empty_kind from display day bands/strict, not whole map."""
     _require_s1_head(db_session)
-    mon_only = _map(
+    mon_only_strict = _map(
         client,
-        name=f"Mon only {_uid()}",
+        name=f"Mon strict {_uid()}",
+        strict_mode=True,
         bands=[
             {
                 "tier": "green",
@@ -186,18 +187,135 @@ def test_empty_kind_ignores_weekday_mask_when_on_is_set(
             }
         ],
     )
+    mon_only_loose = _map(
+        client,
+        name=f"Mon loose {_uid()}",
+        strict_mode=False,
+        bands=[
+            {
+                "tier": "green",
+                "start_time": "09:00",
+                "end_time": "12:00",
+                "days_of_week": 1,
+                "sort_order": 0,
+            }
+        ],
+    )
+    task_strict = client.post(
+        "/api/v1/tasks",
+        json={
+            "title": f"Weekday strict {_uid()}",
+            "preferred_time_window_id": mon_only_strict["id"],
+        },
+    ).json()
+    task_loose = client.post(
+        "/api/v1/tasks",
+        json={
+            "title": f"Weekday loose {_uid()}",
+            "preferred_time_window_id": mon_only_loose["id"],
+        },
+    ).json()
+    # 2026-10-13 is Tuesday; maps have Monday bands only (whole-map band_count > 0).
+    strict_body = _effective(client, task_strict["id"], on="2026-10-13")
+    assert strict_body["time_map"]["band_count"] == 0
+    assert strict_body["time_map"]["empty_kind"] == "assigned_empty_strict"
+    assert strict_body["dated_resolution"]["performed"] is True
+    strict_empty_src = next(
+        s for s in strict_body["sources"] if s["kind"] == "time_map_empty_strict"
+    )
+    assert strict_empty_src["placer_active"] is True
+
+    loose_body = _effective(client, task_loose["id"], on="2026-10-13")
+    assert loose_body["time_map"]["band_count"] == 0
+    assert loose_body["time_map"]["empty_kind"] == "assigned_empty_nonstrict"
+
+
+def test_d6_dated_override_empty_strict_base_with_banded_override(
+    client: TestClient, db_session: Session
+) -> None:
+    """Dex: strict empty base map + dated override with bands → not_applicable, no empty-strict source."""
+    _require_s1_head(db_session)
+    base = _map(
+        client,
+        name=f"Strict empty base {_uid()}",
+        strict_mode=True,
+        bands=[],
+    )
     task = client.post(
         "/api/v1/tasks",
         json={
-            "title": f"Weekday mask {_uid()}",
-            "preferred_time_window_id": mon_only["id"],
+            "title": f"Override fill {_uid()}",
+            "preferred_time_window_id": base["id"],
         },
     ).json()
-    # 2026-10-13 is Tuesday; map has Monday bands only.
+    override = client.post(
+        f"/api/v1/focus-windows/{base['id']}/overrides",
+        json={
+            "local_start_date": "2026-10-12",
+            "local_end_date": "2026-10-14",
+            "timezone": "America/Los_Angeles",
+            "strict_mode": True,
+            "bands": [
+                {
+                    "tier": "green",
+                    "start_time": "14:00",
+                    "end_time": "17:00",
+                    "days_of_week": 127,
+                    "sort_order": 0,
+                }
+            ],
+        },
+    )
+    assert override.status_code == 201, override.text
+
     body = _effective(client, task["id"], on="2026-10-13")
+    assert body["time_map"]["band_count"] == 1
     assert body["time_map"]["empty_kind"] == "not_applicable"
+    assert body["time_map"]["strict_mode"] is True
+    empty_strict_kinds = {
+        s["kind"] for s in body["sources"] if s["kind"] == "time_map_empty_strict"
+    }
+    assert empty_strict_kinds == set()
+
+
+def test_d6_dated_override_nonempty_base_with_empty_strict_override(
+    client: TestClient, db_session: Session
+) -> None:
+    """Dex: banded strict base + dated empty strict override → assigned_empty_strict on that day."""
+    _require_s1_head(db_session)
+    base = _map(
+        client,
+        name=f"Strict banded base {_uid()}",
+        strict_mode=True,
+    )
+    task = client.post(
+        "/api/v1/tasks",
+        json={
+            "title": f"Override clear {_uid()}",
+            "preferred_time_window_id": base["id"],
+        },
+    ).json()
+    override = client.post(
+        f"/api/v1/focus-windows/{base['id']}/overrides",
+        json={
+            "local_start_date": "2026-10-12",
+            "local_end_date": "2026-10-14",
+            "timezone": "America/Los_Angeles",
+            "strict_mode": True,
+            "bands": [],
+        },
+    )
+    assert override.status_code == 201, override.text
+
+    body = _effective(client, task["id"], on="2026-10-13")
     assert body["time_map"]["band_count"] == 0
-    assert body["dated_resolution"]["performed"] is True
+    assert body["time_map"]["empty_kind"] == "assigned_empty_strict"
+    assert body["time_map"]["strict_mode"] is True
+    strict_src = next(
+        s for s in body["sources"] if s["kind"] == "time_map_empty_strict"
+    )
+    assert "Strict empty map" in (strict_src["detail"] or "")
+    assert strict_src["placer_active"] is True
 
 
 def test_a4_dated_override_and_skip_without_on(client: TestClient, db_session: Session) -> None:

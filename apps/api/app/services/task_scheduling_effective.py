@@ -445,11 +445,18 @@ def build_task_scheduling_effective(
         display_band_count = 0
 
     has_assignment = window_id is not None
-    empty_kind = _empty_kind_for_map(
-        has_assignment=has_assignment,
-        strict_mode=map_strict,
-        band_count=map_band_count,
-    )
+    if on is not None:
+        empty_kind = _empty_kind_for_map(
+            has_assignment=has_assignment,
+            strict_mode=display_strict if display_strict is not None else False,
+            band_count=display_band_count,
+        )
+    else:
+        empty_kind = _empty_kind_for_map(
+            has_assignment=has_assignment,
+            strict_mode=map_strict,
+            band_count=map_band_count,
+        )
 
     map_name = focus_window.name if focus_window is not None else None
     time_map = TimeMapEffectiveOut(
