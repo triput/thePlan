@@ -2,7 +2,8 @@
 
 ## [0.7.0] — Unreleased / in progress (Scheduling / Settings)
 
-- **S1 CLI wave released 2026-10-12:** Trish cleared push HOLD; household on **`029`**; tip includes D4/D5 + Julie J-S1-01–11 PASS at `9d4cf48` — next [0.7-S1-EFFECTIVE-PROVENANCE.md](docs/delivery/0.7-S1-EFFECTIVE-PROVENANCE.md)
+- **S1 effective/provenance + D6 PASS 2026-10-12:** Structured effective read; S1-D6 Retest passed at `5035147` — next [0.7-S1-DURATION.md](docs/delivery/0.7-S1-DURATION.md)
+- **S1 CLI wave released 2026-10-12:** Trish cleared push HOLD; household on **`029`**; D4/D5 + Julie J-S1-01–11 PASS at `9d4cf48`
 - **S1 CLI wave field evidence 2026-10-12:** Dex D4/D5 retest **PASS** at `9d4cf48`; Julie J-S1-01–11 **PASS** (isolated `julie-s1`); observations triage non-blocking
 - **S1 first slice accepted 2026-10-12:** Dex D1–D3 retest **PASS** (27/27) at `0ea5dc3`; Trish cleared first-slice HOLD — [0.7-S1-FIRST-SLICE-2026-10-12.md](docs/delivery/0.7-S1-FIRST-SLICE-2026-10-12.md). **Full S1** still Open; **S2** cutover / SS-30 execution **Open**
 - **S1 first slice — Quality 2026-10-12:** Alembic **`028_availability_progress`**; S1→S2 API bridge; Renee **12** migration-contract + **27** D1–D3 focused tests on `theplan_s1_test`; household migrated to **`028`**
