@@ -151,9 +151,9 @@ def _protected_snapshot(db: Session) -> dict[str, list[tuple] | int]:
 
 def _require_s1_head(db: Session) -> None:
     version = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "029_workweek_days_allow_zero", (
+    assert version == "030_progress_intent_hash", (
         f"test database alembic version is {version!r}; "
-        "upgrade the disposable test database to 029_workweek_days_allow_zero before this suite"
+        "upgrade the disposable test database to 030_progress_intent_hash before this suite"
     )
 
 

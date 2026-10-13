@@ -11,6 +11,7 @@ dependencies = [
     "psycopg[binary]==3.2.13",
     "pydantic-settings==2.14.2",
     "python-dateutil==2.9.0.post0",
+    "tzdata>=2026.3",
 ]
 
 [build-system]

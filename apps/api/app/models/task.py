@@ -267,9 +267,10 @@ class TaskProgressEntry(Base):
     """Append-only worked entry. A correction is a new row, not an update.
 
     ``028`` seeds zero rows. ``idempotency_key`` is a UUID, same as handoff
-    receipts. Same key replays; Jules compares stored minutes, remaining, and
-    note for intent conflicts. ``corrects_entry_id`` points at the entry this
-    row corrects and must be the same task and owner.
+    receipts. Same key + submitted ``intent_hash`` replays; a different
+    submitted payload conflicts. Resolved minutes remain the committed
+    interpretation. ``corrects_entry_id`` points at the entry this row
+    corrects and must be the same task and owner.
     """
 
     __tablename__ = "task_progress_entries"
@@ -319,6 +320,8 @@ class TaskProgressEntry(Base):
         UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False
     )
     idempotency_key: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    # SHA-256 of submitted (pre-resolution) intent; see task_progress.progress_intent_hash.
+    intent_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     minutes_worked: Mapped[int] = mapped_column(Integer, nullable=False)
     remaining_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     note: Mapped[str | None] = mapped_column(Text)

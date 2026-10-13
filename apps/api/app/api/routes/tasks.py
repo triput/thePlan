@@ -510,32 +510,18 @@ def create_task_progress_entry(
 ) -> TaskProgressApplyResult:
     task = _get_owned_task(db, task_id, user)
     settings = get_or_provision_user_settings(db, user)
-    worked = resolve_minutes_field(
-        body.minutes_worked,
-        field_label="minutes_worked",
-        nominal_workday_minutes=settings.nominal_workday_minutes,
-        allow_workdays=False,
-        allow_zero=False,
-        required=True,
-    )
-    remaining = resolve_minutes_field(
-        body.remaining_minutes,
-        field_label="remaining_minutes",
-        nominal_workday_minutes=settings.nominal_workday_minutes,
-        allow_workdays=True,
-        allow_zero=True,
-        required=True,
-    )
-    assert worked is not None and remaining is not None
+    # Pass raw duration fields so append_progress_entry can replay from the
+    # submitted intent hash without re-parsing against a later nominal (S1-D9).
     entry, scheduling_revision, replayed = append_progress_entry(
         db,
         user,
         task,
         idempotency_key=body.idempotency_key,
-        minutes_worked=worked.minutes,
-        remaining_minutes=remaining.minutes,
+        minutes_worked_raw=body.minutes_worked,
+        remaining_minutes_raw=body.remaining_minutes,
         expected_revision=body.expected_revision,
         note=body.note,
+        nominal_workday_minutes=settings.nominal_workday_minutes,
     )
     db.commit()
     task = _get_owned_task(db, task_id, user)

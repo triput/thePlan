@@ -21,8 +21,8 @@ def _uid() -> str:
 
 def _require_s1_head(db: Session) -> None:
     version = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "029_workweek_days_allow_zero", (
-        f"test database alembic version is {version!r}; upgrade disposable PG to 029"
+    assert version == "030_progress_intent_hash", (
+        f"test database alembic version is {version!r}; upgrade disposable PG to 030"
     )
 
 

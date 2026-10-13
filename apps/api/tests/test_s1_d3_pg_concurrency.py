@@ -28,7 +28,7 @@ from app.services.task_progress import append_progress_entry
 
 _PROBE_EMAIL_LIKE = "renee-s1d3-%@example.com"
 _REQUIRED_DATABASE = "theplan_s1_test"
-_REQUIRED_REVISION = "029_workweek_days_allow_zero"
+_REQUIRED_REVISION = "030_progress_intent_hash"
 
 
 @dataclass(frozen=True)
@@ -159,15 +159,17 @@ def _apply_on(db: Session, owner_id: uuid.UUID, task_id: uuid.UUID, call: _Progr
         user = db.get(User, owner_id)
         task = db.get(Task, task_id)
         assert user is not None and task is not None
+        settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
         _entry, revision, replayed = append_progress_entry(
             db,
             user,
             task,
             idempotency_key=call.idempotency_key,
-            minutes_worked=call.minutes_worked,
-            remaining_minutes=call.remaining_minutes,
+            minutes_worked_raw=call.minutes_worked,
+            remaining_minutes_raw=call.remaining_minutes,
             expected_revision=call.expected_revision,
             note=None,
+            nominal_workday_minutes=settings.nominal_workday_minutes,
         )
         db.commit()
         outcome.replayed = replayed
@@ -243,15 +245,17 @@ def _overlap(
             user = db.get(User, owner_id)
             task = db.get(Task, task_id)
             assert user is not None and task is not None
+            settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
             _entry, revision, replayed = append_progress_entry(
                 db,
                 user,
                 task,
                 idempotency_key=holder.idempotency_key,
-                minutes_worked=holder.minutes_worked,
-                remaining_minutes=holder.remaining_minutes,
+                minutes_worked_raw=holder.minutes_worked,
+                remaining_minutes_raw=holder.remaining_minutes,
                 expected_revision=holder.expected_revision,
                 note=None,
+                nominal_workday_minutes=settings.nominal_workday_minutes,
             )
             holder_ready.set()
             if not release_holder.wait(12):
@@ -278,15 +282,17 @@ def _overlap(
             user = db.get(User, owner_id)
             task = db.get(Task, task_id)
             assert user is not None and task is not None
+            settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
             _entry, revision, replayed = append_progress_entry(
                 db,
                 user,
                 task,
                 idempotency_key=waiter.idempotency_key,
-                minutes_worked=waiter.minutes_worked,
-                remaining_minutes=waiter.remaining_minutes,
+                minutes_worked_raw=waiter.minutes_worked,
+                remaining_minutes_raw=waiter.remaining_minutes,
                 expected_revision=waiter.expected_revision,
                 note=None,
+                nominal_workday_minutes=settings.nominal_workday_minutes,
             )
             db.commit()
             waiter_outcome.replayed = replayed
@@ -405,15 +411,17 @@ def test_other_session_stale_task_object_still_sums_worked() -> None:
 
         user = stale.get(User, owner_id)
         assert user is not None
+        settings = stale.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
         _entry, revision, replayed = append_progress_entry(
             stale,
             user,
             stale_task,
             idempotency_key=second_key,
-            minutes_worked=30,
-            remaining_minutes=45,
+            minutes_worked_raw=30,
+            remaining_minutes_raw=45,
             expected_revision=1,
             note=None,
+            nominal_workday_minutes=settings.nominal_workday_minutes,
         )
         assert replayed is False
         assert revision == 2

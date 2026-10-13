@@ -1,3 +1,12 @@
+# ==============================================================================
+#  File: apps/api/app/api/routes/settings.py
+#  Description: User settings GET/PATCH with duration field normalization.
+#  Component: Scheduling / Settings
+#  Version: 1.1
+#  Created: 2026-10-01
+#  Last Update: 2026-10-12
+# ==============================================================================
+
 """User settings GET/PATCH."""
 
 from fastapi import APIRouter, Depends
@@ -39,10 +48,10 @@ def update_settings(
     updates = body.model_dump(exclude_unset=True)
     duration_conversion_note: str | None = None
     settings = get_or_provision_user_settings(db, user)
+    # Resolve requested nominal first (int or string) so same-request workday
+    # conversion of default_estimated_duration_minutes uses the new value (S1-D8).
     nominal = settings.nominal_workday_minutes
-    if "nominal_workday_minutes" in updates and isinstance(
-        updates["nominal_workday_minutes"], str
-    ):
+    if "nominal_workday_minutes" in updates:
         parsed = resolve_minutes_field(
             updates["nominal_workday_minutes"],
             field_label="nominal_workday_minutes",
@@ -55,9 +64,7 @@ def update_settings(
         updates["nominal_workday_minutes"] = parsed.minutes
         duration_conversion_note = parsed.conversion_note
         nominal = parsed.minutes
-    if "default_estimated_duration_minutes" in updates and isinstance(
-        updates["default_estimated_duration_minutes"], str
-    ):
+    if "default_estimated_duration_minutes" in updates:
         parsed = resolve_minutes_field(
             updates["default_estimated_duration_minutes"],
             field_label="default_estimated_duration_minutes",

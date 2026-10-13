@@ -26,7 +26,7 @@ from app.services.availability_policies import _sync_workweek_from_working_windo
 from app.services.availability_seed import ensure_default_availability_policies
 
 _REQUIRED_DATABASE = "theplan_s1_test"
-_REQUIRED_REVISION = "029_workweek_days_allow_zero"
+_REQUIRED_REVISION = "030_progress_intent_hash"
 
 # 2026-10-12 is a Monday. Legacy eligibility is weekday() < workweek_days.
 _MONDAY = date(2026, 10, 12)

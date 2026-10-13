@@ -166,15 +166,17 @@ def test_progress_increments_from_db_not_stale_identity_map(
     )
     assert stale_task.worked_minutes == 0
 
+    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == user.id).one()
     entry, _, replayed = append_progress_entry(
         db_session,
         user,
         stale_task,
         idempotency_key=uuid.uuid4(),
-        minutes_worked=30,
-        remaining_minutes=70,
+        minutes_worked_raw=30,
+        remaining_minutes_raw=70,
         expected_revision=rev,
         note=None,
+        nominal_workday_minutes=settings.nominal_workday_minutes,
     )
     assert replayed is False
     assert entry.minutes_worked == 30
