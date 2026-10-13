@@ -8,6 +8,7 @@ from app.db import get_db
 from app.models import User
 from app.schemas import UserSettingsOut, UserSettingsUpdate
 from app.services.auth_users import get_or_provision_user_settings
+from app.services.duration_fields import resolve_minutes_field
 from app.services.scheduling_revision import (
     SETTINGS_SCHEDULING_FIELDS,
     increment_scheduling_revision,
@@ -36,9 +37,40 @@ def update_settings(
     user: User = Depends(get_current_user),
 ) -> UserSettingsOut:
     updates = body.model_dump(exclude_unset=True)
+    duration_conversion_note: str | None = None
+    settings = get_or_provision_user_settings(db, user)
+    nominal = settings.nominal_workday_minutes
+    if "nominal_workday_minutes" in updates and isinstance(
+        updates["nominal_workday_minutes"], str
+    ):
+        parsed = resolve_minutes_field(
+            updates["nominal_workday_minutes"],
+            field_label="nominal_workday_minutes",
+            nominal_workday_minutes=None,
+            allow_workdays=False,
+            allow_zero=False,
+            required=True,
+        )
+        assert parsed is not None
+        updates["nominal_workday_minutes"] = parsed.minutes
+        duration_conversion_note = parsed.conversion_note
+        nominal = parsed.minutes
+    if "default_estimated_duration_minutes" in updates and isinstance(
+        updates["default_estimated_duration_minutes"], str
+    ):
+        parsed = resolve_minutes_field(
+            updates["default_estimated_duration_minutes"],
+            field_label="default_estimated_duration_minutes",
+            nominal_workday_minutes=nominal,
+            allow_workdays=True,
+            allow_zero=False,
+            required=True,
+        )
+        assert parsed is not None
+        updates["default_estimated_duration_minutes"] = parsed.minutes
+        duration_conversion_note = duration_conversion_note or parsed.conversion_note
     touches_scheduling = bool(SETTINGS_SCHEDULING_FIELDS.intersection(updates))
     scheduling_settings = lock_owner_scheduling(db, user.id) if touches_scheduling else None
-    settings = get_or_provision_user_settings(db, user)
     if "timezone" in updates and updates["timezone"] is not None:
         updates["timezone"] = updates["timezone"].strip()
     for field, value in updates.items():
@@ -47,4 +79,5 @@ def update_settings(
         increment_scheduling_revision(db, scheduling_settings)
     db.commit()
     db.refresh(settings)
-    return UserSettingsOut.model_validate(settings)
+    out = UserSettingsOut.model_validate(settings)
+    return out.model_copy(update={"duration_conversion_note": duration_conversion_note})

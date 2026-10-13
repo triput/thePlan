@@ -99,18 +99,31 @@ class DatedResolutionOut(BaseModel):
     note: str | None = None
 
 
+class InheritedBlockBoundsPreview(BaseModel):
+    min_block_duration_minutes: int | None = None
+    max_block_duration_minutes: int | None = None
+    max_block_unbounded: bool
+    source: str = "user_settings"
+    note: str = (
+        "Preview only when task bounds are unset (NULL); inherit writes stay S2-pending."
+    )
+
+
 class DurationEffectiveOut(BaseModel):
     original_estimate_minutes: int
-    worked_minutes: int
-    remaining_minutes: int | None = None
+    time_worked_minutes: int
+    remaining_estimate_minutes: int
+    estimated_duration_minutes: int
     placement_effort_minutes: int
     min_block_duration_minutes: int | None = None
     max_block_duration_minutes: int | None = None
     max_block_unbounded: bool
     keep_in_one_block: bool
+    inherited_bounds_preview: InheritedBlockBoundsPreview | None = None
     note: str = (
-        "placement_effort_minutes follows remaining estimate when set, else legacy "
-        "estimated_duration_minutes. Pin-adjusted placement effort is not computed on this read."
+        "estimated_duration_minutes is the original-estimate alias. "
+        "placement_effort_minutes follows remaining estimate when set, else that alias. "
+        "Pin-adjusted placement effort is not computed on this read."
     )
 
 

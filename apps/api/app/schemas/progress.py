@@ -6,8 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class TaskProgressEntryCreate(BaseModel):
     idempotency_key: UUID
-    minutes_worked: int = Field(gt=0)
-    remaining_minutes: int = Field(ge=0)
+    minutes_worked: int | str
+    remaining_minutes: int | str
     expected_revision: int = Field(ge=0)
     note: str | None = Field(default=None, max_length=2000)
 

@@ -91,8 +91,9 @@ def _scheduling_effective_sample(
         },
         "duration": {
             "original_estimate_minutes": 60,
-            "worked_minutes": 25,
-            "remaining_minutes": 35,
+            "estimated_duration_minutes": 60,
+            "time_worked_minutes": 25,
+            "remaining_estimate_minutes": 35,
             "placement_effort_minutes": 35,
             "note": "Pin-adjusted placement effort is not computed on this read.",
         },

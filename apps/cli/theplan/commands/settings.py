@@ -14,6 +14,7 @@ import json
 from typing import Any
 
 from theplan.api_client import api_json
+from theplan.duration_coerce import duration_json_value
 from theplan.errors import CliError
 from theplan.input_helpers import read_json_body
 from theplan.output import emit_ok, get_output_format
@@ -84,9 +85,10 @@ def register_settings(sub: argparse._SubParsersAction) -> None:
     patch_p.add_argument(
         "--nominal-workday-minutes",
         dest="nominal_workday_minutes",
-        type=int,
         default=None,
-        metavar="N",
+        metavar="MINUTES",
+        help="Effort conversion day length (not legacy workday_minutes placement hours). "
+        "Accepts friendly hours/minutes (8h, 480, 7h 30m).",
     )
     patch_p.add_argument(
         "--workday-start-local",
@@ -110,8 +112,9 @@ def register_settings(sub: argparse._SubParsersAction) -> None:
     patch_p.add_argument(
         "--default-estimated-duration-minutes",
         dest="default_estimated_duration_minutes",
-        type=int,
         default=None,
+        metavar="MINUTES",
+        help="Default original estimate for new tasks; friendly parse supported.",
     )
     patch_p.add_argument(
         "--default-min-block-duration-minutes",
@@ -191,9 +194,15 @@ def _patch_from_flags(args: argparse.Namespace) -> dict[str, Any]:
         "default_schedule_style",
         "max_auto_schedule_minutes_per_project_per_day",
     )
+    duration_fields = {
+        "nominal_workday_minutes",
+        "default_estimated_duration_minutes",
+    }
     for key in scalar_fields:
         value = getattr(args, key, None)
         if value is not None:
+            if key in duration_fields and isinstance(value, str):
+                value = duration_json_value(value)
             body[key] = value
     for bool_key in ("default_max_block_unbounded", "auto_defer_enabled"):
         value = getattr(args, bool_key, None)
@@ -257,6 +266,9 @@ def _summarize_settings(row: dict[str, Any]) -> None:
     ups = row.get("ups_weights")
     if ups is not None:
         print(f"ups_weights: {json.dumps(ups, sort_keys=True)}")
+    note = row.get("duration_conversion_note")
+    if note:
+        print(f"duration_conversion_note: {note}")
 
 
 def run_settings(args: argparse.Namespace) -> None:

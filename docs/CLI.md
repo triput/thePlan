@@ -185,8 +185,9 @@ Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCH
 |------|----------|---------|
 | **Settings** | `settings get`, `settings patch` (flags and/or `--file` / `--stdin`) | `GET` / `PATCH /api/v1/settings` — includes `nominal_workday_minutes`, legacy placement fields, and owner **`scheduling_revision`** (JSON top-level beside `ok`; text prints it first). Do **not** use `board_revision` |
 | **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `/api/v1/availability-policies` … `/effective` — output discloses config-only in S1. Empty Working `{"windows":[]}` is supported when the API DB is on Alembic **`029`** (`workweek_days=0`) |
-| **Progress** | `tasks progress add --id UUID --idempotency-key UUID --minutes-worked N --remaining-minutes N --expected-revision N` [`--note`] | `POST /api/v1/tasks/{id}/progress` — idempotent replay; **`--expected-revision`** from `theplan settings get` (`scheduling_revision`) |
-| **Remaining edit** | `tasks patch --id UUID --remaining-estimate-minutes N --expected-revision N` | `PATCH /api/v1/tasks/{id}` — **`--expected-revision` required** with remaining (same settings-get token); omitting it is usage error (exit **1**). Changing original estimate via `--estimated-duration-minutes` is rejected (**422** → exit **1**, e.g. **`ORIGINAL_ESTIMATE_IMMUTABLE`**, **`CHUNKING_CUTOVER_PENDING`**) |
+| **Progress** | `tasks progress add … --minutes-worked MINUTES --remaining-minutes MINUTES …` | Friendly durations (`90m`, `1h 30m`, `1.5h`); bare integer = minutes. **`--expected-revision`** from `settings get` |
+| **Remaining edit** | `tasks patch --remaining-estimate-minutes MINUTES --expected-revision N` | Remaining-only; original stays in **`estimated_duration_minutes`** (alias). Friendly parse supported |
+| **Create duration** | `tasks create --estimated-duration-minutes MINUTES` | Sets **original** estimate (also **`remaining`** on create). Workday units use **`nominal_workday_minutes`** from settings |
 | **Scheduling effective** | `tasks scheduling-effective --id UUID` [`--on YYYY-MM-DD`]; `schedule effective --task-id UUID` (alias; same `--on`) | `GET /api/v1/tasks/{id}/scheduling/effective` optional query **`on=YYYY-MM-DD`** — structured placer-active vs saved-config read (S1 bridge; read-only) |
 
 **Scheduling-effective (S1):** JSON matches **`TaskSchedulingEffectiveOut`** (OpenAPI). Top-level **`sources[]`** labels placer-active vs pending inputs. Structured blocks:
@@ -196,7 +197,7 @@ Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCH
 - **`working_policy_saved`** — saved Working windows (**`placer_active: false`**); **`diverges_from_legacy`** and **`divergence_note`** when saved Working ≠ active legacy mirrors
 - **`general_policy_saved`** / **`personal_policy_saved`** — saved policies (**inactive** in S1; General not scheduling-effective)
 - **`dated_resolution`** — with **`--on` / `on=`**: operator timezone, applicable F4 override, **`replaces`** (day bands / strict_mode). **Without `on`:** **`performed: false`** and a note that dated override resolution was **not** performed (general configuration only)
-- **`duration`** — thin slice: original / worked / remaining, **`placement_effort_minutes`**, block bounds; does not invent pin-adjusted placement effort
+- **`duration`** — **`original_estimate_minutes`**, **`estimated_duration_minutes`** (original alias), **`time_worked_minutes`**, **`remaining_estimate_minutes`**, **`placement_effort_minutes`**, explicit block bounds; optional **`inherited_bounds_preview`** when task bounds are NULL; no pin-adjusted placement fiction
 
 **`--format text`** prints **`_summarize_scheduling_effective`** — same facts as JSON, not a second semantics. Does not call replan or mutate scheduling state.
 

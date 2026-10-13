@@ -41,7 +41,8 @@ class TaskCreate(BaseModel):
     deadline_at: datetime | None = None
     soft_target_at: datetime | None = None
     # Omit or null to use user_settings.default_estimated_duration_minutes; explicit value wins.
-    estimated_duration_minutes: int | None = None
+    # int = minutes; str = friendly parse (e.g. 90m, 1h 30m, 1.5h, optional workdays at create).
+    estimated_duration_minutes: int | str | None = None
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
     schedule_style: ScheduleStyle | None = None
@@ -83,8 +84,8 @@ class TaskUpdate(BaseModel):
     due_at: datetime | None = None
     deadline_at: datetime | None = None
     soft_target_at: datetime | None = None
-    estimated_duration_minutes: int | None = None
-    remaining_estimate_minutes: int | None = Field(default=None, ge=0)
+    estimated_duration_minutes: int | str | None = None
+    remaining_estimate_minutes: int | str | None = None
     expected_revision: int | None = Field(default=None, ge=0)
     min_block_duration_minutes: int | None = Field(default=None, gt=0)
     max_block_duration_minutes: int | None = Field(default=None, gt=0)
@@ -134,6 +135,7 @@ class TaskOut(BaseModel):
     original_estimate_minutes: int
     time_worked_minutes: int
     remaining_estimate_minutes: int
+    duration_conversion_note: str | None = None
     preferred_time_window_id: UUID | None = None
     plan_id: UUID | None = None
     plan_name: str | None = None

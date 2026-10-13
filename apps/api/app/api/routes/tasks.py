@@ -55,6 +55,7 @@ from app.services.task_helpers import (
     restore_task_subtree,
     soft_delete_task_subtree,
 )
+from app.services.duration_fields import resolve_minutes_field
 from app.services.task_effort_init import initialize_task_effort_on_create
 from app.services.task_progress import append_progress_entry
 from app.services.task_workflow import board_column_for_task, transition_task_workflow
@@ -120,6 +121,7 @@ def task_to_out(
     recurrence_advanced: bool = False,
     previous_due_at: datetime | None = None,
     plan_names: dict[UUID, str] | None = None,
+    duration_conversion_note: str | None = None,
 ) -> TaskOut:
     label_ids = [link.label_id for link in task.label_links]
     open_subtask_count = (
@@ -156,9 +158,44 @@ def task_to_out(
             "original_estimate_minutes": task.estimated_duration_minutes,
             "time_worked_minutes": task.worked_minutes,
             "remaining_estimate_minutes": remaining,
+            "duration_conversion_note": duration_conversion_note,
         }
     )
     return TaskOut.model_validate(payload)
+
+
+def _resolve_task_update_durations(
+    body: TaskUpdate,
+    *,
+    nominal_workday_minutes: int,
+) -> tuple[TaskUpdate, str | None]:
+    data = body.model_dump(exclude_unset=True)
+    note: str | None = None
+    remaining_raw = data.get("remaining_estimate_minutes")
+    if remaining_raw is not None and isinstance(remaining_raw, str):
+        parsed = resolve_minutes_field(
+            remaining_raw,
+            field_label="remaining_estimate_minutes",
+            nominal_workday_minutes=nominal_workday_minutes,
+            allow_workdays=True,
+            allow_zero=True,
+        )
+        assert parsed is not None
+        data["remaining_estimate_minutes"] = parsed.minutes
+        note = parsed.conversion_note
+    estimate_raw = data.get("estimated_duration_minutes")
+    if estimate_raw is not None and isinstance(estimate_raw, str):
+        parsed = resolve_minutes_field(
+            estimate_raw,
+            field_label="estimated_duration_minutes",
+            nominal_workday_minutes=nominal_workday_minutes,
+            allow_workdays=True,
+            allow_zero=False,
+        )
+        assert parsed is not None
+        data["estimated_duration_minutes"] = parsed.minutes
+        note = note or parsed.conversion_note
+    return TaskUpdate(**data), note
 
 
 def _upsert_recurrence(
@@ -340,11 +377,22 @@ def create_task(
     except ApiError as exc:
         raise exc
 
+    user_settings = get_or_provision_user_settings(db, user)
+    duration_conversion_note: str | None = None
     if body.estimated_duration_minutes is None:
-        user_settings = get_or_provision_user_settings(db, user)
         estimated_duration_minutes = user_settings.default_estimated_duration_minutes
     else:
-        estimated_duration_minutes = body.estimated_duration_minutes
+        parsed = resolve_minutes_field(
+            body.estimated_duration_minutes,
+            field_label="estimated_duration_minutes",
+            nominal_workday_minutes=user_settings.nominal_workday_minutes,
+            allow_workdays=True,
+            allow_zero=False,
+            required=True,
+        )
+        assert parsed is not None
+        estimated_duration_minutes = parsed.minutes
+        duration_conversion_note = parsed.conversion_note
 
     scheduling_settings = lock_owner_scheduling(db, user.id)
     bound_soft_target = resolve_plan_bind(db, user, body.plan_id)
@@ -387,7 +435,11 @@ def create_task(
     increment_scheduling_revision(db, scheduling_settings)
     db.commit()
     db.refresh(task)
-    return task_to_out(_get_owned_task(db, task.id, user), db)
+    return task_to_out(
+        _get_owned_task(db, task.id, user),
+        db,
+        duration_conversion_note=duration_conversion_note,
+    )
 
 
 @router.patch("/reorder", status_code=status.HTTP_204_NO_CONTENT)
@@ -411,12 +463,17 @@ def batch_update_tasks(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> TaskBatchUpdateResponse:
-    patch_fields = body.patch.model_dump(exclude_unset=True)
+    settings = get_or_provision_user_settings(db, user)
+    normalized_patch, _ = _resolve_task_update_durations(
+        body.patch,
+        nominal_workday_minutes=settings.nominal_workday_minutes,
+    )
+    patch_fields = normalized_patch.model_dump(exclude_unset=True)
     updated_ids: list[UUID] = []
     for task_id in body.task_ids:
         task = _get_owned_task(db, task_id, user)
         if patch_fields:
-            apply_task_patch(db, task, user, body.patch)
+            apply_task_patch(db, task, user, normalized_patch)
         if body.add_label_ids:
             add_task_labels(db, task, user, body.add_label_ids)
         updated_ids.append(task.id)
@@ -452,13 +509,31 @@ def create_task_progress_entry(
     user: User = Depends(get_current_user),
 ) -> TaskProgressApplyResult:
     task = _get_owned_task(db, task_id, user)
+    settings = get_or_provision_user_settings(db, user)
+    worked = resolve_minutes_field(
+        body.minutes_worked,
+        field_label="minutes_worked",
+        nominal_workday_minutes=settings.nominal_workday_minutes,
+        allow_workdays=False,
+        allow_zero=False,
+        required=True,
+    )
+    remaining = resolve_minutes_field(
+        body.remaining_minutes,
+        field_label="remaining_minutes",
+        nominal_workday_minutes=settings.nominal_workday_minutes,
+        allow_workdays=True,
+        allow_zero=True,
+        required=True,
+    )
+    assert worked is not None and remaining is not None
     entry, scheduling_revision, replayed = append_progress_entry(
         db,
         user,
         task,
         idempotency_key=body.idempotency_key,
-        minutes_worked=body.minutes_worked,
-        remaining_minutes=body.remaining_minutes,
+        minutes_worked=worked.minutes,
+        remaining_minutes=remaining.minutes,
         expected_revision=body.expected_revision,
         note=body.note,
     )
@@ -495,9 +570,18 @@ def update_task(
     user: User = Depends(get_current_user),
 ) -> TaskOut:
     task = _get_owned_task(db, task_id, user)
-    apply_task_patch(db, task, user, body)
+    settings = get_or_provision_user_settings(db, user)
+    normalized, duration_conversion_note = _resolve_task_update_durations(
+        body,
+        nominal_workday_minutes=settings.nominal_workday_minutes,
+    )
+    apply_task_patch(db, task, user, normalized)
     db.commit()
-    return task_to_out(_get_owned_task(db, task.id, user), db)
+    return task_to_out(
+        _get_owned_task(db, task.id, user),
+        db,
+        duration_conversion_note=duration_conversion_note,
+    )
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)

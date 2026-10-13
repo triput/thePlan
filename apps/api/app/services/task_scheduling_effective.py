@@ -39,6 +39,7 @@ from app.schemas.task_scheduling import (
     DatedOverrideReplacesOut,
     DatedResolutionOut,
     DurationEffectiveOut,
+    InheritedBlockBoundsPreview,
     LegacyWorkweekActiveOut,
     SavedAvailabilityPolicyOut,
     SchedulingSourceOut,
@@ -512,15 +513,36 @@ def build_task_scheduling_effective(
     )
 
     effort = placement_effort_minutes(task)
+    remaining = task.remaining_minutes
+    if remaining is None:
+        remaining = task.estimated_duration_minutes
+    inherited_preview = None
+    if (
+        task.min_block_duration_minutes is None
+        or task.max_block_duration_minutes is None
+    ):
+        inherited_preview = InheritedBlockBoundsPreview(
+            min_block_duration_minutes=settings.default_min_block_duration_minutes
+            if task.min_block_duration_minutes is None
+            else None,
+            max_block_duration_minutes=settings.default_max_block_duration_minutes
+            if task.max_block_duration_minutes is None
+            else None,
+            max_block_unbounded=settings.default_max_block_unbounded
+            if task.max_block_duration_minutes is None
+            else task.max_block_unbounded,
+        )
     duration = DurationEffectiveOut(
         original_estimate_minutes=task.estimated_duration_minutes,
-        worked_minutes=task.worked_minutes,
-        remaining_minutes=task.remaining_minutes,
+        estimated_duration_minutes=task.estimated_duration_minutes,
+        time_worked_minutes=task.worked_minutes,
+        remaining_estimate_minutes=remaining,
         placement_effort_minutes=effort,
         min_block_duration_minutes=task.min_block_duration_minutes,
         max_block_duration_minutes=task.max_block_duration_minutes,
         max_block_unbounded=task.max_block_unbounded,
         keep_in_one_block=task.keep_in_one_block,
+        inherited_bounds_preview=inherited_preview,
     )
 
     sources = _build_sources(

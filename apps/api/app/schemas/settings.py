@@ -28,6 +28,7 @@ class UserSettingsOut(BaseModel):
     max_auto_schedule_minutes_per_project_per_day: int | None = None
     # Owner-scoped SoT for progress / remaining-only expected_revision (not board_revision).
     scheduling_revision: int
+    duration_conversion_note: str | None = None
 
     @field_serializer("workday_start_local")
     def serialize_workday_start(self, value: time) -> str:
@@ -38,13 +39,13 @@ class UserSettingsUpdate(BaseModel):
     timezone: str | None = Field(default=None, min_length=1, max_length=64)
     locale: str | None = Field(default=None, min_length=1, max_length=16)
     workday_minutes: int | None = Field(default=None, gt=0)
-    nominal_workday_minutes: int | None = Field(default=None, gt=0)
+    nominal_workday_minutes: int | str | None = None
     workday_start_local: TimeField | None = None
     workweek_days: int | None = Field(default=None, ge=0, le=7)
     inter_block_buffer_minutes: int | None = Field(default=None, ge=0)
     ups_weights: dict[str, Any] | None = None
     upcoming_horizon_days: int | None = Field(default=None, ge=1)
-    default_estimated_duration_minutes: int | None = Field(default=None, gt=0)
+    default_estimated_duration_minutes: int | str | None = None
     default_min_block_duration_minutes: int | None = Field(default=None, gt=0)
     default_max_block_duration_minutes: int | None = Field(default=None, gt=0)
     default_max_block_unbounded: bool | None = None

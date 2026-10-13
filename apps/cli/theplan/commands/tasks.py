@@ -4,6 +4,7 @@ import argparse
 from typing import Any
 
 from theplan.api_client import api_json, task_scheduling_effective_path
+from theplan.duration_coerce import duration_json_value
 from theplan.errors import CliError
 from theplan.output import emit_ok, get_output_format
 
@@ -57,7 +58,20 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     get_p = tasks_sub.add_parser("get", help="Get one task")
     get_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
 
-    create_p = tasks_sub.add_parser("create", help="Create task")
+    _duration_help = (
+        "Friendly durations: 90m, 1h 30m, 1.5h; bare number = minutes. "
+        "Workday units use nominal_workday_minutes from settings get."
+    )
+    create_p = tasks_sub.add_parser(
+        "create",
+        help="Create task (sets original=remaining estimate)",
+        description=(
+            "Create task. estimated-duration sets the original estimate "
+            "(stored as estimated_duration_minutes). "
+            f"{_duration_help}"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     create_p.add_argument("--title", required=True)
     create_p.add_argument("--project-id", dest="project_id", metavar="UUID")
     create_p.add_argument("--due-at", dest="due_at", metavar="ISO8601")
@@ -69,8 +83,9 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     create_p.add_argument(
         "--estimated-duration-minutes",
         dest="estimated_duration_minutes",
-        type=int,
-        metavar="N",
+        default=None,
+        metavar="MINUTES",
+        help=f"Original estimate. {_duration_help}",
     )
     create_p.add_argument("--description", default=None)
 
@@ -87,17 +102,17 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     patch_p.add_argument(
         "--estimated-duration-minutes",
         dest="estimated_duration_minutes",
-        type=int,
         default=None,
-        metavar="N",
+        metavar="MINUTES",
+        help="Original estimate (immutable unless repeating the same value).",
     )
     patch_p.add_argument("--description", default=None)
     patch_p.add_argument(
         "--remaining-estimate-minutes",
         dest="remaining_estimate_minutes",
-        type=int,
         default=None,
-        metavar="N",
+        metavar="MINUTES",
+        help=f"Remaining effort only; original unchanged. {_duration_help}",
     )
     patch_p.add_argument(
         "--expected-revision",
@@ -124,16 +139,16 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
     progress_add.add_argument(
         "--minutes-worked",
         dest="minutes_worked",
-        type=int,
         required=True,
-        metavar="N",
+        metavar="MINUTES",
+        help=_duration_help,
     )
     progress_add.add_argument(
         "--remaining-minutes",
         dest="remaining_minutes",
-        type=int,
         required=True,
-        metavar="N",
+        metavar="MINUTES",
+        help=f"Remaining after this entry. {_duration_help}",
     )
     progress_add.add_argument(
         "--expected-revision",
@@ -268,6 +283,11 @@ def _optional_task_fields(args: argparse.Namespace, *, for_create: bool) -> dict
         if value is not None:
             if isinstance(value, str) and arg_name == "title":
                 value = value.strip()
+            if isinstance(value, str) and arg_name in (
+                "estimated_duration_minutes",
+                "remaining_estimate_minutes",
+            ):
+                value = duration_json_value(value)
             body[json_key] = value
     if for_create and not body.get("title"):
         raise CliError(code="INVALID_USAGE", message="--title is required", exit_code=1)
@@ -311,6 +331,15 @@ def _summarize_task(task: dict[str, Any]) -> None:
     print(f"id: {task.get('id')}")
     print(f"title: {task.get('title')}")
     print(_progress_line(task))
+    alias = task.get("estimated_duration_minutes")
+    if alias is not None:
+        print(
+            f"estimated_duration_minutes (original alias): {alias} "
+            f"(remaining={task.get('remaining_estimate_minutes')})"
+        )
+    note = task.get("duration_conversion_note")
+    if note:
+        print(f"duration_conversion_note: {note}")
     for key in (
         "is_completed",
         "priority",
@@ -398,10 +427,19 @@ def _summarize_scheduling_effective(body: dict[str, Any]) -> None:
         print(
             "duration: "
             f"original={duration.get('original_estimate_minutes')} "
-            f"worked={duration.get('worked_minutes')} "
-            f"remaining={duration.get('remaining_minutes')} "
+            f"(alias estimated_duration_minutes={duration.get('estimated_duration_minutes')}) "
+            f"worked={duration.get('time_worked_minutes')} "
+            f"remaining={duration.get('remaining_estimate_minutes')} "
             f"placement_effort={duration.get('placement_effort_minutes')}"
         )
+        inherited = duration.get("inherited_bounds_preview")
+        if isinstance(inherited, dict):
+            print(
+                "  inherited_bounds_preview: "
+                f"min={inherited.get('min_block_duration_minutes')} "
+                f"max={inherited.get('max_block_duration_minutes')} "
+                f"unbounded={inherited.get('max_block_unbounded')}"
+            )
         dur_note = duration.get("note")
         if dur_note:
             print(f"  note: {dur_note}")
@@ -476,8 +514,8 @@ def run_tasks(args: argparse.Namespace) -> None:
             )
         payload = {
             "idempotency_key": args.idempotency_key,
-            "minutes_worked": args.minutes_worked,
-            "remaining_minutes": args.remaining_minutes,
+            "minutes_worked": duration_json_value(args.minutes_worked),
+            "remaining_minutes": duration_json_value(args.remaining_minutes),
             "expected_revision": args.expected_revision,
         }
         if args.note is not None:
