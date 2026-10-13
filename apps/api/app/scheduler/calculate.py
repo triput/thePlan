@@ -25,6 +25,7 @@ from app.scheduler.reasons import (
     REASON_BLOCKED_PREREQUISITE,
     REASON_EXCLUDED_DURATION_COVERED_BY_PINS,
     REASON_EXCLUDED_MANUAL_OR_BUNDLE,
+    REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER,
     REASON_PLACED,
     REASON_UNPLACED_DEADLINE_LIMIT,
     REASON_UNPLACED_HORIZON_EXHAUSTED,
@@ -81,6 +82,41 @@ def _task_deadline_binds(
     if deadline <= inputs.horizon_start:
         return True
     return False
+
+
+def _fixed_buffer_warning_hints(pass_hints: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Hints that name a pre-existing tight fixed pair.
+
+    This is a warning. It is not placement failure telemetry, and a later
+    successful block must not drop it.
+    """
+    return [
+        hint
+        for hint in pass_hints
+        if hint.get("reason_code") == REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER
+    ]
+
+
+def _retain_fixed_buffer_warning(
+    task_id: UUID,
+    *,
+    observed: list[str],
+    pass_hints: list[dict[str, Any]],
+    observed_constraints_by_task: dict[UUID, list[str]],
+    buffer_warning_hints_by_task: dict[UUID, list[dict[str, Any]]],
+) -> None:
+    hints = _fixed_buffer_warning_hints(pass_hints)
+    if (
+        not hints
+        and REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER not in observed
+    ):
+        return
+    observed_constraints_by_task[task_id] = _merge_constraint_codes(
+        observed_constraints_by_task.get(task_id, []),
+        [REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER],
+    )
+    if hints:
+        buffer_warning_hints_by_task[task_id] = hints
 
 
 def _merge_constraint_codes(
@@ -394,6 +430,7 @@ def _finalize_candidate_outcomes(
     placement_facts_by_task: dict[UUID, dict[str, Any]],
     prerequisite_not_before_by_task: dict[UUID, datetime],
     hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] | None = None,
+    buffer_warning_hints_by_task: dict[UUID, list[dict[str, Any]]] | None = None,
 ) -> list[TaskSchedulingOutcome]:
     outcomes: list[TaskSchedulingOutcome] = []
     for candidate in ordered:
@@ -422,6 +459,13 @@ def _finalize_candidate_outcomes(
                     },
                 )
             ]
+            for hint in (buffer_warning_hints_by_task or {}).get(task_id, []):
+                facts.append(
+                    ReasonFact(
+                        REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER,
+                        dict(hint.get("params") or {}),
+                    )
+                )
         elif remaining > 0:
             facts = []
             if task_id in cycle_task_ids:
@@ -600,6 +644,7 @@ def calculate(
     last_no_slot: dict[UUID, bool] = {}
     observed_constraints_by_task: dict[UUID, list[str]] = {}
     failure_telemetry_by_task: dict[UUID, dict[str, Any]] = {}
+    buffer_warning_hints_by_task: dict[UUID, list[dict[str, Any]]] = {}
     applicable_override_by_task: dict[UUID, dict[str, Any]] = {}
     prerequisite_not_before_by_task: dict[UUID, datetime] = {}
     minutes_by_project: dict[str, int] = {}
@@ -659,6 +704,15 @@ def calculate(
             if result.applicable_override is not None:
                 applicable_override_by_task[task_id] = result.applicable_override
             remaining_by_task[task_id] = result.remaining_minutes
+            # Tight fixed pairs are a warning, including when this block placed.
+            # Failure telemetry is cleared on success below; this map is not.
+            _retain_fixed_buffer_warning(
+                task_id,
+                observed=result.observed_constraints,
+                pass_hints=result.pass_hints,
+                observed_constraints_by_task=observed_constraints_by_task,
+                buffer_warning_hints_by_task=buffer_warning_hints_by_task,
+            )
             if result.blocks_created <= 0:
                 observed_constraints_by_task[task_id] = _merge_constraint_codes(
                     observed_constraints_by_task.get(task_id, []),
@@ -742,6 +796,20 @@ def calculate(
         if telemetry and (telemetry.get("last_failure") or telemetry.get("pass_hints")):
             placement_facts_by_task[task_id]["last_failure"] = telemetry["last_failure"]
             placement_facts_by_task[task_id]["pass_hints"] = telemetry["pass_hints"]
+        warning_hints = buffer_warning_hints_by_task.get(task_id) or []
+        if warning_hints:
+            existing_hints = list(placement_facts_by_task[task_id].get("pass_hints") or [])
+            seen_codes = {
+                hint.get("reason_code")
+                for hint in existing_hints
+                if isinstance(hint, dict)
+            }
+            for hint in warning_hints:
+                code = hint.get("reason_code")
+                if code not in seen_codes:
+                    existing_hints.append(hint)
+                    seen_codes.add(code)
+            placement_facts_by_task[task_id]["pass_hints"] = existing_hints
 
     hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] = {}
     for task_id, telemetry in failure_telemetry_by_task.items():
@@ -771,6 +839,7 @@ def calculate(
         placement_facts_by_task=placement_facts_by_task,
         prerequisite_not_before_by_task=prerequisite_not_before_by_task,
         hint_params_by_task=hint_params_by_task,
+        buffer_warning_hints_by_task=buffer_warning_hints_by_task,
     )
 
     return CalculationResult(

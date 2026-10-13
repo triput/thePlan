@@ -161,17 +161,20 @@ def add_busy_interval(
     end: datetime,
     buffer_minutes: int,
 ) -> list[BusyInterval]:
-    """Append a newly placed auto block plus one trailing buffer, then re-merge.
+    """Append a newly placed auto block plus one buffer on each side, then re-merge.
 
-    The buffer is separation, not work duration. The trailing pad is the whole
-    auto–auto gap (and the gap between consecutive splits of one task). Pins
-    and external events stay at their real bounds; ``find_slot`` consults
-    ``expand_fixed_busy_for_placement`` so those fixed items keep clearance on
-    both sides without a second pad between autos. Fixed items are not moved.
-    Travel is not applied.
+    The buffer is separation, not work duration. One pad before ``start`` and
+    one after ``end`` is the whole auto–auto gap, including a later block
+    inserted earlier in the day and consecutive splits of one task. The two
+    pads meet in that gap, so the separation is the buffer once, not twice.
+    Pins and external events stay at their real bounds; ``find_slot`` consults
+    ``expand_fixed_busy_for_placement`` for those and does not expand scheduled
+    intervals again. Fixed items are not moved. Travel is not applied.
     """
-    buffered_end = end + timedelta(minutes=max(buffer_minutes, 0))
-    return _merge_busy([*busy, BusyInterval(start, buffered_end, source="scheduled")])
+    pad = timedelta(minutes=max(buffer_minutes, 0))
+    return _merge_busy(
+        [*busy, BusyInterval(start - pad, end + pad, source="scheduled")]
+    )
 
 
 def expand_fixed_busy_for_placement(
@@ -180,8 +183,9 @@ def expand_fixed_busy_for_placement(
 ) -> list[BusyInterval]:
     """Consult view: grow pins and external events by the buffer on both sides.
 
-    Scheduled intervals are returned unchanged. They already carry one trailing
-    pad, and expanding them again would make the auto–auto gap twice the buffer.
+    Scheduled intervals are returned unchanged. They already carry one pad on
+    each side, and expanding them again would make the auto–auto gap twice
+    the buffer.
     Does not replace the stored busy list.
     """
     if buffer_minutes <= 0:

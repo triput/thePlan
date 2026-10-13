@@ -15,9 +15,22 @@ from uuid import uuid4
 import pytest
 
 from app.models import Task, UserSettings
+from app.models.enums import TaskPriority
 from app.scheduler import busy_map
 from app.scheduler.busy_map import BusyInterval
+from app.scheduler.calculate import calculate
+from app.scheduler.candidates import TaskCandidate
+from app.scheduler.collect import SchedulingInputs
 from app.scheduler.placement import PlacementResult, ProposedBlock, place_one_block
+from app.scheduler.preview_proposal import (
+    build_proposal_json,
+    calculation_result_from_proposal,
+)
+from app.scheduler.reasons import (
+    REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER,
+    REASON_PLACED,
+    format_summary_text,
+)
 
 DAY = datetime(2026, 10, 13, tzinfo=timezone.utc)  # Tuesday
 NOW = DAY.replace(hour=7)
@@ -69,6 +82,7 @@ def _place(
     busy: list[BusyInterval],
     *,
     remaining: int | None = None,
+    prerequisite_not_before: datetime | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     return place_one_block(
         None,  # type: ignore[arg-type]
@@ -81,6 +95,7 @@ def _place(
         horizon_end=HORIZON_END,
         preferred_windows={},
         now_utc=NOW,
+        prerequisite_not_before=prerequisite_not_before,
         persist_blocks=False,
     )
 
@@ -256,3 +271,138 @@ def test_preexisting_tight_fixed_pair_reports_conflict_and_stays_put() -> None:
         "busy_map.add_busy_interval only pads a new auto block's trailing edge; "
         "no fixed-pair buffer reporter exists."
     )
+
+
+@pytest.mark.parametrize("buffer_minutes", [0, 5, 10])
+def test_reverse_chronological_insert_keeps_single_buffer(buffer_minutes: int) -> None:
+    """S2-D4: a later auto placed first still keeps one gap when an earlier task follows.
+
+    Title swaps still place in chronological order, so they miss this. The first
+    task cannot start before 08:30. The second opens at 08:00. The gap is the
+    buffer once, including buffer 0 flush, and never twice the buffer.
+    """
+    settings = _settings(buffer_minutes)
+    later, busy = _place(
+        _task(title="later-prerequisite"),
+        settings,
+        [],
+        prerequisite_not_before=_at(8, 30),
+    )
+    earlier, _ = _place(_task(title="earlier-opening"), settings, busy)
+    later_block = _only_block(later)
+    earlier_block = _only_block(earlier)
+
+    assert later_block.start_time == _at(8, 30)
+    assert later_block.end_time == _at(9, 0)
+    assert _minutes(earlier_block.start_time, earlier_block.end_time) == WORK_MINUTES
+    assert _minutes(later_block.start_time, later_block.end_time) == WORK_MINUTES
+    gap = _gap_between(later_block, earlier_block)
+    assert gap == buffer_minutes
+    if buffer_minutes:
+        assert earlier_block.start_time == _at(9, 0) + timedelta(minutes=buffer_minutes)
+        assert gap != buffer_minutes * 2
+        assert earlier_block.end_time <= later_block.start_time or earlier_block.start_time >= (
+            later_block.end_time + timedelta(minutes=buffer_minutes)
+        )
+    else:
+        assert earlier_block.start_time == _at(8, 0)
+        assert earlier_block.end_time == later_block.start_time
+
+
+def test_successful_placement_reports_fixed_pair_on_calculate_and_preview() -> None:
+    """S2-D5: a placed task still carries the tight fixed-pair warning.
+
+    Pins at 14:00–14:30 and 14:35–15:05 stay put (gap 5, buffer 10). The
+    15-minute task places. The warning is on the calculation outcome and the
+    preview proposal, and it is not a reason to drop the block.
+    """
+    pin = BusyInterval(_at(14, 0), _at(14, 30), source="pinned")
+    event = BusyInterval(_at(14, 35), _at(15, 5), source="external")
+    busy = [pin, event]
+    pin_bounds = [(item.source, item.start, item.end) for item in busy]
+    task = _task(minutes=15, title="elsewhere")
+    task.priority = TaskPriority.p4
+    settings = _settings(10)
+    candidate = TaskCandidate(
+        task=task,
+        remaining_minutes=15,
+        reserved_minutes=0,
+        effort_minutes=15,
+    )
+    inputs = SchedulingInputs(
+        owner_id=task.owner_id,
+        user_settings=settings,
+        now_utc=NOW,
+        horizon_start=NOW,
+        horizon_end=HORIZON_END,
+        busy=list(busy),
+        candidates=[candidate],
+        excluded_tasks=[],
+        lifecycle_excluded_tasks=[],
+        dependencies=[],
+        projects={},
+        epics={},
+        ups_scores={task.id: 1.0},
+        ordered_candidates=[candidate],
+        dependency_stats={},
+        effective_window_by_task={task.id: None},
+        effective_window_source_by_task={task.id: None},
+        preferred_windows={},
+        time_map_overrides_by_map={},
+        daily_cap=None,
+        pinned_blocks_by_task={},
+        immovable_busy=list(busy),
+    )
+
+    result = calculate(None, inputs)  # type: ignore[arg-type]
+
+    assert [(item.source, item.start, item.end) for item in busy] == pin_bounds
+    assert result.blocks_created == 1
+    assert result.proposed_blocks is not None and len(result.proposed_blocks) == 1
+    block = result.proposed_blocks[0]
+    assert block.task_id == task.id
+    assert _minutes(block.start_time, block.end_time) == 15
+    assert block.end_time <= pin.start or block.start_time >= event.end
+    assert not (block.start_time < pin.end and block.end_time > pin.start)
+    assert not (block.start_time < event.end and block.end_time > event.start)
+
+    outcome = next(item for item in result.outcomes if item.task_id == task.id)
+    codes = [fact.code for fact in outcome.reason_facts]
+    assert codes[0] == REASON_PLACED
+    assert outcome.primary_code == REASON_PLACED
+    assert outcome.placed_minutes == 15
+    assert outcome.remaining_minutes == 0
+    warning = next(
+        fact for fact in outcome.reason_facts if fact.code == REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER
+    )
+    assert warning.params["buffer_minutes"] == 10
+    assert warning.params["gap_minutes"] == 5
+    summary = format_summary_text(outcome.reason_facts)
+    assert "Placed 15" in summary
+    assert "were not moved" in summary
+
+    placement = result.placement_facts_by_task[task.id]
+    hint_codes = [
+        hint.get("reason_code")
+        for hint in placement.get("pass_hints") or []
+        if isinstance(hint, dict)
+    ]
+    assert REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER in hint_codes
+    assert placement.get("last_failure") is None
+
+    proposal = build_proposal_json(inputs=inputs, result=result, before_blocks=[])
+    proposed_outcome = next(
+        row for row in proposal["outcomes"] if row["task_id"] == str(task.id)
+    )
+    proposed_codes = [fact["code"] for fact in proposed_outcome["reason_facts"]]
+    assert proposed_codes[0] == REASON_PLACED
+    assert REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER in proposed_codes
+    assert proposed_outcome["primary_reason_code"] == REASON_PLACED
+    assert proposed_outcome["placed_minutes"] == 15
+
+    rebuilt = calculation_result_from_proposal(proposal)
+    rebuilt_outcome = next(item for item in rebuilt.outcomes if item.task_id == task.id)
+    rebuilt_codes = [fact.code for fact in rebuilt_outcome.reason_facts]
+    assert REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER in rebuilt_codes
+    assert rebuilt_outcome.primary_code == REASON_PLACED
+    assert rebuilt.blocks_created == 1

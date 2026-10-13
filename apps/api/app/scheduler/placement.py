@@ -293,8 +293,8 @@ def find_slot(
         return None
 
     # Fixed busy (pins, external events) blocks the buffer on both sides.
-    # Scheduled intervals already include one trailing pad, so they are not
-    # expanded here — that would double the auto–auto gap.
+    # Scheduled intervals already include one pad on each side, so they are
+    # not expanded here — that would double the auto–auto gap.
     if buffer_minutes > 0:
         busy = expand_fixed_busy_for_placement(busy, buffer_minutes)
 
@@ -1026,9 +1026,11 @@ def place_task(
                     last_block_end = end
                     last_placed_tier = window_tier
                     # Buffer is separation, not work duration: ``remaining``
-                    # drops by slice_minutes only. Trailing pad is the single
-                    # auto–auto gap. Fixed clearance is the consult view inside
-                    # find_slot, so this pad is not applied again to pins.
+                    # drops by slice_minutes only. One pad on each side of this
+                    # block is the single auto–auto gap, including a later
+                    # insert placed earlier in the day. Fixed clearance is the
+                    # consult view inside find_slot, so this pad is not applied
+                    # again to pins or to scheduled intervals.
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
                     _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
                     if day_override is not None:
