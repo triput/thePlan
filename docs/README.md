@@ -62,8 +62,10 @@ Refresh both before any public show-and-tell (living footnotes / §10 checklists
 |----------|-------------|
 | [SCHEDULING-SETTINGS-SPEC.md](./SCHEDULING-SETTINGS-SPEC.md) | Approved product contract (v1.4.3) — **0.7.0** Scheduling/Settings pass; About/version; acceptance matrix |
 | [redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md](./redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) | Dex discovery decision ledger (v1.16) — rationale and fixtures |
+| [delivery/0.7-S2-CUTOVER.md](./delivery/0.7-S2-CUTOVER.md) | S2 placer cutover kick packet — slices V1–V7, acceptance, Dex gates |
+| [delivery/0.7-S2-V3-DISCOVERY.md](./delivery/0.7-S2-V3-DISCOVERY.md) | **S2-V3 Discovery Open** — Working/General, divergence, window math (coding truth after Discovery exits) |
 
-Traces [DEF-032–033, DEF-036–041](./DEFECTS.md). Hygiene entry open — [HYGIENE-0.7.md](./HYGIENE-0.7.md); gates S1. Implementation not started by the documentation stamp alone.
+Traces [DEF-032–033, DEF-036–041](./DEFECTS.md). Hygiene entry open — [HYGIENE-0.7.md](./HYGIENE-0.7.md); gates S1. S2-V1/V2 on cursor; **S2-V3 Discovery in progress** — not Closed/shipped.
 
 ## Dev
 
