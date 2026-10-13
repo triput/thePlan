@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -163,13 +164,20 @@ def get_run_stale_summary(
 )
 def get_task_scheduling_effective(
     task_id: UUID,
+    on: date | None = Query(
+        default=None,
+        description=(
+            "Scheduling day (YYYY-MM-DD) in operator timezone for dated Time Map override "
+            "resolution; omit to skip dated override lookup."
+        ),
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> TaskSchedulingEffectiveOut:
     task = db.get(Task, task_id)
     if task is None or task.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    return build_task_scheduling_effective(db, user, task)
+    return build_task_scheduling_effective(db, user, task, on=on)
 
 
 @task_schedule_router.get(

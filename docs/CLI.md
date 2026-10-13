@@ -187,7 +187,18 @@ Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCH
 | **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `/api/v1/availability-policies` … `/effective` — output discloses config-only in S1. Empty Working `{"windows":[]}` is supported when the API DB is on Alembic **`029`** (`workweek_days=0`) |
 | **Progress** | `tasks progress add --id UUID --idempotency-key UUID --minutes-worked N --remaining-minutes N --expected-revision N` [`--note`] | `POST /api/v1/tasks/{id}/progress` — idempotent replay; **`--expected-revision`** from `theplan settings get` (`scheduling_revision`) |
 | **Remaining edit** | `tasks patch --id UUID --remaining-estimate-minutes N --expected-revision N` | `PATCH /api/v1/tasks/{id}` — **`--expected-revision` required** with remaining (same settings-get token); omitting it is usage error (exit **1**). Changing original estimate via `--estimated-duration-minutes` is rejected (**422** → exit **1**, e.g. **`ORIGINAL_ESTIMATE_IMMUTABLE`**, **`CHUNKING_CUTOVER_PENDING`**) |
-| **Scheduling effective** | `tasks scheduling-effective --id UUID`; `schedule effective --task-id UUID` (alias) | `GET /api/v1/tasks/{id}/scheduling/effective` — active vs inactive layers for S1 bridge |
+| **Scheduling effective** | `tasks scheduling-effective --id UUID` [`--on YYYY-MM-DD`]; `schedule effective --task-id UUID` (alias; same `--on`) | `GET /api/v1/tasks/{id}/scheduling/effective` optional query **`on=YYYY-MM-DD`** — structured placer-active vs saved-config read (S1 bridge; read-only) |
+
+**Scheduling-effective (S1):** JSON matches **`TaskSchedulingEffectiveOut`** (OpenAPI). Top-level **`sources[]`** labels placer-active vs pending inputs. Structured blocks:
+
+- **`time_map`** — assignment status, **`origin`** (task/project/epic IDs and **`effective_source`**), effective map id/bands, **`strict_mode`**, **`empty_kind`** (strict/non-strict empty, no-assignment fallback, etc.)
+- **`working_hours_active`** — legacy **`workweek_*` / workday** the placer uses now
+- **`working_policy_saved`** — saved Working windows (**`placer_active: false`**); **`diverges_from_legacy`** and **`divergence_note`** when saved Working ≠ active legacy mirrors
+- **`general_policy_saved`** / **`personal_policy_saved`** — saved policies (**inactive** in S1; General not scheduling-effective)
+- **`dated_resolution`** — with **`--on` / `on=`**: operator timezone, applicable F4 override, **`replaces`** (day bands / strict_mode). **Without `on`:** **`performed: false`** and a note that dated override resolution was **not** performed (general configuration only)
+- **`duration`** — thin slice: original / worked / remaining, **`placement_effort_minutes`**, block bounds; does not invent pin-adjusted placement effort
+
+**`--format text`** prints **`_summarize_scheduling_effective`** — same facts as JSON, not a second semantics. Does not call replan or mutate scheduling state.
 
 Stale scheduling revision on progress or remaining PATCH → exit **5** / **`SCHEDULING_REVISION_CONFLICT`**. Refresh `settings get` after a bump; do not auto-retry an old decision with a newer token. Subcommand `--help` text calls out S1 config-only availability where relevant.
 

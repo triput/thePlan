@@ -70,6 +70,13 @@ def register_schedule(sub: argparse._SubParsersAction) -> None:
         description=_effective_help,
     )
     effective_p.add_argument("--task-id", dest="task_id", required=True, metavar="UUID")
+    effective_p.add_argument(
+        "--on",
+        dest="on_date",
+        default=None,
+        metavar="YYYY-MM-DD",
+        help="Scheduling day in operator timezone for dated Time Map override resolution",
+    )
 
 
 _FRESH_PREVIEW = "Create a fresh preview."
@@ -167,9 +174,14 @@ def run_schedule(args: argparse.Namespace) -> None:
         _emit_explain(body or {})
         return
     if cmd == "effective":
+        params: dict[str, Any] = {}
+        on_date = getattr(args, "on_date", None)
+        if on_date is not None:
+            params["on"] = on_date
         body = api_json(
             "GET",
             task_scheduling_effective_path(args.task_id),
+            params=params or None,
             persist_session=True,
         )
         _emit_scheduling_effective(body or {})

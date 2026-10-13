@@ -48,6 +48,58 @@ def _sample_settings() -> dict:
     }
 
 
+def _scheduling_effective_sample(
+    *, on: str | None = None, performed: bool = False
+) -> dict:
+    return {
+        "task_id": TASK_ID,
+        "placement_effort_minutes": 35,
+        "scheduling_effective_note": (
+            "Saved for upcoming scheduling; current runs still use working hours / Time Maps."
+        ),
+        "general_policy_scheduling_effective": False,
+        "working_hours_placer_active": True,
+        "time_map": {
+            "assignment_status": "unclassified_fallback",
+            "origin": {"effective_source": None},
+            "effective_map_id": None,
+            "empty_kind": "no_assignment_fallback",
+            "strict_mode": None,
+            "band_count": 0,
+            "bands": [],
+        },
+        "working_hours_active": {
+            "workweek_days": 5,
+            "workday_start_local": "09:00",
+            "workday_minutes": 480,
+            "timezone": "America/Los_Angeles",
+            "placer_active": True,
+        },
+        "working_policy_saved": {
+            "slug": "work",
+            "placer_active": False,
+            "diverges_from_legacy": False,
+            "windows": [],
+        },
+        "general_policy_saved": {"slug": "general", "placer_active": False, "windows": []},
+        "personal_policy_saved": {"slug": "personal", "placer_active": False, "windows": []},
+        "dated_resolution": {
+            "performed": performed,
+            "on": on,
+            "operator_timezone": "America/Los_Angeles",
+            "note": "dated" if performed else "not performed",
+        },
+        "duration": {
+            "original_estimate_minutes": 60,
+            "worked_minutes": 25,
+            "remaining_minutes": 35,
+            "placement_effort_minutes": 35,
+            "note": "Pin-adjusted placement effort is not computed on this read.",
+        },
+        "sources": [],
+    }
+
+
 def _sample_policy(*, slug: str = POLICY_REF) -> dict:
     return {
         "id": "00000000-0000-0000-0000-000000000070",
@@ -245,14 +297,10 @@ def test_tasks_progress_and_scheduling_effective(
                 "replayed": False,
             }
         if method == "GET" and path == f"/api/v1/tasks/{TASK_ID}/scheduling/effective":
-            return {
-                "task_id": TASK_ID,
-                "placement_effort_minutes": 35,
-                "scheduling_effective_note": "Saved for upcoming scheduling; current runs still use working hours / Time Maps.",
-                "general_policy_scheduling_effective": False,
-                "working_hours_placer_active": True,
-                "sources": [],
-            }
+            params = kwargs.get("params") or {}
+            if params.get("on") == "2026-10-13":
+                return _scheduling_effective_sample(on="2026-10-13", performed=True)
+            return _scheduling_effective_sample()
         raise AssertionError(f"unexpected {method} {path}")
 
     monkeypatch.setattr("theplan.commands.tasks.api_json", fake_api)
@@ -292,6 +340,21 @@ def test_tasks_progress_and_scheduling_effective(
 
     assert ("POST", f"/api/v1/tasks/{TASK_ID}/progress-entries") in calls
     assert ("GET", f"/api/v1/tasks/{TASK_ID}/scheduling/effective") in calls
+
+    run_tasks(
+        _parse(
+            [
+                "tasks",
+                "scheduling-effective",
+                "--id",
+                TASK_ID,
+                "--on",
+                "2026-10-13",
+            ]
+        )
+    )
+    on_body = json.loads(capsys.readouterr().out)
+    assert on_body["dated_resolution"]["performed"] is True
 
 
 def test_tasks_list_includes_progress_fields(
@@ -524,32 +587,27 @@ def test_help_says_policies_are_not_scheduling_effective(
 def test_scheduling_effective_text_keeps_policies_inactive(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    body = {
-        "task_id": TASK_ID,
-        "placement_effort_minutes": 35,
-        "scheduling_effective_note": (
-            "Saved for upcoming scheduling; current runs still use working hours / Time Maps."
-        ),
-        "general_policy_scheduling_effective": False,
-        "working_hours_placer_active": True,
-        "sources": [
-            {
-                "kind": "legacy_workweek",
-                "label": "Working hours (legacy workweek settings)",
-                "placer_active": True,
-            },
-            {
-                "kind": "availability_general",
-                "label": "General availability policy",
-                "placer_active": False,
-            },
-            {
-                "kind": "availability_work",
-                "label": "Working availability policy",
-                "placer_active": False,
-            },
-        ],
-    }
+    body = _scheduling_effective_sample()
+    body["sources"] = [
+        {
+            "kind": "legacy_workweek",
+            "label": "Working hours (legacy workweek settings)",
+            "placer_active": True,
+            "detail": "workweek_days=5",
+        },
+        {
+            "kind": "availability_general",
+            "label": "General availability policy",
+            "placer_active": False,
+            "detail": "config-only",
+        },
+        {
+            "kind": "availability_work",
+            "label": "Working availability policy",
+            "placer_active": False,
+            "detail": "Time Maps",
+        },
+    ]
     monkeypatch.setattr("theplan.commands.tasks.api_json", lambda *a, **k: body)
     monkeypatch.setattr("theplan.commands.schedule.api_json", lambda *a, **k: body)
     set_output_format("text")
@@ -563,5 +621,8 @@ def test_scheduling_effective_text_keeps_policies_inactive(
         assert "availability_work (inactive):" in out
         assert "legacy_workweek (active):" in out
         assert "Time Maps" in out
+        assert "dated_resolution:" in out
+        assert "working_hours_active (placer):" in out
+        assert "duration:" in out
         assert "availability_general (active)" not in out
         assert "availability_work (active)" not in out

@@ -158,6 +158,13 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
         description=_scheduling_effective_help,
     )
     sched_eff_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
+    sched_eff_p.add_argument(
+        "--on",
+        dest="on_date",
+        default=None,
+        metavar="YYYY-MM-DD",
+        help="Scheduling day in operator timezone for dated Time Map override resolution",
+    )
 
     complete_p = tasks_sub.add_parser("complete", help="Mark task complete")
     complete_p.add_argument("--id", required=True, dest="task_id", metavar="UUID")
@@ -342,6 +349,63 @@ def _summarize_scheduling_effective(body: dict[str, Any]) -> None:
     print(
         f"general_policy_scheduling_effective: {body.get('general_policy_scheduling_effective')}"
     )
+
+    time_map = body.get("time_map") or {}
+    if time_map:
+        print(
+            f"time_map: status={time_map.get('assignment_status')} "
+            f"map_id={time_map.get('effective_map_id')} "
+            f"origin={ (time_map.get('origin') or {}).get('effective_source') } "
+            f"empty_kind={time_map.get('empty_kind')} strict={time_map.get('strict_mode')}"
+        )
+
+    working_active = body.get("working_hours_active") or {}
+    if working_active:
+        print(
+            "working_hours_active (placer): "
+            f"workweek_days={working_active.get('workweek_days')} "
+            f"start={working_active.get('workday_start_local')} "
+            f"minutes={working_active.get('workday_minutes')} "
+            f"tz={working_active.get('timezone')}"
+        )
+
+    working_saved = body.get("working_policy_saved") or {}
+    if working_saved:
+        diverges = working_saved.get("diverges_from_legacy")
+        print(
+            f"working_policy_saved (inactive): diverges_from_legacy={diverges} "
+            f"windows={len(working_saved.get('windows') or [])}"
+        )
+        div_note = working_saved.get("divergence_note")
+        if div_note:
+            print(f"  divergence_note: {div_note}")
+
+    dated = body.get("dated_resolution") or {}
+    if dated:
+        print(
+            f"dated_resolution: performed={dated.get('performed')} "
+            f"on={dated.get('on')} tz={dated.get('operator_timezone')}"
+        )
+        dated_note = dated.get("note")
+        if dated_note:
+            print(f"  note: {dated_note}")
+        override = dated.get("override")
+        if isinstance(override, dict) and override.get("override_id"):
+            print(f"  override_id: {override.get('override_id')}")
+
+    duration = body.get("duration") or {}
+    if duration:
+        print(
+            "duration: "
+            f"original={duration.get('original_estimate_minutes')} "
+            f"worked={duration.get('worked_minutes')} "
+            f"remaining={duration.get('remaining_minutes')} "
+            f"placement_effort={duration.get('placement_effort_minutes')}"
+        )
+        dur_note = duration.get("note")
+        if dur_note:
+            print(f"  note: {dur_note}")
+
     sources = body.get("sources") or []
     if sources:
         print("sources:")
@@ -349,7 +413,11 @@ def _summarize_scheduling_effective(body: dict[str, Any]) -> None:
             if not isinstance(source, dict):
                 continue
             active = "active" if source.get("placer_active") else "inactive"
-            print(f"  {source.get('kind')} ({active}): {source.get('label')}")
+            detail = source.get("detail")
+            line = f"  {source.get('kind')} ({active}): {source.get('label')}"
+            if detail:
+                line = f"{line} — {detail}"
+            print(line)
 
 
 def run_tasks(args: argparse.Namespace) -> None:
@@ -423,9 +491,14 @@ def run_tasks(args: argparse.Namespace) -> None:
         emit_ok(body or {})
         return
     if cmd == "scheduling-effective":
+        params: dict[str, Any] = {}
+        on_date = getattr(args, "on_date", None)
+        if on_date is not None:
+            params["on"] = on_date
         body = api_json(
             "GET",
             task_scheduling_effective_path(args.task_id),
+            params=params or None,
             persist_session=True,
         )
         payload = body or {}
