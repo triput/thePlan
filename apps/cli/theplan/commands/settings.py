@@ -2,9 +2,9 @@
 #  File: apps/cli/theplan/commands/settings.py
 #  Description: CLI for user settings GET/PATCH (S1).
 #  Component: CLI
-#  Version: 1.0
+#  Version: 1.1
 #  Created: 2026-10-12
-#  Last Update: 2026-10-12
+#  Last Update: 2026-10-12 (S1-D4: expose scheduling_revision on settings get)
 # ==============================================================================
 
 from __future__ import annotations
@@ -36,11 +36,19 @@ _SCHEDULING_REVISION_FIELDS = (
     "max_auto_schedule_minutes_per_project_per_day",
 )
 
+_GET_EPILOG = (
+    "Includes owner-scoped scheduling_revision (integer token for "
+    "tasks progress add --expected-revision and remaining-only "
+    "tasks patch --remaining-estimate-minutes --expected-revision). "
+    "Do not substitute board_revision from tasks get."
+)
+
 _PATCH_EPILOG = (
     "Patch fields mirror UserSettingsUpdate. "
     "Changing scheduling-related fields bumps the owner's scheduling_revision "
     f"(next replan / progress token): {', '.join(_SCHEDULING_REVISION_FIELDS)}. "
-    "nominal_workday_minutes and default_max_block_* do not bump revision."
+    "nominal_workday_minutes and default_max_block_* do not bump revision. "
+    "Read the current token with: theplan settings get"
 )
 
 
@@ -51,7 +59,12 @@ def register_settings(sub: argparse._SubParsersAction) -> None:
     )
     settings_sub = settings.add_subparsers(dest="settings_command", required=True)
 
-    settings_sub.add_parser("get", help="Get current user settings")
+    settings_sub.add_parser(
+        "get",
+        help="Get current user settings (includes scheduling_revision)",
+        epilog=_GET_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
 
     patch_p = settings_sub.add_parser(
         "patch",
@@ -222,6 +235,7 @@ def _merge_patch_body(args: argparse.Namespace) -> dict[str, Any]:
 
 def _summarize_settings(row: dict[str, Any]) -> None:
     for key in (
+        "scheduling_revision",
         "timezone",
         "locale",
         "workday_minutes",

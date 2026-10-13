@@ -2,7 +2,39 @@
 
 from __future__ import annotations
 
+from datetime import time
+from types import SimpleNamespace
+
 from fastapi.testclient import TestClient
+
+from app.models.enums import ScheduleStyle
+from app.schemas.settings import UserSettingsOut
+
+
+def test_user_settings_out_includes_scheduling_revision() -> None:
+    """S1-D4: owner scheduling_revision is part of the settings read schema."""
+    row = SimpleNamespace(
+        timezone="UTC",
+        locale="en-US",
+        workday_minutes=480,
+        nominal_workday_minutes=480,
+        workday_start_local=time(8, 0),
+        workweek_days=5,
+        inter_block_buffer_minutes=5,
+        ups_weights={"Wp": 1.0},
+        upcoming_horizon_days=7,
+        default_estimated_duration_minutes=30,
+        default_min_block_duration_minutes=15,
+        default_max_block_duration_minutes=120,
+        default_max_block_unbounded=False,
+        default_schedule_style=ScheduleStyle.standalone,
+        auto_defer_enabled=True,
+        max_auto_schedule_minutes_per_project_per_day=None,
+        scheduling_revision=7,
+    )
+    body = UserSettingsOut.model_validate(row).model_dump()
+    assert body["scheduling_revision"] == 7
+    assert "board_revision" not in body
 
 
 def test_get_settings_returns_defaults(client: TestClient) -> None:
@@ -31,6 +63,29 @@ def test_get_settings_returns_defaults(client: TestClient) -> None:
     assert body["default_schedule_style"] == "standalone"
     assert body["auto_defer_enabled"] is True
     assert set(body["ups_weights"].keys()) == {"Wp", "Wu", "Wd", "We", "k"}
+    assert isinstance(body["scheduling_revision"], int)
+    assert body["scheduling_revision"] >= 0
+
+
+def test_patch_settings_scheduling_field_bumps_revision_in_response(
+    client: TestClient,
+) -> None:
+    """S1-D4: GET/PATCH settings expose the token; scheduling PATCH bumps it."""
+    before = client.get("/api/v1/settings")
+    assert before.status_code == 200, before.text
+    start = before.json()["scheduling_revision"]
+
+    patched = client.patch(
+        "/api/v1/settings",
+        json={"inter_block_buffer_minutes": before.json()["inter_block_buffer_minutes"]},
+    )
+    assert patched.status_code == 200, patched.text
+    # Same value still counts as a scheduling-field write and bumps revision.
+    assert patched.json()["scheduling_revision"] == start + 1
+
+    after = client.get("/api/v1/settings")
+    assert after.status_code == 200, after.text
+    assert after.json()["scheduling_revision"] == start + 1
 
 
 def test_patch_settings_workday_start(client: TestClient) -> None:

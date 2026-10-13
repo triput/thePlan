@@ -113,7 +113,7 @@ One row per user.
 | locale | VARCHAR(16) | en-US | |
 | workday_minutes | INT | 480 | 8 h baseline |
 | workday_start_local | TIME | 08:00:00 | Local workday start for placement |
-| workweek_days | INT | 5 | |
+| workweek_days | INT | 5 | Monday-first count; `0` = no Working days (Alembic **`029`**) |
 | inter_block_buffer_minutes | INT | 5 | W2 scheduler buffer |
 | ups_weights | JSONB | Wp/Wu/Wd/We/k | W2 UPS tuning |
 | upcoming_horizon_days | INT | 7 | Upcoming view |
@@ -122,8 +122,9 @@ One row per user.
 | default_schedule_style | schedule_style | standalone | Block / bundle / manual opt-in |
 | auto_defer_enabled | BOOLEAN | true | Missed plan windows may slide |
 | max_auto_schedule_minutes_per_project_per_day | INT NULL | NULL | Optional daily auto-schedule cap per project (NULL = unlimited). Alembic `014_project_daily_schedule_cap` |
+| scheduling_revision | INT | 0 | Owner SoT for stale-state protection on scheduling writes (F6 / S1 progress); not `board_revision` |
 
-**Checks:** `workday_minutes > 0`, `workweek_days` 1–7, `inter_block_buffer_minutes >= 0`, `upcoming_horizon_days > 0`, duration defaults `> 0`, `max_auto_schedule_minutes_per_project_per_day IS NULL OR > 0`.
+**Checks:** `workday_minutes > 0`, `workweek_days` 0–7 (widened from 1–7 by Alembic **`029_workweek_days_allow_zero`**; DBs still on **`028`** keep 1–7 until migrate), `inter_block_buffer_minutes >= 0`, `upcoming_horizon_days > 0`, duration defaults `> 0`, `max_auto_schedule_minutes_per_project_per_day IS NULL OR > 0`.
 
 ### epics
 

@@ -577,7 +577,7 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
 | locale | string | en-US | |
 | workday_minutes | int | 480 | > 0 |
 | workday_start_local | time | 08:00 | HH:MM local workday start |
-| workweek_days | int | 5 | 1–7 |
+| workweek_days | int | 5 | 0–7 (`0` = no Working days; requires Alembic **`029`**) |
 | inter_block_buffer_minutes | int | 5 | >= 0 |
 | ups_weights | object | Wp/Wu/Wd/We/k | JSON object |
 | upcoming_horizon_days | int | 7 | >= 1 |
@@ -586,6 +586,7 @@ Returns tasks matching title/description (case-insensitive ILIKE; `%`/`_` escape
 | default_schedule_style | enum | standalone | `standalone`, `time_block`, `bundle`, `manual` |
 | auto_defer_enabled | bool | true | |
 | max_auto_schedule_minutes_per_project_per_day | int \| null | null | > 0 when set; NULL = no daily cap per project during auto-schedule |
+| scheduling_revision | int | 0 | **GET / response only** (owner SoT). Use as `expected_revision` for progress and remaining-only task writes. Not writable via settings PATCH; not `board_revision` |
 
 **Task create duration:** `estimated_duration_minutes` on `POST /tasks` is optional. Omit or send `null` to use `user_settings.default_estimated_duration_minutes`; an explicit value (including `30`) is stored as-is.
 

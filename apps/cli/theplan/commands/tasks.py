@@ -105,7 +105,10 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
         type=int,
         default=None,
         metavar="N",
-        help="Required when patching remaining estimate (scheduling revision token)",
+        help=(
+            "Required with --remaining-estimate-minutes: owner scheduling_revision "
+            "from `theplan settings get` (not board_revision)"
+        ),
     )
 
     progress = tasks_sub.add_parser("progress", help="Record task progress")
@@ -138,6 +141,10 @@ def register_tasks(sub: argparse._SubParsersAction) -> None:
         type=int,
         required=True,
         metavar="N",
+        help=(
+            "Owner scheduling_revision from `theplan settings get` "
+            "(not board_revision from tasks get)"
+        ),
     )
     progress_add.add_argument("--note", default=None)
 

@@ -115,11 +115,11 @@ def test_noncontiguous_working_pattern_still_rejects_without_mirror_write() -> N
     _assert_untouched(settings)
 
 
-def _require_028(db: Session) -> None:
+def _require_s1_head(db: Session) -> None:
     version = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "028_availability_progress", (
+    assert version == "029_workweek_days_allow_zero", (
         f"test database alembic version is {version!r}; "
-        "upgrade the disposable test database to 028_availability_progress before this suite"
+        "upgrade the disposable test database to 029_workweek_days_allow_zero before this suite"
     )
 
 
@@ -137,7 +137,7 @@ def _windows(weekdays: tuple[int, ...] | range, start: str, duration: int) -> li
 
 def _prepare_legacy_mirror(client: TestClient, db: Session) -> tuple[uuid.UUID, int]:
     """Pin a Monday–Wednesday mirror that is neither 5 nor 2, and ensure Working exists."""
-    _require_028(db)
+    _require_s1_head(db)
     owner_id = uuid.UUID(client.get("/api/v1/auth/me").json()["id"])
     settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
     settings.workweek_days = 3

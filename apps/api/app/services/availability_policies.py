@@ -1,9 +1,12 @@
 """Availability policy read/update (S1 config-only).
 
 Working windows update deprecated ``workweek_*`` mirrors only when the pattern
-is Monday-first and same-hours. A shifted contiguous pattern is stored on the
-policy and does not retarget the legacy placer. ``scheduling_effective`` stays
-false either way. Ambiguous, gapped, and mixed-hours patterns are still rejected.
+is Monday-first and same-hours. An empty window list is that pattern with
+length zero: ``workweek_days = 0`` (no Working days) and a revision bump.
+``workday_start_local`` and ``workday_minutes`` stay as they were. A shifted
+contiguous pattern is stored on the policy and does not retarget the legacy
+placer. ``scheduling_effective`` stays false either way. Ambiguous, gapped,
+and mixed-hours patterns are still rejected.
 """
 
 from __future__ import annotations
@@ -97,6 +100,10 @@ def _sync_workweek_from_working_windows(settings: UserSettings, windows: list[Av
 
     Ambiguous, noncontiguous, and heterogeneous patterns still reject. Those
     writes roll back with the request, so legacy eligibility is unchanged.
+
+    An empty list is Monday-first of length zero. ``workweek_days = 0`` makes
+    ``is_workday`` false for every weekday. Clock bounds are not rewritten and
+    are not a stand-in week.
     """
     if not windows:
         settings.workweek_days = 0

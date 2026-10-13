@@ -28,7 +28,7 @@ from app.services.task_progress import append_progress_entry
 
 _PROBE_EMAIL_LIKE = "renee-s1d3-%@example.com"
 _REQUIRED_DATABASE = "theplan_s1_test"
-_REQUIRED_REVISION = "028_availability_progress"
+_REQUIRED_REVISION = "029_workweek_days_allow_zero"
 
 
 @dataclass(frozen=True)

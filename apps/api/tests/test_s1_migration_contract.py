@@ -149,11 +149,11 @@ def _protected_snapshot(db: Session) -> dict[str, list[tuple] | int]:
     }
 
 
-def _require_028(db: Session) -> None:
+def _require_s1_head(db: Session) -> None:
     version = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "028_availability_progress", (
+    assert version == "029_workweek_days_allow_zero", (
         f"test database alembic version is {version!r}; "
-        "upgrade the disposable test database to 028_availability_progress before this suite"
+        "upgrade the disposable test database to 029_workweek_days_allow_zero before this suite"
     )
 
 
@@ -192,7 +192,7 @@ def _create_task(client: TestClient, title: str, **extra) -> dict:
 @pytest.fixture()
 def seeded(client: TestClient, db_session: Session) -> Seeded:
     """Plant pre-seed rows, replay 028 DML inside the rolled-back test transaction."""
-    _require_028(db_session)
+    _require_s1_head(db_session)
     me = uuid.UUID(client.get("/api/v1/auth/me").json()["id"])
     settings = db_session.query(UserSettings).filter(UserSettings.owner_id == me).one()
     settings.workweek_days = 3
@@ -308,8 +308,9 @@ def seeded(client: TestClient, db_session: Session) -> Seeded:
     overnight = User(email=f"s1-night-{_uid()}@example.com", username=f"s1n{_uid()}")
     db_session.add(overnight)
     db_session.flush()
-    # workweek_days is constrained to 1–7 (001). Zero-day seed is the SQL guard
-    # `workweek_days > 0`, not a row this column can store.
+    # 028's window INSERT still skips workweek_days = 0 (`spec.workweek_days > 0`).
+    # This fixture uses 1 so the replay inserts an overnight window. Storing 0
+    # is legal after 029; that is not what this seed case checks.
     db_session.add(
         UserSettings(
             owner_id=overnight.id,
@@ -533,7 +534,7 @@ def test_general_work_seed_readback_personal_empty_not_effective(
 
 
 def test_fresh_account_seed_does_not_touch_blocks_or_revision(db_session: Session) -> None:
-    _require_028(db_session)
+    _require_s1_head(db_session)
     owner = User(email=f"s1-fresh-{_uid()}@example.com", username=f"s1f{_uid()}")
     db_session.add(owner)
     db_session.flush()

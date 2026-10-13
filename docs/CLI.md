@@ -183,13 +183,13 @@ Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCH
 
 | Area | Commands | Maps to |
 |------|----------|---------|
-| **Settings** | `settings get`, `settings patch` (flags and/or `--file` / `--stdin`) | `GET` / `PATCH /api/v1/settings` — includes `nominal_workday_minutes` and legacy placement fields |
-| **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `/api/v1/availability-policies` … `/effective` — output discloses config-only in S1 |
-| **Progress** | `tasks progress add --id UUID --idempotency-key UUID --minutes-worked N --remaining-minutes N --expected-revision N` [`--note`] | `POST /api/v1/tasks/{id}/progress` — idempotent replay; requires scheduling revision |
-| **Remaining edit** | `tasks patch --id UUID --remaining-estimate-minutes N --expected-revision N` | `PATCH /api/v1/tasks/{id}` — **`--expected-revision` required** with remaining; omitting it is usage error (exit **1**). Changing original estimate via `--estimated-duration-minutes` is rejected (**422** → exit **1**, e.g. **`ORIGINAL_ESTIMATE_IMMUTABLE`**, **`CHUNKING_CUTOVER_PENDING`**) |
+| **Settings** | `settings get`, `settings patch` (flags and/or `--file` / `--stdin`) | `GET` / `PATCH /api/v1/settings` — includes `nominal_workday_minutes`, legacy placement fields, and owner **`scheduling_revision`** (JSON top-level beside `ok`; text prints it first). Do **not** use `board_revision` |
+| **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `/api/v1/availability-policies` … `/effective` — output discloses config-only in S1. Empty Working `{"windows":[]}` is supported when the API DB is on Alembic **`029`** (`workweek_days=0`) |
+| **Progress** | `tasks progress add --id UUID --idempotency-key UUID --minutes-worked N --remaining-minutes N --expected-revision N` [`--note`] | `POST /api/v1/tasks/{id}/progress` — idempotent replay; **`--expected-revision`** from `theplan settings get` (`scheduling_revision`) |
+| **Remaining edit** | `tasks patch --id UUID --remaining-estimate-minutes N --expected-revision N` | `PATCH /api/v1/tasks/{id}` — **`--expected-revision` required** with remaining (same settings-get token); omitting it is usage error (exit **1**). Changing original estimate via `--estimated-duration-minutes` is rejected (**422** → exit **1**, e.g. **`ORIGINAL_ESTIMATE_IMMUTABLE`**, **`CHUNKING_CUTOVER_PENDING`**) |
 | **Scheduling effective** | `tasks scheduling-effective --id UUID`; `schedule effective --task-id UUID` (alias) | `GET /api/v1/tasks/{id}/scheduling/effective` — active vs inactive layers for S1 bridge |
 
-Stale scheduling revision on progress or remaining PATCH → exit **5** / **`SCHEDULING_REVISION_CONFLICT`**. Subcommand `--help` text calls out S1 config-only availability where relevant.
+Stale scheduling revision on progress or remaining PATCH → exit **5** / **`SCHEDULING_REVISION_CONFLICT`**. Refresh `settings get` after a bump; do not auto-retry an old decision with a newer token. Subcommand `--help` text calls out S1 config-only availability where relevant.
 
 ## Session revocation (`session_epoch`)
 

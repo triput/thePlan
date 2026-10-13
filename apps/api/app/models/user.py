@@ -54,6 +54,7 @@ class UserSettings(Base, TimestampMixin):
     workday_start_local: Mapped[time] = mapped_column(
         Time, nullable=False, server_default="08:00:00"
     )
+    # Monday-first count, 0–7. Zero is an empty Working policy: no Working days.
     workweek_days: Mapped[int] = mapped_column(Integer, nullable=False, server_default="5")
     inter_block_buffer_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="5")
     ups_weights: Mapped[dict[str, Any]] = mapped_column(

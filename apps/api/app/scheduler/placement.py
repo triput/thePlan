@@ -124,9 +124,9 @@ def _ensure_utc(value: datetime) -> datetime:
 def is_workday(day: date, workweek_days: int) -> bool:
     """Monday-first only: weekdays ``0 .. workweek_days-1``.
 
-    This is not a weekday mask. A count of five means Monday–Friday, including
-    when a stored Working policy names some other five days. S1 does not teach
-    the placer to read availability windows.
+    A count of zero matches no weekday. This is not a weekday mask. A count of
+    five means Monday–Friday, including when a stored Working policy names some
+    other five days. S1 does not teach the placer to read availability windows.
     """
     return day.weekday() < workweek_days
 

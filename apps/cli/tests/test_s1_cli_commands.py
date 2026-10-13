@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 
 import httpx
@@ -43,6 +44,7 @@ def _sample_settings() -> dict:
         "default_schedule_style": "standalone",
         "auto_defer_enabled": True,
         "max_auto_schedule_minutes_per_project_per_day": 240,
+        "scheduling_revision": 3,
     }
 
 
@@ -87,6 +89,15 @@ def test_settings_get_and_patch(monkeypatch: pytest.MonkeyPatch, capsys: pytest.
     got = json.loads(capsys.readouterr().out)
     assert got["ok"] is True
     assert got["nominal_workday_minutes"] == 450
+    assert got["scheduling_revision"] == 3
+
+    set_output_format("text")
+    try:
+        run_settings(_parse(["settings", "get"]))
+        text_out = capsys.readouterr().out
+        assert "scheduling_revision: 3" in text_out.splitlines()
+    finally:
+        set_output_format("json")
 
     run_settings(
         _parse(
@@ -101,7 +112,9 @@ def test_settings_get_and_patch(monkeypatch: pytest.MonkeyPatch, capsys: pytest.
     )
     patched = json.loads(capsys.readouterr().out)
     assert patched["default_max_block_unbounded"] is True
-    assert calls[1][2]["nominal_workday_minutes"] == 460
+    assert patched["scheduling_revision"] == 3
+    assert calls[-1][0] == "PATCH"
+    assert calls[-1][2]["nominal_workday_minutes"] == 460
 
 
 def test_availability_commands(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
@@ -148,6 +161,49 @@ def test_availability_commands(monkeypatch: pytest.MonkeyPatch, capsys: pytest.C
     effective = json.loads(capsys.readouterr().out)
     assert effective["scheduling_effective"] is False
     assert "Time Maps" in effective["scheduling_effective_note"]
+
+
+def test_availability_patch_forwards_empty_working_windows(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    policy = _sample_policy()
+    seen: dict[str, object] = {}
+
+    def fake_api(method, path, *, json_body=None, **kwargs):
+        seen["method"] = method
+        seen["path"] = path
+        seen["body"] = json_body
+        return {**policy, "windows": []}
+
+    monkeypatch.setattr("theplan.commands.availability.api_json", fake_api)
+    monkeypatch.setattr("sys.stdin", io.StringIO('{"windows": []}'))
+    set_output_format("text")
+    try:
+        run_availability(_parse(["availability", "patch", "--ref", POLICY_REF, "--stdin"]))
+        out = capsys.readouterr().out
+    finally:
+        set_output_format("json")
+    assert seen["method"] == "PATCH"
+    assert seen["path"] == f"/api/v1/availability-policies/{POLICY_REF}"
+    assert seen["body"] == {"windows": []}
+    assert "windows: (none)" in out
+
+
+def test_settings_patch_forwards_zero_workweek_days(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    sample = _sample_settings()
+    seen: dict[str, object] = {}
+
+    def fake_api(method, path, *, json_body=None, **kwargs):
+        seen["body"] = json_body
+        return {**sample, "workweek_days": 0}
+
+    monkeypatch.setattr("theplan.commands.settings.api_json", fake_api)
+    run_settings(_parse(["settings", "patch", "--workweek-days", "0"]))
+    patched = json.loads(capsys.readouterr().out)
+    assert seen["body"] == {"workweek_days": 0}
+    assert patched["workweek_days"] == 0
 
 
 def test_availability_text_surfaces_scheduling_note(

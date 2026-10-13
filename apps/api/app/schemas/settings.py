@@ -26,6 +26,8 @@ class UserSettingsOut(BaseModel):
     default_schedule_style: ScheduleStyle
     auto_defer_enabled: bool
     max_auto_schedule_minutes_per_project_per_day: int | None = None
+    # Owner-scoped SoT for progress / remaining-only expected_revision (not board_revision).
+    scheduling_revision: int
 
     @field_serializer("workday_start_local")
     def serialize_workday_start(self, value: time) -> str:
@@ -38,7 +40,7 @@ class UserSettingsUpdate(BaseModel):
     workday_minutes: int | None = Field(default=None, gt=0)
     nominal_workday_minutes: int | None = Field(default=None, gt=0)
     workday_start_local: TimeField | None = None
-    workweek_days: int | None = Field(default=None, ge=1, le=7)
+    workweek_days: int | None = Field(default=None, ge=0, le=7)
     inter_block_buffer_minutes: int | None = Field(default=None, ge=0)
     ups_weights: dict[str, Any] | None = None
     upcoming_horizon_days: int | None = Field(default=None, ge=1)
