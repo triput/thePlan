@@ -12,12 +12,15 @@ and not remaining work.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
+from app.scheduler.placement import is_workday, workday_bounds
 from app.scheduler.reasons import (
     REASON_EXCLUDED_DURATION_COVERED_BY_PINS,
     REASON_EXCLUDED_KEEP_IN_ONE_RESERVED,
+    REASON_OUTSIDE_WORKING_AVAILABILITY,
     REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT,
     REASON_UNPLACED_KEEP_IN_ONE_CONFLICT,
     REASON_UNPLACED_PIN_RESERVATION_EXCESS,
@@ -31,6 +34,8 @@ CONFLICT_EXCESS_PIN = "keep_in_one_excess_pin"
 CONFLICT_MULTIPLE_PINS = "keep_in_one_multiple_pins"
 CONFLICT_EXCEEDS_MAX = "keep_in_one_exceeds_max"
 CONFLICT_BOUNDS = "block_bounds_conflict"
+# Same code as the secondary outcome fact. Exact cover is not full validity.
+CONFLICT_OUTSIDE_WORKING = REASON_OUTSIDE_WORKING_AVAILABILITY
 
 
 def _utc(value: datetime) -> datetime:
@@ -134,11 +139,136 @@ def _params(effort: int, reserved: int, **extra: Any) -> dict[str, Any]:
     return body
 
 
+def context_reservation_conflicts(
+    task: Any,
+    settings: Any,
+    blocks: list[Any],
+    now: datetime,
+) -> tuple[dict[str, Any], ...]:
+    """Context and event-travel conflicts for a pinned reservation.
+
+    S2-D3 keeps this hook and returns none. Later inputs append conflicts
+    here. Callers can also pass ``context_conflicts`` into
+    ``evaluate_auto_placement`` when those inputs already exist.
+    """
+    del task, settings, blocks, now
+    return ()
+
+
+def _working_configured(settings: Any) -> bool:
+    start = getattr(settings, "workday_start_local", None)
+    minutes = getattr(settings, "workday_minutes", None)
+    weekdays = getattr(settings, "workweek_days", None)
+    return start is not None and isinstance(minutes, int) and weekdays is not None
+
+
+def _zone(settings: Any) -> ZoneInfo | None:
+    name = getattr(settings, "timezone", None) or "UTC"
+    try:
+        return ZoneInfo(str(name))
+    except (KeyError, ValueError):
+        return None
+
+
+def _overlaps(start: datetime, end: datetime, window_start: datetime, window_end: datetime) -> bool:
+    return start < window_end and window_start < end
+
+
+def _pin_entirely_outside_working(start: datetime, end: datetime, settings: Any) -> bool:
+    """True when the pin interval shares no time with a Working window.
+
+    Partial overlap is not this case. Missing Working fields mean the check
+    is not in scope for this call.
+    """
+    if not _working_configured(settings):
+        return False
+    tz = _zone(settings)
+    if tz is None:
+        return False
+    start_utc = _utc(start)
+    end_utc = _utc(end)
+    if end_utc <= start_utc:
+        return False
+    day: date = start_utc.astimezone(tz).date() - timedelta(days=1)
+    last = end_utc.astimezone(tz).date()
+    workweek = int(settings.workweek_days)
+    while day <= last:
+        if is_workday(day, workweek):
+            window_start, window_end = workday_bounds(day, settings, tz)
+            if _overlaps(start_utc, end_utc, window_start, window_end):
+                return False
+        day += timedelta(days=1)
+    return True
+
+
+def _relevant_pin_intervals(blocks: list[Any], now: datetime) -> list[tuple[datetime, datetime]]:
+    intervals: list[tuple[datetime, datetime]] = []
+    for block in blocks:
+        interval = _interval(block)
+        if interval is None:
+            continue
+        if reservation_minutes(interval[0], interval[1], now) > 0:
+            intervals.append(interval)
+    return intervals
+
+
+def _outside_working_conflict(
+    settings: Any,
+    blocks: list[Any],
+    now: datetime,
+    effort: int,
+    reserved: int,
+) -> dict[str, Any] | None:
+    outside: list[dict[str, str]] = []
+    for start, end in _relevant_pin_intervals(blocks, now):
+        if _pin_entirely_outside_working(start, end, settings):
+            outside.append({"start": _utc(start).isoformat(), "end": _utc(end).isoformat()})
+    if not outside:
+        return None
+    return _conflict(
+        CONFLICT_OUTSIDE_WORKING,
+        (
+            "Pinned reservation is outside Working availability. "
+            "The pin was preserved and no automatic work was added."
+        ),
+        arrangement="outside_working",
+        remaining_minutes=effort,
+        reserved_minutes=reserved,
+        outside_intervals=outside,
+    )
+
+
+def independent_reservation_conflicts(
+    *,
+    task: Any,
+    settings: Any,
+    blocks: list[Any],
+    now: datetime,
+    effort: int,
+    reserved: int,
+    context_conflicts: tuple[dict[str, Any], ...] = (),
+) -> tuple[dict[str, Any], ...]:
+    """Constraints that stay independent of keep-in-one shape (§0.1).
+
+    Working availability is evaluated now. Context conflicts come from
+    ``context_reservation_conflicts`` and from ``context_conflicts``.
+    """
+    rows: list[dict[str, Any]] = []
+    outside = _outside_working_conflict(settings, blocks, now, effort, reserved)
+    if outside is not None:
+        rows.append(outside)
+    rows.extend(context_reservation_conflicts(task, settings, blocks, now))
+    rows.extend(context_conflicts)
+    return tuple(rows)
+
+
 def evaluate_auto_placement(
     task: Any,
     settings: Any,
     blocks: list[Any],
     now: datetime,
+    *,
+    context_conflicts: tuple[dict[str, Any], ...] = (),
 ) -> AutoPlacementDecision:
     """Remaining minus future-tail reservation, then keep-in-one × pin rules.
 
@@ -146,6 +276,11 @@ def evaluate_auto_placement(
     remaining estimate or shorten the pin. A keep-in-one conflict adds no
     automatic remainder. Final placement of a legal short remainder is the
     placer's slice rule, not this budget.
+
+    Exact keep-in-one cover still reports independent constraints. Working
+    availability is checked when settings carry workday fields. Pass
+    ``context_conflicts`` for later context inputs; this function does not
+    invent them.
     """
     bounds = resolve_block_bounds(task, settings)
     effort = placement_effort_minutes(task)
@@ -175,7 +310,20 @@ def evaluate_auto_placement(
         )
 
     if bounds.keep_in_one_block:
-        return _keep_in_one_decision(bounds, effort, reserved, relevant, conflicts)
+        independent: tuple[dict[str, Any], ...] = ()
+        if not conflicts and len(relevant) == 1 and relevant[0] == effort:
+            independent = independent_reservation_conflicts(
+                task=task,
+                settings=settings,
+                blocks=blocks,
+                now=now,
+                effort=effort,
+                reserved=reserved,
+                context_conflicts=context_conflicts,
+            )
+        return _keep_in_one_decision(
+            bounds, effort, reserved, relevant, conflicts, independent
+        )
 
     if reserved > effort:
         excess = reserved - effort
@@ -314,6 +462,7 @@ def _keep_in_one_decision(
     reserved: int,
     relevant: list[int],
     conflicts: tuple[dict[str, Any], ...],
+    independent_conflicts: tuple[dict[str, Any], ...] = (),
 ) -> AutoPlacementDecision:
     """Whole unfinished task, including relevant pins. No auto remainder on conflict."""
     if conflicts:
@@ -351,19 +500,32 @@ def _keep_in_one_decision(
         )
 
     if len(relevant) == 1 and relevant[0] == effort:
+        # One-block shape is not full validity. Keep the pin, add no automatic
+        # work, and still report independent constraints (availability now,
+        # context when that hook grows).
+        params: dict[str, Any] = {
+            "requested_minutes": effort,
+            "pinned_minutes": reserved,
+            "remaining_minutes": effort,
+            "pins_protected": True,
+        }
+        if independent_conflicts:
+            params["constraint_conflicts"] = [
+                {
+                    "code": row["code"],
+                    "message": row["message"],
+                    "detail": dict(row.get("detail") or {}),
+                }
+                for row in independent_conflicts
+            ]
         return AutoPlacementDecision(
             effort_minutes=effort,
             reserved_minutes=reserved,
             minutes_to_place=0,
             auto_place=False,
             reason_code=REASON_EXCLUDED_KEEP_IN_ONE_RESERVED,
-            reason_params={
-                "requested_minutes": effort,
-                "pinned_minutes": reserved,
-                "remaining_minutes": effort,
-                "pins_protected": True,
-            },
-            conflicts=(),
+            reason_params=params,
+            conflicts=independent_conflicts,
             outcome_remaining_minutes=0,
         )
 

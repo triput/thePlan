@@ -110,6 +110,8 @@ def _seed_nebula_data(db: Session, owner_id) -> None:
     db.add_all(labels)
     db.flush()
 
+    from app.services.task_chunking_guard import initialize_task_chunking_bounds_on_create
+
     tasks: list[Task] = [
         Task(
             owner_id=owner_id,
@@ -184,6 +186,8 @@ def _seed_nebula_data(db: Session, owner_id) -> None:
             completed_at=now - timedelta(hours=5),
         ),
     ]
+    for task in tasks:
+        initialize_task_chunking_bounds_on_create(task, explicit_fields={})
     db.add_all(tasks)
     db.flush()
 

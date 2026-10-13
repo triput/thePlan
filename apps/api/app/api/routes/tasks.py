@@ -60,6 +60,11 @@ from app.services.task_effort_init import initialize_task_effort_on_create
 from app.services.task_progress import append_progress_entry
 from app.services.task_workflow import board_column_for_task, transition_task_workflow
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+from app.services.task_chunking_guard import (
+    chunking_bounds_kwargs_for_create,
+    reject_chunking_cutover_writes,
+    validate_effective_chunking_bounds_on_create,
+)
 from app.services.task_patch import (
     add_task_labels,
     apply_plan_bind_soft_target,
@@ -394,6 +399,23 @@ def create_task(
         estimated_duration_minutes = parsed.minutes
         duration_conversion_note = parsed.conversion_note
 
+    chunking_fields_set = frozenset(body.model_fields_set).intersection(
+        {
+            "min_block_duration_minutes",
+            "max_block_duration_minutes",
+            "max_block_unbounded",
+            "keep_in_one_block",
+        }
+    )
+    chunking_explicit = {k: explicit_fields[k] for k in chunking_fields_set}
+    reject_chunking_cutover_writes(chunking_explicit)
+    validate_effective_chunking_bounds_on_create(
+        user_settings, explicit_fields, fields_set=chunking_fields_set
+    )
+    chunking_create_kwargs = chunking_bounds_kwargs_for_create(
+        explicit_fields=explicit_fields, fields_set=chunking_fields_set
+    )
+
     scheduling_settings = lock_owner_scheduling(db, user.id)
     bound_soft_target = resolve_plan_bind(db, user, body.plan_id)
     soft_target_at = apply_plan_bind_soft_target(
@@ -421,6 +443,7 @@ def create_task(
         plan_id=body.plan_id,
         schedule_style=body.schedule_style,
         board_rank=next_board_rank(db, user.id),
+        **chunking_create_kwargs,
     )
     initialize_task_effort_on_create(task, estimated_duration_minutes)
     db.add(task)

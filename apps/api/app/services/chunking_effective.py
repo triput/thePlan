@@ -125,3 +125,74 @@ def merged_task_bounds_after_patch(
         else task.keep_in_one_block
     )
     return resolve_block_bounds(view, settings)  # type: ignore[arg-type]
+
+
+_SETTINGS_BOUNDS_KEYS = frozenset(
+    {
+        "default_min_block_duration_minutes",
+        "default_max_block_duration_minutes",
+        "default_max_block_unbounded",
+    }
+)
+
+
+def resolve_settings_default_bounds(settings: UserSettings) -> ResolvedBlockBounds:
+    """Effective user-default min/max pair (no task inherit layer)."""
+    effective_min = int(settings.default_min_block_duration_minutes)
+    max_unbounded = bool(settings.default_max_block_unbounded)
+    if max_unbounded:
+        return ResolvedBlockBounds(
+            effective_min_minutes=effective_min,
+            min_source="user_default",
+            min_inherit=False,
+            effective_max_minutes=None,
+            max_source="no_limit",
+            max_inherit=False,
+            max_unbounded=True,
+            keep_in_one_block=False,
+        )
+    effective_max = int(settings.default_max_block_duration_minutes)
+    return ResolvedBlockBounds(
+        effective_min_minutes=effective_min,
+        min_source="user_default",
+        min_inherit=False,
+        effective_max_minutes=effective_max,
+        max_source="user_default",
+        max_inherit=False,
+        max_unbounded=False,
+        keep_in_one_block=False,
+    )
+
+
+def merged_settings_default_bounds_after_patch(
+    settings: UserSettings,
+    updates: dict[str, object],
+) -> ResolvedBlockBounds:
+    """Resolve user defaults as if ``updates`` were applied (settings PATCH validation)."""
+
+    class _View:
+        default_min_block_duration_minutes: int
+        default_max_block_duration_minutes: int
+        default_max_block_unbounded: bool
+
+    view = _View()
+    view.default_min_block_duration_minutes = int(
+        updates["default_min_block_duration_minutes"]
+        if "default_min_block_duration_minutes" in updates
+        else settings.default_min_block_duration_minutes
+    )
+    view.default_max_block_duration_minutes = int(
+        updates["default_max_block_duration_minutes"]
+        if "default_max_block_duration_minutes" in updates
+        else settings.default_max_block_duration_minutes
+    )
+    view.default_max_block_unbounded = bool(
+        updates["default_max_block_unbounded"]
+        if "default_max_block_unbounded" in updates
+        else settings.default_max_block_unbounded
+    )
+    return resolve_settings_default_bounds(view)  # type: ignore[arg-type]
+
+
+def settings_patch_touches_default_bounds(updates: dict[str, object]) -> bool:
+    return bool(_SETTINGS_BOUNDS_KEYS.intersection(updates))

@@ -23,7 +23,10 @@ from app.services.scheduling_revision import (
     increment_scheduling_revision,
     lock_owner_scheduling,
 )
-from app.services.task_chunking_guard import reject_chunking_cutover_writes
+from app.services.task_chunking_guard import (
+    reject_chunking_cutover_writes,
+    validate_effective_settings_defaults_after_patch,
+)
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -80,6 +83,7 @@ def update_settings(
         duration_conversion_note = duration_conversion_note or parsed.conversion_note
     touches_scheduling = bool(SETTINGS_SCHEDULING_FIELDS.intersection(updates))
     scheduling_settings = lock_owner_scheduling(db, user.id) if touches_scheduling else None
+    validate_effective_settings_defaults_after_patch(settings, updates)
     if "timezone" in updates and updates["timezone"] is not None:
         updates["timezone"] = updates["timezone"].strip()
     for field, value in updates.items():

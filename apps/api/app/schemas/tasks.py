@@ -48,6 +48,10 @@ class TaskCreate(BaseModel):
     schedule_style: ScheduleStyle | None = None
     label_ids: list[UUID] = Field(default_factory=list)
     recurrence: "RecurrenceUpsert | None" = None
+    min_block_duration_minutes: int | None = Field(default=None, gt=0)
+    max_block_duration_minutes: int | None = Field(default=None, gt=0)
+    max_block_unbounded: bool | None = None
+    keep_in_one_block: bool | None = None
 
 class ReminderCreate(BaseModel):
     fire_at: datetime

@@ -192,6 +192,7 @@ def _apply_create_task(
                 estimated = default_estimated
 
             from app.services.task_effort_init import initialize_task_effort_on_create
+            from app.services.task_chunking_guard import initialize_task_chunking_bounds_on_create
 
             task = Task(
                 owner_id=user.id,
@@ -203,6 +204,7 @@ def _apply_create_task(
                 due_at=action.due_at,
             )
             initialize_task_effort_on_create(task, estimated)
+            initialize_task_chunking_bounds_on_create(task, explicit_fields={})
             db.add(task)
             db.flush()
             for label_id in label_ids:

@@ -342,7 +342,19 @@ def _outcomes_for_excluded(inputs: SchedulingInputs) -> list[TaskSchedulingOutco
                 )
             ]
         elif item.reason_code:
-            facts = [ReasonFact(item.reason_code, dict(item.reason_params))]
+            params = dict(item.reason_params)
+            facts = [ReasonFact(item.reason_code, params)]
+            for row in params.get("constraint_conflicts") or []:
+                if not isinstance(row, dict):
+                    continue
+                code = row.get("code")
+                if not code:
+                    continue
+                fact_params = dict(row.get("detail") or {})
+                message = row.get("message")
+                if message:
+                    fact_params["message"] = message
+                facts.append(ReasonFact(str(code), fact_params))
         else:
             facts = [
                 ReasonFact(

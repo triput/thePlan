@@ -93,14 +93,12 @@ class Task(Base, TimestampMixin):
     nesting_level: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     estimated_duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, server_default="30")
-    # NULL = inherit that bound (S2). Omitted inserts stay explicit via server defaults.
+    # NULL = inherit that bound (S2). PostgreSQL still has server_default 15/120 from migration;
+    # ORM metadata omits server_default so INSERT can persist NULL. Cutover create paths use
+    # chunking_bounds_kwargs_for_create / initialize_task_chunking_bounds_on_create.
     # 028 does not rewrite stored 15/120 (or any other integer) to NULL.
-    min_block_duration_minutes: Mapped[int | None] = mapped_column(
-        Integer, nullable=True, server_default="15"
-    )
-    max_block_duration_minutes: Mapped[int | None] = mapped_column(
-        Integer, nullable=True, server_default="120"
-    )
+    min_block_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_block_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     max_block_unbounded: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )

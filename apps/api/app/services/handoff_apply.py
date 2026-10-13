@@ -659,6 +659,9 @@ def apply_handoff(
                         source_refs=task_source_refs,
                     )
                     initialize_task_effort_on_create(task, entity.estimated_duration_minutes)
+                    from app.services.task_chunking_guard import initialize_task_chunking_bounds_on_create
+
+                    initialize_task_chunking_bounds_on_create(task, explicit_fields={})
                     db.add(task)
                     db.flush()
                     label_ids, _ = _ensure_labels(db, user, entity.label_names)
