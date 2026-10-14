@@ -1,0 +1,355 @@
+"""V4b-D2 / D4 — scoped family write → collect → placement, and fingerprints.
+
+Disposable ``theplan_s1_test`` only. Alembic ``032_scheduling_day_scoped_ops``.
+Does not activate, migrate the household, or bump the V4b token.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from app.models import FocusWindow, Task, UserSettings
+from app.models.scheduling_day_scoped import SchedulingDayScopedOp
+from app.scheduler.availability_materializer import load_owner_policy_windows
+from app.scheduler.composition import composition_fingerprint, composition_search_windows
+from app.scheduler.composition_resolver import load_effective_compositions
+from app.scheduler.placement import place_task
+from app.services.availability_seed import ensure_default_availability_policies
+
+_REQUIRED_DB = "theplan_s1_test"
+_REQUIRED_HEAD = "032_scheduling_day_scoped_ops"
+UTC = timezone.utc
+TUESDAY = datetime(2026, 10, 13, 8, 0, tzinfo=UTC)
+TUESDAY_END = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+NEXT_TUESDAY = datetime(2026, 10, 20, 8, 0, tzinfo=UTC)
+NEXT_TUESDAY_END = datetime(2026, 10, 20, 18, 0, tzinfo=UTC)
+TZ_NAME = "UTC"
+
+
+@pytest.fixture(autouse=True)
+def _disposable_v4b_database(db_session: Session) -> None:
+    name = db_session.execute(text("SELECT current_database()")).scalar()
+    assert name == _REQUIRED_DB, (
+        f"refusing to run S2-V4b resolve tests against {name!r}; "
+        "set DATABASE_URL to disposable theplan_s1_test"
+    )
+    version = db_session.execute(text("SELECT version_num FROM alembic_version")).scalar()
+    assert version == _REQUIRED_HEAD, (
+        f"disposable database alembic version is {version!r}; "
+        f"upgrade {_REQUIRED_DB} to {_REQUIRED_HEAD} before this gate"
+    )
+
+
+def _uid() -> str:
+    return uuid.uuid4().hex[:8]
+
+
+def _revision(client: TestClient) -> int:
+    response = client.get("/api/v1/settings")
+    assert response.status_code == 200, response.text
+    return int(response.json()["scheduling_revision"])
+
+
+def _prepare(client: TestClient, db: Session) -> None:
+    owner_id = uuid.UUID(client.get("/api/v1/auth/me").json()["id"])
+    ensure_default_availability_policies(db, owner_id)
+    settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+    settings.timezone = "UTC"
+    db.commit()
+
+
+def _policy(client: TestClient, slug: str, start: str, duration: int) -> dict:
+    response = client.patch(
+        f"/api/v1/availability-policies/{slug}",
+        json={
+            "windows": [
+                {
+                    "weekday": 1,
+                    "start_time": start,
+                    "duration_minutes": duration,
+                    "sort_order": 0,
+                }
+            ]
+        },
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def _task(client: TestClient, **extra) -> dict:
+    payload = {"title": f"T {_uid()}", "estimated_duration_minutes": 60}
+    payload.update(extra)
+    response = client.post("/api/v1/tasks", json=payload)
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _project(client: TestClient) -> dict:
+    response = client.post("/api/v1/projects", json={"title": f"P {_uid()}"})
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _put_new_rule(client: TestClient, scope: str, scope_id: str, policy_id: str) -> None:
+    plural = {"task": "tasks", "project": "projects"}[scope]
+    response = client.put(
+        f"/api/v1/{plural}/{scope_id}/scheduling",
+        json={
+            "expected_revision": _revision(client),
+            "may": {"presence": "explicit", "rules": [{"name": "day", "policy_id": policy_id}]},
+            "must": [],
+            "prefer": [],
+        },
+    )
+    assert response.status_code == 200, response.text
+
+
+def _family(
+    client: TestClient,
+    task_id: str,
+    body: dict,
+) -> dict:
+    response = client.post(
+        f"/api/v1/tasks/{task_id}/scheduling/assignment/family-replace-scoped",
+        json={"expected_revision": _revision(client), "on_date": "2026-10-13", **body},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def _map(client: TestClient, start: str, end: str) -> dict:
+    response = client.post(
+        "/api/v1/focus-windows",
+        json={
+            "name": f"Map {_uid()}",
+            "strict_mode": False,
+            "bands": [
+                {
+                    "tier": "green",
+                    "start_time": start,
+                    "end_time": end,
+                    "days_of_week": 127,
+                    "sort_order": 0,
+                }
+            ],
+        },
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _collected(db: Session, task_id: str):
+    db.expire_all()
+    task = db.get(Task, uuid.UUID(task_id))
+    assert task is not None
+    project = None
+    projects = {}
+    if task.project_id is not None:
+        from app.models import Project
+
+        project = db.get(Project, task.project_id)
+        if project is not None:
+            projects[project.id] = project
+    found = load_effective_compositions(db, task.owner_id, [task], projects, {})
+    return task, found.get(task.id)
+
+
+def _eligible_hours(composed, day, general) -> list[tuple[int, int]]:
+    from zoneinfo import ZoneInfo
+
+    clips = composition_search_windows(day, ZoneInfo(TZ_NAME), composed, general)
+    return [(item[0].hour, item[1].hour) for item in clips if item[2] == "eligible"]
+
+
+def _place(db: Session, task: Task, composed, start: datetime, end: datetime):
+    settings = db.query(UserSettings).filter(UserSettings.owner_id == task.owner_id).one()
+    working, general = load_owner_policy_windows(db, task.owner_id)
+    maps = {
+        row.id: row
+        for row in (
+            db.query(FocusWindow).filter(FocusWindow.owner_id == task.owner_id).all()
+        )
+    }
+    result, _busy = place_task(
+        db,
+        task=task,
+        owner_id=task.owner_id,
+        settings=settings,
+        remaining_minutes=int(task.estimated_duration_minutes or 60),
+        busy=[],
+        horizon_start=start,
+        horizon_end=end,
+        preferred_windows=maps,
+        now_utc=start,
+        finalize_status=False,
+        persist_blocks=False,
+        working_windows=working,
+        general_windows=general,
+        composition=composed,
+        ranking_protection=False,
+    )
+    return result, general
+
+
+def test_unassigned_explicit_empty_family_reaches_the_placer(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    _policy(client, "general", "15:00", 60)
+    task = _task(client)
+    written = _family(
+        client,
+        task["id"],
+        {
+            "target_family": "new_rule",
+            "may": {"presence": "explicit", "rules": [{"name": "closed", "empty_set": True}]},
+        },
+    )
+    assert written["scheduling_revision"] >= 1
+    stored, composed = _collected(db_session, task["id"])
+    assert composed is not None
+    _result_day, general = _place(db_session, stored, composed, TUESDAY, TUESDAY_END)
+    assert _eligible_hours(composed, TUESDAY.date(), general) == []
+    assert _result_day.blocks_created == 0
+    later, _general = _place(db_session, stored, composed, NEXT_TUESDAY, NEXT_TUESDAY_END)
+    assert later.blocks_created == 1
+    assert later.proposed_blocks[0].start_time == datetime(2026, 10, 20, 15, 0, tzinfo=UTC)
+
+
+def test_scoped_none_suppresses_local_may_and_expiry_restores_it(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    morning = _policy(client, "work", "09:00", 60)
+    _policy(client, "general", "15:00", 60)
+    task = _task(client)
+    _put_new_rule(client, "task", task["id"], morning["id"])
+    _family(client, task["id"], {"target_family": "none"})
+    stored, composed = _collected(db_session, task["id"])
+    assert composed is not None
+    inside, general = _place(db_session, stored, composed, TUESDAY, TUESDAY_END)
+    assert (15, 16) in _eligible_hours(composed, TUESDAY.date(), general)
+    assert (9, 10) not in _eligible_hours(composed, TUESDAY.date(), general)
+    assert inside.proposed_blocks[0].start_time == datetime(2026, 10, 13, 15, 0, tzinfo=UTC)
+    outside, _general = _place(db_session, stored, composed, NEXT_TUESDAY, NEXT_TUESDAY_END)
+    assert outside.proposed_blocks[0].start_time == datetime(2026, 10, 20, 9, 0, tzinfo=UTC)
+
+    expired = _task(client)
+    _put_new_rule(client, "task", expired["id"], morning["id"])
+    _family(
+        client,
+        expired["id"],
+        {"target_family": "none", "expires_at": "2026-10-13T00:00:00Z"},
+    )
+    expired_row, expired_comp = _collected(db_session, expired["id"])
+    skipped, _general = _place(db_session, expired_row, expired_comp, TUESDAY, TUESDAY_END)
+    assert skipped.proposed_blocks[0].start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
+
+
+def test_inherited_family_and_legacy_transition_place(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    morning = _policy(client, "work", "09:00", 180)
+    _policy(client, "general", "18:00", 60)
+    project = _project(client)
+    _put_new_rule(client, "project", project["id"], morning["id"])
+    child = _task(client, project_id=project["id"])
+    _family(
+        client,
+        child["id"],
+        {
+            "target_family": "new_rule",
+            "may": {"presence": "explicit", "rules": [{"name": "closed", "empty_set": True}]},
+        },
+    )
+    stored, composed = _collected(db_session, child["id"])
+    inside, general = _place(db_session, stored, composed, TUESDAY, TUESDAY_END)
+    assert _eligible_hours(composed, TUESDAY.date(), general) == []
+    assert inside.blocks_created == 0
+    outside, _general = _place(db_session, stored, composed, NEXT_TUESDAY, NEXT_TUESDAY_END)
+    assert outside.proposed_blocks[0].start_time == datetime(2026, 10, 20, 9, 0, tzinfo=UTC)
+
+    mapped = _task(client)
+    _put_new_rule(client, "task", mapped["id"], morning["id"])
+    window = _map(client, "14:00", "15:00")
+    _family(
+        client,
+        mapped["id"],
+        {"target_family": "legacy", "preferred_time_window_id": window["id"]},
+    )
+    mapped_row, mapped_comp = _collected(db_session, mapped["id"])
+    legacy_day, _general = _place(db_session, mapped_row, mapped_comp, TUESDAY, TUESDAY_END)
+    assert legacy_day.proposed_blocks[0].start_time == datetime(2026, 10, 13, 14, 0, tzinfo=UTC)
+    restored, _general = _place(db_session, mapped_row, mapped_comp, NEXT_TUESDAY, NEXT_TUESDAY_END)
+    assert restored.proposed_blocks[0].start_time == datetime(2026, 10, 20, 9, 0, tzinfo=UTC)
+
+
+def test_replacement_layer_policy_hours_change_the_collected_fingerprint(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    morning = _policy(client, "work", "09:00", 60)
+    afternoon = _policy(client, "personal", "15:00", 60)
+    task = _task(client)
+    _put_new_rule(client, "task", task["id"], morning["id"])
+    written = _family(
+        client,
+        task["id"],
+        {
+            "target_family": "new_rule",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "pm", "policy_id": afternoon["id"]}],
+            },
+        },
+    )
+    _stored, before = _collected(db_session, task["id"])
+    assert before is not None
+    before_fp = composition_fingerprint(before)
+    _working, general = load_owner_policy_windows(db_session, _stored.owner_id)
+    assert (15, 16) in _eligible_hours(before, TUESDAY.date(), general)
+    del _working
+
+    shifted = client.patch(
+        "/api/v1/availability-policies/personal",
+        json={
+            "windows": [
+                {
+                    "weekday": 1,
+                    "start_time": "16:00",
+                    "duration_minutes": 60,
+                    "sort_order": 0,
+                }
+            ]
+        },
+    )
+    assert shifted.status_code == 200, shifted.text
+    _stored, after = _collected(db_session, task["id"])
+    after_fp = composition_fingerprint(after)
+    assert before_fp != after_fp
+    assert before_fp["day_scoped"][0]["id"] == after_fp["day_scoped"][0]["id"]
+    assert before_fp["day_scoped"][0]["selector"] == after_fp["day_scoped"][0]["selector"]
+    assert before_fp["rules"] == after_fp["rules"]
+    assert (
+        before_fp["day_scoped"][0]["replacement_layer"]["may_rules"][0]["windows"][0]["start_time"]
+        == "15:00:00"
+    )
+    assert (
+        after_fp["day_scoped"][0]["replacement_layer"]["may_rules"][0]["windows"][0]["start_time"]
+        == "16:00:00"
+    )
+    _working, general = load_owner_policy_windows(db_session, _stored.owner_id)
+    assert (16, 17) in _eligible_hours(after, TUESDAY.date(), general)
+    row = (
+        db_session.query(SchedulingDayScopedOp)
+        .filter(SchedulingDayScopedOp.id == uuid.UUID(written["replacement_id"]))
+        .one()
+    )
+    assert str(row.id) == before_fp["day_scoped"][0]["id"]

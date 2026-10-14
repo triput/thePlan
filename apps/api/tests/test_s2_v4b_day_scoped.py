@@ -36,7 +36,15 @@ from app.scheduler.day_scoped import (
 from app.scheduler.input_fingerprint import SCHEDULING_ACTIVATIONS, assemble_snapshot
 from app.scheduler.placement import place_task
 from app.scheduler.proposal_revalidation import lifetime_crossed, proposal_lifetime_stale
-from app.scheduler.ranking_protection import HigherRankedTask
+from app.scheduler.ranking_protection import (
+    DECISION_HIGHER_RANKED,
+    DECISION_PREFER,
+    RANK_MODE_ELIGIBLE,
+    RANK_MODE_PREFER,
+    HigherRankedTask,
+    choose_rank_mode,
+    simulate_ranked_completion,
+)
 from app.scheduler.reasons import REASON_UNMET_PREFERENCE, ReasonFact, format_summary_text
 from app.services.day_scoped_ranking_cutover_activation import (
     ACTIVATION_TOKEN,
@@ -383,23 +391,18 @@ def test_authorized_op_is_applied_and_context_stays_deferred() -> None:
 
 
 def test_a14c_deadline_fallback_beats_a_prefer_chunk() -> None:
+    # Prefer sits in the middle of the only pre-deadline span. A 90-minute
+    # chunk there leaves two gaps shorter than min. The earlier packing fits
+    # two chunks before the deadline. Min/max stay 90.
     composed = _resolve(
         _layer(
             "task",
             "t",
-            may=(
-                rule(
-                    "both",
-                    RuleRole.MAY,
-                    (_window(9, 0, 180), _window(15, 0, 120)),
-                    scope="task",
-                    scope_id="t",
-                ),
-            ),
-            prefer=(rule("late", RuleRole.PREFER, (_window(15, 0, 120),), scope="task", scope_id="t"),),
+            may=(rule("span", RuleRole.MAY, (_window(9, 0, 180),), scope="task", scope_id="t"),),
+            prefer=(rule("mid", RuleRole.PREFER, (_window(9, 30, 90),), scope="task", scope_id="t"),),
         )
     )
-    task = _task(180, min_block=60, max_block=180, deadline=datetime(2026, 10, 13, 17, 0, tzinfo=UTC))
+    task = _task(180, min_block=90, max_block=90, deadline=datetime(2026, 10, 13, 12, 0, tzinfo=UTC))
     result = _place(
         composed,
         task,
@@ -408,7 +411,7 @@ def test_a14c_deadline_fallback_beats_a_prefer_chunk() -> None:
     )
     assert result.blocks_created == 1
     assert result.proposed_blocks[0].start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
-    assert result.proposed_blocks[0].end_time == datetime(2026, 10, 13, 12, 0, tzinfo=UTC)
+    assert result.proposed_blocks[0].end_time == datetime(2026, 10, 13, 10, 30, tzinfo=UTC)
     assert result.unmet_preference["decision"] == "deadline_fallback"
     text = format_summary_text([ReasonFact(REASON_UNMET_PREFERENCE, result.unmet_preference)])
     assert "deadline" in text
@@ -559,3 +562,297 @@ def test_expiry_between_preview_and_apply_rejects_without_a_new_write() -> None:
     )
     assert stale is True
     assert _Comp is not None
+
+
+def _hours(clips) -> list[tuple[int, int]]:
+    return [(item[0].hour, item[0].minute, item[1].hour, item[1].minute) for item in clips if item[2] == RANK_ELIGIBLE]
+
+
+def test_scoped_family_inserts_explicit_empty_when_nothing_is_local() -> None:
+    closed = _layer("task", "t", may_mode=MayMode.EXPLICIT_EMPTY)
+    decl = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="new_rule",
+        replacement_layer=closed,
+        declaration_id="empty-family",
+    )
+    folded = _resolve(day_scoped=(decl,))
+    general = (_window(15, 0, 60),)
+    assert composition_search_windows(TUESDAY, TZ, folded, general) == []
+    later = composition_search_windows(TUESDAY + timedelta(days=7), TZ, folded, general)
+    assert (15, 0, 16, 0) in _hours(later)
+
+
+def test_scoped_family_none_suppresses_local_and_uses_general() -> None:
+    local = _layer(
+        "task",
+        "t",
+        may=(rule("am", RuleRole.MAY, (_window(9, 0, 60),), scope="task", scope_id="t"),),
+    )
+    decl = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="none",
+        declaration_id="to-none",
+    )
+    folded = _resolve(local, day_scoped=(decl,))
+    general = (_window(15, 0, 60),)
+    assert (15, 0, 16, 0) in _hours(composition_search_windows(TUESDAY, TZ, folded, general))
+    assert (9, 0, 10, 0) in _hours(
+        composition_search_windows(TUESDAY + timedelta(days=7), TZ, folded, general)
+    )
+    expired = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="none",
+        expires_at=datetime(2026, 10, 13, 0, 0, tzinfo=UTC),
+        declaration_id="expired-none",
+    )
+    restored = _resolve(local, day_scoped=(expired,))
+    assert (9, 0, 10, 0) in _hours(composition_search_windows(TUESDAY, TZ, restored, general))
+
+
+def test_scoped_family_inserts_over_inherited_assignment() -> None:
+    parent = _layer(
+        "project",
+        "p",
+        may=(rule("parent", RuleRole.MAY, (_window(9, 0, 180),), scope="project", scope_id="p"),),
+    )
+    child = _layer(
+        "task",
+        "t",
+        may=(rule("child", RuleRole.MAY, (_window(15, 0, 60),), scope="task", scope_id="t"),),
+    )
+    decl = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="new_rule",
+        replacement_layer=child,
+        declaration_id="insert-task",
+    )
+    folded = _resolve(parent, day_scoped=(decl,))
+    tuesday = _hours(composition_search_windows(TUESDAY, TZ, folded, []))
+    assert (15, 0, 16, 0) in tuesday
+    assert (9, 0, 12, 0) in _hours(
+        composition_search_windows(TUESDAY + timedelta(days=7), TZ, folded, [])
+    )
+    closed = _layer("task", "t", may_mode=MayMode.EXPLICIT_EMPTY)
+    empty = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="new_rule",
+        replacement_layer=closed,
+        declaration_id="close-inherited",
+    )
+    shut = _resolve(parent, day_scoped=(empty,))
+    assert composition_search_windows(TUESDAY, TZ, shut, []) == []
+    assert (9, 0, 12, 0) in _hours(
+        composition_search_windows(TUESDAY + timedelta(days=7), TZ, shut, [])
+    )
+
+
+def test_scoped_family_legacy_replaces_local_new_rule_hours() -> None:
+    local = _layer(
+        "task",
+        "t",
+        may=(rule("am", RuleRole.MAY, (_window(9, 0, 60),), scope="task", scope_id="t"),),
+    )
+    legacy = _layer(
+        "task",
+        "t",
+        may=(rule("map", RuleRole.MAY, (_window(14, 0, 60),), scope="task", scope_id="t"),),
+    )
+    decl = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="legacy",
+        replacement_layer=legacy,
+        declaration_id="to-legacy",
+    )
+    folded = _resolve(local, day_scoped=(decl,))
+    tuesday = _hours(composition_search_windows(TUESDAY, TZ, folded, []))
+    assert (14, 0, 15, 0) in tuesday
+    assert (9, 0, 10, 0) not in tuesday
+    assert (9, 0, 10, 0) in _hours(
+        composition_search_windows(TUESDAY + timedelta(days=7), TZ, folded, [])
+    )
+
+
+def test_a14c_multi_chunk_counterfactual_finishes_inside_one_window() -> None:
+    composed = _resolve(
+        _layer(
+            "task",
+            "t",
+            may=(rule("span", RuleRole.MAY, (_window(9, 0, 180),), scope="task", scope_id="t"),),
+            prefer=(rule("late", RuleRole.PREFER, (_window(11, 0, 60),), scope="task", scope_id="t"),),
+        )
+    )
+    task = _task(120, min_block=60, max_block=60, deadline=datetime(2026, 10, 13, 12, 0, tzinfo=UTC))
+    now = datetime(2026, 10, 13, 8, 0, tzinfo=UTC)
+    end = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+    settings = _settings()
+
+    def _done(mode: str):
+        result, _busy = simulate_ranked_completion(
+            db=None,
+            task=task,
+            owner_id=task.owner_id,
+            settings=settings,
+            remaining_minutes=120,
+            busy=[],
+            horizon_start=now,
+            horizon_end=end,
+            preferred_windows={},
+            now_utc=now,
+            preferred_window_id=None,
+            project_daily_usage={},
+            daily_cap=None,
+            prerequisite_not_before=None,
+            time_map_overrides_by_map={},
+            working_windows=[],
+            general_windows=[],
+            composition=composed,
+            mode=mode,
+        )
+        return result
+
+    prefer = _done(RANK_MODE_PREFER)
+    fallback = _done(RANK_MODE_ELIGIBLE)
+    assert prefer.blocks_created == 2
+    assert prefer.remaining_minutes == 0
+    assert fallback.blocks_created == 2
+    assert fallback.remaining_minutes == 0
+    assert prefer.last_block_end is not None and prefer.last_block_end <= task.deadline_at
+    choice = choose_rank_mode(
+        db=None,
+        task=task,
+        owner_id=task.owner_id,
+        settings=settings,
+        remaining_minutes=120,
+        busy=[],
+        horizon_start=now,
+        horizon_end=end,
+        preferred_windows={},
+        now_utc=now,
+        preferred_window_id=None,
+        project_daily_usage={},
+        daily_cap=None,
+        prerequisite_not_before=None,
+        time_map_overrides_by_map={},
+        working_windows=[],
+        general_windows=[],
+        composition=composed,
+    )
+    assert choice.decision == DECISION_PREFER
+    assert choice.bound_exhausted is False
+    placed = _place(composed, task, now=now, end=end)
+    assert placed.preference_decision["decision"] == DECISION_PREFER
+    assert placed.unmet_preference is None or placed.unmet_preference.get("bound_exhausted") is not True
+
+
+def test_a14c_multi_chunk_higher_ranked_dependent() -> None:
+    subject_comp = _resolve(
+        _layer(
+            "task",
+            "low",
+            may=(
+                rule(
+                    "either",
+                    RuleRole.MAY,
+                    (_window(9, 0, 60), _window(12, 0, 60)),
+                    scope="task",
+                    scope_id="low",
+                ),
+            ),
+            prefer=(rule("noon", RuleRole.PREFER, (_window(12, 0, 60),), scope="task", scope_id="low"),),
+        )
+    )
+    peer_comp = _resolve(
+        _layer(
+            "task",
+            "high",
+            may=(rule("span", RuleRole.MAY, (_window(12, 0, 120),), scope="task", scope_id="high"),),
+        )
+    )
+    subject = _task(60, min_block=60, max_block=60, priority=TaskPriority.p4)
+    peer = _task(120, min_block=60, max_block=60, priority=TaskPriority.p1)
+    now = datetime(2026, 10, 13, 8, 0, tzinfo=UTC)
+    end = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+    claim = HigherRankedTask(task=peer, remaining_minutes=120, composition=peer_comp)
+    choice = choose_rank_mode(
+        db=None,
+        task=subject,
+        owner_id=subject.owner_id,
+        settings=_settings(),
+        remaining_minutes=60,
+        busy=[],
+        horizon_start=now,
+        horizon_end=end,
+        preferred_windows={},
+        now_utc=now,
+        preferred_window_id=None,
+        project_daily_usage={},
+        daily_cap=None,
+        prerequisite_not_before=None,
+        time_map_overrides_by_map={},
+        working_windows=[],
+        general_windows=[],
+        composition=subject_comp,
+        higher_ranked=(claim,),
+    )
+    assert choice.decision == DECISION_HIGHER_RANKED
+    assert choice.mode == RANK_MODE_ELIGIBLE
+    placed = _place(subject_comp, subject, now=now, end=end, higher_ranked=(claim,))
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
+    assert placed.unmet_preference["decision"] == "higher_ranked_competition"
+
+
+def test_fingerprint_changes_when_only_replacement_layer_hours_change() -> None:
+    standing = _layer(
+        "task",
+        "t",
+        may=(rule("am", RuleRole.MAY, (_window(9, 0, 60),), scope="task", scope_id="t"),),
+    )
+    early = _layer(
+        "task",
+        "t",
+        may=(rule("pm", RuleRole.MAY, (_window(15, 0, 60),), scope="task", scope_id="t"),),
+    )
+    late = _layer(
+        "task",
+        "t",
+        may=(rule("pm", RuleRole.MAY, (_window(16, 0, 60),), scope="task", scope_id="t"),),
+    )
+    selector = CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY)
+    first = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        selector,
+        replacement_family="new_rule",
+        replacement_layer=early,
+        output_rule_id="pm",
+        declaration_id="same-id",
+    )
+    second = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        selector,
+        replacement_family="new_rule",
+        replacement_layer=late,
+        output_rule_id="pm",
+        declaration_id="same-id",
+    )
+    left = _resolve(standing, day_scoped=(first,))
+    right = _resolve(standing, day_scoped=(second,))
+    left_hours = _hours(composition_search_windows(TUESDAY, TZ, left, []))
+    right_hours = _hours(composition_search_windows(TUESDAY, TZ, right, []))
+    assert (15, 0, 16, 0) in left_hours
+    assert (16, 0, 17, 0) in right_hours
+    left_fp = composition_fingerprint(left)
+    right_fp = composition_fingerprint(right)
+    assert left_fp != right_fp
+    assert left_fp["day_scoped"][0]["id"] == right_fp["day_scoped"][0]["id"]
+    assert left_fp["day_scoped"][0]["selector"] == right_fp["day_scoped"][0]["selector"]
+    assert left_fp["day_scoped"][0]["output_rule_id"] == "pm"
+    assert left_fp["rules"] == right_fp["rules"]
+    assert left_fp["day_scoped"][0]["replacement_layer"]["may_rules"][0]["windows"][0]["start_time"] == "15:00:00"
+    assert right_fp["day_scoped"][0]["replacement_layer"]["may_rules"][0]["windows"][0]["start_time"] == "16:00:00"

@@ -120,6 +120,94 @@ def _windows_blocked(windows: Sequence[tuple[Any, Any, str]], busy: Sequence[Any
     return True
 
 
+def simulate_ranked_completion(
+    *,
+    db: Any,
+    task: Any,
+    owner_id: Any,
+    settings: Any,
+    remaining_minutes: int,
+    busy: list[Any],
+    horizon_start: datetime,
+    horizon_end: datetime,
+    preferred_windows: Any,
+    now_utc: datetime,
+    preferred_window_id: Any,
+    project_daily_usage: Any,
+    daily_cap: int | None,
+    prerequisite_not_before: datetime | None,
+    time_map_overrides_by_map: Any,
+    working_windows: Any,
+    general_windows: Any,
+    composition: Any,
+    mode: str,
+) -> tuple[Any, list[Any]]:
+    """Place every chunk one production sweep would place under ``mode``.
+
+    ``place_task(max_blocks=None)`` still stops after one chunk per visited
+    window, and ``not_before`` does not rewind inside that call. The scheduler
+    then sweeps again with the new busy set and a fresh ``not_before``. This
+    loop is that completion: chunk min/max, busy, caps, and buffers stay the
+    placer's. It does not invent a larger block to finish the work.
+    """
+    from app.scheduler.placement import PlacementResult, place_task
+
+    usage = dict(project_daily_usage or {})
+    busy_now = list(busy)
+    total_blocks = 0
+    remaining = remaining_minutes
+    last_end = None
+    proposed: list[Any] = []
+    guard = 0
+    limit = max(remaining_minutes, 1) + 2
+    while remaining > 0 and guard < limit:
+        guard += 1
+        result, busy_now = place_task(
+            db,
+            task=task,
+            owner_id=owner_id,
+            settings=settings,
+            remaining_minutes=remaining,
+            busy=list(busy_now),
+            horizon_start=horizon_start,
+            horizon_end=horizon_end,
+            preferred_windows=preferred_windows,
+            now_utc=now_utc,
+            preferred_window_id=preferred_window_id,
+            max_blocks=1,
+            finalize_status=False,
+            project_daily_usage=usage,
+            daily_cap=daily_cap,
+            prerequisite_not_before=prerequisite_not_before,
+            persist_blocks=False,
+            time_map_overrides_by_map=time_map_overrides_by_map,
+            working_windows=working_windows,
+            general_windows=general_windows,
+            composition=composition,
+            rank_mode=mode,
+            ranking_protection=False,
+        )
+        if result.blocks_created <= 0:
+            remaining = result.remaining_minutes
+            break
+        total_blocks += result.blocks_created
+        remaining = result.remaining_minutes
+        if result.last_block_end is not None and (
+            last_end is None or result.last_block_end > last_end
+        ):
+            last_end = result.last_block_end
+        if result.proposed_blocks:
+            proposed.extend(result.proposed_blocks)
+    completed = PlacementResult(
+        blocks_created=total_blocks,
+        overbooked=remaining > 0,
+        remaining_minutes=remaining,
+        last_block_end=last_end,
+        proposed_blocks=proposed or None,
+    )
+    return completed, busy_now
+
+
 def choose_rank_mode(
     *,
     db: Any,
@@ -143,12 +231,10 @@ def choose_rank_mode(
     higher_ranked: Sequence[HigherRankedTask] = (),
 ) -> RankingChoice:
     """Prefer-first full placement versus one eligible fallback. No third search."""
-    from app.scheduler.placement import place_task
 
     def simulate(mode: str, *, subject: Any, minutes: int, busy_in: list[Any], not_before: datetime | None, comp: Any, general: Any, working: Any):
-        usage = dict(project_daily_usage or {})
-        return place_task(
-            db,
+        return simulate_ranked_completion(
+            db=db,
             task=subject,
             owner_id=owner_id,
             settings=settings,
@@ -159,18 +245,14 @@ def choose_rank_mode(
             preferred_windows=preferred_windows,
             now_utc=now_utc,
             preferred_window_id=preferred_window_id if subject is task else None,
-            max_blocks=None,
-            finalize_status=False,
-            project_daily_usage=usage,
+            project_daily_usage=project_daily_usage,
             daily_cap=daily_cap,
             prerequisite_not_before=not_before,
-            persist_blocks=False,
             time_map_overrides_by_map=time_map_overrides_by_map,
             working_windows=working,
             general_windows=general,
             composition=comp,
-            rank_mode=mode,
-            ranking_protection=False,
+            mode=mode,
         )
 
     prefer_result, prefer_busy = simulate(

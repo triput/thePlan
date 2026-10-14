@@ -300,12 +300,30 @@ def resolve_new_rule_compositions(
         if payload is not None:
             out[task.id] = payload
     scoped = load_day_scoped_declarations(db, owner_id, tasks, projects, epics)
-    if scoped:
-        for task_id, payload in list(out.items()):
-            rows = scoped.get(task_id) or ()
-            if rows and getattr(payload, "family", None) is not None:
-                out[task_id] = replace(
-                    payload,
-                    day_scoped=tuple(getattr(payload, "day_scoped", ()) or ()) + tuple(rows),
-                )
+    if not scoped:
+        return out
+    comp = _composition()
+    for task in tasks:
+        if task.owner_id != owner_id:
+            continue
+        rows = scoped.get(task.id) or ()
+        if not rows:
+            continue
+        payload = out.get(task.id)
+        if payload is None:
+            # No standing assignment. The scoped family still has to reach the
+            # placer. Empty layers are absent May (General) outside the lifetime;
+            # an inserted replacement closes or replaces that baseline inside it.
+            out[task.id] = comp.CompositionInput(
+                family=comp.AssignmentFamily.NEW_RULE,
+                layers=(),
+                day_scoped=tuple(rows),
+            )
+            continue
+        if getattr(payload, "family", None) is None:
+            continue
+        out[task.id] = replace(
+            payload,
+            day_scoped=tuple(getattr(payload, "day_scoped", ()) or ()) + tuple(rows),
+        )
     return out

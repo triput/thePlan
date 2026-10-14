@@ -150,6 +150,7 @@ class DayScopedDeclaration:
     addition_survives: bool | None = None
     reverts_id: str | None = None
     provenance: str = "day_scoped"
+    replacement_family: str | None = None
     replacement_layer: ScopeLayer | None = None
     prior_layer: ScopeLayer | None = None
     expiry_rejected: str | None = None
@@ -492,6 +493,113 @@ def _same_scope(layer: ScopeLayer, decl: DayScopedDeclaration) -> bool:
     return layer.scope == decl.scope and layer.scope_id == decl.scope_id
 
 
+def _scope_nearness(scope: str) -> int:
+    return {"task": 0, "project": 1, "epic": 2}.get(scope, 9)
+
+
+def _hours_layer(scope: str, scope_id: str, windows: Sequence[Any], *, rule_id: str) -> ScopeLayer:
+    """Explicit May from resolved hours. Empty stays empty — no General borrow."""
+    if not windows:
+        return ScopeLayer(scope=scope, scope_id=scope_id, may_mode=MayMode.EXPLICIT_EMPTY)
+    named = NamedRule(
+        rule_id=rule_id,
+        role=RuleRole.MAY,
+        windows=tuple(windows),
+        scope=scope,
+        scope_id=scope_id,
+    )
+    return ScopeLayer(
+        scope=scope,
+        scope_id=scope_id,
+        may_mode=MayMode.PRESENT,
+        may_rules=(named,),
+    )
+
+
+def _apply_layer_edits(
+    layers: Sequence[ScopeLayer],
+    edits: Sequence[DayScopedDeclaration],
+) -> list[ScopeLayer]:
+    """Overlay clear / family replace / revert onto the standing chain.
+
+    ``none`` suppresses that scope. ``new_rule`` replaces or inserts it.
+    ``legacy`` wins exclusively when it is the nearest participating scope,
+    the same way an unconverted map stops the standing walk. A scope that
+    had no standing layer still receives an inserted replacement.
+    """
+    keyed: dict[tuple[str, str], ScopeLayer] = {
+        (layer.scope, layer.scope_id): layer for layer in layers
+    }
+    family: dict[tuple[str, str], str] = {key: "new_rule" for key in keyed}
+    for edit in edits:
+        key = (edit.scope, edit.scope_id)
+        if edit.operation == DayScopedOp.CLEAR_SCOPED:
+            keyed.pop(key, None)
+            family[key] = "none"
+            continue
+        if edit.operation == DayScopedOp.REVERT_SCOPED and edit.prior_layer is not None:
+            keyed[key] = edit.prior_layer
+            family[key] = "new_rule"
+            continue
+        if edit.operation != DayScopedOp.FAMILY_REPLACE_SCOPED:
+            continue
+        target = edit.replacement_family
+        if target is None and edit.replacement_layer is not None:
+            target = "new_rule"
+        if target == "none":
+            keyed.pop(key, None)
+            family[key] = "none"
+        elif target == "legacy":
+            layer = edit.replacement_layer or _hours_layer(
+                edit.scope,
+                edit.scope_id,
+                edit.windows,
+                rule_id=edit.output_rule_id or edit.declaration_id,
+            )
+            keyed[key] = layer
+            family[key] = "legacy"
+        elif target == "new_rule" and edit.replacement_layer is not None:
+            keyed[key] = edit.replacement_layer
+            family[key] = "new_rule"
+
+    participating: list[tuple[int, tuple[str, str], str]] = []
+    seen: set[tuple[str, str]] = set()
+    for key, fam in family.items():
+        seen.add(key)
+        if fam != "none":
+            participating.append((_scope_nearness(key[0]), key, fam))
+    for key in keyed:
+        if key not in seen and family.get(key, "new_rule") != "none":
+            participating.append((_scope_nearness(key[0]), key, "new_rule"))
+    if not participating:
+        return []
+    participating.sort(key=lambda item: item[0])
+    win_rank, win_key, win_fam = participating[0]
+    if win_fam == "legacy":
+        layer = keyed.get(win_key)
+        return [layer] if layer is not None else []
+
+    ordered = sorted(keyed, key=lambda key: _scope_nearness(key[0]))
+    kept: list[ScopeLayer] = []
+    started = False
+    for key in ordered:
+        if _scope_nearness(key[0]) < win_rank:
+            continue
+        fam = family.get(key, "new_rule")
+        if not started:
+            if key != win_key:
+                continue
+            started = True
+        if fam == "legacy":
+            break
+        if fam == "none":
+            continue
+        layer = keyed.get(key)
+        if layer is not None:
+            kept.append(layer)
+    return kept
+
+
 def _as_standing(decl: DayScopedDeclaration) -> StandingException:
     if decl.operation == DayScopedOp.WAIVE_NAMED_SCOPED:
         return StandingException(
@@ -594,20 +702,9 @@ def _reresolve(
     named: Sequence[DayScopedDeclaration],
 ) -> EffectiveComposition:
     source = effective.source
-    if source is None or source.family != AssignmentFamily.NEW_RULE:
+    if source is not None and source.family == AssignmentFamily.CONFLICT:
         return effective
-    layers = list(source.layers)
-    for edit in edits:
-        if edit.operation == DayScopedOp.CLEAR_SCOPED:
-            layers = [layer for layer in layers if not _same_scope(layer, edit)]
-        elif edit.operation == DayScopedOp.FAMILY_REPLACE_SCOPED and edit.replacement_layer is not None:
-            layers = [
-                edit.replacement_layer if _same_scope(layer, edit) else layer for layer in layers
-            ]
-        elif edit.operation == DayScopedOp.REVERT_SCOPED and edit.prior_layer is not None:
-            layers = [
-                edit.prior_layer if _same_scope(layer, edit) else layer for layer in layers
-            ]
+    layers = _apply_layer_edits(list(source.layers) if source is not None else [], edits)
     if named:
         layers.append(
             ScopeLayer(
@@ -966,6 +1063,43 @@ def folded_search_windows(
     return ordered
 
 
+def _window_fingerprint(window: Any) -> dict[str, Any]:
+    return {
+        "weekday": int(window.weekday),
+        "start_time": window.start_time.isoformat(),
+        "duration_minutes": int(window.duration_minutes),
+        "ends_next_day": bool(window.ends_next_day),
+        "sort_order": int(window.sort_order),
+    }
+
+
+def _named_fingerprint(rules: Sequence[Any]) -> list[dict[str, Any]]:
+    rows = [
+        {
+            "rule_id": item.rule_id,
+            "role": item.role.value if hasattr(item.role, "value") else str(item.role),
+            "windows": [_window_fingerprint(window) for window in item.windows],
+        }
+        for item in rules
+    ]
+    rows.sort(key=lambda row: (row["role"], row["rule_id"]))
+    return rows
+
+
+def _layer_fingerprint(layer: ScopeLayer | None) -> dict[str, Any] | None:
+    """Family payload the placer actually uses. Hours live here, not on the declaration."""
+    if layer is None:
+        return None
+    return {
+        "scope": layer.scope,
+        "scope_id": layer.scope_id,
+        "may_mode": layer.may_mode.value,
+        "may_rules": _named_fingerprint(layer.may_rules),
+        "must_rules": _named_fingerprint(layer.must_rules),
+        "prefer_rules": _named_fingerprint(layer.prefer_rules),
+    }
+
+
 def day_scoped_fingerprint_rows(declarations: Sequence[Any]) -> list[dict[str, Any]]:
     """Compared composition keys. Civil labels and fixed instants both participate."""
     rows: list[dict[str, Any]] = []
@@ -986,22 +1120,17 @@ def day_scoped_fingerprint_rows(declarations: Sequence[Any]) -> list[dict[str, A
                     "range_start": selector.range_start.isoformat() if selector.range_start else None,
                     "range_end": selector.range_end.isoformat() if selector.range_end else None,
                 },
-                "windows": [
-                    {
-                        "weekday": int(window.weekday),
-                        "start_time": window.start_time.isoformat(),
-                        "duration_minutes": int(window.duration_minutes),
-                        "ends_next_day": bool(window.ends_next_day),
-                        "sort_order": int(window.sort_order),
-                    }
-                    for window in item.windows
-                ],
+                "windows": [_window_fingerprint(window) for window in item.windows],
                 "empty_set": bool(item.empty_set),
                 "expires_at": item.expires_at.isoformat() if item.expires_at else None,
                 "one_time_start": item.one_time_start.isoformat() if item.one_time_start else None,
                 "one_time_end": item.one_time_end.isoformat() if item.one_time_end else None,
                 "target_rule_id": item.target_rule_id,
+                "output_rule_id": item.output_rule_id,
                 "role": item.role,
+                "replacement_family": item.replacement_family,
+                "replacement_layer": _layer_fingerprint(item.replacement_layer),
+                "prior_layer": _layer_fingerprint(item.prior_layer),
                 "replaces_id": item.replaces_id,
                 "replaces_ids": list(item.replaces_ids),
                 "addition_survives": item.addition_survives,
@@ -1044,14 +1173,63 @@ def _selector_from_row(row: Any) -> CivilSelector:
     )
 
 
+def _windows_from_focus(focus: Any) -> tuple[Any, ...]:
+    """Green and yellow bands as recurring May windows. Red does not grant time."""
+    if focus is None:
+        return ()
+    built = []
+    order = 0
+    for band in list(getattr(focus, "bands", ()) or ()):
+        tier = band.tier.value if hasattr(band.tier, "value") else str(band.tier)
+        if tier not in ("green", "yellow"):
+            continue
+        start = band.start_time
+        end = band.end_time
+        duration = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute)
+        if duration <= 0:
+            continue
+        mask = int(band.days_of_week)
+        for weekday in range(7):
+            if mask & (1 << weekday):
+                built.append(make_window(weekday, start, duration, sort_order=order))
+                order += 1
+    return tuple(built)
+
+
+def _focus_for_payload(payload: Mapping[str, Any], focus_windows: Mapping[Any, Any]) -> Any:
+    raw_id = payload.get("preferred_time_window_id")
+    if raw_id is None or not focus_windows:
+        return None
+    found = focus_windows.get(raw_id)
+    if found is not None:
+        return found
+    if isinstance(raw_id, str):
+        from uuid import UUID
+
+        try:
+            return focus_windows.get(UUID(raw_id))
+        except ValueError:
+            return None
+    return None
+
+
 def _layer_from_family_payload(
     payload: Mapping[str, Any] | None,
     *,
     scope: str,
     scope_id: str,
     policies: Mapping[Any, Any],
+    focus_windows: Mapping[Any, Any] | None = None,
 ) -> ScopeLayer | None:
-    if not payload or payload.get("target_family") != "new_rule":
+    if not payload:
+        return None
+    target = payload.get("target_family")
+    if target == "none":
+        return None
+    if target == "legacy":
+        windows = _windows_from_focus(_focus_for_payload(payload, focus_windows or {}))
+        return _hours_layer(scope, scope_id, windows, rule_id="legacy-map")
+    if target != "new_rule":
         return None
     may_rules: list[NamedRule] = []
     must_rules: list[NamedRule] = []
@@ -1113,7 +1291,11 @@ _STORED_OP = {
 }
 
 
-def declaration_from_row(row: Any, policies: Mapping[Any, Any] | None = None) -> DayScopedDeclaration:
+def declaration_from_row(
+    row: Any,
+    policies: Mapping[Any, Any] | None = None,
+    focus_windows: Mapping[Any, Any] | None = None,
+) -> DayScopedDeclaration:
     """Coerce one ``scheduling_day_scoped_ops`` row. Does not rewrite civil labels or ``expires_at``."""
     policies = policies or {}
     op_kind = row.op_kind.value if hasattr(row.op_kind, "value") else str(row.op_kind)
@@ -1142,6 +1324,10 @@ def declaration_from_row(row: Any, policies: Mapping[Any, Any] | None = None) ->
         windows = () if row.replacement_empty_set else _policy_windows(replacement_policy)
         empty_set = bool(row.replacement_empty_set)
     replaces = tuple(str(item) for item in (row.replaces_op_ids or []))
+    family_payload = row.family_payload if isinstance(row.family_payload, Mapping) else None
+    replacement_family = None
+    if family_payload and family_payload.get("target_family"):
+        replacement_family = str(family_payload.get("target_family"))
     return DayScopedDeclaration(
         declaration_id=str(row.id),
         operation=operation,
@@ -1158,11 +1344,13 @@ def declaration_from_row(row: Any, policies: Mapping[Any, Any] | None = None) ->
         replaces_ids=replaces,
         addition_survives=row.addition_survives,
         provenance="scheduling_day_scoped_ops",
+        replacement_family=replacement_family,
         replacement_layer=_layer_from_family_payload(
-            row.family_payload,
+            family_payload,
             scope=scope,
             scope_id=scope_id,
             policies=policies,
+            focus_windows=focus_windows,
         ),
     )
 
@@ -1184,7 +1372,7 @@ def load_day_scoped_declarations(
     try:
         from sqlalchemy.orm import joinedload
 
-        from app.models import AvailabilityPolicy
+        from app.models import AvailabilityPolicy, FocusWindow
         from app.models.scheduling_day_scoped import SchedulingDayScopedOp
     except ImportError:
         return {}
@@ -1195,6 +1383,15 @@ def load_day_scoped_declarations(
                 db.query(AvailabilityPolicy)
                 .options(joinedload(AvailabilityPolicy.windows))
                 .filter(AvailabilityPolicy.owner_id == owner_id)
+                .all()
+            )
+        }
+        focus_windows = {
+            row.id: row
+            for row in (
+                db.query(FocusWindow)
+                .options(joinedload(FocusWindow.bands))
+                .filter(FocusWindow.owner_id == owner_id)
                 .all()
             )
         }
@@ -1224,5 +1421,7 @@ def load_day_scoped_declarations(
             if epic_id is not None:
                 rows.extend(by_scope.get(("epic", epic_id), []))
         if rows:
-            out[task.id] = tuple(declaration_from_row(row, policies) for row in rows)
+            out[task.id] = tuple(
+                declaration_from_row(row, policies, focus_windows) for row in rows
+            )
     return out

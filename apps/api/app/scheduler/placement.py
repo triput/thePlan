@@ -1146,6 +1146,15 @@ def place_task(
     composition_active = (
         composition is not None and composition.family == AssignmentFamily.NEW_RULE
     )
+    # A legacy (or absent) baseline still folds day-scoped family edits. Days
+    # the declaration does not touch stay on the legacy map search.
+    scoped_over_other = (
+        composition is not None
+        and not composition_active
+        and composition.family != AssignmentFamily.CONFLICT
+        and bool(composition.day_scoped)
+    )
+    composition_fold = composition_active or scoped_over_other
     if composition is not None and composition.family == AssignmentFamily.CONFLICT:
         return _refuse_placement(
             task,
@@ -1228,6 +1237,24 @@ def place_task(
             windows = composition_search_windows(
                 day, tz, composition, general_resolved
             )
+        elif scoped_over_other:
+            assert composition is not None
+            from app.scheduler.day_scoped import folded_search_windows
+
+            folded = folded_search_windows(day, tz, composition, general_resolved)
+            if folded is None:
+                windows = _day_search_windows(
+                    day,
+                    settings,
+                    tz,
+                    preferred,
+                    window_id,
+                    time_map_overrides_by_map,
+                    working_resolved,
+                    general_resolved,
+                )
+            else:
+                windows = folded
         else:
             windows = _day_search_windows(
                 day,
@@ -1243,7 +1270,7 @@ def place_task(
         day_cap_blocked = False
         for window_start, window_end, window_label in windows:
             # Time-map tier stays on the legacy path. Composition rank is not a tier.
-            window_tier = None if composition_active else window_label
+            window_tier = None if composition_fold else window_label
             if window_end <= horizon_start or window_start >= horizon_end:
                 continue
             search_start = max(window_start, horizon_start)
