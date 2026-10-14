@@ -491,6 +491,84 @@ def test_family_replace_scoped_and_revert_scoped(
     )
 
 
+def test_policy_backed_family_replace_scoped_serializes_and_resolves(
+    client: TestClient, db_session: Session
+) -> None:
+    """V4b-D1: policy_id UUID in rules must survive JSONB flush and resolve."""
+    from sqlalchemy.orm import joinedload
+
+    from app.models import AvailabilityPolicy, Task
+    from app.scheduler.day_scoped import (
+        DayScopedOp,
+        declaration_from_row,
+        load_day_scoped_declarations,
+    )
+
+    _prepare(client, db_session)
+    work = _set_policy(client, "work", "15:00", 60)
+    task = _task(client)
+
+    replaced = client.post(
+        f"/api/v1/tasks/{task['id']}/scheduling/assignment/family-replace-scoped",
+        json={
+            "expected_revision": _revision(client),
+            "on_date": "2026-10-13",
+            "target_family": "new_rule",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "scoped-day", "policy_id": work["id"]}],
+            },
+            "must": [],
+            "prefer": [],
+        },
+    )
+    assert replaced.status_code == 200, replaced.text
+    replacement_id = uuid.UUID(replaced.json()["replacement_id"])
+
+    db_session.expire_all()
+    row = db_session.get(SchedulingDayScopedOp, replacement_id)
+    assert row is not None
+    payload = row.family_payload
+    assert payload is not None
+    assert payload["target_family"] == "new_rule"
+    assert payload["may_presence"] == "explicit"
+    assert len(payload["rules"]) == 1
+    stored_policy_id = payload["rules"][0]["policy_id"]
+    assert isinstance(stored_policy_id, str)
+    assert stored_policy_id == work["id"]
+
+    policies = {
+        policy.id: policy
+        for policy in (
+            db_session.query(AvailabilityPolicy)
+            .options(joinedload(AvailabilityPolicy.windows))
+            .all()
+        )
+    }
+    declaration = declaration_from_row(row, policies)
+    assert declaration.operation == DayScopedOp.FAMILY_REPLACE_SCOPED
+    layer = declaration.replacement_layer
+    assert layer is not None
+    assert layer.may_rules
+    assert layer.may_rules[0].rule_id == "scoped-day"
+    assert layer.may_rules[0].windows
+    assert layer.may_rules[0].windows[0].start_time.hour == 15
+    assert layer.may_rules[0].windows[0].duration_minutes == 60
+
+    owner_id = _owner_id(client)
+    task_row = db_session.get(Task, uuid.UUID(task["id"]))
+    assert task_row is not None
+    loaded = load_day_scoped_declarations(db_session, owner_id, [task_row])
+    assert uuid.UUID(task["id"]) in loaded or task_row.id in loaded
+    task_decls = loaded.get(task_row.id) or ()
+    assert any(item.declaration_id == str(replacement_id) for item in task_decls)
+    matched = next(
+        item for item in task_decls if item.declaration_id == str(replacement_id)
+    )
+    assert matched.replacement_layer is not None
+    assert matched.replacement_layer.may_rules[0].windows
+
+
 def test_named_scoped_ops_accept(
     client: TestClient, db_session: Session
 ) -> None:

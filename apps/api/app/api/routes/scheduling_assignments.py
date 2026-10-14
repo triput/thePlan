@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-14 (V4b day-scoped routes)
+#  Last Update: 2026-10-14 (V4b-D1: JSON-mode rule dumps for scoped writes)
 # ==============================================================================
 
 from __future__ import annotations
@@ -162,15 +162,16 @@ def _rules_from_write(body: FamilyReplaceIn | NewRuleAssignmentWriteIn) -> list[
     out: list[dict[str, Any]] = []
     if may.presence == "explicit":
         for rule in may.rules:
-            payload = rule.model_dump()
+            # mode=json so UUID/date fields are JSON scalars (scoped JSONB path).
+            payload = rule.model_dump(mode="json")
             payload["kind"] = "may"
             out.append(payload)
     for rule in body.must:
-        payload = rule.model_dump()
+        payload = rule.model_dump(mode="json")
         payload["kind"] = "must"
         out.append(payload)
     for rule in body.prefer:
-        payload = rule.model_dump()
+        payload = rule.model_dump(mode="json")
         payload["kind"] = "prefer"
         out.append(payload)
     return out

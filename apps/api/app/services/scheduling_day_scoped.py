@@ -2,9 +2,9 @@
 #  File: apps/api/app/services/scheduling_day_scoped.py
 #  Description: S2-V4b day-scoped writers (Change / Only-allow / scoped family+rules).
 #  Component: Scheduling / Settings — S2-V4b
-#  Version: 1.0
+#  Version: 1.1
 #  Created: 2026-10-14
-#  Last Update: 2026-10-14
+#  Last Update: 2026-10-14 (V4b-D1: JSON-ready family_payload)
 # ==============================================================================
 
 """Authorized V4b day-scoped writers. Standing V4 writers stay in
@@ -18,7 +18,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
-from typing import Any, Literal
+from enum import Enum
+from typing import Any, Literal, Mapping
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -77,6 +78,37 @@ class ParsedSelector:
     weekdays: tuple[int, ...] | None = None
     start_date: date | None = None
     end_date: date | None = None
+
+
+def _json_ready_payload(value: Any) -> Any:
+    """Coerce nested values for JSONB columns (UUID / date / datetime / Enum).
+
+    Scoped family payloads are stored as JSONB. Route ``model_dump()`` without
+    ``mode="json"`` leaves ``UUID`` instances inside ``rules``; PostgreSQL flush
+    then raises ``TypeError``. Apply to the complete stored payload, not just
+    individual fields.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Enum):
+        return _json_ready_payload(value.value)
+    if isinstance(value, Mapping):
+        return {
+            (str(key) if isinstance(key, UUID) else key): _json_ready_payload(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_json_ready_payload(item) for item in value]
+    raise TypeError(
+        f"scoped family payload value of type {type(value).__name__} "
+        "is not JSON serializable"
+    )
 
 
 def _parse_date(value: Any, *, field: str) -> date:
@@ -865,6 +897,8 @@ def family_replace_scoped(
             if rule.get("empty_set") or rule.get("policy_id") is None:
                 continue
             standing._verify_owned_policy(db, user, UUID(str(rule["policy_id"])))
+    # Complete payload must be JSONB-safe before flush (V4b-D1).
+    family_payload = _json_ready_payload(family_payload)
 
     new_id = uuid4()
     _assert_overlap_ok(
