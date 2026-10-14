@@ -1174,6 +1174,84 @@ def _legacy_replacement_windows(
     return [(start, end, label or "neutral") for start, end, label in merged]
 
 
+_OPEN_START = datetime(1970, 1, 1, tzinfo=timezone.utc)
+_OPEN_END = datetime(9999, 1, 1, tzinfo=timezone.utc)
+
+
+def _clip_ranked(
+    windows: Sequence[tuple[datetime, datetime, str]],
+    left: datetime,
+    right: datetime,
+) -> list[tuple[datetime, datetime, str]]:
+    """Keep the open-closed piece. A window may meet the cut; it may not cross it."""
+    left = _as_utc(left)
+    right = _as_utc(right)
+    clipped: list[tuple[datetime, datetime, str]] = []
+    for start, end, label in windows:
+        start_at = max(_as_utc(start), left)
+        end_at = min(_as_utc(end), right)
+        if start_at < end_at:
+            clipped.append((start_at, end_at, label))
+    return clipped
+
+
+def _touching_declarations(
+    composition: EffectiveComposition, day: date, tz: ZoneInfo
+) -> list[DayScopedDeclaration]:
+    return [
+        item
+        for item in composition.day_scoped
+        if isinstance(item, DayScopedDeclaration) and _declaration_touches(item, day, tz)
+    ]
+
+
+def _drop_layer_ops(
+    composition: EffectiveComposition, drop_ids: set[str]
+) -> EffectiveComposition:
+    if not drop_ids:
+        return composition
+    kept = tuple(
+        item
+        for item in composition.day_scoped
+        if not (isinstance(item, DayScopedDeclaration) and item.declaration_id in drop_ids)
+    )
+    if len(kept) == len(composition.day_scoped):
+        return composition
+    return replace(composition, day_scoped=kept)
+
+
+def _expired_layer_ids(decls: Sequence[DayScopedDeclaration], instant: datetime) -> set[str]:
+    instant = _as_utc(instant)
+    return {
+        item.declaration_id
+        for item in decls
+        if item.operation in _LAYER_OPS
+        and item.expires_at is not None
+        and _as_utc(item.expires_at) <= instant
+    }
+
+
+def _layer_expiries(decls: Sequence[DayScopedDeclaration]) -> list[datetime]:
+    return sorted(
+        {
+            _as_utc(item.expires_at)
+            for item in decls
+            if item.operation in _LAYER_OPS and item.expires_at is not None
+        }
+    )
+
+
+def _standing_piece(
+    day: date,
+    tz: ZoneInfo,
+    composition: EffectiveComposition,
+    general_windows: Sequence[Any] | None,
+) -> list[tuple[datetime, datetime, str]]:
+    from app.scheduler.composition import _standing_search_windows
+
+    return list(_standing_search_windows(day, tz, composition, general_windows))
+
+
 def folded_search_windows(
     day: date,
     tz: ZoneInfo,
@@ -1181,12 +1259,58 @@ def folded_search_windows(
     general_windows: Sequence[Any] | None,
     working_windows: Sequence[Any] | None = None,
 ) -> list[tuple[datetime, datetime, str]] | None:
-    """Per-day fold. None means the standing search is already the right answer."""
-    decls = [
-        item
-        for item in composition.day_scoped
-        if isinstance(item, DayScopedDeclaration) and _declaration_touches(item, day, tz)
-    ]
+    """Per-day fold. None means the standing search is already the right answer.
+
+    A scoped family replace, clear, or revert is lifetime-bound. An explicit
+    ``expires_at`` inside the civil day clips that replacement and the current
+    standing stack resumes after the instant. The cut is exclusive, so a block
+    cannot straddle it. A map's own dated override is not this lifetime.
+    """
+    decls = _touching_declarations(composition, day, tz)
+    if not decls:
+        return None
+    day_start, _day_end = _civil_day_bounds(day, tz)
+    active = _drop_layer_ops(composition, _expired_layer_ids(decls, day_start))
+    decls = _touching_declarations(active, day, tz)
+    if not decls:
+        return None
+    expiries = _layer_expiries(decls)
+    cuts = [instant for instant in expiries if day_start < instant < _day_end]
+    if not cuts:
+        folded = _fold_touching_windows(day, tz, active, general_windows, working_windows)
+        if folded is None:
+            return None
+        for expiry in expiries:
+            if expiry > day_start:
+                folded = _clip_ranked(folded, _OPEN_START, expiry)
+        return folded
+
+    pieces: list[tuple[datetime, datetime, str]] = []
+    edges: list[tuple[datetime, datetime]] = []
+    cursor = day_start
+    for cut in cuts:
+        edges.append((cursor, cut))
+        cursor = cut
+    later = next((instant for instant in expiries if instant > cursor), _OPEN_END)
+    edges.append((cursor, later))
+    for left, right in edges:
+        piece = _drop_layer_ops(active, _expired_layer_ids(decls, left))
+        folded = _fold_touching_windows(day, tz, piece, general_windows, working_windows)
+        if folded is None:
+            folded = _standing_piece(day, tz, piece, general_windows)
+        pieces.extend(_clip_ranked(folded, left, right))
+    return pieces
+
+
+def _fold_touching_windows(
+    day: date,
+    tz: ZoneInfo,
+    composition: EffectiveComposition,
+    general_windows: Sequence[Any] | None,
+    working_windows: Sequence[Any] | None = None,
+) -> list[tuple[datetime, datetime, str]] | None:
+    """One composition for the day. The caller splits explicit lifetimes first."""
+    decls = _touching_declarations(composition, day, tz)
     if not decls:
         return None
     today = composition_for_occurrence(composition, day, tz)

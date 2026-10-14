@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
@@ -542,3 +543,175 @@ def test_scoped_legacy_map_edits_change_the_collected_fingerprint(
     override_fp = composition_fingerprint(after_override)
     assert override_fp != strict_fp
     assert override_fp["day_scoped"][0]["legacy_map"]["overrides"]
+
+
+def test_scoped_legacy_expiry_restores_same_day_baseline(
+    client: TestClient, db_session: Session
+) -> None:
+    """A 13:00 expiry must not keep supplying the map's 14:00 slot."""
+    _prepare(client, db_session)
+    afternoon = _policy(client, "work", "16:00", 60)
+    task = _task(client)
+    _put_new_rule(client, "task", task["id"], afternoon["id"])
+    window = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "14:00", "15:00")),
+    )
+    _family(
+        client,
+        task["id"],
+        {
+            "target_family": "legacy",
+            "preferred_time_window_id": window["id"],
+            "expires_at": "2026-10-13T13:00:00Z",
+        },
+    )
+    stored, composed = _collected(db_session, task["id"])
+    expiry = datetime(2026, 10, 13, 13, 0, tzinfo=UTC)
+    horizon_end = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+    _working, general = load_owner_policy_windows(db_session, stored.owner_id)
+    clips = composition_search_windows(
+        TUESDAY.date(), ZoneInfo(TZ_NAME), composed, general, working_windows=_working
+    )
+    assert not any(item[0] < expiry < item[1] for item in clips)
+    assert not any(item[0].hour == 14 for item in clips)
+    assert any(item[0].hour == 16 and item[1].hour == 17 for item in clips)
+    placed, general = _place(db_session, stored, composed, expiry, horizon_end)
+    assert placed.blocks_created == 1
+    block = placed.proposed_blocks[0]
+    assert block.start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    assert block.end_time == datetime(2026, 10, 13, 17, 0, tzinfo=UTC)
+    assert not (block.start_time < expiry < block.end_time)
+
+    crossing_map = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "10:00", "11:00"), ("green", "14:00", "15:00")),
+    )
+    crossing_task = _task(client)
+    _put_new_rule(client, "task", crossing_task["id"], afternoon["id"])
+    _family(
+        client,
+        crossing_task["id"],
+        {
+            "target_family": "legacy",
+            "preferred_time_window_id": crossing_map["id"],
+            "expires_at": "2026-10-13T13:00:00Z",
+        },
+    )
+    crossing_row, crossing_comp = _collected(db_session, crossing_task["id"])
+    morning, _general = _place(
+        db_session,
+        crossing_row,
+        crossing_comp,
+        datetime(2026, 10, 13, 8, 0, tzinfo=UTC),
+        horizon_end,
+    )
+    assert morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 10, 0, tzinfo=UTC)
+    after_slot, _general = _place(
+        db_session,
+        crossing_row,
+        crossing_comp,
+        datetime(2026, 10, 13, 12, 0, tzinfo=UTC),
+        horizon_end,
+    )
+    assert after_slot.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+    straddle_map = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "12:30", "14:30")),
+    )
+    straddle_task = _task(client)
+    _put_new_rule(client, "task", straddle_task["id"], afternoon["id"])
+    _family(
+        client,
+        straddle_task["id"],
+        {
+            "target_family": "legacy",
+            "preferred_time_window_id": straddle_map["id"],
+            "expires_at": "2026-10-13T13:00:00Z",
+        },
+    )
+    straddle_row, straddle_comp = _collected(db_session, straddle_task["id"])
+    straddled, _general = _place(
+        db_session,
+        straddle_row,
+        straddle_comp,
+        datetime(2026, 10, 13, 8, 0, tzinfo=UTC),
+        horizon_end,
+    )
+    assert straddled.blocks_created >= 1
+    for block in straddled.proposed_blocks:
+        assert not (block.start_time < expiry < block.end_time)
+        assert block.end_time <= expiry or block.start_time >= datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    assert any(
+        block.start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+        for block in straddled.proposed_blocks
+    )
+    assert any(block.end_time == expiry for block in straddled.proposed_blocks)
+
+    nxt, _general = _place(db_session, stored, composed, NEXT_TUESDAY, NEXT_TUESDAY_END)
+    assert nxt.proposed_blocks[0].start_time == datetime(2026, 10, 20, 16, 0, tzinfo=UTC)
+    wednesday = datetime(2026, 10, 14, 8, 0, tzinfo=UTC)
+    next_day, _general = _place(
+        db_session,
+        stored,
+        composed,
+        wednesday,
+        datetime(2026, 10, 14, 18, 0, tzinfo=UTC),
+    )
+    assert next_day.blocks_created == 0
+
+
+def test_new_rule_and_clear_midday_expiry_restore_standing(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    afternoon = _policy(client, "work", "16:00", 60)
+    _policy(client, "general", "14:00", 60)
+    early = _policy(client, "personal", "14:00", 60)
+    task = _task(client)
+    _put_new_rule(client, "task", task["id"], afternoon["id"])
+    _family(
+        client,
+        task["id"],
+        {
+            "target_family": "new_rule",
+            "expires_at": "2026-10-13T13:00:00Z",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "early", "policy_id": early["id"]}],
+            },
+        },
+    )
+    stored, composed = _collected(db_session, task["id"])
+    placed, general = _place(
+        db_session,
+        stored,
+        composed,
+        datetime(2026, 10, 13, 13, 0, tzinfo=UTC),
+        datetime(2026, 10, 13, 18, 0, tzinfo=UTC),
+    )
+    assert (14, 15) not in _eligible_hours(composed, TUESDAY.date(), general)
+    assert (16, 17) in _eligible_hours(composed, TUESDAY.date(), general)
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+    cleared = _task(client)
+    _put_new_rule(client, "task", cleared["id"], afternoon["id"])
+    _family(
+        client,
+        cleared["id"],
+        {"target_family": "none", "expires_at": "2026-10-13T13:00:00Z"},
+    )
+    cleared_row, cleared_comp = _collected(db_session, cleared["id"])
+    cleared_place, cleared_general = _place(
+        db_session,
+        cleared_row,
+        cleared_comp,
+        datetime(2026, 10, 13, 13, 0, tzinfo=UTC),
+        datetime(2026, 10, 13, 18, 0, tzinfo=UTC),
+    )
+    assert (14, 15) not in _eligible_hours(cleared_comp, TUESDAY.date(), cleared_general)
+    assert cleared_place.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)

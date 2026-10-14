@@ -30,6 +30,8 @@ from app.scheduler.day_scoped import (
     CivilSelector,
     DayScopedDeclaration,
     DayScopedOp,
+    LegacyBand,
+    LegacyMapView,
     SelectorKind,
     declaration_problem,
 )
@@ -650,6 +652,165 @@ def test_scoped_family_inserts_over_inherited_assignment() -> None:
     assert (9, 0, 12, 0) in _hours(
         composition_search_windows(TUESDAY + timedelta(days=7), TZ, shut, [])
     )
+
+
+def _legacy_view(*rows: tuple[str, time, time]) -> LegacyMapView:
+    return LegacyMapView(
+        map_id="map-expiry",
+        strict_mode=True,
+        bands=tuple(
+            LegacyBand(
+                tier=tier,
+                start_time=start,
+                end_time=end,
+                days_of_week=127,
+                sort_order=index,
+            )
+            for index, (tier, start, end) in enumerate(rows)
+        ),
+    )
+
+
+def _crosses(clips, instant: datetime) -> bool:
+    return any(item[0] < instant < item[1] for item in clips)
+
+
+def test_layer_ops_midday_expiry_restore_standing_without_a_straddle() -> None:
+    """Explicit 13:00 expiry is not an end-of-day approximation."""
+    expiry = datetime(2026, 10, 13, 13, 0, tzinfo=UTC)
+    standing = _layer(
+        "task",
+        "t",
+        may=(rule("pm", RuleRole.MAY, (_window(16, 0, 60),), scope="task", scope_id="t"),),
+    )
+    late_map = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="legacy",
+        legacy_map=_legacy_view(("green", time(14, 0), time(15, 0))),
+        expires_at=expiry,
+        declaration_id="late-map",
+    )
+    late = _resolve(standing, day_scoped=(late_map,))
+    tuesday = composition_search_windows(TUESDAY, TZ, late, [])
+    assert not _crosses(tuesday, expiry)
+    assert not any(item[0] == datetime(2026, 10, 13, 14, 0, tzinfo=UTC) for item in tuesday)
+    assert any(item[0] == datetime(2026, 10, 13, 16, 0, tzinfo=UTC) and item[1] == datetime(2026, 10, 13, 17, 0, tzinfo=UTC) for item in tuesday)
+    wholly_after = _place(
+        late,
+        _task(60),
+        now=expiry,
+        end=datetime(2026, 10, 13, 18, 0, tzinfo=UTC),
+    )
+    assert wholly_after.blocks_created == 1
+    assert wholly_after.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    wednesday = composition_search_windows(WEDNESDAY, TZ, late, [])
+    assert not any(item[0].hour == 14 for item in wednesday)
+    nxt = composition_search_windows(TUESDAY + timedelta(days=7), TZ, late, [])
+    assert any(item[0].hour == 16 for item in nxt)
+    assert not any(item[0].hour == 14 for item in nxt)
+
+    crossing_map = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="legacy",
+        legacy_map=_legacy_view(
+            ("green", time(10, 0), time(11, 0)),
+            ("green", time(14, 0), time(15, 0)),
+        ),
+        expires_at=expiry,
+        declaration_id="cross-map",
+    )
+    crossing = _resolve(standing, day_scoped=(crossing_map,))
+    cross_windows = composition_search_windows(TUESDAY, TZ, crossing, [])
+    assert not _crosses(cross_windows, expiry)
+    assert any(item[0] == datetime(2026, 10, 13, 10, 0, tzinfo=UTC) and item[1] == datetime(2026, 10, 13, 11, 0, tzinfo=UTC) for item in cross_windows)
+    assert not any(item[0] == datetime(2026, 10, 13, 14, 0, tzinfo=UTC) for item in cross_windows)
+    morning = _place(
+        crossing,
+        _task(60),
+        now=datetime(2026, 10, 13, 8, 0, tzinfo=UTC),
+        end=datetime(2026, 10, 13, 18, 0, tzinfo=UTC),
+    )
+    assert morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 10, 0, tzinfo=UTC)
+    after_morning = _place(
+        crossing,
+        _task(60),
+        now=datetime(2026, 10, 13, 12, 0, tzinfo=UTC),
+        end=datetime(2026, 10, 13, 18, 0, tzinfo=UTC),
+    )
+    assert after_morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+    straddling = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="legacy",
+        legacy_map=_legacy_view(("green", time(12, 30), time(14, 30))),
+        expires_at=expiry,
+        declaration_id="straddle-map",
+    )
+    straddled = _resolve(standing, day_scoped=(straddling,))
+    straddle_windows = composition_search_windows(TUESDAY, TZ, straddled, [])
+    assert not _crosses(straddle_windows, expiry)
+    assert any(item[1] == expiry for item in straddle_windows)
+    placed = _place(
+        straddled,
+        _task(60),
+        now=datetime(2026, 10, 13, 8, 0, tzinfo=UTC),
+        end=datetime(2026, 10, 13, 18, 0, tzinfo=UTC),
+    )
+    block = placed.proposed_blocks[0]
+    assert block.start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    assert not (block.start_time < expiry < block.end_time)
+
+    replaced = _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="new_rule",
+        replacement_layer=_layer(
+            "task",
+            "t",
+            may=(rule("early", RuleRole.MAY, (_window(14, 0, 60),), scope="task", scope_id="t"),),
+        ),
+        expires_at=expiry,
+        declaration_id="new-rule-cut",
+    )
+    new_rule = _resolve(standing, day_scoped=(replaced,))
+    new_windows = composition_search_windows(TUESDAY, TZ, new_rule, [])
+    assert not _crosses(new_windows, expiry)
+    assert _hours(new_windows) == [(16, 0, 17, 0)]
+
+    cleared = _decl(
+        DayScopedOp.CLEAR_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        expires_at=expiry,
+        declaration_id="clear-cut",
+    )
+    cleared_comp = _resolve(standing, day_scoped=(cleared,))
+    general = (_window(10, 0, 60), _window(14, 0, 60))
+    clear_windows = composition_search_windows(TUESDAY, TZ, cleared_comp, general)
+    assert not _crosses(clear_windows, expiry)
+    assert (10, 0, 11, 0) in _hours(clear_windows)
+    assert (14, 0, 15, 0) not in _hours(clear_windows)
+    assert (16, 0, 17, 0) in _hours(clear_windows)
+
+    prior = _layer(
+        "task",
+        "t",
+        may=(rule("old", RuleRole.MAY, (_window(14, 0, 60),), scope="task", scope_id="t"),),
+    )
+    reverted = _decl(
+        DayScopedOp.REVERT_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        prior_layer=prior,
+        expires_at=expiry,
+        declaration_id="revert-cut",
+    )
+    revert_windows = composition_search_windows(
+        TUESDAY, TZ, _resolve(standing, day_scoped=(reverted,)), []
+    )
+    assert not _crosses(revert_windows, expiry)
+    assert _hours(revert_windows) == [(16, 0, 17, 0)]
 
 
 def test_scoped_family_legacy_replaces_local_new_rule_hours() -> None:
