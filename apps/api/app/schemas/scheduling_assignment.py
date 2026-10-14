@@ -21,7 +21,7 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class RuleContentIn(BaseModel):
@@ -59,6 +59,10 @@ class MaySpecIn(BaseModel):
 
 
 class FamilyReplaceIn(BaseModel):
+    # extra=allow so dated / weekday / context keys that are not declared fields
+    # still reach reject_deferred_exception_forms (no silent drop).
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     target_family: Literal["legacy", "new_rule", "none"]
     preferred_time_window_id: UUID | None = None
@@ -78,6 +82,8 @@ class FamilyReplaceIn(BaseModel):
 
 
 class AssignmentClearIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     date_range: Any | None = None
     weekday: Any | None = None
@@ -87,6 +93,8 @@ class AssignmentClearIn(BaseModel):
 
 
 class AssignmentRevertIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     replacement_id: UUID
     date_range: Any | None = None
@@ -97,6 +105,8 @@ class AssignmentRevertIn(BaseModel):
 
 
 class NewRuleAssignmentWriteIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     may: MaySpecIn = Field(default_factory=MaySpecIn)
     must: list[RuleContentIn] = Field(default_factory=list)
@@ -109,6 +119,8 @@ class NewRuleAssignmentWriteIn(BaseModel):
 
 
 class RuleAddIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     name: str
     kind: Literal["may", "must", "prefer"]
@@ -122,6 +134,8 @@ class RuleAddIn(BaseModel):
 
 
 class RuleReplaceNamedIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     target_rule_name: str
     target_rule_kind: Literal["may", "must", "prefer"]
@@ -136,6 +150,8 @@ class RuleReplaceNamedIn(BaseModel):
 
 
 class RuleWaiveNamedIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     expected_revision: int
     target_rule_name: str
     date_range: Any | None = None

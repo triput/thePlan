@@ -69,6 +69,13 @@ _DEFERRED_FORM_KEYS = frozenset(
         "expires_on",
     }
 )
+_FORBIDDEN_FORM_KEYS = frozenset(
+    {
+        "ignore_all",
+        "ignore_all_restrictions",
+        "ignore_restrictions",
+    }
+)
 
 _COLLISION_GUIDANCE = (
     "This scope already has an active assignment from the other family. "
@@ -79,9 +86,21 @@ _COLLISION_GUIDANCE = (
 
 
 def reject_deferred_exception_forms(payload: dict[str, Any] | None) -> None:
-    """V4b/V7: dated, weekday-standing, context forms reject with no write."""
+    """V4b/V7: dated, weekday-standing, context forms reject with no write.
+
+    Ignore-all-restrictions is forbidden outright (SPEC §4.4), not parked.
+    """
     if not payload:
         return
+    forbidden = sorted(_FORBIDDEN_FORM_KEYS.intersection(payload))
+    if forbidden:
+        raise ApiError(
+            422,
+            "Ignore-all-restrictions is not a scheduling exception and is not "
+            "writable. Saved configuration is unchanged.",
+            "SCHEDULING_EXCEPTION_FORBIDDEN",
+            rejected_fields=forbidden,
+        )
     hit = sorted(_DEFERRED_FORM_KEYS.intersection(payload))
     if not hit:
         return
@@ -322,7 +341,7 @@ def _build_rules(
                 kind=kind,
                 policy_id=policy_id,
                 empty_set=empty_set,
-                sort_order=int(raw.get("sort_order", index)),
+                sort_order=index if raw.get("sort_order") is None else int(raw["sort_order"]),
             )
         )
     db.flush()
