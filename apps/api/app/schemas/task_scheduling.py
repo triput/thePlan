@@ -1,5 +1,6 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from enum import Enum
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -61,6 +62,17 @@ class SavedAvailabilityPolicyOut(BaseModel):
     divergence_note: str | None = None
 
 
+class DatedSchedulingSegmentOut(BaseModel):
+    """UTC half-open interval where one map layer applies (V3-D2 / A11f)."""
+
+    start: datetime
+    end: datetime
+    source: Literal["base_map", "override"]
+    override_id: UUID | None = None
+    strict_mode: bool
+    day_bands: list[TimeMapBandOut] = Field(default_factory=list)
+
+
 class DatedOverrideReplacesOut(BaseModel):
     scope: str = "day_bands_and_strict_mode"
     base_map_id: UUID
@@ -96,6 +108,7 @@ class DatedResolutionOut(BaseModel):
     operator_timezone: str
     override: DatedOverrideDetailOut | None = None
     replaces: DatedOverrideReplacesOut | None = None
+    segments: list[DatedSchedulingSegmentOut] = Field(default_factory=list)
     note: str | None = None
 
 

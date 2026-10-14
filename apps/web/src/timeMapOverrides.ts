@@ -1,5 +1,18 @@
 import type { FocusWindow, TimeMapBand, TimeMapOverride, UserSettings } from "./api";
 import { ApiError } from "./api";
+import {
+  effectiveTimeMapSegmentsForDay as effectiveTimeMapSegmentsForDayCore,
+  type TimeMapDaySegment as CoreTimeMapDaySegment,
+} from "./timeMapDaySegments.ts";
+
+export type TimeMapDaySegment = {
+  startUtc: Date;
+  endUtc: Date;
+  source: "base_map" | "override";
+  bands: TimeMapBand[];
+  strictMode: boolean;
+  override: TimeMapOverride | null;
+};
 const WEEKDAY_SHORT_TO_BIT: Record<string, number> = {
   Mon: 1,
   Tue: 2,
@@ -119,24 +132,48 @@ export function bandsForSchedulingDay(bands: TimeMapBand[], day: Date, userTimez
   return bands.filter((band) => (band.days_of_week & bit) !== 0);
 }
 
+export function effectiveTimeMapSegmentsForDay(
+  baseWindow: FocusWindow,
+  overrides: TimeMapOverride[] | undefined,
+  day: Date,
+  settings: Pick<UserSettings, "timezone">,
+): TimeMapDaySegment[] {
+  return effectiveTimeMapSegmentsForDayCore(
+    baseWindow,
+    overrides,
+    day,
+    settings.timezone,
+  ).map(
+    (segment: CoreTimeMapDaySegment): TimeMapDaySegment => ({
+      startUtc: segment.startUtc,
+      endUtc: segment.endUtc,
+      source: segment.source,
+      bands: segment.bands as TimeMapBand[],
+      strictMode: segment.strictMode,
+      override: segment.override as TimeMapOverride | null,
+    }),
+  );
+}
+
 export function effectiveTimeMapBandsForDay(
   baseWindow: FocusWindow,
   overrides: TimeMapOverride[] | undefined,
   day: Date,
   settings: Pick<UserSettings, "timezone">,
 ): { bands: TimeMapBand[]; strictMode: boolean; override: TimeMapOverride | null } {
-  const override = selectOverrideForSchedulingDay(overrides, day, settings);
-  if (!override) {
-    return {
-      bands: bandsForSchedulingDay(baseWindow.bands, day, settings.timezone),
-      strictMode: baseWindow.strict_mode,
-      override: null,
-    };
+  const segments = effectiveTimeMapSegmentsForDay(baseWindow, overrides, day, settings);
+  const overrideSegment = segments.find((segment) => segment.source === "override") ?? null;
+  const bands = new Map<string, TimeMapBand>();
+  for (const segment of segments) {
+    for (const band of segment.bands) {
+      bands.set(band.id ?? `${band.tier}-${band.start_time}-${band.sort_order}`, band);
+    }
   }
+  const strictMode = segments.every((segment) => segment.strictMode);
   return {
-    bands: bandsForSchedulingDay(override.bands, day, settings.timezone),
-    strictMode: override.strict_mode,
-    override,
+    bands: [...bands.values()],
+    strictMode,
+    override: overrideSegment?.override ?? null,
   };
 }
 

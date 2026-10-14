@@ -27,6 +27,7 @@ import { TIME_MAP_TIER_CLASS } from "../focusWindows";
 import {
   bandWallClockToInstant,
   type TimeMapBandWallClockContext,
+  type TimeMapDaySegment,
 } from "../timeMapOverrides";
 import { DEFAULT_PROJECT_COLOR } from "../colors";
 
@@ -71,13 +72,38 @@ function projectColor(projects: Map<string, Project>, projectId: string | null):
   return projects.get(projectId)?.color_hex ?? DEFAULT_PROJECT_COLOR;
 }
 
-function TimeMapAllDayUnavailableOverlay() {
+function intersectUtcHalfOpen(
+  start: Date,
+  end: Date,
+  clipStart: Date,
+  clipEnd: Date,
+): { start: Date; end: Date } | null {
+  const left = new Date(Math.max(start.getTime(), clipStart.getTime()));
+  const right = new Date(Math.min(end.getTime(), clipEnd.getTime()));
+  if (left >= right) return null;
+  return { start: left, end: right };
+}
+
+function TimeMapSegmentUnavailableOverlay({
+  segment,
+  bounds,
+}: {
+  segment: TimeMapDaySegment;
+  bounds: HourBounds;
+}) {
+  const visible = intersectIntervalWithHourBounds(segment.startUtc, segment.endUtc, bounds);
+  if (!visible) return null;
+  const top = topPercentForTime(visible.start, bounds);
+  const height = heightPercentForDuration(
+    blockDurationMinutes(visible.start, visible.end),
+    bounds,
+  );
   return (
     <div
       className="cal-time-map-band cal-time-map-band--red cal-time-map-band--all-day"
-      style={{ top: "0%", height: "100%" }}
+      style={{ top: `${top}%`, height: `${height}%` }}
       aria-hidden
-      title="Strict Time Map — unavailable all day"
+      title="Strict Time Map — unavailable for this interval"
     />
   );
 }
@@ -86,14 +112,18 @@ function TimeMapBandOverlay({
   band,
   wallClock,
   bounds,
+  segment,
 }: {
   band: TimeMapBand;
   wallClock: TimeMapBandWallClockContext;
   bounds: HourBounds;
+  segment: TimeMapDaySegment;
 }) {
   const start = bandWallClockToInstant(wallClock.localYmd, band.start_time, wallClock.timeZone);
   const end = bandWallClockToInstant(wallClock.localYmd, band.end_time, wallClock.timeZone);
-  const visible = intersectIntervalWithHourBounds(start, end, bounds);
+  const clipped = intersectUtcHalfOpen(start, end, segment.startUtc, segment.endUtc);
+  if (!clipped) return null;
+  const visible = intersectIntervalWithHourBounds(clipped.start, clipped.end, bounds);
   if (!visible) return null;
   const top = topPercentForTime(visible.start, bounds);
   const height = heightPercentForDuration(
@@ -298,10 +328,9 @@ export interface CalendarDayColumnProps {
   duePreview: ActiveDrag | null;
   conflictingBlockIds: Set<string>;
   conflictingBusyEventIds: Set<string>;
-  timeMapBands?: TimeMapBand[];
+  timeMapSegments?: TimeMapDaySegment[];
   timeMapBandWallClock?: TimeMapBandWallClockContext;
   timeMapOverrideActive?: boolean;
-  timeMapStrictAllDayUnavailable?: boolean;
   showOverrideBadgeOnly?: boolean;
   onSlotClick: (day: Date, offsetY: number) => void;
   onBlockClick: (block: ScheduledBlock) => void;
@@ -327,10 +356,9 @@ export function CalendarDayColumn({
   duePreview,
   conflictingBlockIds,
   conflictingBusyEventIds,
-  timeMapBands,
+  timeMapSegments,
   timeMapBandWallClock,
   timeMapOverrideActive = false,
-  timeMapStrictAllDayUnavailable = false,
   showOverrideBadgeOnly = false,
   onSlotClick,
   onBlockClick,
@@ -428,16 +456,23 @@ export function CalendarDayColumn({
           <div key={i} className="cal-hour-row" style={{ height: CALENDAR_ROW_HEIGHT_PX }} />
         ))}
         <div className="cal-overlay">
-          {timeMapStrictAllDayUnavailable && <TimeMapAllDayUnavailableOverlay />}
-          {!timeMapStrictAllDayUnavailable &&
-            timeMapBandWallClock &&
-            timeMapBands?.map((band, index) => (
-              <TimeMapBandOverlay
-                key={`${band.id ?? band.sort_order}-${band.tier}-${index}`}
-                band={band}
-                wallClock={timeMapBandWallClock}
-                bounds={bounds}
-              />
+          {timeMapBandWallClock &&
+            timeMapSegments?.map((segment, segmentIndex) => (
+              <div key={`${segment.startUtc.toISOString()}-${segmentIndex}`}>
+                {segment.strictMode && segment.bands.length === 0 ? (
+                  <TimeMapSegmentUnavailableOverlay segment={segment} bounds={bounds} />
+                ) : (
+                  segment.bands.map((band, index) => (
+                    <TimeMapBandOverlay
+                      key={`${band.id ?? band.sort_order}-${band.tier}-${index}`}
+                      band={band}
+                      wallClock={timeMapBandWallClock}
+                      bounds={bounds}
+                      segment={segment}
+                    />
+                  ))
+                )}
+              </div>
             ))}
           {dayBusy.map((event) => (
             <BusyBlockItem

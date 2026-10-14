@@ -6,8 +6,9 @@ This module loads persisted overrides and picks the effective map per local day.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -207,6 +208,128 @@ def effective_day_map(
     if day_override is None:
         return bands_for_day(list(base.bands), day), base.strict_mode
     return bands_for_day(list(day_override.bands), day), day_override.strict_mode
+
+
+def scheduling_day_utc_bounds(
+    day: date,
+    settings: UserSettings,
+) -> tuple[datetime, datetime]:
+    """Half-open operator civil day in UTC (V3-D2 Fixed: split reads at override bounds)."""
+    tz = ZoneInfo(settings.timezone)
+    start_local = datetime.combine(day, time.min, tzinfo=tz)
+    end_local = datetime.combine(day + timedelta(days=1), time.min, tzinfo=tz)
+    return _as_utc(start_local), _as_utc(end_local)
+
+
+@dataclass(frozen=True)
+class SchedulingDayOverridePiece:
+    start: datetime
+    end: datetime
+    day_override: TimeMapOverride | None
+
+
+def split_scheduling_day_by_overrides(
+    day: date,
+    settings: UserSettings,
+    overrides: list[TimeMapOverride] | None,
+) -> list[SchedulingDayOverridePiece]:
+    """Split the operator scheduling day at stored-zone override bounds.
+
+    Matches ``placement._spans_split_by_overrides`` semantics so effective reads
+    and calendar overlays align with placer eligibility (A11f / V3-D2).
+    """
+    day_start, day_end = scheduling_day_utc_bounds(day, settings)
+    if not overrides:
+        return [SchedulingDayOverridePiece(day_start, day_end, None)]
+    cuts: list[datetime] = []
+    for row in overrides:
+        start, end = override_utc_bounds(row)
+        for cut in (start, end):
+            if day_start < cut < day_end:
+                cuts.append(cut)
+    points = sorted({day_start, day_end, *cuts})
+    pieces: list[SchedulingDayOverridePiece] = []
+    for left, right in zip(points, points[1:]):
+        if left >= right:
+            continue
+        pieces.append(
+            SchedulingDayOverridePiece(
+                left,
+                right,
+                override_covering_instant(overrides, left),
+            )
+        )
+    return pieces
+
+
+SegmentSource = Literal["base_map", "override"]
+
+
+@dataclass(frozen=True)
+class EffectiveSchedulingDaySegment:
+    start: datetime
+    end: datetime
+    source: SegmentSource
+    day_override: TimeMapOverride | None
+    bands: list[Any]
+    strict_mode: bool
+
+
+def overrides_intersecting_scheduling_day(
+    overrides: list[TimeMapOverride] | None,
+    day: date,
+    settings: UserSettings,
+) -> list[TimeMapOverride]:
+    if not overrides:
+        return []
+    day_start, day_end = scheduling_day_utc_bounds(day, settings)
+    hits = [
+        row
+        for row in overrides
+        if override_utc_bounds(row)[0] < day_end and override_utc_bounds(row)[1] > day_start
+    ]
+    hits.sort(key=_match_rank)
+    return hits
+
+
+def effective_scheduling_day_segments(
+    base: FocusWindow,
+    overrides: list[TimeMapOverride] | None,
+    day: date,
+    settings: UserSettings,
+) -> list[EffectiveSchedulingDaySegment]:
+    """Interval-aware map bands for one operator scheduling day."""
+    active = overrides_intersecting_scheduling_day(overrides, day, settings)
+    pieces = split_scheduling_day_by_overrides(day, settings, active or None)
+    segments: list[EffectiveSchedulingDaySegment] = []
+    for piece in pieces:
+        bands, strict_mode = effective_day_map(base, piece.day_override, day)
+        segments.append(
+            EffectiveSchedulingDaySegment(
+                start=piece.start,
+                end=piece.end,
+                source="override" if piece.day_override is not None else "base_map",
+                day_override=piece.day_override,
+                bands=bands,
+                strict_mode=strict_mode,
+            )
+        )
+    return segments
+
+
+def segments_cover_full_scheduling_day_with_single_override(
+    segments: list[EffectiveSchedulingDaySegment],
+    day: date,
+    settings: UserSettings,
+) -> bool:
+    if len(segments) != 1:
+        return False
+    only = segments[0]
+    if only.source != "override" or only.day_override is None:
+        return False
+    day_start, day_end = scheduling_day_utc_bounds(day, settings)
+    o_start, o_end = override_utc_bounds(only.day_override)
+    return o_start <= day_start and o_end >= day_end
 
 
 def resolve_override_for_date(

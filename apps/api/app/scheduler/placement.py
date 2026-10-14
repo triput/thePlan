@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any, TypeAlias
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -24,6 +24,7 @@ from app.scheduler.availability_materializer import (
     coerce_policy_windows,
     materialize_windows_for_local_date,
     merge_utc_intervals,
+    resolve_recurring_wall,
 )
 from app.scheduler.time_map_overrides import (
     applicable_override_payload,
@@ -222,31 +223,112 @@ def _merge_tier_windows(
     return ordered
 
 
+@dataclass(frozen=True)
+class BandEvaluationInterval:
+    """One half-open UTC interval for legacy Time Map band clocks.
+
+    ``local_date`` is the schedule-local calendar date of ``start``. After
+    ``split_span_for_band_evaluation`` the piece does not cross a
+    schedule-local midnight, so that date covers the whole piece. Weekday
+    masks and ``band_bounds`` take ``local_date``.
+
+    Occurrence ownership is not this date. ``MaterializedSpan.owner_date``
+    stays the Working or General occurrence start, so replacing that start
+    day still replaces the overnight tail. Do not copy ``local_date`` onto
+    ``owner_date``.
+
+    ``override`` is the stored-zone row whose ``[start, end)`` contains
+    ``start``, or None for the base map.
+    """
+
+    start: datetime
+    end: datetime
+    local_date: date
+    override: TimeMapOverride | None
+
+
+def split_span_for_band_evaluation(
+    start: datetime,
+    end: datetime,
+    tz: ZoneInfo,
+    overrides: list[TimeMapOverride] | None = None,
+) -> list[BandEvaluationInterval]:
+    """Split ``[start, end)`` at schedule-local midnights and override bounds.
+
+    Jules: placer interval splitter for legacy band clocks (V3-D1).
+    ``split_scheduling_day_by_overrides`` stays the one-civil-day override
+    split used by effective reads; it does not cross schedule-local midnight.
+    Use this function when an interval can start on one schedule-local date
+    and end on another, or when an override boundary falls inside it. Pass
+    ``local_date`` to ``effective_day_map`` and ``band_bounds``. Keep the
+    occurrence owner date for policy provenance and replacement.
+
+    Inclusive start, exclusive end. Midnight cuts use
+    ``resolve_recurring_wall`` (fold=0, spring-forward snap), the same instant
+    the availability materializer uses for a civil-day boundary. Override cuts
+    are ``override_utc_bounds`` (stored IANA zone, not the schedule zone).
+    Cuts outside ``(start, end)`` are dropped. An empty or inverted interval
+    returns [].
+    """
+    start = _ensure_utc(start)
+    end = _ensure_utc(end)
+    if end <= start:
+        return []
+    cuts: list[datetime] = []
+    day = start.astimezone(tz).date() + timedelta(days=1)
+    last = end.astimezone(tz).date()
+    while day <= last:
+        midnight = resolve_recurring_wall(day, time.min, tz)
+        if start < midnight < end:
+            cuts.append(midnight)
+        day += timedelta(days=1)
+    if overrides:
+        for row in overrides:
+            bound_start, bound_end = override_utc_bounds(row)
+            cuts.extend((bound_start, bound_end))
+    points = [start, end]
+    for cut in cuts:
+        cut = _ensure_utc(cut)
+        if start < cut < end:
+            points.append(cut)
+    ordered = sorted(set(points))
+    pieces: list[BandEvaluationInterval] = []
+    for left, right in zip(ordered, ordered[1:]):
+        if left >= right:
+            continue
+        pieces.append(
+            BandEvaluationInterval(
+                start=left,
+                end=right,
+                local_date=left.astimezone(tz).date(),
+                override=override_covering_instant(overrides, left),
+            )
+        )
+    return pieces
+
+
 def _spans_split_by_overrides(
     spans: list[MaterializedSpan],
     overrides: list[TimeMapOverride] | None,
-) -> list[tuple[MaterializedSpan, TimeMapOverride | None]]:
-    """Split each span at stored-zone override bounds. Inclusive start, exclusive end."""
+    tz: ZoneInfo,
+) -> list[tuple[MaterializedSpan, BandEvaluationInterval]]:
+    """Split eligibility at override bounds and schedule-local midnight.
+
+    ``owner_date`` is copied from the occurrence. Band clocks use
+    ``BandEvaluationInterval.local_date`` (``split_span_for_band_evaluation``).
+    Inclusive start, exclusive end.
+    """
     if not spans:
         return []
-    if not overrides:
-        return [(span, None) for span in spans]
-    cuts: list[datetime] = []
-    for row in overrides:
-        start, end = override_utc_bounds(row)
-        cuts.extend((start, end))
-    pieces: list[tuple[MaterializedSpan, TimeMapOverride | None]] = []
+    pieces: list[tuple[MaterializedSpan, BandEvaluationInterval]] = []
     for span in spans:
-        points = [span.start, span.end]
-        for cut in cuts:
-            if span.start < cut < span.end:
-                points.append(cut)
-        points = sorted(set(points))
-        for left, right in zip(points, points[1:]):
-            if left >= right:
-                continue
-            piece = MaterializedSpan(start=left, end=right, owner_date=span.owner_date)
-            pieces.append((piece, override_covering_instant(overrides, left)))
+        for interval in split_span_for_band_evaluation(span.start, span.end, tz, overrides):
+            piece = MaterializedSpan(
+                start=interval.start,
+                end=interval.end,
+                owner_date=span.owner_date,
+            )
+            pieces.append((piece, interval))
     return pieces
 
 
@@ -256,33 +338,40 @@ def _windows_from_bands(
     strict_mode: bool,
     tz: ZoneInfo,
 ) -> list[tuple[datetime, datetime, str | None]]:
-    """Map bands ∩ eligibility spans. Neutral is each span minus that span's red."""
+    """Map bands ∩ eligibility spans. Neutral is each piece minus that piece's red.
+
+    A span that crosses schedule-local midnight is split first. Band wall
+    clocks use each piece's schedule-local date, not ``span.owner_date``.
+    """
     collected: list[tuple[datetime, datetime, str | None]] = []
     for span in spans:
-        green: list[tuple[datetime, datetime]] = []
-        yellow: list[tuple[datetime, datetime]] = []
-        red: list[tuple[datetime, datetime]] = []
-        for band in bands:
-            bounds = band_bounds(span.owner_date, band, tz)
-            if bounds is None:
-                continue
-            hit = intersect_ranges(span.start, span.end, bounds[0], bounds[1])
-            if hit is None:
-                continue
-            if band.tier == TimeMapBandTier.green:
-                green.append(hit)
-            elif band.tier == TimeMapBandTier.yellow:
-                yellow.append(hit)
-            elif band.tier == TimeMapBandTier.red:
-                red.append(hit)
-        red_intervals = [TimeInterval(start, end) for start, end in red]
-        for start, end in _subtract_red_from_clips(green, red_intervals):
-            collected.append((start, end, "green"))
-        for start, end in _subtract_red_from_clips(yellow, red_intervals):
-            collected.append((start, end, "yellow"))
-        if not strict_mode:
-            for item in subtract_intervals_from_range(span.start, span.end, red_intervals):
-                collected.append((item.start, item.end, "neutral"))
+        for interval in split_span_for_band_evaluation(span.start, span.end, tz):
+            green: list[tuple[datetime, datetime]] = []
+            yellow: list[tuple[datetime, datetime]] = []
+            red: list[tuple[datetime, datetime]] = []
+            for band in bands:
+                bounds = band_bounds(interval.local_date, band, tz)
+                if bounds is None:
+                    continue
+                hit = intersect_ranges(interval.start, interval.end, bounds[0], bounds[1])
+                if hit is None:
+                    continue
+                if band.tier == TimeMapBandTier.green:
+                    green.append(hit)
+                elif band.tier == TimeMapBandTier.yellow:
+                    yellow.append(hit)
+                elif band.tier == TimeMapBandTier.red:
+                    red.append(hit)
+            red_intervals = [TimeInterval(start, end) for start, end in red]
+            for start, end in _subtract_red_from_clips(green, red_intervals):
+                collected.append((start, end, "green"))
+            for start, end in _subtract_red_from_clips(yellow, red_intervals):
+                collected.append((start, end, "yellow"))
+            if not strict_mode:
+                for item in subtract_intervals_from_range(
+                    interval.start, interval.end, red_intervals
+                ):
+                    collected.append((item.start, item.end, "neutral"))
     return _merge_tier_windows(collected)
 
 
@@ -303,7 +392,9 @@ def _search_windows_for_day(
     mapped one. ``None`` falls back to the deprecated Monday-first settings
     span so direct unit calls keep their fixture. ``day_bands`` is the direct
     test hook that substitutes one band list for the whole day; production
-    passes ``overrides`` and splits at stored-zone bounds instead.
+    passes ``overrides`` and splits at schedule-local midnight and at
+    stored-zone override bounds. Band clocks use each piece's schedule-local
+    date, not the occurrence ``owner_date``.
     """
     rows = coerce_policy_windows(policy_windows, settings)
     spans = materialize_windows_for_local_date(rows, day, tz)
@@ -321,13 +412,15 @@ def _search_windows_for_day(
         )
         return _windows_from_bands(spans, list(day_bands), strict_mode, tz)
 
-    pieces = _spans_split_by_overrides(spans, overrides)
+    pieces = _spans_split_by_overrides(spans, overrides, tz)
     collected: list[tuple[datetime, datetime, str | None]] = []
-    for piece, row in pieces:
+    for piece, interval in pieces:
         if preferred is None:
             collected.append((piece.start, piece.end, None))
             continue
-        bands, strict_mode = effective_day_map(preferred, row, piece.owner_date)
+        bands, strict_mode = effective_day_map(
+            preferred, interval.override, interval.local_date
+        )
         collected.extend(_windows_from_bands([piece], bands, strict_mode, tz))
     return _merge_tier_windows(collected)
 
@@ -527,15 +620,17 @@ def _map_block_reason(
     spans = materialize_windows_for_local_date(rows, day, tz)
     if not spans:
         return None
-    pieces = _spans_split_by_overrides(spans, overrides)
+    pieces = _spans_split_by_overrides(spans, overrides, tz)
     saw_allowed = False
     saw_red = False
-    for piece, row in pieces:
-        bands, strict_mode = effective_day_map(preferred, row, piece.owner_date)
+    for piece, interval in pieces:
+        bands, strict_mode = effective_day_map(
+            preferred, interval.override, interval.local_date
+        )
         green_or_yellow = False
         red_hit = False
         for band in bands:
-            bounds = band_bounds(piece.owner_date, band, tz)
+            bounds = band_bounds(interval.local_date, band, tz)
             if bounds is None:
                 continue
             if intersect_ranges(piece.start, piece.end, bounds[0], bounds[1]) is None:

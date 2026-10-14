@@ -21,12 +21,13 @@ from app.models import (
 from app.models.enums import AvailabilityPolicySlug
 from app.scheduler.task_effort import placement_effort_minutes
 from app.scheduler.time_map_overrides import (
+    EffectiveSchedulingDaySegment,
     applicable_override_payload,
     bands_for_day,
-    effective_day_map,
     effective_local_date_for_scheduling_day,
+    effective_scheduling_day_segments,
     load_time_map_overrides_for_maps,
-    select_override_for_scheduling_day,
+    segments_cover_full_scheduling_day_with_single_override,
 )
 from app.scheduler.windows import (
     effective_preferred_time_window_id,
@@ -38,6 +39,7 @@ from app.schemas.task_scheduling import (
     DatedOverrideDetailOut,
     DatedOverrideReplacesOut,
     DatedResolutionOut,
+    DatedSchedulingSegmentOut,
     DurationEffectiveOut,
     InheritedBlockBoundsPreview,
     LegacyWorkweekActiveOut,
@@ -196,6 +198,49 @@ def _empty_kind_for_map(
     return TimeMapEmptyKind.assigned_empty_nonstrict
 
 
+def _empty_kind_from_segments(
+    *,
+    has_assignment: bool,
+    segments: list[EffectiveSchedulingDaySegment],
+) -> TimeMapEmptyKind:
+    if not has_assignment:
+        return TimeMapEmptyKind.no_assignment_fallback
+    if any(segment.bands for segment in segments):
+        return TimeMapEmptyKind.not_applicable
+    if segments and all(segment.strict_mode for segment in segments):
+        return TimeMapEmptyKind.assigned_empty_strict
+    return TimeMapEmptyKind.assigned_empty_nonstrict
+
+
+def _unique_bands_out(segments: list[EffectiveSchedulingDaySegment]) -> list[TimeMapBandOut]:
+    seen: set[str] = set()
+    ordered: list[TimeMapBandOut] = []
+    for segment in segments:
+        for band in segment.bands:
+            key = str(getattr(band, "id", None) or id(band))
+            if key in seen:
+                continue
+            seen.add(key)
+            ordered.append(TimeMapBandOut.model_validate(band))
+    return ordered
+
+
+def _segments_out(
+    segments: list[EffectiveSchedulingDaySegment],
+) -> list[DatedSchedulingSegmentOut]:
+    return [
+        DatedSchedulingSegmentOut(
+            start=segment.start,
+            end=segment.end,
+            source=segment.source,
+            override_id=segment.day_override.id if segment.day_override is not None else None,
+            strict_mode=segment.strict_mode,
+            day_bands=_bands_out(segment.bands),
+        )
+        for segment in segments
+    ]
+
+
 def _saved_policy_out(
     policy: AvailabilityPolicy | None,
     *,
@@ -291,13 +336,18 @@ def _build_dated_resolution(
         {focus_window.id},
     )
     override_rows = overrides_by_map.get(focus_window.id, [])
-    selected = select_override_for_scheduling_day(
-        override_rows,
-        day=on,
-        settings=settings,
-    )
     base_day_bands = bands_for_day(list(focus_window.bands), on)
-    effective_bands, effective_strict = effective_day_map(focus_window, selected, on)
+    segments = effective_scheduling_day_segments(focus_window, override_rows, on, settings)
+    segments_payload = _segments_out(segments)
+    effective_bands = _unique_bands_out(segments)
+    effective_strict = all(segment.strict_mode for segment in segments) if segments else focus_window.strict_mode
+
+    override_rows_in_day = [
+        segment.day_override
+        for segment in segments
+        if segment.day_override is not None
+    ]
+    selected = override_rows_in_day[0] if override_rows_in_day else None
 
     if selected is None:
         return DatedResolutionOut(
@@ -306,6 +356,7 @@ def _build_dated_resolution(
             operator_timezone=operator_tz,
             override=None,
             replaces=None,
+            segments=segments_payload,
             note="Dated override resolution performed; no override applies on this scheduling day.",
         )
 
@@ -324,6 +375,20 @@ def _build_dated_resolution(
         effective_local_date=effective_local,
         payload=payload,
     )
+    full_day_override = segments_cover_full_scheduling_day_with_single_override(
+        segments,
+        on,
+        settings,
+    )
+    replaces_note = (
+        "Override replaces this scheduling day's Time Map bands and strict_mode only "
+        "(not workweek settings or the base map row)."
+        if full_day_override
+        else (
+            "Override applies for part of this scheduling day; each segment lists the "
+            "bands and strict_mode in effect for that UTC interval (matches placer bounds)."
+        )
+    )
     replaces = DatedOverrideReplacesOut(
         base_map_id=focus_window.id,
         inheritance_source=window_source,
@@ -333,7 +398,16 @@ def _build_dated_resolution(
         base_day_band_count=len(base_day_bands),
         effective_day_band_count=len(effective_bands),
         base_day_bands=_bands_out(base_day_bands),
-        effective_day_bands=_bands_out(effective_bands),
+        effective_day_bands=effective_bands,
+        note=replaces_note,
+    )
+    resolution_note = (
+        "Override replaces this scheduling day's bands and strict_mode on the effective map."
+        if full_day_override
+        else (
+            "Override applies for part of this scheduling day; see segments for interval "
+            "boundaries and per-portion bands (stored-zone start/end, not a full-day replacement)."
+        )
     )
     return DatedResolutionOut(
         performed=True,
@@ -341,7 +415,8 @@ def _build_dated_resolution(
         operator_timezone=operator_tz,
         override=override_detail,
         replaces=replaces,
-        note="Override replaces this scheduling day's bands and strict_mode on the effective map.",
+        segments=segments_payload,
+        note=resolution_note,
     )
 
 
@@ -490,7 +565,11 @@ def build_task_scheduling_effective(
     map_strict = focus_window.strict_mode if focus_window is not None else False
     map_band_count = len(focus_window.bands) if focus_window is not None else 0
 
-    if on is not None and focus_window is not None and dated.replaces is not None:
+    if on is not None and focus_window is not None and dated.segments:
+        display_bands = dated.replaces.effective_day_bands if dated.replaces else []
+        display_strict = dated.replaces.effective_strict_mode if dated.replaces else focus_window.strict_mode
+        display_band_count = len(display_bands)
+    elif on is not None and focus_window is not None and dated.replaces is not None:
         display_bands = dated.replaces.effective_day_bands
         display_strict = dated.replaces.effective_strict_mode
         display_band_count = dated.replaces.effective_day_band_count
@@ -509,7 +588,22 @@ def build_task_scheduling_effective(
         display_band_count = 0
 
     has_assignment = window_id is not None
-    if on is not None:
+    if on is not None and focus_window is not None and dated.segments:
+        empty_kind = _empty_kind_from_segments(
+            has_assignment=has_assignment,
+            segments=[
+                EffectiveSchedulingDaySegment(
+                    start=row.start,
+                    end=row.end,
+                    source=row.source,
+                    day_override=None,
+                    bands=list(row.day_bands),
+                    strict_mode=row.strict_mode,
+                )
+                for row in dated.segments
+            ],
+        )
+    elif on is not None:
         empty_kind = _empty_kind_for_map(
             has_assignment=has_assignment,
             strict_mode=display_strict if display_strict is not None else False,

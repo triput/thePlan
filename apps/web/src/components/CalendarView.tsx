@@ -37,7 +37,7 @@ import {
 } from "../api";
 import {
   bandWallClockContextForSchedulingDay,
-  effectiveTimeMapBandsForDay,
+  effectiveTimeMapSegmentsForDay,
   sortTimeMapBandsForOverlay,
 } from "../timeMapOverrides";
 import {
@@ -284,28 +284,29 @@ export function CalendarView({ onPreviewSchedule }: CalendarViewProps) {
     (day: Date) => {
       if (!overlayFocusWindow || !settingsQuery.data) {
         return {
-          bands: undefined as undefined,
+          segments: undefined as undefined,
           overrideActive: false,
-          strictAllDayUnavailable: false,
           bandWallClock: undefined as undefined,
         };
       }
-      const { bands, override, strictMode } = effectiveTimeMapBandsForDay(
+      const segments = effectiveTimeMapSegmentsForDay(
         overlayFocusWindow,
         overlayOverrides,
         day,
         settingsQuery.data,
       );
-      const sorted = sortTimeMapBandsForOverlay(bands);
+      const bandWallClock = bandWallClockContextForSchedulingDay(
+        day,
+        settingsQuery.data,
+        segments.find((segment) => segment.override)?.override ?? null,
+      );
       return {
-        bands: sorted,
-        overrideActive: override !== null,
-        strictAllDayUnavailable: strictMode && sorted.length === 0,
-        bandWallClock: bandWallClockContextForSchedulingDay(
-          day,
-          settingsQuery.data,
-          override,
-        ),
+        segments: segments.map((segment) => ({
+          ...segment,
+          bands: sortTimeMapBandsForOverlay(segment.bands),
+        })),
+        overrideActive: segments.some((segment) => segment.source === "override"),
+        bandWallClock,
       };
     },
     [overlayFocusWindow, overlayOverrides, settingsQuery.data],
@@ -903,10 +904,9 @@ export function CalendarView({ onPreviewSchedule }: CalendarViewProps) {
                 onTaskDrop={handleTaskDrop}
                 showDayLabel={mode === "week"}
                 showOverrideBadgeOnly={mode === "day" && dayOverlayHeader}
-                timeMapBands={timeMapOverlay.bands}
+                timeMapSegments={timeMapOverlay.segments}
                 timeMapBandWallClock={timeMapOverlay.bandWallClock}
                 timeMapOverrideActive={timeMapOverlay.overrideActive}
-                timeMapStrictAllDayUnavailable={timeMapOverlay.strictAllDayUnavailable}
               />
             );
             })}
