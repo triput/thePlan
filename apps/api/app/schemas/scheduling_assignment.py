@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13 (V4-D4: RuleRemoveNamedIn / remove-named)
+#  Last Update: 2026-10-14 (V4b day-scoped schemas)
 # ==============================================================================
 
 """Distinct representations (V4-P3):
@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 from uuid import UUID
 
@@ -263,3 +263,147 @@ class RuleMutationOut(BaseModel):
     scheduling_revision: int
     rule: SchedulingRuleOut | None = None
     exception: RuleExceptionOut | None = None
+
+
+# ---- S2-V4b day-scoped (extra=allow so undeclared keys reach writers) ----
+
+
+class DayScopedSelectorIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    kind: Literal["one_date", "weekday_standing", "date_range"]
+    on_date: date | None = None
+    on: date | None = None
+    weekdays: list[int] | int | None = None
+    weekday: int | None = None
+    days_of_week: list[int] | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    local_start_date: date | None = None
+    local_end_date: date | None = None
+
+
+class DayScopedBaseIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    expected_revision: int
+    selector: DayScopedSelectorIn | None = None
+    on_date: date | str | None = None
+    on: date | str | None = None
+    weekday: int | None = None
+    weekdays: list[int] | int | None = None
+    days_of_week: list[int] | None = None
+    date_range: dict[str, Any] | None = None
+    local_start_date: date | str | None = None
+    local_end_date: date | str | None = None
+    expires_at: datetime | str | None = None
+    expiry: datetime | str | None = None
+    expires_on: datetime | str | None = None
+    replaces_op_ids: list[UUID] | None = None
+    replaces: list[UUID] | None = None
+    addition_survives: bool | None = None
+    context: Any | None = None
+    context_id: Any | None = None
+    context_slug: Any | None = None
+
+
+class DayChangeSelectedIn(DayScopedBaseIn):
+    policy_id: UUID | None = None
+    empty_set: bool = False
+    empty: bool | None = None
+
+
+class DayOnlyAllowIn(DayScopedBaseIn):
+    policy_id: UUID | None = None
+    empty_set: bool = False
+    empty: bool | None = None
+
+
+class FamilyReplaceScopedIn(DayScopedBaseIn):
+    target_family: Literal["legacy", "new_rule", "none"]
+    preferred_time_window_id: UUID | None = None
+    may: MaySpecIn | None = None
+    must: list[RuleContentIn] = Field(default_factory=list)
+    prefer: list[RuleContentIn] = Field(default_factory=list)
+
+
+class ClearScopedIn(DayScopedBaseIn):
+    pass
+
+
+class RevertScopedIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    expected_revision: int
+    replacement_id: UUID
+    context: Any | None = None
+    context_id: Any | None = None
+
+
+class RuleAddScopedIn(DayScopedBaseIn):
+    name: str
+    kind: Literal["may", "must", "prefer"]
+    policy_id: UUID | None = None
+    empty_set: bool = False
+
+
+class RuleReplaceNamedScopedIn(DayScopedBaseIn):
+    target_rule_name: str
+    target_rule_kind: Literal["may", "must", "prefer"]
+    replacement_name: str
+    policy_id: UUID | None = None
+    empty_set: bool = False
+
+
+class RuleWaiveNamedScopedIn(DayScopedBaseIn):
+    target_rule_name: str
+
+
+class RuleRemoveNamedScopedIn(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    expected_revision: int
+    op_id: UUID
+    context: Any | None = None
+    context_id: Any | None = None
+
+
+class DayScopedOpOut(BaseModel):
+    id: UUID
+    op_kind: str
+    scope: Literal["task", "project", "epic"]
+    scope_id: UUID
+    selector_kind: str
+    civil_on_date: str | None = None
+    civil_weekdays: list[int] | None = None
+    civil_start_date: str | None = None
+    civil_end_date: str | None = None
+    expires_at: str | None = None
+    payload_kind: str
+    policy_id: UUID | None = None
+    rule_name: str | None = None
+    rule_kind: str | None = None
+    target_rule_name: str | None = None
+    target_rule_kind: str | None = None
+    replacement_name: str | None = None
+    replacement_policy_id: UUID | None = None
+    replacement_empty_set: bool = False
+    target_family: str | None = None
+    replaces_op_ids: list[str] = Field(default_factory=list)
+    addition_survives: bool | None = None
+    assignment_id: UUID | None = None
+
+
+class DayScopedMutationOut(BaseModel):
+    scope: Literal["task", "project", "epic"]
+    scope_id: UUID
+    scheduling_revision: int
+    op: DayScopedOpOut | None = None
+    replacement_id: UUID | None = None
+    restored_replacement_id: UUID | None = None
+    cleared_scoped: bool | None = None
+    removed_op_id: UUID | None = None
+    removed: DayScopedOpOut | None = None
+    family: Literal["none", "legacy", "new_rule"] | None = None
+    preferred_time_window_id: UUID | None = None
+    assignment: LocalAssignmentOut | None = None

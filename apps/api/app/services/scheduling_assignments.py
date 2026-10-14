@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13 (V4-D2: reject colliding replacement names)
+#  Last Update: 2026-10-14 (V4b: split deferred temporal vs V7 context key sets)
 # ==============================================================================
 
 """Assignment writers. Paths are engineering; stubs match Discovery §2.1 labels.
@@ -12,6 +12,10 @@
 Named-rule HTTP/CLI: ``add``, ``replace-named``, ``waive-named``, ``remove-named``.
 ``remove-named`` deletes one standing addition or exception row and restores that
 named underlying rule; it is not a ``SchedulingExceptionOp`` value.
+
+Standing writers call ``reject_deferred_exception_forms`` (default) so V4b
+temporal selectors and V7 context keys reject with no write. Day-scoped writers
+live in ``scheduling_day_scoped`` and flip only the temporal set.
 """
 
 from __future__ import annotations
@@ -57,7 +61,9 @@ REVERT_UNUSABLE_CODE = "SCHEDULING_REVERT_UNUSABLE_PRIOR"
 REVERT_MISSING_CODE = "SCHEDULING_REVERT_NOT_AVAILABLE"
 REVERT_MISMATCH_CODE = "SCHEDULING_REVERT_MISMATCH"
 
-_DEFERRED_FORM_KEYS = frozenset(
+# V4b-authorized temporal / selector keys (standing writers still reject).
+# Context stays V7 — do not merge into this set.
+V4B_TEMPORAL_FORM_KEYS = frozenset(
     {
         "date_range",
         "local_start_date",
@@ -67,13 +73,22 @@ _DEFERRED_FORM_KEYS = frozenset(
         "weekday",
         "weekdays",
         "days_of_week",
+        "expiry",
+        "expires_on",
+        "expires_at",
+        "selector",
+    }
+)
+# V7 — always reject on every writer path that uses this helper.
+V7_CONTEXT_FORM_KEYS = frozenset(
+    {
         "context",
         "context_id",
         "context_slug",
-        "expiry",
-        "expires_on",
     }
 )
+# Back-compat alias: standing reject set = temporal ∪ context.
+_DEFERRED_FORM_KEYS = V4B_TEMPORAL_FORM_KEYS | V7_CONTEXT_FORM_KEYS
 _FORBIDDEN_FORM_KEYS = frozenset(
     {
         "ignore_all",
@@ -90,10 +105,20 @@ _COLLISION_GUIDANCE = (
 )
 
 
-def reject_deferred_exception_forms(payload: dict[str, Any] | None) -> None:
-    """V4b/V7: dated, weekday-standing, context forms reject with no write.
+def reject_deferred_exception_forms(
+    payload: dict[str, Any] | None,
+    *,
+    allow_v4b_temporal: bool = False,
+) -> None:
+    """Reject unauthorized exception forms with no write.
 
-    Ignore-all-restrictions is forbidden outright (SPEC §4.4), not parked.
+    Key sets are split on purpose (Discovery §12.3):
+
+    - **Forbidden** ignore-all — always reject (SPEC §4.4).
+    - **V7 context** — always reject; never flipped with V4b temporal keys.
+    - **V4b temporal / selector** — reject on standing writers
+      (``allow_v4b_temporal=False``). Authorized day-scoped writers pass
+      ``allow_v4b_temporal=True`` and validate the selector themselves.
     """
     if not payload:
         return
@@ -106,17 +131,29 @@ def reject_deferred_exception_forms(payload: dict[str, Any] | None) -> None:
             "SCHEDULING_EXCEPTION_FORBIDDEN",
             rejected_fields=forbidden,
         )
-    hit = sorted(_DEFERRED_FORM_KEYS.intersection(payload))
-    if not hit:
+    context_hit = sorted(V7_CONTEXT_FORM_KEYS.intersection(payload))
+    if context_hit:
+        raise ApiError(
+            422,
+            "Context-scoped scheduling exception forms are not writable "
+            "(deferred to V7). Saved configuration is unchanged.",
+            DEFERRED_FORM_CODE,
+            rejected_fields=context_hit,
+            deferred_to="V7",
+        )
+    if allow_v4b_temporal:
+        return
+    temporal_hit = sorted(V4B_TEMPORAL_FORM_KEYS.intersection(payload))
+    if not temporal_hit:
         return
     raise ApiError(
         422,
-        "Date-range, weekday-standing, and context-scoped scheduling exception "
-        "forms are not writable in S2-V4 (deferred to V4b / V7). Saved "
-        "configuration is unchanged.",
+        "Date-range, weekday-standing, and expiry selectors are not writable "
+        "on standing assignment writers. Use the day-scoped V4b endpoints. "
+        "Saved configuration is unchanged.",
         DEFERRED_FORM_CODE,
-        rejected_fields=hit,
-        deferred_to="V4b_or_V7",
+        rejected_fields=temporal_hit,
+        deferred_to="V4b",
     )
 
 

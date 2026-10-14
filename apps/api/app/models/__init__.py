@@ -10,6 +10,9 @@ from app.models.enums import (
     ScheduleStatus,
     ScheduleStyle,
     SchedulingAssignmentFamily,
+    SchedulingDayPayloadKind,
+    SchedulingDayScopedOpKind,
+    SchedulingDaySelectorKind,
     SchedulingExceptionOp,
     SchedulingMayPresence,
     SchedulingRuleKind,
@@ -23,6 +26,7 @@ from app.models.scheduling_assignment import (
     SchedulingAssignmentRule,
     SchedulingRuleException,
 )
+from app.models.scheduling_day_scoped import SchedulingDayScopedOp
 from app.models.handoff import HandoffReceipt
 from app.models.hierarchy import Epic, FocusWindow, Plan, Project, Section, TimeMapBand
 from app.models.label import Label, TaskLabel
@@ -68,6 +72,10 @@ __all__ = [
     "SchedulingAssignmentFamily",
     "SchedulingAssignmentRevert",
     "SchedulingAssignmentRule",
+    "SchedulingDayPayloadKind",
+    "SchedulingDayScopedOp",
+    "SchedulingDayScopedOpKind",
+    "SchedulingDaySelectorKind",
     "SchedulingExceptionOp",
     "SchedulingMayPresence",
     "SchedulingRuleException",

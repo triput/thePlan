@@ -98,3 +98,43 @@ class SchedulingAssignmentFamily(str, enum.Enum):
 class SchedulingExceptionOp(str, enum.Enum):
     replace_named = "replace_named"
     waive_named = "waive_named"
+
+
+class SchedulingDayScopedOpKind(str, enum.Enum):
+    """Persisted day-scoped op kinds (Discovery §2.1 stubs → storage).
+
+    Stub ``day.change_selected`` → ``change_selected``, etc.
+    ``revert_scoped`` and ``remove_named_scoped`` are writers that act on
+    existing rows; they are not stored op_kind values.
+    """
+
+    change_selected = "change_selected"
+    only_allow = "only_allow"
+    family_replace_scoped = "family_replace_scoped"
+    clear_scoped = "clear_scoped"
+    add_scoped = "add_scoped"
+    replace_named_scoped = "replace_named_scoped"
+    waive_named_scoped = "waive_named_scoped"
+
+
+class SchedulingDaySelectorKind(str, enum.Enum):
+    """Civil selector kind. Lifetime / expiry are separate (R1)."""
+
+    one_date = "one_date"
+    weekday_standing = "weekday_standing"
+    date_range = "date_range"
+
+
+class SchedulingDayPayloadKind(str, enum.Enum):
+    """Distinct omit vs empty vs windows (V4-P3 / §2.1).
+
+    ``none`` — no windows payload (clear / waive).
+    ``empty`` — explicit empty set (no ancestor / General fall-through).
+    ``policy`` — windows from an owned availability policy.
+    ``family`` — scoped family-replace target payload (JSONB).
+    """
+
+    none = "none"
+    empty = "empty"
+    policy = "policy"
+    family = "family"

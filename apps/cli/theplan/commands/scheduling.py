@@ -1,10 +1,10 @@
 # ==============================================================================
 #  File: apps/cli/theplan/commands/scheduling.py
-#  Description: CLI for S2-V4 assignment family replace/clear/revert + named rules.
+#  Description: CLI for S2-V4/V4b assignment + day-scoped writers (body forward).
 #  Component: CLI
-#  Version: 1.0
+#  Version: 1.1
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13 (V4-D4: rule-remove-named)
+#  Last Update: 2026-10-14 (V4b day-scoped forward parity)
 # ==============================================================================
 
 from __future__ import annotations
@@ -27,7 +27,8 @@ def _scope_path(scope: str, scope_id: str, suffix: str = "") -> str:
 
 def register_scheduling(sub: argparse._SubParsersAction) -> None:
     help_text = (
-        "Scheduling assignments (S2-V4): family-replace / clear / revert / named rules"
+        "Scheduling assignments (S2-V4/V4b): standing + day-scoped writers. "
+        "JSON body is forwarded as-is (selectors/expiry not stripped)."
     )
     scheduling = sub.add_parser("scheduling", help=help_text, description=help_text)
     scheduling_sub = scheduling.add_subparsers(dest="scheduling_command", required=True)
@@ -41,6 +42,10 @@ def register_scheduling(sub: argparse._SubParsersAction) -> None:
         )
         parser.add_argument("--id", required=True, dest="scope_id", help="Scope entity UUID")
 
+    def _body_args(parser: argparse.ArgumentParser) -> None:
+        parser.add_argument("--file", dest="file_path", default=None)
+        parser.add_argument("--stdin", action="store_true")
+
     get_p = scheduling_sub.add_parser("get", help="Get local assignment at scope")
     _scope_args(get_p)
 
@@ -49,16 +54,14 @@ def register_scheduling(sub: argparse._SubParsersAction) -> None:
         help="Ordinary new-rule write (rejects on legacy collision)",
     )
     _scope_args(put_p)
-    put_p.add_argument("--file", dest="file_path", default=None)
-    put_p.add_argument("--stdin", action="store_true")
+    _body_args(put_p)
 
     replace_p = scheduling_sub.add_parser(
         "family-replace",
         help="Explicit family switch; preserves revert payload",
     )
     _scope_args(replace_p)
-    replace_p.add_argument("--file", dest="file_path", default=None)
-    replace_p.add_argument("--stdin", action="store_true")
+    _body_args(replace_p)
 
     clear_p = scheduling_sub.add_parser(
         "clear",
@@ -66,8 +69,7 @@ def register_scheduling(sub: argparse._SubParsersAction) -> None:
     )
     _scope_args(clear_p)
     clear_p.add_argument("--expected-revision", type=int, required=True)
-    clear_p.add_argument("--file", dest="file_path", default=None)
-    clear_p.add_argument("--stdin", action="store_true")
+    _body_args(clear_p)
 
     revert_p = scheduling_sub.add_parser(
         "revert",
@@ -76,29 +78,25 @@ def register_scheduling(sub: argparse._SubParsersAction) -> None:
     _scope_args(revert_p)
     revert_p.add_argument("--expected-revision", type=int, required=True)
     revert_p.add_argument("--replacement-id", required=True)
-    revert_p.add_argument("--file", dest="file_path", default=None)
-    revert_p.add_argument("--stdin", action="store_true")
+    _body_args(revert_p)
 
     add_p = scheduling_sub.add_parser("rule-add", help="Named-rule addition (new-rule family)")
     _scope_args(add_p)
-    add_p.add_argument("--file", dest="file_path", default=None)
-    add_p.add_argument("--stdin", action="store_true")
+    _body_args(add_p)
 
     replace_named_p = scheduling_sub.add_parser(
         "rule-replace-named",
         help="Named-rule replacement exception",
     )
     _scope_args(replace_named_p)
-    replace_named_p.add_argument("--file", dest="file_path", default=None)
-    replace_named_p.add_argument("--stdin", action="store_true")
+    _body_args(replace_named_p)
 
     waive_p = scheduling_sub.add_parser(
         "rule-waive-named",
         help="Named Must waiver exception",
     )
     _scope_args(waive_p)
-    waive_p.add_argument("--file", dest="file_path", default=None)
-    waive_p.add_argument("--stdin", action="store_true")
+    _body_args(waive_p)
 
     remove_p = scheduling_sub.add_parser(
         "rule-remove-named",
@@ -108,8 +106,66 @@ def register_scheduling(sub: argparse._SubParsersAction) -> None:
         ),
     )
     _scope_args(remove_p)
-    remove_p.add_argument("--file", dest="file_path", default=None)
-    remove_p.add_argument("--stdin", action="store_true")
+    _body_args(remove_p)
+
+    # ---- V4b day-scoped (body forwarded; API validates selectors) ----
+    list_day = scheduling_sub.add_parser(
+        "day-scoped-list",
+        help="List day-scoped ops at scope",
+    )
+    _scope_args(list_day)
+
+    for name, help_msg, suffix in (
+        (
+            "day-change-selected",
+            "Change selected days (day.change_selected)",
+            "/day/change-selected",
+        ),
+        (
+            "day-only-allow",
+            "Only-allow selected days/times (day.only_allow)",
+            "/day/only-allow",
+        ),
+        (
+            "family-replace-scoped",
+            "Scoped family replace overlay",
+            "/assignment/family-replace-scoped",
+        ),
+        (
+            "clear-scoped",
+            "Scoped clear (suppress local; standing kept)",
+            "/assignment/clear-scoped",
+        ),
+        (
+            "revert-scoped",
+            "Revert scoped family-replace (captured prior)",
+            "/assignment/revert-scoped",
+        ),
+        (
+            "rule-add-scoped",
+            "Named-rule addition with day/date selector",
+            "/rules/add-scoped",
+        ),
+        (
+            "rule-replace-named-scoped",
+            "Named-rule replacement with day/date selector",
+            "/rules/replace-named-scoped",
+        ),
+        (
+            "rule-waive-named-scoped",
+            "Named Must waiver with day/date selector",
+            "/rules/waive-named-scoped",
+        ),
+        (
+            "rule-remove-named-scoped",
+            "Remove one day-scoped op by stable op_id",
+            "/rules/remove-named-scoped",
+        ),
+    ):
+        p = scheduling_sub.add_parser(name, help=help_msg)
+        _scope_args(p)
+        _body_args(p)
+        p.set_defaults(_v4b_suffix=suffix)
 
 
 def _body_from_args(args: argparse.Namespace, *, require_body: bool) -> dict[str, Any]:
@@ -134,6 +190,9 @@ def _summarize(row: dict[str, Any]) -> None:
         print(f"replacement_id: {row.get('replacement_id')}")
     if row.get("revert_replacement_id"):
         print(f"revert_replacement_id: {row.get('revert_replacement_id')}")
+    if row.get("op"):
+        op = row["op"]
+        print(f"op: {op.get('op_kind')} id={op.get('id')} selector={op.get('selector_kind')}")
     may = row.get("may")
     if isinstance(may, dict):
         print(f"may.presence: {may.get('presence')} rules={len(may.get('rules') or [])}")
@@ -161,7 +220,23 @@ def run_scheduling(args: argparse.Namespace) -> None:
         emit_ok(data)
         return
 
-    if cmd == "put":
+    if cmd == "day-scoped-list":
+        data = api_json("GET", _scope_path(scope, scope_id, "/day-scoped"))
+        if get_output_format() == "text":
+            print(json.dumps(data, indent=2, default=str))
+            return
+        emit_ok(data)
+        return
+
+    v4b_suffix = getattr(args, "_v4b_suffix", None)
+    if v4b_suffix is not None:
+        body = _body_from_args(args, require_body=True)
+        data = api_json(
+            "POST",
+            _scope_path(scope, scope_id, v4b_suffix),
+            json_body=body,
+        )
+    elif cmd == "put":
         body = _body_from_args(args, require_body=True)
         data = api_json("PUT", _scope_path(scope, scope_id), json_body=body)
     elif cmd == "family-replace":
