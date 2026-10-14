@@ -4,7 +4,7 @@
 #  Component: CLI
 #  Version: 1.1
 #  Created: 2026-10-12
-#  Last Update: 2026-10-12 (S1-D4: expose scheduling_revision on settings get)
+#  Last Update: 2026-10-13 (S2-V3: reject legacy workweek settings writes)
 # ==============================================================================
 
 from __future__ import annotations
@@ -19,14 +19,21 @@ from theplan.errors import CliError
 from theplan.input_helpers import read_json_body
 from theplan.output import emit_ok, get_output_format
 
+_LEGACY_WORKWEEK_CLI_FIELDS = frozenset(
+    {"workweek_days", "workday_start_local", "workday_minutes"}
+)
+_LEGACY_WORKWEEK_CLI_MESSAGE = (
+    "workweek_days, workday_start_local, and workday_minutes are no longer writable "
+    "via settings patch. Use: theplan availability patch --ref work|general "
+    "(API: PATCH /api/v1/availability-policies/work or …/general). "
+    "nominal_workday_minutes remains on settings patch."
+)
+
 _SETTINGS_PATH = "/api/v1/settings"
 
 # Mirrors app.services.scheduling_revision.SETTINGS_SCHEDULING_FIELDS (help only).
 _SCHEDULING_REVISION_FIELDS = (
     "timezone",
-    "workday_minutes",
-    "workday_start_local",
-    "workweek_days",
     "inter_block_buffer_minutes",
     "ups_weights",
     "upcoming_horizon_days",
@@ -49,6 +56,8 @@ _PATCH_EPILOG = (
     "Changing scheduling-related fields bumps the owner's scheduling_revision "
     f"(next replan / progress token): {', '.join(_SCHEDULING_REVISION_FIELDS)}. "
     "nominal_workday_minutes and default_max_block_* do not bump revision. "
+    "Legacy workweek_days / workday_start_local / workday_minutes are rejected — "
+    "edit Working/General via: theplan availability patch. "
     "Read the current token with: theplan settings get"
 )
 
@@ -81,22 +90,14 @@ def register_settings(sub: argparse._SubParsersAction) -> None:
     )
     patch_p.add_argument("--timezone", default=None)
     patch_p.add_argument("--locale", default=None)
-    patch_p.add_argument("--workday-minutes", dest="workday_minutes", type=int, default=None)
     patch_p.add_argument(
         "--nominal-workday-minutes",
         dest="nominal_workday_minutes",
         default=None,
         metavar="MINUTES",
-        help="Effort conversion day length (not legacy workday_minutes placement hours). "
+        help="Effort conversion day length (distinct from deprecated placement workday_minutes). "
         "Accepts friendly hours/minutes (8h, 480, 7h 30m).",
     )
-    patch_p.add_argument(
-        "--workday-start-local",
-        dest="workday_start_local",
-        default=None,
-        metavar="HH:MM",
-    )
-    patch_p.add_argument("--workweek-days", dest="workweek_days", type=int, default=None)
     patch_p.add_argument(
         "--inter-block-buffer-minutes",
         dest="inter_block_buffer_minutes",
@@ -182,10 +183,7 @@ def _patch_from_flags(args: argparse.Namespace) -> dict[str, Any]:
     scalar_fields = (
         "timezone",
         "locale",
-        "workday_minutes",
         "nominal_workday_minutes",
-        "workday_start_local",
-        "workweek_days",
         "inter_block_buffer_minutes",
         "upcoming_horizon_days",
         "default_estimated_duration_minutes",
@@ -228,11 +226,24 @@ def _patch_from_flags(args: argparse.Namespace) -> dict[str, Any]:
     return body
 
 
+def _reject_legacy_workweek_cli(body: dict[str, Any]) -> None:
+    touched = _LEGACY_WORKWEEK_CLI_FIELDS.intersection(body)
+    if not touched:
+        return
+    raise CliError(
+        code="LEGACY_WORKWEEK_SETTINGS_REJECTED",
+        message=_LEGACY_WORKWEEK_CLI_MESSAGE,
+        exit_code=1,
+        extra={"rejected_fields": sorted(touched)},
+    )
+
+
 def _merge_patch_body(args: argparse.Namespace) -> dict[str, Any]:
     from_file: dict[str, Any] = {}
     if args.file_path or args.stdin:
         from_file = read_json_body(file_path=args.file_path, use_stdin=args.stdin)
     body = {**from_file, **_patch_from_flags(args)}
+    _reject_legacy_workweek_cli(body)
     if not body:
         raise CliError(
             code="INVALID_USAGE",
@@ -247,10 +258,7 @@ def _summarize_settings(row: dict[str, Any]) -> None:
         "scheduling_revision",
         "timezone",
         "locale",
-        "workday_minutes",
         "nominal_workday_minutes",
-        "workday_start_local",
-        "workweek_days",
         "inter_block_buffer_minutes",
         "upcoming_horizon_days",
         "default_estimated_duration_minutes",

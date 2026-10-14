@@ -32,7 +32,7 @@ from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
 )
-from app.schemas.availability import AvailabilityWindowOut, SCHEDULING_CONFIG_ONLY_COPY
+from app.schemas.availability import AvailabilityWindowOut
 from app.schemas.hierarchy import TimeMapBandOut
 from app.schemas.task_scheduling import (
     DatedOverrideDetailOut,
@@ -51,6 +51,12 @@ from app.schemas.task_scheduling import (
 from app.services.auth_users import get_or_provision_user_settings
 from app.services.chunking_effective import resolve_block_bounds
 from app.services.keep_in_one_conflicts import keep_in_one_scheduling_conflicts
+from app.services.s2_v3_availability_guard import (
+    V3_DIVERGENCE_ACTIVATION_NOTE,
+    V3_NEW_RULE_INACTIVE_NOTE,
+    s2_v3_availability_cutover_live,
+    scheduling_effective_note_for_surface,
+)
 from app.services.task_chunking_guard import chunking_cutover_writes_unlocked
 
 
@@ -108,7 +114,15 @@ def _working_divergence(
     windows: list,
 ) -> tuple[bool, str | None]:
     preview = _preview_workweek_mirror_from_working_windows(windows)
+    v3 = s2_v3_availability_cutover_live()
     if preview.kind == "invalid":
+        if v3:
+            return (
+                True,
+                "Saved Working windows use a non-mirrorable pattern (ambiguous, gapped, or "
+                "heterogeneous). Placer reads saved Working after S2-V3; legacy workweek_* "
+                "is inactive provenance.",
+            )
         return (
             True,
             "Saved Working windows use a non-mirrorable pattern (ambiguous, gapped, or "
@@ -116,6 +130,12 @@ def _working_divergence(
         )
     if preview.kind == "empty":
         if settings.workweek_days != 0:
+            if v3:
+                return (
+                    True,
+                    "Saved Working has no windows but legacy workweek_* still shows open days. "
+                    f"{V3_DIVERGENCE_ACTIVATION_NOTE}",
+                )
             return (
                 True,
                 "Saved Working has no windows (workweek_days=0 when synced) but legacy "
@@ -123,6 +143,13 @@ def _working_divergence(
             )
         return False, None
     if preview.kind == "config_only":
+        if v3:
+            return (
+                True,
+                "Saved Working weekdays or hours do not mirror legacy workweek_* (expected "
+                "after S2-V3). Placer reads saved Working; legacy mirror is inactive "
+                "provenance.",
+            )
         return (
             True,
             "Saved Working weekdays or hours cannot mirror into legacy workweek_* (config-only "
@@ -137,6 +164,11 @@ def _working_divergence(
         or preview.workday_minutes != settings.workday_minutes
     )
     if diverges:
+        if v3:
+            return (
+                True,
+                f"Saved Working differs from legacy workweek_* mirror. {V3_DIVERGENCE_ACTIVATION_NOTE}",
+            )
         return (
             True,
             "Saved Working mirrors a Monday-first pattern but legacy workweek_* "
@@ -181,6 +213,28 @@ def _saved_policy_out(
     divergence_note: str | None = None
     if check_divergence and settings is not None:
         diverges, divergence_note = _working_divergence(settings, list(policy.windows))
+    v3 = s2_v3_availability_cutover_live()
+    if slug == AvailabilityPolicySlug.work and v3:
+        placer_active = True
+        saved_but_unsupported = False
+        note = (
+            "Saved Working availability drives global clip after S2-V3. "
+            "Legacy workweek_* is read-only provenance."
+        )
+    elif slug == AvailabilityPolicySlug.general and v3:
+        placer_active = True
+        saved_but_unsupported = False
+        note = (
+            "Saved General availability drives unclassified eligibility after S2-V3."
+        )
+    elif slug == AvailabilityPolicySlug.personal:
+        placer_active = False
+        saved_but_unsupported = True
+        note = default_note if not v3 else V3_NEW_RULE_INACTIVE_NOTE
+    else:
+        placer_active = False
+        saved_but_unsupported = True
+        note = default_note
     return SavedAvailabilityPolicyOut(
         policy_id=policy.id,
         slug=policy.slug.value,
@@ -189,9 +243,9 @@ def _saved_policy_out(
             AvailabilityWindowOut.model_validate(row)
             for row in sorted(policy.windows, key=lambda w: (w.weekday, w.sort_order))
         ],
-        placer_active=False,
-        saved_but_unsupported=True,
-        note=default_note,
+        placer_active=placer_active,
+        saved_but_unsupported=saved_but_unsupported,
+        note=note,
         diverges_from_legacy=diverges,
         divergence_note=divergence_note,
     )
@@ -303,16 +357,18 @@ def _build_sources(
     time_map: TimeMapEffectiveOut,
 ) -> list[SchedulingSourceOut]:
     sources: list[SchedulingSourceOut] = []
+    v3 = s2_v3_availability_cutover_live()
 
     sources.append(
         SchedulingSourceOut(
             kind="legacy_workweek",
             label="Working hours (legacy workweek settings)",
-            placer_active=True,
+            placer_active=not v3,
             detail=(
                 f"workweek_days={settings.workweek_days}, "
                 f"workday_start={settings.workday_start_local.strftime('%H:%M')}, "
                 f"workday_minutes={settings.workday_minutes}, tz={settings.timezone}"
+                + ("; inactive after S2-V3" if v3 else "")
             ),
         )
     )
@@ -331,8 +387,12 @@ def _build_sources(
             SchedulingSourceOut(
                 kind="legacy_unclassified",
                 label="Unclassified eligibility (legacy global workweek)",
-                placer_active=True,
-                detail="General policy link is config-only until S2",
+                placer_active=not v3,
+                detail=(
+                    "General policy link drives unclassified eligibility after S2-V3"
+                    if v3
+                    else "General policy link is config-only until S2"
+                ),
             )
         )
 
@@ -340,7 +400,7 @@ def _build_sources(
         SchedulingSourceOut(
             kind="availability_general",
             label="General availability policy",
-            placer_active=False,
+            placer_active=general_saved.placer_active,
             detail=general_saved.note or "Seeded/edited in Settings; not used by placer in S1",
         )
     )
@@ -356,7 +416,7 @@ def _build_sources(
         SchedulingSourceOut(
             kind="availability_work",
             label="Working availability policy",
-            placer_active=False,
+            placer_active=working_saved.placer_active,
             detail=work_detail,
         )
     )
@@ -507,12 +567,13 @@ def build_task_scheduling_effective(
         default_note="Saved Personal availability; not unioned into placer eligibility in S1.",
     )
 
+    v3 = s2_v3_availability_cutover_live()
     working_hours_active = LegacyWorkweekActiveOut(
         workweek_days=settings.workweek_days,
         workday_start_local=settings.workday_start_local,
         workday_minutes=settings.workday_minutes,
         timezone=settings.timezone,
-        placer_active=True,
+        placer_active=not v3,
     )
 
     effort = placement_effort_minutes(task)
@@ -591,15 +652,16 @@ def build_task_scheduling_effective(
         time_map=time_map,
     )
 
+    effective_note = scheduling_effective_note_for_surface()
     return TaskSchedulingEffectiveOut(
         task_id=task.id,
-        scheduling_effective_note=SCHEDULING_CONFIG_ONLY_COPY,
+        scheduling_effective_note=effective_note,
         placement_effort_minutes=effort,
         sources=sources,
         legacy_time_map_id=window_id,
         legacy_time_map_source=window_source,
-        general_policy_scheduling_effective=False,
-        working_hours_placer_active=True,
+        general_policy_scheduling_effective=v3,
+        working_hours_placer_active=not v3,
         time_map=time_map,
         working_hours_active=working_hours_active,
         working_policy_saved=working_saved,

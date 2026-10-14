@@ -22,18 +22,24 @@ from app.services.availability_policies import (
     list_policies,
     update_policy,
 )
+from app.services.s2_v3_availability_guard import (
+    policy_scheduling_effective_for_slug,
+    scheduling_effective_note_for_surface,
+)
 
 router = APIRouter(prefix="/availability-policies", tags=["availability"])
 
 
 def _policy_out(policy) -> AvailabilityPolicyOut:
+    slug_value = policy.slug.value if hasattr(policy.slug, "value") else str(policy.slug)
     return AvailabilityPolicyOut.model_validate(
         {
             "id": policy.id,
             "slug": policy.slug,
             "name": policy.name,
             "sort_order": policy.sort_order,
-            "scheduling_effective": False,
+            "scheduling_effective": policy_scheduling_effective_for_slug(slug_value),
+            "scheduling_effective_note": scheduling_effective_note_for_surface(),
             "windows": [AvailabilityWindowOut.model_validate(window) for window in policy.windows],
         }
     )
@@ -84,11 +90,13 @@ def availability_policy_effective(
 ) -> AvailabilityPolicyEffectiveOut:
     policy = get_policy(db, user, policy_ref)
     windows, provenance = effective_windows_for_date(policy, on)
+    slug_value = policy.slug.value if hasattr(policy.slug, "value") else str(policy.slug)
     return AvailabilityPolicyEffectiveOut(
         policy_id=policy.id,
         slug=policy.slug,
         on_date=on,
-        scheduling_effective=False,
+        scheduling_effective=policy_scheduling_effective_for_slug(slug_value),
+        scheduling_effective_note=scheduling_effective_note_for_surface(),
         windows=[AvailabilityWindowOut.model_validate(window) for window in windows],
         provenance=provenance,
     )

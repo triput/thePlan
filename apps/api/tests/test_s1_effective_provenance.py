@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models import AvailabilityPolicy, AvailabilityWindow, UserSettings
 from app.models.enums import AvailabilityPolicySlug
-from app.schemas.availability import SCHEDULING_CONFIG_ONLY_COPY
+from app.services.s2_v3_availability_guard import V3_SCHEDULING_EFFECTIVE_NOTE
 from app.services.availability_seed import ensure_default_availability_policies
 
 
@@ -120,10 +120,10 @@ def test_a2_unclassified_fallback(client: TestClient, db_session: Session) -> No
 
     assert body["time_map"]["assignment_status"] == "unclassified_fallback"
     assert body["time_map"]["empty_kind"] == "no_assignment_fallback"
-    assert body["general_policy_scheduling_effective"] is False
-    assert body["working_hours_placer_active"] is True
-    assert body["general_policy_saved"]["placer_active"] is False
-    assert body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+    assert body["general_policy_scheduling_effective"] is True
+    assert body["working_hours_placer_active"] is False
+    assert body["general_policy_saved"]["placer_active"] is True
+    assert body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
     kinds = {row["kind"] for row in body["sources"]}
     assert "legacy_unclassified" in kinds
     assert "availability_general" in kinds
@@ -404,7 +404,7 @@ def test_effective_read_survives_non_mirrorable_working_windows(
     assert response.status_code == 200, response.text
     saved = response.json()["working_policy_saved"]
     assert saved["diverges_from_legacy"] is True
-    assert saved["placer_active"] is False
+    assert saved["placer_active"] is True
 
 
 def test_a5_working_divergence_shows_both(client: TestClient, db_session: Session) -> None:
@@ -429,13 +429,15 @@ def test_a5_working_divergence_shows_both(client: TestClient, db_session: Sessio
     body = _effective(client, task["id"])
 
     assert body["working_hours_active"]["workweek_days"] == 3
-    assert body["working_hours_active"]["placer_active"] is True
-    assert body["working_policy_saved"]["placer_active"] is False
+    assert body["working_hours_active"]["placer_active"] is False
+    assert body["working_policy_saved"]["placer_active"] is True
     assert body["working_policy_saved"]["diverges_from_legacy"] is True
     assert len(body["working_policy_saved"]["windows"]) == 5
     work_source = next(s for s in body["sources"] if s["kind"] == "availability_work")
-    assert work_source["placer_active"] is False
-    assert "Diverges" in (work_source["detail"] or "")
+    assert work_source["placer_active"] is True
+    assert "Diverges" in (work_source["detail"] or "") or "differs" in (
+        work_source["detail"] or ""
+    ).lower()
 
 
 def test_a6_api_structured_fields_present(client: TestClient, db_session: Session) -> None:

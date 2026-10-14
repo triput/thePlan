@@ -87,9 +87,6 @@ TASK_SCHEDULING_PATCH_FIELDS = frozenset(
 SETTINGS_SCHEDULING_FIELDS = frozenset(
     {
         "timezone",
-        "workday_minutes",
-        "workday_start_local",
-        "workweek_days",
         "inter_block_buffer_minutes",
         "ups_weights",
         "upcoming_horizon_days",

@@ -43,7 +43,6 @@ def test_get_settings_returns_defaults(client: TestClient) -> None:
         json={
             "timezone": "UTC",
             "locale": "en-US",
-            "workday_start_local": "08:00",
         },
     )
     assert reset.status_code == 200, reset.text
@@ -86,19 +85,6 @@ def test_patch_settings_scheduling_field_bumps_revision_in_response(
     after = client.get("/api/v1/settings")
     assert after.status_code == 200, after.text
     assert after.json()["scheduling_revision"] == start + 1
-
-
-def test_patch_settings_workday_start(client: TestClient) -> None:
-    patch = client.patch(
-        "/api/v1/settings",
-        json={"workday_start_local": "09:30"},
-    )
-    assert patch.status_code == 200, patch.text
-    assert patch.json()["workday_start_local"] == "09:30"
-
-    get_after = client.get("/api/v1/settings")
-    assert get_after.status_code == 200
-    assert get_after.json()["workday_start_local"] == "09:30"
 
 
 def test_patch_settings_timezone_buffer_and_style(client: TestClient) -> None:

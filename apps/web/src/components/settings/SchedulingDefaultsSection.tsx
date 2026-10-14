@@ -27,7 +27,8 @@ export function SchedulingDefaultsSection({
     <section className="settings-section">
       <h3 className="settings-section-title">Scheduling defaults</h3>
       <p className="settings-help muted small">
-        Timezone, work capacity, and planner defaults used when scheduling tasks.
+        Timezone and planner defaults used when scheduling tasks. Working hours and General
+        availability are edited under Availability policies (not legacy workweek fields here).
       </p>
       {isLoading && <p className="muted small">Loading scheduling defaults…</p>}
       {isError && (
@@ -61,54 +62,6 @@ export function SchedulingDefaultsSection({
               autoComplete="off"
             />
           </label>
-          <div className="time-map-time-row">
-            <label className="field">
-              <span>Workday start</span>
-              <input
-                type="time"
-                value={draft.workday_start_local.slice(0, 5)}
-                onChange={(e) =>
-                  onDraftChange((prev) => ({
-                    ...prev,
-                    workday_start_local: e.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Workday minutes</span>
-              <input
-                type="number"
-                className="field-number"
-                min={1}
-                step={1}
-                value={draft.workday_minutes}
-                onChange={(e) =>
-                  onDraftChange((prev) => ({
-                    ...prev,
-                    workday_minutes: e.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Workweek days</span>
-              <input
-                type="number"
-                className="field-number"
-                min={1}
-                max={7}
-                step={1}
-                value={draft.workweek_days}
-                onChange={(e) =>
-                  onDraftChange((prev) => ({
-                    ...prev,
-                    workweek_days: e.target.value,
-                  }))
-                }
-              />
-            </label>
-          </div>
           <div className="time-map-time-row">
             <label className="field">
               <span>Buffer between blocks (minutes)</span>

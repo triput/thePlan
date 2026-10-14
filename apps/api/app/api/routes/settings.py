@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings
 #  Version: 1.1
 #  Created: 2026-10-01
-#  Last Update: 2026-10-12
+#  Last Update: 2026-10-13
 # ==============================================================================
 
 """User settings GET/PATCH."""
@@ -23,6 +23,7 @@ from app.services.scheduling_revision import (
     increment_scheduling_revision,
     lock_owner_scheduling,
 )
+from app.services.s2_v3_availability_guard import reject_legacy_workweek_settings_writes
 from app.services.task_chunking_guard import (
     reject_chunking_cutover_writes,
     validate_effective_settings_defaults_after_patch,
@@ -50,6 +51,7 @@ def update_settings(
     user: User = Depends(get_current_user),
 ) -> UserSettingsOut:
     updates = body.model_dump(exclude_unset=True)
+    reject_legacy_workweek_settings_writes(updates)
     reject_chunking_cutover_writes(updates)
     duration_conversion_note: str | None = None
     settings = get_or_provision_user_settings(db, user)

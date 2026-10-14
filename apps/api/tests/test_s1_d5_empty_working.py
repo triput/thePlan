@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.models import UserSettings
 from app.scheduler.placement import is_workday
-from app.schemas.availability import SCHEDULING_CONFIG_ONLY_COPY
+from app.services.s2_v3_availability_guard import V3_SCHEDULING_EFFECTIVE_NOTE
 from app.schemas.settings import UserSettingsUpdate
 from app.services.availability_policies import _sync_workweek_from_working_windows
 from app.services.availability_seed import ensure_default_availability_policies
@@ -169,8 +169,8 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     assert cleared.status_code == 200, cleared.text
     body = cleared.json()
     assert body["windows"] == []
-    assert body["scheduling_effective"] is False
-    assert body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+    assert body["scheduling_effective"] is True
+    assert body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
 
     stored = _stored(disposable_db, owner_id)
     assert stored.workweek_days == 0
@@ -211,7 +211,7 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     assert [window["weekday"] for window in restored_body["windows"]] == [0, 1, 2]
     assert {window["start_time"] for window in restored_body["windows"]} == {"10:00"}
     assert {window["duration_minutes"] for window in restored_body["windows"]} == {360}
-    assert restored_body["scheduling_effective"] is False
+    assert restored_body["scheduling_effective"] is True
 
     stored = _stored(disposable_db, owner_id)
     assert stored.workweek_days == 3
@@ -231,10 +231,10 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     assert [window["weekday"] for window in reread.json()["windows"]] == [0, 1, 2]
 
 
-def test_api_settings_patch_zero_does_not_clear_working_windows(
+def test_api_settings_patch_workweek_rejected_does_not_clear_working_windows(
     disposable_db: Session, client: TestClient
 ) -> None:
-    """Settings may store 0. That write does not rewrite Working windows."""
+    """S2-V3: legacy workweek settings writes are rejected; Working policy rows stay."""
     owner_id, revision, _general = _prepare(client, disposable_db)
     planted = client.patch(
         "/api/v1/availability-policies/work",
@@ -248,28 +248,14 @@ def test_api_settings_patch_zero_does_not_clear_working_windows(
     planted_revision = int(after_plant.scheduling_revision)
     assert planted_revision == revision + 1
 
-    patched = client.patch("/api/v1/settings", json={"workweek_days": 0})
-    assert patched.status_code == 200, patched.text
-    assert patched.json()["workweek_days"] == 0
-    assert patched.json()["workday_start_local"] == "10:00"
-    assert patched.json()["workday_minutes"] == 360
-    assert patched.json()["scheduling_revision"] == planted_revision + 1
+    rejected = client.patch("/api/v1/settings", json={"workweek_days": 0})
+    assert rejected.status_code == 422, rejected.text
+    assert rejected.json()["code"] == "LEGACY_WORKWEEK_SETTINGS_REJECTED"
 
     stored = _stored(disposable_db, owner_id)
-    assert stored.workweek_days == 0
-    assert int(stored.scheduling_revision) == planted_revision + 1
+    assert stored.workweek_days == 3
+    assert int(stored.scheduling_revision) == planted_revision
     reread = client.get("/api/v1/availability-policies/work")
     assert reread.status_code == 200, reread.text
     assert [window["weekday"] for window in reread.json()["windows"]] == [0, 1, 2]
     assert _work_window_count(disposable_db, owner_id) == 3
-
-    rejected = client.patch("/api/v1/settings", json={"workweek_days": 8})
-    assert rejected.status_code == 422, rejected.text
-    still = _stored(disposable_db, owner_id)
-    assert still.workweek_days == 0
-    assert int(still.scheduling_revision) == planted_revision + 1
-
-    negative = client.patch("/api/v1/settings", json={"workweek_days": -1})
-    assert negative.status_code == 422, negative.text
-    still = _stored(disposable_db, owner_id)
-    assert still.workweek_days == 0

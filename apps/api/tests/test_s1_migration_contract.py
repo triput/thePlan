@@ -480,21 +480,23 @@ def test_general_work_seed_readback_personal_empty_not_effective(
     assert _windows(seeded.overnight_owner_id, AvailabilityPolicySlug.personal) == []
     assert _policy(db_session, seeded.overnight_owner_id, AvailabilityPolicySlug.personal).name == "Personal"
 
+    from app.services.s2_v3_availability_guard import V3_SCHEDULING_EFFECTIVE_NOTE
+
     for slug in ("general", "work"):
         listed = client.get("/api/v1/availability-policies", params={"slug": slug})
         assert listed.status_code == 200, listed.text
         rows = listed.json()
         assert len(rows) == 1
         assert rows[0]["slug"] == slug
-        assert rows[0]["scheduling_effective"] is False
-        assert rows[0]["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+        assert rows[0]["scheduling_effective"] is True
+        assert rows[0]["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
         assert len(rows[0]["windows"]) == 3
 
         fetched = client.get(f"/api/v1/availability-policies/{slug}")
         assert fetched.status_code == 200, fetched.text
         body = fetched.json()
-        assert body["scheduling_effective"] is False
-        assert body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+        assert body["scheduling_effective"] is True
+        assert body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
         assert [window["weekday"] for window in body["windows"]] == [0, 1, 2]
         assert body["windows"][0]["start_time"] == "10:00"
         assert body["windows"][0]["end_time"] == "16:00"
@@ -507,8 +509,8 @@ def test_general_work_seed_readback_personal_empty_not_effective(
         )
         assert effective.status_code == 200, effective.text
         effective_body = effective.json()
-        assert effective_body["scheduling_effective"] is False
-        assert effective_body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+        assert effective_body["scheduling_effective"] is True
+        assert effective_body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
         assert effective_body["on_date"] == "2026-10-12"
         assert len(effective_body["windows"]) == 1
         assert any("Placer does not consume" in line for line in effective_body["provenance"])
@@ -518,7 +520,7 @@ def test_general_work_seed_readback_personal_empty_not_effective(
             params={"on": "2026-10-17"},
         )
         assert weekend.status_code == 200, weekend.text
-        assert weekend.json()["scheduling_effective"] is False
+        assert weekend.json()["scheduling_effective"] is True
         assert weekend.json()["windows"] == []
 
     personal_get = client.get("/api/v1/availability-policies/personal")

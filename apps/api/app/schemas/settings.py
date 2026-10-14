@@ -38,10 +38,25 @@ class UserSettingsOut(BaseModel):
 class UserSettingsUpdate(BaseModel):
     timezone: str | None = Field(default=None, min_length=1, max_length=64)
     locale: str | None = Field(default=None, min_length=1, max_length=16)
-    workday_minutes: int | None = Field(default=None, gt=0)
+    workday_minutes: int | None = Field(
+        default=None,
+        gt=0,
+        deprecated=True,
+        description="Deprecated (S2-V3). Use PATCH /availability-policies/work.",
+    )
     nominal_workday_minutes: int | str | None = None
-    workday_start_local: TimeField | None = None
-    workweek_days: int | None = Field(default=None, ge=0, le=7)
+    workday_start_local: TimeField | None = Field(
+        default=None,
+        deprecated=True,
+        description="Deprecated (S2-V3). Use PATCH /availability-policies/work.",
+    )
+    workweek_days: int | None = Field(
+        default=None,
+        ge=0,
+        le=7,
+        deprecated=True,
+        description="Deprecated (S2-V3). Use PATCH /availability-policies/work.",
+    )
     inter_block_buffer_minutes: int | None = Field(default=None, ge=0)
     ups_weights: dict[str, Any] | None = None
     upcoming_horizon_days: int | None = Field(default=None, ge=1)

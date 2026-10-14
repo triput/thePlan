@@ -123,16 +123,15 @@ def effective_local_date_for_scheduling_day(
     settings: UserSettings,
     override: TimeMapOverride,
 ) -> date:
-    """Local calendar date in the override's stored IANA zone for this workday.
+    """Override stored-zone civil date aligned with a schedule-local calendar day.
 
-    Band wall-clock times stay in the operator timezone (``settings.timezone``,
-    see ``placement.band_bounds``), including across spring-forward and
-    fall-back. This conversion only decides which stored local dates match.
+    Uses start-of-civil-day in ``settings.timezone`` (not ``workday_start_local``).
+    Band wall-clock times stay in the operator timezone (``placement.band_bounds``).
     A later settings timezone change does not move ``override_utc_bounds``.
     """
     user_tz = ZoneInfo(settings.timezone)
-    work_start = datetime.combine(day, settings.workday_start_local, tzinfo=user_tz)
-    return work_start.astimezone(ZoneInfo(override.timezone)).date()
+    civil_start = datetime.combine(day, time.min, tzinfo=user_tz)
+    return civil_start.astimezone(ZoneInfo(override.timezone)).date()
 
 
 def _match_rank(row: TimeMapOverride) -> tuple[date, str]:

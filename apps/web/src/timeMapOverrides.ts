@@ -70,14 +70,13 @@ export function zonedDateTimeToUtc(
   return new Date(ms);
 }
 
-/** Mirror API ``effective_local_date_for_scheduling_day``. */
+/** Mirror API ``effective_local_date_for_scheduling_day`` (S2-V3 stored-zone civil day). */
 export function effectiveLocalDateForSchedulingDay(
   schedulingDayYmd: string,
-  settings: Pick<UserSettings, "timezone" | "workday_start_local">,
+  settings: Pick<UserSettings, "timezone">,
   overrideTimezone: string,
 ): string {
-  const { h, m } = parseHm(settings.workday_start_local);
-  const instant = zonedDateTimeToUtc(schedulingDayYmd, h, m, settings.timezone);
+  const instant = zonedDateTimeToUtc(schedulingDayYmd, 0, 0, settings.timezone);
   return ymdInTimeZone(instant, overrideTimezone);
 }
 
@@ -95,7 +94,7 @@ export function weekdayBitForSchedulingDay(day: Date, userTimezone: string): num
 export function selectOverrideForSchedulingDay(
   overrides: TimeMapOverride[] | undefined,
   day: Date,
-  settings: Pick<UserSettings, "timezone" | "workday_start_local">,
+  settings: Pick<UserSettings, "timezone">,
 ): TimeMapOverride | null {
   if (!overrides?.length) return null;
   const schedulingYmd = schedulingDayYmd(day, settings.timezone);
@@ -124,7 +123,7 @@ export function effectiveTimeMapBandsForDay(
   baseWindow: FocusWindow,
   overrides: TimeMapOverride[] | undefined,
   day: Date,
-  settings: Pick<UserSettings, "timezone" | "workday_start_local">,
+  settings: Pick<UserSettings, "timezone">,
 ): { bands: TimeMapBand[]; strictMode: boolean; override: TimeMapOverride | null } {
   const override = selectOverrideForSchedulingDay(overrides, day, settings);
   if (!override) {
@@ -157,7 +156,7 @@ export type TimeMapBandWallClockContext = { localYmd: string; timeZone: string }
  */
 export function bandWallClockContextForSchedulingDay(
   day: Date,
-  settings: Pick<UserSettings, "timezone" | "workday_start_local">,
+  settings: Pick<UserSettings, "timezone">,
   _override: TimeMapOverride | null,
 ): TimeMapBandWallClockContext {
   return {

@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from app.api.errors import ApiError
 from app.models import AvailabilityWindow, UserSettings
 from app.scheduler.placement import is_workday
-from app.schemas.availability import SCHEDULING_CONFIG_ONLY_COPY
+from app.services.s2_v3_availability_guard import V3_SCHEDULING_EFFECTIVE_NOTE
 from app.services.availability_policies import _sync_workweek_from_working_windows
 from app.services.availability_seed import ensure_default_availability_policies
 
@@ -170,8 +170,8 @@ def test_api_shifted_working_weeks_stay_config_only(
     )
     assert tue_sat.status_code == 200, tue_sat.text
     tue_body = tue_sat.json()
-    assert tue_body["scheduling_effective"] is False
-    assert tue_body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+    assert tue_body["scheduling_effective"] is True
+    assert tue_body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
     assert [window["weekday"] for window in tue_body["windows"]] == [1, 2, 3, 4, 5]
     assert {window["start_time"] for window in tue_body["windows"]} == {"11:00"}
     assert {window["duration_minutes"] for window in tue_body["windows"]} == {300}
@@ -196,8 +196,8 @@ def test_api_shifted_working_weeks_stay_config_only(
     )
     assert weekend.status_code == 200, weekend.text
     weekend_body = weekend.json()
-    assert weekend_body["scheduling_effective"] is False
-    assert weekend_body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+    assert weekend_body["scheduling_effective"] is True
+    assert weekend_body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
     assert [window["weekday"] for window in weekend_body["windows"]] == [5, 6]
 
     stored = _stored_mirror(db_session, owner_id)
@@ -222,8 +222,8 @@ def test_api_monday_first_working_week_round_trips_into_mirrors(
     )
     assert patched.status_code == 200, patched.text
     body = patched.json()
-    assert body["scheduling_effective"] is False
-    assert body["scheduling_effective_note"] == SCHEDULING_CONFIG_ONLY_COPY
+    assert body["scheduling_effective"] is True
+    assert body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
     assert [window["weekday"] for window in body["windows"]] == [0, 1, 2, 3]
     assert body["windows"][0]["start_time"] == "08:30"
     assert body["windows"][0]["duration_minutes"] == 240
