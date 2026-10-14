@@ -755,6 +755,27 @@ def _may_spans(comp: EffectiveComposition, start: date, tz: ZoneInfo, general: S
     return spans
 
 
+def _clip_allowed_to_selected_days(
+    spans: Sequence[tuple[datetime, datetime]],
+    decl: DayScopedDeclaration,
+    tz: ZoneInfo,
+) -> list[tuple[datetime, datetime]]:
+    """Only-allow is by instant. An overnight tail on an unselected day is not allowed."""
+    out: list[tuple[datetime, datetime]] = []
+    for start, end in spans:
+        day = start.astimezone(tz).date() - timedelta(days=1)
+        last = end.astimezone(tz).date()
+        while day <= last:
+            if decl.selector.selected(day):
+                day_start, day_end = _civil_day_bounds(day, tz)
+                left = max(start, day_start)
+                right = min(end, day_end)
+                if left < right:
+                    out.append((left, right))
+            day += timedelta(days=1)
+    return _merge(out)
+
+
 def _allowed_spans(
     decl: DayScopedDeclaration,
     left: datetime,
@@ -774,7 +795,8 @@ def _allowed_spans(
             if decl.selector.selected(day):
                 pieces.extend(_spans_starting(decl.windows, day, tz))
             day += timedelta(days=1)
-        return _intersect(_merge(pieces), [(left, right)])
+        clipped = _clip_allowed_to_selected_days(_merge(pieces), decl, tz)
+        return _intersect(clipped, [(left, right)])
     pieces = []
     day = left.astimezone(tz).date() - timedelta(days=1)
     last = right.astimezone(tz).date()

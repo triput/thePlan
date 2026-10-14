@@ -507,9 +507,17 @@ def test_a11d_availability_fingerprint_uses_passed_windows_and_activation_token(
     from app.services.composition_cutover_activation import (
         ACTIVATION_TOKEN as V4_ACTIVATION_TOKEN,
     )
+    from app.services.day_scoped_ranking_cutover_activation import (
+        ACTIVATION_TOKEN as V4B_ACTIVATION_TOKEN,
+    )
 
-    assert ids[-1] == V4_ACTIVATION_TOKEN
-    assert ids.index(ACTIVATION_TOKEN) < ids.index(V4_ACTIVATION_TOKEN)
+    assert V4_ACTIVATION_TOKEN in ids
+    assert ids[-1] == V4B_ACTIVATION_TOKEN
+    assert (
+        ids.index(ACTIVATION_TOKEN)
+        < ids.index(V4_ACTIVATION_TOKEN)
+        < ids.index(V4B_ACTIVATION_TOKEN)
+    )
 
     drifted = assemble_snapshot(**{**kwargs, "general_windows": [_window(1, time(15, 0), 60)]})
     assert diff_stale_categories(stored, drifted) == [STALE_AVAILABILITY]
