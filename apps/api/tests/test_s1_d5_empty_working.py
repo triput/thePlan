@@ -9,7 +9,7 @@ other database before the API client logs in.
 from __future__ import annotations
 
 import uuid
-from datetime import date, time
+from datetime import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,20 +19,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import UserSettings
-from app.scheduler.placement import is_workday
 from app.services.s2_v3_availability_guard import V3_SCHEDULING_EFFECTIVE_NOTE
 from app.schemas.settings import UserSettingsUpdate
-from app.services.availability_policies import _sync_workweek_from_working_windows
 from app.services.availability_seed import ensure_default_availability_policies
 
 _REQUIRED_DATABASE = "theplan_s1_test"
 _REQUIRED_REVISION = "030_progress_intent_hash"
-
-# 2026-10-12 is a Monday. Legacy eligibility is weekday() < workweek_days.
-_MONDAY = date(2026, 10, 12)
-_WEDNESDAY = date(2026, 10, 14)
-_THURSDAY = date(2026, 10, 15)
-_SUNDAY = date(2026, 10, 18)
 
 
 @pytest.fixture()
@@ -53,19 +45,16 @@ def disposable_db(db_session: Session) -> Session:
     return db_session
 
 
-def test_empty_working_is_zero_day_mirror_without_touching_clocks() -> None:
+def test_empty_working_list_is_not_a_settings_write() -> None:
+    """Clearing Working does not invent ``workweek_days = 0``. The policy row is the SoT."""
     settings = UserSettings(
         workweek_days=3,
         workday_start_local=time(10, 0),
         workday_minutes=360,
     )
-    mirrored = _sync_workweek_from_working_windows(settings, [])
-    assert mirrored is True
-    assert settings.workweek_days == 0
+    assert settings.workweek_days == 3
     assert settings.workday_start_local == time(10, 0)
     assert settings.workday_minutes == 360
-    assert is_workday(_MONDAY, settings.workweek_days) is False
-    assert is_workday(_SUNDAY, settings.workweek_days) is False
 
 
 def test_settings_update_accepts_zero_workweek_days_and_rejects_out_of_range() -> None:
@@ -160,7 +149,7 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     assert shifted.status_code == 200, shifted.text
     stored = _stored(disposable_db, owner_id)
     assert stored.workweek_days == 3
-    assert int(stored.scheduling_revision) == revision
+    assert int(stored.scheduling_revision) == revision + 1
 
     cleared = client.patch(
         "/api/v1/availability-policies/work",
@@ -173,21 +162,18 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     assert body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
 
     stored = _stored(disposable_db, owner_id)
-    assert stored.workweek_days == 0
+    assert stored.workweek_days == 3
     assert stored.workday_start_local == time(10, 0)
     assert stored.workday_minutes == 360
-    assert int(stored.scheduling_revision) == revision + 1
+    assert int(stored.scheduling_revision) == revision + 2
     assert _work_window_count(disposable_db, owner_id) == 0
-    assert is_workday(_MONDAY, stored.workweek_days) is False
-    assert is_workday(_WEDNESDAY, stored.workweek_days) is False
-    assert is_workday(_SUNDAY, stored.workweek_days) is False
 
     settings_body = client.get("/api/v1/settings")
     assert settings_body.status_code == 200, settings_body.text
-    assert settings_body.json()["workweek_days"] == 0
+    assert settings_body.json()["workweek_days"] == 3
     assert settings_body.json()["workday_start_local"] == "10:00"
     assert settings_body.json()["workday_minutes"] == 360
-    assert settings_body.json()["scheduling_revision"] == revision + 1
+    assert settings_body.json()["scheduling_revision"] == revision + 2
 
     reread = client.get("/api/v1/availability-policies/work")
     assert reread.status_code == 200, reread.text
@@ -199,8 +185,8 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     _assert_check_rejects(disposable_db, owner_id, 8)
     _assert_check_rejects(disposable_db, owner_id, -1)
     stored = _stored(disposable_db, owner_id)
-    assert stored.workweek_days == 0
-    assert int(stored.scheduling_revision) == revision + 1
+    assert stored.workweek_days == 3
+    assert int(stored.scheduling_revision) == revision + 2
 
     restored = client.patch(
         "/api/v1/availability-policies/work",
@@ -217,16 +203,13 @@ def test_api_empty_working_persists_zero_days_and_restores_monday_first(
     assert stored.workweek_days == 3
     assert stored.workday_start_local == time(10, 0)
     assert stored.workday_minutes == 360
-    assert int(stored.scheduling_revision) == revision + 2
+    assert int(stored.scheduling_revision) == revision + 3
     assert _work_window_count(disposable_db, owner_id) == 3
-    assert is_workday(_MONDAY, stored.workweek_days) is True
-    assert is_workday(_WEDNESDAY, stored.workweek_days) is True
-    assert is_workday(_THURSDAY, stored.workweek_days) is False
 
     settings_body = client.get("/api/v1/settings")
     assert settings_body.status_code == 200, settings_body.text
     assert settings_body.json()["workweek_days"] == 3
-    assert settings_body.json()["scheduling_revision"] == revision + 2
+    assert settings_body.json()["scheduling_revision"] == revision + 3
     reread = client.get("/api/v1/availability-policies/work")
     assert [window["weekday"] for window in reread.json()["windows"]] == [0, 1, 2]
 

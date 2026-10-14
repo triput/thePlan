@@ -19,6 +19,8 @@ StaleCategory = Literal[
     "prerequisite_state",
     "due_at_soft_target",
     "time_map_overrides",
+    "availability",
+    "scheduling_activation",
     "provenance",
 ]
 EvaluationState = Literal["evaluated", "never_evaluated"]
@@ -67,7 +69,8 @@ class ScheduleExplanationOut(BaseModel):
         description=(
             "v3: duration, deadline, map_style, deps, pins, project_daily_cap, "
             "timezone_horizon_workweek, lifecycle, busy_external, prerequisite_state, "
-            "due_at_soft_target, time_map_overrides. provenance means the stored "
+            "due_at_soft_target, time_map_overrides, availability, "
+            "scheduling_activation. provenance means the stored "
             "snapshot is missing or another version (including v2). priority_ups "
             "is not compared and is never reported."
         )

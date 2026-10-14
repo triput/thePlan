@@ -1,27 +1,22 @@
-"""Availability policy read/update (S1 config-only).
+"""Availability policy read/update (S2-V3 placer SoT).
 
-Working windows update deprecated ``workweek_*`` mirrors only when the pattern
-is Monday-first and same-hours. An empty window list is that pattern with
-length zero: ``workweek_days = 0`` (no Working days) and a revision bump.
-``workday_start_local`` and ``workday_minutes`` stay as they were. A shifted
-contiguous pattern is stored on the policy and does not retarget the legacy
-placer. ``scheduling_effective`` stays false either way. Ambiguous, gapped,
-and mixed-hours patterns are still rejected.
+Working and General window writes bump ``scheduling_revision``. They do not
+rewrite deprecated ``workweek_*`` mirrors. Split, gapped, and mixed-hours
+Working patterns store. Personal window writes stay locked.
 """
 
 from __future__ import annotations
 
 import uuid
-from datetime import date, time
+from datetime import date
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.errors import ApiError
-from app.models import AvailabilityPolicy, AvailabilityWindow, User, UserSettings
+from app.models import AvailabilityPolicy, AvailabilityWindow, User
 from app.models.enums import AvailabilityPolicySlug
 from app.schemas.availability import AvailabilityPolicyUpdate, AvailabilityWindowIn
-from app.services.auth_users import get_or_provision_user_settings
 from app.services.availability_seed import derive_window_end
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 
@@ -89,58 +84,9 @@ def _build_windows(
     return built
 
 
-def _sync_workweek_from_working_windows(settings: UserSettings, windows: list[AvailabilityWindow]) -> bool:
-    """Update deprecated workweek_* only for a Monday-first same-hours pattern.
-
-    ``is_workday`` treats ``workweek_days`` as Monday through N (``weekday() < N``).
-    A Tuesday–Saturday block is contiguous and same-hours, but writing ``N = 5``
-    would make Monday eligible and Saturday excluded. That pattern is stored on
-    the Working policy and left config-only: this returns False and does not
-    change ``workweek_days``, ``workday_start_local``, or ``workday_minutes``.
-
-    Ambiguous, noncontiguous, and heterogeneous patterns still reject. Those
-    writes roll back with the request, so legacy eligibility is unchanged.
-
-    An empty list is Monday-first of length zero. ``workweek_days = 0`` makes
-    ``is_workday`` false for every weekday. Clock bounds are not rewritten and
-    are not a stand-in week.
-    """
-    if not windows:
-        settings.workweek_days = 0
-        return True
-    by_weekday: dict[int, AvailabilityWindow] = {}
-    for window in windows:
-        if window.weekday in by_weekday:
-            raise ApiError(
-                422,
-                "Working policy must have at most one window per weekday for S1 mirror sync",
-                "WORKING_POLICY_AMBIGUOUS",
-            )
-        by_weekday[window.weekday] = window
-    weekdays = sorted(by_weekday)
-    if weekdays != list(range(weekdays[0], weekdays[0] + len(weekdays))):
-        raise ApiError(
-            422,
-            "Working policy weekdays must be a contiguous block for S1 workweek mirror sync",
-            "WORKING_POLICY_NONCONTIGUOUS",
-        )
-    durations = {window.duration_minutes for window in by_weekday.values()}
-    starts = {window.start_time for window in by_weekday.values()}
-    if len(durations) != 1 or len(starts) != 1:
-        raise ApiError(
-            422,
-            "Working policy must use the same start and duration on each day for S1 mirror sync",
-            "WORKING_POLICY_HETEROGENEOUS",
-        )
-    # Legacy mirror is Monday-first only. Contiguous blocks that start later
-    # (Tue–Sat, weekend-only) cannot round-trip through workweek_days.
-    if weekdays != list(range(len(weekdays))):
-        return False
-    anchor = by_weekday[weekdays[0]]
-    settings.workweek_days = len(weekdays)
-    settings.workday_start_local = anchor.start_time
-    settings.workday_minutes = anchor.duration_minutes
-    return True
+_ELIGIBILITY_SLUGS = frozenset(
+    {AvailabilityPolicySlug.work, AvailabilityPolicySlug.general}
+)
 
 
 def update_policy(
@@ -160,9 +106,8 @@ def update_policy(
             "PERSONAL_WINDOWS_LOCKED",
         )
 
-    scheduling_settings: UserSettings | None = None
-    if policy.slug == AvailabilityPolicySlug.work and body.windows is not None:
-        scheduling_settings = lock_owner_scheduling(db, user.id)
+    eligibility_write = body.windows is not None and policy.slug in _ELIGIBILITY_SLUGS
+    scheduling_settings = lock_owner_scheduling(db, user.id) if eligibility_write else None
 
     if "name" in updates and updates["name"] is not None:
         policy.name = updates["name"].strip()
@@ -173,11 +118,8 @@ def update_policy(
         for window in _build_windows(user.id, policy.id, body.windows):
             policy.windows.append(window)
 
-    if policy.slug == AvailabilityPolicySlug.work and body.windows is not None:
-        settings = get_or_provision_user_settings(db, user)
-        mirrored = _sync_workweek_from_working_windows(settings, list(policy.windows))
-        if mirrored and scheduling_settings is not None:
-            increment_scheduling_revision(db, scheduling_settings)
+    if eligibility_write and scheduling_settings is not None:
+        increment_scheduling_revision(db, scheduling_settings)
 
     db.flush()
     return policy
@@ -188,7 +130,10 @@ def effective_windows_for_date(policy: AvailabilityPolicy, on: date) -> tuple[li
     windows = [window for window in policy.windows if window.weekday == weekday]
     windows.sort(key=lambda row: (row.sort_order, row.start_time))
     provenance = [
-        f"Config-only policy '{policy.slug.value}' windows for weekday {weekday} on {on.isoformat()}",
-        "Placer does not consume availability policies until S2 cutover",
+        (
+            f"Policy '{policy.slug.value}' windows whose weekday is {weekday} "
+            f"on {on.isoformat()} (start-day rows; overnight tails stay on the start weekday)"
+        ),
+        "Placer eligibility uses the shared window materializer (Working clip or General for unclassified)",
     ]
     return windows, provenance

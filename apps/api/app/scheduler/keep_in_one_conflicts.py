@@ -15,6 +15,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models import ScheduledBlock, Task, UserSettings
+from app.scheduler.availability_materializer import load_owner_policy_windows
 from app.scheduler.pin_reservation import evaluate_auto_placement
 
 
@@ -41,5 +42,8 @@ def evaluate_keep_in_one_conflicts(
         )
         .all()
     )
-    decision = evaluate_auto_placement(task, settings, blocks, run_now)
+    working_windows, _general = load_owner_policy_windows(db, owner_id)
+    decision = evaluate_auto_placement(
+        task, settings, blocks, run_now, working_windows=working_windows
+    )
     return [dict(row) for row in decision.conflicts]

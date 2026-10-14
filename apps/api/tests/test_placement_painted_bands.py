@@ -178,9 +178,11 @@ def test_place_task_uses_green_before_yellow(
 
     monkeypatch.setattr(placement_mod, "datetime", FixedDatetime)
 
-    client.patch(
-        "/api/v1/settings",
-        json={
+    from cutover_hours import patch_settings_with_availability
+
+    patch_settings_with_availability(
+        client,
+        {
             "timezone": "UTC",
             "workweek_days": 7,
             "upcoming_horizon_days": 1,

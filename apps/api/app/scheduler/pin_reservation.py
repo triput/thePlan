@@ -12,11 +12,14 @@ and not remaining work.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from app.scheduler.placement import is_workday, workday_bounds
+from app.scheduler.availability_materializer import (
+    coerce_policy_windows,
+    covered_minutes_between,
+)
 from app.scheduler.reasons import (
     REASON_EXCLUDED_DURATION_COVERED_BY_PINS,
     REASON_EXCLUDED_KEEP_IN_ONE_RESERVED,
@@ -185,36 +188,23 @@ def _reserved_span(
     return reserved_start, end_utc
 
 
-def _merge_intervals(
-    windows: list[tuple[datetime, datetime]],
-) -> list[tuple[datetime, datetime]]:
-    if not windows:
-        return []
-    ordered = sorted(windows, key=lambda item: (item[0], item[1]))
-    merged: list[tuple[datetime, datetime]] = [ordered[0]]
-    for window_start, window_end in ordered[1:]:
-        last_start, last_end = merged[-1]
-        if window_start <= last_end:
-            merged[-1] = (last_start, max(last_end, window_end))
-        else:
-            merged.append((window_start, window_end))
-    return merged
-
-
 def _uncovered_outside_working(
     start: datetime,
     end: datetime,
     settings: Any,
+    working_windows: list[Any] | None = None,
 ) -> list[tuple[datetime, datetime]] | None:
     """Sub-intervals of ``[start, end)`` that miss eligible Working time.
 
-    ``None`` means Working fields are missing or the zone is unusable, so
-    this call does not report a conflict. An empty list means the interval
-    is fully contained, including a reservation that ends on the window
-    boundary. Wholly outside and partial overlap both return the uncovered
-    gaps. Sharing some time with a window is not full containment.
+    ``working_windows is None`` falls back to the deprecated settings span
+    when those fields exist, so direct unit calls keep their fixtures.
+    An explicit list, including empty, is the stored Working policy: empty
+    means the whole reservation is outside. ``None`` from this function means
+    the zone is unusable or the legacy fields are missing, so this call does
+    not report a conflict. An empty list means the interval is fully
+    contained, including a reservation that ends on the window boundary.
     """
-    if not _working_configured(settings):
+    if working_windows is None and not _working_configured(settings):
         return None
     tz = _zone(settings)
     if tz is None:
@@ -223,21 +213,11 @@ def _uncovered_outside_working(
     end_utc = _utc(end)
     if end_utc <= start_utc:
         return None
-    day: date = start_utc.astimezone(tz).date() - timedelta(days=1)
-    last = end_utc.astimezone(tz).date()
-    workweek = int(settings.workweek_days)
-    covered: list[tuple[datetime, datetime]] = []
-    while day <= last:
-        if is_workday(day, workweek):
-            window_start, window_end = workday_bounds(day, settings, tz)
-            clip_start = max(start_utc, window_start)
-            clip_end = min(end_utc, window_end)
-            if clip_start < clip_end:
-                covered.append((clip_start, clip_end))
-        day += timedelta(days=1)
+    rows = coerce_policy_windows(working_windows, settings)
+    covered = covered_minutes_between(rows, start_utc, end_utc, tz)
     uncovered: list[tuple[datetime, datetime]] = []
     cursor = start_utc
-    for window_start, window_end in _merge_intervals(covered):
+    for window_start, window_end in covered:
         if cursor < window_start:
             uncovered.append((cursor, window_start))
         if window_end > cursor:
@@ -264,13 +244,16 @@ def _outside_working_conflict(
     now: datetime,
     effort: int,
     reserved: int,
+    working_windows: list[Any] | None = None,
 ) -> dict[str, Any] | None:
     outside: list[dict[str, str]] = []
     for start, end in _relevant_pin_intervals(blocks, now):
         span = _reserved_span(start, end, now)
         if span is None:
             continue
-        uncovered = _uncovered_outside_working(span[0], span[1], settings)
+        uncovered = _uncovered_outside_working(
+            span[0], span[1], settings, working_windows
+        )
         if not uncovered:
             continue
         for gap_start, gap_end in uncovered:
@@ -299,6 +282,7 @@ def independent_reservation_conflicts(
     effort: int,
     reserved: int,
     context_conflicts: tuple[dict[str, Any], ...] = (),
+    working_windows: list[Any] | None = None,
 ) -> tuple[dict[str, Any], ...]:
     """Constraints that stay independent of keep-in-one shape (§0.1).
 
@@ -306,7 +290,9 @@ def independent_reservation_conflicts(
     ``context_reservation_conflicts`` and from ``context_conflicts``.
     """
     rows: list[dict[str, Any]] = []
-    outside = _outside_working_conflict(settings, blocks, now, effort, reserved)
+    outside = _outside_working_conflict(
+        settings, blocks, now, effort, reserved, working_windows
+    )
     if outside is not None:
         rows.append(outside)
     rows.extend(context_reservation_conflicts(task, settings, blocks, now))
@@ -321,6 +307,7 @@ def evaluate_auto_placement(
     now: datetime,
     *,
     context_conflicts: tuple[dict[str, Any], ...] = (),
+    working_windows: list[Any] | None = None,
 ) -> AutoPlacementDecision:
     """Remaining minus future-tail reservation, then keep-in-one × pin rules.
 
@@ -374,6 +361,7 @@ def evaluate_auto_placement(
                 effort=effort,
                 reserved=reserved,
                 context_conflicts=context_conflicts,
+                working_windows=working_windows,
             )
         return _keep_in_one_decision(
             bounds, effort, reserved, relevant, conflicts, independent

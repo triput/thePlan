@@ -20,9 +20,14 @@ Compared:
 - ``deps`` — sorted blocking task ids for this task (the edge set)
 - ``pins`` — pinned minutes and pin intervals for this task
 - ``project_daily_cap`` — ``max_auto_schedule_minutes_per_project_per_day``
-- ``timezone_horizon_workweek`` — timezone, horizon days, workday start and
-  length, workweek length, inter-block buffer. Absolute horizon instants are
-  not stored; a sliding ``now`` is not itself stale.
+- ``timezone_horizon_workweek`` — timezone, horizon days, and inter-block
+  buffer. Workday start, length, and ``workweek_days`` moved to
+  ``availability`` at S2-V3. Absolute horizon instants are not stored; a
+  sliding ``now`` is not itself stale.
+- ``availability`` — stored Working and General policy windows (weekday,
+  start, duration, ``ends_next_day``, sort). Not ``map_style``, not Time Map
+  overrides, not ``nominal_workday_minutes``. The effective map id stays on
+  ``map_style``.
 - ``lifecycle`` — completed, trashed (``deleted_at``), project/epic archived
 - ``busy_external`` — owner immovable busy (pinned blocks and non-mirror
   external events), not horizon-clipped and not auto-placed blocks
@@ -61,6 +66,7 @@ SNAPSHOT_VERSION_V4 = 4
 SCHEDULING_ACTIVATIONS: tuple[str, ...] = (
     "s2-v1-duration-bounds",
     "s2-v2-pin-reservation",
+    "s2-v3-working-general-availability",
 )
 
 STALE_DURATION = "duration"
@@ -75,6 +81,7 @@ STALE_BUSY_EXTERNAL = "busy_external"
 STALE_PREREQUISITE_STATE = "prerequisite_state"
 STALE_DUE_AT_SOFT_TARGET = "due_at_soft_target"
 STALE_TIME_MAP_OVERRIDES = "time_map_overrides"
+STALE_AVAILABILITY = "availability"
 STALE_PROVENANCE = "provenance"
 
 W1_STALE_CATEGORIES: tuple[str, ...] = (
@@ -96,12 +103,15 @@ W2_STALE_CATEGORIES: tuple[str, ...] = (
 
 F4_W2_STALE_CATEGORIES: tuple[str, ...] = (STALE_TIME_MAP_OVERRIDES,)
 
+S2_V3_STALE_CATEGORIES: tuple[str, ...] = (STALE_AVAILABILITY,)
+
 STALE_SCHEDULING_ACTIVATION = "scheduling_activation"
 
 COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
     W1_STALE_CATEGORIES
     + W2_STALE_CATEGORIES
     + F4_W2_STALE_CATEGORIES
+    + S2_V3_STALE_CATEGORIES
     + (STALE_SCHEDULING_ACTIVATION,)
 )
 
@@ -212,6 +222,45 @@ def _iso_time(value: time | str) -> str:
     if isinstance(value, str):
         return value
     return value.isoformat()
+
+
+def normalize_availability_windows(windows: list[Any] | None) -> list[dict[str, Any]]:
+    """Stable Working or General rows. Ids are omitted; hours are the input."""
+    rows: list[dict[str, Any]] = []
+    for item in windows or []:
+        if isinstance(item, dict):
+            start = item.get("start_time")
+            weekday = item.get("weekday")
+            duration = item.get("duration_minutes")
+            ends = item.get("ends_next_day")
+            sort_order = item.get("sort_order") or 0
+        else:
+            start = getattr(item, "start_time", None)
+            weekday = getattr(item, "weekday", None)
+            duration = getattr(item, "duration_minutes", None)
+            ends = getattr(item, "ends_next_day", False)
+            sort_order = getattr(item, "sort_order", 0) or 0
+        if start is None or weekday is None or duration is None:
+            continue
+        rows.append(
+            {
+                "weekday": int(weekday),
+                "start_time": _iso_time(start),
+                "duration_minutes": int(duration),
+                "ends_next_day": bool(ends),
+                "sort_order": int(sort_order),
+            }
+        )
+    rows.sort(
+        key=lambda row: (
+            row["weekday"],
+            row["sort_order"],
+            row["start_time"],
+            row["duration_minutes"],
+            row["ends_next_day"],
+        )
+    )
+    return rows
 
 
 def normalize_bands(bands: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -445,8 +494,13 @@ def assemble_snapshot(
     effective_max_minutes: int | None = None,
     min_block_source: str | None = None,
     max_block_source: str | None = None,
+    working_windows: list[Any] | None = None,
+    general_windows: list[Any] | None = None,
 ) -> dict[str, Any]:
     """Canonical task input snapshot (v3 or v4). Callers pass the effective map.
+
+    ``workday_start_local``, ``workday_minutes``, and ``workweek_days`` are
+    accepted and ignored. Eligibility hours live on ``availability``.
 
     Omitted W2 inputs use empty defaults so two default assemblies still match.
     Collect and live reads must pass the real values; defaults are not a claim
@@ -456,6 +510,7 @@ def assemble_snapshot(
     v3 ``duration`` uses **scheduling-effective** min/max integers (resolved
     inherit / No limit). v4 stores stored-layer bounds plus progress fields.
     """
+    del workday_start_local, workday_minutes, workweek_days
     version = snapshot_version if snapshot_version is not None else live_snapshot_version()
     window = str(time_window_id) if time_window_id else None
     blockers = sorted({str(task_id) for task_id in blocking_task_ids})
@@ -511,10 +566,11 @@ def assemble_snapshot(
         "timezone_horizon_workweek": {
             "timezone": timezone_name,
             "upcoming_horizon_days": upcoming_horizon_days,
-            "workday_start_local": _iso_time(workday_start_local) if workday_start_local else None,
-            "workday_minutes": workday_minutes,
-            "workweek_days": workweek_days,
             "inter_block_buffer_minutes": inter_block_buffer_minutes,
+        },
+        "availability": {
+            "working": normalize_availability_windows(working_windows),
+            "general": normalize_availability_windows(general_windows),
         },
         "lifecycle": {
             "is_completed": bool(is_completed),

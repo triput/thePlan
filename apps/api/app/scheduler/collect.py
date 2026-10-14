@@ -39,6 +39,10 @@ from app.scheduler.time_map_overrides import (
     load_time_map_overrides_for_maps,
     overrides_intersecting_horizon,
 )
+from app.scheduler.availability_materializer import (
+    PolicyWindow,
+    load_owner_policy_windows,
+)
 from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
@@ -72,6 +76,9 @@ class SchedulingInputs:
     # Same pin/busy capture used for candidates, prereq seed, and fingerprints.
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] = field(default_factory=dict)
     immovable_busy: list[BusyInterval] = field(default_factory=list)
+    # Same Working/General copy placement and the stored fingerprint use.
+    working_windows: list[PolicyWindow] | None = None
+    general_windows: list[PolicyWindow] | None = None
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -92,6 +99,7 @@ def collect_inputs(
 ) -> SchedulingInputs:
     """Read scheduling inputs; does not mutate blocks or task status."""
     user_settings = _load_user_settings(db, owner_id)
+    working_windows, general_windows = load_owner_policy_windows(db, owner_id)
     horizon_start, horizon_end = compute_horizon(user_settings, now_utc)
 
     # One capture of immovable busy/pins for calculation + fingerprints.
@@ -115,6 +123,7 @@ def collect_inputs(
         user_settings,
         now_utc=now_utc,
         pinned_blocks_by_task=pinned_blocks_by_task,
+        working_windows=working_windows,
     )
     candidate_ids = {item.task.id for item in candidates}
     excluded_tasks = load_excluded_tasks(
@@ -124,6 +133,7 @@ def collect_inputs(
         candidate_ids,
         now_utc=now_utc,
         pinned_blocks_by_task=pinned_blocks_by_task,
+        working_windows=working_windows,
     )
     already_evaluated = candidate_ids | {item.task.id for item in excluded_tasks}
     lifecycle_excluded_tasks = load_lifecycle_excluded_tasks(
@@ -238,6 +248,8 @@ def collect_inputs(
         pinned_blocks_by_task=dict(pinned_blocks_by_task),
         busy_intervals=immovable_busy,
         time_map_overrides_by_map=overrides_for_fingerprint,
+        working_windows=working_windows,
+        general_windows=general_windows,
     )
 
     return SchedulingInputs(
@@ -264,4 +276,6 @@ def collect_inputs(
         input_snapshots=input_snapshots,
         pinned_blocks_by_task=dict(pinned_blocks_by_task),
         immovable_busy=immovable_busy,
+        working_windows=working_windows,
+        general_windows=general_windows,
     )

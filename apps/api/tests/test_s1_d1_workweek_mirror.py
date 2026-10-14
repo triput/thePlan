@@ -1,9 +1,8 @@
-"""S1-D1: shifted Working weeks must not rewrite the Monday-first legacy mirror.
+"""S2-V3: Working window writes do not rewrite the Monday-first legacy mirror.
 
-``workweek_days`` means Monday through N (``is_workday``). Tuesday–Saturday and
-weekend-only windows are saved as config (``scheduling_effective: false``) and
-leave ``workweek_*`` / ``scheduling_revision`` alone. Monday-first same-hours
-patterns still round-trip into the mirrors.
+``workweek_days`` remains a deprecated column. Tuesday–Saturday, weekend-only,
+Monday-first, gapped, and mixed-hours patterns store on the Working policy,
+bump ``scheduling_revision``, and leave ``workweek_*`` untouched.
 """
 
 from __future__ import annotations
@@ -11,16 +10,13 @@ from __future__ import annotations
 import uuid
 from datetime import date, time
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.errors import ApiError
-from app.models import AvailabilityWindow, UserSettings
+from app.models import UserSettings
 from app.scheduler.placement import is_workday
 from app.services.s2_v3_availability_guard import V3_SCHEDULING_EFFECTIVE_NOTE
-from app.services.availability_policies import _sync_workweek_from_working_windows
 from app.services.availability_seed import ensure_default_availability_policies
 
 # 2026-10-12 is a Monday. Legacy eligibility is weekday() < workweek_days.
@@ -31,88 +27,10 @@ _SATURDAY = date(2026, 10, 17)
 _SUNDAY = date(2026, 10, 18)
 
 
-def _window(weekday: int, start: time, duration: int) -> AvailabilityWindow:
-    return AvailabilityWindow(
-        weekday=weekday,
-        start_time=start,
-        duration_minutes=duration,
-        end_time=start,
-        ends_next_day=False,
-    )
-
-
-def _baseline() -> UserSettings:
-    return UserSettings(
-        workweek_days=3,
-        workday_start_local=time(10, 0),
-        workday_minutes=360,
-    )
-
-
 def _assert_untouched(settings: UserSettings) -> None:
     assert settings.workweek_days == 3
     assert settings.workday_start_local == time(10, 0)
     assert settings.workday_minutes == 360
-
-
-def test_shifted_contiguous_patterns_do_not_rewrite_legacy_mirror() -> None:
-    tue_sat = _baseline()
-    mirrored = _sync_workweek_from_working_windows(
-        tue_sat,
-        [_window(day, time(11, 0), 300) for day in (1, 2, 3, 4, 5)],
-    )
-    assert mirrored is False
-    _assert_untouched(tue_sat)
-    # The bug wrote 5, which is Monday–Friday: Monday eligible, Saturday excluded.
-    assert is_workday(_MONDAY, tue_sat.workweek_days) is True
-    assert is_workday(_SATURDAY, tue_sat.workweek_days) is False
-    assert is_workday(_THURSDAY, tue_sat.workweek_days) is False
-
-    weekend = _baseline()
-    mirrored = _sync_workweek_from_working_windows(
-        weekend,
-        [_window(day, time(9, 0), 120) for day in (5, 6)],
-    )
-    assert mirrored is False
-    _assert_untouched(weekend)
-    # A silent write of 2 would have meant Monday–Tuesday, not the weekend.
-    assert weekend.workweek_days != 2
-    assert is_workday(_SATURDAY, weekend.workweek_days) is False
-    assert is_workday(_SUNDAY, weekend.workweek_days) is False
-
-    tuesday_only = _baseline()
-    mirrored = _sync_workweek_from_working_windows(
-        tuesday_only,
-        [_window(1, time(9, 0), 480)],
-    )
-    assert mirrored is False
-    _assert_untouched(tuesday_only)
-
-
-def test_monday_first_pattern_still_updates_legacy_mirror() -> None:
-    settings = _baseline()
-    mirrored = _sync_workweek_from_working_windows(
-        settings,
-        [_window(day, time(8, 30), 240) for day in range(4)],
-    )
-    assert mirrored is True
-    assert settings.workweek_days == 4
-    assert settings.workday_start_local == time(8, 30)
-    assert settings.workday_minutes == 240
-    assert is_workday(_MONDAY, settings.workweek_days) is True
-    assert is_workday(_THURSDAY, settings.workweek_days) is True
-    assert is_workday(_FRIDAY, settings.workweek_days) is False
-
-
-def test_noncontiguous_working_pattern_still_rejects_without_mirror_write() -> None:
-    settings = _baseline()
-    with pytest.raises(ApiError) as caught:
-        _sync_workweek_from_working_windows(
-            settings,
-            [_window(day, time(9, 0), 480) for day in (0, 2, 4)],
-        )
-    assert caught.value.content["code"] == "WORKING_POLICY_NONCONTIGUOUS"
-    _assert_untouched(settings)
 
 
 def _require_s1_head(db: Session) -> None:
@@ -178,7 +96,7 @@ def test_api_shifted_working_weeks_stay_config_only(
 
     stored = _stored_mirror(db_session, owner_id)
     _assert_untouched(stored)
-    assert int(stored.scheduling_revision) == revision
+    assert int(stored.scheduling_revision) == revision + 1
     settings_body = client.get("/api/v1/settings")
     assert settings_body.status_code == 200, settings_body.text
     assert settings_body.json()["workweek_days"] == 3
@@ -202,7 +120,7 @@ def test_api_shifted_working_weeks_stay_config_only(
 
     stored = _stored_mirror(db_session, owner_id)
     _assert_untouched(stored)
-    assert int(stored.scheduling_revision) == revision
+    assert int(stored.scheduling_revision) == revision + 2
     settings_body = client.get("/api/v1/settings")
     assert settings_body.json()["workweek_days"] == 3
     assert settings_body.json()["workday_start_local"] == "10:00"
@@ -230,15 +148,44 @@ def test_api_monday_first_working_week_round_trips_into_mirrors(
     assert body["windows"][0]["end_time"] == "12:30"
 
     stored = _stored_mirror(db_session, owner_id)
-    assert stored.workweek_days == 4
-    assert stored.workday_start_local == time(8, 30)
-    assert stored.workday_minutes == 240
+    _assert_untouched(stored)
     assert int(stored.scheduling_revision) == revision + 1
     settings_body = client.get("/api/v1/settings")
     assert settings_body.status_code == 200, settings_body.text
-    assert settings_body.json()["workweek_days"] == 4
-    assert settings_body.json()["workday_start_local"] == "08:30"
-    assert settings_body.json()["workday_minutes"] == 240
+    assert settings_body.json()["workweek_days"] == 3
+    assert settings_body.json()["workday_start_local"] == "10:00"
+    assert settings_body.json()["workday_minutes"] == 360
     assert is_workday(_MONDAY, stored.workweek_days) is True
-    assert is_workday(_THURSDAY, stored.workweek_days) is True
+    assert is_workday(_THURSDAY, stored.workweek_days) is False
     assert is_workday(_FRIDAY, stored.workweek_days) is False
+
+
+def test_api_split_gap_mixed_and_general_store_and_bump(
+    client: TestClient, db_session: Session
+) -> None:
+    owner_id, revision = _prepare_legacy_mirror(client, db_session)
+    split = client.patch(
+        "/api/v1/availability-policies/work",
+        json={
+            "windows": [
+                {"weekday": 0, "start_time": "09:00", "duration_minutes": 120, "sort_order": 0},
+                {"weekday": 0, "start_time": "14:00", "duration_minutes": 90, "sort_order": 1},
+                {"weekday": 2, "start_time": "11:00", "duration_minutes": 60, "sort_order": 0},
+            ]
+        },
+    )
+    assert split.status_code == 200, split.text
+    weekdays = [window["weekday"] for window in split.json()["windows"]]
+    assert weekdays == [0, 0, 2]
+    stored = _stored_mirror(db_session, owner_id)
+    _assert_untouched(stored)
+    assert int(stored.scheduling_revision) == revision + 1
+
+    general = client.patch(
+        "/api/v1/availability-policies/general",
+        json={"windows": _windows((1,), "13:00", 60)},
+    )
+    assert general.status_code == 200, general.text
+    stored = _stored_mirror(db_session, owner_id)
+    _assert_untouched(stored)
+    assert int(stored.scheduling_revision) == revision + 2

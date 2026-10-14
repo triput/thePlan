@@ -104,6 +104,7 @@ def load_candidates(
     *,
     now_utc: datetime | None = None,
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
+    working_windows: list[Any] | None = None,
 ) -> list[TaskCandidate]:
     """Incomplete tasks with minutes left to place; bundle/manual stay out.
 
@@ -145,7 +146,9 @@ def load_candidates(
         if _task_archived_scope(task, projects, epics) is not None:
             continue
         blocks = _pinned_blocks_for_task(db, task.id, pinned_blocks_by_task)
-        decision = evaluate_auto_placement(task, settings, blocks, run_now)
+        decision = evaluate_auto_placement(
+            task, settings, blocks, run_now, working_windows=working_windows
+        )
         if not decision.auto_place or decision.minutes_to_place <= 0:
             continue
         candidates.append(
@@ -167,6 +170,7 @@ def load_excluded_tasks(
     *,
     now_utc: datetime | None = None,
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
+    working_windows: list[Any] | None = None,
 ) -> list[ExcludedTask]:
     """Classify open tasks skipped by ``load_candidates`` (not already candidates).
 
@@ -220,7 +224,9 @@ def load_excluded_tasks(
         style = effective_schedule_style(task, project, epic, settings)
         style_source = effective_schedule_style_source(task, project, epic)
         blocks = _pinned_blocks_for_task(db, task.id, pinned_blocks_by_task)
-        decision = evaluate_auto_placement(task, settings, blocks, run_now)
+        decision = evaluate_auto_placement(
+            task, settings, blocks, run_now, working_windows=working_windows
+        )
         if style in {ScheduleStyle.bundle, ScheduleStyle.manual}:
             excluded.append(
                 ExcludedTask(

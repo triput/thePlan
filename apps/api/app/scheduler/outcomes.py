@@ -129,6 +129,8 @@ def snapshots_from_collected(
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] | None = None,
     busy_intervals: list[BusyInterval] | None = None,
     time_map_overrides_by_map: dict[UUID, list[Any]] | None = None,
+    working_windows: list[Any] | None = None,
+    general_windows: list[Any] | None = None,
 ) -> dict[UUID, dict[str, Any]]:
     """Build v3 snapshots from values already collected for calculation.
 
@@ -220,6 +222,8 @@ def snapshots_from_collected(
             soft_target_at=task.soft_target_at,
             auto_defer_enabled=user_settings.auto_defer_enabled,
             time_map_overrides=overrides_by_map.get(window_id, []) if window_id else [],
+            working_windows=working_windows,
+            general_windows=general_windows,
         )
     return snapshots
 
@@ -284,6 +288,9 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         db, owner_id, tasks, dependencies
     )
     overrides_by_map = load_time_map_overrides_for_maps(db, owner_id, window_ids)
+    from app.scheduler.availability_materializer import load_owner_policy_windows
+
+    working_windows, general_windows = load_owner_policy_windows(db, owner_id)
     return snapshots_from_collected(
         user_settings=settings,
         tasks=tasks,
@@ -296,6 +303,8 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         pinned_blocks_by_task=pins_by_task,
         busy_intervals=immovable_busy,
         time_map_overrides_by_map=overrides_by_map,
+        working_windows=working_windows,
+        general_windows=general_windows,
     )
 
 

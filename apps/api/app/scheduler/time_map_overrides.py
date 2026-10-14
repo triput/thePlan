@@ -144,6 +144,29 @@ def _match_rank(row: TimeMapOverride) -> tuple[date, str]:
     return (row.local_start_date, str(row.id))
 
 
+def override_covering_instant(
+    overrides: list[TimeMapOverride] | None,
+    instant: datetime,
+) -> TimeMapOverride | None:
+    """Override whose stored-zone ``[start, end)`` contains ``instant``.
+
+    Inclusive start, exclusive end. A schedule-local day can hold more than
+    one of these; do not pick one override for the whole day.
+    """
+    if not overrides:
+        return None
+    instant = _as_utc(instant)
+    matches = [
+        row
+        for row in overrides
+        if override_utc_bounds(row)[0] <= instant < override_utc_bounds(row)[1]
+    ]
+    if not matches:
+        return None
+    matches.sort(key=_match_rank)
+    return matches[0]
+
+
 def select_override_for_scheduling_day(
     overrides: list[TimeMapOverride] | None,
     *,

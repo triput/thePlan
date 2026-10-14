@@ -699,6 +699,8 @@ def calculate(
                 prerequisite_not_before=prereq_not_before,
                 persist_blocks=False,
                 time_map_overrides_by_map=inputs.time_map_overrides_by_map,
+                working_windows=inputs.working_windows,
+                general_windows=inputs.general_windows,
             )
             prerequisite_not_before_by_task[task_id] = prereq_not_before
             if result.applicable_override is not None:

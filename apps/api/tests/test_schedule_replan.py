@@ -42,9 +42,11 @@ def _patch_schedule_clock(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _prepare_settings(client: TestClient) -> None:
-    response = client.patch(
-        "/api/v1/settings",
-        json={
+    from cutover_hours import patch_settings_with_availability
+
+    patch_settings_with_availability(
+        client,
+        {
             "timezone": "UTC",
             "workweek_days": 7,
             "upcoming_horizon_days": 7,
@@ -52,7 +54,6 @@ def _prepare_settings(client: TestClient) -> None:
             "default_schedule_style": "standalone",
         },
     )
-    assert response.status_code == 200, response.text
 
 
 def _create_task(client: TestClient, **extra: object) -> dict:

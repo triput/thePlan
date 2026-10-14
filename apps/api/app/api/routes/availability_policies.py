@@ -11,6 +11,7 @@ from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import User
 from app.schemas.availability import (
+    SCHEDULING_CONFIG_ONLY_COPY,
     AvailabilityPolicyEffectiveOut,
     AvailabilityPolicyOut,
     AvailabilityPolicyUpdate,
@@ -30,6 +31,12 @@ from app.services.s2_v3_availability_guard import (
 router = APIRouter(prefix="/availability-policies", tags=["availability"])
 
 
+def _note_for_slug(slug_value: str) -> str:
+    if policy_scheduling_effective_for_slug(slug_value):
+        return scheduling_effective_note_for_surface()
+    return SCHEDULING_CONFIG_ONLY_COPY
+
+
 def _policy_out(policy) -> AvailabilityPolicyOut:
     slug_value = policy.slug.value if hasattr(policy.slug, "value") else str(policy.slug)
     return AvailabilityPolicyOut.model_validate(
@@ -39,7 +46,7 @@ def _policy_out(policy) -> AvailabilityPolicyOut:
             "name": policy.name,
             "sort_order": policy.sort_order,
             "scheduling_effective": policy_scheduling_effective_for_slug(slug_value),
-            "scheduling_effective_note": scheduling_effective_note_for_surface(),
+            "scheduling_effective_note": _note_for_slug(slug_value),
             "windows": [AvailabilityWindowOut.model_validate(window) for window in policy.windows],
         }
     )
@@ -96,7 +103,7 @@ def availability_policy_effective(
         slug=policy.slug,
         on_date=on,
         scheduling_effective=policy_scheduling_effective_for_slug(slug_value),
-        scheduling_effective_note=scheduling_effective_note_for_surface(),
+        scheduling_effective_note=_note_for_slug(slug_value),
         windows=[AvailabilityWindowOut.model_validate(window) for window in windows],
         provenance=provenance,
     )

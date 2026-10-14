@@ -513,7 +513,9 @@ def test_general_work_seed_readback_personal_empty_not_effective(
         assert effective_body["scheduling_effective_note"] == V3_SCHEDULING_EFFECTIVE_NOTE
         assert effective_body["on_date"] == "2026-10-12"
         assert len(effective_body["windows"]) == 1
-        assert any("Placer does not consume" in line for line in effective_body["provenance"])
+        assert any(
+            "shared window materializer" in line for line in effective_body["provenance"]
+        )
 
         weekend = client.get(
             f"/api/v1/availability-policies/{slug}/effective",

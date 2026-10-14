@@ -19,11 +19,17 @@ from app.models import (
     TimeMapOverride,
     UserSettings,
 )
+from app.scheduler.availability_materializer import (
+    MaterializedSpan,
+    coerce_policy_windows,
+    materialize_windows_for_local_date,
+    merge_utc_intervals,
+)
 from app.scheduler.time_map_overrides import (
     applicable_override_payload,
     effective_day_map,
-    effective_local_date_for_scheduling_day,
-    select_override_for_scheduling_day,
+    override_covering_instant,
+    override_utc_bounds,
 )
 from app.models.enums import TimeMapBandTier
 from app.scheduler.busy_map import (
@@ -136,11 +142,10 @@ def _ensure_utc(value: datetime) -> datetime:
 
 
 def is_workday(day: date, workweek_days: int) -> bool:
-    """Monday-first only: weekdays ``0 .. workweek_days-1``.
+    """Monday-first reading of the deprecated ``workweek_days`` column.
 
-    A count of zero matches no weekday. This is not a weekday mask. A count of
-    five means Monday–Friday, including when a stored Working policy names some
-    other five days. S1 does not teach the placer to read availability windows.
+    Not eligibility. The placer and pin containment use stored Working/General
+    windows via ``availability_materializer``.
     """
     return day.weekday() < workweek_days
 
@@ -198,17 +203,87 @@ def _subtract_red_from_clips(
     return result
 
 
-def _clip_band_to_workday(
-    day: date,
-    band: TimeMapBand,
-    settings: UserSettings,
+def _merge_tier_windows(
+    windows: list[tuple[datetime, datetime, str | None]],
+) -> list[tuple[datetime, datetime, str | None]]:
+    """Union contiguous same-tier clips so one block can cross a boundary."""
+    grouped: dict[str | None, list[tuple[datetime, datetime]]] = {
+        "green": [],
+        "yellow": [],
+        "neutral": [],
+        None: [],
+    }
+    for start, end, tier in windows:
+        grouped.setdefault(tier, []).append((start, end))
+    ordered: list[tuple[datetime, datetime, str | None]] = []
+    for tier in ("green", "yellow", "neutral", None):
+        for start, end in merge_utc_intervals(grouped.get(tier, [])):
+            ordered.append((start, end, tier))
+    return ordered
+
+
+def _spans_split_by_overrides(
+    spans: list[MaterializedSpan],
+    overrides: list[TimeMapOverride] | None,
+) -> list[tuple[MaterializedSpan, TimeMapOverride | None]]:
+    """Split each span at stored-zone override bounds. Inclusive start, exclusive end."""
+    if not spans:
+        return []
+    if not overrides:
+        return [(span, None) for span in spans]
+    cuts: list[datetime] = []
+    for row in overrides:
+        start, end = override_utc_bounds(row)
+        cuts.extend((start, end))
+    pieces: list[tuple[MaterializedSpan, TimeMapOverride | None]] = []
+    for span in spans:
+        points = [span.start, span.end]
+        for cut in cuts:
+            if span.start < cut < span.end:
+                points.append(cut)
+        points = sorted(set(points))
+        for left, right in zip(points, points[1:]):
+            if left >= right:
+                continue
+            piece = MaterializedSpan(start=left, end=right, owner_date=span.owner_date)
+            pieces.append((piece, override_covering_instant(overrides, left)))
+    return pieces
+
+
+def _windows_from_bands(
+    spans: list[MaterializedSpan],
+    bands: list[Any],
+    strict_mode: bool,
     tz: ZoneInfo,
-) -> tuple[datetime, datetime] | None:
-    bounds = band_bounds(day, band, tz)
-    if bounds is None:
-        return None
-    work_start, work_end = workday_bounds(day, settings, tz)
-    return intersect_ranges(work_start, work_end, bounds[0], bounds[1])
+) -> list[tuple[datetime, datetime, str | None]]:
+    """Map bands ∩ eligibility spans. Neutral is each span minus that span's red."""
+    collected: list[tuple[datetime, datetime, str | None]] = []
+    for span in spans:
+        green: list[tuple[datetime, datetime]] = []
+        yellow: list[tuple[datetime, datetime]] = []
+        red: list[tuple[datetime, datetime]] = []
+        for band in bands:
+            bounds = band_bounds(span.owner_date, band, tz)
+            if bounds is None:
+                continue
+            hit = intersect_ranges(span.start, span.end, bounds[0], bounds[1])
+            if hit is None:
+                continue
+            if band.tier == TimeMapBandTier.green:
+                green.append(hit)
+            elif band.tier == TimeMapBandTier.yellow:
+                yellow.append(hit)
+            elif band.tier == TimeMapBandTier.red:
+                red.append(hit)
+        red_intervals = [TimeInterval(start, end) for start, end in red]
+        for start, end in _subtract_red_from_clips(green, red_intervals):
+            collected.append((start, end, "green"))
+        for start, end in _subtract_red_from_clips(yellow, red_intervals):
+            collected.append((start, end, "yellow"))
+        if not strict_mode:
+            for item in subtract_intervals_from_range(span.start, span.end, red_intervals):
+                collected.append((item.start, item.end, "neutral"))
+    return _merge_tier_windows(collected)
 
 
 def _search_windows_for_day(
@@ -219,47 +294,42 @@ def _search_windows_for_day(
     *,
     day_bands: list[TimeMapBand] | list[Any] | None = None,
     day_strict_mode: bool | None = None,
+    policy_windows: list[Any] | None = None,
+    overrides: list[TimeMapOverride] | None = None,
 ) -> list[tuple[datetime, datetime, str | None]]:
-    if not is_workday(day, settings.workweek_days):
+    """Eligible clips on ``day``.
+
+    ``policy_windows`` is General for an unclassified task and Working for a
+    mapped one. ``None`` falls back to the deprecated Monday-first settings
+    span so direct unit calls keep their fixture. ``day_bands`` is the direct
+    test hook that substitutes one band list for the whole day; production
+    passes ``overrides`` and splits at stored-zone bounds instead.
+    """
+    rows = coerce_policy_windows(policy_windows, settings)
+    spans = materialize_windows_for_local_date(rows, day, tz)
+    if not spans:
         return []
+    if preferred is None and day_bands is None:
+        merged = merge_utc_intervals([(span.start, span.end) for span in spans])
+        return [(start, end, None) for start, end in merged]
 
-    work_start, work_end = workday_bounds(day, settings, tz)
-    if preferred is None:
-        return [(work_start, work_end, None)]
+    if day_bands is not None:
+        strict_mode = (
+            day_strict_mode
+            if day_strict_mode is not None
+            else (preferred.strict_mode if preferred is not None else False)
+        )
+        return _windows_from_bands(spans, list(day_bands), strict_mode, tz)
 
-    bands = day_bands if day_bands is not None else list(preferred.bands)
-    strict_mode = (
-        day_strict_mode if day_strict_mode is not None else preferred.strict_mode
-    )
-
-    green_clips: list[tuple[datetime, datetime]] = []
-    yellow_clips: list[tuple[datetime, datetime]] = []
-    red_clips: list[tuple[datetime, datetime]] = []
-
-    for band in bands:
-        clipped = _clip_band_to_workday(day, band, settings, tz)
-        if clipped is None:
+    pieces = _spans_split_by_overrides(spans, overrides)
+    collected: list[tuple[datetime, datetime, str | None]] = []
+    for piece, row in pieces:
+        if preferred is None:
+            collected.append((piece.start, piece.end, None))
             continue
-        if band.tier == TimeMapBandTier.green:
-            green_clips.append(clipped)
-        elif band.tier == TimeMapBandTier.yellow:
-            yellow_clips.append(clipped)
-        elif band.tier == TimeMapBandTier.red:
-            red_clips.append(clipped)
-
-    red_intervals = [TimeInterval(start, end) for start, end in red_clips]
-    green_clips = _subtract_red_from_clips(green_clips, red_intervals)
-    yellow_clips = _subtract_red_from_clips(yellow_clips, red_intervals)
-
-    ordered: list[tuple[datetime, datetime, str | None]] = [
-        (start, end, "green") for start, end in green_clips
-    ] + [(start, end, "yellow") for start, end in yellow_clips]
-
-    if not strict_mode:
-        neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
-        ordered.extend((item.start, item.end, "neutral") for item in neutral)
-
-    return ordered
+        bands, strict_mode = effective_day_map(preferred, row, piece.owner_date)
+        collected.extend(_windows_from_bands([piece], bands, strict_mode, tz))
+    return _merge_tier_windows(collected)
 
 
 def effective_soft_target(
@@ -396,76 +466,93 @@ def _max_contiguous_minutes(
     return best
 
 
+def _overrides_for_window(
+    preferred: FocusWindow | None,
+    window_id: UUID | None,
+    overrides_by_map: dict[UUID, list[TimeMapOverride]] | None,
+) -> list[TimeMapOverride]:
+    if preferred is None or window_id is None or not overrides_by_map:
+        return []
+    return list(overrides_by_map.get(window_id) or [])
+
+
+def _day_search_windows(
+    day: date,
+    settings: UserSettings,
+    tz: ZoneInfo,
+    preferred: FocusWindow | None,
+    window_id: UUID | None,
+    overrides_by_map: dict[UUID, list[TimeMapOverride]] | None,
+    working_windows: list[Any] | None,
+    general_windows: list[Any] | None,
+) -> list[tuple[datetime, datetime, str | None]]:
+    policy = general_windows if preferred is None else working_windows
+    return _search_windows_for_day(
+        day,
+        settings,
+        tz,
+        preferred,
+        policy_windows=policy,
+        overrides=_overrides_for_window(preferred, window_id, overrides_by_map),
+    )
+
+
 def _map_block_reason(
     day: date,
     settings: UserSettings,
     tz: ZoneInfo,
     preferred: FocusWindow,
     *,
-    day_bands: list[TimeMapBand] | list[Any] | None = None,
-    day_strict_mode: bool | None = None,
+    policy_windows: list[Any] | None = None,
+    overrides: list[TimeMapOverride] | None = None,
 ) -> str | None:
-    """Why a bound map offers no allowed window on a workday.
+    """Why a bound map offers no allowed window on a day that has eligibility.
 
-    ``None`` means the day still has a placeable clip. ``no_time_map_interval``
-    means the map never painted an allowed band. ``red_exclusion`` means red
+    ``None`` means the day still has a placeable clip, or the policy has no
+    span that day (not a map failure). ``no_time_map_interval`` means the map
+    never painted an allowed band on those spans. ``red_exclusion`` means red
     removed every clip that would have been allowed.
     """
-    if not is_workday(day, settings.workweek_days):
-        return None
-    bands = day_bands if day_bands is not None else list(preferred.bands)
-    strict_mode = (
-        day_strict_mode if day_strict_mode is not None else preferred.strict_mode
+    windows = _search_windows_for_day(
+        day,
+        settings,
+        tz,
+        preferred,
+        policy_windows=policy_windows,
+        overrides=overrides,
     )
-    green: list[tuple[datetime, datetime]] = []
-    yellow: list[tuple[datetime, datetime]] = []
-    red: list[tuple[datetime, datetime]] = []
-    for band in bands:
-        clipped = _clip_band_to_workday(day, band, settings, tz)
-        if clipped is None:
-            continue
-        if band.tier == TimeMapBandTier.green:
-            green.append(clipped)
-        elif band.tier == TimeMapBandTier.yellow:
-            yellow.append(clipped)
-        elif band.tier == TimeMapBandTier.red:
-            red.append(clipped)
-    red_intervals = [TimeInterval(start, end) for start, end in red]
-    green_left = _subtract_red_from_clips(green, red_intervals)
-    yellow_left = _subtract_red_from_clips(yellow, red_intervals)
-    if strict_mode:
-        if green_left or yellow_left:
-            return None
-        if green or yellow:
-            return HINT_RED_EXCLUSION
-        return HINT_NO_TIME_MAP_INTERVAL
-    work_start, work_end = workday_bounds(day, settings, tz)
-    neutral = subtract_intervals_from_range(work_start, work_end, red_intervals)
-    if green_left or yellow_left or neutral:
+    if windows:
         return None
-    if red:
+    rows = coerce_policy_windows(policy_windows, settings)
+    spans = materialize_windows_for_local_date(rows, day, tz)
+    if not spans:
+        return None
+    pieces = _spans_split_by_overrides(spans, overrides)
+    saw_allowed = False
+    saw_red = False
+    for piece, row in pieces:
+        bands, strict_mode = effective_day_map(preferred, row, piece.owner_date)
+        green_or_yellow = False
+        red_hit = False
+        for band in bands:
+            bounds = band_bounds(piece.owner_date, band, tz)
+            if bounds is None:
+                continue
+            if intersect_ranges(piece.start, piece.end, bounds[0], bounds[1]) is None:
+                continue
+            if band.tier == TimeMapBandTier.red:
+                red_hit = True
+            elif band.tier in {TimeMapBandTier.green, TimeMapBandTier.yellow}:
+                green_or_yellow = True
+        if red_hit:
+            saw_red = True
+        if green_or_yellow or not strict_mode:
+            saw_allowed = True
+    if saw_allowed and saw_red:
+        return HINT_RED_EXCLUSION
+    if saw_red and not saw_allowed:
         return HINT_RED_EXCLUSION
     return HINT_NO_TIME_MAP_INTERVAL
-
-
-def _day_override_map(
-    preferred: FocusWindow | None,
-    window_id: UUID | None,
-    day: date,
-    settings: UserSettings,
-    overrides_by_map: dict[UUID, list[TimeMapOverride]] | None,
-) -> tuple[list[Any] | None, bool | None, TimeMapOverride | None]:
-    if preferred is None or window_id is None or not overrides_by_map:
-        return None, None, None
-    day_override = select_override_for_scheduling_day(
-        overrides_by_map.get(window_id),
-        day=day,
-        settings=settings,
-    )
-    if day_override is None:
-        return None, None, None
-    bands, strict = effective_day_map(preferred, day_override, day)
-    return bands, strict, day_override
 
 
 def _observe_unplaced_constraints(
@@ -489,6 +576,8 @@ def _observe_unplaced_constraints(
     day_cap_blocked: bool,
     cap_blocked_day: date | None,
     buffer_minutes: int = 0,
+    working_windows: list[Any] | None = None,
+    general_windows: list[Any] | None = None,
 ) -> list[str]:
     """Observed placement constraints for F3 (not a unique root-cause proof)."""
     if remaining <= 0:
@@ -508,20 +597,15 @@ def _observe_unplaced_constraints(
                 day = now_utc.astimezone(tz).date()
                 end_day = horizon_end.astimezone(tz).date()
                 while day <= end_day:
-                    day_bands, day_strict, _ov = _day_override_map(
-                        preferred,
-                        preferred_window_id,
-                        day,
-                        settings,
-                        overrides_by_map,
-                    )
-                    for window_start, window_end, _tier in _search_windows_for_day(
+                    for window_start, window_end, _tier in _day_search_windows(
                         day,
                         settings,
                         tz,
                         preferred,
-                        day_bands=day_bands,
-                        day_strict_mode=day_strict,
+                        preferred_window_id,
+                        overrides_by_map,
+                        working_windows,
+                        general_windows,
                     ):
                         if window_end <= horizon_start or window_start >= horizon_end:
                             continue
@@ -566,20 +650,15 @@ def _observe_unplaced_constraints(
     allowed_windows = 0
     max_gap = 0
     while day <= end_day:
-        day_bands, day_strict, _ov = _day_override_map(
-            preferred,
-            preferred_window_id,
-            day,
-            settings,
-            overrides_by_map,
-        )
-        windows = _search_windows_for_day(
+        windows = _day_search_windows(
             day,
             settings,
             tz,
             preferred,
-            day_bands=day_bands,
-            day_strict_mode=day_strict,
+            preferred_window_id,
+            overrides_by_map,
+            working_windows,
+            general_windows,
         )
         for window_start, window_end, _tier in windows:
             if window_end <= horizon_start or window_start >= horizon_end:
@@ -601,20 +680,15 @@ def _observe_unplaced_constraints(
         map_reasons: set[str] = set()
         day = now_utc.astimezone(tz).date()
         while day <= end_day:
-            day_bands, day_strict, _ov = _day_override_map(
-                preferred,
-                preferred_window_id,
-                day,
-                settings,
-                overrides_by_map,
-            )
             reason = _map_block_reason(
                 day,
                 settings,
                 tz,
                 preferred,
-                day_bands=day_bands,
-                day_strict_mode=day_strict,
+                policy_windows=working_windows,
+                overrides=_overrides_for_window(
+                    preferred, preferred_window_id, overrides_by_map
+                ),
             )
             if reason is not None:
                 map_reasons.add(reason)
@@ -638,20 +712,15 @@ def _observe_unplaced_constraints(
         fits_if_ignore_external = False
         fits_if_ignore_pinned = False
         while day <= end_day:
-            day_bands, day_strict, _ov = _day_override_map(
-                preferred,
-                preferred_window_id,
-                day,
-                settings,
-                overrides_by_map,
-            )
-            for window_start, window_end, _tier in _search_windows_for_day(
+            for window_start, window_end, _tier in _day_search_windows(
                 day,
                 settings,
                 tz,
                 preferred,
-                day_bands=day_bands,
-                day_strict_mode=day_strict,
+                preferred_window_id,
+                overrides_by_map,
+                working_windows,
+                general_windows,
             ):
                 if window_end <= horizon_start or window_start >= horizon_end:
                     continue
@@ -860,10 +929,14 @@ def place_task(
     prerequisite_not_before: datetime | None = None,
     persist_blocks: bool = True,
     time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]] | None = None,
+    working_windows: list[Any] | None = None,
+    general_windows: list[Any] | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
-    # Operator zone for workday and band wall-clock. Override date match uses
-    # each row's stored IANA zone; it does not move these band instants.
+    # Operator zone for band wall-clock. Eligibility is Working or General.
+    # Override date scope is each row's stored IANA zone, split at its UTC bounds.
     tz = ZoneInfo(settings.timezone)
+    working_resolved = coerce_policy_windows(working_windows, settings)
+    general_resolved = coerce_policy_windows(general_windows, settings)
     bounds = resolve_block_bounds(task, settings)
     mbl = bounds.effective_min_minutes
     keep_in_one = bounds.keep_in_one_block
@@ -937,20 +1010,15 @@ def place_task(
     while remaining > 0 and day <= end_day:
         if blocks_limit is not None and blocks_created >= blocks_limit:
             break
-        day_bands, day_strict, day_override = _day_override_map(
-            preferred,
-            window_id,
-            day,
-            settings,
-            time_map_overrides_by_map,
-        )
-        windows = _search_windows_for_day(
+        windows = _day_search_windows(
             day,
             settings,
             tz,
             preferred,
-            day_bands=day_bands,
-            day_strict_mode=day_strict,
+            window_id,
+            time_map_overrides_by_map,
+            working_resolved,
+            general_resolved,
         )
         placed_today = False
         day_cap_blocked = False
@@ -1033,12 +1101,16 @@ def place_task(
                     # again to pins or to scheduled intervals.
                     busy = add_busy_interval(busy, start, end, buffer_minutes)
                     _record_project_minutes(day, task.project_id, slice_minutes, project_daily_usage)
-                    if day_override is not None:
-                        local = effective_local_date_for_scheduling_day(
-                            day, settings, day_override
-                        )
+                    placed_override = override_covering_instant(
+                        _overrides_for_window(
+                            preferred, window_id, time_map_overrides_by_map
+                        ),
+                        start,
+                    )
+                    if placed_override is not None:
+                        local = start.astimezone(ZoneInfo(placed_override.timezone)).date()
                         applicable_override = applicable_override_payload(
-                            day_override, local
+                            placed_override, local
                         )
                     placed_today = True
                     placed_in_window = True
@@ -1103,6 +1175,8 @@ def place_task(
             day_cap_blocked=day_cap_blocked_ever,
             cap_blocked_day=cap_blocked_day,
             buffer_minutes=buffer_minutes,
+            working_windows=working_resolved,
+            general_windows=general_resolved,
         )
 
     # Row 8: pre-existing pins/events closer than the buffer are reported.
@@ -1178,6 +1252,8 @@ def place_one_block(
     prerequisite_not_before: datetime | None = None,
     persist_blocks: bool = True,
     time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]] | None = None,
+    working_windows: list[Any] | None = None,
+    general_windows: list[Any] | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     """Place at most one scheduled block for round-robin replan sweeps."""
     return place_task(
@@ -1199,4 +1275,6 @@ def place_one_block(
         prerequisite_not_before=prerequisite_not_before,
         persist_blocks=persist_blocks,
         time_map_overrides_by_map=time_map_overrides_by_map,
+        working_windows=working_windows,
+        general_windows=general_windows,
     )

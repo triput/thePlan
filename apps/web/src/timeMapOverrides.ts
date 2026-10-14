@@ -178,9 +178,53 @@ export function formatOverrideDateRange(start: string, end: string): string {
   return `${start} – ${end}`;
 }
 
+/** Stored-zone midnight → next midnight after ``local_end_date`` (exclusive). */
+export function overrideUtcBounds(override: {
+  local_start_date: string;
+  local_end_date: string;
+  timezone: string;
+}): { start: Date; end: Date } {
+  const start = zonedDateTimeToUtc(override.local_start_date, 0, 0, override.timezone);
+  const [y, m, d] = override.local_end_date.split("-").map(Number);
+  const endUtc = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1));
+  endUtc.setUTCDate(endUtc.getUTCDate() + 1);
+  const endYmd = endUtc.toISOString().slice(0, 10);
+  const end = zonedDateTimeToUtc(endYmd, 0, 0, override.timezone);
+  return { start, end };
+}
+
+export function overrideIntersectsHorizon(
+  override: { local_start_date: string; local_end_date: string; timezone: string },
+  horizonStart: Date,
+  horizonEnd: Date,
+): boolean {
+  if (horizonEnd.getTime() <= horizonStart.getTime()) return false;
+  const { start, end } = overrideUtcBounds(override);
+  return start.getTime() < horizonEnd.getTime() && end.getTime() > horizonStart.getTime();
+}
+
+/** Instant is inside the override's stored-zone civil span. Not a whole schedule-day pick. */
+export function selectOverrideAtInstant(
+  overrides: TimeMapOverride[] | undefined,
+  instant: Date,
+): TimeMapOverride | null {
+  if (!overrides?.length) return null;
+  const t = instant.getTime();
+  const matches = overrides.filter((override) => {
+    const { start, end } = overrideUtcBounds(override);
+    return start.getTime() <= t && t < end.getTime();
+  });
+  if (matches.length === 0) return null;
+  matches.sort(
+    (a, b) =>
+      a.local_start_date.localeCompare(b.local_start_date) || a.id.localeCompare(b.id),
+  );
+  return matches[0] ?? null;
+}
+
 export function isOverrideExpired(override: TimeMapOverride, now = new Date()): boolean {
-  const today = ymdInTimeZone(now, override.timezone);
-  return override.local_end_date < today;
+  const { end } = overrideUtcBounds(override);
+  return now.getTime() >= end.getTime();
 }
 
 export function formatTimeMapOverrideError(err: unknown): string {
