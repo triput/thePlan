@@ -23,10 +23,12 @@ from app.scheduler.task_effort import placement_effort_minutes
 from app.scheduler.reasons import (
     REASON_BLOCKED_DEPENDENCY_CYCLE,
     REASON_BLOCKED_PREREQUISITE,
+    REASON_DEFERRED_EXCEPTION_NOT_APPLIED,
     REASON_EXCLUDED_DURATION_COVERED_BY_PINS,
     REASON_EXCLUDED_MANUAL_OR_BUNDLE,
     REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER,
     REASON_PLACED,
+    REASON_UNMET_PREFERENCE,
     REASON_UNPLACED_DEADLINE_LIMIT,
     REASON_UNPLACED_HORIZON_EXHAUSTED,
     REASON_UNPLACED_INSUFFICIENT_MIN_BLOCK,
@@ -431,6 +433,8 @@ def _finalize_candidate_outcomes(
     prerequisite_not_before_by_task: dict[UUID, datetime],
     hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] | None = None,
     buffer_warning_hints_by_task: dict[UUID, list[dict[str, Any]]] | None = None,
+    unmet_preference_by_task: dict[UUID, dict[str, Any]] | None = None,
+    deferred_exceptions_by_task: dict[UUID, list[dict[str, Any]]] | None = None,
 ) -> list[TaskSchedulingOutcome]:
     outcomes: list[TaskSchedulingOutcome] = []
     for candidate in ordered:
@@ -569,6 +573,18 @@ def _finalize_candidate_outcomes(
         else:
             facts = []
 
+        unmet = (unmet_preference_by_task or {}).get(task_id)
+        if unmet:
+            facts.append(ReasonFact(REASON_UNMET_PREFERENCE, dict(unmet)))
+        deferred = (deferred_exceptions_by_task or {}).get(task_id)
+        if deferred:
+            facts.append(
+                ReasonFact(
+                    REASON_DEFERRED_EXCEPTION_NOT_APPLIED,
+                    {"rejected": list(deferred)},
+                )
+            )
+
         outcomes.append(
             TaskSchedulingOutcome(
                 task_id=task_id,
@@ -645,6 +661,8 @@ def calculate(
     observed_constraints_by_task: dict[UUID, list[str]] = {}
     failure_telemetry_by_task: dict[UUID, dict[str, Any]] = {}
     buffer_warning_hints_by_task: dict[UUID, list[dict[str, Any]]] = {}
+    unmet_preference_by_task: dict[UUID, dict[str, Any]] = {}
+    deferred_exceptions_by_task: dict[UUID, list[dict[str, Any]]] = {}
     applicable_override_by_task: dict[UUID, dict[str, Any]] = {}
     prerequisite_not_before_by_task: dict[UUID, datetime] = {}
     minutes_by_project: dict[str, int] = {}
@@ -701,8 +719,13 @@ def calculate(
                 time_map_overrides_by_map=inputs.time_map_overrides_by_map,
                 working_windows=inputs.working_windows,
                 general_windows=inputs.general_windows,
+                composition=inputs.composition_by_task.get(task_id),
             )
             prerequisite_not_before_by_task[task_id] = prereq_not_before
+            if result.unmet_preference:
+                unmet_preference_by_task[task_id] = result.unmet_preference
+            if result.deferred_exceptions:
+                deferred_exceptions_by_task[task_id] = result.deferred_exceptions
             if result.applicable_override is not None:
                 applicable_override_by_task[task_id] = result.applicable_override
             remaining_by_task[task_id] = result.remaining_minutes
@@ -812,6 +835,14 @@ def calculate(
                     existing_hints.append(hint)
                     seen_codes.add(code)
             placement_facts_by_task[task_id]["pass_hints"] = existing_hints
+        if task_id in unmet_preference_by_task:
+            placement_facts_by_task[task_id]["unmet_preference"] = unmet_preference_by_task[
+                task_id
+            ]
+        if task_id in deferred_exceptions_by_task:
+            placement_facts_by_task[task_id]["deferred_exceptions"] = (
+                deferred_exceptions_by_task[task_id]
+            )
 
     hint_params_by_task: dict[UUID, dict[str, dict[str, Any]]] = {}
     for task_id, telemetry in failure_telemetry_by_task.items():
@@ -842,6 +873,8 @@ def calculate(
         prerequisite_not_before_by_task=prerequisite_not_before_by_task,
         hint_params_by_task=hint_params_by_task,
         buffer_warning_hints_by_task=buffer_warning_hints_by_task,
+        unmet_preference_by_task=unmet_preference_by_task,
+        deferred_exceptions_by_task=deferred_exceptions_by_task,
     )
 
     return CalculationResult(

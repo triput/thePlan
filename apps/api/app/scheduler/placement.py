@@ -26,6 +26,12 @@ from app.scheduler.availability_materializer import (
     merge_utc_intervals,
     resolve_recurring_wall,
 )
+from app.scheduler.composition import (
+    RANK_PREFER,
+    AssignmentFamily,
+    EffectiveComposition,
+    composition_search_windows,
+)
 from app.scheduler.time_map_overrides import (
     applicable_override_payload,
     effective_day_map,
@@ -42,6 +48,7 @@ from app.scheduler.busy_map import (
     interval_overlaps_busy,
 )
 from app.scheduler.reasons import (
+    REASON_ASSIGNMENT_FAMILY_CONFLICT,
     REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER,
     REASON_UNPLACED_BLOCK_BOUNDS_CONFLICT,
     REASON_UNPLACED_BUSY_CONFLICT,
@@ -86,6 +93,10 @@ class PlacementResult:
     last_failure: dict[str, Any] | None = None
     pass_hints: list[dict[str, Any]] = field(default_factory=list)
     applicable_override: dict[str, Any] | None = None
+    # Set when a block landed outside Prefer. Prefer never creates the span.
+    unmet_preference: dict[str, Any] | None = None
+    # Dated / weekday / context requests that reached the placer and were not applied.
+    deferred_exceptions: list[dict[str, Any]] | None = None
 
 
 # Short codes Jules maps onto ``unplaced_*`` reason codes. Do not rename without
@@ -1026,8 +1037,11 @@ def place_task(
     time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]] | None = None,
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
+    composition: EffectiveComposition | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
-    # Operator zone for band wall-clock. Eligibility is Working or General.
+    # Operator zone for band wall-clock. Eligibility is Working or General
+    # unless ``composition`` is an activated new-rule assignment. That path
+    # unions May, intersects Must, and ranks Prefer. It does not clip to Working.
     # Override date scope is each row's stored IANA zone, split at its UTC bounds.
     tz = ZoneInfo(settings.timezone)
     working_resolved = coerce_policy_windows(working_windows, settings)
@@ -1089,10 +1103,26 @@ def place_task(
         if prerequisite_not_before > not_before:
             not_before = prerequisite_not_before
 
+    composition_active = (
+        composition is not None and composition.family == AssignmentFamily.NEW_RULE
+    )
+    if composition is not None and composition.family == AssignmentFamily.CONFLICT:
+        return _refuse_placement(
+            task,
+            db,
+            remaining=remaining_minutes,
+            busy=busy,
+            reason_code=REASON_ASSIGNMENT_FAMILY_CONFLICT,
+            params={"family": AssignmentFamily.CONFLICT.value},
+            finalize_status=finalize_status,
+            persist_blocks=persist_blocks,
+        )
+
     remaining = remaining_minutes
     blocks_created = 0
     last_block_end: datetime | None = None
     last_placed_tier: str | None = None
+    placed_outside_prefer = False
     proposed: list[ProposedBlock] = []
     day = now_utc.astimezone(tz).date()
     end_day = horizon_end.astimezone(tz).date()
@@ -1105,19 +1135,27 @@ def place_task(
     while remaining > 0 and day <= end_day:
         if blocks_limit is not None and blocks_created >= blocks_limit:
             break
-        windows = _day_search_windows(
-            day,
-            settings,
-            tz,
-            preferred,
-            window_id,
-            time_map_overrides_by_map,
-            working_resolved,
-            general_resolved,
-        )
+        if composition_active:
+            assert composition is not None
+            windows = composition_search_windows(
+                day, tz, composition, general_resolved
+            )
+        else:
+            windows = _day_search_windows(
+                day,
+                settings,
+                tz,
+                preferred,
+                window_id,
+                time_map_overrides_by_map,
+                working_resolved,
+                general_resolved,
+            )
         placed_today = False
         day_cap_blocked = False
-        for window_start, window_end, window_tier in windows:
+        for window_start, window_end, window_label in windows:
+            # Time-map tier stays on the legacy path. Composition rank is not a tier.
+            window_tier = None if composition_active else window_label
             if window_end <= horizon_start or window_start >= horizon_end:
                 continue
             search_start = max(window_start, horizon_start)
@@ -1188,6 +1226,13 @@ def place_task(
                     not_before = end
                     last_block_end = end
                     last_placed_tier = window_tier
+                    if (
+                        composition_active
+                        and composition is not None
+                        and composition.prefer_rules
+                        and window_label != RANK_PREFER
+                    ):
+                        placed_outside_prefer = True
                     # Buffer is separation, not work duration: ``remaining``
                     # drops by slice_minutes only. One pad on each side of this
                     # block is the single auto–auto gap, including a later
@@ -1312,6 +1357,23 @@ def place_task(
             fixed_conflicts=conflicts,
         )
 
+    unmet_preference: dict[str, Any] | None = None
+    if placed_outside_prefer and composition is not None:
+        unmet_preference = {
+            "prefer_rule_ids": [entry.rule_id for entry in composition.prefer_rules],
+            "placed_outside_preferred_window": True,
+        }
+    deferred_exceptions: list[dict[str, Any]] | None = None
+    if composition is not None and composition.deferred_rejected:
+        deferred_exceptions = [
+            {
+                "form": item.form.value,
+                "scope": item.scope,
+                "scope_id": item.scope_id,
+            }
+            for item in composition.deferred_rejected
+        ]
+
     return (
         PlacementResult(
             blocks_created=blocks_created,
@@ -1324,6 +1386,8 @@ def place_task(
             last_failure=last_failure,
             pass_hints=hints,
             applicable_override=applicable_override,
+            unmet_preference=unmet_preference,
+            deferred_exceptions=deferred_exceptions,
         ),
         busy,
     )
@@ -1349,6 +1413,7 @@ def place_one_block(
     time_map_overrides_by_map: dict[UUID, list[TimeMapOverride]] | None = None,
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
+    composition: EffectiveComposition | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     """Place at most one scheduled block for round-robin replan sweeps."""
     return place_task(
@@ -1372,4 +1437,5 @@ def place_one_block(
         time_map_overrides_by_map=time_map_overrides_by_map,
         working_windows=working_windows,
         general_windows=general_windows,
+        composition=composition,
     )

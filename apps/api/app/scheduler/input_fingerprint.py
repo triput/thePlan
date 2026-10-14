@@ -27,7 +27,16 @@ Compared:
 - ``availability`` — stored Working and General policy windows (weekday,
   start, duration, ``ends_next_day``, sort). Not ``map_style``, not Time Map
   overrides, not ``nominal_workday_minutes``. The effective map id stays on
-  ``map_style``.
+  ``map_style``. New-rule May/Must/Prefer refs are not stuffed here; they
+  would conflate a policy-hour edit with an assignment edit.
+- ``composition`` — S2-V4 sibling of ``availability``. The resolved new-rule
+  assignment the placer used: ``family``, ``may_source`` (``general`` when no
+  permission resolves, ``explicit`` / ``explicit_empty`` otherwise), rule refs
+  and windows, standing exception operations, waived Must ids, and rejected
+  dated/weekday/context requests. Prefer windows are ranking inputs, so a
+  preference edit stales here even when the eligible set does not change.
+  ``family="legacy"`` and ``family="absent"`` are explicit. Legacy band rows
+  stay on ``map_style``. Working/General hours stay on ``availability``.
 - ``lifecycle`` — completed, trashed (``deleted_at``), project/epic archived
 - ``busy_external`` — owner immovable busy (pinned blocks and non-mirror
   external events), not horizon-clipped and not auto-placed blocks
@@ -56,6 +65,8 @@ from datetime import date, datetime, time, timezone
 from typing import Any
 from uuid import UUID
 
+from app.scheduler.composition import absent_composition_fingerprint
+
 SNAPSHOT_VERSION = 3
 SNAPSHOT_VERSION_V4 = 4
 
@@ -67,6 +78,7 @@ SCHEDULING_ACTIVATIONS: tuple[str, ...] = (
     "s2-v1-duration-bounds",
     "s2-v2-pin-reservation",
     "s2-v3-working-general-availability",
+    "s2-v4-may-must-prefer-composition",
 )
 
 STALE_DURATION = "duration"
@@ -82,6 +94,7 @@ STALE_PREREQUISITE_STATE = "prerequisite_state"
 STALE_DUE_AT_SOFT_TARGET = "due_at_soft_target"
 STALE_TIME_MAP_OVERRIDES = "time_map_overrides"
 STALE_AVAILABILITY = "availability"
+STALE_COMPOSITION = "composition"
 STALE_PROVENANCE = "provenance"
 
 W1_STALE_CATEGORIES: tuple[str, ...] = (
@@ -105,6 +118,8 @@ F4_W2_STALE_CATEGORIES: tuple[str, ...] = (STALE_TIME_MAP_OVERRIDES,)
 
 S2_V3_STALE_CATEGORIES: tuple[str, ...] = (STALE_AVAILABILITY,)
 
+S2_V4_STALE_CATEGORIES: tuple[str, ...] = (STALE_COMPOSITION,)
+
 STALE_SCHEDULING_ACTIVATION = "scheduling_activation"
 
 COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
@@ -112,6 +127,7 @@ COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
     + W2_STALE_CATEGORIES
     + F4_W2_STALE_CATEGORIES
     + S2_V3_STALE_CATEGORIES
+    + S2_V4_STALE_CATEGORIES
     + (STALE_SCHEDULING_ACTIVATION,)
 )
 
@@ -496,6 +512,7 @@ def assemble_snapshot(
     max_block_source: str | None = None,
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
+    composition: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Canonical task input snapshot (v3 or v4). Callers pass the effective map.
 
@@ -591,6 +608,9 @@ def assemble_snapshot(
     }
     if version == SNAPSHOT_VERSION_V4:
         snapshot["scheduling_activation"] = {"ids": list(SCHEDULING_ACTIVATIONS)}
+        snapshot["composition"] = (
+            composition if composition is not None else absent_composition_fingerprint()
+        )
     return snapshot
 
 

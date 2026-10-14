@@ -35,6 +35,14 @@ REASON_UNPLACED_KEEP_IN_ONE_CONFLICT = "unplaced_keep_in_one_conflict"
 # Pre-existing pins and external events sit closer than the buffer. They are
 # not moved. Not an unplaced-* code: the task may still place elsewhere.
 REASON_FIXED_ITEMS_CLOSER_THAN_BUFFER = "fixed_items_closer_than_buffer"
+# Secondary fact when a block landed outside Prefer. Not an unplaced code:
+# Prefer did not create the hour and did not waive Must. The block stands.
+REASON_UNMET_PREFERENCE = "unmet_preference"
+# Dated, weekday-standing, or context exception reached the placer and was
+# not applied. Standing May/Must/Prefer rules still compose.
+REASON_DEFERRED_EXCEPTION_NOT_APPLIED = "deferred_exception_not_applied"
+# Both assignment families active at one scope. The placer does not pick one.
+REASON_ASSIGNMENT_FAMILY_CONFLICT = "assignment_family_conflict"
 
 
 @dataclass
@@ -272,6 +280,20 @@ def format_summary_text(facts: list[ReasonFact]) -> str:
                     "Pinned blocks and external events are closer than the required buffer. "
                     "They were not moved."
                 )
+        elif code == REASON_UNMET_PREFERENCE:
+            lines.append(
+                "Placed in an eligible window outside the preferred time. "
+                "The preference did not create hours or waive a requirement."
+            )
+        elif code == REASON_DEFERRED_EXCEPTION_NOT_APPLIED:
+            lines.append(
+                "A dated, weekday-standing, or context exception was not applied."
+            )
+        elif code == REASON_ASSIGNMENT_FAMILY_CONFLICT:
+            lines.append(
+                "Legacy and new-rule assignments are both active at one scope. "
+                "Neither was used. Repair the assignment before scheduling."
+            )
         elif code == REASON_EXCLUDED_LIFECYCLE_COMPLETED:
             lines.append("Excluded from auto-scheduling (task completed).")
         elif code == REASON_EXCLUDED_LIFECYCLE_TRASHED:

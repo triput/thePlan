@@ -27,6 +27,7 @@ from app.models import (
     UserSettings,
 )
 from app.scheduler.busy_map import BusyInterval, load_immovable_busy
+from app.scheduler.composition import composition_fingerprint
 from app.scheduler.input_fingerprint import (
     ALGORITHM_VERSION,
     SNAPSHOT_VERSION_V4,
@@ -131,6 +132,7 @@ def snapshots_from_collected(
     time_map_overrides_by_map: dict[UUID, list[Any]] | None = None,
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
+    composition_by_task: dict[UUID, Any] | None = None,
 ) -> dict[UUID, dict[str, Any]]:
     """Build v3 snapshots from values already collected for calculation.
 
@@ -224,6 +226,9 @@ def snapshots_from_collected(
             time_map_overrides=overrides_by_map.get(window_id, []) if window_id else [],
             working_windows=working_windows,
             general_windows=general_windows,
+            composition=composition_fingerprint(
+                (composition_by_task or {}).get(task.id)
+            ),
         )
     return snapshots
 
@@ -291,6 +296,11 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
     from app.scheduler.availability_materializer import load_owner_policy_windows
 
     working_windows, general_windows = load_owner_policy_windows(db, owner_id)
+    from app.scheduler.composition_resolver import load_effective_compositions
+
+    composition_by_task = load_effective_compositions(
+        db, owner_id, tasks, projects, epics
+    )
     return snapshots_from_collected(
         user_settings=settings,
         tasks=tasks,
@@ -305,6 +315,7 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
         time_map_overrides_by_map=overrides_by_map,
         working_windows=working_windows,
         general_windows=general_windows,
+        composition_by_task=composition_by_task,
     )
 
 

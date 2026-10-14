@@ -47,6 +47,8 @@ from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
 )
+from app.scheduler.composition import EffectiveComposition
+from app.scheduler.composition_resolver import load_effective_compositions
 
 
 @dataclass
@@ -79,6 +81,9 @@ class SchedulingInputs:
     # Same Working/General copy placement and the stored fingerprint use.
     working_windows: list[PolicyWindow] | None = None
     general_windows: list[PolicyWindow] | None = None
+    # Resolved new-rule assignments. A missing task stays on the V3 path.
+    # Fingerprints use ``composition_fingerprint`` on these same objects.
+    composition_by_task: dict[UUID, EffectiveComposition] = field(default_factory=dict)
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -231,6 +236,13 @@ def collect_inputs(
     )
 
     daily_cap = user_settings.max_auto_schedule_minutes_per_project_per_day
+    composition_by_task = load_effective_compositions(
+        db,
+        owner_id,
+        snapshot_tasks,
+        projects,
+        epics,
+    )
 
     # Fingerprints use the same deps + pins + immovable busy calculation saw.
     from app.scheduler.outcomes import load_blocker_tasks, snapshots_from_collected
@@ -250,6 +262,7 @@ def collect_inputs(
         time_map_overrides_by_map=overrides_for_fingerprint,
         working_windows=working_windows,
         general_windows=general_windows,
+        composition_by_task=composition_by_task,
     )
 
     return SchedulingInputs(
@@ -278,4 +291,5 @@ def collect_inputs(
         immovable_busy=immovable_busy,
         working_windows=working_windows,
         general_windows=general_windows,
+        composition_by_task=composition_by_task,
     )

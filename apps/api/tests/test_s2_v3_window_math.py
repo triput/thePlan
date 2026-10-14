@@ -502,7 +502,14 @@ def test_a11d_availability_fingerprint_uses_passed_windows_and_activation_token(
     assert "workday_start_local" not in stored["timezone_horizon_workweek"]
     assert "workweek_days" not in stored["timezone_horizon_workweek"]
     assert stored["availability"]["working"][0]["start_time"].startswith("11:00")
-    assert stored["scheduling_activation"]["ids"][-1] == ACTIVATION_TOKEN
+    ids = stored["scheduling_activation"]["ids"]
+    assert ACTIVATION_TOKEN in ids
+    from app.services.composition_cutover_activation import (
+        ACTIVATION_TOKEN as V4_ACTIVATION_TOKEN,
+    )
+
+    assert ids[-1] == V4_ACTIVATION_TOKEN
+    assert ids.index(ACTIVATION_TOKEN) < ids.index(V4_ACTIVATION_TOKEN)
 
     drifted = assemble_snapshot(**{**kwargs, "general_windows": [_window(1, time(15, 0), 60)]})
     assert diff_stale_categories(stored, drifted) == [STALE_AVAILABILITY]
