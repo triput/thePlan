@@ -1241,14 +1241,54 @@ def _layer_expiries(decls: Sequence[DayScopedDeclaration]) -> list[datetime]:
     )
 
 
+def _standing_legacy_windows(
+    day: date,
+    tz: ZoneInfo,
+    view: LegacyMapView,
+    working_windows: Sequence[Any] | None,
+) -> list[tuple[datetime, datetime, str]]:
+    """Standing map search: Working first, then that map's bands.
+
+    Same contract as the ordinary placer. Red subtracts, green is tried before
+    yellow, strict omits neutral, and a dated override replaces that day's
+    bands. Painted green outside Working is not eligibility here; a scoped
+    replacement that *is* the map keeps those bands on purpose.
+    """
+    from app.scheduler.availability_materializer import materialize_windows_for_local_date
+    from app.scheduler.placement import (
+        _merge_tier_windows,
+        _spans_split_by_overrides,
+        _windows_from_bands,
+    )
+    from app.scheduler.time_map_overrides import effective_day_map
+
+    if not working_windows:
+        return []
+    spans = materialize_windows_for_local_date(list(working_windows), day, tz)
+    if not spans:
+        return []
+    base, overrides = _legacy_runtime_map(view)
+    collected: list[tuple[datetime, datetime, str | None]] = []
+    for piece, interval in _spans_split_by_overrides(spans, overrides, tz):
+        bands, strict_mode = effective_day_map(base, interval.override, interval.local_date)
+        collected.extend(_windows_from_bands([piece], bands, strict_mode, tz))
+    merged = _merge_tier_windows(collected)
+    return [(start, end, label or "neutral") for start, end, label in merged]
+
+
 def _standing_piece(
     day: date,
     tz: ZoneInfo,
     composition: EffectiveComposition,
     general_windows: Sequence[Any] | None,
+    working_windows: Sequence[Any] | None = None,
 ) -> list[tuple[datetime, datetime, str]]:
+    """Baseline after a scoped layer drops off. Legacy is the standing map."""
     from app.scheduler.composition import _standing_search_windows
 
+    view = getattr(composition, "standing_legacy_map", None)
+    if composition.family == AssignmentFamily.LEGACY and view is not None:
+        return _standing_legacy_windows(day, tz, view, working_windows)
     return list(_standing_search_windows(day, tz, composition, general_windows))
 
 
@@ -1263,8 +1303,9 @@ def folded_search_windows(
 
     A scoped family replace, clear, or revert is lifetime-bound. An explicit
     ``expires_at`` inside the civil day clips that replacement and the current
-    standing stack resumes after the instant. The cut is exclusive, so a block
-    cannot straddle it. A map's own dated override is not this lifetime.
+    standing stack resumes after the instant. A legacy standing map resumes
+    through that map's bands, not the new-rule search. The cut is exclusive,
+    so a block cannot straddle it. A map's own dated override is not this lifetime.
     """
     decls = _touching_declarations(composition, day, tz)
     if not decls:
@@ -1297,7 +1338,13 @@ def folded_search_windows(
         piece = _drop_layer_ops(active, _expired_layer_ids(decls, left))
         folded = _fold_touching_windows(day, tz, piece, general_windows, working_windows)
         if folded is None:
-            folded = _standing_piece(day, tz, piece, general_windows)
+            folded = _standing_piece(
+                day,
+                tz,
+                piece,
+                general_windows,
+                working_windows=working_windows,
+            )
         pieces.extend(_clip_ranked(folded, left, right))
     return pieces
 

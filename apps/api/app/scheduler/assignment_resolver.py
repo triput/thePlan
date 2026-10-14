@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13 (V4-D2: replacement key stays scope + output name)
+#  Last Update: 2026-10-14 (legacy standing map rides with the composition)
 # ==============================================================================
 
 """Bridge from Jules assignment rows to Tesla's composition stack.
@@ -167,6 +167,38 @@ def _layer_for_assignment(
     )
 
 
+def _standing_legacy_views(db: Session, owner_id: UUID):
+    """One owner load of focus windows and overrides, then a view per map id."""
+    from app.models import FocusWindow
+    from app.scheduler.day_scoped import _legacy_map_view
+    from app.scheduler.time_map_overrides import load_time_map_overrides_for_maps
+
+    focus: dict | None = None
+    overrides: dict | None = None
+
+    def view_for(map_id: UUID | None):
+        nonlocal focus, overrides
+        if map_id is None:
+            return None
+        if focus is None:
+            focus = {
+                row.id: row
+                for row in (
+                    db.query(FocusWindow)
+                    .options(joinedload(FocusWindow.bands))
+                    .filter(FocusWindow.owner_id == owner_id)
+                    .all()
+                )
+            }
+            overrides = load_time_map_overrides_for_maps(db, owner_id, set(focus))
+        row = focus.get(map_id)
+        if row is None or overrides is None:
+            return None
+        return _legacy_map_view(row, overrides.get(map_id) or ())
+
+    return view_for
+
+
 def _composition_for_task(
     db: Session,
     *,
@@ -175,6 +207,7 @@ def _composition_for_task(
     project: Project | None,
     epic: Epic | None,
     policies: dict[UUID, AvailabilityPolicy],
+    legacy_view,
 ):
     comp = _composition()
     task_asg = load_assignment_at_scope(
@@ -225,7 +258,11 @@ def _composition_for_task(
     if winning is None:
         return None
     if winning.family == "legacy":
-        return comp.CompositionInput(family=comp.AssignmentFamily.LEGACY, layers=())
+        return comp.CompositionInput(
+            family=comp.AssignmentFamily.LEGACY,
+            layers=(),
+            standing_legacy_map=legacy_view(winning.preferred_time_window_id),
+        )
 
     win_index = next(
         i
@@ -281,6 +318,7 @@ def resolve_new_rule_compositions(
             .all()
         )
     }
+    legacy_view = _standing_legacy_views(db, owner_id)
     out: dict[UUID, object] = {}
     for task in tasks:
         if task.owner_id != owner_id:
@@ -296,6 +334,7 @@ def resolve_new_rule_compositions(
             project=project,
             epic=epic,
             policies=policies,
+            legacy_view=legacy_view,
         )
         if payload is not None:
             out[task.id] = payload

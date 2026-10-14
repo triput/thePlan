@@ -18,7 +18,12 @@ from sqlalchemy.orm import Session
 from app.models import FocusWindow, Task, UserSettings
 from app.models.scheduling_day_scoped import SchedulingDayScopedOp
 from app.scheduler.availability_materializer import load_owner_policy_windows
-from app.scheduler.composition import composition_fingerprint, composition_search_windows
+from app.scheduler.composition import (
+    AssignmentFamily,
+    composition_fingerprint,
+    composition_search_windows,
+)
+from app.scheduler.time_map_overrides import load_time_map_overrides_for_maps
 from app.scheduler.composition_resolver import load_effective_compositions
 from app.scheduler.placement import place_task
 from app.services.availability_seed import ensure_default_availability_policies
@@ -177,6 +182,7 @@ def _place(db: Session, task: Task, composed, start: datetime, end: datetime):
             db.query(FocusWindow).filter(FocusWindow.owner_id == task.owner_id).all()
         )
     }
+    overrides = load_time_map_overrides_for_maps(db, task.owner_id, set(maps))
     result, _busy = place_task(
         db,
         task=task,
@@ -194,6 +200,7 @@ def _place(db: Session, task: Task, composed, start: datetime, end: datetime):
         general_windows=general,
         composition=composed,
         ranking_protection=False,
+        time_map_overrides_by_map=overrides,
     )
     return result, general
 
@@ -715,3 +722,230 @@ def test_new_rule_and_clear_midday_expiry_restore_standing(
     )
     assert (14, 15) not in _eligible_hours(cleared_comp, TUESDAY.date(), cleared_general)
     assert cleared_place.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+
+_AFTER = datetime(2026, 10, 13, 13, 0, tzinfo=UTC)
+_DAY_END = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+_MORNING = datetime(2026, 10, 13, 8, 0, tzinfo=UTC)
+
+
+def _bind_standing_map(client: TestClient, task_id: str, window_id: str) -> None:
+    response = client.patch(
+        f"/api/v1/tasks/{task_id}",
+        json={"preferred_time_window_id": window_id},
+    )
+    assert response.status_code == 200, response.text
+
+
+def _windows_for(db: Session, task: Task, composed):
+    working, general = load_owner_policy_windows(db, task.owner_id)
+    clips = composition_search_windows(
+        TUESDAY.date(),
+        ZoneInfo(TZ_NAME),
+        composed,
+        general,
+        working_windows=working,
+    )
+    return working, general, clips
+
+
+def _assert_still_legacy(task: Task, composed, window_id: str) -> None:
+    assert composed is not None
+    assert composed.family == AssignmentFamily.LEGACY
+    assert composed.may_rules == ()
+    assert composed.standing_legacy_map is not None
+    assert task.preferred_time_window_id == uuid.UUID(window_id)
+    fingerprint = composition_fingerprint(composed)
+    assert fingerprint["family"] == "legacy"
+    assert fingerprint["rules"] == []
+
+
+def test_expiry_restores_legacy_baseline(client: TestClient, db_session: Session) -> None:
+    """Expired scoped family work resumes the standing legacy map. The map stays legacy."""
+    _prepare(client, db_session)
+    _policy(client, "work", "09:00", 480)
+    temporary = _policy(client, "personal", "14:00", 60)
+    _policy(client, "general", "11:00", 60)
+    task = _task(client)
+    window = _focus(client, strict=True, bands=_bands(("green", "16:00", "17:00")))
+    _bind_standing_map(client, task["id"], window["id"])
+
+    baseline_row, baseline = _collected(db_session, task["id"])
+    _assert_still_legacy(baseline_row, baseline, window["id"])
+    control, _general = _place(db_session, baseline_row, baseline, _AFTER, _DAY_END)
+    assert control.blocks_created == 1, control
+    assert control.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+    _family(
+        client,
+        task["id"],
+        {
+            "target_family": "new_rule",
+            "expires_at": "2026-10-13T13:00:00Z",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "temporary", "policy_id": temporary["id"]}],
+            },
+        },
+    )
+    stored, composed = _collected(db_session, task["id"])
+    _assert_still_legacy(stored, composed, window["id"])
+    _working, general, clips = _windows_for(db_session, stored, composed)
+    assert not any(item[0] < _AFTER < item[1] for item in clips)
+    assert not any(item[0].hour == 14 for item in clips)
+    assert any(item[0].hour == 16 and item[1].hour == 17 for item in clips)
+    placed, _general = _place(db_session, stored, composed, _AFTER, _DAY_END)
+    assert placed.blocks_created == 1, placed
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    assert placed.proposed_blocks[0].end_time == datetime(2026, 10, 13, 17, 0, tzinfo=UTC)
+    from_morning, _general = _place(db_session, stored, composed, _MORNING, _DAY_END)
+    assert from_morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    nxt, _general = _place(
+        db_session,
+        stored,
+        composed,
+        datetime(2026, 10, 20, 13, 0, tzinfo=UTC),
+        datetime(2026, 10, 20, 18, 0, tzinfo=UTC),
+    )
+    assert nxt.proposed_blocks[0].start_time == datetime(2026, 10, 20, 16, 0, tzinfo=UTC)
+
+    morning_rule = _policy(client, "personal", "10:00", 60)
+    crossing_task = _task(
+        client,
+        estimated_duration_minutes=120,
+        min_block_duration_minutes=60,
+        max_block_duration_minutes=60,
+    )
+    crossing_window = _focus(client, strict=True, bands=_bands(("green", "16:00", "17:00")))
+    _bind_standing_map(client, crossing_task["id"], crossing_window["id"])
+    _family(
+        client,
+        crossing_task["id"],
+        {
+            "target_family": "new_rule",
+            "expires_at": "2026-10-13T13:00:00Z",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "morning", "policy_id": morning_rule["id"]}],
+            },
+        },
+    )
+    crossing_row, crossing = _collected(db_session, crossing_task["id"])
+    _assert_still_legacy(crossing_row, crossing, crossing_window["id"])
+    _working, _general, crossing_clips = _windows_for(db_session, crossing_row, crossing)
+    assert not any(item[0] < _AFTER < item[1] for item in crossing_clips)
+    assert any(item[0].hour == 10 and item[1].hour == 11 for item in crossing_clips)
+    assert any(item[0].hour == 16 and item[1].hour == 17 for item in crossing_clips)
+    crossed, _general = _place(db_session, crossing_row, crossing, _MORNING, _DAY_END)
+    assert [(block.start_time.hour, block.end_time.hour) for block in crossed.proposed_blocks] == [
+        (10, 11),
+        (16, 17),
+    ]
+    assert not any(block.start_time < _AFTER < block.end_time for block in crossed.proposed_blocks)
+
+    red_window = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "14:00", "17:00"), ("red", "14:00", "15:00")),
+    )
+    red_task = _task(client)
+    _bind_standing_map(client, red_task["id"], red_window["id"])
+    red_base_row, red_base = _collected(db_session, red_task["id"])
+    red_control, _general = _place(db_session, red_base_row, red_base, _AFTER, _DAY_END)
+    assert red_control.proposed_blocks[0].start_time == datetime(2026, 10, 13, 15, 0, tzinfo=UTC)
+    _family(
+        client,
+        red_task["id"],
+        {
+            "target_family": "new_rule",
+            "expires_at": "2026-10-13T13:00:00Z",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "morning", "policy_id": morning_rule["id"]}],
+            },
+        },
+    )
+    red_row, red_comp = _collected(db_session, red_task["id"])
+    _assert_still_legacy(red_row, red_comp, red_window["id"])
+    assert any(band.tier == "red" for band in red_comp.standing_legacy_map.bands)
+    red_place, _general = _place(db_session, red_row, red_comp, _AFTER, _DAY_END)
+    assert red_place.proposed_blocks[0].start_time == datetime(2026, 10, 13, 15, 0, tzinfo=UTC)
+    red_morning, _general = _place(db_session, red_row, red_comp, _MORNING, _DAY_END)
+    assert red_morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 10, 0, tzinfo=UTC)
+
+    moved_window = _focus(client, strict=True, bands=_bands(("green", "16:00", "17:00")))
+    override = client.post(
+        f"/api/v1/focus-windows/{moved_window['id']}/overrides",
+        json={
+            "local_start_date": "2026-10-13",
+            "local_end_date": "2026-10-13",
+            "timezone": "UTC",
+            "strict_mode": True,
+            "bands": _bands(("yellow", "15:00", "16:00")),
+        },
+    )
+    assert override.status_code == 201, override.text
+    moved_task = _task(client)
+    _bind_standing_map(client, moved_task["id"], moved_window["id"])
+    moved_base_row, moved_base = _collected(db_session, moved_task["id"])
+    moved_control, _general = _place(db_session, moved_base_row, moved_base, _AFTER, _DAY_END)
+    assert moved_control.proposed_blocks[0].start_time == datetime(2026, 10, 13, 15, 0, tzinfo=UTC)
+    _family(
+        client,
+        moved_task["id"],
+        {
+            "target_family": "new_rule",
+            "expires_at": "2026-10-13T13:00:00Z",
+            "may": {
+                "presence": "explicit",
+                "rules": [{"name": "morning", "policy_id": morning_rule["id"]}],
+            },
+        },
+    )
+    moved_row, moved_comp = _collected(db_session, moved_task["id"])
+    _assert_still_legacy(moved_row, moved_comp, moved_window["id"])
+    assert moved_comp.standing_legacy_map.overrides
+    moved_place, _general = _place(db_session, moved_row, moved_comp, _AFTER, _DAY_END)
+    assert moved_place.proposed_blocks[0].start_time == datetime(2026, 10, 13, 15, 0, tzinfo=UTC)
+    moved_next, _general = _place(
+        db_session,
+        moved_row,
+        moved_comp,
+        datetime(2026, 10, 20, 13, 0, tzinfo=UTC),
+        datetime(2026, 10, 20, 18, 0, tzinfo=UTC),
+    )
+    assert moved_next.proposed_blocks[0].start_time == datetime(2026, 10, 20, 16, 0, tzinfo=UTC)
+
+    clear_window = _focus(client, strict=True, bands=_bands(("green", "16:00", "17:00")))
+    clear_task = _task(client)
+    _bind_standing_map(client, clear_task["id"], clear_window["id"])
+    cleared = client.post(
+        f"/api/v1/tasks/{clear_task['id']}/scheduling/assignment/clear-scoped",
+        json={
+            "expected_revision": _revision(client),
+            "on_date": "2026-10-13",
+            "expires_at": "2026-10-13T13:00:00Z",
+        },
+    )
+    assert cleared.status_code == 200, cleared.text
+    clear_row, clear_comp = _collected(db_session, clear_task["id"])
+    _assert_still_legacy(clear_row, clear_comp, clear_window["id"])
+    clear_morning, _general = _place(db_session, clear_row, clear_comp, _MORNING, _DAY_END)
+    assert clear_morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 11, 0, tzinfo=UTC)
+    clear_after, _general = _place(db_session, clear_row, clear_comp, _AFTER, _DAY_END)
+    assert clear_after.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+    none_window = _focus(client, strict=True, bands=_bands(("green", "16:00", "17:00")))
+    none_task = _task(client)
+    _bind_standing_map(client, none_task["id"], none_window["id"])
+    _family(
+        client,
+        none_task["id"],
+        {"target_family": "none", "expires_at": "2026-10-13T13:00:00Z"},
+    )
+    none_row, none_comp = _collected(db_session, none_task["id"])
+    _assert_still_legacy(none_row, none_comp, none_window["id"])
+    none_morning, _general = _place(db_session, none_row, none_comp, _MORNING, _DAY_END)
+    assert none_morning.proposed_blocks[0].start_time == datetime(2026, 10, 13, 11, 0, tzinfo=UTC)
+    none_after, _general = _place(db_session, none_row, none_comp, _AFTER, _DAY_END)
+    assert none_after.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)

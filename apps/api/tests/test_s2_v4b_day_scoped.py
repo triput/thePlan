@@ -32,6 +32,7 @@ from app.scheduler.day_scoped import (
     DayScopedOp,
     LegacyBand,
     LegacyMapView,
+    LegacyOverride,
     SelectorKind,
     declaration_problem,
 )
@@ -1017,3 +1018,210 @@ def test_fingerprint_changes_when_only_replacement_layer_hours_change() -> None:
     assert left_fp["rules"] == right_fp["rules"]
     assert left_fp["day_scoped"][0]["replacement_layer"]["may_rules"][0]["windows"][0]["start_time"] == "15:00:00"
     assert right_fp["day_scoped"][0]["replacement_layer"]["may_rules"][0]["windows"][0]["start_time"] == "16:00:00"
+
+
+def _legacy_standing(*decls: DayScopedDeclaration, view: LegacyMapView) -> object:
+    composed = resolve_effective_composition(
+        CompositionInput(
+            family=AssignmentFamily.LEGACY,
+            standing_legacy_map=view,
+            day_scoped=tuple(decls),
+        )
+    )
+    fingerprint = composition_fingerprint(composed)
+    assert fingerprint["family"] == "legacy"
+    assert fingerprint["rules"] == []
+    assert "standing_legacy_map" not in fingerprint
+    return composed
+
+
+def _temp_may(hour: int, *, declaration_id: str) -> DayScopedDeclaration:
+    layer = _layer(
+        "task",
+        "t",
+        may=(rule("temp", RuleRole.MAY, (_window(hour, 0, 60),), scope="task", scope_id="t"),),
+    )
+    return _decl(
+        DayScopedOp.FAMILY_REPLACE_SCOPED,
+        CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+        replacement_family="new_rule",
+        replacement_layer=layer,
+        expires_at=datetime(2026, 10, 13, 13, 0, tzinfo=UTC),
+        declaration_id=declaration_id,
+    )
+
+
+def _legacy_clips(composed, general=()):
+    return composition_search_windows(
+        TUESDAY,
+        TZ,
+        composed,
+        general,
+        working_windows=[_window(9, 0, 480)],
+    )
+
+
+def _place_on_legacy(composed, now: datetime, end: datetime, minutes: int = 60):
+    task = _task(minutes, min_block=60, max_block=60)
+    result, _busy = place_task(
+        None,  # type: ignore[arg-type]
+        task=task,
+        owner_id=task.owner_id,
+        settings=_settings(),
+        remaining_minutes=minutes,
+        busy=[],
+        horizon_start=now,
+        horizon_end=end,
+        preferred_windows={},
+        now_utc=now,
+        finalize_status=False,
+        persist_blocks=False,
+        working_windows=[_window(9, 0, 480)],
+        general_windows=[_window(11, 0, 60)],
+        composition=composed,
+        ranking_protection=False,
+    )
+    return result
+
+
+def test_expiry_restores_legacy_standing_map_across_the_cut() -> None:
+    """A midday expiry resumes the standing map, not an empty new-rule search."""
+    expiry = datetime(2026, 10, 13, 13, 0, tzinfo=UTC)
+    afternoon = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+    morning = datetime(2026, 10, 13, 8, 0, tzinfo=UTC)
+    standing = _legacy_view(("green", time(16, 0), time(17, 0)))
+
+    expired_later = _legacy_standing(_temp_may(14, declaration_id="after-cut"), view=standing)
+    later = _legacy_clips(expired_later)
+    assert not _crosses(later, expiry)
+    assert _hours(later) == []
+    assert [(item[0].hour, item[1].hour) for item in later] == [(16, 17)]
+    placed = _place_on_legacy(expired_later, expiry, afternoon)
+    assert placed.blocks_created == 1
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    assert not (placed.proposed_blocks[0].start_time < expiry < placed.proposed_blocks[0].end_time)
+
+    crossing = _legacy_standing(_temp_may(10, declaration_id="cross-cut"), view=standing)
+    crossed = _legacy_clips(crossing)
+    assert not _crosses(crossed, expiry)
+    assert (10, 0, 11, 0) in _hours(crossed)
+    assert any(item[0].hour == 16 and item[1].hour == 17 for item in crossed)
+    early = _place_on_legacy(crossing, morning, afternoon)
+    assert early.proposed_blocks[0].start_time == datetime(2026, 10, 13, 10, 0, tzinfo=UTC)
+    resumed = _place_on_legacy(crossing, expiry, afternoon)
+    assert resumed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+    both = _place_on_legacy(crossing, morning, afternoon, minutes=120)
+    assert [(block.start_time.hour, block.end_time.hour) for block in both.proposed_blocks] == [
+        (10, 11),
+        (16, 17),
+    ]
+    assert not any(block.start_time < expiry < block.end_time for block in both.proposed_blocks)
+
+    wide = _legacy_view(("green", time(12, 0), time(17, 0)))
+    split_map = _legacy_standing(_temp_may(10, declaration_id="wide-map"), view=wide)
+    split_clips = _legacy_clips(split_map)
+    assert not _crosses(split_clips, expiry)
+    assert not any(item[0].hour == 12 for item in split_clips)
+    assert any(item[0] == expiry and item[1].hour == 17 for item in split_clips)
+    resumed_wide = _place_on_legacy(split_map, expiry, afternoon)
+    assert resumed_wide.proposed_blocks[0].start_time == expiry
+
+    ranked = LegacyMapView(
+        map_id="ranked",
+        strict_mode=True,
+        bands=(
+            LegacyBand("yellow", time(14, 0), time(17, 0), 127, 0),
+            LegacyBand("green", time(16, 0), time(17, 0), 127, 1),
+        ),
+    )
+    green_first = _legacy_standing(_temp_may(10, declaration_id="green-first"), view=ranked)
+    assert _place_on_legacy(green_first, expiry, afternoon).proposed_blocks[0].start_time == datetime(
+        2026, 10, 13, 16, 0, tzinfo=UTC
+    )
+
+    red_map = LegacyMapView(
+        map_id="red",
+        strict_mode=True,
+        bands=(
+            LegacyBand("green", time(14, 0), time(17, 0), 127, 0),
+            LegacyBand("red", time(14, 0), time(15, 0), 127, 1),
+        ),
+    )
+    red = _legacy_standing(_temp_may(10, declaration_id="red-cut"), view=red_map)
+    red_clips = _legacy_clips(red)
+    assert not any(item[0].hour == 14 for item in red_clips)
+    assert any(item[0].hour == 15 for item in red_clips)
+    assert _place_on_legacy(red, expiry, afternoon).proposed_blocks[0].start_time == datetime(
+        2026, 10, 13, 15, 0, tzinfo=UTC
+    )
+
+    override = LegacyOverride(
+        override_id="ov",
+        map_id="standing",
+        local_start_date=TUESDAY,
+        local_end_date=TUESDAY,
+        timezone="UTC",
+        strict_mode=True,
+        bands=(LegacyBand("yellow", time(15, 0), time(16, 0), 127, 0),),
+    )
+    replace_map = LegacyMapView(
+        map_id="standing",
+        strict_mode=True,
+        bands=(LegacyBand("green", time(16, 0), time(17, 0), 127, 0),),
+        overrides=(override,),
+    )
+    moved = _legacy_standing(_temp_may(10, declaration_id="override-cut"), view=replace_map)
+    moved_clips = _legacy_clips(moved)
+    assert not any(item[0].hour == 16 for item in moved_clips)
+    assert any(item[0].hour == 15 and item[1].hour == 16 and item[2] == "yellow" for item in moved_clips)
+    assert _place_on_legacy(moved, expiry, afternoon).proposed_blocks[0].start_time == datetime(
+        2026, 10, 13, 15, 0, tzinfo=UTC
+    )
+
+    outside = _legacy_view(("green", time(19, 0), time(20, 0)))
+    hidden = _legacy_standing(_temp_may(14, declaration_id="outside-work"), view=outside)
+    assert _legacy_clips(hidden) == []
+    assert _place_on_legacy(hidden, expiry, afternoon).blocks_created == 0
+
+    flexible = LegacyMapView(
+        map_id="flex",
+        strict_mode=False,
+        bands=(LegacyBand("red", time(16, 0), time(17, 0), 127, 0),),
+    )
+    spilled = _legacy_standing(_temp_may(10, declaration_id="flex-cut"), view=flexible)
+    spill = _legacy_clips(spilled)
+    assert any(item[0] == expiry and item[1].hour == 16 and item[2] == "neutral" for item in spill)
+    assert not any(item[0].hour == 16 and item[2] != "neutral" for item in spill)
+    assert _place_on_legacy(spilled, expiry, afternoon).proposed_blocks[0].start_time == expiry
+
+    general = (_window(11, 0, 60),)
+    cleared = _legacy_standing(
+        _decl(
+            DayScopedOp.CLEAR_SCOPED,
+            CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+            expires_at=expiry,
+            declaration_id="clear-legacy",
+        ),
+        view=standing,
+    )
+    clear_clips = _legacy_clips(cleared, general)
+    assert not _crosses(clear_clips, expiry)
+    assert (11, 0, 12, 0) in _hours(clear_clips)
+    assert any(item[0].hour == 16 for item in clear_clips)
+    assert _place_on_legacy(cleared, morning, afternoon).proposed_blocks[0].start_time.hour == 11
+    assert _place_on_legacy(cleared, expiry, afternoon).proposed_blocks[0].start_time.hour == 16
+
+    none_family = _legacy_standing(
+        _decl(
+            DayScopedOp.FAMILY_REPLACE_SCOPED,
+            CivilSelector(SelectorKind.ONE_DATE, on_date=TUESDAY),
+            replacement_family="none",
+            expires_at=expiry,
+            declaration_id="none-legacy",
+        ),
+        view=standing,
+    )
+    none_clips = _legacy_clips(none_family, general)
+    assert (11, 0, 12, 0) in _hours(none_clips)
+    assert any(item[0].hour == 16 for item in none_clips)
+    assert not _crosses(none_clips, expiry)

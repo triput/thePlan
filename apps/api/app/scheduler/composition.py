@@ -144,6 +144,9 @@ class CompositionInput:
     family: AssignmentFamily
     layers: tuple[ScopeLayer, ...] = ()
     day_scoped: tuple[Any, ...] = ()
+    # Standing legacy Time Map. Search input for a same-day expiry split.
+    # Not a family conversion, and not part of the composition fingerprint.
+    standing_legacy_map: Any = None
 
 
 @dataclass(frozen=True)
@@ -183,6 +186,9 @@ class EffectiveComposition:
     source: CompositionInput | None = None
     # Set when a scoped replacement restores a legacy Time Map for this occurrence.
     legacy_map: Any = None
+    # The unconverted standing map, when that family won. Scoped overlays do not
+    # clear it; an explicit expiry resumes this snapshot.
+    standing_legacy_map: Any = None
 
     def supplies_eligibility(self) -> bool:
         """True only when the placer must leave the legacy map ∩ Working path."""
@@ -313,7 +319,12 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
     )
     if item.family != AssignmentFamily.NEW_RULE:
         empty = _empty_effective(item.family, deferred)
-        return replace(empty, day_scoped=day_scoped, source=item)
+        return replace(
+            empty,
+            day_scoped=day_scoped,
+            source=item,
+            standing_legacy_map=item.standing_legacy_map,
+        )
 
     # Identity is scope + name. The same name at two scopes is two rules.
     may_rules: dict[tuple[str, str, str], EffectiveRule] | None = None
