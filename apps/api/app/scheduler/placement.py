@@ -1025,6 +1025,7 @@ def _planned_composition_windows(
     general_windows: list[Any] | None,
     *,
     mode: str,
+    working_windows: list[Any] | None = None,
 ) -> list[tuple[date, datetime, datetime, str]] | None:
     """Horizon-wide Prefer-then-eligible order. None keeps the legacy day walk.
 
@@ -1037,17 +1038,23 @@ def _planned_composition_windows(
     scan = day
     while scan <= end_day:
         for window_start, window_end, window_label in composition_search_windows(
-            scan, tz, composition, general_windows
+            scan, tz, composition, general_windows, working_windows=working_windows
         ):
             if mode == "eligible_only" and window_label == RANK_PREFER:
                 continue
             planned.append((scan, window_start, window_end, window_label))
         scan += timedelta(days=1)
+    tier_rank = {"green": 0, "yellow": 1, "neutral": 2}
     if mode == "eligible_only":
-        planned.sort(key=lambda item: (item[1], item[2]))
+        planned.sort(key=lambda item: (tier_rank.get(item[3], 0), item[1], item[2]))
     else:
         planned.sort(
-            key=lambda item: (0 if item[3] == RANK_PREFER else 1, item[1], item[2])
+            key=lambda item: (
+                0 if item[3] == RANK_PREFER else 1,
+                tier_rank.get(item[3], 0),
+                item[1],
+                item[2],
+            )
         )
     return planned
 
@@ -1220,6 +1227,7 @@ def place_task(
         composition if composition_active else None,
         general_resolved,
         mode=mode,
+        working_windows=working_resolved,
     )
     plan_index = 0
 
@@ -1235,13 +1243,23 @@ def place_task(
         elif composition_active:
             assert composition is not None
             windows = composition_search_windows(
-                day, tz, composition, general_resolved
+                day,
+                tz,
+                composition,
+                general_resolved,
+                working_windows=working_resolved,
             )
         elif scoped_over_other:
             assert composition is not None
             from app.scheduler.day_scoped import folded_search_windows
 
-            folded = folded_search_windows(day, tz, composition, general_resolved)
+            folded = folded_search_windows(
+                day,
+                tz,
+                composition,
+                general_resolved,
+                working_windows=working_resolved,
+            )
             if folded is None:
                 windows = _day_search_windows(
                     day,

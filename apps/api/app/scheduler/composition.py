@@ -181,6 +181,8 @@ class EffectiveComposition:
     must_blocks_all: bool
     day_scoped: tuple[Any, ...] = ()
     source: CompositionInput | None = None
+    # Set when a scoped replacement restores a legacy Time Map for this occurrence.
+    legacy_map: Any = None
 
     def supplies_eligibility(self) -> bool:
         """True only when the placer must leave the legacy map ∩ Working path."""
@@ -513,6 +515,7 @@ def composition_search_windows(
     tz: ZoneInfo,
     composition: EffectiveComposition,
     general_windows: Sequence[Any] | None,
+    working_windows: Sequence[Any] | None = None,
 ) -> list[tuple[Any, Any, str]]:
     """Eligible clips for one local day, preferred spans first.
 
@@ -528,7 +531,13 @@ def composition_search_windows(
     if composition.day_scoped:
         from app.scheduler.day_scoped import folded_search_windows
 
-        folded = folded_search_windows(day, tz, composition, general_windows)
+        folded = folded_search_windows(
+            day,
+            tz,
+            composition,
+            general_windows,
+            working_windows=working_windows,
+        )
         if folded is not None:
             return folded
     return _standing_search_windows(day, tz, composition, general_windows)

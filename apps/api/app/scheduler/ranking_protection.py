@@ -94,6 +94,7 @@ def _future_windows(
     horizon_start: datetime,
     horizon_end: datetime,
     general_windows: Any,
+    working_windows: Any = None,
 ) -> list[tuple[Any, Any, str]]:
     from datetime import timedelta
 
@@ -103,7 +104,9 @@ def _future_windows(
     day = horizon_start.astimezone(tz).date()
     last = horizon_end.astimezone(tz).date()
     while day <= last:
-        for window in composition_search_windows(day, tz, composition, general_windows):
+        for window in composition_search_windows(
+            day, tz, composition, general_windows, working_windows=working_windows
+        ):
             if window[1] > horizon_start:
                 found.append(window)
         day += timedelta(days=1)
@@ -287,6 +290,7 @@ def choose_rank_mode(
     future = _future_windows(
         composition=composition,
         tz=tz,
+        working_windows=working_windows,
         horizon_start=horizon_start,
         horizon_end=horizon_end,
         general_windows=general_windows,

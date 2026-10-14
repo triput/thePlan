@@ -353,3 +353,192 @@ def test_replacement_layer_policy_hours_change_the_collected_fingerprint(
         .one()
     )
     assert str(row.id) == before_fp["day_scoped"][0]["id"]
+
+
+def _bands(*rows: tuple[str, str, str]) -> list[dict]:
+    return [
+        {
+            "tier": tier,
+            "start_time": start,
+            "end_time": end,
+            "days_of_week": 127,
+            "sort_order": index,
+        }
+        for index, (tier, start, end) in enumerate(rows)
+    ]
+
+
+def _focus(client: TestClient, *, strict: bool, bands: list[dict]) -> dict:
+    response = client.post(
+        "/api/v1/focus-windows",
+        json={"name": f"Map {_uid()}", "strict_mode": strict, "bands": bands},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def _accept_legacy(client: TestClient, task_id: str, window_id: str) -> None:
+    _family(
+        client,
+        task_id,
+        {"target_family": "legacy", "preferred_time_window_id": window_id},
+    )
+
+
+def _scoped_legacy_task(client: TestClient, db: Session, window_id: str) -> tuple[Task, object]:
+    """Local new-rule May is morning-only. Working is that same patched policy."""
+    morning = _policy(client, "work", "09:00", 180)
+    task = _task(client)
+    _put_new_rule(client, "task", task["id"], morning["id"])
+    _accept_legacy(client, task["id"], window_id)
+    return _collected(db, task["id"])
+
+
+def test_scoped_legacy_retains_red_exclusion(client: TestClient, db_session: Session) -> None:
+    _prepare(client, db_session)
+    window = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "14:00", "17:00"), ("red", "14:00", "15:00")),
+    )
+    stored, composed = _scoped_legacy_task(client, db_session, window["id"])
+    placed, _general = _place(db_session, stored, composed, TUESDAY, TUESDAY_END)
+    assert placed.blocks_created == 1
+    start = placed.proposed_blocks[0].start_time
+    assert start == datetime(2026, 10, 13, 15, 0, tzinfo=UTC)
+    assert placed.proposed_blocks[0].end_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+
+def test_scoped_legacy_green_outranks_yellow(client: TestClient, db_session: Session) -> None:
+    _prepare(client, db_session)
+    window = _focus(
+        client,
+        strict=True,
+        bands=_bands(("yellow", "14:00", "17:00"), ("green", "16:00", "17:00")),
+    )
+    stored, composed = _scoped_legacy_task(client, db_session, window["id"])
+    placed, _general = _place(db_session, stored, composed, TUESDAY, TUESDAY_END)
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+
+def test_scoped_legacy_strict_omits_neutral_flexible_keeps_it(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    _policy(client, "work", "09:00", 180)
+    work_id = _policy(client, "work", "09:00", 180)["id"]
+    red_only = _bands(("red", "12:00", "13:00"))
+
+    strict_task = _task(client, estimated_duration_minutes=90)
+    _put_new_rule(client, "task", strict_task["id"], work_id)
+    strict_map = _focus(client, strict=True, bands=red_only)
+    _accept_legacy(client, strict_task["id"], strict_map["id"])
+    strict_row, strict_comp = _collected(db_session, strict_task["id"])
+    strict_placed, _general = _place(db_session, strict_row, strict_comp, TUESDAY, TUESDAY_END)
+    assert strict_placed.blocks_created == 0
+
+    flexible_task = _task(client, estimated_duration_minutes=90)
+    _put_new_rule(client, "task", flexible_task["id"], work_id)
+    flexible_map = _focus(client, strict=False, bands=red_only)
+    _accept_legacy(client, flexible_task["id"], flexible_map["id"])
+    flex_row, flex_comp = _collected(db_session, flexible_task["id"])
+    flex_placed, _general = _place(db_session, flex_row, flex_comp, TUESDAY, TUESDAY_END)
+    assert flex_placed.blocks_created == 1
+    block = flex_placed.proposed_blocks[0]
+    assert block.start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
+    assert block.end_time <= datetime(2026, 10, 13, 12, 0, tzinfo=UTC)
+
+
+def test_scoped_legacy_dated_override_replaces_the_day(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    window = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "14:00", "17:00"), ("red", "14:00", "15:00")),
+    )
+    other = client.post(
+        f"/api/v1/focus-windows/{window['id']}/overrides",
+        json={
+            "local_start_date": "2026-10-20",
+            "local_end_date": "2026-10-20",
+            "timezone": "UTC",
+            "strict_mode": True,
+            "bands": _bands(("green", "13:00", "14:00")),
+        },
+    )
+    assert other.status_code == 201, other.text
+    applicable = client.post(
+        f"/api/v1/focus-windows/{window['id']}/overrides",
+        json={
+            "local_start_date": "2026-10-13",
+            "local_end_date": "2026-10-13",
+            "timezone": "UTC",
+            "strict_mode": True,
+            "bands": _bands(("green", "16:00", "17:00")),
+        },
+    )
+    assert applicable.status_code == 201, applicable.text
+    stored, composed = _scoped_legacy_task(client, db_session, window["id"])
+    placed, _general = _place(db_session, stored, composed, TUESDAY, TUESDAY_END)
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+
+def test_scoped_legacy_map_edits_change_the_collected_fingerprint(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    window = _focus(
+        client,
+        strict=True,
+        bands=_bands(("green", "14:00", "17:00"), ("red", "14:00", "15:00")),
+    )
+    task = _task(client)
+    _policy(client, "work", "09:00", 180)
+    morning = _policy(client, "work", "09:00", 180)
+    _put_new_rule(client, "task", task["id"], morning["id"])
+    _accept_legacy(client, task["id"], window["id"])
+    _stored, before = _collected(db_session, task["id"])
+    before_fp = composition_fingerprint(before)
+    legacy = before_fp["day_scoped"][0]["legacy_map"]
+    assert legacy["strict_mode"] is True
+    assert any(band["tier"] == "red" for band in legacy["bands"])
+
+    widened = client.patch(
+        f"/api/v1/focus-windows/{window['id']}",
+        json={"bands": _bands(("green", "14:00", "17:00"), ("red", "14:00", "16:00"))},
+    )
+    assert widened.status_code == 200, widened.text
+    _stored, after_band = _collected(db_session, task["id"])
+    band_fp = composition_fingerprint(after_band)
+    assert band_fp != before_fp
+    assert band_fp["day_scoped"][0]["id"] == before_fp["day_scoped"][0]["id"]
+    placed, _general = _place(db_session, _stored, after_band, TUESDAY, TUESDAY_END)
+    assert placed.proposed_blocks[0].start_time == datetime(2026, 10, 13, 16, 0, tzinfo=UTC)
+
+    loosened = client.patch(
+        f"/api/v1/focus-windows/{window['id']}",
+        json={"strict_mode": False},
+    )
+    assert loosened.status_code == 200, loosened.text
+    _stored, after_strict = _collected(db_session, task["id"])
+    strict_fp = composition_fingerprint(after_strict)
+    assert strict_fp != band_fp
+    assert strict_fp["day_scoped"][0]["legacy_map"]["strict_mode"] is False
+
+    override = client.post(
+        f"/api/v1/focus-windows/{window['id']}/overrides",
+        json={
+            "local_start_date": "2026-10-13",
+            "local_end_date": "2026-10-13",
+            "timezone": "UTC",
+            "strict_mode": True,
+            "bands": _bands(("yellow", "16:30", "17:30")),
+        },
+    )
+    assert override.status_code == 201, override.text
+    _stored, after_override = _collected(db_session, task["id"])
+    override_fp = composition_fingerprint(after_override)
+    assert override_fp != strict_fp
+    assert override_fp["day_scoped"][0]["legacy_map"]["overrides"]

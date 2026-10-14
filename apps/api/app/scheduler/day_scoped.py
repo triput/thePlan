@@ -2,8 +2,9 @@
 
 Standing ``resolve_effective_composition`` stays date-blind. This module folds
 authorized declarations into the windows ``composition_search_windows`` already
-returns, keyed by that function's ``day`` argument. Legacy placements never
-call it.
+returns, keyed by that function's ``day`` argument. A scoped replacement back
+onto a legacy Time Map uses that map's band contract (green, yellow, red,
+strictness, dated overrides) instead of flattening bands into May windows.
 
 Jules owns writers and the table. Until ``load_day_scoped_declarations`` exists
 on ``app.services.scheduling_assignments``, ``load_day_scoped_declarations``
@@ -129,6 +130,40 @@ class CivilSelector:
 
 
 @dataclass(frozen=True)
+class LegacyBand:
+    """One Time Map band. Tier stays green, yellow, or red — not a May role."""
+
+    tier: str
+    start_time: time
+    end_time: time
+    days_of_week: int
+    sort_order: int
+
+
+@dataclass(frozen=True)
+class LegacyOverride:
+    """Dated band replacement on the restored map. Same fields the placer reads."""
+
+    override_id: str
+    map_id: str
+    local_start_date: date
+    local_end_date: date
+    timezone: str
+    strict_mode: bool
+    bands: tuple[LegacyBand, ...]
+
+
+@dataclass(frozen=True)
+class LegacyMapView:
+    """Placement-relevant snapshot of a legacy map. Not a May permission set."""
+
+    map_id: str
+    strict_mode: bool
+    bands: tuple[LegacyBand, ...]
+    overrides: tuple[LegacyOverride, ...] = ()
+
+
+@dataclass(frozen=True)
 class DayScopedDeclaration:
     """One authorized scoped op. Storage spelling is Jules's; this is the resolver contract."""
 
@@ -152,6 +187,7 @@ class DayScopedDeclaration:
     provenance: str = "day_scoped"
     replacement_family: str | None = None
     replacement_layer: ScopeLayer | None = None
+    legacy_map: LegacyMapView | None = None
     prior_layer: ScopeLayer | None = None
     expiry_rejected: str | None = None
 
@@ -519,27 +555,31 @@ def _hours_layer(scope: str, scope_id: str, windows: Sequence[Any], *, rule_id: 
 def _apply_layer_edits(
     layers: Sequence[ScopeLayer],
     edits: Sequence[DayScopedDeclaration],
-) -> list[ScopeLayer]:
+) -> tuple[list[ScopeLayer], LegacyMapView | None]:
     """Overlay clear / family replace / revert onto the standing chain.
 
     ``none`` suppresses that scope. ``new_rule`` replaces or inserts it.
     ``legacy`` wins exclusively when it is the nearest participating scope,
     the same way an unconverted map stops the standing walk. A scope that
-    had no standing layer still receives an inserted replacement.
+    had no standing layer still receives an inserted replacement. A legacy
+    win that carries a map snapshot returns that snapshot and no May layers.
     """
     keyed: dict[tuple[str, str], ScopeLayer] = {
         (layer.scope, layer.scope_id): layer for layer in layers
     }
     family: dict[tuple[str, str], str] = {key: "new_rule" for key in keyed}
+    legacy_views: dict[tuple[str, str], LegacyMapView | None] = {}
     for edit in edits:
         key = (edit.scope, edit.scope_id)
         if edit.operation == DayScopedOp.CLEAR_SCOPED:
             keyed.pop(key, None)
             family[key] = "none"
+            legacy_views[key] = None
             continue
         if edit.operation == DayScopedOp.REVERT_SCOPED and edit.prior_layer is not None:
             keyed[key] = edit.prior_layer
             family[key] = "new_rule"
+            legacy_views[key] = None
             continue
         if edit.operation != DayScopedOp.FAMILY_REPLACE_SCOPED:
             continue
@@ -549,18 +589,23 @@ def _apply_layer_edits(
         if target == "none":
             keyed.pop(key, None)
             family[key] = "none"
+            legacy_views[key] = None
         elif target == "legacy":
-            layer = edit.replacement_layer or _hours_layer(
-                edit.scope,
-                edit.scope_id,
-                edit.windows,
-                rule_id=edit.output_rule_id or edit.declaration_id,
-            )
-            keyed[key] = layer
             family[key] = "legacy"
+            legacy_views[key] = edit.legacy_map
+            if edit.legacy_map is not None:
+                keyed.pop(key, None)
+            else:
+                keyed[key] = edit.replacement_layer or _hours_layer(
+                    edit.scope,
+                    edit.scope_id,
+                    edit.windows,
+                    rule_id=edit.output_rule_id or edit.declaration_id,
+                )
         elif target == "new_rule" and edit.replacement_layer is not None:
             keyed[key] = edit.replacement_layer
             family[key] = "new_rule"
+            legacy_views[key] = None
 
     participating: list[tuple[int, tuple[str, str], str]] = []
     seen: set[tuple[str, str]] = set()
@@ -572,12 +617,15 @@ def _apply_layer_edits(
         if key not in seen and family.get(key, "new_rule") != "none":
             participating.append((_scope_nearness(key[0]), key, "new_rule"))
     if not participating:
-        return []
+        return [], None
     participating.sort(key=lambda item: item[0])
     win_rank, win_key, win_fam = participating[0]
     if win_fam == "legacy":
+        view = legacy_views.get(win_key)
+        if view is not None:
+            return [], view
         layer = keyed.get(win_key)
-        return [layer] if layer is not None else []
+        return ([layer] if layer is not None else []), None
 
     ordered = sorted(keyed, key=lambda key: _scope_nearness(key[0]))
     kept: list[ScopeLayer] = []
@@ -597,7 +645,7 @@ def _apply_layer_edits(
         layer = keyed.get(key)
         if layer is not None:
             kept.append(layer)
-    return kept
+    return kept, None
 
 
 def _as_standing(decl: DayScopedDeclaration) -> StandingException:
@@ -704,7 +752,20 @@ def _reresolve(
     source = effective.source
     if source is not None and source.family == AssignmentFamily.CONFLICT:
         return effective
-    layers = _apply_layer_edits(list(source.layers) if source is not None else [], edits)
+    layers, legacy_map = _apply_layer_edits(
+        list(source.layers) if source is not None else [], edits
+    )
+    if legacy_map is not None:
+        resolved = resolve_effective_composition(
+            CompositionInput(family=AssignmentFamily.LEGACY, layers=())
+        )
+        return replace(
+            resolved,
+            day_scoped=effective.day_scoped,
+            source=source,
+            deferred_rejected=effective.deferred_rejected,
+            legacy_map=legacy_map,
+        )
     if named:
         layers.append(
             ScopeLayer(
@@ -1004,11 +1065,121 @@ def _declaration_touches(decl: DayScopedDeclaration, day: date, tz: ZoneInfo) ->
     return False
 
 
+def _legacy_runtime_map(view: LegacyMapView) -> tuple[Any, list[Any]]:
+    """Objects ``effective_day_map`` and ``override_utc_bounds`` already read."""
+    from app.models.enums import TimeMapBandTier
+
+    def band(row: LegacyBand) -> Any:
+        return type(
+            "LegacyRuntimeBand",
+            (),
+            {
+                "tier": TimeMapBandTier(row.tier),
+                "start_time": row.start_time,
+                "end_time": row.end_time,
+                "days_of_week": int(row.days_of_week),
+                "sort_order": int(row.sort_order),
+            },
+        )()
+
+    base = type(
+        "LegacyRuntimeMap",
+        (),
+        {
+            "strict_mode": bool(view.strict_mode),
+            "bands": [band(row) for row in view.bands],
+        },
+    )()
+    overrides = []
+    for row in view.overrides:
+        overrides.append(
+            type(
+                "LegacyRuntimeOverride",
+                (),
+                {
+                    "id": row.override_id,
+                    "map_id": row.map_id,
+                    "local_start_date": row.local_start_date,
+                    "local_end_date": row.local_end_date,
+                    "timezone": row.timezone,
+                    "strict_mode": bool(row.strict_mode),
+                    "bands": [band(item) for item in row.bands],
+                },
+            )()
+        )
+    return base, overrides
+
+
+def _neutral_spans(
+    day: date,
+    tz: ZoneInfo,
+    working_windows: Sequence[Any] | None,
+    piece_start: datetime,
+    piece_end: datetime,
+) -> list[Any]:
+    """Flexible spill is Working ∩ this piece. No stored Working uses the piece."""
+    from app.scheduler.availability_materializer import (
+        MaterializedSpan,
+        materialize_windows_for_local_date,
+    )
+
+    if not working_windows:
+        return [MaterializedSpan(start=piece_start, end=piece_end, owner_date=day)]
+    spans = []
+    for span in materialize_windows_for_local_date(list(working_windows), day, tz):
+        start = max(span.start, piece_start)
+        end = min(span.end, piece_end)
+        if start < end:
+            spans.append(MaterializedSpan(start=start, end=end, owner_date=day))
+    return spans
+
+
+def _legacy_replacement_windows(
+    day: date,
+    tz: ZoneInfo,
+    view: LegacyMapView,
+    working_windows: Sequence[Any] | None,
+) -> list[tuple[datetime, datetime, str]]:
+    """Same band math as the legacy placer: red subtracts, green before yellow.
+
+    Painted green and yellow stay even when they sit outside Working. A scoped
+    replacement is that map, and a morning Working edit must not erase its
+    afternoon bands. Strict omits neutral. Flexible neutral is Working minus
+    red, which is the established spill.
+    """
+    from app.scheduler.availability_materializer import MaterializedSpan
+    from app.scheduler.placement import (
+        _merge_tier_windows,
+        _windows_from_bands,
+        split_span_for_band_evaluation,
+    )
+    from app.scheduler.time_map_overrides import effective_day_map
+
+    base, overrides = _legacy_runtime_map(view)
+    day_start = resolve_recurring_wall(day, time.min, tz)
+    day_end = resolve_recurring_wall(day + timedelta(days=1), time.min, tz)
+    collected: list[tuple[datetime, datetime, str | None]] = []
+    for interval in split_span_for_band_evaluation(day_start, day_end, tz, overrides):
+        bands, strict_mode = effective_day_map(base, interval.override, interval.local_date)
+        piece = MaterializedSpan(start=interval.start, end=interval.end, owner_date=day)
+        collected.extend(_windows_from_bands([piece], bands, True, tz))
+        if strict_mode:
+            continue
+        spill = _neutral_spans(day, tz, working_windows, interval.start, interval.end)
+        if not spill:
+            continue
+        spilled = _windows_from_bands(spill, bands, False, tz)
+        collected.extend(item for item in spilled if item[2] == "neutral")
+    merged = _merge_tier_windows(collected)
+    return [(start, end, label or "neutral") for start, end, label in merged]
+
+
 def folded_search_windows(
     day: date,
     tz: ZoneInfo,
     composition: EffectiveComposition,
     general_windows: Sequence[Any] | None,
+    working_windows: Sequence[Any] | None = None,
 ) -> list[tuple[datetime, datetime, str]] | None:
     """Per-day fold. None means the standing search is already the right answer."""
     decls = [
@@ -1018,6 +1189,9 @@ def folded_search_windows(
     ]
     if not decls:
         return None
+    today = composition_for_occurrence(composition, day, tz)
+    if today.legacy_map is not None:
+        return _legacy_replacement_windows(day, tz, today.legacy_map, working_windows)
     eligible_parts: list[tuple[datetime, datetime]] = []
     prefer_parts: list[tuple[datetime, datetime]] = []
     for back in range(8):
@@ -1130,6 +1304,7 @@ def day_scoped_fingerprint_rows(declarations: Sequence[Any]) -> list[dict[str, A
                 "role": item.role,
                 "replacement_family": item.replacement_family,
                 "replacement_layer": _layer_fingerprint(item.replacement_layer),
+                "legacy_map": _legacy_map_fingerprint(getattr(item, "legacy_map", None)),
                 "prior_layer": _layer_fingerprint(item.prior_layer),
                 "replaces_id": item.replaces_id,
                 "replaces_ids": list(item.replaces_ids),
@@ -1173,27 +1348,81 @@ def _selector_from_row(row: Any) -> CivilSelector:
     )
 
 
-def _windows_from_focus(focus: Any) -> tuple[Any, ...]:
-    """Green and yellow bands as recurring May windows. Red does not grant time."""
-    if focus is None:
-        return ()
-    built = []
-    order = 0
-    for band in list(getattr(focus, "bands", ()) or ()):
+def _band_rows(bands: Sequence[Any]) -> tuple[LegacyBand, ...]:
+    rows: list[LegacyBand] = []
+    for band in bands:
         tier = band.tier.value if hasattr(band.tier, "value") else str(band.tier)
-        if tier not in ("green", "yellow"):
-            continue
-        start = band.start_time
-        end = band.end_time
-        duration = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute)
-        if duration <= 0:
-            continue
-        mask = int(band.days_of_week)
-        for weekday in range(7):
-            if mask & (1 << weekday):
-                built.append(make_window(weekday, start, duration, sort_order=order))
-                order += 1
-    return tuple(built)
+        rows.append(
+            LegacyBand(
+                tier=str(tier),
+                start_time=band.start_time,
+                end_time=band.end_time,
+                days_of_week=int(band.days_of_week),
+                sort_order=int(band.sort_order),
+            )
+        )
+    rows.sort(key=lambda item: (item.sort_order, item.start_time, item.end_time, item.tier))
+    return tuple(rows)
+
+
+def _legacy_map_view(focus: Any, overrides: Sequence[Any]) -> LegacyMapView | None:
+    if focus is None:
+        return None
+    stored = []
+    for row in overrides:
+        stored.append(
+            LegacyOverride(
+                override_id=str(row.id),
+                map_id=str(row.map_id),
+                local_start_date=row.local_start_date,
+                local_end_date=row.local_end_date,
+                timezone=str(row.timezone),
+                strict_mode=bool(row.strict_mode),
+                bands=_band_rows(list(getattr(row, "bands", ()) or ())),
+            )
+        )
+    stored.sort(key=lambda item: (item.local_start_date, item.override_id))
+    return LegacyMapView(
+        map_id=str(focus.id),
+        strict_mode=bool(focus.strict_mode),
+        bands=_band_rows(list(getattr(focus, "bands", ()) or ())),
+        overrides=tuple(stored),
+    )
+
+
+def _legacy_map_fingerprint(view: LegacyMapView | None) -> dict[str, Any] | None:
+    """Bands, strictness, and dated overrides. A map edit must move this."""
+    if view is None:
+        return None
+    from app.scheduler.input_fingerprint import normalize_bands, normalize_time_map_overrides
+
+    def raw_band(row: LegacyBand) -> dict[str, Any]:
+        return {
+            "tier": row.tier,
+            "start": row.start_time,
+            "end": row.end_time,
+            "days_of_week": row.days_of_week,
+            "sort_order": row.sort_order,
+        }
+
+    overrides = [
+        {
+            "id": row.override_id,
+            "map_id": row.map_id,
+            "local_start_date": row.local_start_date,
+            "local_end_date": row.local_end_date,
+            "timezone": row.timezone,
+            "strict_mode": row.strict_mode,
+            "bands": [raw_band(band) for band in row.bands],
+        }
+        for row in view.overrides
+    ]
+    return {
+        "map_id": view.map_id,
+        "strict_mode": bool(view.strict_mode),
+        "bands": normalize_bands([raw_band(band) for band in view.bands]),
+        "overrides": normalize_time_map_overrides(overrides),
+    }
 
 
 def _focus_for_payload(payload: Mapping[str, Any], focus_windows: Mapping[Any, Any]) -> Any:
@@ -1219,7 +1448,6 @@ def _layer_from_family_payload(
     scope: str,
     scope_id: str,
     policies: Mapping[Any, Any],
-    focus_windows: Mapping[Any, Any] | None = None,
 ) -> ScopeLayer | None:
     if not payload:
         return None
@@ -1227,8 +1455,8 @@ def _layer_from_family_payload(
     if target == "none":
         return None
     if target == "legacy":
-        windows = _windows_from_focus(_focus_for_payload(payload, focus_windows or {}))
-        return _hours_layer(scope, scope_id, windows, rule_id="legacy-map")
+        # The map snapshot on the declaration is the contract. May windows drop red.
+        return None
     if target != "new_rule":
         return None
     may_rules: list[NamedRule] = []
@@ -1295,6 +1523,7 @@ def declaration_from_row(
     row: Any,
     policies: Mapping[Any, Any] | None = None,
     focus_windows: Mapping[Any, Any] | None = None,
+    overrides_by_map: Mapping[Any, Sequence[Any]] | None = None,
 ) -> DayScopedDeclaration:
     """Coerce one ``scheduling_day_scoped_ops`` row. Does not rewrite civil labels or ``expires_at``."""
     policies = policies or {}
@@ -1326,8 +1555,15 @@ def declaration_from_row(
     replaces = tuple(str(item) for item in (row.replaces_op_ids or []))
     family_payload = row.family_payload if isinstance(row.family_payload, Mapping) else None
     replacement_family = None
+    legacy_map = None
     if family_payload and family_payload.get("target_family"):
         replacement_family = str(family_payload.get("target_family"))
+    if replacement_family == "legacy" and family_payload is not None:
+        focus = _focus_for_payload(family_payload, focus_windows or {})
+        overrides = ()
+        if focus is not None and overrides_by_map:
+            overrides = overrides_by_map.get(focus.id) or overrides_by_map.get(str(focus.id)) or ()
+        legacy_map = _legacy_map_view(focus, overrides)
     return DayScopedDeclaration(
         declaration_id=str(row.id),
         operation=operation,
@@ -1350,8 +1586,8 @@ def declaration_from_row(
             scope=scope,
             scope_id=scope_id,
             policies=policies,
-            focus_windows=focus_windows,
         ),
+        legacy_map=legacy_map,
     )
 
 
@@ -1395,6 +1631,11 @@ def load_day_scoped_declarations(
                 .all()
             )
         }
+        from app.scheduler.time_map_overrides import load_time_map_overrides_for_maps
+
+        overrides_by_map = load_time_map_overrides_for_maps(
+            db, owner_id, set(focus_windows)
+        )
         stored = (
             db.query(SchedulingDayScopedOp)
             .filter(SchedulingDayScopedOp.owner_id == owner_id)
@@ -1422,6 +1663,7 @@ def load_day_scoped_declarations(
                 rows.extend(by_scope.get(("epic", epic_id), []))
         if rows:
             out[task.id] = tuple(
-                declaration_from_row(row, policies, focus_windows) for row in rows
+                declaration_from_row(row, policies, focus_windows, overrides_by_map)
+                for row in rows
             )
     return out
