@@ -906,6 +906,168 @@ def test_same_name_waiver_and_replace_target_the_inherited_rule() -> None:
     assert replaced_clips[0][1] == datetime(2026, 10, 13, 13, 30, tzinfo=UTC)
 
 
+def test_replacement_name_does_not_erase_sibling_must() -> None:
+    """V4-D2 residual: replacement output must not overwrite a sibling Must."""
+    composed = _resolve(
+        _layer(
+            "project",
+            "p",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+            must=(
+                rule(
+                    "parent-hours",
+                    RuleRole.MUST,
+                    (_window(9, 0, 480),),
+                    scope="project",
+                    scope_id="p",
+                ),
+            ),
+        ),
+        _layer(
+            "task",
+            "t",
+            must=(
+                rule(
+                    "local-hours",
+                    RuleRole.MUST,
+                    (_window(13, 0, 60),),
+                    scope="task",
+                    scope_id="t",
+                ),
+            ),
+            exceptions=(
+                StandingException(
+                    operation=ExceptionOp.REPLACE_NAMED,
+                    scope="task",
+                    scope_id="t",
+                    target_rule_id="parent-hours",
+                    rule=rule(
+                        "local-hours",
+                        RuleRole.MUST,
+                        (_window(9, 0, 480),),
+                        scope="task",
+                        scope_id="t",
+                    ),
+                ),
+            ),
+        ),
+    )
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("project", "parent-hours"),
+        ("task", "local-hours"),
+    }
+    assert composed.exceptions[-1].applied is False
+    assert [(item[0].hour, item[1].hour) for item in _clips(composed)] == [(13, 14)]
+
+
+def test_second_replacement_output_does_not_erase_the_first() -> None:
+    composed = _resolve(
+        _layer(
+            "project",
+            "p",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+            must=(
+                rule(
+                    "parent-hours",
+                    RuleRole.MUST,
+                    (_window(9, 0, 480),),
+                    scope="project",
+                    scope_id="p",
+                ),
+                rule(
+                    "other-hours",
+                    RuleRole.MUST,
+                    (_window(13, 0, 60),),
+                    scope="project",
+                    scope_id="p",
+                ),
+            ),
+        ),
+        _layer(
+            "task",
+            "t",
+            exceptions=(
+                StandingException(
+                    operation=ExceptionOp.REPLACE_NAMED,
+                    scope="task",
+                    scope_id="t",
+                    target_rule_id="parent-hours",
+                    rule=rule(
+                        "shared-name",
+                        RuleRole.MUST,
+                        (_window(9, 0, 480),),
+                        scope="task",
+                        scope_id="t",
+                    ),
+                ),
+                StandingException(
+                    operation=ExceptionOp.REPLACE_NAMED,
+                    scope="task",
+                    scope_id="t",
+                    target_rule_id="other-hours",
+                    rule=rule(
+                        "shared-name",
+                        RuleRole.MUST,
+                        (_window(9, 0, 480),),
+                        scope="task",
+                        scope_id="t",
+                    ),
+                ),
+            ),
+        ),
+    )
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("project", "other-hours"),
+        ("task", "shared-name"),
+    }
+    assert [item.applied for item in composed.exceptions] == [True, False]
+    assert [(item[0].hour, item[1].hour) for item in _clips(composed)] == [(13, 14)]
+
+
+def test_resolver_replacement_name_does_not_erase_sibling_must() -> None:
+    from types import SimpleNamespace
+    from uuid import uuid4
+
+    from app.models.enums import SchedulingExceptionOp, SchedulingRuleKind
+    from app.scheduler.assignment_resolve import ResolvedRule, _apply_layer_exceptions
+
+    parent_policy = uuid4()
+    local_policy = uuid4()
+    must = {
+        ("project", "parent-hours"): ResolvedRule(
+            name="parent-hours",
+            kind="must",
+            policy_id=parent_policy,
+            empty_set=False,
+            source_scope="project",
+            origin="inherited",
+        ),
+        ("task", "local-hours"): ResolvedRule(
+            name="local-hours",
+            kind="must",
+            policy_id=local_policy,
+            empty_set=False,
+            source_scope="task",
+            origin="local",
+        ),
+    }
+    exc = SimpleNamespace(
+        operation=SchedulingExceptionOp.replace_named,
+        target_rule_name="parent-hours",
+        target_rule_kind=SchedulingRuleKind.must,
+        replacement_name="local-hours",
+        replacement_policy_id=uuid4(),
+        replacement_empty_set=False,
+    )
+    _may, applied = _apply_layer_exceptions(None, must, {}, [exc], scope="task")
+    assert set(must) == {("project", "parent-hours"), ("task", "local-hours")}
+    assert must[("task", "local-hours")].origin == "local"
+    assert must[("task", "local-hours")].policy_id == local_policy
+    assert applied == []
+
+
 def test_evening_only_may_does_not_invent_afternoon() -> None:
     composed = _resolve(
         _layer(

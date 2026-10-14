@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13 (V4-D4: rule_remove_named / remove-named)
+#  Last Update: 2026-10-13 (V4-D2: reject colliding replacement names)
 # ==============================================================================
 
 """Assignment writers. Paths are engineering; stubs match Discovery §2.1 labels.
@@ -750,6 +750,177 @@ def rule_add(
     }
 
 
+def _raise_replacement_name_conflict(
+    *,
+    scope: ScopeKind,
+    scope_id: UUID,
+    replacement_name: str,
+    target_rule_name: str,
+    occupant: str,
+) -> None:
+    """V4-D2. Reuses rule_add's ``RULE_NAME_CONFLICT`` (no new code).
+
+    The replacement output would occupy a sibling identity at this scope.
+    §2.1 replaces the targeted rule only; siblings stay.
+    """
+    raise ApiError(
+        409,
+        (
+            f"Replacement name '{replacement_name}' collides with {occupant} at "
+            f"this scope. Named replacement changes only '{target_rule_name}'; "
+            f"siblings stay. Choose a different replacement name, or remove "
+            f"the sibling first."
+        ),
+        "RULE_NAME_CONFLICT",
+        scope=scope,
+        scope_id=str(scope_id),
+        replacement_name=replacement_name,
+        target_rule_name=target_rule_name,
+    )
+
+
+def _near_ancestors(
+    db: Session,
+    user: User,
+    scope: ScopeKind,
+    entity: Task | Project | Epic,
+) -> list[tuple[ScopeKind, UUID]]:
+    """Ancestor scopes, nearest first. The writing scope is not included."""
+    found: list[tuple[ScopeKind, UUID]] = []
+    if scope == "task":
+        assert isinstance(entity, Task)
+        if entity.project_id is None:
+            return found
+        project = db.get(Project, entity.project_id)
+        if project is None or project.owner_id != user.id:
+            return found
+        found.append(("project", project.id))
+        if project.epic_id is None:
+            return found
+        epic = db.get(Epic, project.epic_id)
+        if epic is None or epic.owner_id != user.id:
+            return found
+        found.append(("epic", epic.id))
+        return found
+    if scope == "project":
+        assert isinstance(entity, Project)
+        if entity.epic_id is None:
+            return found
+        epic = db.get(Epic, entity.epic_id)
+        if epic is None or epic.owner_id != user.id:
+            return found
+        found.append(("epic", epic.id))
+    return found
+
+
+def _inherited_same_kind_name(
+    db: Session,
+    user: User,
+    ancestors: list[tuple[ScopeKind, UUID]],
+    *,
+    kind: SchedulingRuleKind,
+    name: str,
+) -> bool:
+    """True when a farther new-rule layer still exposes this kind and name.
+
+    Stops at a legacy (or conflicted) ancestor, matching composition's chain.
+    Raw rules and replace-named outputs both count. A waiver that would hide
+    the row still counts, so the in-place exemption stays strict.
+    """
+    for ancestor_scope, ancestor_id in ancestors:
+        local = read_local_scope(db, user, ancestor_scope, ancestor_id)
+        if local.conflict is not None or local.family == "legacy":
+            break
+        if local.family != "new_rule" or local.assignment is None:
+            continue
+        if any(rule.kind == kind and rule.name == name for rule in local.assignment.rules):
+            return True
+        for exc in load_exceptions_at_scope(
+            db, owner_id=user.id, scope=ancestor_scope, scope_id=ancestor_id
+        ):
+            if (
+                exc.operation == SchedulingExceptionOp.replace_named
+                and exc.target_rule_kind == kind
+                and exc.replacement_name == name
+            ):
+                return True
+    return False
+
+
+def _reject_replacement_output_collision(
+    db: Session,
+    user: User,
+    *,
+    entity: Task | Project | Epic,
+    assignment: SchedulingAssignment,
+    scope: ScopeKind,
+    scope_id: UUID,
+    target_rule_name: str,
+    target_rule_kind: Literal["may", "must", "prefer"],
+    replacement_name: str,
+) -> None:
+    """Reject before any delete or revision bump (V4-D2).
+
+    Collides with a same-scope addition (any kind; names are unique on the
+    assignment) or another replace-named output at this scope. In-place
+    replace of the selected local rule may keep that rule's name when no
+    inherited same-kind rule or replacement output uses it — that output key
+    is the target, not a sibling.
+    """
+    kind = SchedulingRuleKind(target_rule_kind)
+    others = (
+        db.query(SchedulingRuleException)
+        .filter(
+            SchedulingRuleException.owner_id == user.id,
+            SchedulingRuleException.scope_kind == _scope_enum(scope),
+            SchedulingRuleException.scope_id == scope_id,
+            SchedulingRuleException.operation == SchedulingExceptionOp.replace_named,
+            SchedulingRuleException.replacement_name == replacement_name,
+            SchedulingRuleException.target_rule_name != target_rule_name,
+        )
+        .all()
+    )
+    if others:
+        other = others[0]
+        _raise_replacement_name_conflict(
+            scope=scope,
+            scope_id=scope_id,
+            replacement_name=replacement_name,
+            target_rule_name=target_rule_name,
+            occupant=(
+                f"another replace-named exception that already outputs "
+                f"'{replacement_name}' (target '{other.target_rule_name}')"
+            ),
+        )
+
+    addition = next(
+        (rule for rule in assignment.rules if rule.name == replacement_name),
+        None,
+    )
+    if addition is None:
+        return
+    inplace = (
+        addition.kind == kind
+        and addition.name == target_rule_name
+        and not _inherited_same_kind_name(
+            db,
+            user,
+            _near_ancestors(db, user, scope, entity),
+            kind=kind,
+            name=replacement_name,
+        )
+    )
+    if inplace:
+        return
+    _raise_replacement_name_conflict(
+        scope=scope,
+        scope_id=scope_id,
+        replacement_name=replacement_name,
+        target_rule_name=target_rule_name,
+        occupant=f"existing {addition.kind.value} rule '{addition.name}'",
+    )
+
+
 def rule_replace_named(
     db: Session,
     user: User,
@@ -765,7 +936,7 @@ def rule_replace_named(
     raw_body: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     reject_deferred_exception_forms(raw_body)
-    _require_new_rule_family(db, user, scope, scope_id)
+    entity, assignment = _require_new_rule_family(db, user, scope, scope_id)
     settings = lock_owner_scheduling(db, user.id)
     assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
 
@@ -787,6 +958,18 @@ def rule_replace_named(
             raise ApiError(422, "policy_id is required", "RULE_POLICY_REQUIRED")
         _verify_owned_policy(db, user, policy_id)
         resolved_policy = policy_id
+
+    _reject_replacement_output_collision(
+        db,
+        user,
+        entity=entity,
+        assignment=assignment,
+        scope=scope,
+        scope_id=scope_id,
+        target_rule_name=clean_target,
+        target_rule_kind=target_rule_kind,
+        replacement_name=clean_replacement,
+    )
 
     existing = (
         db.query(SchedulingRuleException)

@@ -13,7 +13,9 @@ Order (SPEC §4.2, discovery §5):
    May stays empty and does not borrow General.
 3. Must requirements **intersect**. An active empty Must yields no eligibility.
    A child addition does not erase an ancestor Must, including when the child
-   reuses the ancestor's name. Names are unique inside one scope only.
+   reuses the ancestor's name. Names are unique inside one scope only. A named
+   replacement deletes only the selected target. Its output may reuse that
+   target's identity; it does not overwrite a different sibling.
 4. Prefer **ranks** the eligible spans. It does not add spans, does not drop a
    Must, and does not punch the eligible fallback into fragments.
 
@@ -245,6 +247,23 @@ def select_scoped_name(
     return pool[-1]
 
 
+def replacement_output_clobbers_sibling(
+    output_key: tuple,
+    chosen_key: tuple | None,
+    *,
+    bucket_has_output: bool,
+) -> bool:
+    """True when a named replacement would overwrite a sibling (V4-D2).
+
+    §2.1 replaces the selected rule only. The output may reuse that rule's
+    identity (in-place same-name replace). Any other occupied identity is a
+    sibling and must survive. Callers skip the replace entirely: do not delete
+    the target and do not write the output key. ``assignment_resolve`` uses
+    the same predicate so effective read and placement stay aligned.
+    """
+    return bucket_has_output and output_key != chosen_key
+
+
 def _as_effective(item: NamedRule, origin: str) -> EffectiveRule:
     return EffectiveRule(
         rule_id=item.rule_id,
@@ -364,9 +383,29 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
                 else:
                     bucket = prefer_rules
                 chosen = _named_key(bucket, target, exc)
+                replacement = _as_effective(exc.rule, "exception_replace")
+                replacement_key = _key(replacement)
+                # Output key is (replacement scope, scope id, output name).
+                # That may be the selected target. It must not clobber a sibling.
+                if replacement_output_clobbers_sibling(
+                    replacement_key,
+                    chosen,
+                    bucket_has_output=replacement_key in bucket,
+                ):
+                    applied.append(
+                        AppliedException(
+                            operation=exc.operation.value,
+                            scope=exc.scope,
+                            scope_id=exc.scope_id,
+                            target_rule_id=target,
+                            rule_id=exc.rule.rule_id,
+                            applied=False,
+                        )
+                    )
+                    continue
                 if chosen is not None:
                     del bucket[chosen]
-                _put(_as_effective(exc.rule, "exception_replace"), overwrite=True)
+                _put(replacement, overwrite=chosen == replacement_key)
                 applied.append(
                     AppliedException(
                         operation=exc.operation.value,

@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13
+#  Last Update: 2026-10-13 (V4-D2: replacement output must not clobber a sibling)
 # ==============================================================================
 
 """Resolved scheduling assignment for collect + effective-read.
@@ -34,7 +34,10 @@ from app.models.scheduling_assignment import (
     SchedulingAssignmentRule,
     SchedulingRuleException,
 )
-from app.scheduler.composition import select_scoped_name
+from app.scheduler.composition import (
+    replacement_output_clobbers_sibling,
+    select_scoped_name,
+)
 from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
@@ -257,20 +260,21 @@ def _apply_layer_exceptions(
 
     Ancestors are already in the buckets, so a child waiver of a project Must
     removes that inherited rule. Same-named rules at other scopes stay until
-    an explicit replace/waive selects one of them.
+    an explicit replace/waive selects one of them. A replacement's output key
+    is (this scope, replacement name) — the same identity composition uses.
+    That key may update the selected target. It must not overwrite a sibling.
     """
     applied: list[AppliedException] = []
     for exc in exceptions:
-        applied.append(
-            AppliedException(
-                operation=exc.operation.value,  # type: ignore[arg-type]
-                target_rule_name=exc.target_rule_name,
-                target_rule_kind=exc.target_rule_kind.value,  # type: ignore[arg-type]
-                scope=scope,
-            )
+        record = AppliedException(
+            operation=exc.operation.value,  # type: ignore[arg-type]
+            target_rule_name=exc.target_rule_name,
+            target_rule_kind=exc.target_rule_kind.value,  # type: ignore[arg-type]
+            scope=scope,
         )
         kind = exc.target_rule_kind.value
         if exc.operation == SchedulingExceptionOp.waive_named:
+            applied.append(record)
             if kind != "must":
                 continue
             chosen = _pick_named(must_rules, exc.target_rule_name, scope=scope)
@@ -287,8 +291,6 @@ def _apply_layer_exceptions(
         else:
             bucket = prefer_rules
         chosen = _pick_named(bucket, exc.target_rule_name, scope=scope)
-        if chosen is not None:
-            del bucket[chosen]
         replacement = ResolvedRule(
             name=exc.replacement_name,
             kind=kind,  # type: ignore[arg-type]
@@ -297,7 +299,19 @@ def _apply_layer_exceptions(
             source_scope=scope,
             origin="replacement",
         )
-        bucket[_rule_identity(replacement)] = replacement
+        replacement_key = _rule_identity(replacement)
+        if replacement_output_clobbers_sibling(
+            replacement_key,
+            chosen,
+            bucket_has_output=replacement_key in bucket,
+        ):
+            # Not applied. Listing it would disagree with the rule set that
+            # placement keeps (composition records the same skip as applied=False).
+            continue
+        applied.append(record)
+        if chosen is not None:
+            del bucket[chosen]
+        bucket[replacement_key] = replacement
     return may_rules, applied
 
 

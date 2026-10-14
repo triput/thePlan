@@ -16,9 +16,11 @@ from app.models import Task
 from test_s2_v4_assignments import (
     _clips,
     _effective,
+    _local,
     _prepare,
     _project,
     _put_new_rule,
+    _reject,
     _revision,
     _rule,
     _set_policy,
@@ -248,3 +250,187 @@ def test_effective_read_shows_inherited_replacement(
     assert must[0]["origin"] == "replacement"
     assert must[0]["policy_id"] == personal["id"]
     assert effective["new_rule_assignment"]["consumes_personal_policy"] is True
+
+
+def _post_replace(client: TestClient, task_id: str, **body):
+    return client.post(
+        f"/api/v1/tasks/{task_id}/scheduling/rules/replace-named",
+        json={"expected_revision": _revision(client), **body},
+    )
+
+
+def test_replacement_name_does_not_erase_sibling_must(
+    client: TestClient, db_session: Session
+) -> None:
+    """V4-D2 residual: output name local-hours must not erase the sibling Must."""
+    _prepare(client, db_session)
+    wide = _set_policy(client, "work", "09:00", 480)
+    narrow = _set_policy(client, "personal", "13:00", 60)
+    _set_policy(client, "general", "09:00", 480)
+    project = _project(client)
+    task = _task(client, project_id=project["id"])
+    _put_new_rule(
+        client, "project", project["id"], must=[_rule("parent-hours", wide["id"])]
+    )
+    _put_new_rule(
+        client, "task", task["id"], must=[_rule("local-hours", narrow["id"])]
+    )
+
+    rev = _revision(client)
+    rejected = _post_replace(
+        client,
+        task["id"],
+        target_rule_name="parent-hours",
+        target_rule_kind="must",
+        replacement_name="local-hours",
+        policy_id=wide["id"],
+    )
+    body = _reject(db_session, rejected, "RULE_NAME_CONFLICT")
+    assert rejected.status_code == 409
+    assert "local-hours" in body["detail"]
+    assert "siblings stay" in body["detail"]
+    assert body["replacement_name"] == "local-hours"
+    assert body["target_rule_name"] == "parent-hours"
+    assert _revision(client) == rev
+
+    local = _local(client, "task", task["id"])
+    assert local["exceptions"] == []
+    assert [row["name"] for row in local["must"]] == ["local-hours"]
+
+    row = db_session.get(Task, uuid.UUID(task["id"]))
+    composed, clips = _clips(db_session, row)
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("project", "parent-hours"),
+        ("task", "local-hours"),
+    }
+    assert [(item[0].hour, item[1].hour) for item in clips] == [(13, 14)]
+
+    fresh = _post_replace(
+        client,
+        task["id"],
+        target_rule_name="parent-hours",
+        target_rule_kind="must",
+        replacement_name="wide",
+        policy_id=wide["id"],
+    )
+    assert fresh.status_code == 200, fresh.text
+    row = db_session.get(Task, uuid.UUID(task["id"]))
+    composed, clips = _clips(db_session, row)
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("task", "local-hours"),
+        ("task", "wide"),
+    }
+    assert [(item[0].hour, item[1].hour) for item in clips] == [(13, 14)]
+
+
+def test_replacement_name_collides_with_other_replace_output(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    wide = _set_policy(client, "work", "09:00", 480)
+    _set_policy(client, "general", "09:00", 480)
+    project = _project(client)
+    task = _task(client, project_id=project["id"])
+    _put_new_rule(
+        client,
+        "project",
+        project["id"],
+        must=[
+            _rule("parent-hours", wide["id"]),
+            _rule("other-hours", wide["id"]),
+        ],
+    )
+    _put_new_rule(client, "task", task["id"])
+    first = _post_replace(
+        client,
+        task["id"],
+        target_rule_name="parent-hours",
+        target_rule_kind="must",
+        replacement_name="shared-name",
+        policy_id=wide["id"],
+    )
+    assert first.status_code == 200, first.text
+
+    rev = _revision(client)
+    rejected = _post_replace(
+        client,
+        task["id"],
+        target_rule_name="other-hours",
+        target_rule_kind="must",
+        replacement_name="shared-name",
+        policy_id=wide["id"],
+    )
+    body = _reject(db_session, rejected, "RULE_NAME_CONFLICT")
+    assert "shared-name" in body["detail"]
+    assert "parent-hours" in body["detail"]
+    assert _revision(client) == rev
+    local = _local(client, "task", task["id"])
+    assert [row["target_rule_name"] for row in local["exceptions"]] == ["parent-hours"]
+    assert local["exceptions"][0]["replacement_name"] == "shared-name"
+
+    row = db_session.get(Task, uuid.UUID(task["id"]))
+    composed, _clips_out = _clips(db_session, row)
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("project", "other-hours"),
+        ("task", "shared-name"),
+    }
+
+
+def test_same_name_replacement_does_not_clobber_local_must(
+    client: TestClient, db_session: Session
+) -> None:
+    """Inherited and local both named hours; output hours must not erase local."""
+    _prepare(client, db_session)
+    wide = _set_policy(client, "work", "09:00", 480)
+    narrow = _set_policy(client, "personal", "13:00", 60)
+    _set_policy(client, "general", "09:00", 480)
+    project = _project(client)
+    task = _task(client, project_id=project["id"])
+    _put_new_rule(client, "project", project["id"], must=[_rule("hours", wide["id"])])
+    _put_new_rule(client, "task", task["id"], must=[_rule("hours", narrow["id"])])
+
+    rev = _revision(client)
+    rejected = _post_replace(
+        client,
+        task["id"],
+        target_rule_name="hours",
+        target_rule_kind="must",
+        replacement_name="hours",
+        policy_id=wide["id"],
+    )
+    _reject(db_session, rejected, "RULE_NAME_CONFLICT")
+    assert _revision(client) == rev
+    assert _local(client, "task", task["id"])["exceptions"] == []
+    row = db_session.get(Task, uuid.UUID(task["id"]))
+    composed, clips = _clips(db_session, row)
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("project", "hours"),
+        ("task", "hours"),
+    }
+    assert [(item[0].hour, item[1].hour) for item in clips] == [(13, 14)]
+
+
+def test_inplace_replace_of_local_only_rule_keeps_its_name(
+    client: TestClient, db_session: Session
+) -> None:
+    _prepare(client, db_session)
+    wide = _set_policy(client, "work", "09:00", 480)
+    narrow = _set_policy(client, "personal", "13:00", 60)
+    _set_policy(client, "general", "09:00", 480)
+    task = _task(client)
+    _put_new_rule(client, "task", task["id"], must=[_rule("local-hours", narrow["id"])])
+    replaced = _post_replace(
+        client,
+        task["id"],
+        target_rule_name="local-hours",
+        target_rule_kind="must",
+        replacement_name="local-hours",
+        policy_id=wide["id"],
+    )
+    assert replaced.status_code == 200, replaced.text
+    row = db_session.get(Task, uuid.UUID(task["id"]))
+    composed, clips = _clips(db_session, row)
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("task", "local-hours"),
+    }
+    assert [(item[0].hour, item[1].hour) for item in clips] == [(9, 17)]

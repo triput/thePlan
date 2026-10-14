@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13
+#  Last Update: 2026-10-13 (V4-D2: replacement key stays scope + output name)
 # ==============================================================================
 
 """Bridge from Jules assignment rows to Tesla's composition stack.
@@ -131,6 +131,10 @@ def _layer_for_assignment(
                 )
             )
             continue
+        # Output identity is this writing scope plus replacement name. Composition
+        # and assignment_resolve key the same way. rule_replace_named rejects a
+        # name that already belongs to a sibling; both skip rather than overwrite
+        # if a colliding row is composed anyway.
         replacement = _named_rule(
             name=exc.replacement_name or exc.target_rule_name,
             kind=exc.target_rule_kind,
