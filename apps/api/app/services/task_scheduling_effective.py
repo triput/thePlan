@@ -29,6 +29,7 @@ from app.scheduler.time_map_overrides import (
     load_time_map_overrides_for_maps,
     segments_cover_full_scheduling_day_with_single_override,
 )
+from app.scheduler.assignment_resolve import resolve_task_scheduling_assignment
 from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
@@ -248,6 +249,7 @@ def _saved_policy_out(
     default_note: str,
     settings: UserSettings | None = None,
     check_divergence: bool = False,
+    personal_consumed: bool = False,
 ) -> SavedAvailabilityPolicyOut:
     if policy is None:
         return SavedAvailabilityPolicyOut(
@@ -273,9 +275,26 @@ def _saved_policy_out(
             "Saved General availability drives unclassified eligibility after S2-V3."
         )
     elif slug == AvailabilityPolicySlug.personal:
-        placer_active = False
-        saved_but_unsupported = True
-        note = default_note if not v3 else V3_NEW_RULE_INACTIVE_NOTE
+        # V4: Personal is placer-active on this task ONLY when a resolved
+        # new-rule assignment consumes the Personal policy. Never globally.
+        if personal_consumed:
+            placer_active = True
+            saved_but_unsupported = False
+            note = (
+                "Personal availability is scheduling-effective for this task "
+                "because a new-rule assignment references it."
+            )
+        else:
+            placer_active = False
+            saved_but_unsupported = True
+            note = (
+                default_note
+                if not v3
+                else (
+                    "Saved Personal availability; not scheduling-effective for "
+                    "this task (no assignment consumes it)."
+                )
+            )
     else:
         placer_active = False
         saved_but_unsupported = True
@@ -293,6 +312,89 @@ def _saved_policy_out(
         note=note,
         diverges_from_legacy=diverges,
         divergence_note=divergence_note,
+    )
+
+
+def _resolved_assignment_out(resolved) -> "ResolvedSchedulingOut":
+    from app.schemas.scheduling_assignment import (
+        MaySpecOut,
+        ResolvedSchedulingOut,
+        SchedulingRuleOut,
+    )
+
+    def _rules(rows):
+        return [
+            SchedulingRuleOut(
+                name=row.name,
+                kind=row.kind,
+                policy_id=row.policy_id,
+                empty_set=row.empty_set,
+                source_scope=row.source_scope,
+                origin=row.origin,
+            )
+            for row in rows
+        ]
+
+    may_note = None
+    if resolved.may_presence == "omit":
+        may_note = "Local May omitted at winning scope — should not appear here."
+    elif resolved.may_presence == "explicit" and not resolved.may_rules:
+        may_note = "Explicit empty May — no fall-through to General."
+    elif resolved.may_presence == "absent":
+        may_note = "No May assignment resolved — General baseline (V4-P3)."
+    else:
+        may_note = "Explicit May sources — union at composition."
+
+    conflict = None
+    if resolved.conflict is not None:
+        conflict = {
+            "scope": resolved.conflict.scope,
+            "scope_id": str(resolved.conflict.scope_id),
+            "preferred_time_window_id": str(resolved.conflict.preferred_time_window_id),
+            "assignment_id": str(resolved.conflict.assignment_id),
+            "guidance": resolved.conflict.guidance,
+        }
+
+    placer_active = resolved.family == "new_rule" and resolved.conflict is None
+    note = None
+    if resolved.family == "legacy":
+        note = "Legacy Time Map family — map ∩ Working; no May/Must composition."
+    elif resolved.family == "none":
+        note = "No assignment — unclassified → General after V3."
+    elif placer_active:
+        note = (
+            "New-rule family placer-active for composition (Tesla May∪/Must∩/Prefer). "
+            "Saved-inactive layers remain on non-winning scopes."
+        )
+    elif conflict is not None:
+        note = "Repairable same-scope family conflict — no arbitrary winner."
+
+    return ResolvedSchedulingOut(
+        family=resolved.family,
+        winning_scope=resolved.winning_scope,
+        winning_scope_id=resolved.winning_scope_id,
+        legacy_map_id=resolved.legacy_map_id,
+        legacy_source=resolved.legacy_source,
+        may=MaySpecOut(
+            presence=resolved.may_presence,
+            rules=_rules(resolved.may_rules),
+            note=may_note,
+        ),
+        must=_rules(resolved.must_rules),
+        prefer=_rules(resolved.prefer_rules),
+        exceptions_applied=[
+            {
+                "operation": exc.operation,
+                "target_rule_name": exc.target_rule_name,
+                "target_rule_kind": exc.target_rule_kind,
+                "scope": exc.scope,
+            }
+            for exc in resolved.exceptions_applied
+        ],
+        conflict=conflict,
+        consumes_personal_policy=resolved.consumes_personal_policy,
+        placer_active=placer_active,
+        note=note,
     )
 
 
@@ -541,8 +643,28 @@ def build_task_scheduling_effective(
         if project is not None and project.epic_id is not None:
             epic = db.get(Epic, project.epic_id)
 
-    window_id = effective_preferred_time_window_id(task, project, epic)
-    window_source = effective_preferred_time_window_source(task, project, epic)
+    personal_policy_early = _policy_for_slug(db, user, AvailabilityPolicySlug.personal)
+    resolved = resolve_task_scheduling_assignment(
+        db,
+        task,
+        project,
+        epic,
+        personal_policy_id=(
+            personal_policy_early.id if personal_policy_early is not None else None
+        ),
+    )
+
+    # Legacy map chain for Time Map effective-read. When new_rule wins, do not
+    # present an inherited legacy map as the effective assignment (cutover §4.1).
+    if resolved.family == "new_rule":
+        window_id = None
+        window_source = None
+    elif resolved.family == "legacy":
+        window_id = resolved.legacy_map_id
+        window_source = resolved.legacy_source
+    else:
+        window_id = effective_preferred_time_window_id(task, project, epic)
+        window_source = effective_preferred_time_window_source(task, project, epic)
 
     focus_window: FocusWindow | None = None
     if window_id is not None:
@@ -617,8 +739,17 @@ def build_task_scheduling_effective(
         )
 
     map_name = focus_window.name if focus_window is not None else None
+    if resolved.family == "new_rule":
+        map_status = "superseded_by_new_rule"
+        map_placer_active = False
+    elif has_assignment:
+        map_status = "assigned"
+        map_placer_active = True
+    else:
+        map_status = "unclassified_fallback"
+        map_placer_active = True  # unclassified → General after V3
     time_map = TimeMapEffectiveOut(
-        assignment_status="assigned" if has_assignment else "unclassified_fallback",
+        assignment_status=map_status,
         origin=TimeMapOriginOut(
             effective_source=window_source,
             task_preferred_time_window_id=task.preferred_time_window_id,
@@ -633,12 +764,12 @@ def build_task_scheduling_effective(
         band_count=display_band_count,
         bands=display_bands,
         empty_kind=empty_kind,
-        placer_active=True,
+        placer_active=map_placer_active,
     )
 
     working_policy = _policy_for_slug(db, user, AvailabilityPolicySlug.work)
     general_policy = _policy_for_slug(db, user, AvailabilityPolicySlug.general)
-    personal_policy = _policy_for_slug(db, user, AvailabilityPolicySlug.personal)
+    personal_policy = personal_policy_early
 
     working_saved = _saved_policy_out(
         working_policy,
@@ -659,6 +790,7 @@ def build_task_scheduling_effective(
         personal_policy,
         slug=AvailabilityPolicySlug.personal,
         default_note="Saved Personal availability; not unioned into placer eligibility in S1.",
+        personal_consumed=resolved.consumes_personal_policy,
     )
 
     v3 = s2_v3_availability_cutover_live()
@@ -745,6 +877,28 @@ def build_task_scheduling_effective(
         personal_saved=personal_saved,
         time_map=time_map,
     )
+    if resolved.family == "new_rule" and resolved.conflict is None:
+        sources.append(
+            SchedulingSourceOut(
+                kind="new_rule_assignment",
+                label="New-rule May/Must/Prefer assignment",
+                placer_active=True,
+                detail=(
+                    f"Winning scope={resolved.winning_scope}; "
+                    f"may={resolved.may_presence}; "
+                    f"must={len(resolved.must_rules)}; prefer={len(resolved.prefer_rules)}"
+                ),
+            )
+        )
+    elif resolved.conflict is not None:
+        sources.append(
+            SchedulingSourceOut(
+                kind="scheduling_family_conflict",
+                label="Same-scope legacy/new-rule conflict",
+                placer_active=False,
+                detail=resolved.conflict.guidance,
+            )
+        )
 
     effective_note = scheduling_effective_note_for_surface()
     return TaskSchedulingEffectiveOut(
@@ -761,6 +915,7 @@ def build_task_scheduling_effective(
         working_policy_saved=working_saved,
         general_policy_saved=general_saved,
         personal_policy_saved=personal_saved,
+        new_rule_assignment=_resolved_assignment_out(resolved),
         dated_resolution=dated,
         duration=duration,
     )

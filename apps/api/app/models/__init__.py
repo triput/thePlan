@@ -9,8 +9,19 @@ from app.models.enums import (
     ReminderChannel,
     ScheduleStatus,
     ScheduleStyle,
+    SchedulingAssignmentFamily,
+    SchedulingExceptionOp,
+    SchedulingMayPresence,
+    SchedulingRuleKind,
+    SchedulingScopeKind,
     TaskPriority,
     TimeMapBandTier,
+)
+from app.models.scheduling_assignment import (
+    SchedulingAssignment,
+    SchedulingAssignmentRevert,
+    SchedulingAssignmentRule,
+    SchedulingRuleException,
 )
 from app.models.handoff import HandoffReceipt
 from app.models.hierarchy import Epic, FocusWindow, Plan, Project, Section, TimeMapBand
@@ -53,6 +64,15 @@ __all__ = [
     "ScheduleStatus",
     "ScheduleStyle",
     "ScheduledBlock",
+    "SchedulingAssignment",
+    "SchedulingAssignmentFamily",
+    "SchedulingAssignmentRevert",
+    "SchedulingAssignmentRule",
+    "SchedulingExceptionOp",
+    "SchedulingMayPresence",
+    "SchedulingRuleException",
+    "SchedulingRuleKind",
+    "SchedulingScopeKind",
     "Section",
     "Task",
     "TaskDependency",

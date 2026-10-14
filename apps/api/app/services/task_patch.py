@@ -180,8 +180,21 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     if "parent_task_id" in updates and updates["parent_task_id"] is not None:
         verify_owned_task(db, updates["parent_task_id"], user)
 
-    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
-        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
+    if "preferred_time_window_id" in updates:
+        # V4-P1: legacy writers participate in same-scope family collision checks.
+        from app.services.scheduling_assignments import (
+            assert_no_family_collision_for_legacy_write,
+        )
+
+        assert_no_family_collision_for_legacy_write(
+            db,
+            owner_id=task.owner_id,
+            scope="task",
+            scope_id=task.id,
+            new_preferred_time_window_id=updates["preferred_time_window_id"],
+        )
+        if updates["preferred_time_window_id"] is not None:
+            verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
 
     if "parent_task_id" in updates:
         new_parent_id = updates["parent_task_id"]

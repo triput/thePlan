@@ -27,6 +27,7 @@ from app.api.routes import (
     search,
     sections,
     settings as settings_routes,
+    scheduling_assignments,
     task_dependencies,
     tasks,
     templates,
@@ -131,6 +132,9 @@ def create_app() -> FastAPI:
     api_router.include_router(search.router)
     api_router.include_router(settings_routes.router)
     api_router.include_router(availability_policies.router)
+    api_router.include_router(scheduling_assignments.task_router)
+    api_router.include_router(scheduling_assignments.project_router)
+    api_router.include_router(scheduling_assignments.epic_router)
     api_router.include_router(views.router)
     app.include_router(api_router)
     _maybe_mount_web(app)

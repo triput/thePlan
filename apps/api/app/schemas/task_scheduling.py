@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.schemas.availability import SCHEDULING_CONFIG_ONLY_COPY, AvailabilityWindowOut
 from app.schemas.hierarchy import TimeMapBandOut
+from app.schemas.scheduling_assignment import ResolvedSchedulingOut
 
 
 class SchedulingSourceOut(BaseModel):
@@ -170,5 +171,7 @@ class TaskSchedulingEffectiveOut(BaseModel):
     working_policy_saved: SavedAvailabilityPolicyOut
     general_policy_saved: SavedAvailabilityPolicyOut
     personal_policy_saved: SavedAvailabilityPolicyOut
+    # S2-V4 resolved family + May/Must/Prefer (Tesla wires placer against this).
+    new_rule_assignment: ResolvedSchedulingOut | None = None
     dated_resolution: DatedResolutionOut
     duration: DurationEffectiveOut

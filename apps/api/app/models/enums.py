@@ -66,3 +66,35 @@ class AvailabilityPolicySlug(str, enum.Enum):
     general = "general"
     work = "work"
     personal = "personal"
+
+
+class SchedulingScopeKind(str, enum.Enum):
+    """Entity scope for a local scheduling assignment (V4)."""
+
+    task = "task"
+    project = "project"
+    epic = "epic"
+
+
+class SchedulingRuleKind(str, enum.Enum):
+    may = "may"
+    must = "must"
+    prefer = "prefer"
+
+
+class SchedulingMayPresence(str, enum.Enum):
+    """Local May representation (V4-P3). omit = inherit; explicit may be empty."""
+
+    omit = "omit"
+    explicit = "explicit"
+
+
+class SchedulingAssignmentFamily(str, enum.Enum):
+    none = "none"
+    legacy = "legacy"
+    new_rule = "new_rule"
+
+
+class SchedulingExceptionOp(str, enum.Enum):
+    replace_named = "replace_named"
+    waive_named = "waive_named"

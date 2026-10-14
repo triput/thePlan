@@ -1,8 +1,10 @@
-"""Availability policy read/update (S2-V3 placer SoT).
+"""Availability policy read/update (S2-V3 placer SoT + S2-V4 Personal unlock).
 
 Working and General window writes bump ``scheduling_revision``. They do not
 rewrite deprecated ``workweek_*`` mirrors. Split, gapped, and mixed-hours
-Working patterns store. Personal window writes stay locked.
+Working patterns store. Personal window writes are unlocked for V4 assignment
+consumption (revision-locked); policy-list ``scheduling_effective`` stays false
+for Personal until a task assignment actually consumes it.
 """
 
 from __future__ import annotations
@@ -84,8 +86,14 @@ def _build_windows(
     return built
 
 
-_ELIGIBILITY_SLUGS = frozenset(
-    {AvailabilityPolicySlug.work, AvailabilityPolicySlug.general}
+# Working/General always bump revision. Personal bumps when windows change so
+# assignment consumers see fingerprint/revision movement (V4).
+_REVISION_BUMP_SLUGS = frozenset(
+    {
+        AvailabilityPolicySlug.work,
+        AvailabilityPolicySlug.general,
+        AvailabilityPolicySlug.personal,
+    }
 )
 
 
@@ -99,15 +107,8 @@ def update_policy(
     if not updates:
         return policy
 
-    if policy.slug == AvailabilityPolicySlug.personal and body.windows is not None:
-        raise ApiError(
-            422,
-            "Personal availability stays empty in S1; edit General or Working instead",
-            "PERSONAL_WINDOWS_LOCKED",
-        )
-
-    eligibility_write = body.windows is not None and policy.slug in _ELIGIBILITY_SLUGS
-    scheduling_settings = lock_owner_scheduling(db, user.id) if eligibility_write else None
+    revision_write = body.windows is not None and policy.slug in _REVISION_BUMP_SLUGS
+    scheduling_settings = lock_owner_scheduling(db, user.id) if revision_write else None
 
     if "name" in updates and updates["name"] is not None:
         policy.name = updates["name"].strip()
@@ -118,7 +119,7 @@ def update_policy(
         for window in _build_windows(user.id, policy.id, body.windows):
             policy.windows.append(window)
 
-    if eligibility_write and scheduling_settings is not None:
+    if revision_write and scheduling_settings is not None:
         increment_scheduling_revision(db, scheduling_settings)
 
     db.flush()

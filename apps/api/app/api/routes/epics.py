@@ -101,8 +101,20 @@ def update_epic(
     touches_scheduling = epic_patch_touches_scheduling(updates)
     settings = lock_owner_scheduling(db, user.id) if touches_scheduling else None
     epic = _get_owned_epic(db, epic_id, user)
-    if "preferred_time_window_id" in updates and updates["preferred_time_window_id"] is not None:
-        verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
+    if "preferred_time_window_id" in updates:
+        from app.services.scheduling_assignments import (
+            assert_no_family_collision_for_legacy_write,
+        )
+
+        assert_no_family_collision_for_legacy_write(
+            db,
+            owner_id=user.id,
+            scope="epic",
+            scope_id=epic.id,
+            new_preferred_time_window_id=updates["preferred_time_window_id"],
+        )
+        if updates["preferred_time_window_id"] is not None:
+            verify_owned_focus_window(db, updates["preferred_time_window_id"], user)
     if "title" in updates and updates["title"] is not None:
         updates["title"] = updates["title"].strip()
     for field, value in updates.items():
