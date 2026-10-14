@@ -242,21 +242,11 @@ def test_availability_patch_forwards_empty_working_windows(
     assert "windows: (none)" in out
 
 
-def test_settings_patch_forwards_zero_workweek_days(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    sample = _sample_settings()
-    seen: dict[str, object] = {}
-
-    def fake_api(method, path, *, json_body=None, **kwargs):
-        seen["body"] = json_body
-        return {**sample, "workweek_days": 0}
-
-    monkeypatch.setattr("theplan.commands.settings.api_json", fake_api)
-    run_settings(_parse(["settings", "patch", "--workweek-days", "0"]))
-    patched = json.loads(capsys.readouterr().out)
-    assert seen["body"] == {"workweek_days": 0}
-    assert patched["workweek_days"] == 0
+def test_settings_patch_hides_workweek_days_flag() -> None:
+    """S2-V3: the settings patch flag is gone. JSON body reject is test_s2_v3_settings_cli."""
+    with pytest.raises(SystemExit) as exc:
+        _parse(["settings", "patch", "--workweek-days", "0"])
+    assert exc.value.code == 2
 
 
 def test_availability_text_surfaces_scheduling_note(
