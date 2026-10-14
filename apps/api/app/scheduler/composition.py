@@ -6,8 +6,11 @@ unconverted legacy map stays on map ∩ Working and never enters the stack.
 Order (SPEC §4.2, discovery §5):
 
 1. Walk epic → project → task. Apply standing named-rule additions,
-   replacements, and waivers into the effective rule set. Dated, weekday-standing,
-   and context requests are recorded and **not** applied.
+   replacements, and waivers into the effective rule set. Authorized day-scoped
+   ops are **not** applied here; ``composition_search_windows`` folds them per
+   day before May union / Must intersect / Prefer rank. Context and ignore-all
+   stay recorded and not applied. A standing op that carries a selector stays
+   deferred.
 2. May alternatives **union**. Absent May keeps the inherited permission; if
    no permission resolves anywhere, the baseline is General. An explicit empty
    May stays empty and does not borrow General.
@@ -26,7 +29,7 @@ and General hours stay on ``availability``. See ``composition_fingerprint``.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, time
 from enum import Enum
 from typing import Any, Mapping, Sequence
@@ -127,6 +130,7 @@ class ScopeLayer:
     prefer_rules: tuple[NamedRule, ...] = ()
     exceptions: tuple[StandingException, ...] = ()
     deferred: tuple[DeferredException, ...] = ()
+    day_scoped: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -139,6 +143,7 @@ class CompositionInput:
 
     family: AssignmentFamily
     layers: tuple[ScopeLayer, ...] = ()
+    day_scoped: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -174,6 +179,8 @@ class EffectiveComposition:
     exceptions: tuple[AppliedException, ...]
     deferred_rejected: tuple[DeferredException, ...]
     must_blocks_all: bool
+    day_scoped: tuple[Any, ...] = ()
+    source: CompositionInput | None = None
 
     def supplies_eligibility(self) -> bool:
         """True only when the placer must leave the legacy map ∩ Working path."""
@@ -286,6 +293,8 @@ def _empty_effective(family: AssignmentFamily, deferred: tuple[DeferredException
         exceptions=(),
         deferred_rejected=deferred,
         must_blocks_all=False,
+        day_scoped=(),
+        source=None,
     )
 
 
@@ -297,8 +306,12 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
     """
     layers = _ordered_layers(item.layers)
     deferred = tuple(ex for layer in layers for ex in layer.deferred)
+    day_scoped = tuple(item.day_scoped) + tuple(
+        decl for layer in layers for decl in layer.day_scoped
+    )
     if item.family != AssignmentFamily.NEW_RULE:
-        return _empty_effective(item.family, deferred)
+        empty = _empty_effective(item.family, deferred)
+        return replace(empty, day_scoped=day_scoped, source=item)
 
     # Identity is scope + name. The same name at two scopes is two rules.
     may_rules: dict[tuple[str, str, str], EffectiveRule] | None = None
@@ -464,6 +477,8 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
         exceptions=tuple(applied),
         deferred_rejected=deferred,
         must_blocks_all=must_blocks_all,
+        day_scoped=day_scoped,
+        source=item,
     )
 
 
@@ -506,7 +521,25 @@ def composition_search_windows(
     are the overlap of Prefer with that eligible set — never a new span.
     The eligible fallback is the full continuous May ∩ Must set. Prefer is
     tried first and is not subtracted out of that fallback.
+
+    Day-scoped declarations fold here, after the standing composition and
+    before May union / Must intersect / Prefer rank. No second search path.
     """
+    if composition.day_scoped:
+        from app.scheduler.day_scoped import folded_search_windows
+
+        folded = folded_search_windows(day, tz, composition, general_windows)
+        if folded is not None:
+            return folded
+    return _standing_search_windows(day, tz, composition, general_windows)
+
+
+def _standing_search_windows(
+    day: date,
+    tz: ZoneInfo,
+    composition: EffectiveComposition,
+    general_windows: Sequence[Any] | None,
+) -> list[tuple[Any, Any, str]]:
     if not composition.supplies_eligibility():
         return []
     if composition.must_blocks_all or composition.may_source == "explicit_empty":
@@ -632,7 +665,7 @@ def composition_fingerprint(effective: EffectiveComposition | None) -> dict[str,
         for item in effective.deferred_rejected
     ]
     deferred.sort(key=lambda row: (row["form"], row["scope"], row["scope_id"]))
-    return {
+    payload = {
         "family": effective.family.value,
         "may_source": effective.may_source,
         "rules": rules,
@@ -640,6 +673,11 @@ def composition_fingerprint(effective: EffectiveComposition | None) -> dict[str,
         "exceptions": exceptions,
         "deferred_rejected": deferred,
     }
+    if effective.day_scoped:
+        from app.scheduler.day_scoped import day_scoped_fingerprint_rows
+
+        payload["day_scoped"] = day_scoped_fingerprint_rows(effective.day_scoped)
+    return payload
 
 
 def _parse_time(value: time | str) -> time:
@@ -682,9 +720,21 @@ def _rule_from_mapping(payload: Mapping[str, Any], *, scope: str, scope_id: str)
     )
 
 
+def _authorized_day_scoped_ops() -> frozenset[str]:
+    from app.scheduler.day_scoped import AUTHORIZED_OPERATIONS
+
+    return AUTHORIZED_OPERATIONS
+
+
 def _deferred_form_from_mapping(payload: Mapping[str, Any]) -> DeferredForm | None:
-    """Dated / weekday / context shapes stay deferred even if filed as a rule op."""
+    """Context, ignore-all, and standing ops that carry a selector stay deferred.
+
+    Authorized day-scoped operations are parsed and applied per day. They do
+    not land in ``deferred_rejected``.
+    """
     operation = str(payload.get("operation") or "")
+    if operation in _authorized_day_scoped_ops():
+        return None
     if operation == "ignore_all" or payload.get("ignore_all"):
         return DeferredForm.IGNORE_ALL
     if payload.get("form"):
@@ -709,8 +759,19 @@ def _layer_from_mapping(payload: Mapping[str, Any]) -> ScopeLayer:
         )
         for item in payload.get("deferred") or []
     ]
+    day_scoped: list[Any] = []
+    for item in payload.get("day_scoped") or []:
+        if isinstance(item, Mapping):
+            from app.scheduler.day_scoped import declaration_from_mapping
+
+            day_scoped.append(declaration_from_mapping(item, scope=scope, scope_id=scope_id))
     exceptions: list[StandingException] = []
     for item in payload.get("exceptions") or []:
+        if str(item.get("operation") or "") in _authorized_day_scoped_ops():
+            from app.scheduler.day_scoped import declaration_from_mapping
+
+            day_scoped.append(declaration_from_mapping(item, scope=scope, scope_id=scope_id))
+            continue
         form = _deferred_form_from_mapping(item)
         if form is not None:
             deferred.append(
@@ -752,6 +813,7 @@ def _layer_from_mapping(payload: Mapping[str, Any]) -> ScopeLayer:
         ),
         exceptions=tuple(exceptions),
         deferred=tuple(deferred),
+        day_scoped=tuple(day_scoped),
     )
 
 

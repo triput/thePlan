@@ -153,6 +153,25 @@ def snapshots_from_collected(
     overrides_by_map = time_map_overrides_by_map or {}
     busy_payload = normalize_busy_intervals(busy_intervals or [])
     workday_start = user_settings.workday_start_local
+    ups_weights = dict(user_settings.ups_weights or {})
+    competing_by_task: dict[UUID, list[dict[str, Any]]] = {}
+    for task in tasks:
+        competing_by_task[task.id] = []
+        for other in tasks:
+            if other.id == task.id:
+                continue
+            other_priority = (
+                other.priority.value if hasattr(other.priority, "value") else other.priority
+            )
+            competing_by_task[task.id].append(
+                {
+                    "task_id": other.id,
+                    "priority": other_priority,
+                    "deadline_at": other.deadline_at,
+                    "soft_target_at": other.soft_target_at,
+                    "due_at": other.due_at,
+                }
+            )
 
     snapshots: dict[UUID, dict[str, Any]] = {}
     for task in tasks:
@@ -229,6 +248,9 @@ def snapshots_from_collected(
             composition=composition_fingerprint(
                 (composition_by_task or {}).get(task.id)
             ),
+            priority=task.priority.value if hasattr(task.priority, "value") else str(task.priority),
+            ups_weights=ups_weights,
+            competing_rank=competing_by_task.get(task.id) or [],
         )
     return snapshots
 

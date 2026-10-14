@@ -102,6 +102,26 @@ def _validate_ready_for_apply(
             stale_categories=categories,
         )
 
+    from app.scheduler.collect import collect_inputs
+    from app.scheduler.proposal_revalidation import temporal_stale_categories
+
+    inputs_now = collect_inputs(db, preview.owner_id, now)
+    temporal = temporal_stale_categories(
+        inputs_now,
+        preview.proposal_json,
+        preview_at=replay,
+        apply_at=now,
+    )
+    if temporal:
+        preview.status = "stale"
+        db.flush()
+        raise ApiError(
+            409,
+            "Scheduling inputs changed since this preview was calculated",
+            "PREVIEW_STALE",
+            stale_categories=temporal,
+        )
+
     if _proposal_has_past_blocks(preview.proposal_json, now):
         raise ApiError(
             409,

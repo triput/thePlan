@@ -15,6 +15,7 @@ module. Do not query assignment tables from placement.py / collect.py directly.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from uuid import UUID
 
 from sqlalchemy.orm import Session, joinedload
@@ -30,6 +31,7 @@ from app.scheduler.assignment_resolve import (
     load_exceptions_at_scope,
     local_scope_assignment,
 )
+from app.scheduler.day_scoped import load_day_scoped_declarations
 
 
 def _composition():
@@ -297,4 +299,13 @@ def resolve_new_rule_compositions(
         )
         if payload is not None:
             out[task.id] = payload
+    scoped = load_day_scoped_declarations(db, owner_id, tasks, projects, epics)
+    if scoped:
+        for task_id, payload in list(out.items()):
+            rows = scoped.get(task_id) or ()
+            if rows and getattr(payload, "family", None) is not None:
+                out[task_id] = replace(
+                    payload,
+                    day_scoped=tuple(getattr(payload, "day_scoped", ()) or ()) + tuple(rows),
+                )
     return out

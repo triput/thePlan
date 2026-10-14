@@ -180,11 +180,15 @@ def _snap(**overrides):
 
 def test_activation_token_appends_after_v3() -> None:
     assert ACTIVATION_TOKEN == "s2-v4-may-must-prefer-composition"
-    assert SCHEDULING_ACTIVATIONS[-1] == ACTIVATION_TOKEN
+    assert ACTIVATION_TOKEN in SCHEDULING_ACTIVATIONS
+    assert SCHEDULING_ACTIVATIONS[-1] == "s2-v4b-day-scoped-ranking-protection"
     assert "s2-v3-working-general-availability" in SCHEDULING_ACTIVATIONS
     assert SCHEDULING_ACTIVATIONS.index(
         "s2-v3-working-general-availability"
     ) < SCHEDULING_ACTIVATIONS.index(ACTIVATION_TOKEN)
+    assert SCHEDULING_ACTIVATIONS.index(ACTIVATION_TOKEN) < SCHEDULING_ACTIVATIONS.index(
+        "s2-v4b-day-scoped-ranking-protection"
+    )
     assert composition_activation_revision(4) == 5
 
 

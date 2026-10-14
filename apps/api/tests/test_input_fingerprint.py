@@ -183,12 +183,12 @@ def test_w2_categories_name_themselves() -> None:
     assert diff_stale_categories(stored, due) == ["due_at_soft_target"]
 
 
-def test_priority_ups_are_not_compared() -> None:
+def test_priority_ups_are_compared() -> None:
     stored = _sample()
     live = _sample()
-    stored["priority_ups"] = {"priority": "p1"}
-    live["priority_ups"] = {"priority": "p4"}
-    assert diff_stale_categories(stored, live) == []
+    stored["priority_ups"] = {"priority": "p1", "ups_weights": {}, "competing": []}
+    live["priority_ups"] = {"priority": "p4", "ups_weights": {}, "competing": []}
+    assert diff_stale_categories(stored, live) == ["priority_ups"]
 
 
 def test_v2_snapshot_is_provenance() -> None:

@@ -4,7 +4,7 @@ Each new reason family once, placement_facts on a placed task, stale snapshot
 v2 categories on GET, and a multi-fact summary that matches the formatter
 with primary = the first fact.
 
-Still deferred (not a close): ``priority_ups`` and a run-summary web UI.
+Still compared: ``priority_ups`` (S2-V4b). A run-summary web UI is not this test.
 Snapshot v3 compares ``time_map_overrides`` (F4-W2). F3 stays open.
 """
 
@@ -751,8 +751,8 @@ def test_stale_v2_categories_and_w3_keys_stay_quiet(
     priority = client.patch(f"/api/v1/tasks/{task['id']}", json={"priority": "p1"})
     assert priority.status_code == 200, priority.text
     quiet = _explanation(client, task["id"])
-    assert quiet["is_stale"] is False
-    assert "priority_ups" not in quiet["stale_categories"]
+    assert quiet["is_stale"] is True
+    assert "priority_ups" in quiet["stale_categories"]
     assert "time_map_overrides" not in quiet["stale_categories"]
 
     blocker_row = db_session.get(Task, uuid.UUID(blocker["id"]))

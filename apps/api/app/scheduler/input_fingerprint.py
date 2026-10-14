@@ -50,8 +50,10 @@ Compared:
   is not stored; the effective map's rows are. F4-W2 (the F3 note that called
   this W3 is retired for this category).
 
-Not compared (a fresh v3 fingerprint is not proof this held still):
-- ``priority_ups`` — priority and UPS weights
+- ``priority_ups`` — this task's priority, UPS weights, and competing tasks'
+  priority / deadline / soft-target / due values used when A14c ranks. The
+  numeric UPS score is not stored; it moves with the clock and is revalidated
+  at apply. ``deadline_at`` on this task stays in ``deadline``.
 
 ``provenance`` is returned when the stored snapshot is missing or from another
 snapshot version, so the read cannot name a live category.
@@ -79,6 +81,7 @@ SCHEDULING_ACTIVATIONS: tuple[str, ...] = (
     "s2-v2-pin-reservation",
     "s2-v3-working-general-availability",
     "s2-v4-may-must-prefer-composition",
+    "s2-v4b-day-scoped-ranking-protection",
 )
 
 STALE_DURATION = "duration"
@@ -120,6 +123,8 @@ S2_V3_STALE_CATEGORIES: tuple[str, ...] = (STALE_AVAILABILITY,)
 
 S2_V4_STALE_CATEGORIES: tuple[str, ...] = (STALE_COMPOSITION,)
 
+STALE_PRIORITY_UPS = "priority_ups"
+
 STALE_SCHEDULING_ACTIVATION = "scheduling_activation"
 
 COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
@@ -128,11 +133,12 @@ COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
     + F4_W2_STALE_CATEGORIES
     + S2_V3_STALE_CATEGORIES
     + S2_V4_STALE_CATEGORIES
+    + (STALE_PRIORITY_UPS,)
     + (STALE_SCHEDULING_ACTIVATION,)
 )
 
-# Not compared in v3. Do not treat a matching fingerprint as proof these held still.
-DEFERRED_STALE_CATEGORIES: tuple[str, ...] = ("priority_ups",)
+# Empty. ``priority_ups`` is compared (S2-V4b A14c). Do not put it back here.
+DEFERRED_STALE_CATEGORIES: tuple[str, ...] = ()
 
 ALGORITHM_VERSION = "f3-w2"
 
@@ -513,6 +519,9 @@ def assemble_snapshot(
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
     composition: dict[str, Any] | None = None,
+    priority: str | None = None,
+    ups_weights: dict[str, Any] | None = None,
+    competing_rank: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Canonical task input snapshot (v3 or v4). Callers pass the effective map.
 
@@ -611,7 +620,52 @@ def assemble_snapshot(
         snapshot["composition"] = (
             composition if composition is not None else absent_composition_fingerprint()
         )
+        snapshot["priority_ups"] = _priority_ups_category(
+            priority=priority,
+            ups_weights=ups_weights,
+            competing_rank=competing_rank,
+        )
     return snapshot
+
+
+def _iso_or_none(value: Any) -> str | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, datetime):
+        return _iso_datetime(value)
+    return str(value)
+
+
+def _priority_ups_category(
+    *,
+    priority: str | None,
+    ups_weights: dict[str, Any] | None,
+    competing_rank: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    """A14c ranking inputs. Numeric UPS is not hashed; apply revalidates the clock."""
+    raw = ups_weights or {}
+    weights = {
+        key: float(raw[key])
+        for key in ("Wp", "Wu", "Wd", "We", "k")
+        if key in raw and raw[key] is not None
+    }
+    competing = []
+    for row in competing_rank or []:
+        competing.append(
+            {
+                "task_id": str(row.get("task_id")),
+                "priority": None if row.get("priority") is None else str(row.get("priority")),
+                "deadline_at": _iso_or_none(row.get("deadline_at")),
+                "soft_target_at": _iso_or_none(row.get("soft_target_at")),
+                "due_at": _iso_or_none(row.get("due_at")),
+            }
+        )
+    competing.sort(key=lambda item: item["task_id"])
+    return {
+        "priority": None if priority is None else str(priority),
+        "ups_weights": weights,
+        "competing": competing,
+    }
 
 
 def _canonical(value: Any) -> str:
@@ -628,7 +682,7 @@ def fingerprint_snapshot(snapshot: dict[str, Any] | None) -> str | None:
 def diff_stale_categories(stored: dict[str, Any] | None, live: dict[str, Any]) -> list[str]:
     """Category names that differ. Empty means the compared inputs still match.
 
-    ``priority_ups`` is ignored even if a caller stuffs it into the dict.
+    ``priority_ups`` is compared. A priority or UPS-weight change stales it.
     ``time_map_overrides`` is compared on v3+ snapshots. Cross-version pairs
     (v3 stored vs v4 live, etc.) return ``provenance`` only.
     """

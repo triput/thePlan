@@ -281,10 +281,33 @@ def format_summary_text(facts: list[ReasonFact]) -> str:
                     "They were not moved."
                 )
         elif code == REASON_UNMET_PREFERENCE:
-            lines.append(
-                "Placed in an eligible window outside the preferred time. "
-                "The preference did not create hours or waive a requirement."
-            )
+            decision = _param_str(p, "decision")
+            if decision == "deadline_fallback":
+                lines.append(
+                    "Placed outside the preferred time so the remaining effort finishes "
+                    "before the deadline. The preference did not create hours or waive a requirement."
+                )
+            elif decision == "higher_ranked_competition":
+                lines.append(
+                    "Placed outside the preferred time so a higher-ranked task keeps its "
+                    "only feasible slot. The preference did not create hours or waive a requirement."
+                )
+            elif decision == "hard_infeasibility":
+                lines.append(
+                    "Hard requirements or pins make this infeasible. "
+                    "The preference did not weaken them or create hours."
+                )
+            elif p.get("bound_exhausted"):
+                lines.append(
+                    "The horizon bound was exhausted before the remaining effort was placed. "
+                    "That miss is not treated as unavoidable, and the preference did not "
+                    "create hours or waive a requirement."
+                )
+            else:
+                lines.append(
+                    "Placed in an eligible window outside the preferred time. "
+                    "The preference did not create hours or waive a requirement."
+                )
         elif code == REASON_DEFERRED_EXCEPTION_NOT_APPLIED:
             lines.append(
                 "A dated, weekday-standing, or context exception was not applied."

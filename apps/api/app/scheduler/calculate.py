@@ -279,6 +279,61 @@ def _prerequisite_not_before(
     return not_before
 
 
+def _higher_ranked_claims(
+    candidate: TaskCandidate,
+    ordered: list[TaskCandidate],
+    *,
+    remaining_by_task: dict[UUID, int],
+    blockers_by_dependent: dict[UUID, list[UUID]],
+    ups_scores: dict[UUID, float],
+    composition_by_task: dict[UUID, Any],
+    latest_block_end_by_task: dict[UUID, datetime],
+    horizon_start: datetime,
+    general_windows: Any,
+    working_windows: Any,
+) -> list[Any]:
+    from app.scheduler.ranking_protection import HigherRankedTask
+
+    topo_index = {item.task.id: index for index, item in enumerate(ordered)}
+
+    def sort_key(item: TaskCandidate) -> tuple:
+        return (
+            _PRIORITY_RANK.get(item.task.priority, len(PRIORITY_ORDER)),
+            -ups_scores.get(item.task.id, 0.0),
+            topo_index.get(item.task.id, len(ordered)),
+        )
+
+    current_key = sort_key(candidate)
+    claims: list[Any] = []
+    for other in ordered:
+        if other.task.id == candidate.task.id:
+            continue
+        if remaining_by_task.get(other.task.id, 0) <= 0:
+            continue
+        if sort_key(other) >= current_key:
+            continue
+        blockers = blockers_by_dependent.get(other.task.id, [])
+        not_before = horizon_start
+        for blocker_id in blockers:
+            if blocker_id == candidate.task.id:
+                continue
+            ended = latest_block_end_by_task.get(blocker_id)
+            if ended is not None and ended > not_before:
+                not_before = ended
+        claims.append(
+            HigherRankedTask(
+                task=other.task,
+                remaining_minutes=remaining_by_task.get(other.task.id, 0),
+                composition=composition_by_task.get(other.task.id),
+                prerequisite_not_before=not_before,
+                blocked_by_subject=candidate.task.id in blockers,
+                general_windows=general_windows,
+                working_windows=working_windows,
+            )
+        )
+    return claims
+
+
 def _placement_pass_order(
     candidates: list[TaskCandidate],
     ordered: list[TaskCandidate],
@@ -665,6 +720,7 @@ def calculate(
     deferred_exceptions_by_task: dict[UUID, list[dict[str, Any]]] = {}
     applicable_override_by_task: dict[UUID, dict[str, Any]] = {}
     prerequisite_not_before_by_task: dict[UUID, datetime] = {}
+    rank_mode_by_task: dict[UUID, str] = {}
     minutes_by_project: dict[str, int] = {}
     blocks_created = 0
 
@@ -720,8 +776,24 @@ def calculate(
                 working_windows=inputs.working_windows,
                 general_windows=inputs.general_windows,
                 composition=inputs.composition_by_task.get(task_id),
+                rank_mode=rank_mode_by_task.get(task_id),
+                ranking_protection=task_id not in rank_mode_by_task,
+                higher_ranked=_higher_ranked_claims(
+                    candidate,
+                    ordered,
+                    remaining_by_task=remaining_by_task,
+                    blockers_by_dependent=blockers_by_dependent,
+                    ups_scores=inputs.ups_scores,
+                    composition_by_task=inputs.composition_by_task,
+                    latest_block_end_by_task=latest_block_end_by_task,
+                    horizon_start=inputs.horizon_start,
+                    general_windows=inputs.general_windows,
+                    working_windows=inputs.working_windows,
+                ),
             )
             prerequisite_not_before_by_task[task_id] = prereq_not_before
+            if result.preference_decision and result.preference_decision.get("rank_mode"):
+                rank_mode_by_task[task_id] = str(result.preference_decision["rank_mode"])
             if result.unmet_preference:
                 unmet_preference_by_task[task_id] = result.unmet_preference
             if result.deferred_exceptions:

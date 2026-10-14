@@ -200,7 +200,7 @@ def test_collect_captures_input_snapshots(
     assert task_id in inputs.input_snapshots
     assert inputs.input_snapshots[task_id]["v"] == live_snapshot_version()
     assert "pins" in inputs.input_snapshots[task_id]
-    assert "priority_ups" not in inputs.input_snapshots[task_id]
+    assert "priority_ups" in inputs.input_snapshots[task_id]
     assert "deps" in inputs.input_snapshots[task_id]
 
     result = calculate(db_session, inputs)

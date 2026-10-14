@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta, timezone
-from typing import Any, TypeAlias
+from typing import Any, Sequence, TypeAlias
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -97,6 +97,8 @@ class PlacementResult:
     unmet_preference: dict[str, Any] | None = None
     # Dated / weekday / context requests that reached the placer and were not applied.
     deferred_exceptions: list[dict[str, Any]] | None = None
+    # A14c decision. Distinct from a generic outside-window flag.
+    preference_decision: dict[str, Any] | None = None
 
 
 # Short codes Jules maps onto ``unplaced_*`` reason codes. Do not rename without
@@ -1015,6 +1017,41 @@ def _refuse_placement(
     )
 
 
+def _planned_composition_windows(
+    day: date,
+    end_day: date,
+    tz: ZoneInfo,
+    composition: EffectiveComposition | None,
+    general_windows: list[Any] | None,
+    *,
+    mode: str,
+) -> list[tuple[date, datetime, datetime, str]] | None:
+    """Horizon-wide Prefer-then-eligible order. None keeps the legacy day walk.
+
+    Used only when a new-rule composition has Prefer rules. Same windows
+    ``composition_search_windows`` already returns — not a second search.
+    """
+    if composition is None or not composition.prefer_rules:
+        return None
+    planned: list[tuple[date, datetime, datetime, str]] = []
+    scan = day
+    while scan <= end_day:
+        for window_start, window_end, window_label in composition_search_windows(
+            scan, tz, composition, general_windows
+        ):
+            if mode == "eligible_only" and window_label == RANK_PREFER:
+                continue
+            planned.append((scan, window_start, window_end, window_label))
+        scan += timedelta(days=1)
+    if mode == "eligible_only":
+        planned.sort(key=lambda item: (item[1], item[2]))
+    else:
+        planned.sort(
+            key=lambda item: (0 if item[3] == RANK_PREFER else 1, item[1], item[2])
+        )
+    return planned
+
+
 def place_task(
     db: Session,
     *,
@@ -1038,6 +1075,9 @@ def place_task(
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
     composition: EffectiveComposition | None = None,
+    rank_mode: str | None = None,
+    ranking_protection: bool = True,
+    higher_ranked: Sequence[Any] | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     # Operator zone for band wall-clock. Eligibility is Working or General
     # unless ``composition`` is an activated new-rule assignment. That path
@@ -1131,11 +1171,59 @@ def place_task(
     cap_blocked_day: date | None = None
     day_cap_blocked_ever = False
     applicable_override: dict[str, Any] | None = None
+    mode = rank_mode or "prefer_first"
+    ranking_choice = None
+    if (
+        ranking_protection
+        and rank_mode is None
+        and composition_active
+        and composition is not None
+        and composition.prefer_rules
+    ):
+        from app.scheduler.ranking_protection import choose_rank_mode
 
-    while remaining > 0 and day <= end_day:
+        ranking_choice = choose_rank_mode(
+            db=db,
+            task=task,
+            owner_id=owner_id,
+            settings=settings,
+            remaining_minutes=remaining_minutes,
+            busy=busy,
+            horizon_start=horizon_start,
+            horizon_end=horizon_end,
+            preferred_windows=preferred_windows,
+            now_utc=now_utc,
+            preferred_window_id=window_id,
+            project_daily_usage=project_daily_usage,
+            daily_cap=daily_cap,
+            prerequisite_not_before=prerequisite_not_before,
+            time_map_overrides_by_map=time_map_overrides_by_map,
+            working_windows=working_resolved,
+            general_windows=general_resolved,
+            composition=composition,
+            higher_ranked=tuple(higher_ranked or ()),
+        )
+        mode = ranking_choice.mode
+    planned = _planned_composition_windows(
+        day,
+        end_day,
+        tz,
+        composition if composition_active else None,
+        general_resolved,
+        mode=mode,
+    )
+    plan_index = 0
+
+    while remaining > 0 and (planned is not None or day <= end_day):
         if blocks_limit is not None and blocks_created >= blocks_limit:
             break
-        if composition_active:
+        if planned is not None:
+            if plan_index >= len(planned):
+                break
+            day, window_start, window_end, window_label = planned[plan_index]
+            plan_index += 1
+            windows = [(window_start, window_end, window_label)]
+        elif composition_active:
             assert composition is not None
             windows = composition_search_windows(
                 day, tz, composition, general_resolved
@@ -1362,7 +1450,29 @@ def place_task(
         unmet_preference = {
             "prefer_rule_ids": [entry.rule_id for entry in composition.prefer_rules],
             "placed_outside_preferred_window": True,
+            "decision": "preference_window_unavailable",
         }
+    if ranking_choice is not None:
+        choice_payload = ranking_choice.as_dict()
+        if choice_payload.get("decision") in {
+            "deadline_fallback",
+            "higher_ranked_competition",
+            "hard_infeasibility",
+        } or choice_payload.get("bound_exhausted"):
+            base = unmet_preference or {
+                "prefer_rule_ids": [entry.rule_id for entry in composition.prefer_rules]
+                if composition is not None
+                else [],
+                "placed_outside_preferred_window": bool(placed_outside_prefer),
+            }
+            unmet_preference = {**base, **choice_payload}
+            if choice_payload.get("decision") in {
+                "deadline_fallback",
+                "higher_ranked_competition",
+            }:
+                unmet_preference["placed_outside_preferred_window"] = True
+        elif unmet_preference is not None:
+            unmet_preference = {**choice_payload, **unmet_preference}
     deferred_exceptions: list[dict[str, Any]] | None = None
     if composition is not None and composition.deferred_rejected:
         deferred_exceptions = [
@@ -1388,6 +1498,7 @@ def place_task(
             applicable_override=applicable_override,
             unmet_preference=unmet_preference,
             deferred_exceptions=deferred_exceptions,
+            preference_decision=ranking_choice.as_dict() if ranking_choice is not None else None,
         ),
         busy,
     )
@@ -1414,6 +1525,9 @@ def place_one_block(
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
     composition: EffectiveComposition | None = None,
+    rank_mode: str | None = None,
+    ranking_protection: bool = True,
+    higher_ranked: Sequence[Any] | None = None,
 ) -> tuple[PlacementResult, list[BusyInterval]]:
     """Place at most one scheduled block for round-robin replan sweeps."""
     return place_task(
@@ -1438,4 +1552,7 @@ def place_one_block(
         working_windows=working_windows,
         general_windows=general_windows,
         composition=composition,
+        rank_mode=rank_mode,
+        ranking_protection=ranking_protection,
+        higher_ranked=higher_ranked,
     )
