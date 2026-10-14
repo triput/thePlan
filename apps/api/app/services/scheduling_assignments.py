@@ -4,10 +4,15 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13
+#  Last Update: 2026-10-13 (V4-D4: rule_remove_named / remove-named)
 # ==============================================================================
 
-"""Assignment writers. Paths are engineering; stubs match Discovery §2.1 labels."""
+"""Assignment writers. Paths are engineering; stubs match Discovery §2.1 labels.
+
+Named-rule HTTP/CLI: ``add``, ``replace-named``, ``waive-named``, ``remove-named``.
+``remove-named`` deletes one standing addition or exception row and restores that
+named underlying rule; it is not a ``SchedulingExceptionOp`` value.
+"""
 
 from __future__ import annotations
 
@@ -874,6 +879,101 @@ def rule_waive_named(
         "scope": scope,
         "scope_id": scope_id,
         "exception": row,
+        "scheduling_revision": revision,
+    }
+
+
+def rule_remove_named(
+    db: Session,
+    user: User,
+    *,
+    scope: ScopeKind,
+    scope_id: UUID,
+    expected_revision: int,
+    operation: Literal["addition", "replace_named", "waive_named"],
+    target_rule_name: str,
+    raw_body: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Remove one standing named-rule addition or exception (§2.1 / V4-D4).
+
+    Path/CLI name ``remove-named`` mirrors ``replace-named`` / ``waive-named``.
+    Deletes the identified row under owner lock + revision check; siblings stay.
+    Resolver sees the remaining set only — no ``remove_named`` exception op.
+    """
+    reject_deferred_exception_forms(raw_body)
+    _entity, assignment = _require_new_rule_family(db, user, scope, scope_id)
+    settings = lock_owner_scheduling(db, user.id)
+    assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+
+    clean_target = target_rule_name.strip()
+    if not clean_target:
+        raise ApiError(422, "target_rule_name is required", "RULE_NAME_REQUIRED")
+
+    removed_rule: SchedulingAssignmentRule | None = None
+    removed_exception: SchedulingRuleException | None = None
+
+    if operation == "addition":
+        row = (
+            db.query(SchedulingAssignmentRule)
+            .filter(
+                SchedulingAssignmentRule.assignment_id == assignment.id,
+                SchedulingAssignmentRule.name == clean_target,
+            )
+            .one_or_none()
+        )
+        if row is None:
+            raise ApiError(
+                404,
+                f"No local named-rule addition '{clean_target}' at this scope",
+                "NAMED_RULE_REMOVE_NOT_FOUND",
+                scope=scope,
+                scope_id=str(scope_id),
+                operation=operation,
+                target_rule_name=clean_target,
+            )
+        removed_rule = row
+        db.delete(row)
+    elif operation in ("replace_named", "waive_named"):
+        exc_op = SchedulingExceptionOp(operation)
+        row = (
+            db.query(SchedulingRuleException)
+            .filter(
+                SchedulingRuleException.owner_id == user.id,
+                SchedulingRuleException.scope_kind == _scope_enum(scope),
+                SchedulingRuleException.scope_id == scope_id,
+                SchedulingRuleException.operation == exc_op,
+                SchedulingRuleException.target_rule_name == clean_target,
+            )
+            .one_or_none()
+        )
+        if row is None:
+            raise ApiError(
+                404,
+                f"No standing {operation} exception for '{clean_target}' at this scope",
+                "NAMED_RULE_REMOVE_NOT_FOUND",
+                scope=scope,
+                scope_id=str(scope_id),
+                operation=operation,
+                target_rule_name=clean_target,
+            )
+        removed_exception = row
+        db.delete(row)
+    else:
+        raise ApiError(
+            422,
+            "operation must be addition, replace_named, or waive_named",
+            "NAMED_RULE_REMOVE_OPERATION_INVALID",
+            operation=operation,
+        )
+
+    revision = increment_scheduling_revision(db, settings)
+    db.flush()
+    return {
+        "scope": scope,
+        "scope_id": scope_id,
+        "removed_operation": operation,
+        "rule": removed_rule,
+        "exception": removed_exception,
         "scheduling_revision": revision,
     }
 

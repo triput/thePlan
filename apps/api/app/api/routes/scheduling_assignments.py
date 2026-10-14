@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13
+#  Last Update: 2026-10-13 (V4-D4: remove-named routes)
 # ==============================================================================
 
 from __future__ import annotations
@@ -38,6 +38,7 @@ from app.schemas.scheduling_assignment import (
     RuleAddIn,
     RuleExceptionOut,
     RuleMutationOut,
+    RuleRemoveNamedIn,
     RuleReplaceNamedIn,
     RuleWaiveNamedIn,
     SchedulingRuleOut,
@@ -334,6 +335,40 @@ def _do_rule_waive(
     )
 
 
+def _do_rule_remove(
+    db: Session,
+    user: User,
+    scope: ScopeKind,
+    scope_id: UUID,
+    body: RuleRemoveNamedIn,
+) -> RuleMutationOut:
+    """POST …/rules/remove-named — targeted standing-row removal (V4-D4)."""
+    result = svc.rule_remove_named(
+        db,
+        user,
+        scope=scope,
+        scope_id=scope_id,
+        expected_revision=body.expected_revision,
+        operation=body.operation,
+        target_rule_name=body.target_rule_name,
+        raw_body=body.model_dump(exclude_unset=True),
+    )
+    db.commit()
+    rule_out = _rule_out(result["rule"]) if result.get("rule") is not None else None
+    exc_out = (
+        _exception_out(result["exception"])
+        if result.get("exception") is not None
+        else None
+    )
+    return RuleMutationOut(
+        scope=scope,
+        scope_id=scope_id,
+        scheduling_revision=int(result["scheduling_revision"]),
+        rule=rule_out,
+        exception=exc_out,
+    )
+
+
 def _do_put_new_rule(
     db: Session,
     user: User,
@@ -453,6 +488,19 @@ def task_rule_waive(
     return _do_rule_waive(db, user, "task", task_id, body)
 
 
+@task_router.post(
+    "/{task_id}/scheduling/rules/remove-named",
+    response_model=RuleMutationOut,
+)
+def task_rule_remove(
+    task_id: UUID,
+    body: RuleRemoveNamedIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RuleMutationOut:
+    return _do_rule_remove(db, user, "task", task_id, body)
+
+
 # ---- project ----
 
 
@@ -553,6 +601,19 @@ def project_rule_waive(
     return _do_rule_waive(db, user, "project", project_id, body)
 
 
+@project_router.post(
+    "/{project_id}/scheduling/rules/remove-named",
+    response_model=RuleMutationOut,
+)
+def project_rule_remove(
+    project_id: UUID,
+    body: RuleRemoveNamedIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RuleMutationOut:
+    return _do_rule_remove(db, user, "project", project_id, body)
+
+
 # ---- epic ----
 
 
@@ -649,3 +710,16 @@ def epic_rule_waive(
     user: User = Depends(get_current_user),
 ) -> RuleMutationOut:
     return _do_rule_waive(db, user, "epic", epic_id, body)
+
+
+@epic_router.post(
+    "/{epic_id}/scheduling/rules/remove-named",
+    response_model=RuleMutationOut,
+)
+def epic_rule_remove(
+    epic_id: UUID,
+    body: RuleRemoveNamedIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RuleMutationOut:
+    return _do_rule_remove(db, user, "epic", epic_id, body)

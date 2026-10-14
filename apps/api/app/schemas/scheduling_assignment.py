@@ -4,7 +4,7 @@
 #  Component: Scheduling / Settings — S2-V4
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13
+#  Last Update: 2026-10-13 (V4-D4: RuleRemoveNamedIn / remove-named)
 # ==============================================================================
 
 """Distinct representations (V4-P3):
@@ -153,6 +153,32 @@ class RuleWaiveNamedIn(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     expected_revision: int
+    target_rule_name: str
+    date_range: Any | None = None
+    weekday: Any | None = None
+    weekdays: Any | None = None
+    context: Any | None = None
+    context_id: Any | None = None
+
+
+class RuleRemoveNamedIn(BaseModel):
+    """Targeted removal of one standing named-rule row (§2.1).
+
+    HTTP path ``remove-named`` matches ``replace-named`` / ``waive-named``.
+    ``operation`` selects which standing row to drop:
+
+    - ``addition`` — local ``rule.add`` row (``SchedulingAssignmentRule``)
+    - ``replace_named`` — standing replace exception
+    - ``waive_named`` — standing waive exception
+
+    Removal restores that named underlying rule; siblings stay. Not a new
+    ``SchedulingExceptionOp`` — resolve applies remaining rows only.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    expected_revision: int
+    operation: Literal["addition", "replace_named", "waive_named"]
     target_rule_name: str
     date_range: Any | None = None
     weekday: Any | None = None

@@ -1031,6 +1031,17 @@ def test_deferred_and_forbidden_forms_reject_with_no_write(
         ),
         (
             "post",
+            f"/api/v1/tasks/{task['id']}/scheduling/rules/remove-named",
+            {
+                "expected_revision": _revision(client),
+                "operation": "addition",
+                "target_rule_name": "day",
+                "date_range": {"start": "2026-10-13", "end": "2026-10-14"},
+            },
+            "SCHEDULING_EXCEPTION_FORM_DEFERRED",
+        ),
+        (
+            "post",
             f"/api/v1/tasks/{task['id']}/scheduling/rules/add",
             {
                 "expected_revision": _revision(client),
@@ -1078,3 +1089,325 @@ def test_named_rule_on_legacy_family_rejects(client: TestClient, db_session: Ses
     assert local["family"] == "legacy"
     assert local["preferred_time_window_id"] == window["id"]
     assert local["may"] is None
+
+
+# --- V4-D4 targeted named-rule / exception removal --------------------------
+
+
+def _plural(scope: str) -> str:
+    return {"task": "tasks", "project": "projects", "epic": "epics"}[scope]
+
+
+def _remove_named(
+    client: TestClient,
+    scope: str,
+    scope_id: str,
+    *,
+    operation: str,
+    target_rule_name: str,
+    extra: dict | None = None,
+):
+    body: dict = {
+        "expected_revision": _revision(client),
+        "operation": operation,
+        "target_rule_name": target_rule_name,
+    }
+    if extra:
+        body.update(extra)
+    return client.post(
+        f"/api/v1/{_plural(scope)}/{scope_id}/scheduling/rules/remove-named",
+        json=body,
+    )
+
+
+@pytest.mark.parametrize("scope", ("task", "project", "epic"))
+def test_v4_d4_remove_named_addition_restores_and_keeps_siblings(
+    client: TestClient, db_session: Session, scope: str
+) -> None:
+    """Remove one rule.add row; sibling local rules stay (task/project/epic)."""
+    _prepare(client, db_session)
+    day = _set_policy(client, "work", "09:00", 180)
+    eve = _set_policy(client, "personal", "19:00", 120)
+    epic = _epic(client)
+    project = _project(client, epic["id"])
+    task = _task(client, project_id=project["id"])
+    scope_id = {"task": task["id"], "project": project["id"], "epic": epic["id"]}[scope]
+
+    _put_new_rule(
+        client,
+        scope,
+        scope_id,
+        may={
+            "presence": "explicit",
+            "rules": [_rule("day", day["id"]), _rule("keep", day["id"])],
+        },
+        prefer=[_rule("late", eve["id"])],
+    )
+    added = client.post(
+        f"/api/v1/{_plural(scope)}/{scope_id}/scheduling/rules/add",
+        json={
+            "expected_revision": _revision(client),
+            "name": "extra",
+            "kind": "may",
+            "policy_id": eve["id"],
+        },
+    )
+    assert added.status_code == 200, added.text
+    before = _local(client, scope, scope_id)
+    assert sorted(r["name"] for r in before["may"]["rules"]) == ["day", "extra", "keep"]
+    assert [r["name"] for r in before["prefer"]] == ["late"]
+    rev_before = _revision(client)
+
+    removed = _remove_named(
+        client, scope, scope_id, operation="addition", target_rule_name="extra"
+    )
+    assert removed.status_code == 200, removed.text
+    body = removed.json()
+    assert body["rule"]["name"] == "extra"
+    assert body["exception"] is None
+    assert body["scheduling_revision"] == rev_before + 1
+
+    after = _local(client, scope, scope_id)
+    assert sorted(r["name"] for r in after["may"]["rules"]) == ["day", "keep"]
+    assert [r["name"] for r in after["prefer"]] == ["late"]
+    assert after["exceptions"] == []
+    assert _revision(client) == rev_before + 1
+
+
+def test_v4_d4_remove_named_waive_restores_must_keeps_sibling_waiver(
+    client: TestClient, db_session: Session
+) -> None:
+    """Removing one waive restores that Must; unrelated waive stays."""
+    _prepare(client, db_session)
+    day = _set_policy(client, "work", "09:00", 480)
+    office = _set_policy(client, "general", "09:00", 240)
+    desk = _set_policy(client, "personal", "10:00", 120)
+    epic = _epic(client)
+    project = _project(client, epic["id"])
+    task = _task(client, project_id=project["id"])
+
+    _put_new_rule(
+        client,
+        "project",
+        project["id"],
+        may={"presence": "explicit", "rules": [_rule("day", day["id"])]},
+        must=[_rule("office", office["id"]), _rule("desk", desk["id"])],
+    )
+    _put_new_rule(
+        client,
+        "task",
+        task["id"],
+        may={"presence": "omit", "rules": []},
+    )
+    for name in ("office", "desk"):
+        waived = client.post(
+            f"/api/v1/tasks/{task['id']}/scheduling/rules/waive-named",
+            json={
+                "expected_revision": _revision(client),
+                "target_rule_name": name,
+            },
+        )
+        assert waived.status_code == 200, waived.text
+
+    local = _local(client, "task", task["id"])
+    assert sorted(e["target_rule_name"] for e in local["exceptions"]) == ["desk", "office"]
+    row = db_session.get(Task, uuid.UUID(task["id"]))
+    _task_row, composed = _effective(db_session, row)
+    assert composed is not None
+    assert set(composed.waived_must_ids) >= {"office", "desk"}
+    assert "office" not in {e.rule_id for e in composed.must_rules}
+    assert "desk" not in {e.rule_id for e in composed.must_rules}
+
+    rev = _revision(client)
+    stale = _remove_named(
+        client,
+        "task",
+        task["id"],
+        operation="waive_named",
+        target_rule_name="office",
+        extra={"expected_revision": rev - 1},
+    )
+    _reject(db_session, stale, "SCHEDULING_REVISION_CONFLICT")
+    assert _revision(client) == rev
+    assert sorted(
+        e["target_rule_name"] for e in _local(client, "task", task["id"])["exceptions"]
+    ) == ["desk", "office"]
+
+    removed = _remove_named(
+        client, "task", task["id"], operation="waive_named", target_rule_name="office"
+    )
+    assert removed.status_code == 200, removed.text
+    assert removed.json()["exception"]["target_rule_name"] == "office"
+    assert removed.json()["exception"]["operation"] == "waive_named"
+    assert _revision(client) == rev + 1
+
+    after_local = _local(client, "task", task["id"])
+    assert [e["target_rule_name"] for e in after_local["exceptions"]] == ["desk"]
+    db_session.expire_all()
+    _task_row, restored = _effective(db_session, db_session.get(Task, uuid.UUID(task["id"])))
+    assert restored is not None
+    must_ids = {e.rule_id for e in restored.must_rules}
+    assert "office" in must_ids
+    assert "desk" not in must_ids
+    assert "desk" in set(restored.waived_must_ids)
+    assert "office" not in set(restored.waived_must_ids)
+
+
+def test_v4_d4_remove_named_replace_restores_underlying_may(
+    client: TestClient, db_session: Session
+) -> None:
+    """Removing replace_named restores the named May; sibling replace stays."""
+    _prepare(client, db_session)
+    am = _set_policy(client, "work", "09:00", 180)
+    pm = _set_policy(client, "general", "13:00", 180)
+    night = _set_policy(client, "personal", "19:00", 60)
+    epic = _epic(client)
+    project = _project(client, epic["id"])
+    task = _task(client, project_id=project["id"])
+
+    _put_new_rule(
+        client,
+        "epic",
+        epic["id"],
+        may={
+            "presence": "explicit",
+            "rules": [_rule("am", am["id"]), _rule("pm", pm["id"])],
+        },
+    )
+    _put_new_rule(
+        client,
+        "task",
+        task["id"],
+        may={"presence": "omit", "rules": []},
+    )
+    for target in ("am", "pm"):
+        replaced = client.post(
+            f"/api/v1/tasks/{task['id']}/scheduling/rules/replace-named",
+            json={
+                "expected_revision": _revision(client),
+                "target_rule_name": target,
+                "target_rule_kind": "may",
+                "replacement_name": f"{target}-night",
+                "policy_id": night["id"],
+            },
+        )
+        assert replaced.status_code == 200, replaced.text
+
+    local = _local(client, "task", task["id"])
+    assert sorted(e["target_rule_name"] for e in local["exceptions"]) == ["am", "pm"]
+    # Both May rules replaced with night-only → evening clips only.
+    _task_row, before = _effective(db_session, db_session.get(Task, uuid.UUID(task["id"])))
+    assert before is not None
+    may_ids_before = {e.rule_id for e in before.may_rules}
+    assert "am-night" in may_ids_before or "am" not in may_ids_before
+
+    removed = _remove_named(
+        client, "task", task["id"], operation="replace_named", target_rule_name="am"
+    )
+    assert removed.status_code == 200, removed.text
+    assert removed.json()["exception"]["operation"] == "replace_named"
+    assert removed.json()["exception"]["target_rule_name"] == "am"
+
+    after = _local(client, "task", task["id"])
+    assert [e["target_rule_name"] for e in after["exceptions"]] == ["pm"]
+    assert after["exceptions"][0]["replacement_name"] == "pm-night"
+
+    db_session.expire_all()
+    _task_row, restored = _effective(
+        db_session, db_session.get(Task, uuid.UUID(task["id"]))
+    )
+    assert restored is not None
+    may_ids = {e.rule_id for e in restored.may_rules}
+    assert "am" in may_ids
+    assert "pm-night" in may_ids or "pm" not in may_ids
+    composed, clips = _clips(db_session, db_session.get(Task, uuid.UUID(task["id"])))
+    assert composed is not None
+    hours = {(item[0].hour, item[1].hour) for item in clips}
+    # Restored am 09–12 must appear; pm still replaced by night 19–20.
+    assert (9, 12) in hours
+    assert any(start >= 19 for start, _end in hours)
+
+    missing = _remove_named(
+        client, "task", task["id"], operation="replace_named", target_rule_name="am"
+    )
+    assert missing.status_code == 404, missing.text
+    assert missing.json()["code"] == "NAMED_RULE_REMOVE_NOT_FOUND"
+    db_session.rollback()
+    assert [e["target_rule_name"] for e in _local(client, "task", task["id"])["exceptions"]] == [
+        "pm"
+    ]
+
+
+def test_v4_d4_remove_named_scopes_project_and_epic_exceptions(
+    client: TestClient, db_session: Session
+) -> None:
+    """Project/epic remove-named for waive/replace; does not touch other scopes."""
+    _prepare(client, db_session)
+    day = _set_policy(client, "work", "09:00", 480)
+    tight = _set_policy(client, "general", "09:00", 120)
+    epic = _epic(client)
+    project = _project(client, epic["id"])
+    task = _task(client, project_id=project["id"])
+
+    _put_new_rule(
+        client,
+        "epic",
+        epic["id"],
+        may={"presence": "explicit", "rules": [_rule("day", day["id"])]},
+        must=[_rule("tight", tight["id"])],
+    )
+    _put_new_rule(
+        client,
+        "project",
+        project["id"],
+        may={"presence": "omit", "rules": []},
+    )
+    epic_waive = client.post(
+        f"/api/v1/epics/{epic['id']}/scheduling/rules/waive-named",
+        json={
+            "expected_revision": _revision(client),
+            "target_rule_name": "tight",
+        },
+    )
+    assert epic_waive.status_code == 200, epic_waive.text
+    proj_replace = client.post(
+        f"/api/v1/projects/{project['id']}/scheduling/rules/replace-named",
+        json={
+            "expected_revision": _revision(client),
+            "target_rule_name": "day",
+            "target_rule_kind": "may",
+            "replacement_name": "day-narrow",
+            "policy_id": tight["id"],
+        },
+    )
+    assert proj_replace.status_code == 200, proj_replace.text
+
+    removed_epic = _remove_named(
+        client, "epic", epic["id"], operation="waive_named", target_rule_name="tight"
+    )
+    assert removed_epic.status_code == 200, removed_epic.text
+    assert _local(client, "epic", epic["id"])["exceptions"] == []
+    assert len(_local(client, "project", project["id"])["exceptions"]) == 1
+
+    removed_proj = _remove_named(
+        client,
+        "project",
+        project["id"],
+        operation="replace_named",
+        target_rule_name="day",
+    )
+    assert removed_proj.status_code == 200, removed_proj.text
+    assert _local(client, "project", project["id"])["exceptions"] == []
+    # Task still has no local exceptions; epic Must is restored in composition.
+    _put_new_rule(
+        client,
+        "task",
+        task["id"],
+        may={"presence": "omit", "rules": []},
+    )
+    db_session.expire_all()
+    _task_row, composed = _effective(
+        db_session, db_session.get(Task, uuid.UUID(task["id"]))
+    )
+    assert composed is not None
+    assert "tight" in {e.rule_id for e in composed.must_rules}

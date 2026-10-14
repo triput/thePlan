@@ -4,7 +4,7 @@
 #  Component: CLI
 #  Version: 1.0
 #  Created: 2026-10-13
-#  Last Update: 2026-10-13
+#  Last Update: 2026-10-13 (V4-D4: rule-remove-named)
 # ==============================================================================
 
 from __future__ import annotations
@@ -99,6 +99,17 @@ def register_scheduling(sub: argparse._SubParsersAction) -> None:
     _scope_args(waive_p)
     waive_p.add_argument("--file", dest="file_path", default=None)
     waive_p.add_argument("--stdin", action="store_true")
+
+    remove_p = scheduling_sub.add_parser(
+        "rule-remove-named",
+        help=(
+            "Remove one standing named-rule addition or exception "
+            "(restores that named underlying rule; siblings stay)"
+        ),
+    )
+    _scope_args(remove_p)
+    remove_p.add_argument("--file", dest="file_path", default=None)
+    remove_p.add_argument("--stdin", action="store_true")
 
 
 def _body_from_args(args: argparse.Namespace, *, require_body: bool) -> dict[str, Any]:
@@ -196,6 +207,13 @@ def run_scheduling(args: argparse.Namespace) -> None:
         data = api_json(
             "POST",
             _scope_path(scope, scope_id, "/rules/waive-named"),
+            json_body=body,
+        )
+    elif cmd == "rule-remove-named":
+        body = _body_from_args(args, require_body=True)
+        data = api_json(
+            "POST",
+            _scope_path(scope, scope_id, "/rules/remove-named"),
             json_body=body,
         )
     else:
