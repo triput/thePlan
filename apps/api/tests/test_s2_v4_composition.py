@@ -306,10 +306,17 @@ def test_child_prefer_does_not_erase_ancestor_must() -> None:
     assert clips[0][2] == RANK_PREFER
     assert clips[0][0] == datetime(2026, 10, 13, 19, 0, tzinfo=UTC)
     assert clips[0][1] == datetime(2026, 10, 13, 20, 0, tzinfo=UTC)
-    assert clips[1][2] == RANK_ELIGIBLE
-    assert clips[1][0] == datetime(2026, 10, 13, 20, 0, tzinfo=UTC)
-    assert clips[1][1] == datetime(2026, 10, 13, 21, 0, tzinfo=UTC)
-    assert all(item[0].hour >= 19 for item in clips)
+    # Fallback is the continuous Must span, not the leftover after Prefer.
+    eligible = [item for item in clips if item[2] == RANK_ELIGIBLE]
+    assert eligible == [
+        (
+            datetime(2026, 10, 13, 19, 0, tzinfo=UTC),
+            datetime(2026, 10, 13, 21, 0, tzinfo=UTC),
+            RANK_ELIGIBLE,
+        )
+    ]
+    assert all(item[0] >= datetime(2026, 10, 13, 19, 0, tzinfo=UTC) for item in clips)
+    assert all(item[1] <= datetime(2026, 10, 13, 21, 0, tzinfo=UTC) for item in clips)
 
 
 def test_same_id_child_addition_does_not_replace_ancestor_must() -> None:
@@ -327,6 +334,8 @@ def test_same_id_child_addition_does_not_replace_ancestor_must() -> None:
             must=(rule("focus", RuleRole.MUST, (_window(18, 0, 240),), scope="task", scope_id="t"),),
         ),
     )
+    assert len(composed.must_rules) == 2
+    assert {entry.scope for entry in composed.must_rules} == {"epic", "task"}
     clips = _clips(composed)
     assert clips[0][0] == datetime(2026, 10, 13, 19, 0, tzinfo=UTC)
     assert clips[-1][1] == datetime(2026, 10, 13, 21, 0, tzinfo=UTC)
@@ -688,6 +697,213 @@ def test_legacy_place_path_ignores_stuffed_evening_may() -> None:
     )
     assert result.blocks_created == 1
     assert result.proposed_blocks[0].start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
+
+
+def test_prefer_does_not_fragment_continuous_eligible_block() -> None:
+    """V4-D1: Prefer ranks; it does not split a feasible 2h May into 1h pieces."""
+    composed = _resolve(
+        _layer(
+            "task",
+            "t",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 180),), scope="task", scope_id="t"),),
+            prefer=(
+                rule("middle", RuleRole.PREFER, (_window(10, 0, 60),), scope="task", scope_id="t"),
+            ),
+        )
+    )
+    clips = _clips(composed)
+    prefer = [(item[0].hour, item[1].hour) for item in clips if item[2] == RANK_PREFER]
+    eligible = [(item[0].hour, item[1].hour) for item in clips if item[2] == RANK_ELIGIBLE]
+    assert prefer == [(10, 11)]
+    assert (9, 12) in eligible
+    assert (9, 10) not in eligible
+    assert (11, 12) not in eligible
+    result = _place(
+        composed,
+        now=datetime(2026, 10, 13, 9, 0, tzinfo=UTC),
+        end=datetime(2026, 10, 13, 12, 0, tzinfo=UTC),
+        minutes=120,
+    )
+    assert result.blocks_created == 1
+    block = result.proposed_blocks[0]
+    assert block.start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
+    assert block.end_time == datetime(2026, 10, 13, 11, 0, tzinfo=UTC)
+
+
+def test_prefer_fallback_keeps_must_and_busy_boundaries() -> None:
+    composed = _resolve(
+        _layer(
+            "task",
+            "t",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 480),), scope="task", scope_id="t"),),
+            must=(rule("am", RuleRole.MUST, (_window(9, 0, 120),), scope="task", scope_id="t"),),
+            prefer=(
+                rule("mid", RuleRole.PREFER, (_window(9, 30, 60),), scope="task", scope_id="t"),
+            ),
+        )
+    )
+    placed = _place(
+        composed,
+        now=datetime(2026, 10, 13, 9, 0, tzinfo=UTC),
+        end=datetime(2026, 10, 13, 17, 0, tzinfo=UTC),
+        minutes=120,
+    )
+    assert placed.blocks_created == 1
+    block = placed.proposed_blocks[0]
+    assert block.start_time == datetime(2026, 10, 13, 9, 0, tzinfo=UTC)
+    assert block.end_time == datetime(2026, 10, 13, 11, 0, tzinfo=UTC)
+
+    busy = [
+        BusyInterval(
+            start=datetime(2026, 10, 13, 10, 0, tzinfo=UTC),
+            end=datetime(2026, 10, 13, 11, 0, tzinfo=UTC),
+            source="external",
+        )
+    ]
+    wide = _resolve(
+        _layer(
+            "task",
+            "t",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 180),), scope="task", scope_id="t"),),
+            prefer=(
+                rule("middle", RuleRole.PREFER, (_window(10, 0, 60),), scope="task", scope_id="t"),
+            ),
+        )
+    )
+    blocked = _place(
+        wide,
+        now=datetime(2026, 10, 13, 9, 0, tzinfo=UTC),
+        end=datetime(2026, 10, 13, 12, 0, tzinfo=UTC),
+        minutes=120,
+        busy=busy,
+    )
+    assert blocked.blocks_created == 0
+
+
+def test_same_named_child_must_intersects_ancestor() -> None:
+    """V4-D2: same name at two scopes is two Musts; ordinary add does not drop one."""
+    composed = _resolve(
+        _layer(
+            "project",
+            "p",
+            must=(rule("hours", RuleRole.MUST, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+        ),
+        _layer(
+            "task",
+            "t",
+            must=(rule("hours", RuleRole.MUST, (_window(13, 0, 60),), scope="task", scope_id="t"),),
+        ),
+    )
+    assert {(entry.scope, entry.rule_id) for entry in composed.must_rules} == {
+        ("project", "hours"),
+        ("task", "hours"),
+    }
+    clips = _clips(composed, general=[_policy(9, 480)])
+    assert [(item[0].hour, item[1].hour) for item in clips] == [(13, 14)]
+
+
+def test_same_named_may_unions_and_prefer_both_rank() -> None:
+    may = _resolve(
+        _layer(
+            "project",
+            "p",
+            may_mode=MayMode.PRESENT,
+            may=(rule("hours", RuleRole.MAY, (_window(9, 0, 180),), scope="project", scope_id="p"),),
+        ),
+        _layer(
+            "task",
+            "t",
+            may_mode=MayMode.PRESENT,
+            may=(rule("hours", RuleRole.MAY, (_window(11, 0, 240),), scope="task", scope_id="t"),),
+        ),
+    )
+    assert len(may.may_rules) == 2
+    assert [(item[0].hour, item[1].hour) for item in _clips(may)] == [(9, 15)]
+
+    prefer = _resolve(
+        _layer(
+            "project",
+            "p",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 180),), scope="project", scope_id="p"),),
+            prefer=(
+                rule("hours", RuleRole.PREFER, (_window(9, 0, 60),), scope="project", scope_id="p"),
+            ),
+        ),
+        _layer(
+            "task",
+            "t",
+            prefer=(
+                rule("hours", RuleRole.PREFER, (_window(11, 0, 60),), scope="task", scope_id="t"),
+            ),
+        ),
+    )
+    assert len(prefer.prefer_rules) == 2
+    ranked = [(item[0].hour, item[1].hour) for item in _clips(prefer) if item[2] == RANK_PREFER]
+    assert ranked == [(9, 10), (11, 12)]
+
+
+def test_same_name_waiver_and_replace_target_the_inherited_rule() -> None:
+    waived = _resolve(
+        _layer(
+            "project",
+            "p",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+            must=(rule("hours", RuleRole.MUST, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+        ),
+        _layer(
+            "task",
+            "t",
+            must=(rule("hours", RuleRole.MUST, (_window(13, 0, 60),), scope="task", scope_id="t"),),
+            exceptions=(
+                StandingException(
+                    operation=ExceptionOp.WAIVE_NAMED,
+                    scope="task",
+                    scope_id="t",
+                    target_rule_id="hours",
+                ),
+            ),
+        ),
+    )
+    assert {(entry.scope, entry.rule_id) for entry in waived.must_rules} == {("task", "hours")}
+    assert waived.waived_must_ids == ("hours",)
+    assert [(item[0].hour, item[1].hour) for item in _clips(waived)] == [(13, 14)]
+
+    replaced = _resolve(
+        _layer(
+            "project",
+            "p",
+            may_mode=MayMode.PRESENT,
+            may=(rule("day", RuleRole.MAY, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+            must=(rule("hours", RuleRole.MUST, (_window(9, 0, 480),), scope="project", scope_id="p"),),
+        ),
+        _layer(
+            "task",
+            "t",
+            must=(rule("hours", RuleRole.MUST, (_window(13, 0, 60),), scope="task", scope_id="t"),),
+            exceptions=(
+                StandingException(
+                    operation=ExceptionOp.REPLACE_NAMED,
+                    scope="task",
+                    scope_id="t",
+                    target_rule_id="hours",
+                    rule=rule("tight", RuleRole.MUST, (_window(13, 0, 30),), scope="task", scope_id="t"),
+                ),
+            ),
+        ),
+    )
+    assert {(entry.scope, entry.rule_id) for entry in replaced.must_rules} == {
+        ("task", "hours"),
+        ("task", "tight"),
+    }
+    replaced_clips = _clips(replaced)
+    assert len(replaced_clips) == 1
+    assert replaced_clips[0][0] == datetime(2026, 10, 13, 13, 0, tzinfo=UTC)
+    assert replaced_clips[0][1] == datetime(2026, 10, 13, 13, 30, tzinfo=UTC)
 
 
 def test_evening_only_may_does_not_invent_afternoon() -> None:

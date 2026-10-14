@@ -12,9 +12,10 @@ Order (SPEC §4.2, discovery §5):
    no permission resolves anywhere, the baseline is General. An explicit empty
    May stays empty and does not borrow General.
 3. Must requirements **intersect**. An active empty Must yields no eligibility.
-   A child addition does not erase an ancestor Must.
-4. Prefer **ranks** the eligible spans. It does not add spans and does not
-   drop a Must.
+   A child addition does not erase an ancestor Must, including when the child
+   reuses the ancestor's name. Names are unique inside one scope only.
+4. Prefer **ranks** the eligible spans. It does not add spans, does not drop a
+   Must, and does not punch the eligible fallback into fragments.
 
 Fingerprint: resolved rules, exception operations, and rejected deferred
 forms are the ``composition`` category (sibling of ``availability``). Working
@@ -218,6 +219,32 @@ def _ordered_layers(layers: Sequence[ScopeLayer]) -> tuple[ScopeLayer, ...]:
     return tuple(layer for _, layer in indexed)
 
 
+def select_scoped_name(
+    candidates: Sequence[tuple[str, str, str]],
+    *,
+    scope: str,
+    scope_id: str,
+) -> tuple[str, str, str] | None:
+    """Pick the one rule an explicit replace or waiver names.
+
+    Each candidate is ``(scope, scope_id, rule_id)`` and already matches the
+    target name and role. Names are unique inside one scope, not across the
+    chain. A single match is that rule. Several matches: the nearest inherited
+    rule (replace/waive targets the inherited rule, not a same-named local
+    addition). If every match sits on the exception's own scope, that local rule.
+    """
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+    inherited = [
+        item for item in candidates if (item[0], item[1]) != (scope, scope_id)
+    ]
+    pool = list(inherited or candidates)
+    pool.sort(key=lambda item: _SCOPE_RANK.get(item[0], 99))
+    return pool[-1]
+
+
 def _as_effective(item: NamedRule, origin: str) -> EffectiveRule:
     return EffectiveRule(
         rule_id=item.rule_id,
@@ -254,13 +281,17 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
     if item.family != AssignmentFamily.NEW_RULE:
         return _empty_effective(item.family, deferred)
 
-    may_rules: dict[str, EffectiveRule] | None = None
-    must_rules: dict[str, EffectiveRule] = {}
-    prefer_rules: dict[str, EffectiveRule] = {}
+    # Identity is scope + name. The same name at two scopes is two rules.
+    may_rules: dict[tuple[str, str, str], EffectiveRule] | None = None
+    must_rules: dict[tuple[str, str, str], EffectiveRule] = {}
+    prefer_rules: dict[tuple[str, str, str], EffectiveRule] = {}
     waived: list[str] = []
     applied: list[AppliedException] = []
 
-    def _bucket(role: RuleRole) -> dict[str, EffectiveRule] | None:
+    def _key(entry: EffectiveRule) -> tuple[str, str, str]:
+        return (entry.scope, entry.scope_id, entry.rule_id)
+
+    def _bucket(role: RuleRole) -> dict[tuple[str, str, str], EffectiveRule] | None:
         if role == RuleRole.MAY:
             return may_rules
         if role == RuleRole.MUST:
@@ -272,12 +303,19 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
         if entry.role == RuleRole.MAY:
             if may_rules is None:
                 may_rules = {}
-            if overwrite or entry.rule_id not in may_rules:
-                may_rules[entry.rule_id] = entry
+            if overwrite or _key(entry) not in may_rules:
+                may_rules[_key(entry)] = entry
             return
         bucket = must_rules if entry.role == RuleRole.MUST else prefer_rules
-        if overwrite or entry.rule_id not in bucket:
-            bucket[entry.rule_id] = entry
+        if overwrite or _key(entry) not in bucket:
+            bucket[_key(entry)] = entry
+
+    def _named_key(bucket: dict[tuple[str, str, str], EffectiveRule], name: str, exc: StandingException):
+        return select_scoped_name(
+            [key for key, entry in bucket.items() if entry.rule_id == name],
+            scope=exc.scope,
+            scope_id=exc.scope_id,
+        )
 
     for layer in layers:
         if layer.may_mode == MayMode.EXPLICIT_EMPTY:
@@ -292,10 +330,12 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
 
         for exc in layer.exceptions:
             if exc.operation == ExceptionOp.ADD and exc.rule is not None:
-                # Same id does not replace. A new id unions (May) or adds a
-                # requirement/preference without clearing its siblings.
+                # Same scoped id does not replace. A new id unions (May) or adds a
+                # requirement/preference without clearing its siblings. The same
+                # name at another scope is a different rule.
                 before = _bucket(exc.rule.role)
-                already = before is not None and exc.rule.rule_id in before
+                add_key = (exc.rule.scope, exc.rule.scope_id, exc.rule.rule_id)
+                already = before is not None and add_key in before
                 _put(_as_effective(exc.rule, "exception_add"), overwrite=False)
                 applied.append(
                     AppliedException(
@@ -312,14 +352,20 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
                 target = exc.target_rule_id or exc.rule.rule_id
                 # Names are unique inside one assignment, not across roles or
                 # scopes. Replace only the named role so a Must replace cannot
-                # drop a May that happens to share the name.
+                # drop a May that happens to share the name, and only the one
+                # scoped rule select_scoped_name picks.
                 role = exc.rule.role
-                if role == RuleRole.MAY and may_rules is not None and target in may_rules:
-                    del may_rules[target]
-                elif role == RuleRole.MUST and target in must_rules:
-                    del must_rules[target]
-                elif role == RuleRole.PREFER and target in prefer_rules:
-                    del prefer_rules[target]
+                if role == RuleRole.MAY:
+                    if may_rules is None:
+                        may_rules = {}
+                    bucket = may_rules
+                elif role == RuleRole.MUST:
+                    bucket = must_rules
+                else:
+                    bucket = prefer_rules
+                chosen = _named_key(bucket, target, exc)
+                if chosen is not None:
+                    del bucket[chosen]
                 _put(_as_effective(exc.rule, "exception_replace"), overwrite=True)
                 applied.append(
                     AppliedException(
@@ -334,9 +380,10 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
                 continue
             if exc.operation == ExceptionOp.WAIVE_NAMED:
                 target = exc.target_rule_id or ""
-                removed = target in must_rules
-                if removed:
-                    del must_rules[target]
+                chosen = _named_key(must_rules, target, exc) if target else None
+                removed = chosen is not None
+                if chosen is not None:
+                    del must_rules[chosen]
                     waived.append(target)
                 applied.append(
                     AppliedException(
@@ -357,10 +404,16 @@ def resolve_effective_composition(item: CompositionInput) -> EffectiveCompositio
         may_tuple = ()
     else:
         may_source = "explicit"
-        may_tuple = tuple(sorted(may_rules.values(), key=lambda entry: entry.rule_id))
+        may_tuple = tuple(
+            sorted(may_rules.values(), key=lambda entry: (entry.rule_id, entry.scope, entry.scope_id))
+        )
 
-    must_tuple = tuple(sorted(must_rules.values(), key=lambda entry: entry.rule_id))
-    prefer_tuple = tuple(sorted(prefer_rules.values(), key=lambda entry: entry.rule_id))
+    must_tuple = tuple(
+        sorted(must_rules.values(), key=lambda entry: (entry.rule_id, entry.scope, entry.scope_id))
+    )
+    prefer_tuple = tuple(
+        sorted(prefer_rules.values(), key=lambda entry: (entry.rule_id, entry.scope, entry.scope_id))
+    )
     must_blocks_all = any(not entry.windows for entry in must_tuple)
     return EffectiveComposition(
         family=AssignmentFamily.NEW_RULE,
@@ -401,25 +454,6 @@ def _intersect_merged(
     return out
 
 
-def _subtract_merged(
-    base: Sequence[tuple[Any, Any]],
-    cut: Sequence[tuple[Any, Any]],
-) -> list[tuple[Any, Any]]:
-    result = list(base)
-    for cut_start, cut_end in cut:
-        nxt: list[tuple[Any, Any]] = []
-        for start, end in result:
-            if cut_end <= start or cut_start >= end:
-                nxt.append((start, end))
-                continue
-            if start < cut_start:
-                nxt.append((start, cut_start))
-            if cut_end < end:
-                nxt.append((cut_end, end))
-        result = nxt
-    return result
-
-
 def composition_search_windows(
     day: date,
     tz: ZoneInfo,
@@ -431,6 +465,8 @@ def composition_search_windows(
     Returns ``[]`` for every non-new-rule family, explicit empty May, and
     empty Must. General is used only as the absent-May baseline. Prefer clips
     are the overlap of Prefer with that eligible set — never a new span.
+    The eligible fallback is the full continuous May ∩ Must set. Prefer is
+    tried first and is not subtracted out of that fallback.
     """
     if not composition.supplies_eligibility():
         return []
@@ -461,11 +497,13 @@ def composition_search_windows(
         if prefer_pieces
         else []
     )
-    remainder = _subtract_merged(eligible, preferred) if preferred else list(eligible)
+    # Rank Prefer first. Do not carve it out of the fallback: a 2h minimum
+    # still has to see the continuous May ∩ Must span that contains the
+    # preferred hour, and busy/Must boundaries stay on that span.
     ordered: list[tuple[Any, Any, str]] = [
         (start, end, RANK_PREFER) for start, end in preferred
     ]
-    ordered.extend((start, end, RANK_ELIGIBLE) for start, end in remainder)
+    ordered.extend((start, end, RANK_ELIGIBLE) for start, end in eligible)
     return ordered
 
 

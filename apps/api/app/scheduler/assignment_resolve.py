@@ -34,6 +34,7 @@ from app.models.scheduling_assignment import (
     SchedulingAssignmentRule,
     SchedulingRuleException,
 )
+from app.scheduler.composition import select_scoped_name
 from app.scheduler.windows import (
     effective_preferred_time_window_id,
     effective_preferred_time_window_source,
@@ -224,19 +225,42 @@ def _rule_from_row(
     )
 
 
-def _apply_exceptions(
-    rules: list[ResolvedRule],
+def _rule_identity(rule: ResolvedRule) -> tuple[str, str]:
+    return (rule.source_scope, rule.name)
+
+
+def _pick_named(
+    bucket: dict[tuple[str, str], ResolvedRule],
+    name: str,
+    *,
+    scope: ScopeKind,
+) -> tuple[str, str] | None:
+    """Same choice as composition ``select_scoped_name`` (scope kind is the id)."""
+    matches = [
+        (key[0], key[0], key[1]) for key, rule in bucket.items() if rule.name == name
+    ]
+    chosen = select_scoped_name(matches, scope=scope, scope_id=scope)
+    if chosen is None:
+        return None
+    return (chosen[0], chosen[2])
+
+
+def _apply_layer_exceptions(
+    may_rules: dict[tuple[str, str], ResolvedRule] | None,
+    must_rules: dict[tuple[str, str], ResolvedRule],
+    prefer_rules: dict[tuple[str, str], ResolvedRule],
     exceptions: list[SchedulingRuleException],
     *,
     scope: ScopeKind,
-) -> tuple[list[ResolvedRule], list[AppliedException]]:
-    """Apply standing replace/waive exceptions before May/Must/Prefer stack."""
-    applied: list[AppliedException] = []
-    waived: set[tuple[str, str]] = set()
-    replacements: dict[tuple[str, str], ResolvedRule] = {}
+) -> tuple[dict[tuple[str, str], ResolvedRule] | None, list[AppliedException]]:
+    """Apply this scope's standing exceptions to the accumulated chain.
 
+    Ancestors are already in the buckets, so a child waiver of a project Must
+    removes that inherited rule. Same-named rules at other scopes stay until
+    an explicit replace/waive selects one of them.
+    """
+    applied: list[AppliedException] = []
     for exc in exceptions:
-        key = (exc.target_rule_kind.value, exc.target_rule_name)
         applied.append(
             AppliedException(
                 operation=exc.operation.value,  # type: ignore[arg-type]
@@ -245,29 +269,42 @@ def _apply_exceptions(
                 scope=scope,
             )
         )
+        kind = exc.target_rule_kind.value
         if exc.operation == SchedulingExceptionOp.waive_named:
-            waived.add(key)
+            if kind != "must":
+                continue
+            chosen = _pick_named(must_rules, exc.target_rule_name, scope=scope)
+            if chosen is not None:
+                del must_rules[chosen]
             continue
         assert exc.replacement_name is not None
-        replacements[key] = ResolvedRule(
+        if kind == "may":
+            if may_rules is None:
+                may_rules = {}
+            bucket: dict[tuple[str, str], ResolvedRule] = may_rules
+        elif kind == "must":
+            bucket = must_rules
+        else:
+            bucket = prefer_rules
+        chosen = _pick_named(bucket, exc.target_rule_name, scope=scope)
+        if chosen is not None:
+            del bucket[chosen]
+        replacement = ResolvedRule(
             name=exc.replacement_name,
-            kind=exc.target_rule_kind.value,  # type: ignore[arg-type]
+            kind=kind,  # type: ignore[arg-type]
             policy_id=exc.replacement_policy_id,
             empty_set=bool(exc.replacement_empty_set),
             source_scope=scope,
             origin="replacement",
         )
+        bucket[_rule_identity(replacement)] = replacement
+    return may_rules, applied
 
-    out: list[ResolvedRule] = []
-    for rule in rules:
-        key = (rule.kind, rule.name)
-        if key in waived:
-            continue
-        if key in replacements:
-            out.append(replacements[key])
-            continue
-        out.append(rule)
-    return out, applied
+
+def _sorted_rules(
+    bucket: dict[tuple[str, str], ResolvedRule],
+) -> tuple[ResolvedRule, ...]:
+    return tuple(sorted(bucket.values(), key=lambda rule: (rule.name, rule.source_scope)))
 
 
 def _consumes_personal(rules: list[ResolvedRule], personal_policy_id: UUID | None) -> bool:
@@ -290,8 +327,10 @@ def resolve_task_scheduling_assignment(
 
     Nearest explicit local assignment wins the family (cutover §4.1). Same-scope
     both-families → repairable conflict (no arbitrary winner). New-to-new: child
-    May omit retains inherited May; Must/Prefer additions accumulate; named
-    replace/waive exceptions apply before the composition stack.
+    May omit retains inherited May; explicit May unions with it; explicit empty
+    May clears it. Must/Prefer additions accumulate as scoped identities (the
+    same name at another scope is a second rule). Named replace/waive applies
+    to that accumulated set, so a child exception can remove an inherited rule.
     """
     owner_id = task.owner_id
     task_asg = load_assignment_at_scope(
@@ -411,74 +450,71 @@ def _resolve_new_rule_stack(
             new_rule_scopes.append(scope)
         # family none: skip (no local assignment); still look farther for May
 
-    # May: walk from winning scope through farther new-rule/none ancestors until
-    # an explicit may_presence is found; else absent → General baseline.
-    may_presence: MayPresence = "absent"
-    may_rules: list[ResolvedRule] = []
-    must_rules: list[ResolvedRule] = []
-    prefer_rules: list[ResolvedRule] = []
+    # Far → near, same order composition folds layers. Exceptions apply after
+    # that scope's rules join the chain, so they can see inherited rules.
+    may_rules: dict[tuple[str, str], ResolvedRule] | None = None
+    must_rules: dict[tuple[str, str], ResolvedRule] = {}
+    prefer_rules: dict[tuple[str, str], ResolvedRule] = {}
     exceptions_applied: list[AppliedException] = []
 
-    # Collect Must/Prefer from all new-rule scopes (near to far): additions
-    # accumulate; nearer named rules of the same name shadow for that kind via
-    # exception replace, not by silent erase of other Musts.
-    for scope in new_rule_scopes:
+    for scope in reversed(new_rule_scopes):
         local = locals_map[scope]
         assert local.assignment is not None
         origin: Literal["local", "inherited"] = (
             "local" if scope == winning_scope else "inherited"
         )
-        scope_rules = [
+        rows = [
             _rule_from_row(row, source_scope=scope, origin=origin)
             for row in local.assignment.rules
         ]
+        may_rows = [rule for rule in rows if rule.kind == "may"]
+        if local.assignment.may_presence == SchedulingMayPresence.omit:
+            pass
+        elif not may_rows or all(rule.empty_set for rule in may_rows):
+            # Explicit empty clears inherited May. It does not borrow General.
+            may_rules = {}
+        else:
+            if may_rules is None:
+                may_rules = {}
+            for rule in may_rows:
+                key = _rule_identity(rule)
+                if key not in may_rules:
+                    may_rules[key] = rule
+        for rule in rows:
+            if rule.kind == "must":
+                key = _rule_identity(rule)
+                if key not in must_rules:
+                    must_rules[key] = rule
+            elif rule.kind == "prefer":
+                key = _rule_identity(rule)
+                if key not in prefer_rules:
+                    prefer_rules[key] = rule
         exceptions = load_exceptions_at_scope(
             db, owner_id=owner_id, scope=scope, scope_id=local.scope_id
         )
-        scope_rules, applied = _apply_exceptions(
-            scope_rules, exceptions, scope=scope
+        may_rules, applied = _apply_layer_exceptions(
+            may_rules,
+            must_rules,
+            prefer_rules,
+            exceptions,
+            scope=scope,
         )
         exceptions_applied.extend(applied)
 
-        for rule in scope_rules:
-            if rule.kind == "must":
-                must_rules.append(rule)
-            elif rule.kind == "prefer":
-                prefer_rules.append(rule)
-
-    # May presence: nearer omit keeps looking; explicit (incl. empty) wins.
-    for scope in chain[win_index:]:
-        local = locals_map.get(scope)
-        if local is None or local.family != "new_rule" or local.assignment is None:
-            if local is not None and local.family == "legacy":
-                break
-            continue
-        if local.assignment.may_presence == SchedulingMayPresence.omit:
-            continue
-        may_presence = "explicit"
-        may_rules = [
-            _rule_from_row(
-                row,
-                source_scope=scope,
-                origin="local" if scope == winning_scope else "inherited",
-            )
-            for row in local.assignment.rules
-            if row.kind == SchedulingRuleKind.may
-        ]
-        exceptions = load_exceptions_at_scope(
-            db, owner_id=owner_id, scope=scope, scope_id=local.scope_id
-        )
-        may_rules, applied = _apply_exceptions(may_rules, exceptions, scope=scope)
-        # Only May-affecting exceptions matter here; record them if not already.
-        for item in applied:
-            if item not in exceptions_applied:
-                exceptions_applied.append(item)
-        break
+    if may_rules is None:
+        may_presence: MayPresence = "absent"
+        may_tuple: tuple[ResolvedRule, ...] = ()
     else:
-        # No explicit May anywhere on the new-rule chain → absent (General).
-        may_presence = "absent"
+        may_presence = "explicit"
+        # Contentless May matches composition's explicit-empty output: no rules.
+        if may_rules and all(rule.empty_set for rule in may_rules.values()):
+            may_tuple = ()
+        else:
+            may_tuple = _sorted_rules(may_rules)
 
-    all_for_personal = may_rules + must_rules + prefer_rules
+    must_tuple = _sorted_rules(must_rules)
+    prefer_tuple = _sorted_rules(prefer_rules)
+    all_for_personal = [*may_tuple, *must_tuple, *prefer_tuple]
     return ResolvedSchedulingAssignment(
         family="new_rule",
         winning_scope=winning_scope,
@@ -486,9 +522,9 @@ def _resolve_new_rule_stack(
         legacy_map_id=None,
         legacy_source=None,
         may_presence=may_presence,
-        may_rules=tuple(may_rules),
-        must_rules=tuple(must_rules),
-        prefer_rules=tuple(prefer_rules),
+        may_rules=may_tuple,
+        must_rules=must_tuple,
+        prefer_rules=prefer_tuple,
         exceptions_applied=tuple(exceptions_applied),
         consumes_personal_policy=_consumes_personal(all_for_personal, personal_policy_id),
         local_by_scope=locals_map,
