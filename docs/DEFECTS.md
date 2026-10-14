@@ -2,9 +2,9 @@
 
 **Filename:** DEFECTS.md
 
-**Last modified:** 2026-10-12
+**Last modified:** 2026-10-13
 
-**File version:** 1.8
+**File version:** 1.9
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
@@ -1338,3 +1338,35 @@ An off-site 14:00–16:00 appointment with 30 minutes travel each side gives Awa
 ### Approved contract (SS-19–24, SS-28)
 
 Five-layer precedence (baseline → recurring → dated → event/travel → scoped correction); event **travel allowances** shipped; **place-to-place matrix deferred**; preset save-only vs update selected uses; retire/delete semantics; 13:30–16:30 / 18:40–20:50 fixtures; no location tracking; preview invalidation without silent replan; UI/CLI/Assist parity.
+
+---
+
+## DEF-042 — CLI tasks complete omits the required request body
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** |
+| **Status** | Open — Julie reported; Dex source inspection confirms request/endpoint mismatch |
+| **Found** | 2026-10-13 |
+| **Surface** | CLI `tasks complete`; API `POST /api/v1/tasks/{id}/complete` |
+
+Julie reported failure completing `[Kubernetes] High-Level Overview - Assessment` through the CLI, then successfully moved it to Done on the board (reported completion time 5:34 PM). Dex did not modify or independently read back the household task.
+
+`apps/cli/theplan/commands/tasks.py` calls the completion endpoint without a JSON body. `apps/api/app/api/routes/tasks.py::complete_task_endpoint` requires `body: TaskCompleteBody`; its fields have defaults but the body itself is required. Send the valid completion payload (at least `{}` for ordinary completion). Preserve the existing explicit open-child decision contract; do not silently bulk-complete descendants or force parent-only completion.
+
+**Acceptance:** CLI completion sends the body and succeeds for an ordinary disposable task; read back `is_completed=true` and derived `board_column=done`. Cover open-child rejection/explicit choices and recurrence semantics as applicable. This entry is source-confirmed, not a fresh runtime repro or fix verification. No V3 gate change implied.
+
+## DEF-043 — Completed task can appear to have a contradictory ready workflow
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P3** (status clarity / documentation) |
+| **Status** | Triage — Julie report; stored-state behavior matches current model, presentation needs assessment |
+| **Found** | 2026-10-13 |
+| **Surface** | Task readback / CLI status interpretation after moving to Done |
+
+Julie's same assessment appeared in Done while `workflow_state` still read `ready`. Source inspection shows this is intentional model separation: `TaskWorkflowState` contains only ready/in_progress/waiting; `TaskBoardColumn.done` is derived from completion, and a normal Done transition preserves the stored open workflow state. This alone is not evidence of failed completion or corrupt state.
+
+**Follow-up:** Identify the exact readback/display Julie used and make completion status clear there. Document the difference among `is_completed`, derived `board_column`, and the stored open `workflow_state`; human/agent summaries should not describe a completed task as ready to work merely because the raw workflow value is ready. Do not add a Done workflow enum or change reopen behavior without a deliberate contract change.
+
+**Acceptance:** Completed task readback clearly reports Done/completed alongside any raw workflow metadata; reopen behavior remains consistent with the existing contract. Exact offending display has not been reproduced. Household data untouched.
