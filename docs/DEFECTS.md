@@ -4,11 +4,11 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.10
+**File version:** 1.11
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
-**Post-V4b CLI follow-up — Trish, 2026-10-14:** Prioritize recurring-task setup and scheduling configuration (DEF-044/045), then Windows help/output ergonomics (DEF-046/047), alongside existing completion/readback reports (DEF-042/043). This is a post-slice activity, not a reopening of V4b activation acceptance. Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). Her weekly Writing goal is currently three one-off tasks; acceptance must remove the need to recreate those every week. New entries below are reported issues pending focused reproduction and current CLI surface inventory, not verified fixes. Exit for the pass includes Julie field verify + Dex retest.
+**Post-V4b CLI follow-up — Fixed in code / Quality Open (2026-10-14):** Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Wave 1 **DEF-044/045** (+ minimal **DEF-042** complete body): **`cd1fb44`**. Wave 2 **DEF-046/047**: **`31b2496`**. **Renee Quality in flight** at tip **`31b2496`**. Does **not** reopen V4b activation acceptance. **Not** Closed. Exit: **Renee Quality** → **Julie field verify** + **Dex retest** → then **Trish-authorized fresh production rebuild** for Julie household validation. **HOLD production rebuild** until that sign-off — not authorized now. Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). **DEF-043** remains Triage (presentation). Priority order was 044/045 first, then 046/047, with 042 alongside.
 
 ---
 
@@ -1348,9 +1348,10 @@ Five-layer precedence (baseline → recurring → dated → event/travel → sco
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** |
-| **Status** | Open — Julie reported; Dex source inspection confirms request/endpoint mismatch |
+| **Status** | Fixed in code (minimal complete body) / Quality Open — tip `cd1fb44`; not Closed |
 | **Found** | 2026-10-13 |
 | **Surface** | CLI `tasks complete`; API `POST /api/v1/tasks/{id}/complete` |
+| **Wave** | Post-V4b CLI follow-up (S2-V4b+); minimal body with Wave 1 |
 
 Julie reported failure completing `[Kubernetes] High-Level Overview - Assessment` through the CLI, then successfully moved it to Done on the board (reported completion time 5:34 PM). Dex did not modify or independently read back the household task.
 
@@ -1378,10 +1379,10 @@ Julie's same assessment appeared in Done while `workflow_state` still read `read
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks recurring-task setup through supported CLI) |
-| **Status** | Open — Julie reported; focused reproduction pending |
+| **Status** | Fixed in code / Quality Open — tip `cd1fb44`; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | CLI task create/patch and recurrence readback |
-| **Wave** | Post-V4b CLI follow-up; first priority with DEF-045 |
+| **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-045 |
 
 Julie reports that `tasks create` / `tasks patch` do not expose recurrence even though the server supports it. Her suggested flags are `--rrule`, `--recurrence-text`, `--starts-on`, `--ends-on`, and `--timezone`; these are proposals, not a locked parser contract. Reuse the existing server recurrence semantics and validate which inputs it actually supports before defining CLI options. Link to the supported CLI workflow in DEF-040.
 
@@ -1394,10 +1395,10 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | Open — reported gap; reconcile with current dedicated scheduling commands |
+| **Status** | Fixed in code / Quality Open — tip `cd1fb44`; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
-| **Wave** | Post-V4b CLI follow-up; first priority with DEF-044 |
+| **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |
 
 Julie reports no flags for preferred time windows, schedule style, or block sizes, and no way to list time windows. Suggested spellings include `--min-block`, `--max-block`, and `--keep-in-one-block`. Inventory shipped commands first: absence from task create/patch alone does not prove the capability is missing from the whole CLI. If dedicated commands already implement it, supply a discoverable documented path; fill real parity gaps without duplicating models or restoring deprecated writes.
 
@@ -1408,10 +1409,10 @@ Julie reports no flags for preferred time windows, schedule style, or block size
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (help unavailable on the supported operator environment) |
-| **Status** | Open — Julie reported; focused reproduction pending |
+| **Status** | Fixed in code / Quality Open — tip `31b2496`; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | `theplan scheduling --help` and other help pages on Windows |
-| **Wave** | Post-V4b CLI follow-up |
+| **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 2 with DEF-047 |
 
 Julie reports `UnicodeEncodeError` because cp1252 cannot encode the arrow character in help output. Setting `PYTHONIOENCODING=utf-8` works around it. The supported default experience should not require that environment repair.
 
@@ -1422,10 +1423,10 @@ Julie reports `UnicodeEncodeError` because cp1252 cannot encode the arrow charac
 | Field | Value |
 |-------|-------|
 | **Severity** | **P3** (CLI ergonomics / consistency) |
-| **Status** | Open — Julie reported; parser contract to reconcile |
+| **Status** | Fixed in code / Quality Open — tip `31b2496`; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | Global `--format` versus command/subcommand parsing |
-| **Wave** | Post-V4b CLI follow-up |
+| **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 2 with DEF-046 |
 
 Julie reports `--format json` works only before the subcommand and is rejected after it. This may reflect the current global-option convention rather than payload loss, but it interrupts natural agent/operator usage.
 
