@@ -4,9 +4,24 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.19
+**File version:** 1.20
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
+
+**Current field disposition — Julie, 2026-10-14, 18:30 PT: partial acceptance; DEF-045 remains Open.** [Original #cabinet report](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792027818601759?thread_ts=1792005476.849599&cid=C0C6ZFQ3K6C), code `990692f`, CLI 0.7.0. Captured by Dex for Jim's post-slice follow-up; these are Julie's household observations, not a second household test by Dex. Deployment and the earlier code residuals passed; the complete no-workaround configuration scenario has not. This disposition supersedes older pending-rebuild/field-validation wording below.
+
+| Item | Julie's field result / disposition |
+|------|------------------------------------|
+| DEF-044 recurrence | Fixed MO/WE/FR RRULE with timezone and starts-on reads back as Every! Mon, Wed, Fri. Recurring setup works. No preview of upcoming occurrences; capture as a follow-up usability request, not evidence that recurrence failed. |
+| DEF-045 bounds | Min/max and keep-in-one read back correctly through `scheduling-effective`, but are absent from `tasks get` / `tasks patch` output. Preserve this readback/discoverability observation for polish. |
+| DEF-045 afternoon preference | **Open, P2; linked to DEF-040.** Prefer requires an availability policy, while the existing Afternoon option is a legacy Time Map. CLI cannot create the needed policy or map. After assigning the legacy map, `scheduling put` returns `SCHEDULING_FAMILY_COLLISION`. Current configuration is legacy Afternoon intersected with Working, ending at 16:00; it is not the requested soft afternoon preference. See DEF-045 below. |
+| DEF-046 Windows help | Crash resolved, but some non-ASCII characters still become `?` under cp1252. Readability follow-up remains; do not conflate crash clearance with perfect rendering. |
+| DEF-047 format placement | `--format` after the subcommand works in the field. |
+| DEF-042 completion body | Not exercised on household tasks because there is no dry-run; retain Dex's disposable completion/reopen evidence. This is a field-test limit, not a new completion failure or an approved dry-run feature. |
+| DEF-043 status clarity | Still Triage/Open: Done can read `workflow_state=ready` alongside `is_completed=true` and `board_column=done`. Stored-state separation is known; clarity remains unresolved. |
+| Existing one-offs | Julie reconciled the week's tasks; two were closed with a note pointing to the recurring series. Do not recreate them or duplicate the series during the follow-up. |
+
+**Jim handoff:** Resolve DEF-045 with [DEF-040](#def-040--cli-scheduling-configuration-parity-for-julie), then have Julie verify the actual household-equivalent setup path. Dex's prior Prefer test reused a configurable policy in a disposable account; it did not prove creation of a distinct afternoon policy alongside existing household policies. Preserve that test's valid narrow evidence without treating it as complete workflow acceptance. No household edits, bulk conversion, or new methodology/scheduling choices are authorized by this capture.
 
 **Current S2-V4b+ residual — 2026-10-14: operator stamp — Trish cleared push + production rebuild.** Pushed to **cursor** only: `1e13e5e..9b34972` on `feature/0.7-s2-cutover` (not origin/GitHub). Code tip **`990692f`**; docs tip **`9b34972`** (includes Dex independent recheck). Compose rebuild: `docker compose -f infra/compose/compose.yaml up -d --build api web scheduler` — api/web/scheduler recreated; postgres left running; api healthy then web started. No new Alembic (household remains **032**). No token bump (CLI-only pass). **Julie household/field UAT Open** against Trish's account (Writing three-session scenario + related DEFs). Slack Julie-ready notify unblocked from rebuild HOLD — Trish/ops may notify; do not invent that Slack was sent. DEF-043 remains Triage. **Not** Closed. Does **not** reopen V4b activation acceptance. Cutover: [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3).
 
@@ -1406,12 +1421,16 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 
 ## DEF-045 — CLI scheduling controls and window discovery do not cover Julie's setup workflow
 
+**Current blocker — Julie field UAT, 2026-10-14:** **Open; depends on [DEF-040 CLI scheduling configuration parity](#def-040--cli-scheduling-configuration-parity-for-julie).** The only afternoon configuration available to Julie is a legacy Time Map. A Prefer rule needs an availability `policy_id`, and supported CLI creation is missing. Assigning the map then using `scheduling put` causes `SCHEDULING_FAMILY_COLLISION`. The collision guard is not itself proven defective: do not bypass it or silently change families. Current legacy Afternoon ∩ Working (ends 16:00) is a constrained interim arrangement, not acceptance of Prefer-afternoon.
+
+**Required closure evidence:** Starting with existing household-equivalent policies and a legacy Afternoon map, use supported CLI discovery and policy creation/reuse plus an explicit, supported family transition when needed to configure afternoon Prefer. Preserve unrelated availability policies, retain fallback outside afternoons, and verify effective rules/readback without raw HTTP, database edits, browser-only configuration, or reusing an unrelated policy as a workaround. Existing recurring series and one-offs must not be duplicated. Keep the passing friendly-bound fix separate from this still-open end-to-end gap.
+
 **Dex residual — P2, 2026-10-14: advertised friendly block durations fail against the API.** Both create and patch with `--min-block 1h --max-block 2h` fail HTTP 422 `VALIDATION_ERROR` (`int_parsing` on both bound fields). `_apply_scheduling_bounds` uses `duration_json_value`, which preserves friendly strings for server parsing, but the bound fields accept integers and do not use the estimate-duration parser. Numeric `60`/`120` works. Align parsing with the approved duration rules rather than requiring Julie to convert advertised inputs manually. Cover both create/patch, invalid values and no partial write, and applicable nominal-workday semantics. Independent repros: `.env.review-deps/test_dex_julie_cli.py::test_friendly_block_bounds` and `::test_friendly_block_bounds_patch`. Afternoon Prefer remains Prefer and effective 60-minute effort passes through the CLI. This residual keeps DEF-045 Open and supersedes its prior PASS row.
 
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | Dex residual Retest PASS at tip `990692f` (friendly min/max-block → int); Quality PASS — Renee (10/10 + CLI 153/0); API-backed harness 14 + CLI focused 19; eng/Julie-ready residual HOLD lifted; production rebuild HOLD until Trish; not Closed |
+| **Status** | **Open — Julie field UAT blocked on afternoon Prefer configuration / DEF-040.** Friendly min/max residual passed at `990692f`; deployment verified. Full no-workaround workflow not accepted. |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |
