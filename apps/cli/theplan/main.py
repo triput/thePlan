@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from theplan import __version__
+from theplan.cli_argv import hoist_global_options
 from theplan.commands.assist import register_assist, run_assist
 from theplan.commands.auth import register_auth, run_auth
 from theplan.commands.deps import register_deps, run_deps
@@ -28,15 +29,17 @@ from theplan.commands.scheduling import register_scheduling, run_scheduling
 from theplan.commands.views import register_views, run_views
 from theplan.errors import CliError
 from theplan.output import emit_ok, handle_cli_error, set_output_format
+from theplan.safe_help import install_safe_argparse_help
 
 
 def _build_parser() -> argparse.ArgumentParser:
+    install_safe_argparse_help()
     parser = argparse.ArgumentParser(prog="theplan", description="thePlan agent-friendly CLI")
     parser.add_argument(
         "--format",
         choices=("json", "text"),
         default="json",
-        help="Output format (default: json)",
+        help="Output format (default: json); accepted before or after the subcommand",
     )
     parser.add_argument(
         "--interactive",
@@ -136,6 +139,10 @@ def main(argv: list[str] | None = None) -> None:
     argv = sys.argv[1:] if argv is None else argv
     parser = _build_parser()
     try:
+        argv = hoist_global_options(argv)
+    except CliError as exc:
+        handle_cli_error(exc)
+    try:
         args = parser.parse_args(argv)
     except SystemExit as exc:
         if exc.code not in (0, None):
@@ -143,7 +150,11 @@ def main(argv: list[str] | None = None) -> None:
 
             emit_error(
                 code="INVALID_USAGE",
-                message="Invalid arguments; use --help",
+                message=(
+                    "Invalid arguments; use --help. "
+                    "--format json|text is accepted before or after the subcommand "
+                    "(example: theplan tasks list --format text)."
+                ),
                 exit_code=1,
             )
         raise

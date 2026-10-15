@@ -38,6 +38,7 @@ Global flags (all commands):
 
 - `--format json` (default) — single JSON object on stdout per invocation
 - `--format text` — human-readable key/value or stderr error line
+- `--format` is accepted **before or after** the subcommand (e.g. `theplan tasks list --format text`). Conflicting duplicates error.
 - `--interactive` — reserved; enables interactive prompts when future flows need them (agents should omit it)
 
 **Success:**

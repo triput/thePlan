@@ -235,7 +235,7 @@ EOF
 
 ## Agent notes
 
-- Default output is JSON; pass `--format text` for human-readable lines.
+- Default output is JSON; pass `--format text` for human-readable lines (`--format` works before or after the subcommand).
 - No interactive prompts unless `--interactive` (reserved for future flows).
 - Passwords are never written to logs or success JSON except `temporary_password` when `--generate` is used.
 - CLI dependency: **httpx** (cookie jar persisted to the session file). Typer was skipped to keep deps minimal (stdlib `argparse`).
