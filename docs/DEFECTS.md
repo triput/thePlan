@@ -4,11 +4,13 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.13
+**File version:** 1.14
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
-**Post-V4b CLI follow-up — Dex Retest PASS (2026-10-14):** Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Wave 1 **DEF-044/045** (+ minimal **DEF-042** complete body): **`cd1fb44`**. Wave 2 **DEF-046/047**: **`31b2496`**. Code tip **`31b2496`** (docs tip **`ed9b9aa`**). **Quality PASS — Renee** + **Dex Retest PASS**: DEF-044/045/046/047 + DEF-042 body clear; CLI suite **143 passed / 0 failed**. **Eng sign-off** = Renee Quality + Dex retest (complete). Does **not** reopen V4b activation acceptance. **Not** Closed. **Not** pushed. Next: **Trish-authorized fresh production rebuild**, then **Julie household/field validate** against her account. **HOLD production rebuild** until Trish clears it — not authorized now. Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). **DEF-043** remains Triage (Done vs `workflow_state` readback; holds DEF-042 Done-readback half).
+**Current Dex integrated review — 2026-10-14, code `31b2496`, docs `35765ce`: HOLD CLI follow-up approval.** The earlier all-clear stamp below is superseded by this API-backed review: **DEF-044 and DEF-045 remain Open on confirmed residuals below**. CLI suite **143 passed**; independent CLI-parser/handler → real API → disposable PostgreSQL checks **5 passed, 3 failed** (two defects). DEF-042 completion body, ordinary Done readback/reopen, recurrence create/update/clear/advance, invalid-rule rejection, discovery, and afternoon Prefer assignment pass. DEF-046/047 focused suite remains green. DEF-043 remains Triage. Do not send Julie a ready-to-use notification or close the bundle yet; rebuild/install verification and her field validation remain outstanding. Cutover residual-fix gate: Open — see [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3). No household writes or production code edits.
+
+**History — Post-V4b CLI follow-up — Dex Retest PASS (2026-10-14; superseded):** Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Wave 1 **DEF-044/045** (+ minimal **DEF-042** complete body): **`cd1fb44`**. Wave 2 **DEF-046/047**: **`31b2496`**. Code tip **`31b2496`** (docs tip **`ed9b9aa`**). Then claimed **Quality PASS — Renee** + **Dex Retest PASS** (DEF-044/045/046/047 + DEF-042 body; CLI **143/0**) and eng sign-off complete — **superseded** by the Current HOLD stamp above (DEF-044/045 residuals Open). Does **not** reopen V4b activation acceptance. **Not** Closed. Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). **DEF-043** remains Triage (Done vs `workflow_state` readback; holds DEF-042 Done-readback half).
 
 ---
 
@@ -1376,10 +1378,12 @@ Julie's same assessment appeared in Done while `workflow_state` still read `read
 
 ## DEF-044 — CLI cannot configure task recurrence
 
+**Dex residual — P2, 2026-10-14: `--recurrence-fixed` silently loses to ordinary recurrence text.** CLI create with `--recurrence-text "every monday, wednesday, friday" --recurrence-fixed` succeeds but readback reports `is_fixed: false`. `_recurrence_from_args` sends `is_fixed=true`; API `_upsert_recurrence` takes the text branch and never applies that flag. The help promises fixed cadence and only describes an exception for text that itself specifies `every!`; silently accepting the ordinary-text combination changes the requested cadence. Honor the explicit setting, or reject unsupported/conflicting combinations with actionable guidance before writing. Cover create and recurrence put with ordinary text, `every!` text, and RRULE. Independent repro: `.env.review-deps/test_dex_julie_cli.py::test_fixed_text_flag`. Existing recurrence lifecycle checks pass; this residual keeps DEF-044 Open and supersedes its prior PASS row.
+
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks recurring-task setup through supported CLI) |
-| **Status** | Quality PASS + Dex Retest PASS at tip `31b2496` (Fixed in code `cd1fb44`); eng sign-off complete; Julie household validate after Trish-authorized rebuild; not Closed |
+| **Status** | Open — Dex integrated retest found a P2 residual at `31b2496` (2026-10-14); see repro above. Prior Quality/unit PASS retained; follow-up approval held |
 | **Found** | 2026-10-14 |
 | **Surface** | CLI task create/patch and recurrence readback |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-045 |
@@ -1392,10 +1396,12 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 
 ## DEF-045 — CLI scheduling controls and window discovery do not cover Julie's setup workflow
 
+**Dex residual — P2, 2026-10-14: advertised friendly block durations fail against the API.** Both create and patch with `--min-block 1h --max-block 2h` fail HTTP 422 `VALIDATION_ERROR` (`int_parsing` on both bound fields). `_apply_scheduling_bounds` uses `duration_json_value`, which preserves friendly strings for server parsing, but the bound fields accept integers and do not use the estimate-duration parser. Numeric `60`/`120` works. Align parsing with the approved duration rules rather than requiring Julie to convert advertised inputs manually. Cover both create/patch, invalid values and no partial write, and applicable nominal-workday semantics. Independent repros: `.env.review-deps/test_dex_julie_cli.py::test_friendly_block_bounds` and `::test_friendly_block_bounds_patch`. Afternoon Prefer remains Prefer and effective 60-minute effort passes through the CLI. This residual keeps DEF-045 Open and supersedes its prior PASS row.
+
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | Quality PASS + Dex Retest PASS at tip `31b2496` (Fixed in code `cd1fb44`); eng sign-off complete; Julie household validate after Trish-authorized rebuild; not Closed |
+| **Status** | Open — Dex integrated retest found a P2 residual at `31b2496` (2026-10-14); see repro above. Prior Quality/unit PASS retained; follow-up approval held |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |
