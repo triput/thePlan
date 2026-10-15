@@ -4,11 +4,11 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.11
+**File version:** 1.12
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
-**Post-V4b CLI follow-up — Fixed in code / Quality Open (2026-10-14):** Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Wave 1 **DEF-044/045** (+ minimal **DEF-042** complete body): **`cd1fb44`**. Wave 2 **DEF-046/047**: **`31b2496`**. **Renee Quality in flight** at tip **`31b2496`**. Does **not** reopen V4b activation acceptance. **Not** Closed. Exit: **Renee Quality** → **Julie field verify** + **Dex retest** → then **Trish-authorized fresh production rebuild** for Julie household validation. **HOLD production rebuild** until that sign-off — not authorized now. Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). **DEF-043** remains Triage (presentation). Priority order was 044/045 first, then 046/047, with 042 alongside.
+**Post-V4b CLI follow-up — Quality PASS — Renee (2026-10-14):** Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Wave 1 **DEF-044/045** (+ minimal **DEF-042** complete body): **`cd1fb44`**. Wave 2 **DEF-046/047**: **`31b2496`**. **Quality PASS** at tip **`31b2496`**: CLI suite **143 passed / 0 failed** (28 wave tests for DEF-044/045/046/047 + DEF-042 complete-body); cp1252 help **7/7** exit 0. Does **not** reopen V4b activation acceptance. **Not** Closed. **Julie field verify Open.** **Dex retest Open.** Next: Julie field verify + Dex retest → then **Trish-authorized fresh production rebuild** for Julie household validation. **HOLD production rebuild** until that sign-off — not authorized now. Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). **DEF-042** body Fixed; Done-readback half stays with **DEF-043** (still Triage — Done vs `workflow_state` readback).
 
 ---
 
@@ -1348,7 +1348,7 @@ Five-layer precedence (baseline → recurring → dated → event/travel → sco
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** |
-| **Status** | Fixed in code (minimal complete body) / Quality Open — tip `cd1fb44`; not Closed |
+| **Status** | Quality PASS — Renee at tip `31b2496` (body Fixed at `cd1fb44`); Julie field verify Open; Dex retest Open; not Closed. Done-readback half stays with DEF-043 |
 | **Found** | 2026-10-13 |
 | **Surface** | CLI `tasks complete`; API `POST /api/v1/tasks/{id}/complete` |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); minimal body with Wave 1 |
@@ -1364,7 +1364,7 @@ Julie reported failure completing `[Kubernetes] High-Level Overview - Assessment
 | Field | Value |
 |-------|-------|
 | **Severity** | **P3** (status clarity / documentation) |
-| **Status** | Triage — Julie report; stored-state behavior matches current model, presentation needs assessment |
+| **Status** | Triage — Done vs `workflow_state` readback; stored-state matches current model; presentation needs assessment (holds DEF-042 Done-readback half) |
 | **Found** | 2026-10-13 |
 | **Surface** | Task readback / CLI status interpretation after moving to Done |
 
@@ -1379,7 +1379,7 @@ Julie's same assessment appeared in Done while `workflow_state` still read `read
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks recurring-task setup through supported CLI) |
-| **Status** | Fixed in code / Quality Open — tip `cd1fb44`; not Closed |
+| **Status** | Quality PASS — Renee at tip `31b2496` (Fixed in code `cd1fb44`); Julie field verify Open; Dex retest Open; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | CLI task create/patch and recurrence readback |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-045 |
@@ -1395,7 +1395,7 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | Fixed in code / Quality Open — tip `cd1fb44`; not Closed |
+| **Status** | Quality PASS — Renee at tip `31b2496` (Fixed in code `cd1fb44`); Julie field verify Open; Dex retest Open; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |
@@ -1409,7 +1409,7 @@ Julie reports no flags for preferred time windows, schedule style, or block size
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (help unavailable on the supported operator environment) |
-| **Status** | Fixed in code / Quality Open — tip `31b2496`; not Closed |
+| **Status** | Quality PASS — Renee at tip `31b2496`; Julie field verify Open; Dex retest Open; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | `theplan scheduling --help` and other help pages on Windows |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 2 with DEF-047 |
@@ -1423,7 +1423,7 @@ Julie reports `UnicodeEncodeError` because cp1252 cannot encode the arrow charac
 | Field | Value |
 |-------|-------|
 | **Severity** | **P3** (CLI ergonomics / consistency) |
-| **Status** | Fixed in code / Quality Open — tip `31b2496`; not Closed |
+| **Status** | Quality PASS — Renee at tip `31b2496`; Julie field verify Open; Dex retest Open; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | Global `--format` versus command/subcommand parsing |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 2 with DEF-046 |
