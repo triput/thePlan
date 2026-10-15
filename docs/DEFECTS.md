@@ -4,11 +4,13 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.15
+**File version:** 1.16
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
-**Current S2-V4b+ residual — 2026-10-14: Fixed in code / Quality Open** at tip **`990692f`**. Jules: **DEF-044** honor `--recurrence-fixed` (ordinary `every`→`every!` rewrite); **DEF-045** friendly `--min/--max-block` → ints before write. Prior Dex HOLD residuals addressed pending **Renee Quality** + **Dex retest**. CLI suite claimed **153**. **DEF-046/047** + **DEF-042** body remain green. DEF-043 remains Triage. **HOLD** Julie ready-to-use notify and production rebuild until Quality PASS + Dex retest. Cutover: [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3). No household writes.
+**Current S2-V4b+ residual — 2026-10-14: Quality PASS — Renee** at tip **`990692f`**. Focused residual **10/10**; full CLI **153 passed / 0 failed**. Jules DEF-044/045 residual fix cleared Quality. **Dex retest Open** (API-backed residual repros preferred). **DEF-046/047** + **DEF-042** body remain green. DEF-043 remains Triage. **HOLD** Julie ready-to-use notify and production rebuild until Dex retest. Cutover: [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3). No household writes.
+
+**History — S2-V4b+ residual — 2026-10-14: Fixed in code / Quality Open** at tip **`990692f`**. Jules residual pending Renee. Superseded by Quality PASS above.
 
 **History — Dex integrated review — 2026-10-14, code `31b2496`, docs `35765ce`: HOLD CLI follow-up approval (superseded for code tip).** The earlier all-clear stamp below is superseded by this API-backed review: **DEF-044 and DEF-045 remain Open on confirmed residuals below**. CLI suite **143 passed**; independent CLI-parser/handler → real API → disposable PostgreSQL checks **5 passed, 3 failed** (two defects). DEF-042 completion body, ordinary Done readback/reopen, recurrence create/update/clear/advance, invalid-rule rejection, discovery, and afternoon Prefer assignment pass. DEF-046/047 focused suite remains green. DEF-043 remains Triage. That HOLD stood until Jules residual fix **`990692f`** (Current stamp above).
 
@@ -1385,7 +1387,7 @@ Julie's same assessment appeared in Done while `workflow_state` still read `read
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks recurring-task setup through supported CLI) |
-| **Status** | Fixed in code / Quality Open at tip `990692f` (every→every! when `--recurrence-fixed` + text); Dex residual finding above stands pending Quality + Dex retest; rebuild/Julie HOLD; not Closed |
+| **Status** | Quality PASS — Renee at tip `990692f` (every→every! when `--recurrence-fixed` + text); focused residual 10/10; CLI 153/0; Dex retest Open (API-backed residual repros preferred); rebuild/Julie HOLD; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | CLI task create/patch and recurrence readback |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-045 |
@@ -1403,7 +1405,7 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | Fixed in code / Quality Open at tip `990692f` (friendly min/max-block → int); Dex residual finding above stands pending Quality + Dex retest; rebuild/Julie HOLD; not Closed |
+| **Status** | Quality PASS — Renee at tip `990692f` (friendly min/max-block → int); focused residual 10/10; CLI 153/0; Dex retest Open (API-backed residual repros preferred); rebuild/Julie HOLD; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |
