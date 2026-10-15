@@ -4,11 +4,13 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.14
+**File version:** 1.15
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
-**Current Dex integrated review — 2026-10-14, code `31b2496`, docs `35765ce`: HOLD CLI follow-up approval.** The earlier all-clear stamp below is superseded by this API-backed review: **DEF-044 and DEF-045 remain Open on confirmed residuals below**. CLI suite **143 passed**; independent CLI-parser/handler → real API → disposable PostgreSQL checks **5 passed, 3 failed** (two defects). DEF-042 completion body, ordinary Done readback/reopen, recurrence create/update/clear/advance, invalid-rule rejection, discovery, and afternoon Prefer assignment pass. DEF-046/047 focused suite remains green. DEF-043 remains Triage. Do not send Julie a ready-to-use notification or close the bundle yet; rebuild/install verification and her field validation remain outstanding. Cutover residual-fix gate: Open — see [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3). No household writes or production code edits.
+**Current S2-V4b+ residual — 2026-10-14: Fixed in code / Quality Open** at tip **`990692f`**. Jules: **DEF-044** honor `--recurrence-fixed` (ordinary `every`→`every!` rewrite); **DEF-045** friendly `--min/--max-block` → ints before write. Prior Dex HOLD residuals addressed pending **Renee Quality** + **Dex retest**. CLI suite claimed **153**. **DEF-046/047** + **DEF-042** body remain green. DEF-043 remains Triage. **HOLD** Julie ready-to-use notify and production rebuild until Quality PASS + Dex retest. Cutover: [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3). No household writes.
+
+**History — Dex integrated review — 2026-10-14, code `31b2496`, docs `35765ce`: HOLD CLI follow-up approval (superseded for code tip).** The earlier all-clear stamp below is superseded by this API-backed review: **DEF-044 and DEF-045 remain Open on confirmed residuals below**. CLI suite **143 passed**; independent CLI-parser/handler → real API → disposable PostgreSQL checks **5 passed, 3 failed** (two defects). DEF-042 completion body, ordinary Done readback/reopen, recurrence create/update/clear/advance, invalid-rule rejection, discovery, and afternoon Prefer assignment pass. DEF-046/047 focused suite remains green. DEF-043 remains Triage. That HOLD stood until Jules residual fix **`990692f`** (Current stamp above).
 
 **History — Post-V4b CLI follow-up — Dex Retest PASS (2026-10-14; superseded):** Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Wave 1 **DEF-044/045** (+ minimal **DEF-042** complete body): **`cd1fb44`**. Wave 2 **DEF-046/047**: **`31b2496`**. Code tip **`31b2496`** (docs tip **`ed9b9aa`**). Then claimed **Quality PASS — Renee** + **Dex Retest PASS** (DEF-044/045/046/047 + DEF-042 body; CLI **143/0**) and eng sign-off complete — **superseded** by the Current HOLD stamp above (DEF-044/045 residuals Open). Does **not** reopen V4b activation acceptance. **Not** Closed. Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). **DEF-043** remains Triage (Done vs `workflow_state` readback; holds DEF-042 Done-readback half).
 
@@ -1383,7 +1385,7 @@ Julie's same assessment appeared in Done while `workflow_state` still read `read
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks recurring-task setup through supported CLI) |
-| **Status** | Open — Dex integrated retest found a P2 residual at `31b2496` (2026-10-14); see repro above. Prior Quality/unit PASS retained; follow-up approval held |
+| **Status** | Fixed in code / Quality Open at tip `990692f` (every→every! when `--recurrence-fixed` + text); Dex residual finding above stands pending Quality + Dex retest; rebuild/Julie HOLD; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | CLI task create/patch and recurrence readback |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-045 |
@@ -1401,7 +1403,7 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | Open — Dex integrated retest found a P2 residual at `31b2496` (2026-10-14); see repro above. Prior Quality/unit PASS retained; follow-up approval held |
+| **Status** | Fixed in code / Quality Open at tip `990692f` (friendly min/max-block → int); Dex residual finding above stands pending Quality + Dex retest; rebuild/Julie HOLD; not Closed |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |
