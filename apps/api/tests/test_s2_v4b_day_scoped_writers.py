@@ -20,7 +20,7 @@ from app.models.scheduling_day_scoped import SchedulingDayScopedOp
 from app.services.availability_seed import ensure_default_availability_policies
 
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "032_scheduling_day_scoped_ops"
+_REQUIRED_HEAD = "033_custom_availability_slug"
 TUESDAY = date(2026, 10, 13)
 
 

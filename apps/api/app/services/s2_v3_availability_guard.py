@@ -46,6 +46,11 @@ V3_NEW_RULE_INACTIVE_NOTE = (
     "activates in S2-V4 — not scheduling-effective yet."
 )
 
+CUSTOM_POLICY_ASSIGNMENT_NOTE = (
+    "Custom availability policy saved for May/Must/Prefer assignment; "
+    "not a global Working or General clip."
+)
+
 
 def s2_v3_availability_cutover_live() -> bool:
     return S2_V3_AVAILABILITY_CUTOVER_LIVE
@@ -70,6 +75,16 @@ def policy_scheduling_effective_for_slug(slug_value: str) -> bool:
     if not s2_v3_availability_cutover_live():
         return False
     return slug_value in ("work", "general")
+
+
+def scheduling_effective_note_for_policy_slug(slug_value: str) -> str:
+    if policy_scheduling_effective_for_slug(slug_value):
+        return scheduling_effective_note_for_surface()
+    if slug_value == "personal":
+        from app.schemas.availability import SCHEDULING_CONFIG_ONLY_COPY
+
+        return SCHEDULING_CONFIG_ONLY_COPY
+    return CUSTOM_POLICY_ASSIGNMENT_NOTE
 
 
 def scheduling_effective_note_for_surface() -> str:

@@ -28,7 +28,7 @@ from test_s2_v4_assignments import (
 )
 
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "032_scheduling_day_scoped_ops"
+_REQUIRED_HEAD = "033_custom_availability_slug"
 
 
 @pytest.fixture(autouse=True)

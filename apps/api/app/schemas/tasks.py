@@ -160,6 +160,10 @@ class TaskOut(BaseModel):
     recurrence: RecurrenceOut | None = None
     recurrence_advanced: bool = False
     previous_due_at: datetime | None = None
+    min_block_duration_minutes: int | None = None
+    max_block_duration_minutes: int | None = None
+    max_block_unbounded: bool = False
+    keep_in_one_block: bool = False
 
 
 class TaskBatchUpdate(BaseModel):

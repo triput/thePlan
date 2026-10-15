@@ -1,10 +1,13 @@
 from datetime import date, time
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
-from app.models.enums import AvailabilityPolicySlug
 from app.schemas.common import TimeField
+from app.services.availability_slug import (
+    RESERVED_AVAILABILITY_POLICY_SLUGS,
+    normalize_custom_policy_slug,
+)
 
 SCHEDULING_CONFIG_ONLY_COPY = (
     "Saved for upcoming scheduling; current runs still use working hours / Time Maps."
@@ -34,11 +37,36 @@ class AvailabilityWindowIn(BaseModel):
     sort_order: int = 0
 
 
+class AvailabilityPolicyCreate(BaseModel):
+    slug: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=100)
+    windows: list[AvailabilityWindowIn] = Field(min_length=1)
+    sort_order: int | None = Field(default=None, ge=0)
+
+    @field_validator("slug")
+    @classmethod
+    def validate_create_slug(cls, value: str) -> str:
+        slug = normalize_custom_policy_slug(value)
+        if slug in RESERVED_AVAILABILITY_POLICY_SLUGS:
+            raise ValueError(
+                "Reserved slug; patch the default General, Working, or Personal policy instead"
+            )
+        return slug
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("name must not be empty")
+        return stripped
+
+
 class AvailabilityPolicyOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    slug: AvailabilityPolicySlug
+    slug: str
     name: str
     sort_order: int
     scheduling_effective: bool = False
@@ -53,7 +81,7 @@ class AvailabilityPolicyUpdate(BaseModel):
 
 class AvailabilityPolicyEffectiveOut(BaseModel):
     policy_id: UUID
-    slug: AvailabilityPolicySlug
+    slug: str
     on_date: date
     scheduling_effective: bool = False
     scheduling_effective_note: str = SCHEDULING_CONFIG_ONLY_COPY

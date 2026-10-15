@@ -2,26 +2,28 @@
 
 **Filename:** DEFECTS.md
 
-**Last modified:** 2026-10-14
+**Last modified:** 2026-10-15
 
-**File version:** 1.20
+**File version:** 1.21
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
 
-**Current field disposition — Julie, 2026-10-14, 18:30 PT: partial acceptance; DEF-045 remains Open.** [Original #cabinet report](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792027818601759?thread_ts=1792005476.849599&cid=C0C6ZFQ3K6C), code `990692f`, CLI 0.7.0. Captured by Dex for Jim's post-slice follow-up; these are Julie's household observations, not a second household test by Dex. Deployment and the earlier code residuals passed; the complete no-workaround configuration scenario has not. This disposition supersedes older pending-rebuild/field-validation wording below.
+**Current — Prefer-path Quality, 2026-10-14:** **Quality PASS — Renee** on the disposable afternoon Prefer slice (`availability create`, Prefer `policy_id`, `scheduling family-replace` when a legacy Time Map remains on the task, ordinary `scheduling put` otherwise). API **`POST /api/v1/availability-policies`** + CLI **`theplan availability create`**; Alembic **`033_custom_availability_slug`**. **DEF-045 remains Open** pending Julie household re-verify — **not Closed**; do **not** notify Julie from this wave. Documented sequence: [CLI.md](CLI.md).
+
+**Current field disposition — Julie, 2026-10-14, 18:30 PT: partial acceptance; DEF-045 remains Open.** [Original #cabinet report](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792027818601759?thread_ts=1792005476.849599&cid=C0C6ZFQ3K6C), code `990692f`, CLI 0.7.0. Captured by Dex for Jim's post-slice follow-up; these are Julie's household observations, not a second household test by Dex. Deployment and the earlier code residuals passed; the complete no-workaround configuration scenario has not. **Still authoritative for household UAT** until Julie re-runs the supported create + Prefer sequence; afternoon row updated below for create-now-available. This disposition supersedes older pending-rebuild/field-validation wording below.
 
 | Item | Julie's field result / disposition |
 |------|------------------------------------|
 | DEF-044 recurrence | Fixed MO/WE/FR RRULE with timezone and starts-on reads back as Every! Mon, Wed, Fri. Recurring setup works. No preview of upcoming occurrences; capture as a follow-up usability request, not evidence that recurrence failed. |
 | DEF-045 bounds | Min/max and keep-in-one read back correctly through `scheduling-effective`, but are absent from `tasks get` / `tasks patch` output. Preserve this readback/discoverability observation for polish. |
-| DEF-045 afternoon preference | **Open, P2; linked to DEF-040.** Prefer requires an availability policy, while the existing Afternoon option is a legacy Time Map. CLI cannot create the needed policy or map. After assigning the legacy map, `scheduling put` returns `SCHEDULING_FAMILY_COLLISION`. Current configuration is legacy Afternoon intersected with Working, ending at 16:00; it is not the requested soft afternoon preference. See DEF-045 below. |
+| DEF-045 afternoon preference | **Open, P2; linked to DEF-040.** Supported path now: **`availability create`** (custom slug) + Prefer **`policy_id`** (not Afternoon Time Map id). Legacy map on task → **`scheduling family-replace`**; ordinary **`scheduling put`** → **`SCHEDULING_FAMILY_COLLISION`** (expected). Prefer-path disposable **Quality PASS**; household still on interim legacy Afternoon ∩ Working (ends 16:00) until Julie re-verifies soft Prefer-afternoon. See DEF-045 below. |
 | DEF-046 Windows help | Crash resolved, but some non-ASCII characters still become `?` under cp1252. Readability follow-up remains; do not conflate crash clearance with perfect rendering. |
 | DEF-047 format placement | `--format` after the subcommand works in the field. |
 | DEF-042 completion body | Not exercised on household tasks because there is no dry-run; retain Dex's disposable completion/reopen evidence. This is a field-test limit, not a new completion failure or an approved dry-run feature. |
 | DEF-043 status clarity | Still Triage/Open: Done can read `workflow_state=ready` alongside `is_completed=true` and `board_column=done`. Stored-state separation is known; clarity remains unresolved. |
 | Existing one-offs | Julie reconciled the week's tasks; two were closed with a note pointing to the recurring series. Do not recreate them or duplicate the series during the follow-up. |
 
-**Jim handoff:** Resolve DEF-045 with [DEF-040](#def-040--cli-scheduling-configuration-parity-for-julie), then have Julie verify the actual household-equivalent setup path. Dex's prior Prefer test reused a configurable policy in a disposable account; it did not prove creation of a distinct afternoon policy alongside existing household policies. Preserve that test's valid narrow evidence without treating it as complete workflow acceptance. No household edits, bulk conversion, or new methodology/scheduling choices are authorized by this capture.
+**Jim handoff:** Prefer-path **Quality PASS** on disposable accounts closes the eng slice; **Julie household re-verify** on DEF-045 remains **Open** (create distinct afternoon policy beside existing household policies, full Writing sequence — [CLI.md](CLI.md)). [DEF-040](#def-040--cli-scheduling-configuration-parity-for-julie) umbrella still Open (Time Map CRUD, full six-step scenario). Dex's earlier Prefer test reused an existing policy; disposable create + Prefer now has Quality evidence — do not conflate with household acceptance. No household edits, bulk conversion, or new methodology/scheduling choices are authorized by this capture.
 
 **Current S2-V4b+ residual — 2026-10-14: operator stamp — Trish cleared push + production rebuild.** Pushed to **cursor** only: `1e13e5e..9b34972` on `feature/0.7-s2-cutover` (not origin/GitHub). Code tip **`990692f`**; docs tip **`9b34972`** (includes Dex independent recheck). Compose rebuild: `docker compose -f infra/compose/compose.yaml up -d --build api web scheduler` — api/web/scheduler recreated; postgres left running; api healthy then web started. No new Alembic (household remains **032**). No token bump (CLI-only pass). **Julie household/field UAT Open** against Trish's account (Writing three-session scenario + related DEFs). Slack Julie-ready notify unblocked from rebuild HOLD — Trish/ops may notify; do not invent that Slack was sent. DEF-043 remains Triage. **Not** Closed. Does **not** reopen V4b activation acceptance. Cutover: [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3).
 
@@ -1306,7 +1308,7 @@ May/Must/Prefer; General availability; **Change selected days** vs **Only allow*
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks intended external-AI configuration workflow without workarounds) |
-| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence** |
+| **Status** | Open — product contract approved 2026-10-12; **Closed/shipped only after Quality evidence**. Partial: custom **`availability create`** + Prefer **`policy_id`** path (DEF-045 Prefer slice **Quality PASS — Renee**); full map CRUD + Julie six-step scenario not Closed. |
 | **Found** | 2026-10-12 (Trish / Dex; local CLI code inspected) |
 | **Surface** | CLI; Time Map API; assignments/inheritance; Settings availability; preview/explain |
 | **Parent / related** | DEF-033; DEF-036–039; DEF-041 |
@@ -1314,6 +1316,8 @@ May/Must/Prefer; General availability; **Change selected days** vs **Only allow*
 | **Contract** | [SCHEDULING-SETTINGS-SPEC.md](SCHEDULING-SETTINGS-SPEC.md) v1.4 §7, §9; [Dex v1.16](redesign/SCHEDULING-SETTINGS-DEX-DISCOVERY-REVIEW-2026-10-12.md) |
 
 ### Verified current gaps and existing capability
+
+**Landed (S2-V4b+ / DEF-045 Prefer slice):** `POST /api/v1/availability-policies` and **`theplan availability create`** (migration **`033_custom_availability_slug`**); `focus-windows list|get`; scheduling get/put/**family-replace** with Prefer **`policy_id`**. See [CLI.md](CLI.md) Writing afternoon sequence.
 
 The local CLI has no standing Time Map list/get/create/edit/delete command group. Epic/project create and patch accept `--preferred-time-window-id`, but task create/patch do not expose that API field. Explicit assignment clearing/inheritance restoration also needs a supported path. Existing `overrides` commands manage temporary overrides for a known map; `schedule` provides preview create/get/apply and explanation/run inspection. `assist propose/apply` currently supports task/project creation, not scheduling configuration. Independent rule combinations are a scheduling-model gap, not something CLI flags alone can implement.
 
@@ -1421,16 +1425,18 @@ Julie reports that `tasks create` / `tasks patch` do not expose recurrence even 
 
 ## DEF-045 — CLI scheduling controls and window discovery do not cover Julie's setup workflow
 
-**Current blocker — Julie field UAT, 2026-10-14:** **Open; depends on [DEF-040 CLI scheduling configuration parity](#def-040--cli-scheduling-configuration-parity-for-julie).** The only afternoon configuration available to Julie is a legacy Time Map. A Prefer rule needs an availability `policy_id`, and supported CLI creation is missing. Assigning the map then using `scheduling put` causes `SCHEDULING_FAMILY_COLLISION`. The collision guard is not itself proven defective: do not bypass it or silently change families. Current legacy Afternoon ∩ Working (ends 16:00) is a constrained interim arrangement, not acceptance of Prefer-afternoon.
+**Current blocker — Julie field UAT, 2026-10-14 (household):** **Open; linked to [DEF-040](#def-040--cli-scheduling-configuration-parity-for-julie).** Supported CLI now includes **`availability create`** and Prefer via owned **`policy_id`** ([CLI.md](CLI.md)). Household has **not** re-run that sequence; interim legacy Afternoon ∩ Working (ends 16:00) is not acceptance of Prefer-afternoon. When a legacy Time Map remains on the task, **`scheduling put`** → **`SCHEDULING_FAMILY_COLLISION`** — use **`scheduling family-replace`** or clear first; do not bypass the guard.
 
-**Required closure evidence:** Starting with existing household-equivalent policies and a legacy Afternoon map, use supported CLI discovery and policy creation/reuse plus an explicit, supported family transition when needed to configure afternoon Prefer. Preserve unrelated availability policies, retain fallback outside afternoons, and verify effective rules/readback without raw HTTP, database edits, browser-only configuration, or reusing an unrelated policy as a workaround. Existing recurring series and one-offs must not be duplicated. Keep the passing friendly-bound fix separate from this still-open end-to-end gap.
+**Required closure evidence:** Starting with existing household-equivalent policies (and legacy Afternoon map where still assigned), use supported CLI discovery, **`availability create`** or reuse, and explicit **family-replace** when needed to configure afternoon Prefer. Preserve unrelated availability policies; **Prefer ≠ Must** — fallback outside Prefer stays eligible. Verify via `tasks scheduling-effective` and `scheduling get` without raw HTTP, database edits, browser-only steps, or unrelated-policy workarounds. Existing recurring series and one-offs must not be duplicated.
 
-**Dex residual — P2, 2026-10-14: advertised friendly block durations fail against the API.** Both create and patch with `--min-block 1h --max-block 2h` fail HTTP 422 `VALIDATION_ERROR` (`int_parsing` on both bound fields). `_apply_scheduling_bounds` uses `duration_json_value`, which preserves friendly strings for server parsing, but the bound fields accept integers and do not use the estimate-duration parser. Numeric `60`/`120` works. Align parsing with the approved duration rules rather than requiring Julie to convert advertised inputs manually. Cover both create/patch, invalid values and no partial write, and applicable nominal-workday semantics. Independent repros: `.env.review-deps/test_dex_julie_cli.py::test_friendly_block_bounds` and `::test_friendly_block_bounds_patch`. Afternoon Prefer remains Prefer and effective 60-minute effort passes through the CLI. This residual keeps DEF-045 Open and supersedes its prior PASS row.
+**Quality — Prefer-path slice, 2026-10-14:** **PASS — Renee** on disposable harness (create + Prefer + family-replace path). **Not Closed** — Julie household re-verify pending; do not notify Julie from docs wave.
+
+**History — Dex residual friendly block durations (2026-10-14):** Failed at `31b2496`; **passed at `990692f`**. Superseded for bounds; afternoon Prefer slice retested with create path.
 
 | Field | Value |
 |-------|-------|
 | **Severity** | **P2** (blocks supported recurring-work configuration) |
-| **Status** | **Open — Julie field UAT blocked on afternoon Prefer configuration / DEF-040.** Friendly min/max residual passed at `990692f`; deployment verified. Full no-workaround workflow not accepted. |
+| **Status** | **Open — Julie household re-verify pending.** Prefer-path disposable **Quality PASS — Renee**; friendly min/max passed at `990692f`. Full DEF-040 / household no-workaround workflow **not Closed**. |
 | **Found** | 2026-10-14 |
 | **Surface** | Task scheduling configuration, time-window discovery, CLI help |
 | **Wave** | Post-V4b CLI follow-up (S2-V4b+); Wave 1 with DEF-044 |

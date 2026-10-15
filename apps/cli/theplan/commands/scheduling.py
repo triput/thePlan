@@ -32,13 +32,15 @@ Discover windows / policies
 
 Writing scenario (Prefer afternoon, not Must)
   1) settings get → scheduling_revision
-  2) availability list / focus-windows list → policy_id or Time Map id
-  3) scheduling put --scope task --id TASK --stdin with may.presence=omit,
-     prefer: [{name, policy_id}], must: []  (Prefer must not become Must)
+  2) availability create --slug afternoon --name "Afternoon hours" --stdin
+     (windows JSON) OR availability list for an existing custom policy id
+  3) If the task still has a legacy Time Map: scheduling family-replace
+     --scope task --id TASK --stdin (target_family new_rule; prefer rules only)
+     Else: scheduling put with may.presence=omit, prefer [{name, policy_id}], must []
   4) tasks create/patch --min-block / --max-block / --max-block-unbounded /
-     --keep-in-one-block / --preferred-time-window-id as needed
+     --keep-in-one-block as needed
   5) tasks scheduling-effective --id TASK → inspect inheritance
-  Config writes do not silently replan.
+  Config writes do not silently replan. Prefer must not become Must.
 """
 
 

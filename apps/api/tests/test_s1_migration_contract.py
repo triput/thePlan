@@ -341,7 +341,10 @@ def seeded(client: TestClient, db_session: Session) -> Seeded:
 def _policy(db: Session, owner_id: uuid.UUID, slug: AvailabilityPolicySlug) -> AvailabilityPolicy:
     policy = (
         db.query(AvailabilityPolicy)
-        .filter(AvailabilityPolicy.owner_id == owner_id, AvailabilityPolicy.slug == slug)
+        .filter(
+            AvailabilityPolicy.owner_id == owner_id,
+            AvailabilityPolicy.slug == slug.value,
+        )
         .one()
     )
     return policy

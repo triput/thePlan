@@ -381,7 +381,7 @@ def test_effective_read_survives_non_mirrorable_working_windows(
         db_session.query(AvailabilityPolicy)
         .filter(
             AvailabilityPolicy.owner_id == owner_id,
-            AvailabilityPolicy.slug == AvailabilityPolicySlug.work,
+            AvailabilityPolicy.slug == AvailabilityPolicySlug.work.value,
         )
         .one()
     )

@@ -74,7 +74,7 @@ def ensure_default_availability_policies(
     for slug, name, sort_order, with_windows in _FRESH_POLICIES:
         policy = AvailabilityPolicy(
             owner_id=owner_id,
-            slug=slug,
+            slug=slug.value,
             name=name,
             sort_order=sort_order,
         )

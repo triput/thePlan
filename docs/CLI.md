@@ -180,12 +180,12 @@ CRUD maps to `/api/v1/views`; **query** maps to `/api/v1/views/{id}/tasks` or `/
 
 Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCHEDULING-SETTINGS-SPEC.md#11-delivery-sequence-and-responsibilities). Delivery: [delivery/0.7-S1-CLI-PARITY-2026-10-12.md](./delivery/0.7-S1-CLI-PARITY-2026-10-12.md) (Quality PASS for this CLI vertical only — **not** full S1 or 0.7.0 Closed/shipped). Legacy placer semantics: [delivery/0.7-S1-LEGACY-TIME-MAP-COMPAT.md](./delivery/0.7-S1-LEGACY-TIME-MAP-COMPAT.md).
 
-**S1 placement note:** Saved **Working** and **General** availability policies are **config-only** (`scheduling_effective: false` on policy reads). The scheduler still uses legacy **Time Maps** (`preferred_time_window_id` → `focus_windows`, F4 overrides) and **workweek / workday** settings for placement. A Monday-first, same-hours **Working** window PATCH may mirror into legacy workweek fields; other patterns stay config-only. There is **no** focus-window / Time Map CRUD in this slice — DEF-040 remains Open.
+**S1 placement note:** Saved **Working** and **General** availability policies are **config-only** (`scheduling_effective: false` on policy reads). **Custom** policies created with `availability create` follow the same global disclosure until consumed by assignment writers — but **Prefer rules reference an owned availability `policy_id`**, not a Time Map / focus-window id. The scheduler still uses legacy **Time Maps** (`preferred_time_window_id` → `focus_windows`, F4 overrides) and **workweek / workday** settings for placement. A Monday-first, same-hours **Working** window PATCH may mirror into legacy workweek fields; other patterns stay config-only. There is **no** focus-window / Time Map CRUD in this slice — DEF-040 remains Open.
 
 | Area | Commands | Maps to |
 |------|----------|---------|
 | **Settings** | `settings get`, `settings patch` (flags and/or `--file` / `--stdin`) | `GET` / `PATCH /api/v1/settings` — includes `nominal_workday_minutes`, legacy placement fields, and owner **`scheduling_revision`** (JSON top-level beside `ok`; text prints it first). Do **not** use `board_revision` |
-| **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `/api/v1/availability-policies` … `/effective` — output discloses config-only in S1. Empty Working `{"windows":[]}` is supported when the API DB is on Alembic **`029`** (`workweek_days=0`) |
+| **Availability** | `availability list` [`--slug`], `get --ref SLUG\|UUID`, **`create --slug SLUG --name NAME`** (`--file` / `--stdin`), `patch --ref …` (`--name`, `--file`, `--stdin`), `effective --ref … --on YYYY-MM-DD` | `GET` / **`POST`** / `PATCH /api/v1/availability-policies` … `/effective`. Custom **create** requires Alembic **`033_custom_availability_slug`** (slug column `varchar`, not enum). Slug `^[a-z][a-z0-9_]{0,62}$`, unique per owner; reserved **`general` / `work` / `personal`** rejected on create (patch seeded policies instead). Empty Working `{"windows":[]}` is supported when the API DB is on Alembic **`029`** (`workweek_days=0`) |
 | **Progress** | `tasks progress add … --minutes-worked MINUTES --remaining-minutes MINUTES …` | Friendly durations (`90m`, `1h 30m`, `1.5h`); bare integer = minutes. **`--expected-revision`** from `settings get` |
 | **Remaining edit** | `tasks patch --remaining-estimate-minutes MINUTES --expected-revision N` | Remaining-only; original stays in **`estimated_duration_minutes`** (alias). Friendly parse supported |
 | **Create duration** | `tasks create --estimated-duration-minutes MINUTES` | Sets **original** estimate (also **`remaining`** on create). Workday units use **`nominal_workday_minutes`** from settings |
@@ -213,8 +213,31 @@ Post-V4b Julie CLI quick pass (DEF-044 / DEF-045). Does **not** reopen V4b activ
 | **Recurrence** | `tasks create` (`--rrule` **or** `--recurrence-text`, `--starts-on`, `--ends-on`, `--timezone`, `--recurrence-fixed`); `tasks recurrence get\|put\|clear --id` | Maps to create nested `recurrence` / `GET\|PUT\|DELETE /api/v1/tasks/{id}/recurrence`. Three sessions/week: `--recurrence-text "every monday, wednesday, friday"` or `--rrule "FREQ=WEEKLY;BYDAY=MO,WE,FR"`. Invalid rules → no partial write. |
 | **Complete body** | `tasks complete --id` [`--bulk-children` \| `--force-parent-only`] | Always sends JSON body (at least `{}`) — DEF-042. Recurring complete advances next occurrence without duplicates. |
 | **Block bounds** | `tasks create\|patch` `--min-block`, `--max-block`, `--max-block-unbounded` / `--no-…`, `--keep-in-one-block` / `--no-…`; patch `--clear-min-block`, `--clear-max-block` | Inherit = null clear flags; No limit = `--max-block-unbounded`. |
-| **Window discovery** | `focus-windows list\|get`; `availability list\|get\|effective`; `scheduling get\|put\|…` | Read-only focus-window list (no map CRUD — DEF-040). Prefer via `scheduling put` Prefer rules — never coerce Prefer→Must. |
-| **Effective / revision** | `tasks scheduling-effective --id`; `settings get` → `scheduling_revision` | Config writes do not silently replan. See `theplan scheduling --help` epilog for Writing afternoon sequence. |
+| **Window discovery** | `focus-windows list\|get`; `availability list\|get\|create\|effective`; `scheduling get\|put\|family-replace\|…` | Read-only focus-window list (no map CRUD — DEF-040). Prefer via **`policy_id`** on Prefer rules — never a Time Map id; never coerce Prefer→Must. |
+| **Effective / revision** | `tasks scheduling-effective --id`; `settings get` → `scheduling_revision` | Config writes do not silently replan. Full sequence below and in `theplan scheduling --help` / `theplan availability create --help`. |
+
+**Prefer ≠ Must:** Prefer ranks eligible slots inside **May ∩ Must**; when no Prefer window fits, placement may still use **fallback outside Prefer** (soft preference, not a hard cap). Must and Only-allow semantics stay distinct — do not rewrite Prefer into Must in JSON bodies or CLI handlers.
+
+**Legacy family collision:** If a task still carries a **legacy Time Map** assignment, ordinary `scheduling put` into the **new_rule** family returns exit **5** / **`SCHEDULING_FAMILY_COLLISION`** — that guard is expected. Use **`scheduling family-replace`** (explicit `target_family: new_rule`) or clear the legacy assignment before an ordinary put. Do not bypass the collision error.
+
+**Writing afternoon Prefer sequence (Julie disposable / household re-verify):**
+
+```bash
+theplan availability list
+theplan focus-windows list
+theplan availability create --slug afternoon --name "Afternoon hours" --stdin
+# windows JSON: Mon–Fri afternoon bands as needed (see availability create --help example)
+theplan settings get   # scheduling_revision
+# If legacy Time Map still on the task:
+theplan scheduling family-replace --scope task --id TASK --stdin
+# {"expected_revision":N,"target_family":"new_rule","may":{"presence":"omit"},"must":[],"prefer":[{"name":"…","policy_id":"POLICY_UUID"}]}
+# Else:
+theplan scheduling put --scope task --id TASK --stdin
+theplan tasks scheduling-effective --id TASK
+theplan scheduling get --scope task --id TASK
+```
+
+Optional polish: min/max/keep-in-one block bounds may appear on **`tasks scheduling-effective`** before they surface on **`tasks get` / `tasks patch`** `TaskOut` — use scheduling-effective for verify until TaskOut catches up.
 
 Examples and flag detail: [apps/cli/README.md](../apps/cli/README.md).
 

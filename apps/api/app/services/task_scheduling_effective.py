@@ -60,6 +60,7 @@ from app.services.s2_v3_availability_guard import (
     s2_v3_availability_cutover_live,
     scheduling_effective_note_for_surface,
 )
+from app.services.availability_slug import policy_slug_str
 from app.services.task_chunking_guard import chunking_cutover_writes_unlocked
 
 
@@ -71,7 +72,7 @@ def _policy_for_slug(
         .options(joinedload(AvailabilityPolicy.windows))
         .filter(
             AvailabilityPolicy.owner_id == user.id,
-            AvailabilityPolicy.slug == slug,
+            AvailabilityPolicy.slug == slug.value,
         )
         .one_or_none()
     )
@@ -301,7 +302,7 @@ def _saved_policy_out(
         note = default_note
     return SavedAvailabilityPolicyOut(
         policy_id=policy.id,
-        slug=policy.slug.value,
+        slug=policy_slug_str(policy.slug),
         name=policy.name,
         windows=[
             AvailabilityWindowOut.model_validate(row)

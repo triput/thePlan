@@ -13,13 +13,19 @@ import uuid
 from datetime import date
 
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.errors import ApiError
 from app.models import AvailabilityPolicy, AvailabilityWindow, User
 from app.models.enums import AvailabilityPolicySlug
-from app.schemas.availability import AvailabilityPolicyUpdate, AvailabilityWindowIn
+from app.schemas.availability import (
+    AvailabilityPolicyCreate,
+    AvailabilityPolicyUpdate,
+    AvailabilityWindowIn,
+)
 from app.services.availability_seed import derive_window_end
+from app.services.availability_slug import policy_slug_str
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 
 
@@ -33,18 +39,18 @@ def list_policies(db: Session, user: User) -> list[AvailabilityPolicy]:
     )
 
 
-def _parse_policy_ref(ref: str) -> uuid.UUID | AvailabilityPolicySlug:
+def _parse_policy_ref(ref: str) -> uuid.UUID | str:
     try:
         return uuid.UUID(ref)
     except ValueError:
         pass
-    try:
-        return AvailabilityPolicySlug(ref.strip().lower())
-    except ValueError as exc:
+    slug = ref.strip().lower()
+    if not slug:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Availability policy not found",
-        ) from exc
+        )
+    return slug
 
 
 def get_policy(db: Session, user: User, ref: str) -> AvailabilityPolicy:
@@ -57,7 +63,7 @@ def get_policy(db: Session, user: User, ref: str) -> AvailabilityPolicy:
     if isinstance(parsed, uuid.UUID):
         policy = query.filter(AvailabilityPolicy.id == parsed).one_or_none()
     else:
-        policy = query.filter(AvailabilityPolicy.slug == parsed).one_or_none()
+        policy = query.filter(AvailabilityPolicy.slug == str(parsed)).one_or_none()
     if policy is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Availability policy not found")
     return policy
@@ -86,15 +92,49 @@ def _build_windows(
     return built
 
 
-# Working/General always bump revision. Personal bumps when windows change so
-# assignment consumers see fingerprint/revision movement (V4).
-_REVISION_BUMP_SLUGS = frozenset(
-    {
-        AvailabilityPolicySlug.work,
-        AvailabilityPolicySlug.general,
-        AvailabilityPolicySlug.personal,
-    }
-)
+def _next_sort_order(db: Session, owner_id: uuid.UUID) -> int:
+    current = (
+        db.query(func.max(AvailabilityPolicy.sort_order))
+        .filter(AvailabilityPolicy.owner_id == owner_id)
+        .scalar()
+    )
+    if current is None:
+        return 0
+    return int(current) + 1
+
+
+def create_policy(db: Session, user: User, body: AvailabilityPolicyCreate) -> AvailabilityPolicy:
+    sort_order = body.sort_order if body.sort_order is not None else _next_sort_order(db, user.id)
+    scheduling_settings = lock_owner_scheduling(db, user.id)
+    policy = AvailabilityPolicy(
+        owner_id=user.id,
+        slug=body.slug,
+        name=body.name,
+        sort_order=sort_order,
+    )
+    conflict = (
+        db.query(AvailabilityPolicy.id)
+        .filter(
+            AvailabilityPolicy.owner_id == user.id,
+            AvailabilityPolicy.slug == body.slug,
+        )
+        .first()
+    )
+    if conflict is not None:
+        raise ApiError(
+            409,
+            "An availability policy with this slug already exists for this owner",
+            "AVAILABILITY_POLICY_SLUG_CONFLICT",
+            slug=body.slug,
+        )
+    db.add(policy)
+    db.flush()
+    for window in _build_windows(user.id, policy.id, body.windows):
+        policy.windows.append(window)
+    db.flush()
+    increment_scheduling_revision(db, scheduling_settings)
+    db.flush()
+    return policy
 
 
 def update_policy(
@@ -107,7 +147,7 @@ def update_policy(
     if not updates:
         return policy
 
-    revision_write = body.windows is not None and policy.slug in _REVISION_BUMP_SLUGS
+    revision_write = body.windows is not None
     scheduling_settings = lock_owner_scheduling(db, user.id) if revision_write else None
 
     if "name" in updates and updates["name"] is not None:
@@ -132,7 +172,7 @@ def effective_windows_for_date(policy: AvailabilityPolicy, on: date) -> tuple[li
     windows.sort(key=lambda row: (row.sort_order, row.start_time))
     provenance = [
         (
-            f"Policy '{policy.slug.value}' windows whose weekday is {weekday} "
+            f"Policy '{policy_slug_str(policy.slug)}' windows whose weekday is {weekday} "
             f"on {on.isoformat()} (start-day rows; overnight tails stay on the start weekday)"
         ),
         "Placer eligibility uses the shared window materializer (Working clip or General for unclassified)",

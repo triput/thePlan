@@ -122,9 +122,14 @@ def load_owner_policy_windows(
             continue
         seen.add(policy.id)
         copied = [as_policy_window(window) for window in policy.windows]
-        if policy.slug == AvailabilityPolicySlug.work:
+        slug = (
+            policy.slug.value
+            if isinstance(policy.slug, AvailabilityPolicySlug)
+            else str(policy.slug)
+        )
+        if slug == AvailabilityPolicySlug.work.value:
             working = copied
-        elif policy.slug == AvailabilityPolicySlug.general:
+        elif slug == AvailabilityPolicySlug.general.value:
             general = copied
     return working, general
 

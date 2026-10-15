@@ -4,7 +4,7 @@
 #  Component: CLI
 #  Version: 1.0
 #  Created: 2026-10-12
-#  Last Update: 2026-10-12
+#  Last Update: 2026-10-15 (DEF-040 availability create)
 # ==============================================================================
 
 from __future__ import annotations
@@ -19,7 +19,21 @@ from theplan.output import emit_ok, get_output_format
 
 
 def register_availability(sub: argparse._SubParsersAction) -> None:
-    _availability_help = "Availability policies (S1: saved config; not placer-effective yet)"
+    _availability_help = (
+        "Availability policies — Working/General clip + custom policies for Prefer rules"
+    )
+    _create_epilog = """
+Custom policy (e.g. afternoon Prefer)
+  theplan availability create --slug afternoon --name "Afternoon hours" --stdin
+  JSON body: {"windows":[{"weekday":0,"start_time":"13:00","duration_minutes":240,"sort_order":0}]}
+  Reserved slugs general/work/personal: use patch on the seeded policy instead.
+
+Legacy Time Map on the same task
+  theplan settings get  → scheduling_revision
+  theplan scheduling family-replace --scope task --id TASK --stdin
+  Body: expected_revision, target_family new_rule, may omit, must [], prefer [{name, policy_id}]
+  Ordinary scheduling put returns SCHEDULING_FAMILY_COLLISION — do not bypass.
+"""
     availability = sub.add_parser(
         "availability",
         help=_availability_help,
@@ -31,7 +45,27 @@ def register_availability(sub: argparse._SubParsersAction) -> None:
     list_p.add_argument(
         "--slug",
         default=None,
-        help="Filter by stable slug (general, work, personal)",
+        help="Filter by slug (general, work, personal, or custom)",
+    )
+
+    create_p = availability_sub.add_parser(
+        "create",
+        help="Create a custom availability policy",
+        description="Create an owner-scoped policy with windows (not general/work/personal).",
+        epilog=_create_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    create_p.add_argument(
+        "--slug",
+        required=True,
+        help="Unique slug (lowercase letters, digits, underscores; not general/work/personal)",
+    )
+    create_p.add_argument("--name", required=True, help="Display name")
+    create_p.add_argument("--file", dest="file_path", default=None, metavar="PATH")
+    create_p.add_argument(
+        "--stdin",
+        action="store_true",
+        help="AvailabilityPolicyCreate JSON (merged with --slug/--name)",
     )
 
     get_p = availability_sub.add_parser("get", help="Get one policy by slug or id")
@@ -124,6 +158,21 @@ def _summarize_effective(row: dict[str, Any]) -> None:
     _summarize_windows(list(row.get("windows") or []))
 
 
+def _create_payload(args: argparse.Namespace) -> dict[str, Any]:
+    body: dict[str, Any] = {}
+    if args.file_path or args.stdin:
+        body = read_json_body(file_path=args.file_path, use_stdin=args.stdin)
+    body["slug"] = args.slug
+    body["name"] = args.name
+    if "windows" not in body or not body["windows"]:
+        raise CliError(
+            code="INVALID_USAGE",
+            message="Provide windows in JSON via --file or --stdin",
+            exit_code=1,
+        )
+    return body
+
+
 def _patch_payload(args: argparse.Namespace) -> dict[str, Any]:
     body: dict[str, Any] = {}
     if args.file_path or args.stdin:
@@ -156,6 +205,20 @@ def run_availability(args: argparse.Namespace) -> None:
             _summarize_policy_list(rows)
             return
         emit_ok({"policies": rows})
+        return
+
+    if cmd == "create":
+        payload = _create_payload(args)
+        body = api_json(
+            "POST",
+            availability_policy_path(),
+            json_body=payload,
+            persist_session=True,
+        ) or {}
+        if get_output_format() == "text":
+            _summarize_policy(body)
+            return
+        emit_ok(body)
         return
 
     policy_ref = args.ref

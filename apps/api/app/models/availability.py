@@ -16,7 +16,6 @@ from datetime import time
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
-    Enum as SAEnum,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
@@ -30,7 +29,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
-from app.models.enums import AvailabilityPolicySlug
 from app.models.mixins import TimestampMixin, _uuid
 
 # Lockstep with 028_availability_progress INSERT/CHECK expressions.
@@ -54,14 +52,7 @@ class AvailabilityPolicy(Base, TimestampMixin):
     owner_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    slug: Mapped[AvailabilityPolicySlug] = mapped_column(
-        SAEnum(
-            AvailabilityPolicySlug,
-            name="availability_policy_slug",
-            native_enum=True,
-        ),
-        nullable=False,
-    )
+    slug: Mapped[str] = mapped_column(String(64), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
 

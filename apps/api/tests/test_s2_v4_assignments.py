@@ -1,6 +1,6 @@
 """S2-V4 assignment writers + resolver seam (A12–A14, A12a–A12f).
 
-Disposable ``theplan_s1_test`` only. Alembic head ``032_scheduling_day_scoped_ops``
+Disposable ``theplan_s1_test`` only. Alembic head ``033_custom_availability_slug``
 (additive on ``031_scheduling_assignments``).
 Rejected writes must not commit; the shared test session is rolled back after
 each 4xx so a flush-before-raise cannot leak into the next assertion.
@@ -46,7 +46,7 @@ UTC = timezone.utc
 TZ = ZoneInfo("UTC")
 TUESDAY = date(2026, 10, 13)
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "032_scheduling_day_scoped_ops"
+_REQUIRED_HEAD = "033_custom_availability_slug"
 
 
 @pytest.fixture(autouse=True)
@@ -764,7 +764,7 @@ def test_a12e_personal_is_per_assignment_and_foreign_refs_reject(
     db_session.flush()
     foreign_policy = AvailabilityPolicy(
         owner_id=other.id,
-        slug=AvailabilityPolicySlug.personal,
+        slug=AvailabilityPolicySlug.personal.value,
         name="Foreign personal",
         sort_order=0,
     )

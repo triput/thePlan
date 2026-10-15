@@ -216,6 +216,60 @@ def test_availability_commands(monkeypatch: pytest.MonkeyPatch, capsys: pytest.C
     assert "Time Maps" in effective["scheduling_effective_note"]
 
 
+def test_availability_create_forwards_post(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    created = {
+        **_sample_policy(),
+        "slug": "afternoon",
+        "name": "Afternoon hours",
+    }
+    seen: dict[str, object] = {}
+
+    def fake_api(method, path, *, json_body=None, **kwargs):
+        seen["method"] = method
+        seen["path"] = path
+        seen["body"] = json_body
+        assert method == "POST"
+        assert path == "/api/v1/availability-policies"
+        return created
+
+    monkeypatch.setattr("theplan.commands.availability.api_json", fake_api)
+    monkeypatch.setattr(
+        "theplan.commands.availability.read_json_body",
+        lambda **kwargs: {
+            "windows": [
+                {
+                    "weekday": 0,
+                    "start_time": "13:00",
+                    "duration_minutes": 240,
+                    "sort_order": 0,
+                }
+            ]
+        },
+    )
+
+    run_availability(
+        _parse(
+            [
+                "availability",
+                "create",
+                "--slug",
+                "afternoon",
+                "--name",
+                "Afternoon hours",
+                "--stdin",
+            ]
+        )
+    )
+    out = json.loads(capsys.readouterr().out)
+    assert out["slug"] == "afternoon"
+    body = seen["body"]
+    assert isinstance(body, dict)
+    assert body["slug"] == "afternoon"
+    assert body["windows"][0]["duration_minutes"] == 240
+
+
 def test_availability_patch_forwards_empty_working_windows(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

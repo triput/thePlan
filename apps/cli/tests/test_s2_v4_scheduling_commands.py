@@ -66,6 +66,56 @@ def test_family_replace_forwards_deferred_and_forbidden_keys(
     assert captured["body"]["ignore_all_restrictions"] is True
 
 
+def test_family_replace_forwards_prefer_without_coercing_to_must(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CLI must not rewrite Prefer into Must on the family-replace body."""
+    captured: dict = {}
+
+    def fake_api(method: str, path: str, json_body=None):
+        captured["method"] = method
+        captured["path"] = path
+        captured["body"] = json_body
+        return {
+            "scope": "task",
+            "scope_id": TASK_ID,
+            "family": "new_rule",
+            "scheduling_revision": 4,
+        }
+
+    policy_id = "00000000-0000-0000-0000-0000000000aa"
+    body = {
+        "expected_revision": 3,
+        "target_family": "new_rule",
+        "may": {"presence": "omit"},
+        "must": [],
+        "prefer": [{"name": "afternoon", "policy_id": policy_id}],
+    }
+    monkeypatch.setattr("theplan.commands.scheduling.api_json", fake_api)
+    monkeypatch.setattr(
+        "theplan.commands.scheduling.read_json_body",
+        lambda **_kwargs: body,
+    )
+    set_output_format("json")
+    run_scheduling(
+        _parse(
+            [
+                "scheduling",
+                "family-replace",
+                "--scope",
+                "task",
+                "--id",
+                TASK_ID,
+                "--stdin",
+            ]
+        )
+    )
+    forwarded = captured["body"]
+    assert forwarded["must"] == []
+    assert forwarded["prefer"] == [{"name": "afternoon", "policy_id": policy_id}]
+    assert "kind" not in forwarded["prefer"][0]
+
+
 def test_rule_remove_named_forwards_body(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

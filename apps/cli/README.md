@@ -157,21 +157,24 @@ theplan tasks complete --id TASK_UUID   # always sends JSON body {}; advances ne
 
 #### Scheduling bounds + discovery (DEF-045)
 
+Prefer uses an availability **`policy_id`** (from `availability list` / **`availability create`**), not a Time Map id. Legacy Afternoon is a focus window — use **`scheduling family-replace`** when that map is still on the task; ordinary **`scheduling put`** returns **`SCHEDULING_FAMILY_COLLISION`**.
+
 ```bash
+theplan availability list
+theplan focus-windows list
+theplan availability create --slug afternoon --name "Afternoon hours" --stdin
 theplan settings get                          # scheduling_revision (not board_revision)
-theplan focus-windows list                    # Time Maps / Afternoon id
-theplan availability list                     # General / work / personal policies
-theplan scheduling get --scope task --id TASK_UUID
-theplan tasks create --title "Writing" --priority p3 --estimated-duration-minutes 60 \
-  --recurrence-text "every monday, wednesday, friday" \
-  --preferred-time-window-id AFTERNOON_UUID \
-  --min-block 60 --max-block 60 --keep-in-one-block
-# Prefer (not Must) via scheduling put — see: theplan scheduling --help
+theplan scheduling family-replace --scope task --id TASK_UUID --stdin   # when legacy map on task
+# or: theplan scheduling put --scope task --id TASK_UUID --stdin
 theplan tasks scheduling-effective --id TASK_UUID
-theplan tasks patch --id TASK_UUID --clear-min-block --max-block-unbounded   # inherit / No limit
+theplan scheduling get --scope task --id TASK_UUID
 ```
 
-Config writers do **not** silently replan. Prefer must stay Prefer — never coerce to Must.
+Block bounds (friendly durations supported on create/patch): `--min-block`, `--max-block`, `--keep-in-one-block`, `--max-block-unbounded`; verify bounds on **`scheduling-effective`** until **`tasks get`** exposes them on TaskOut.
+
+Full epilog: `theplan scheduling --help`, `theplan availability create --help`. Long-form: [docs/CLI.md](../docs/CLI.md).
+
+Config writers do **not** silently replan. **Prefer ≠ Must** — fallback outside Prefer stays eligible; never coerce Prefer to Must.
 
 ### Handoff (F1)
 

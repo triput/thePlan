@@ -29,7 +29,7 @@ from app.scheduler.placement import place_task
 from app.services.availability_seed import ensure_default_availability_policies
 
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "032_scheduling_day_scoped_ops"
+_REQUIRED_HEAD = "033_custom_availability_slug"
 UTC = timezone.utc
 TUESDAY = datetime(2026, 10, 13, 8, 0, tzinfo=UTC)
 TUESDAY_END = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
