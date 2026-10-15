@@ -2,11 +2,13 @@
 
 **Filename:** DEFECTS.md
 
-**Last modified:** 2026-10-13
+**Last modified:** 2026-10-14
 
-**File version:** 1.9
+**File version:** 1.10
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
+
+**Post-V4b CLI follow-up — Trish, 2026-10-14:** Prioritize recurring-task setup and scheduling configuration (DEF-044/045), then Windows help/output ergonomics (DEF-046/047), alongside existing completion/readback reports (DEF-042/043). This is a post-slice activity, not a reopening of V4b activation acceptance. Sequenced as cutover **S2-V4b+** in [0.7-S2-CUTOVER.md §3](delivery/0.7-S2-CUTOVER.md#3-ordered-work-slices-ownership-hints). Source: [Julie's six-item report in #cabinet](https://aichat-lgu9894.slack.com/archives/C0C6ZFQ3K6C/p1792005476849599). Her weekly Writing goal is currently three one-off tasks; acceptance must remove the need to recreate those every week. New entries below are reported issues pending focused reproduction and current CLI surface inventory, not verified fixes. Exit for the pass includes Julie field verify + Dex retest.
 
 ---
 
@@ -1370,3 +1372,61 @@ Julie's same assessment appeared in Done while `workflow_state` still read `read
 **Follow-up:** Identify the exact readback/display Julie used and make completion status clear there. Document the difference among `is_completed`, derived `board_column`, and the stored open `workflow_state`; human/agent summaries should not describe a completed task as ready to work merely because the raw workflow value is ready. Do not add a Done workflow enum or change reopen behavior without a deliberate contract change.
 
 **Acceptance:** Completed task readback clearly reports Done/completed alongside any raw workflow metadata; reopen behavior remains consistent with the existing contract. Exact offending display has not been reproduced. Household data untouched.
+
+## DEF-044 — CLI cannot configure task recurrence
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (blocks recurring-task setup through supported CLI) |
+| **Status** | Open — Julie reported; focused reproduction pending |
+| **Found** | 2026-10-14 |
+| **Surface** | CLI task create/patch and recurrence readback |
+| **Wave** | Post-V4b CLI follow-up; first priority with DEF-045 |
+
+Julie reports that `tasks create` / `tasks patch` do not expose recurrence even though the server supports it. Her suggested flags are `--rrule`, `--recurrence-text`, `--starts-on`, `--ends-on`, and `--timezone`; these are proposals, not a locked parser contract. Reuse the existing server recurrence semantics and validate which inputs it actually supports before defining CLI options. Link to the supported CLI workflow in DEF-040.
+
+**Scenario:** Trish's weekly Writing goal is three 60-minute sessions, afternoons, task priority P3. Julie has created three one-off tasks this week because recurrence and scheduling configuration are unavailable or undiscoverable to her. Do not modify or duplicate those household tasks as part of the fix.
+
+**Acceptance:** Through the installed CLI, create and read back a recurring disposable task, update and explicitly clear its recurrence, and reject invalid rules without partial writes. Cover timezone and supported start/end boundaries, plus completion producing the correct next occurrence without duplicates. Demonstrate how Julie can represent three sessions per week using supported recurrence semantics; ask for any genuinely missing day choices rather than inventing them. No raw HTTP, database edits, or weekly manual recreation. Coordinate completion coverage with DEF-042.
+
+## DEF-045 — CLI scheduling controls and window discovery do not cover Julie's setup workflow
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (blocks supported recurring-work configuration) |
+| **Status** | Open — reported gap; reconcile with current dedicated scheduling commands |
+| **Found** | 2026-10-14 |
+| **Surface** | Task scheduling configuration, time-window discovery, CLI help |
+| **Wave** | Post-V4b CLI follow-up; first priority with DEF-044 |
+
+Julie reports no flags for preferred time windows, schedule style, or block sizes, and no way to list time windows. Suggested spellings include `--min-block`, `--max-block`, and `--keep-in-one-block`. Inventory shipped commands first: absence from task create/patch alone does not prove the capability is missing from the whole CLI. If dedicated commands already implement it, supply a discoverable documented path; fill real parity gaps without duplicating models or restoring deprecated writes.
+
+**Acceptance:** Julie can discover existing windows/policies, configure the three-session Writing scenario for afternoons and appropriate block bounds, and inspect effective values and inheritance entirely through supported CLI commands. Preserve May/Must/Prefer distinctions: a preference must not silently become a hard restriction. Optional min/max bounds, explicit No limit, inherited defaults, and keep-in-one follow the approved scheduling contract. Document revision-token discovery and demonstrate the complete sequence on a disposable account. Configuration must not silently apply a replan. Linked umbrella: DEF-040; recurrence: DEF-044.
+
+## DEF-046 — Windows CLI help crashes under cp1252
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P2** (help unavailable on the supported operator environment) |
+| **Status** | Open — Julie reported; focused reproduction pending |
+| **Found** | 2026-10-14 |
+| **Surface** | `theplan scheduling --help` and other help pages on Windows |
+| **Wave** | Post-V4b CLI follow-up |
+
+Julie reports `UnicodeEncodeError` because cp1252 cannot encode the arrow character in help output. Setting `PYTHONIOENCODING=utf-8` works around it. The supported default experience should not require that environment repair.
+
+**Acceptance:** Exercise root and affected nested help under Windows cp1252, including redirected output, with no encoding override. Help exits successfully and remains readable; UTF-8 output also remains correct. Cover the shared help path rather than only one string. Do not treat Julie's workaround as closure.
+
+## DEF-047 — Output format option placement is surprising at subcommands
+
+| Field | Value |
+|-------|-------|
+| **Severity** | **P3** (CLI ergonomics / consistency) |
+| **Status** | Open — Julie reported; parser contract to reconcile |
+| **Found** | 2026-10-14 |
+| **Surface** | Global `--format` versus command/subcommand parsing |
+| **Wave** | Post-V4b CLI follow-up |
+
+Julie reports `--format json` works only before the subcommand and is rejected after it. This may reflect the current global-option convention rather than payload loss, but it interrupts natural agent/operator usage.
+
+**Acceptance:** Prefer accepting the option before or after the command consistently, with explicit handling of conflicting duplicates and no change to existing output defaults. Test representative nested commands and JSON/text output. If the team proposes retaining global-only placement instead, make that limitation and the corrected invocation actionable in help/errors and return that disposition for review; do not silently close the usability request as user error.
