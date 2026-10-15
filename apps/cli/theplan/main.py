@@ -23,6 +23,7 @@ from theplan.commands.tasks import register_tasks, run_tasks
 from theplan.commands.overrides import register_overrides, run_overrides
 from theplan.commands.settings import register_settings, run_settings
 from theplan.commands.availability import register_availability, run_availability
+from theplan.commands.focus_windows import register_focus_windows, run_focus_windows
 from theplan.commands.scheduling import register_scheduling, run_scheduling
 from theplan.commands.views import register_views, run_views
 from theplan.errors import CliError
@@ -63,6 +64,7 @@ def _build_parser() -> argparse.ArgumentParser:
     register_overrides(sub)
     register_settings(sub)
     register_availability(sub)
+    register_focus_windows(sub)
     register_scheduling(sub)
 
     return parser
@@ -120,6 +122,9 @@ def _dispatch(args: argparse.Namespace) -> None:
         return
     if args.command == "availability":
         run_availability(args)
+        return
+    if args.command == "focus-windows":
+        run_focus_windows(args)
         return
     if args.command == "scheduling":
         run_scheduling(args)

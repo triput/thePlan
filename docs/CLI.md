@@ -203,6 +203,20 @@ Uses the same session file as M2. Spec: [SCHEDULING-SETTINGS-SPEC.md §11](./SCH
 
 Stale scheduling revision on progress or remaining PATCH → exit **5** / **`SCHEDULING_REVISION_CONFLICT`**. Refresh `settings get` after a bump; do not auto-retry an old decision with a newer token. Subcommand `--help` text calls out S1 config-only availability where relevant.
 
+### S2-V4b+ — Recurrence + scheduling discovery (HTTP)
+
+Post-V4b Julie CLI quick pass (DEF-044 / DEF-045). Does **not** reopen V4b activation. Disposable accounts only for field verify.
+
+| Area | Commands | Notes |
+|------|----------|-------|
+| **Recurrence** | `tasks create` (`--rrule` **or** `--recurrence-text`, `--starts-on`, `--ends-on`, `--timezone`, `--recurrence-fixed`); `tasks recurrence get\|put\|clear --id` | Maps to create nested `recurrence` / `GET\|PUT\|DELETE /api/v1/tasks/{id}/recurrence`. Three sessions/week: `--recurrence-text "every monday, wednesday, friday"` or `--rrule "FREQ=WEEKLY;BYDAY=MO,WE,FR"`. Invalid rules → no partial write. |
+| **Complete body** | `tasks complete --id` [`--bulk-children` \| `--force-parent-only`] | Always sends JSON body (at least `{}`) — DEF-042. Recurring complete advances next occurrence without duplicates. |
+| **Block bounds** | `tasks create\|patch` `--min-block`, `--max-block`, `--max-block-unbounded` / `--no-…`, `--keep-in-one-block` / `--no-…`; patch `--clear-min-block`, `--clear-max-block` | Inherit = null clear flags; No limit = `--max-block-unbounded`. |
+| **Window discovery** | `focus-windows list\|get`; `availability list\|get\|effective`; `scheduling get\|put\|…` | Read-only focus-window list (no map CRUD — DEF-040). Prefer via `scheduling put` Prefer rules — never coerce Prefer→Must. |
+| **Effective / revision** | `tasks scheduling-effective --id`; `settings get` → `scheduling_revision` | Config writes do not silently replan. See `theplan scheduling --help` epilog for Writing afternoon sequence. |
+
+Examples and flag detail: [apps/cli/README.md](../apps/cli/README.md).
+
 ## Session revocation (`session_epoch`)
 
 Password changes and host recovery bump per-user `session_epoch` in PostgreSQL (migration `017_session_epoch`). The API stores the epoch in the session cookie at login; requests with a stale epoch are treated as unauthenticated. This satisfies DEF-027’s requirement to invalidate sessions after recovery without email. Details: [09-technical-architecture.md](./09-technical-architecture.md) §7.

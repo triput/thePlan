@@ -4,7 +4,7 @@
 #  Component: CLI
 #  Version: 1.1
 #  Created: 2026-10-13
-#  Last Update: 2026-10-14 (V4b day-scoped forward parity)
+#  Last Update: 2026-10-14 (DEF-045 discoverability epilog)
 # ==============================================================================
 
 from __future__ import annotations
@@ -18,6 +18,29 @@ from theplan.errors import CliError
 from theplan.input_helpers import read_json_body
 from theplan.output import emit_ok, get_output_format
 
+_SCHEDULING_EPILOG = """
+Revision token
+  theplan settings get  →  top-level scheduling_revision
+  Pass as expected_revision in JSON bodies. Do not use board_revision.
+  Refresh after any successful scheduling write that bumps the token.
+
+Discover windows / policies
+  theplan availability list|get|effective
+  theplan focus-windows list|get
+  theplan scheduling get --scope task|project|epic --id UUID
+  theplan tasks scheduling-effective --id UUID
+
+Writing scenario (Prefer afternoon, not Must)
+  1) settings get → scheduling_revision
+  2) availability list / focus-windows list → policy_id or Time Map id
+  3) scheduling put --scope task --id TASK --stdin with may.presence=omit,
+     prefer: [{name, policy_id}], must: []  (Prefer must not become Must)
+  4) tasks create/patch --min-block / --max-block / --max-block-unbounded /
+     --keep-in-one-block / --preferred-time-window-id as needed
+  5) tasks scheduling-effective --id TASK → inspect inheritance
+  Config writes do not silently replan.
+"""
+
 
 def _scope_path(scope: str, scope_id: str, suffix: str = "") -> str:
     plural = {"task": "tasks", "project": "projects", "epic": "epics"}[scope]
@@ -28,9 +51,16 @@ def _scope_path(scope: str, scope_id: str, suffix: str = "") -> str:
 def register_scheduling(sub: argparse._SubParsersAction) -> None:
     help_text = (
         "Scheduling assignments (S2-V4/V4b): standing + day-scoped writers. "
-        "JSON body is forwarded as-is (selectors/expiry not stripped)."
+        "JSON body is forwarded as-is (selectors/expiry not stripped). "
+        "May/Must/Prefer stay distinct — Prefer is never coerced to Must."
     )
-    scheduling = sub.add_parser("scheduling", help=help_text, description=help_text)
+    scheduling = sub.add_parser(
+        "scheduling",
+        help=help_text,
+        description=help_text,
+        epilog=_SCHEDULING_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     scheduling_sub = scheduling.add_subparsers(dest="scheduling_command", required=True)
 
     def _scope_args(parser: argparse.ArgumentParser) -> None:

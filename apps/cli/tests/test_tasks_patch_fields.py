@@ -20,6 +20,21 @@ def _ns(**kwargs: object) -> argparse.Namespace:
         "remaining_estimate_minutes": None,
         "expected_revision": None,
         "description": None,
+        "rrule": None,
+        "recurrence_text": None,
+        "starts_on": None,
+        "ends_on": None,
+        "recurrence_timezone": None,
+        "recurrence_fixed": False,
+        "min_block_duration_minutes": None,
+        "max_block_duration_minutes": None,
+        "max_block_unbounded": None,
+        "keep_in_one_block": None,
+        "preferred_time_window_id": None,
+        "schedule_style": None,
+        "clear_min_block": False,
+        "clear_max_block": False,
+        "clear_preferred_time_window": False,
     }
     defaults.update(kwargs)
     return argparse.Namespace(**defaults)

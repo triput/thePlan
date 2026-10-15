@@ -138,6 +138,41 @@ theplan tasks uncomplete --id 00000000-0000-0000-0000-000000000020
 
 List query flags map to `GET /api/v1/tasks` parameters (`project_id`, `inbox`, `is_completed` via `--completed` / `--incomplete`, `limit`, `offset`, `trashed`, `epic_id`, `section_id`, `parent_task_id`, `label_id`, `due_from`, `due_to`, repeated `--id`).
 
+#### Recurrence (DEF-044)
+
+Server semantics only — do not invent day tokens. Three weekly sessions = one task with multi-`BYDAY`:
+
+```bash
+theplan tasks create --title "Writing" --priority p3 --estimated-duration-minutes 60 \
+  --recurrence-text "every monday, wednesday, friday" \
+  --timezone America/Los_Angeles --starts-on 2026-10-13
+# or: --rrule "FREQ=WEEKLY;BYDAY=MO,WE,FR" [--recurrence-fixed]
+theplan tasks recurrence get --id TASK_UUID
+theplan tasks recurrence put --id TASK_UUID --rrule "FREQ=WEEKLY;BYDAY=MO,WE,FR"
+theplan tasks recurrence clear --id TASK_UUID
+theplan tasks complete --id TASK_UUID   # always sends JSON body {}; advances next occurrence
+```
+
+`--rrule` and `--recurrence-text` are mutually exclusive. Invalid rules → API 422 with no partial write. Frame bounds: `--starts-on` / `--ends-on` (`YYYY-MM-DD`). Completion of a recurring open series advances `due_at` without duplicating the task.
+
+#### Scheduling bounds + discovery (DEF-045)
+
+```bash
+theplan settings get                          # scheduling_revision (not board_revision)
+theplan focus-windows list                    # Time Maps / Afternoon id
+theplan availability list                     # General / work / personal policies
+theplan scheduling get --scope task --id TASK_UUID
+theplan tasks create --title "Writing" --priority p3 --estimated-duration-minutes 60 \
+  --recurrence-text "every monday, wednesday, friday" \
+  --preferred-time-window-id AFTERNOON_UUID \
+  --min-block 60 --max-block 60 --keep-in-one-block
+# Prefer (not Must) via scheduling put — see: theplan scheduling --help
+theplan tasks scheduling-effective --id TASK_UUID
+theplan tasks patch --id TASK_UUID --clear-min-block --max-block-unbounded   # inherit / No limit
+```
+
+Config writers do **not** silently replan. Prefer must stay Prefer — never coerce to Must.
+
 ### Handoff (F1)
 
 ```bash
