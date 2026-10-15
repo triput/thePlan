@@ -4,9 +4,11 @@
 
 **Last modified:** 2026-10-14
 
-**File version:** 1.17
+**File version:** 1.18
 
 Open product defects that are not wave exit blockers. Priority here is **product severity** (P1–P4), not task priority enum.
+
+**Dex independently executed recheck — 2026-10-14, `990692f` / docs `c475b6f`: PASS.** Re-ran the API-backed disposable harness: **14 passed** (7.20s), including fixed text create/put, existing every! and RRULE behavior, ordinary text remaining non-fixed, friendly min/max create/patch with effective readback, rejection without partial writes, recurrence lifecycle, and afternoon Prefer configuration. Full CLI suite: **153 passed** (4.10s). Reviewed the corrected harness readback: TaskOut omits bounds, so assertions correctly use scheduling-effective rather than expecting nonexistent TaskOut fields. The Python 3.11 installation behind the Windows `theplan.exe` resolves to this checkout and imports both fixes. DEF-044/045 residuals clear; DEF-043 remains Triage. No household writes, rebuild, commit, push, or Slack notification in this recheck. Trish's notification authorization remains conditional on the updated build being verified; the production rebuild HOLD is still recorded below, so Julie has not been told the deployment is ready.
 
 **Current S2-V4b+ residual — 2026-10-14: Dex residual Retest PASS** at code tip **`990692f`**. API-backed disposable harness **14 passed** on `theplan_s1_test`; CLI focused **19**. **DEF-044/045** residuals clear. **Quality PASS — Renee** (focused residual **10/10**; full CLI **153/0**) stands. **DEF-046/047** + **DEF-042** body remain green. DEF-043 remains Triage. Follow-up eng approval and Julie-ready notify **lifted** from residual HOLD. **Production rebuild still HOLD until Trish clears** — then Julie household/field validate. **Not** Closed. Cutover: [0.7-S2-CUTOVER.md](delivery/0.7-S2-CUTOVER.md) (S2-V4b+ Current + §3). No household writes.
 
