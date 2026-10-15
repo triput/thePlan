@@ -11,6 +11,7 @@ from theplan.commands.tasks import (
     _recurrence_from_args,
     run_tasks,
 )
+from theplan.duration_coerce import duration_minutes_value
 from theplan.errors import CliError
 from theplan.main import _build_parser
 from theplan.output import set_output_format
@@ -62,6 +63,53 @@ def test_three_sessions_week_via_recurrence_text() -> None:
     assert body["priority"] == "p3"
     assert body["estimated_duration_minutes"] == 60
     assert body["recurrence"] == {"text": "every monday, wednesday, friday"}
+
+
+def test_fixed_text_flag_rewrites_ordinary_every() -> None:
+    """DEF-044 residual — --recurrence-fixed + ordinary text → every! (API honors)."""
+    body = _optional_task_fields(
+        _create_ns(
+            recurrence_text="every monday, wednesday, friday",
+            recurrence_fixed=True,
+        ),
+        for_create=True,
+    )
+    assert body["recurrence"] == {
+        "text": "every! monday, wednesday, friday",
+    }
+    assert "is_fixed" not in body["recurrence"]
+
+
+def test_fixed_text_flag_leaves_every_bang_unchanged() -> None:
+    body = _recurrence_from_args(
+        _create_ns(
+            recurrence_text="every! monday, wednesday, friday",
+            recurrence_fixed=True,
+        ),
+        required=False,
+    )
+    assert body == {"text": "every! monday, wednesday, friday"}
+
+
+def test_fixed_rrule_still_sends_is_fixed() -> None:
+    body = _recurrence_from_args(
+        _create_ns(rrule="FREQ=WEEKLY;BYDAY=MO,WE,FR", recurrence_fixed=True),
+        required=False,
+    )
+    assert body == {
+        "rrule": "FREQ=WEEKLY;BYDAY=MO,WE,FR",
+        "is_fixed": True,
+    }
+
+
+def test_fixed_without_every_token_rejected() -> None:
+    with pytest.raises(CliError) as exc:
+        _recurrence_from_args(
+            _create_ns(recurrence_text="daily on weekdays", recurrence_fixed=True),
+            required=False,
+        )
+    assert exc.value.code == "INVALID_USAGE"
+    assert "--recurrence-fixed" in exc.value.message
 
 
 def test_create_rrule_with_frame_and_timezone() -> None:
@@ -167,6 +215,108 @@ def test_recurrence_put_and_clear_routes(monkeypatch: pytest.MonkeyPatch) -> Non
     assert calls[0][2] == {"text": "every monday, wednesday, friday"}
     assert calls[1] == ("DELETE", f"/api/v1/tasks/{TASK_ID}/recurrence", None)
     assert calls[2][0] == "GET"
+
+
+def test_recurrence_put_fixed_ordinary_text(monkeypatch: pytest.MonkeyPatch) -> None:
+    """DEF-044 residual — put path honors --recurrence-fixed with ordinary text."""
+    captured: dict = {}
+
+    def fake_api(method: str, path: str, json_body=None, **_kwargs):
+        captured["method"] = method
+        captured["path"] = path
+        captured["body"] = json_body
+        return {
+            "rrule": "FREQ=WEEKLY;BYDAY=MO,WE,FR",
+            "is_fixed": True,
+            "timezone": "UTC",
+            "starts_on": None,
+            "ends_on": None,
+            "display": "Every! Mon, Wed, Fri",
+        }
+
+    monkeypatch.setattr("theplan.commands.tasks.api_json", fake_api)
+    set_output_format("json")
+    run_tasks(
+        _parse(
+            [
+                "tasks",
+                "recurrence",
+                "put",
+                "--id",
+                TASK_ID,
+                "--recurrence-text",
+                "every monday, wednesday, friday",
+                "--recurrence-fixed",
+            ]
+        )
+    )
+    assert captured["method"] == "PUT"
+    assert captured["body"] == {"text": "every! monday, wednesday, friday"}
+
+
+def test_friendly_block_bounds_create() -> None:
+    """DEF-045 residual — --min-block 1h --max-block 2h → int minutes."""
+    body = _optional_task_fields(
+        _create_ns(
+            min_block_duration_minutes="1h",
+            max_block_duration_minutes="2h",
+        ),
+        for_create=True,
+    )
+    assert body["min_block_duration_minutes"] == 60
+    assert body["max_block_duration_minutes"] == 120
+    assert isinstance(body["min_block_duration_minutes"], int)
+    assert isinstance(body["max_block_duration_minutes"], int)
+
+
+def test_friendly_block_bounds_patch() -> None:
+    body = _optional_task_fields(
+        _create_ns(
+            title=None,
+            priority=None,
+            estimated_duration_minutes=None,
+            min_block_duration_minutes="1h 30m",
+            max_block_duration_minutes="90",
+        ),
+        for_create=False,
+    )
+    assert body == {
+        "min_block_duration_minutes": 90,
+        "max_block_duration_minutes": 90,
+    }
+
+
+def test_invalid_block_bounds_reject_before_write() -> None:
+    with pytest.raises(CliError) as exc:
+        _optional_task_fields(
+            _create_ns(min_block_duration_minutes="2d"),
+            for_create=True,
+        )
+    assert exc.value.code == "INVALID_USAGE"
+    assert "Ambiguous" in exc.value.message or "hours/minutes" in exc.value.message
+
+
+def test_workday_block_bounds_rejected_without_nominal() -> None:
+    """Block bounds are wall-clock; workday effort units need hours/minutes."""
+    with pytest.raises(CliError) as exc:
+        duration_minutes_value(
+            "1 workday",
+            field_label="--min-block",
+            allow_workdays=False,
+        )
+    assert "Workday" in exc.value.message
+
+
+def test_duration_minutes_nominal_workday_when_allowed() -> None:
+    assert (
+        duration_minutes_value(
+            "0.5 workdays",
+            field_label="estimate",
+            allow_workdays=True,
+            nominal_workday_minutes=480,
+        )
+        == 240
+    )
 
 
 def test_complete_sends_empty_body(monkeypatch: pytest.MonkeyPatch) -> None:

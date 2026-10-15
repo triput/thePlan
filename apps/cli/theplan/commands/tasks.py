@@ -4,18 +4,22 @@
 #  Component: CLI
 #  Version: 1.2
 #  Created: 2026-10-09
-#  Last Update: 2026-10-14 (DEF-044 recurrence + DEF-045 bounds; DEF-042 complete body)
+#  Last Update: 2026-10-14 (DEF-044/045 residual: fixed+text honor; block duration ints)
 # ==============================================================================
 
 from __future__ import annotations
 
 import argparse
+import re
 from typing import Any
 
 from theplan.api_client import api_json, task_scheduling_effective_path
-from theplan.duration_coerce import duration_json_value
+from theplan.duration_coerce import duration_json_value, duration_minutes_value
 from theplan.errors import CliError
 from theplan.output import emit_ok, get_output_format
+
+_EVERY_BANG = re.compile(r"(?i)\bevery!")
+_EVERY_WORD = re.compile(r"(?i)\bevery\b")
 
 _SCHEDULE_STYLE_CHOICES = ("standalone", "time_block", "bundle", "manual")
 
@@ -79,7 +83,11 @@ def _add_recurrence_flags(parser: argparse.ArgumentParser) -> None:
         "--recurrence-fixed",
         dest="recurrence_fixed",
         action="store_true",
-        help="Fixed cadence (Every! / is_fixed=true); ignored with --recurrence-text that sets every!",
+        help=(
+            "Fixed cadence (Every! / is_fixed=true). With --recurrence-text, "
+            "rewrites ordinary 'every …' to 'every! …' so the server honors it; "
+            "ignored when the text already uses every!"
+        ),
     )
 
 
@@ -469,6 +477,29 @@ def _list_params(args: argparse.Namespace) -> dict[str, Any]:
     return params
 
 
+def _honor_recurrence_fixed_text(text: str) -> str:
+    """Map --recurrence-fixed onto recurrence text the API text branch understands.
+
+    The server derives is_fixed from every! vs every when ``text`` is set and
+    ignores a sibling ``is_fixed`` flag. Rewrite ordinary every → every! so an
+    explicit --recurrence-fixed is honored; leave every! text unchanged.
+    """
+    if _EVERY_BANG.search(text):
+        return text
+    rewritten, count = _EVERY_WORD.subn("every!", text, count=1)
+    if count == 0:
+        raise CliError(
+            code="INVALID_USAGE",
+            message=(
+                "--recurrence-fixed with --recurrence-text needs text that uses "
+                "'every …' (rewritten to 'every! …'), or use --rrule with "
+                "--recurrence-fixed"
+            ),
+            exit_code=1,
+        )
+    return rewritten
+
+
 def _recurrence_from_args(args: argparse.Namespace, *, required: bool) -> dict[str, Any] | None:
     rrule = getattr(args, "rrule", None)
     text = getattr(args, "recurrence_text", None)
@@ -510,16 +541,19 @@ def _recurrence_from_args(args: argparse.Namespace, *, required: bool) -> dict[s
     body: dict[str, Any] = {}
     if rrule is not None:
         body["rrule"] = rrule.strip()
+        if is_fixed:
+            body["is_fixed"] = True
     if text is not None:
-        body["text"] = text.strip()
+        cleaned = text.strip()
+        if is_fixed:
+            cleaned = _honor_recurrence_fixed_text(cleaned)
+        body["text"] = cleaned
     if starts_on is not None:
         body["starts_on"] = starts_on
     if ends_on is not None:
         body["ends_on"] = ends_on
     if timezone is not None:
         body["timezone"] = timezone
-    if is_fixed:
-        body["is_fixed"] = True
     return body
 
 
@@ -533,7 +567,12 @@ def _apply_scheduling_bounds(args: argparse.Namespace, body: dict[str, Any]) -> 
             )
         body["min_block_duration_minutes"] = None
     elif getattr(args, "min_block_duration_minutes", None) is not None:
-        body["min_block_duration_minutes"] = duration_json_value(args.min_block_duration_minutes)
+        # Bound fields are int-only on the API; coerce friendly strings locally.
+        body["min_block_duration_minutes"] = duration_minutes_value(
+            args.min_block_duration_minutes,
+            field_label="--min-block",
+            allow_workdays=False,
+        )
 
     if getattr(args, "clear_max_block", False):
         if getattr(args, "max_block_duration_minutes", None) is not None:
@@ -544,7 +583,11 @@ def _apply_scheduling_bounds(args: argparse.Namespace, body: dict[str, Any]) -> 
             )
         body["max_block_duration_minutes"] = None
     elif getattr(args, "max_block_duration_minutes", None) is not None:
-        body["max_block_duration_minutes"] = duration_json_value(args.max_block_duration_minutes)
+        body["max_block_duration_minutes"] = duration_minutes_value(
+            args.max_block_duration_minutes,
+            field_label="--max-block",
+            allow_workdays=False,
+        )
 
     unbounded = getattr(args, "max_block_unbounded", None)
     if unbounded is not None:
