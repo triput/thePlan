@@ -4,7 +4,7 @@
 #  Component: Replan Preview
 #  Version: 1.0
 #  Created: 2026-10-09
-#  Last Update: 2026-10-10
+#  Last Update: 2026-10-19
 # ==============================================================================
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from app.api.errors import ApiError
 from app.models import SchedulePreview, ScheduleRun, User
 from app.scheduler.apply import apply_calculation
 from app.scheduler.collect import collect_inputs
+from app.scheduler.free_busy import BusyInputTrustError, require_busy_input_trust
 from app.scheduler.preview_inputs import collected_at_from_snapshot, live_owner_fingerprint
 from app.scheduler.preview_proposal import calculation_result_from_proposal
 from app.services.schedule_dispatch import has_running_run
@@ -27,6 +28,16 @@ from app.services.schedule_preview_staleness import preview_stale_categories
 from app.services.scheduling_revision import lock_owner_scheduling
 
 APPLY_RECEIPT_KEY = "apply_receipt"
+
+
+def _raise_busy_input_trust(exc: BusyInputTrustError) -> None:
+    """Map BusyInputTrustError to a client-visible apply conflict."""
+    raise ApiError(
+        409,
+        str(exc),
+        "BUSY_INPUT_TRUST",
+        busy_input_trust=exc.trust.to_dict(),
+    ) from exc
 
 
 def _parse_utc(value: str) -> datetime:
@@ -106,6 +117,10 @@ def _validate_ready_for_apply(
     from app.scheduler.proposal_revalidation import temporal_stale_categories
 
     inputs_now = collect_inputs(db, preview.owner_id, now)
+    try:
+        require_busy_input_trust(inputs_now.busy_input_trust)
+    except BusyInputTrustError as exc:
+        _raise_busy_input_trust(exc)
     temporal = temporal_stale_categories(
         inputs_now,
         preview.proposal_json,
@@ -168,6 +183,11 @@ def apply_schedule_preview(db: Session, user: User, preview: SchedulePreview) ->
     result = calculation_result_from_proposal(proposal)
     replay = collected_at_from_snapshot(preview.input_snapshot) or now
     inputs = collect_inputs(db, preview.owner_id, replay)
+    # Fail closed before any domain writes (ScheduleRun / apply_calculation).
+    try:
+        require_busy_input_trust(inputs.busy_input_trust)
+    except BusyInputTrustError as exc:
+        _raise_busy_input_trust(exc)
 
     run = ScheduleRun(owner_id=preview.owner_id, status="running")
     db.add(run)

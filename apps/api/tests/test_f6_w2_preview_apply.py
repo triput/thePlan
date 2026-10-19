@@ -21,6 +21,7 @@ from app.models import (
     CalendarAccount,
     CalendarSubscription,
     Epic,
+    ExternalCalendarEvent,
     Project,
     SchedulePreview,
     ScheduleRun,
@@ -252,6 +253,68 @@ def test_f6_c_apply_rejects_stale_inputs_without_domain_writes(
     assert "duration" in body["stale_categories"]
     after = _block_set(db_session, owner_id)
     assert before == after
+
+
+def test_t1a_apply_rejects_unknown_busy_input_trust_without_domain_writes(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Ready preview + in-horizon unknown MS event → Apply 409, zero domain writes."""
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    _create_task(client, estimated_duration_minutes=60, schedule_style="standalone")
+    preview = _ready_preview(client, db_session, monkeypatch)
+    assert preview["proposal"]["proposed_blocks"], "need a non-empty proposal"
+
+    owner_id = _owner_id(client)
+    before_blocks = _block_set(db_session, owner_id)
+    runs_before = _run_count(db_session, owner_id)
+    rev_before = _revision(db_session, owner_id)
+
+    account = CalendarAccount(
+        owner_id=owner_id,
+        provider=CalendarProvider.microsoft,
+        account_email=f"t1a-trust-{_uid()}@contoso.test",
+        is_enabled=True,
+        mirror_blocks=False,
+    )
+    db_session.add(account)
+    db_session.flush()
+    # Direct insert — not sync — so scheduling_revision must stay put.
+    db_session.add(
+        ExternalCalendarEvent(
+            owner_id=owner_id,
+            calendar_account_id=account.id,
+            scheduled_block_id=None,
+            provider=CalendarProvider.microsoft,
+            external_event_id=f"t1a-unknown-{_uid()}",
+            calendar_id=f"cal-{_uid()}",
+            title="Unknown free/busy",
+            start_time=FIXED_NOW + timedelta(hours=2),
+            end_time=FIXED_NOW + timedelta(hours=3),
+            is_all_day=False,
+            last_synced_at=FIXED_NOW,
+            transparency=None,
+            free_busy_provenance=None,
+        )
+    )
+    db_session.flush()
+    assert _revision(db_session, owner_id) == rev_before
+
+    rejected = client.post(f"/api/v1/schedule/previews/{preview['id']}/apply")
+    assert rejected.status_code == 409, rejected.text
+    body = rejected.json()
+    assert body["code"] == "BUSY_INPUT_TRUST"
+    trust = body["busy_input_trust"]
+    assert trust["ok"] is False
+    assert trust["blocking_diagnostics"]
+
+    assert _block_set(db_session, owner_id) == before_blocks
+    assert _run_count(db_session, owner_id) == runs_before
+    still = client.get(f"/api/v1/schedule/previews/{preview['id']}")
+    assert still.status_code == 200, still.text
+    assert still.json()["status"] == "ready"
 
 
 def test_f6_c_apply_rejects_expired_preview(
