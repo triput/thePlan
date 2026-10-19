@@ -12,6 +12,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models import ExternalCalendarEvent, ScheduledBlock
+from app.scheduler.free_busy import events_for_busy_merge
 from app.services.busy_intervals import TimeInterval, merge_intervals, ranges_overlap
 
 
@@ -118,7 +119,7 @@ def busy_from_sources(
         intervals.append(
             BusyInterval(block.start_time, block.end_time, source="pinned")
         )
-    for event in events:
+    for event in events_for_busy_merge(events):
         if range_start is not None and range_end is not None:
             if not (event.start_time < range_end and event.end_time > range_start):
                 continue

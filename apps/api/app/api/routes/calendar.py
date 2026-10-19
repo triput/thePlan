@@ -503,3 +503,41 @@ def list_external_events(
         limit=500,
         offset=0,
     )
+
+
+@router.get("/busy-input-trust")
+def get_busy_input_trust(
+    start: datetime = Query(...),
+    end: datetime = Query(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """T1-A read-only: BusyInputTrust + grouped diagnostics for a horizon."""
+    from app.scheduler.free_busy import evaluate_busy_input_trust, format_cli_listing
+
+    if end <= start:
+        raise ApiError(422, "end must be after start", "INVALID_TIME_RANGE")
+    events = (
+        db.query(ExternalCalendarEvent)
+        .filter(
+            ExternalCalendarEvent.owner_id == user.id,
+            *ExternalCalendarEvent.immovable_busy_clause(),
+        )
+        .all()
+    )
+    names = {
+        s.external_calendar_id: (s.summary or s.external_calendar_id)
+        for s in db.query(CalendarSubscription)
+        .filter(CalendarSubscription.owner_id == user.id)
+        .all()
+    }
+    trust = evaluate_busy_input_trust(
+        events,
+        horizon_start=start,
+        horizon_end=end,
+        calendar_name_by_id=names,
+    )
+    return {
+        "trust": trust.to_dict(),
+        "cli_listing": format_cli_listing(trust),
+    }

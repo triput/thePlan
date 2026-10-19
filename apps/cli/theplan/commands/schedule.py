@@ -78,6 +78,13 @@ def register_schedule(sub: argparse._SubParsersAction) -> None:
         help="Scheduling day in operator timezone for dated Time Map override resolution",
     )
 
+    fb = schedule_sub.add_parser(
+        "free-busy-diagnostics",
+        help="T1-A read-only: list unknown free/busy diagnostics (BusyInputTrust)",
+    )
+    fb.add_argument("--start", required=True, metavar="ISO8601")
+    fb.add_argument("--end", required=True, metavar="ISO8601")
+
 
 _FRESH_PREVIEW = "Create a fresh preview."
 
@@ -162,6 +169,18 @@ def _run_preview(args: argparse.Namespace) -> None:
 
 def run_schedule(args: argparse.Namespace) -> None:
     cmd = args.schedule_command
+    if cmd == "free-busy-diagnostics":
+        body = api_json(
+            "GET",
+            "/api/v1/calendar/busy-input-trust",
+            params={"start": args.start, "end": args.end},
+            persist_session=True,
+        )
+        if get_output_format() == "text" and isinstance(body, dict):
+            print(body.get("cli_listing") or "")
+            return
+        emit_ok(body or {})
+        return
     if cmd == "preview":
         _run_preview(args)
         return

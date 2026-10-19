@@ -103,6 +103,10 @@ class ExternalCalendarEvent(Base):
     )
     sync_hash: Mapped[str | None] = mapped_column(String(64))
     last_synced_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # Track 1 T1-A: Google transparency + provenance (nullable = unknown_legacy).
+    transparency: Mapped[str | None] = mapped_column(String(32))
+    free_busy_provenance: Mapped[str | None] = mapped_column(String(64))
+    provider_series_id: Mapped[str | None] = mapped_column(String(255))
 
     @classmethod
     def immovable_busy_clause(cls) -> tuple:

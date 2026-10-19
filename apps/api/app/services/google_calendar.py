@@ -23,6 +23,7 @@ from app.models import (
     Task,
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
+from app.scheduler.free_busy import resolve_google_transparency
 from app.services.token_crypto import decrypt_token, encrypt_token
 
 logger = logging.getLogger(__name__)
@@ -506,6 +507,14 @@ def _upsert_external_event(
     row.is_all_day = is_all_day
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
+    # T1-A: Google transparency + provenance (complete list/delta resource).
+    stored, provenance, _kind = resolve_google_transparency(
+        event, complete_representation=True, field_projected=False
+    )
+    row.transparency = stored
+    row.free_busy_provenance = provenance
+    recurring = event.get("recurringEventId")
+    row.provider_series_id = str(recurring) if recurring else None
     return True
 
 

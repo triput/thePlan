@@ -24,6 +24,7 @@ from app.scheduler.busy_map import (
     busy_from_sources,
     load_immovable_busy_sources,
 )
+from app.scheduler.free_busy import BusyInputTrust, evaluate_busy_input_trust
 from app.scheduler.candidates import (
     ExcludedTask,
     LifecycleExcludedTask,
@@ -84,6 +85,8 @@ class SchedulingInputs:
     # Resolved new-rule assignments. A missing task stays on the V3 path.
     # Fingerprints use ``composition_fingerprint`` on these same objects.
     composition_by_task: dict[UUID, EffectiveComposition] = field(default_factory=dict)
+    # T1-A: free/busy input trust (ok=True is this check only, not overall readiness).
+    busy_input_trust: BusyInputTrust | None = None
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -115,6 +118,11 @@ def collect_inputs(
         external_events,
         range_start=horizon_start,
         range_end=horizon_end,
+    )
+    busy_input_trust = evaluate_busy_input_trust(
+        external_events,
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
     )
     pinned_blocks_by_task: dict[UUID, list[ScheduledBlock]] = defaultdict(list)
     for block in pinned_blocks:
@@ -292,4 +300,5 @@ def collect_inputs(
         working_windows=working_windows,
         general_windows=general_windows,
         composition_by_task=composition_by_task,
+        busy_input_trust=busy_input_trust,
     )

@@ -105,7 +105,20 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
         preview.stats_json = dict(result.stats)
         preview.finished_at = evaluated_at
 
-        if stale_inputs or stale_revision:
+        trust = getattr(inputs, "busy_input_trust", None)
+        if trust is not None and not trust.ok:
+            # T1-A: do not claim apply-ready busy trust when BusyInputTrust fails.
+            preview.status = "failed"
+            preview.expires_at = None
+            preview.error_message = (
+                "BusyInputTrust.ok=false: unknown or unresolved free/busy "
+                "intersects placement inputs (cannot prove non-intersection)."
+            )
+            preview.stats_json = {
+                **(preview.stats_json or {}),
+                "busy_input_trust": trust.to_dict(),
+            }
+        elif stale_inputs or stale_revision:
             preview.status = "stale"
             preview.expires_at = None
             preview.error_message = None
@@ -123,6 +136,11 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
         else:
             preview.status = "ready"
             preview.expires_at = _preview_expires(evaluated_at)
+            if trust is not None:
+                preview.stats_json = {
+                    **(preview.stats_json or {}),
+                    "busy_input_trust": {"ok": True},
+                }
 
         db.commit()
     except Exception as exc:
