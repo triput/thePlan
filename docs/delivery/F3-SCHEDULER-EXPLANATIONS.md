@@ -73,9 +73,11 @@ Recorded on `schedule_task_outcomes` and returned on explanation GETs. W1 codes 
 
 Full formatter coverage: [apps/api/app/scheduler/reasons.py](../../apps/api/app/scheduler/reasons.py).
 
-## Snapshot v3, `f3-w2`, and stale categories
+## Snapshot v4, `f3-w2`, and stale categories
 
-New replans persist **`input_snapshot`** with **`v`: 3** and **`algorithm_version`: `f3-w2`**. **`v`** is the fingerprint contract only — the placement algorithm version stays **`f3-w2`**. Older rows (missing snapshot or **`v` ≠ 3**, including F3 **v2**) surface **`provenance`** in **`stale_categories`** on read — categories are not guessed across versions.
+**Current:** new collects persist **`input_snapshot`** with **`v`: 4** (`live_snapshot_version()`) and **`algorithm_version`: `f3-w2`**. **`v`** is the fingerprint contract only — the placement algorithm version stays **`f3-w2`**.
+
+**Cross-version provenance:** stored rows that are missing a snapshot, or whose **`v`** is not the live version (historical **v2** / **v3**, or any other mismatch), surface **`provenance`** in **`stale_categories`** on read — categories are not guessed across versions. Older F3 delivery text that said new replans persist **`v`: 3** / **`v` ≠ 3** is historical; live is **v4**.
 
 **Compared on GET** (never starts replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`, **`time_map_overrides`** (F4-W2 — all overrides on the task's **effective** map; override create/patch/delete on that map changes live compare without auto-replan), plus S2 categories **`availability`**, **`composition`**, **`priority_ups`**, **`scheduling_activation`** when present in the live snapshot.
 

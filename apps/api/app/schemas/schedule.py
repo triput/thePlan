@@ -60,11 +60,11 @@ class ScheduleExplanationOut(BaseModel):
     input_snapshot: dict[str, Any] | None = Field(
         default=None,
         description=(
-            "Task inputs captured at calculation (snapshot v3/v4). Includes duration, "
+            "Task inputs captured at calculation (live snapshot v4). Includes duration, "
             "deadline, map_style, deps, pins, project daily cap, timezone/horizon/workweek, "
             "lifecycle, external busy, prerequisite state, due_at and soft target, "
             "time-map overrides, availability, composition, and priority_ups where present. "
-            "Stored v3 rows compared as provenance when live version differs."
+            "Historical v2/v3 rows surface as provenance when live version differs."
         ),
     )
     is_stale: bool
