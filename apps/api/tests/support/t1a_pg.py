@@ -36,6 +36,32 @@ def _docker_exec(
     )
 
 
+def _inspect_json(name: str) -> dict[str, Any]:
+    inspect = subprocess.run(
+        ["docker", "inspect", name, "--format", "{{json .}}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(inspect.stdout)
+
+
+def _mount_identities(payload: dict[str, Any]) -> set[str]:
+    """Host-side mount identities (Name/Source/Binds). Skip Destination — same
+    in-container path on every Postgres image is not volume sharing."""
+    ids: set[str] = set()
+    for m in payload.get("Mounts") or []:
+        name = str(m.get("Name") or "").strip()
+        source = str(m.get("Source") or "").strip()
+        if name:
+            ids.add(f"name:{name}")
+        if source:
+            ids.add(f"source:{source}")
+    for b in (payload.get("HostConfig") or {}).get("Binds") or []:
+        ids.add(f"bind:{b}")
+    return ids
+
+
 def assert_t1a_container_isolated(container: str = T1A_PG_CONTAINER) -> dict[str, Any]:
     """Refuse household compose Postgres; verify name, DB, ports, mounts, network."""
     if container == _HOUSEHOLD_PG_CONTAINER:
@@ -45,40 +71,38 @@ def assert_t1a_container_isolated(container: str = T1A_PG_CONTAINER) -> dict[str
             f"refusing unexpected container {container!r}; expected {T1A_PG_CONTAINER!r}"
         )
 
-    inspect = subprocess.run(
-        [
-            "docker",
-            "inspect",
-            container,
-            "--format",
-            "{{json .}}",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    payload = json.loads(inspect.stdout)
+    payload = _inspect_json(container)
     ports = payload.get("NetworkSettings", {}).get("Ports") or {}
     bindings = ports.get("5432/tcp") or []
     if not bindings:
         raise RuntimeError("disposable Postgres has no published 5432/tcp binding")
+    if len(bindings) != 1:
+        raise RuntimeError(f"expected exactly one host binding, got {bindings!r}")
     bind = bindings[0]
     if bind.get("HostIp") != _EXPECTED_HOST_IP or bind.get("HostPort") != _EXPECTED_HOST_PORT:
         raise RuntimeError(
             f"expected publish {_EXPECTED_HOST_IP}:{_EXPECTED_HOST_PORT}, got {bind!r}"
         )
 
+    networks = set((payload.get("NetworkSettings") or {}).get("Networks") or {})
+    # Standalone disposable must not join compose project networks.
+    compose_nets = {n for n in networks if n.startswith("compose") or "_default" in n}
+    if compose_nets:
+        raise RuntimeError(f"refusing compose-project networks: {sorted(compose_nets)}")
+    if networks != {"bridge"}:
+        raise RuntimeError(f"expected networks={{bridge}}, got {sorted(networks)}")
+
     mounts = payload.get("Mounts") or []
     binds = (payload.get("HostConfig") or {}).get("Binds") or []
-    for m in mounts:
-        src = str(m.get("Source") or "")
-        if "compose" in src.lower() and "postgres" in src.lower():
-            raise RuntimeError(f"refusing household-like mount: {src}")
-    for b in binds:
-        if "compose" in str(b).lower():
-            raise RuntimeError(f"refusing household-like bind: {b}")
+    t1a_ids = _mount_identities(payload)
+    try:
+        household = _inspect_json(_HOUSEHOLD_PG_CONTAINER)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError("cannot inspect household compose-postgres-1 for mount compare") from exc
+    shared = t1a_ids & _mount_identities(household)
+    if shared:
+        raise RuntimeError(f"refusing shared mount/bind identity with household: {sorted(shared)}")
 
-    networks = list((payload.get("NetworkSettings") or {}).get("Networks") or {})
     db = _docker_exec(
         container,
         "psql",
@@ -100,7 +124,8 @@ def assert_t1a_container_isolated(container: str = T1A_PG_CONTAINER) -> dict[str
         "host_port": bind.get("HostPort"),
         "mounts": mounts,
         "binds": binds,
-        "networks": networks,
+        "networks": sorted(networks),
+        "shared_mount_identities": [],
         "status": (payload.get("State") or {}).get("Status"),
     }
 
@@ -273,13 +298,18 @@ def measure_post_restore() -> dict[str, Any]:
 
 
 def assert_disposable_database_url(url: str) -> None:
-    """Guard: only theplan_t1a_test on loopback :5433."""
-    if "theplan_t1a_test" not in url:
-        raise RuntimeError(f"refusing DATABASE_URL without theplan_t1a_test: {url!r}")
-    if "5433" not in url:
-        raise RuntimeError(f"refusing DATABASE_URL without :5433: {url!r}")
-    if "5432" in url.split("@")[-1]:
-        raise RuntimeError(f"refusing household-port DATABASE_URL: {url!r}")
+    """Guard: exact loopback host, port 5433, database theplan_t1a_test."""
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    port = parsed.port
+    db = (parsed.path or "").lstrip("/")
+    if host not in ("127.0.0.1", "localhost") or port != 5433 or db != DISPOSABLE_TARGET_DB:
+        raise RuntimeError(
+            "refusing DSN: require loopback host, port 5433, "
+            f"database {DISPOSABLE_TARGET_DB!r}"
+        )
 
 
 __all__ = [

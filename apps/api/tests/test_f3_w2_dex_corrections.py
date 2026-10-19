@@ -73,6 +73,11 @@ def test_collect_captures_immovable_busy_once(
 
 
 def test_busy_from_sources_derives_horizon_view_from_same_capture() -> None:
+    """Same captured busy set at two horizons (not unknown-event policy).
+
+    External fixture must be explicit opaque — T1-A excludes unknown from merge;
+    unknown-blocks coverage lives in trust-guard tests separately.
+    """
     pin = MagicMock()
     pin.start_time = FIXED_NOW + timedelta(hours=1)
     pin.end_time = FIXED_NOW + timedelta(hours=2)
@@ -80,6 +85,11 @@ def test_busy_from_sources_derives_horizon_view_from_same_capture() -> None:
     event = MagicMock()
     event.start_time = FIXED_NOW + timedelta(days=10)
     event.end_time = FIXED_NOW + timedelta(days=10, hours=1)
+    event.transparency = "opaque"
+    event.free_busy_provenance = "provider_explicit"
+    event.free_busy_pending_exception = False
+    event.source_zone_missing = False
+    event.provider_series_id = None
     full = busy_from_sources([pin], [event])
     horizon = busy_from_sources(
         [pin],
