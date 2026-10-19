@@ -14,6 +14,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "034_external_event_free_busy"
 down_revision: Union[str, None] = "033_custom_availability_slug"
@@ -52,6 +53,10 @@ def upgrade() -> None:
     )
     op.add_column(
         "external_calendar_events",
+        sa.Column("free_busy_change_history", postgresql.JSONB(), nullable=True),
+    )
+    op.add_column(
+        "external_calendar_events",
         sa.Column(
             "source_zone_missing",
             sa.Boolean(),
@@ -73,6 +78,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_column("external_calendar_events", "free_busy_pending_exception")
     op.drop_column("external_calendar_events", "source_zone_missing")
+    op.drop_column("external_calendar_events", "free_busy_change_history")
     op.drop_column("external_calendar_events", "free_busy_changed_at")
     op.drop_column("external_calendar_events", "free_busy_sync_run_id")
     op.drop_column("external_calendar_events", "free_busy_prior_provenance")

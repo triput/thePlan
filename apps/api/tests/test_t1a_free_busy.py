@@ -106,6 +106,23 @@ def test_missing_zone_and_pending_exception_block() -> None:
     ).ok is False
 
 
+def test_missing_zone_outside_horizon_still_blocks() -> None:
+    """Untrusted bounds must not prove irrelevance (§3.1)."""
+    far = _Evt(
+        "opaque",
+        "provider_explicit",
+        datetime(2026, 11, 1, 0, 0, tzinfo=timezone.utc),
+        datetime(2026, 11, 1, 1, 0, tzinfo=timezone.utc),
+        source_zone_missing=True,
+    )
+    trust = evaluate_busy_input_trust(
+        [far], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+    assert trust.affected_horizon == "unknown_extent"
+    assert any(d.cause == "missing_source_zone" for d in trust.blocking_diagnostics)
+
+
 def test_transparent_ok_and_opaque_inside_transparent() -> None:
     free = _Evt("transparent", "provider_explicit", HORIZON_START, HORIZON_END)
     inner = _Evt(
@@ -216,7 +233,7 @@ def test_trust_to_dict_json_serializable() -> None:
     assert isinstance(payload["blocking_diagnostics"][0]["start"], str)
 
 
-def test_apply_transparency_retains_prior() -> None:
+def test_apply_transparency_retains_prior_and_appends_history() -> None:
     row = SimpleNamespace(
         transparency="opaque",
         free_busy_provenance="provider_default_omitted",
@@ -224,17 +241,32 @@ def test_apply_transparency_retains_prior() -> None:
         free_busy_prior_provenance=None,
         free_busy_sync_run_id=None,
         free_busy_changed_at=None,
+        free_busy_change_history=None,
     )
     apply_transparency_update(
         row,
         stored="transparent",
         provenance="provider_explicit",
-        sync_run_id="run-1",
+        sync_run_id="batch-run-1",
     )
     assert row.transparency == "transparent"
     assert row.free_busy_prior_transparency == "opaque"
     assert row.free_busy_prior_provenance == "provider_default_omitted"
-    assert row.free_busy_sync_run_id == "run-1"
+    assert row.free_busy_sync_run_id == "batch-run-1"
+    assert len(row.free_busy_change_history) == 1
+    assert row.free_busy_change_history[0]["sync_run_id"] == "batch-run-1"
+    assert row.free_busy_change_history[0]["from_transparency"] == "opaque"
+
+    apply_transparency_update(
+        row,
+        stored="opaque",
+        provenance="provider_explicit",
+        sync_run_id="batch-run-2",
+    )
+    assert len(row.free_busy_change_history) == 2
+    assert row.free_busy_change_history[0]["sync_run_id"] == "batch-run-1"
+    assert row.free_busy_change_history[1]["sync_run_id"] == "batch-run-2"
+    assert row.free_busy_prior_transparency == "transparent"
 
 
 def test_snapshot_rejects_bad_target_and_dummy_and_overwrite(tmp_path: Path) -> None:
@@ -323,22 +355,211 @@ def test_cli_listing_and_disposable_constant() -> None:
     assert "Rollups:" in text
 
 
-def test_preview_seam_blocks_before_proposal() -> None:
-    """Mirror run_preview: require trust before building a proposal."""
+def test_run_preview_fails_closed_without_calling_calculate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Production run_preview: trust fail → failed status, no calculate, no proposal."""
+    from unittest.mock import MagicMock
+    from uuid import uuid4
+
+    from app.scheduler import preview as preview_mod
+
+    calc_calls: list[object] = []
+    monkeypatch.setattr(
+        preview_mod, "calculate", lambda *a, **k: calc_calls.append(True)
+    )
+
+    owner_id = uuid4()
+    preview_id = uuid4()
+    preview = SimpleNamespace(
+        id=preview_id,
+        owner_id=owner_id,
+        status="running",
+        proposal_json={"stale": True},
+        stats_json=None,
+        error_message=None,
+        finished_at=None,
+        expires_at=None,
+        scheduling_revision=None,
+        input_snapshot=None,
+        input_fingerprint=None,
+        algorithm_version=None,
+        evaluated_at=None,
+    )
+    settings = SimpleNamespace(scheduling_revision=1)
     unknown = _Evt(None, "unknown_legacy", HORIZON_START, HORIZON_END)
     trust = evaluate_busy_input_trust(
         [unknown], horizon_start=HORIZON_START, horizon_end=HORIZON_END
     )
-    proposal = {"built": False}
+    inputs = SimpleNamespace(
+        busy_input_trust=trust,
+        horizon_start=HORIZON_START,
+        horizon_end=HORIZON_END,
+    )
+    monkeypatch.setattr(preview_mod, "collect_inputs", lambda *a, **k: inputs)
 
-    def run_preview_seam() -> None:
-        require_busy_input_trust(trust)
-        proposal["built"] = True
-        proposal["json"] = {"blocks": [1]}
+    db = MagicMock()
+    db.get.side_effect = lambda model, key: preview
+    db.query.return_value.filter.return_value.one_or_none.return_value = settings
+    db.query.return_value.filter.return_value.one.return_value = settings
 
-    with pytest.raises(BusyInputTrustError) as exc:
-        run_preview_seam()
-    assert proposal["built"] is False
-    assert "json" not in proposal
-    # stats_json-safe payload
-    json.dumps({"busy_input_trust": exc.value.trust.to_dict()})
+    preview_mod.run_preview(preview_id, db=db)
+
+    assert calc_calls == []
+    assert preview.status == "failed"
+    assert preview.proposal_json is None
+    assert preview.stats_json is not None
+    assert preview.stats_json["busy_input_trust"]["ok"] is False
+    json.dumps(preview.stats_json)
+
+
+def test_run_replan_fails_closed_without_calling_calculate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from unittest.mock import MagicMock
+    from uuid import uuid4
+
+    from app.scheduler import replan as replan_mod
+
+    calc_calls: list[object] = []
+    apply_calls: list[object] = []
+    monkeypatch.setattr(replan_mod, "calculate", lambda *a, **k: calc_calls.append(True))
+    monkeypatch.setattr(
+        replan_mod, "apply_calculation", lambda *a, **k: apply_calls.append(True)
+    )
+    monkeypatch.setattr(replan_mod, "lock_owner_scheduling", lambda *a, **k: None)
+
+    run_id = uuid4()
+    run = SimpleNamespace(
+        id=run_id,
+        owner_id=uuid4(),
+        status="running",
+        error_message=None,
+        finished_at=None,
+        stats_json=None,
+    )
+    trust = evaluate_busy_input_trust(
+        [_Evt(None, "unknown_legacy", HORIZON_START, HORIZON_END)],
+        horizon_start=HORIZON_START,
+        horizon_end=HORIZON_END,
+    )
+    monkeypatch.setattr(
+        replan_mod,
+        "collect_inputs",
+        lambda *a, **k: SimpleNamespace(busy_input_trust=trust),
+    )
+    db = MagicMock()
+    db.get.side_effect = lambda model, key: run
+
+    replan_mod.run_replan(run_id, db=db)
+
+    assert calc_calls == []
+    assert apply_calls == []
+    assert run.status == "failed"
+    assert run.stats_json["busy_input_trust"]["ok"] is False
+
+
+def test_google_source_zone_missing_from_payload() -> None:
+    from app.services.google_calendar import google_source_zone_missing
+
+    assert google_source_zone_missing(
+        {"start": {"date": "2026-10-19"}, "end": {"date": "2026-10-20"}}
+    )
+    assert not google_source_zone_missing(
+        {
+            "start": {"date": "2026-10-19", "timeZone": "America/Los_Angeles"},
+            "end": {"date": "2026-10-20", "timeZone": "America/Los_Angeles"},
+        }
+    )
+    assert not google_source_zone_missing(
+        {
+            "start": {"dateTime": "2026-10-19T18:00:00Z"},
+            "end": {"dateTime": "2026-10-19T19:00:00Z"},
+        }
+    )
+
+
+def test_upsert_sets_zone_flag_history_and_series_loss(monkeypatch: pytest.MonkeyPatch) -> None:
+    from unittest.mock import MagicMock
+    from uuid import uuid4
+
+    from app.services import google_calendar as gc
+
+    owner = uuid4()
+    account = SimpleNamespace(id=uuid4(), owner_id=owner)
+    subscription = SimpleNamespace(id=uuid4(), external_calendar_id="cal-1")
+    existing = SimpleNamespace(
+        pending_deletion=False,
+        calendar_id="cal-1",
+        provider_series_id="series-old",
+        calendar_account_id=None,
+        title=None,
+        start_time=None,
+        end_time=None,
+        is_all_day=False,
+        last_synced_at=None,
+        source_zone_missing=False,
+        transparency="opaque",
+        free_busy_provenance="provider_default_omitted",
+        free_busy_prior_transparency=None,
+        free_busy_prior_provenance=None,
+        free_busy_sync_run_id=None,
+        free_busy_changed_at=None,
+        free_busy_change_history=None,
+        free_busy_pending_exception=False,
+    )
+
+    monkeypatch.setattr(gc, "_find_external_event", lambda *a, **k: existing)
+    event = {
+        "id": "evt-1",
+        "summary": "Standup",
+        "transparency": "transparent",
+        "start": {"date": "2026-10-19"},
+        "end": {"date": "2026-10-20"},
+        # no recurringEventId → series identity loss
+    }
+    assert (
+        gc._upsert_external_event(
+            MagicMock(),
+            account=account,
+            subscription=subscription,
+            event=event,
+            now=datetime.now(timezone.utc),
+            sync_run_id="batch-xyz",
+        )
+        is True
+    )
+    assert existing.source_zone_missing is True
+    assert existing.free_busy_pending_exception is True
+    assert existing.provider_series_id is None
+    assert existing.transparency == "transparent"
+    assert existing.free_busy_sync_run_id == "batch-xyz"
+    assert len(existing.free_busy_change_history) == 1
+
+
+def test_api_busy_input_trust_listing_from_evaluate() -> None:
+    """API path: evaluate → format_cli_listing (time + rollup), not a hardcoded string."""
+    from app.scheduler.free_busy import format_cli_listing
+
+    unknown = _Evt(
+        None,
+        "unknown_legacy",
+        datetime(2026, 10, 19, 18, 0, tzinfo=timezone.utc),
+        datetime(2026, 10, 19, 19, 0, tzinfo=timezone.utc),
+        title="Kubernetes graded assessment",
+        external_event_id="evt-k8s-1",
+    )
+    trust = evaluate_busy_input_trust(
+        [unknown],
+        horizon_start=HORIZON_START,
+        horizon_end=HORIZON_END,
+        calendar_name_by_id={"cal-1": "TP@Gmail"},
+    )
+    listing = format_cli_listing(trust)
+    assert "BusyInputTrust.ok=False" in listing
+    assert "TP@Gmail" in listing
+    assert "Kubernetes graded assessment" in listing
+    assert "evt-k8s-1" in listing
+    assert "2026-10-19T18:00:00" in listing
+    assert "Rollups:" in listing
+    assert 'refresh "TP@Gmail"' in listing

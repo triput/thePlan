@@ -171,6 +171,29 @@ def parse_google_event_times(event: dict[str, Any]) -> tuple[datetime, datetime,
     return None
 
 
+def google_source_zone_missing(event: dict[str, Any]) -> bool:
+    """True when Google payload lacks an attributable source zone (T1-A, no conversion).
+
+    Date-only events need an explicit IANA ``timeZone`` on start or end — UTC midnight
+    inventing in ``parse_google_event_times`` is not source provenance. Timed events
+    are accepted when ``timeZone`` is present or the dateTime strings carry an offset/Z.
+    """
+    start = event.get("start") or {}
+    end = event.get("end") or {}
+    if start.get("timeZone") or end.get("timeZone"):
+        return False
+    if "date" in start and "date" in end:
+        return True
+    if "dateTime" in start and "dateTime" in end:
+        def _has_offset(raw: Any) -> bool:
+            if not isinstance(raw, str) or not raw:
+                return False
+            return raw.endswith("Z") or "+" in raw[10:] or raw.count("-") >= 3
+
+        return not (_has_offset(start.get("dateTime")) and _has_offset(end.get("dateTime")))
+    return True
+
+
 def _paginate_events(
     access_token: str,
     url: str,
@@ -474,6 +497,7 @@ def _upsert_external_event(
     subscription: CalendarSubscription,
     event: dict[str, Any],
     now: datetime,
+    sync_run_id: str,
 ) -> bool:
     external_id = event.get("id")
     if not external_id:
@@ -509,20 +533,19 @@ def _upsert_external_event(
     row.is_all_day = is_all_day
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
-    # T1-A: Google transparency + provenance (retain prior values on change).
+    row.source_zone_missing = google_source_zone_missing(event)
+    # T1-A: Google transparency + provenance (append-only history on change).
     stored, provenance, _kind = resolve_google_transparency(
         event, complete_representation=True, field_projected=False
     )
-    sync_run_id = f"google-{now.strftime('%Y%m%dT%H%M%SZ')}-{external_id[:12]}"
     apply_transparency_update(
         row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
     )
     recurring = event.get("recurringEventId")
     new_series = str(recurring) if recurring else None
-    # Calendar move or series id change → pending exception (contract §3.4).
+    # Calendar move, series id change, or series identity loss → pending (§3.4).
     if old_series and (
-        (new_series and old_series != new_series)
-        or old_cal != subscription.external_calendar_id
+        old_series != new_series or old_cal != subscription.external_calendar_id
     ):
         row.free_busy_pending_exception = True
     row.provider_series_id = new_series
@@ -574,6 +597,7 @@ def _apply_subscription_full(
     suppressed = suppressed_external_ids or set()
     seen_external_ids: set[str] = set()
     upserted = 0
+    sync_run_id = f"google-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
     for event in events:
         status = event.get("status")
@@ -595,6 +619,7 @@ def _apply_subscription_full(
             subscription=subscription,
             event=event,
             now=now,
+            sync_run_id=sync_run_id,
         ):
             upserted += 1
 
@@ -631,6 +656,7 @@ def _apply_subscription_incremental(
 ) -> int:
     suppressed = suppressed_external_ids or set()
     upserted = 0
+    sync_run_id = f"google-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
     for event in events:
         status = event.get("status")
@@ -650,6 +676,7 @@ def _apply_subscription_incremental(
             subscription=subscription,
             event=event,
             now=now,
+            sync_run_id=sync_run_id,
         ):
             upserted += 1
 

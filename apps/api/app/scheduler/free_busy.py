@@ -276,19 +276,14 @@ def evaluate_busy_input_trust(
             )
 
         if missing_zone:
-            overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
-            if overlap is False:
-                pass
-            else:
-                _block("missing_source_zone", extent_unknown=overlap is None)
+            # §3.1: missing source zone is always blocking — stored bounds are
+            # untrusted, so "outside horizon" is not a positive proof of irrelevance.
+            _block("missing_source_zone", extent_unknown=True)
             continue
 
         if pending:
-            overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
-            if overlap is False:
-                pass
-            else:
-                _block("pending_exception_policy", extent_unknown=overlap is None)
+            # Pending policy: cannot treat as busy or free until resolved.
+            _block("pending_exception_policy", extent_unknown=True)
             continue
 
         if kind in ("busy", "free"):
@@ -430,13 +425,28 @@ def apply_transparency_update(
     provenance: str,
     sync_run_id: str,
 ) -> None:
-    """Persist new free/busy values while retaining prior (contract §4.2)."""
+    """Persist new free/busy values with append-only change history (§4.2)."""
     prior_t = getattr(row, "transparency", None)
     prior_p = getattr(row, "free_busy_provenance", None)
+    changed_at = datetime.now(timezone.utc)
     if prior_t != stored or prior_p != provenance:
         row.free_busy_prior_transparency = prior_t
         row.free_busy_prior_provenance = prior_p
-        row.free_busy_changed_at = datetime.now(timezone.utc)
+        row.free_busy_changed_at = changed_at
+        history = list(getattr(row, "free_busy_change_history", None) or [])
+        history.append(
+            {
+                "at": changed_at.replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z"),
+                "sync_run_id": sync_run_id,
+                "from_transparency": prior_t,
+                "from_provenance": prior_p,
+                "to_transparency": stored,
+                "to_provenance": provenance,
+            }
+        )
+        row.free_busy_change_history = history
     row.transparency = stored
     row.free_busy_provenance = provenance
     row.free_busy_sync_run_id = sync_run_id
