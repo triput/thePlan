@@ -21,6 +21,7 @@ from app.scheduler.busy_map import BusyInterval
 from app.scheduler.calculate import calculate
 from app.scheduler.candidates import TaskCandidate
 from app.scheduler.collect import SchedulingInputs
+from app.scheduler.free_busy import BusyInputTrust
 from app.scheduler.placement import PlacementResult, ProposedBlock, place_one_block
 from app.scheduler.preview_proposal import (
     build_proposal_json,
@@ -329,6 +330,13 @@ def test_successful_placement_reports_fixed_pair_on_calculate_and_preview() -> N
         reserved_minutes=0,
         effort_minutes=15,
     )
+    # Evaluated trust required at calculate boundary (None fails closed).
+    trust = BusyInputTrust(
+        ok=True,
+        blocking_diagnostics=[],
+        affected_horizon={"start": NOW.isoformat(), "end": HORIZON_END.isoformat()},
+        rollups=[],
+    )
     inputs = SchedulingInputs(
         owner_id=task.owner_id,
         user_settings=settings,
@@ -352,6 +360,7 @@ def test_successful_placement_reports_fixed_pair_on_calculate_and_preview() -> N
         daily_cap=None,
         pinned_blocks_by_task={},
         immovable_busy=list(busy),
+        busy_input_trust=trust,
     )
 
     result = calculate(None, inputs)  # type: ignore[arg-type]
