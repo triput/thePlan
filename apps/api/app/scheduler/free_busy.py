@@ -2,17 +2,20 @@
 
 BusyInputTrust is a collect-time input check only — ok=True does not mean
 overall scheduling readiness (deps, caps, freshness, etc.).
+
+Fail-closed: calculate/replan/preview must refuse placement when ok=False.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass, field
+import shutil
+import uuid
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Literal, Mapping, Sequence
-from uuid import UUID
 
 FreeBusyKind = Literal["busy", "free", "unknown"]
 ProvenanceLabel = Literal[
@@ -25,9 +28,38 @@ ProvenanceLabel = Literal[
 ]
 
 T1A_FIXTURE_ROOT = Path(r"F:\thePlan-imports\investigation-2026-10-19\t1a-fixtures")
+DISPOSABLE_TARGET_DB = "theplan_t1a_test"
+REQUIRED_SNAPSHOT_ARTIFACTS = ("db.dump", "manifest.json", "checksums.sha256")
 
-# Exception policies keyed by verified provider series id (never by title).
-_EXCEPTION_POLICIES: dict[str, FreeBusyKind] = {}
+# Exception policies: owner / provider / calendar / series (never title alone).
+_EXCEPTION_POLICIES: dict[tuple[str, str, str, str], FreeBusyKind] = {}
+
+
+class BusyInputTrustError(RuntimeError):
+    """Raised when BusyInputTrust.ok is false — blocks calculate/apply."""
+
+    def __init__(self, trust: "BusyInputTrust") -> None:
+        self.trust = trust
+        super().__init__(
+            "BusyInputTrust.ok=false: unresolved free/busy or related input "
+            "blocks placement (cannot prove non-intersection)."
+        )
+
+
+@dataclass(frozen=True)
+class ExceptionIdentity:
+    owner_id: str
+    provider: str
+    calendar_id: str
+    series_id: str
+
+    def key(self) -> tuple[str, str, str, str]:
+        return (
+            str(self.owner_id),
+            str(self.provider),
+            str(self.calendar_id),
+            str(self.series_id),
+        )
 
 
 @dataclass(frozen=True)
@@ -39,7 +71,7 @@ class FreeBusyDiagnostic:
     start: datetime | None
     end: datetime | None
     blocking_current_proposal: bool
-    affected_horizon: str  # ISO range or "unknown_extent"
+    affected_horizon: str
     provenance: str | None = None
 
     def display_line(self) -> str:
@@ -50,6 +82,19 @@ class FreeBusyDiagnostic:
             f'{self.cause}: calendar "{self.calendar_name}", '
             f'title "{self.event_title}", {when}, id={self.event_id}'
         )
+
+    def to_jsonable(self) -> dict[str, Any]:
+        return {
+            "cause": self.cause,
+            "calendar_name": self.calendar_name,
+            "event_title": self.event_title,
+            "event_id": self.event_id,
+            "start": self.start.isoformat() if self.start else None,
+            "end": self.end.isoformat() if self.end else None,
+            "blocking_current_proposal": self.blocking_current_proposal,
+            "affected_horizon": self.affected_horizon,
+            "provenance": self.provenance,
+        }
 
 
 @dataclass(frozen=True)
@@ -62,40 +107,48 @@ class DiagnosticRollup:
     def display_line(self) -> str:
         return f'{self.recovery}: {self.count} events with {self.cause}'
 
+    def to_jsonable(self) -> dict[str, Any]:
+        return {
+            "calendar_name": self.calendar_name,
+            "cause": self.cause,
+            "count": self.count,
+            "recovery": self.recovery,
+        }
+
 
 @dataclass
 class BusyInputTrust:
-    """Collect-time free/busy input trust result (T1-A)."""
-
     ok: bool
     blocking_diagnostics: list[FreeBusyDiagnostic] = field(default_factory=list)
     affected_horizon: dict[str, str] | Literal["unknown_extent"] | None = None
     rollups: list[DiagnosticRollup] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
+        """JSON-safe (datetimes already ISO in diagnostics)."""
         return {
             "ok": self.ok,
-            "blocking_diagnostics": [asdict(d) for d in self.blocking_diagnostics],
+            "blocking_diagnostics": [d.to_jsonable() for d in self.blocking_diagnostics],
             "affected_horizon": self.affected_horizon,
-            "rollups": [asdict(r) for r in self.rollups],
+            "rollups": [r.to_jsonable() for r in self.rollups],
         }
 
 
-def register_exception_policy(provider_series_id: str, mapping: FreeBusyKind) -> None:
-    """Attach a non-blocking policy only to a verified provider series id."""
-    if not provider_series_id or not str(provider_series_id).strip():
-        raise ValueError("exception policy requires verified provider_series_id")
-    _EXCEPTION_POLICIES[str(provider_series_id)] = mapping
+def register_exception_policy(identity: ExceptionIdentity, mapping: FreeBusyKind) -> None:
+    if not identity.series_id or not str(identity.series_id).strip():
+        raise ValueError("exception policy requires verified provider series id")
+    if not identity.calendar_id or not identity.provider or not identity.owner_id:
+        raise ValueError("exception policy requires owner, provider, and calendar")
+    _EXCEPTION_POLICIES[identity.key()] = mapping
 
 
 def clear_exception_policies() -> None:
     _EXCEPTION_POLICIES.clear()
 
 
-def lookup_exception_policy(provider_series_id: str | None) -> FreeBusyKind | None:
-    if not provider_series_id:
+def lookup_exception_policy(identity: ExceptionIdentity | None) -> FreeBusyKind | None:
+    if identity is None or not identity.series_id:
         return None
-    return _EXCEPTION_POLICIES.get(str(provider_series_id))
+    return _EXCEPTION_POLICIES.get(identity.key())
 
 
 def resolve_google_transparency(
@@ -104,10 +157,6 @@ def resolve_google_transparency(
     complete_representation: bool = True,
     field_projected: bool = False,
 ) -> tuple[str | None, ProvenanceLabel, FreeBusyKind]:
-    """Cases A/B/C from Track-1-Contracts §1.1.
-
-    Returns (stored_transparency, provenance, busy_kind).
-    """
     if field_projected or not complete_representation:
         return None, "unknown_projection", "unknown"
 
@@ -118,7 +167,6 @@ def resolve_google_transparency(
             return str(raw), "provider_explicit", kind
         return None, "unknown_projection", "unknown"
 
-    # Case B: complete fresh representation omits the field → documented opaque.
     return "opaque", "provider_default_omitted", "busy"
 
 
@@ -126,9 +174,12 @@ def effective_free_busy_kind(
     *,
     transparency: str | None,
     provenance: str | None,
-    provider_series_id: str | None = None,
+    identity: ExceptionIdentity | None = None,
+    pending_exception: bool = False,
 ) -> FreeBusyKind:
-    policy = lookup_exception_policy(provider_series_id)
+    if pending_exception:
+        return "unknown"
+    policy = lookup_exception_policy(identity)
     if policy is not None:
         return policy
 
@@ -149,10 +200,27 @@ def _ranges_overlap(
     b_start: datetime,
     b_end: datetime,
 ) -> bool | None:
-    """True/False when both bounds known; None when cannot prove."""
     if a_start is None or a_end is None:
         return None
     return a_start < b_end and a_end > b_start
+
+
+def _event_identity(event: Any) -> ExceptionIdentity | None:
+    series = getattr(event, "provider_series_id", None)
+    if not series:
+        return None
+    owner = getattr(event, "owner_id", None)
+    provider = getattr(event, "provider", None)
+    calendar = getattr(event, "calendar_id", None)
+    if owner is None or provider is None or not calendar:
+        return None
+    provider_s = getattr(provider, "value", None) or str(provider)
+    return ExceptionIdentity(
+        owner_id=str(owner),
+        provider=str(provider_s),
+        calendar_id=str(calendar),
+        series_id=str(series),
+    )
 
 
 def evaluate_busy_input_trust(
@@ -162,10 +230,7 @@ def evaluate_busy_input_trust(
     horizon_end: datetime,
     calendar_name_by_id: Mapping[str, str] | None = None,
 ) -> BusyInputTrust:
-    """Build BusyInputTrust for events intersecting (or possibly intersecting) horizon.
-
-    Cannot prove non-intersection ⇒ blocking (ok=False). Title never matches policy.
-    """
+    """Build BusyInputTrust. Cannot prove non-intersection ⇒ ok=False."""
     names = calendar_name_by_id or {}
     blocking: list[FreeBusyDiagnostic] = []
     unknown_extent = False
@@ -173,11 +238,14 @@ def evaluate_busy_input_trust(
     for event in events:
         transparency = getattr(event, "transparency", None)
         provenance = getattr(event, "free_busy_provenance", None)
-        series_id = getattr(event, "provider_series_id", None)
+        identity = _event_identity(event)
+        pending = bool(getattr(event, "free_busy_pending_exception", False))
+        missing_zone = bool(getattr(event, "source_zone_missing", False))
         kind = effective_free_busy_kind(
             transparency=transparency,
             provenance=provenance,
-            provider_series_id=series_id,
+            identity=identity,
+            pending_exception=pending,
         )
         start = getattr(event, "start_time", None)
         end = getattr(event, "end_time", None)
@@ -186,54 +254,64 @@ def evaluate_busy_input_trust(
         title = getattr(event, "title", None) or "(untitled)"
         eid = getattr(event, "external_event_id", None) or str(getattr(event, "id", ""))
 
-        if kind == "free":
-            continue
-        if kind == "busy":
+        def _block(cause: str, *, extent_unknown: bool) -> None:
+            nonlocal unknown_extent
+            if extent_unknown:
+                unknown_extent = True
+                horizon_label = "unknown_extent"
+            else:
+                horizon_label = f"{horizon_start.isoformat()}/{horizon_end.isoformat()}"
+            blocking.append(
+                FreeBusyDiagnostic(
+                    cause=cause,
+                    calendar_name=cal_name,
+                    event_title=title,
+                    event_id=str(eid),
+                    start=start,
+                    end=end,
+                    blocking_current_proposal=True,
+                    affected_horizon=horizon_label,
+                    provenance=provenance,
+                )
+            )
+
+        if missing_zone:
             overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
             if overlap is False:
-                continue
-            # busy events are occupancy, not trust failures
+                pass
+            else:
+                _block("missing_source_zone", extent_unknown=overlap is None)
             continue
 
-        # unknown
+        if pending:
+            overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
+            if overlap is False:
+                pass
+            else:
+                _block("pending_exception_policy", extent_unknown=overlap is None)
+            continue
+
+        if kind in ("busy", "free"):
+            overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
+            if overlap is None:
+                # Known kind but unknown bounds — cannot prove irrelevance.
+                _block(f"unknown_extent:{kind}", extent_unknown=True)
+            # known busy/free with known bounds: occupancy handled in busy_map; not a trust fail
+            continue
+
+        # unknown free/busy
         overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
         if overlap is False:
             continue
-        if overlap is None:
-            unknown_extent = True
-            horizon_label = "unknown_extent"
-            blocking_flag = True
-        else:
-            horizon_label = f"{horizon_start.isoformat()}/{horizon_end.isoformat()}"
-            blocking_flag = True
-
         cause = "unknown_free_busy"
         if provenance:
             cause = f"unknown_free_busy:{provenance}"
-        blocking.append(
-            FreeBusyDiagnostic(
-                cause=cause,
-                calendar_name=cal_name,
-                event_title=title,
-                event_id=str(eid),
-                start=start,
-                end=end,
-                blocking_current_proposal=blocking_flag,
-                affected_horizon=horizon_label,
-                provenance=provenance,
-            )
-        )
+        _block(cause, extent_unknown=overlap is None)
 
     rollups = group_diagnostics(blocking)
     ok = len(blocking) == 0
-    affected: dict[str, str] | Literal["unknown_extent"] | None
     if unknown_extent:
-        affected = "unknown_extent"
-    elif blocking:
-        affected = {
-            "start": horizon_start.isoformat(),
-            "end": horizon_end.isoformat(),
-        }
+        affected: dict[str, str] | Literal["unknown_extent"] | None = "unknown_extent"
     else:
         affected = {
             "start": horizon_start.isoformat(),
@@ -245,6 +323,12 @@ def evaluate_busy_input_trust(
         affected_horizon=affected,
         rollups=rollups,
     )
+
+
+def require_busy_input_trust(trust: BusyInputTrust | None) -> None:
+    """Shared fail-closed gate for calculate / replan / preview."""
+    if trust is not None and not trust.ok:
+        raise BusyInputTrustError(trust)
 
 
 def group_diagnostics(diagnostics: Iterable[FreeBusyDiagnostic]) -> list[DiagnosticRollup]:
@@ -288,54 +372,104 @@ def format_cli_listing(trust: BusyInputTrust) -> str:
 
 
 def events_for_busy_merge(events: Sequence[Any]) -> list[Any]:
-    """Return events that should occupy the busy map (opaque / busy only)."""
+    """Opaque/busy only. Unknowns are excluded from occupancy (trust blocks instead)."""
     out = []
     for event in events:
+        if bool(getattr(event, "free_busy_pending_exception", False)):
+            continue
+        if bool(getattr(event, "source_zone_missing", False)):
+            continue
         kind = effective_free_busy_kind(
             transparency=getattr(event, "transparency", None),
             provenance=getattr(event, "free_busy_provenance", None),
-            provider_series_id=getattr(event, "provider_series_id", None),
+            identity=_event_identity(event),
         )
         if kind == "busy":
+            start = getattr(event, "start_time", None)
+            end = getattr(event, "end_time", None)
+            if start is None or end is None:
+                continue  # unknown extent → trust blocks; do not invent occupancy
             out.append(event)
     return out
 
 
+def apply_transparency_update(
+    row: Any,
+    *,
+    stored: str | None,
+    provenance: str,
+    sync_run_id: str,
+) -> None:
+    """Persist new free/busy values while retaining prior (contract §4.2)."""
+    prior_t = getattr(row, "transparency", None)
+    prior_p = getattr(row, "free_busy_provenance", None)
+    if prior_t != stored or prior_p != provenance:
+        row.free_busy_prior_transparency = prior_t
+        row.free_busy_prior_provenance = prior_p
+        row.free_busy_changed_at = datetime.now(timezone.utc)
+    row.transparency = stored
+    row.free_busy_provenance = provenance
+    row.free_busy_sync_run_id = sync_run_id
+
+
 def write_isolated_snapshot(
     *,
-    run_id: str,
-    target_db: str = "theplan_t1a_test",
+    run_id: str | None = None,
+    target_db: str = DISPOSABLE_TARGET_DB,
     alembic_head: str | None = None,
     git_tip: str | None = None,
     captured_unchanged: Sequence[Mapping[str, Any]] | None = None,
-    db_dump_bytes: bytes | None = None,
+    db_dump_bytes: bytes,
     root: Path | None = None,
 ) -> Path:
-    """Write T1-A isolated fixture snapshot under thePlan-imports (never household)."""
+    """Write immutable isolated snapshot. Refuses household targets and overwrites."""
+    if target_db != DISPOSABLE_TARGET_DB:
+        raise ValueError(
+            f"target_db must be {DISPOSABLE_TARGET_DB!r} (got {target_db!r})"
+        )
+    if not db_dump_bytes:
+        raise ValueError("db_dump_bytes required; dummy dumps are not accepted")
+
     base = root or T1A_FIXTURE_ROOT
-    run_dir = base / run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-    dump = db_dump_bytes if db_dump_bytes is not None else b"# disposable fixture dump\n"
+    base.mkdir(parents=True, exist_ok=True)
+    rid = run_id or (
+        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+    )
+    run_dir = base / rid
+    if run_dir.exists():
+        raise FileExistsError(f"snapshot run folder already exists (immutable): {run_dir}")
+
+    run_dir.mkdir(parents=True, exist_ok=False)
     dump_path = run_dir / "db.dump"
-    dump_path.write_bytes(dump)
+    dump_path.write_bytes(db_dump_bytes)
 
     manifest = {
-        "run_id": run_id,
-        "utc_timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "run_id": rid,
+        "utc_timestamp": datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
         "target_db": target_db,
         "alembic_head": alembic_head,
         "git_tip": git_tip,
         "captured_unchanged": list(captured_unchanged or []),
     }
     manifest_path = run_dir / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     checksum_lines = []
-    for path in (dump_path, manifest_path):
+    for name in ("db.dump", "manifest.json"):
+        path = run_dir / name
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        checksum_lines.append(f"{digest}  {path.name}")
+        checksum_lines.append(f"{digest}  {name}")
     checksum_path = run_dir / "checksums.sha256"
     checksum_path.write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
+
+    if not verify_snapshot_checksums(run_dir):
+        shutil.rmtree(run_dir, ignore_errors=True)
+        raise RuntimeError("snapshot checksum verification failed immediately after write")
     return run_dir
 
 
@@ -343,20 +477,44 @@ def verify_snapshot_checksums(run_dir: Path) -> bool:
     checksum_path = run_dir / "checksums.sha256"
     if not checksum_path.is_file():
         return False
-    for line in checksum_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
+    lines = [
+        line.strip()
+        for line in checksum_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    if not lines:
+        return False
+    required = set(REQUIRED_SNAPSHOT_ARTIFACTS) - {"checksums.sha256"}
+    named: set[str] = set()
+    for line in lines:
         digest, _, name = line.partition("  ")
+        if not name or not digest:
+            return False
+        named.add(name)
         path = run_dir / name
         if not path.is_file():
             return False
         if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
             return False
-    return True
+    return required.issubset(named)
 
 
-def exception_policy_matches_title(*, title: str, provider_series_id: str | None) -> bool:
-    """Identity hook: title must never grant a policy. Returns True if mis-matched (bad)."""
-    _ = title  # titles are display-only
-    return lookup_exception_policy(provider_series_id) is not None and not provider_series_id
+def restore_isolated_snapshot(run_dir: Path, *, restore_to: Path) -> Path:
+    """Restore db.dump into a disposable path after checksum verify. Never household."""
+    if not verify_snapshot_checksums(run_dir):
+        raise RuntimeError("snapshot checksum failed; refuse restore / mutation")
+    dump = run_dir / "db.dump"
+    restore_to.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(dump, restore_to)
+    return restore_to
+
+
+def mutate_with_snapshot_gate(
+    run_dir: Path,
+    *,
+    mutate_fn,
+) -> Any:
+    """Run mutate_fn only if snapshot verifies; on failure do not call mutate_fn."""
+    if not verify_snapshot_checksums(run_dir):
+        raise RuntimeError("snapshot failure → stop; do not write")
+    return mutate_fn()

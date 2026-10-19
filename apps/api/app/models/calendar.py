@@ -107,6 +107,16 @@ class ExternalCalendarEvent(Base):
     transparency: Mapped[str | None] = mapped_column(String(32))
     free_busy_provenance: Mapped[str | None] = mapped_column(String(64))
     provider_series_id: Mapped[str | None] = mapped_column(String(255))
+    free_busy_prior_transparency: Mapped[str | None] = mapped_column(String(32))
+    free_busy_prior_provenance: Mapped[str | None] = mapped_column(String(64))
+    free_busy_sync_run_id: Mapped[str | None] = mapped_column(String(64))
+    free_busy_changed_at: Mapped[datetime | None] = mapped_column()
+    source_zone_missing: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    free_busy_pending_exception: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     @classmethod
     def immovable_busy_clause(cls) -> tuple:

@@ -23,7 +23,7 @@ from app.models import (
     Task,
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
-from app.scheduler.free_busy import resolve_google_transparency
+from app.scheduler.free_busy import apply_transparency_update, resolve_google_transparency
 from app.services.token_crypto import decrypt_token, encrypt_token
 
 logger = logging.getLogger(__name__)
@@ -500,6 +500,8 @@ def _upsert_external_event(
         )
         db.add(row)
 
+    old_cal = row.calendar_id
+    old_series = row.provider_series_id
     row.calendar_account_id = account.id
     row.title = (event.get("summary") or "Busy")[:500]
     row.start_time = start_dt
@@ -507,14 +509,23 @@ def _upsert_external_event(
     row.is_all_day = is_all_day
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
-    # T1-A: Google transparency + provenance (complete list/delta resource).
+    # T1-A: Google transparency + provenance (retain prior values on change).
     stored, provenance, _kind = resolve_google_transparency(
         event, complete_representation=True, field_projected=False
     )
-    row.transparency = stored
-    row.free_busy_provenance = provenance
+    sync_run_id = f"google-{now.strftime('%Y%m%dT%H%M%SZ')}-{external_id[:12]}"
+    apply_transparency_update(
+        row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
+    )
     recurring = event.get("recurringEventId")
-    row.provider_series_id = str(recurring) if recurring else None
+    new_series = str(recurring) if recurring else None
+    # Calendar move or series id change → pending exception (contract §3.4).
+    if old_series and (
+        (new_series and old_series != new_series)
+        or old_cal != subscription.external_calendar_id
+    ):
+        row.free_busy_pending_exception = True
+    row.provider_series_id = new_series
     return True
 
 

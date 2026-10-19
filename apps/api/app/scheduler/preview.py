@@ -19,6 +19,7 @@ from app.db import SessionLocal
 from app.models import SchedulePreview, UserSettings
 from app.scheduler.calculate import calculate
 from app.scheduler.collect import collect_inputs
+from app.scheduler.free_busy import BusyInputTrustError, require_busy_input_trust
 from app.scheduler.input_fingerprint import ALGORITHM_VERSION
 from app.scheduler.preview_inputs import fingerprint_collected_inputs, live_owner_fingerprint
 from app.scheduler.preview_planning import preview_collection_time
@@ -62,6 +63,8 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
             raise RuntimeError(f"User settings missing for owner {preview.owner_id}")
 
         inputs = collect_inputs(db, preview.owner_id, now_utc)
+        # Shared fail-closed gate before placement / proposal construction.
+        require_busy_input_trust(inputs.busy_input_trust)
         before_blocks = capture_before_blocks(
             db,
             owner_id=preview.owner_id,
@@ -105,20 +108,7 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
         preview.stats_json = dict(result.stats)
         preview.finished_at = evaluated_at
 
-        trust = getattr(inputs, "busy_input_trust", None)
-        if trust is not None and not trust.ok:
-            # T1-A: do not claim apply-ready busy trust when BusyInputTrust fails.
-            preview.status = "failed"
-            preview.expires_at = None
-            preview.error_message = (
-                "BusyInputTrust.ok=false: unknown or unresolved free/busy "
-                "intersects placement inputs (cannot prove non-intersection)."
-            )
-            preview.stats_json = {
-                **(preview.stats_json or {}),
-                "busy_input_trust": trust.to_dict(),
-            }
-        elif stale_inputs or stale_revision:
+        if stale_inputs or stale_revision:
             preview.status = "stale"
             preview.expires_at = None
             preview.error_message = None
@@ -136,6 +126,7 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
         else:
             preview.status = "ready"
             preview.expires_at = _preview_expires(evaluated_at)
+            trust = getattr(inputs, "busy_input_trust", None)
             if trust is not None:
                 preview.stats_json = {
                     **(preview.stats_json or {}),
@@ -143,6 +134,18 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
                 }
 
         db.commit()
+    except BusyInputTrustError as exc:
+        logger.warning("Schedule preview %s blocked by BusyInputTrust", preview_id)
+        db.rollback()
+        preview = db.get(SchedulePreview, preview_id)
+        if preview is not None:
+            preview.status = "failed"
+            preview.error_message = str(exc)
+            preview.finished_at = datetime.now(timezone.utc)
+            preview.expires_at = None
+            preview.proposal_json = None
+            preview.stats_json = {"busy_input_trust": exc.trust.to_dict()}
+            db.commit()
     except Exception as exc:
         logger.exception("Schedule preview %s failed", preview_id)
         db.rollback()

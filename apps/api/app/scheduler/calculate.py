@@ -17,6 +17,7 @@ from app.scheduler.candidates import (
     TaskCandidate,
 )
 from app.scheduler.collect import SchedulingInputs
+from app.scheduler.free_busy import require_busy_input_trust
 from app.scheduler.pin_reservation import reserved_minutes_from_blocks
 from app.scheduler.placement import ProposedBlock, ProjectDailyUsage, place_one_block
 from app.scheduler.task_effort import placement_effort_minutes
@@ -659,6 +660,8 @@ def calculate(
     inputs: SchedulingInputs,
 ) -> CalculationResult:
     """Produce proposed blocks and per-task outcomes without writing blocks."""
+    # T1-A shared fail-closed gate: unknown free/busy never reaches placement.
+    require_busy_input_trust(getattr(inputs, "busy_input_trust", None))
     stats: dict[str, Any] = {
         "horizon_start": inputs.horizon_start.isoformat(),
         "horizon_end": inputs.horizon_end.isoformat(),
