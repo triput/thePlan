@@ -66,6 +66,8 @@ class CalendarSubscription(Base, TimestampMixin):
     )
     is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
     sync_cursor: Mapped[str | None] = mapped_column(Text)
+    # Provider calendar default zone (IANA or Windows id); never owner settings TZ.
+    provider_timezone: Mapped[str | None] = mapped_column(String(64))
 
     calendar_account: Mapped["CalendarAccount"] = relationship(back_populates="subscriptions")
 
@@ -119,6 +121,8 @@ class ExternalCalendarEvent(Base):
     source_zone_missing: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
+    # T1-B: resolved IANA source zone used for date-only / all-day bounds (nullable).
+    source_timezone: Mapped[str | None] = mapped_column(String(64))
     free_busy_pending_exception: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )

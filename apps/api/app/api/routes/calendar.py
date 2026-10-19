@@ -81,6 +81,7 @@ def _subscription_out(sub: CalendarSubscription) -> CalendarSubscriptionOut:
         role=sub.role,
         is_enabled=sub.is_enabled,
         sync_cursor=sub.sync_cursor,
+        provider_timezone=sub.provider_timezone,
     )
 
 
@@ -118,6 +119,7 @@ def _calendar_list_items(raw: list[dict]) -> list[GoogleCalendarListItem]:
                 summary=entry.get("summary") or entry.get("name"),
                 primary=bool(entry.get("primary") or entry.get("isDefaultCalendar")),
                 access_role=entry.get("accessRole") or entry.get("access_role"),
+                time_zone=entry.get("timeZone") or entry.get("time_zone"),
             )
         )
     return items
@@ -244,6 +246,8 @@ def put_calendar_subscriptions(
         sub.summary = item.summary
         sub.role = item.role
         sub.is_enabled = item.is_enabled
+        if item.provider_timezone is not None:
+            sub.provider_timezone = item.provider_timezone
         if is_new:
             sub.sync_cursor = None
 

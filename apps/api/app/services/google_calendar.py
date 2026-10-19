@@ -24,6 +24,14 @@ from app.models import (
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.scheduler.free_busy import apply_transparency_update, resolve_google_transparency
+from app.services.source_timezone import (
+    ParsedEventBounds,
+    all_day_bounds_utc,
+    parse_civil_date,
+    pick_consistent_zone,
+    resolve_iana_zone,
+    utc_midnight_placeholder,
+)
 from app.services.token_crypto import decrypt_token, encrypt_token
 
 logger = logging.getLogger(__name__)
@@ -157,41 +165,131 @@ def _ensure_aware(dt: datetime) -> datetime:
     return dt
 
 
-def parse_google_event_times(event: dict[str, Any]) -> tuple[datetime, datetime, bool] | None:
-    start = event.get("start") or {}
-    end = event.get("end") or {}
-    if "dateTime" in start and "dateTime" in end:
-        start_dt = datetime.fromisoformat(start["dateTime"].replace("Z", "+00:00"))
-        end_dt = datetime.fromisoformat(end["dateTime"].replace("Z", "+00:00"))
-        return _ensure_aware(start_dt), _ensure_aware(end_dt), False
-    if "date" in start and "date" in end:
-        start_dt = datetime.fromisoformat(start["date"]).replace(tzinfo=timezone.utc)
-        end_exclusive = datetime.fromisoformat(end["date"]).replace(tzinfo=timezone.utc)
-        return start_dt, end_exclusive, True
-    return None
+def _google_datetime_has_offset(raw: Any) -> bool:
+    if not isinstance(raw, str) or not raw:
+        return False
+    return raw.endswith("Z") or "+" in raw[10:] or raw.count("-") >= 3
 
 
-def google_source_zone_missing(event: dict[str, Any]) -> bool:
-    """True when Google payload lacks an attributable source zone (T1-A, no conversion).
+def _attach_google_zone(raw: str, zone_name: str | None) -> datetime:
+    text = raw.replace("Z", "+00:00")
+    dt = datetime.fromisoformat(text)
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc)
+    iana = resolve_iana_zone(zone_name)
+    if iana is None:
+        # Naive without resolvable zone — leave naive; caller flags missing.
+        return dt.replace(tzinfo=timezone.utc)
+    from zoneinfo import ZoneInfo
 
-    Date-only events need an explicit IANA ``timeZone`` on start or end — UTC midnight
-    inventing in ``parse_google_event_times`` is not source provenance. Timed events
-    are accepted when ``timeZone`` is present or the dateTime strings carry an offset/Z.
+    return dt.replace(tzinfo=ZoneInfo(iana)).astimezone(timezone.utc)
+
+
+def parse_google_event_times(
+    event: dict[str, Any],
+    *,
+    calendar_timezone: str | None = None,
+) -> ParsedEventBounds | None:
+    """Parse Google start/end with source-zone provenance (T1-B).
+
+    Date-only: convert exclusive-end civil days in the source zone (event
+    ``timeZone`` or owning calendar zone). Never uses owner settings timezone.
+    Missing / unsupported / indeterminate zone → ``source_zone_missing=True``.
     """
     start = event.get("start") or {}
     end = event.get("end") or {}
-    if start.get("timeZone") or end.get("timeZone"):
-        return False
-    if "date" in start and "date" in end:
-        return True
     if "dateTime" in start and "dateTime" in end:
-        def _has_offset(raw: Any) -> bool:
-            if not isinstance(raw, str) or not raw:
-                return False
-            return raw.endswith("Z") or "+" in raw[10:] or raw.count("-") >= 3
+        start_raw = str(start["dateTime"])
+        end_raw = str(end["dateTime"])
+        start_zone = start.get("timeZone")
+        end_zone = end.get("timeZone")
+        has_offsets = _google_datetime_has_offset(start_raw) and _google_datetime_has_offset(
+            end_raw
+        )
+        zone, indeterminate = pick_consistent_zone(
+            start_zone, end_zone, calendar_timezone if not has_offsets else None
+        )
+        if has_offsets:
+            start_dt = _ensure_aware(
+                datetime.fromisoformat(start_raw.replace("Z", "+00:00"))
+            )
+            end_dt = _ensure_aware(datetime.fromisoformat(end_raw.replace("Z", "+00:00")))
+            return ParsedEventBounds(
+                start=start_dt,
+                end=end_dt,
+                is_all_day=False,
+                source_timezone=zone,
+                source_zone_missing=False,
+            )
+        if indeterminate or zone is None:
+            # Cannot attach a trusted zone to naive timed values.
+            start_dt = _attach_google_zone(start_raw, None)
+            end_dt = _attach_google_zone(end_raw, None)
+            return ParsedEventBounds(
+                start=start_dt,
+                end=end_dt,
+                is_all_day=False,
+                source_timezone=None,
+                source_zone_missing=True,
+            )
+        start_dt = _attach_google_zone(start_raw, zone)
+        end_dt = _attach_google_zone(end_raw, zone)
+        return ParsedEventBounds(
+            start=start_dt,
+            end=end_dt,
+            is_all_day=False,
+            source_timezone=zone,
+            source_zone_missing=False,
+        )
 
-        return not (_has_offset(start.get("dateTime")) and _has_offset(end.get("dateTime")))
-    return True
+    if "date" in start and "date" in end:
+        start_day = parse_civil_date(start["date"])
+        end_day = parse_civil_date(end["date"])
+        zone, indeterminate = pick_consistent_zone(
+            start.get("timeZone"),
+            end.get("timeZone"),
+            calendar_timezone,
+        )
+        if indeterminate or zone is None:
+            placeholder = utc_midnight_placeholder(start_day, end_day)
+            return ParsedEventBounds(
+                start=placeholder[0],
+                end=placeholder[1],
+                is_all_day=True,
+                source_timezone=None,
+                source_zone_missing=True,
+            )
+        try:
+            start_dt, end_dt = all_day_bounds_utc(start_day, end_day, zone)
+        except ValueError:
+            placeholder = utc_midnight_placeholder(start_day, end_day)
+            return ParsedEventBounds(
+                start=placeholder[0],
+                end=placeholder[1],
+                is_all_day=True,
+                source_timezone=None,
+                source_zone_missing=True,
+            )
+        return ParsedEventBounds(
+            start=start_dt,
+            end=end_dt,
+            is_all_day=True,
+            source_timezone=zone,
+            source_zone_missing=False,
+        )
+    return None
+
+
+def google_source_zone_missing(
+    event: dict[str, Any],
+    *,
+    calendar_timezone: str | None = None,
+) -> bool:
+    """True when Google payload lacks attributable / resolvable source zone."""
+    parsed = parse_google_event_times(event, calendar_timezone=calendar_timezone)
+    if parsed is None:
+        return True
+    return parsed.source_zone_missing
 
 
 def _paginate_events(
@@ -502,11 +600,13 @@ def _upsert_external_event(
     external_id = event.get("id")
     if not external_id:
         return False
-    times = parse_google_event_times(event)
+    # Owning-calendar zone when known; never owner settings TZ.
+    times = parse_google_event_times(
+        event, calendar_timezone=subscription.provider_timezone
+    )
     if times is None:
         return False
-    start_dt, end_dt, is_all_day = times
-    if end_dt <= start_dt:
+    if times.end <= times.start:
         return False
 
     row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
@@ -519,8 +619,8 @@ def _upsert_external_event(
             provider=CalendarProvider.google,
             external_event_id=external_id,
             calendar_id=subscription.external_calendar_id,
-            start_time=start_dt,
-            end_time=end_dt,
+            start_time=times.start,
+            end_time=times.end,
         )
         db.add(row)
 
@@ -528,12 +628,13 @@ def _upsert_external_event(
     old_series = row.provider_series_id
     row.calendar_account_id = account.id
     row.title = (event.get("summary") or "Busy")[:500]
-    row.start_time = start_dt
-    row.end_time = end_dt
-    row.is_all_day = is_all_day
+    row.start_time = times.start
+    row.end_time = times.end
+    row.is_all_day = times.is_all_day
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
-    row.source_zone_missing = google_source_zone_missing(event)
+    row.source_zone_missing = times.source_zone_missing
+    row.source_timezone = times.source_timezone
     # T1-A: Google transparency + provenance (append-only history on change).
     stored, provenance, _kind = resolve_google_transparency(
         event, complete_representation=True, field_projected=False

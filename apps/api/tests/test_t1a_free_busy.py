@@ -282,7 +282,7 @@ def test_snapshot_rejects_bad_target_and_dummy_and_overwrite(tmp_path: Path) -> 
     run_dir = write_isolated_snapshot(
         run_id="fixed-run",
         db_dump_bytes=b"postgres-dump-bytes",
-        alembic_head="034_external_event_free_busy",
+        alembic_head="035_source_timezone",
         git_tip="abc123",
         captured_unchanged=[{"id": "1", "status": "captured_unchanged"}],
         root=tmp_path,
@@ -487,7 +487,9 @@ def test_upsert_sets_zone_flag_history_and_series_loss(monkeypatch: pytest.Monke
 
     owner = uuid4()
     account = SimpleNamespace(id=uuid4(), owner_id=owner)
-    subscription = SimpleNamespace(id=uuid4(), external_calendar_id="cal-1")
+    subscription = SimpleNamespace(
+        id=uuid4(), external_calendar_id="cal-1", provider_timezone=None
+    )
     existing = SimpleNamespace(
         pending_deletion=False,
         calendar_id="cal-1",
@@ -499,6 +501,7 @@ def test_upsert_sets_zone_flag_history_and_series_loss(monkeypatch: pytest.Monke
         is_all_day=False,
         last_synced_at=None,
         source_zone_missing=False,
+        source_timezone=None,
         transparency="opaque",
         free_busy_provenance="provider_default_omitted",
         free_busy_prior_transparency=None,

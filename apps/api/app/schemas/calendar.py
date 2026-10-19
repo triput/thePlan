@@ -120,6 +120,8 @@ class GoogleCalendarListItem(BaseModel):
     summary: str | None = None
     primary: bool = False
     access_role: str | None = None
+    # Provider calendar default zone (IANA); used as T1-B source fallback.
+    time_zone: str | None = None
 
 
 class CalendarSubscriptionOut(BaseModel):
@@ -132,6 +134,7 @@ class CalendarSubscriptionOut(BaseModel):
     role: CalendarSubscriptionRole
     is_enabled: bool
     sync_cursor: str | None = None
+    provider_timezone: str | None = None
 
 
 class CalendarSubscriptionPutItem(BaseModel):
@@ -139,6 +142,7 @@ class CalendarSubscriptionPutItem(BaseModel):
     summary: str | None = Field(default=None, max_length=255)
     role: CalendarSubscriptionRole
     is_enabled: bool = True
+    provider_timezone: str | None = Field(default=None, max_length=64)
 
 
 class CalendarSubscriptionsPut(BaseModel):

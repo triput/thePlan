@@ -21,6 +21,14 @@ from app.models import (
     Task,
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
+from app.services.source_timezone import (
+    ParsedEventBounds,
+    all_day_bounds_utc,
+    parse_civil_date,
+    pick_consistent_zone,
+    resolve_iana_zone,
+    utc_midnight_placeholder,
+)
 from app.services.token_crypto import decrypt_token, encrypt_token
 
 logger = logging.getLogger(__name__)
@@ -197,6 +205,7 @@ def _graph_local_utc(dt: datetime) -> str:
 
 
 def _parse_graph_datetime(value: str, time_zone: str | None = None) -> datetime:
+    """Parse Graph dateTime; attach ``time_zone`` only when the value is naive."""
     text = value.strip()
     if text.endswith("Z"):
         text = f"{text[:-1]}+00:00"
@@ -210,26 +219,162 @@ def _parse_graph_datetime(value: str, time_zone: str | None = None) -> datetime:
         frac = "".join(digits)[:6].ljust(6, "0")
         text = f"{head}.{frac}{rest[idx:]}"
     dt = datetime.fromisoformat(text)
-    if dt.tzinfo is None:
-        # Prefer: outlook.timezone="UTC" on Graph reads; treat leftover naive as UTC.
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc)
+    iana = resolve_iana_zone(time_zone)
+    if iana is not None:
+        from zoneinfo import ZoneInfo
+
+        return dt.replace(tzinfo=ZoneInfo(iana)).astimezone(timezone.utc)
+    # Naive with no resolvable zone — UTC attach is storage only; caller must flag.
+    return dt.replace(tzinfo=timezone.utc)
 
 
-def parse_microsoft_event_times(event: dict[str, Any]) -> tuple[datetime, datetime, bool] | None:
+def _ms_source_zone_candidates(
+    event: dict[str, Any],
+    *,
+    calendar_timezone: str | None,
+) -> tuple[str | None, bool, bool]:
+    """Resolve MS source zone from provenance fields (not display alone).
+
+    Returns ``(iana, missing, indeterminate)``.
+    Display ``start/end.timeZone`` alone is insufficient (Prefer shifts display).
+    """
+    originals = (
+        event.get("originalStartTimeZone"),
+        event.get("originalEndTimeZone"),
+    )
+    zone, indeterminate = pick_consistent_zone(*originals, calendar_timezone)
+    if indeterminate:
+        return None, True, True
+    if zone is not None:
+        return zone, False, False
+    # No original* / calendar provenance — display timeZone alone ≠ source.
+    return None, True, False
+
+
+def parse_microsoft_event_times(
+    event: dict[str, Any],
+    *,
+    calendar_timezone: str | None = None,
+) -> ParsedEventBounds | None:
+    """Parse Graph event times with source-zone provenance (T1-B).
+
+    Canonical all-day: ``isAllDay`` + dateTimeTimeZone midnights. Civil dates are
+    interpreted in ``originalStartTimeZone`` / ``originalEndTimeZone`` (or calendar
+    default) — never owner TZ, never display ``timeZone`` alone.
+    Non-canonical ``start.date`` / ``end.date`` keys → unsupported / missing zone.
+    """
     start = event.get("start") or {}
     end = event.get("end") or {}
+
+    # Non-canonical Graph shape — do not invent UTC date-only busy bounds.
     if start.get("date") and end.get("date"):
-        start_dt = datetime.fromisoformat(str(start["date"])).replace(tzinfo=timezone.utc)
-        end_dt = datetime.fromisoformat(str(end["date"])).replace(tzinfo=timezone.utc)
-        return start_dt, end_dt, True
+        start_day = parse_civil_date(start["date"])
+        end_day = parse_civil_date(end["date"])
+        placeholder = utc_midnight_placeholder(start_day, end_day)
+        return ParsedEventBounds(
+            start=placeholder[0],
+            end=placeholder[1],
+            is_all_day=True,
+            source_timezone=None,
+            source_zone_missing=True,
+        )
+
     start_raw = start.get("dateTime")
     end_raw = end.get("dateTime")
     if not start_raw or not end_raw:
         return None
-    start_dt = _parse_graph_datetime(str(start_raw), start.get("timeZone"))
-    end_dt = _parse_graph_datetime(str(end_raw), end.get("timeZone"))
-    return start_dt, end_dt, bool(event.get("isAllDay"))
+
+    is_all_day = bool(event.get("isAllDay"))
+    zone, missing, indeterminate = _ms_source_zone_candidates(
+        event, calendar_timezone=calendar_timezone
+    )
+    if indeterminate:
+        missing = True
+        zone = None
+
+    if is_all_day:
+        start_day = parse_civil_date(str(start_raw))
+        end_day = parse_civil_date(str(end_raw))
+        if missing or zone is None:
+            placeholder = utc_midnight_placeholder(start_day, end_day)
+            return ParsedEventBounds(
+                start=placeholder[0],
+                end=placeholder[1],
+                is_all_day=True,
+                source_timezone=None,
+                source_zone_missing=True,
+            )
+        try:
+            start_dt, end_dt = all_day_bounds_utc(start_day, end_day, zone)
+        except ValueError:
+            placeholder = utc_midnight_placeholder(start_day, end_day)
+            return ParsedEventBounds(
+                start=placeholder[0],
+                end=placeholder[1],
+                is_all_day=True,
+                source_timezone=None,
+                source_zone_missing=True,
+            )
+        return ParsedEventBounds(
+            start=start_dt,
+            end=end_dt,
+            is_all_day=True,
+            source_timezone=zone,
+            source_zone_missing=False,
+        )
+
+    # Timed: absolute offset/Z is trustworthy extent; attach zone only when naive.
+    start_text = str(start_raw).strip()
+    end_text = str(end_raw).strip()
+    start_has_offset = start_text.endswith("Z") or "+" in start_text[10:] or (
+        start_text.count("-") >= 3 and "T" in start_text
+    )
+    end_has_offset = end_text.endswith("Z") or "+" in end_text[10:] or (
+        end_text.count("-") >= 3 and "T" in end_text
+    )
+    # Prefer UTC responses are typically offset-naive wall times labeled UTC —
+    # treat explicit resolvable original zone OR labeled UTC display with naive
+    # values as absolute when Prefer pins UTC (current client Prefer header).
+    display_start = resolve_iana_zone(start.get("timeZone"))
+    display_end = resolve_iana_zone(end.get("timeZone"))
+    if start_has_offset and end_has_offset:
+        start_dt = _parse_graph_datetime(start_text)
+        end_dt = _parse_graph_datetime(end_text)
+        return ParsedEventBounds(
+            start=start_dt,
+            end=end_dt,
+            is_all_day=False,
+            source_timezone=zone,
+            source_zone_missing=False,
+        )
+
+    # Naive timed: require provenance zone (original*/calendar), not display alone.
+    attach_zone = zone
+    if attach_zone is None and display_start == "UTC" and display_end == "UTC":
+        # Client Prefer outlook.timezone="UTC" — naive wall clock is UTC absolute.
+        attach_zone = "UTC"
+        missing = False
+    if attach_zone is None:
+        start_dt = _parse_graph_datetime(start_text)
+        end_dt = _parse_graph_datetime(end_text)
+        return ParsedEventBounds(
+            start=start_dt,
+            end=end_dt,
+            is_all_day=False,
+            source_timezone=None,
+            source_zone_missing=True,
+        )
+    start_dt = _parse_graph_datetime(start_text, attach_zone)
+    end_dt = _parse_graph_datetime(end_text, attach_zone)
+    return ParsedEventBounds(
+        start=start_dt,
+        end=end_dt,
+        is_all_day=False,
+        source_timezone=zone or attach_zone,
+        source_zone_missing=False,
+    )
 
 
 def _graph_error_code(response: httpx.Response) -> str:
@@ -678,11 +823,12 @@ def _upsert_external_event(
     external_id = event.get("id")
     if not external_id:
         return False
-    times = parse_microsoft_event_times(event)
+    times = parse_microsoft_event_times(
+        event, calendar_timezone=subscription.provider_timezone
+    )
     if times is None:
         return False
-    start_dt, end_dt, is_all_day = times
-    if end_dt <= start_dt:
+    if times.end <= times.start:
         return False
 
     row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
@@ -695,18 +841,20 @@ def _upsert_external_event(
             provider=CalendarProvider.microsoft,
             external_event_id=external_id,
             calendar_id=subscription.external_calendar_id,
-            start_time=start_dt,
-            end_time=end_dt,
+            start_time=times.start,
+            end_time=times.end,
         )
         db.add(row)
 
     row.calendar_account_id = account.id
     row.title = (event.get("subject") or "Busy")[:500]
-    row.start_time = start_dt
-    row.end_time = end_dt
-    row.is_all_day = is_all_day
+    row.start_time = times.start
+    row.end_time = times.end
+    row.is_all_day = times.is_all_day
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
+    row.source_zone_missing = times.source_zone_missing
+    row.source_timezone = times.source_timezone
     return True
 
 

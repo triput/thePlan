@@ -1,6 +1,6 @@
 """S2-V4 assignment writers + resolver seam (A12–A14, A12a–A12f).
 
-Disposable ``theplan_s1_test`` only. Alembic head ``034_external_event_free_busy``
+Disposable ``theplan_s1_test`` only. Alembic head ``035_source_timezone``
 (T1-A additive on ``033_custom_availability_slug``; suite still pins S1 DB name).
 Rejected writes must not commit; the shared test session is rolled back after
 each 4xx so a flush-before-raise cannot leak into the next assertion.
@@ -46,7 +46,7 @@ UTC = timezone.utc
 TZ = ZoneInfo("UTC")
 TUESDAY = date(2026, 10, 13)
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "034_external_event_free_busy"
+_REQUIRED_HEAD = "035_source_timezone"
 
 
 @pytest.fixture(autouse=True)
