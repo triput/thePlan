@@ -242,12 +242,21 @@ def test_snapshot_rejects_bad_target_and_dummy_and_overwrite(tmp_path: Path) -> 
 
 
 def test_snapshot_restore_and_mutation_gate(tmp_path: Path) -> None:
+    household_marker = tmp_path / "household_theplan.marker"
+    household_marker.write_text("untouched", encoding="utf-8")
+
     run_dir = write_isolated_snapshot(
         db_dump_bytes=b"RESTORE-ME",
-        root=tmp_path,
+        root=tmp_path / "t1a-fixtures",
     )
-    restored = restore_isolated_snapshot(run_dir, restore_to=tmp_path / "work" / "db.dump")
+    manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["target_db"] == DISPOSABLE_TARGET_DB == "theplan_t1a_test"
+
+    restore_path = tmp_path / "theplan_t1a_test" / "restored.dump"
+    restored = restore_isolated_snapshot(run_dir, restore_to=restore_path)
     assert restored.read_bytes() == b"RESTORE-ME"
+    assert "theplan_t1a_test" in str(restored)
+    assert household_marker.read_text(encoding="utf-8") == "untouched"
 
     mutated = {"n": 0}
 
@@ -278,7 +287,35 @@ def test_cli_listing_and_disposable_constant() -> None:
     unknown = _Evt(None, "unknown_legacy", HORIZON_START, HORIZON_END)
     text = format_cli_listing(
         evaluate_busy_input_trust(
-            [unknown], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+            [unknown],
+            horizon_start=HORIZON_START,
+            horizon_end=HORIZON_END,
+            calendar_name_by_id={"cal-1": "TP@Gmail"},
         )
     )
     assert "BusyInputTrust.ok=False" in text
+    assert "TP@Gmail" in text
+    assert "Meeting" in text
+    assert "evt-1" in text
+    assert "Rollups:" in text
+
+
+def test_preview_seam_blocks_before_proposal() -> None:
+    """Mirror run_preview: require trust before building a proposal."""
+    unknown = _Evt(None, "unknown_legacy", HORIZON_START, HORIZON_END)
+    trust = evaluate_busy_input_trust(
+        [unknown], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    proposal = {"built": False}
+
+    def run_preview_seam() -> None:
+        require_busy_input_trust(trust)
+        proposal["built"] = True
+        proposal["json"] = {"blocks": [1]}
+
+    with pytest.raises(BusyInputTrustError) as exc:
+        run_preview_seam()
+    assert proposal["built"] is False
+    assert "json" not in proposal
+    # stats_json-safe payload
+    json.dumps({"busy_input_trust": exc.value.trust.to_dict()})
