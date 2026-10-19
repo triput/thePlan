@@ -326,8 +326,38 @@ def evaluate_busy_input_trust(
 
 
 def require_busy_input_trust(trust: BusyInputTrust | None) -> None:
-    """Shared fail-closed gate for calculate / replan / preview."""
-    if trust is not None and not trust.ok:
+    """Shared fail-closed gate for calculate / replan / preview.
+
+    ``None`` means the check was never established — fail closed (not a pass).
+    """
+    if trust is None:
+        missing = BusyInputTrust(
+            ok=False,
+            blocking_diagnostics=[
+                FreeBusyDiagnostic(
+                    cause="missing_busy_input_trust",
+                    calendar_name="(none)",
+                    event_title="(trust not evaluated)",
+                    event_id="-",
+                    start=None,
+                    end=None,
+                    blocking_current_proposal=True,
+                    affected_horizon="unknown_extent",
+                    provenance=None,
+                )
+            ],
+            affected_horizon="unknown_extent",
+            rollups=[
+                DiagnosticRollup(
+                    calendar_name="(none)",
+                    cause="missing_busy_input_trust",
+                    count=1,
+                    recovery="re-run collect_inputs before calculate",
+                )
+            ],
+        )
+        raise BusyInputTrustError(missing)
+    if not trust.ok:
         raise BusyInputTrustError(trust)
 
 

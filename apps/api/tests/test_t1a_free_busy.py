@@ -148,21 +148,44 @@ def test_exception_policy_scoped_to_calendar_not_title() -> None:
         clear_exception_policies()
 
 
-def test_require_busy_input_trust_blocks_calculate_path() -> None:
+def test_require_busy_input_trust_blocks_none_and_false() -> None:
+    with pytest.raises(BusyInputTrustError) as missing:
+        require_busy_input_trust(None)
+    assert missing.value.trust.blocking_diagnostics[0].cause == "missing_busy_input_trust"
+
     trust = BusyInputTrust(ok=False, blocking_diagnostics=[])
     with pytest.raises(BusyInputTrustError):
         require_busy_input_trust(trust)
 
-    called = {"calculate": False}
 
-    def fake_calculate() -> str:
-        require_busy_input_trust(trust)
-        called["calculate"] = True
-        return "proposal"
+def test_calculate_entry_fails_closed_on_missing_trust() -> None:
+    """Real calculate() entry — gate fires before placement."""
+    from unittest.mock import MagicMock
 
+    from app.scheduler.calculate import calculate
+
+    inputs = MagicMock()
+    inputs.busy_input_trust = None
+    with pytest.raises(BusyInputTrustError) as exc:
+        calculate(MagicMock(), inputs)
+    assert exc.value.trust.blocking_diagnostics[0].cause == "missing_busy_input_trust"
+    # No later attribute access should have been needed; ok=False diagnostic present.
+    assert exc.value.trust.ok is False
+
+
+def test_calculate_entry_fails_closed_on_unknown_trust() -> None:
+    from unittest.mock import MagicMock
+
+    from app.scheduler.calculate import calculate
+
+    unknown = _Evt(None, "unknown_legacy", HORIZON_START, HORIZON_END)
+    trust = evaluate_busy_input_trust(
+        [unknown], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    inputs = MagicMock()
+    inputs.busy_input_trust = trust
     with pytest.raises(BusyInputTrustError):
-        fake_calculate()
-    assert called["calculate"] is False
+        calculate(MagicMock(), inputs)
 
 
 def test_unknown_never_reaches_fake_apply() -> None:
