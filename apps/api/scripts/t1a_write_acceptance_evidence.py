@@ -2,43 +2,29 @@
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tests"))
 
 from app.scheduler.free_busy import (  # noqa: E402
-    DISPOSABLE_TARGET_DB,
     T1A_FIXTURE_ROOT,
-    T1A_PG_CONTAINER,
-    T1A_PG_USER,
-    assert_t1a_container_isolated,
-    mutate_with_snapshot_gate,
-    pg_dump_disposable_bytes,
-    restore_isolated_snapshot_to_postgres,
+    finalize_snapshot_evidence,
     write_isolated_snapshot,
 )
-
-
-def _psql(sql: str) -> None:
-    subprocess.run(
-        [
-            "docker",
-            "exec",
-            T1A_PG_CONTAINER,
-            "psql",
-            "-U",
-            T1A_PG_USER,
-            "-d",
-            DISPOSABLE_TARGET_DB,
-            "-c",
-            sql,
-        ],
-        check=True,
-    )
+from support.t1a_pg import (  # noqa: E402
+    assert_t1a_container_isolated,
+    measure_post_restore,
+    mutate_with_snapshot_gate,
+    pg_dump_disposable_bytes,
+    psql_t,
+    restore_isolated_snapshot_to_postgres,
+    seed_034_probe_row,
+)
 
 
 def main() -> None:
@@ -49,56 +35,67 @@ def main() -> None:
         capture_output=True,
         text=True,
     ).stdout.strip()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    run_id = f"{stamp}-{tip}-acceptance"
+
     meta = assert_t1a_container_isolated()
-    _psql(
-        "CREATE TABLE IF NOT EXISTS t1a_synth_probe "
-        "(id int PRIMARY KEY, label text NOT NULL);"
-        "TRUNCATE t1a_synth_probe;"
-        "INSERT INTO t1a_synth_probe VALUES (1, 'baseline-row');"
-    )
+    seed_034_probe_row()
+    before = measure_post_restore()
     dump = pg_dump_disposable_bytes()
     run_dir = write_isolated_snapshot(
-        run_id="20261019T2115Z-acceptance",
+        run_id=run_id,
         db_dump_bytes=dump,
-        alembic_head="034_external_event_free_busy",
+        alembic_head=before["alembic_version"],
         git_tip=tip,
-        captured_unchanged=[{"note": "synthetic probe only; no household rows"}],
+        captured_unchanged=[{"note": "034 probe on external_calendar_events; no household"}],
         root=T1A_FIXTURE_ROOT,
     )
 
     def mutate() -> None:
-        _psql(
-            "UPDATE t1a_synth_probe SET label='mutated' WHERE id=1;"
-            "INSERT INTO t1a_synth_probe VALUES (2, 'extra');"
+        psql_t(
+            "UPDATE external_calendar_events SET transparency='transparent' "
+            "WHERE external_event_id='t1a-synth-034'"
+        )
+        psql_t(
+            "DELETE FROM external_calendar_events WHERE external_event_id='t1a-synth-034'"
         )
 
     mutate_with_snapshot_gate(run_dir, mutate_fn=mutate)
+    mid = measure_post_restore()
     restore_meta = restore_isolated_snapshot_to_postgres(run_dir)
+    after = measure_post_restore()
+
     evidence = {
-        "container": meta["container"],
-        "database": meta["database"],
-        "inspect": meta["inspect"],
-        "household_isolation": (
-            "compose-postgres-1 remains on host :5432; "
-            "theplan-t1a-postgres publishes 127.0.0.1:5433 only"
-        ),
-        "alembic_head": "034_external_event_free_busy",
-        "snapshot_run": str(run_dir),
-        "restore": restore_meta,
+        "git_tip": tip,
+        "run_id": run_id,
+        "isolation": {
+            "container": meta["container"],
+            "database": meta["database"],
+            "host_ip": meta["host_ip"],
+            "host_port": meta["host_port"],
+            "networks": meta["networks"],
+            "mounts_empty_or_non_household": len(meta["mounts"]) == 0
+            or all("compose" not in str(m).lower() for m in meta["mounts"]),
+            "household_isolation": (
+                "compose-postgres-1 on host :5432; "
+                "theplan-t1a-postgres on 127.0.0.1:5433 only"
+            ),
+        },
+        "measured_before_dump": before,
+        "measured_after_mutate": mid,
+        "measured_after_restore": after,
+        "restore": {
+            "restored_database": restore_meta["restored_database"],
+            "pg_restore_rc": restore_meta["pg_restore_rc"],
+        },
         "auth_note": (
             "POSTGRES_HOST_AUTH_METHOD=trust; loopback publish only; "
             "no password in handoff"
         ),
-        "final_state": (
-            "container theplan-t1a-postgres running; "
-            "db theplan_t1a_test at alembic 034; "
-            "probe restored to baseline-row"
-        ),
-        "git_tip_at_evidence": tip,
+        "prior_run_preserved": "20261019T2115Z-acceptance (pre-correction; not reclaimed)",
     }
-    out = run_dir / "evidence.json"
-    out.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(evidence, indent=2))
+    path = finalize_snapshot_evidence(run_dir, evidence)
+    print(path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

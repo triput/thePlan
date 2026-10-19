@@ -7,28 +7,24 @@ from pathlib import Path
 
 import pytest
 
-from app.scheduler.free_busy import (
+from app.scheduler.free_busy import finalize_snapshot_evidence, write_isolated_snapshot
+from tests.support.t1a_pg import (
     DISPOSABLE_TARGET_DB,
     T1A_PG_CONTAINER,
-    T1A_PG_USER,
     assert_t1a_container_isolated,
+    measure_post_restore,
     mutate_with_snapshot_gate,
     pg_dump_disposable_bytes,
+    psql_t,
     restore_isolated_snapshot_to_postgres,
-    write_isolated_snapshot,
+    seed_034_probe_row,
 )
 
 
 def _container_running() -> bool:
     try:
         out = subprocess.run(
-            [
-                "docker",
-                "inspect",
-                "-f",
-                "{{.State.Running}}",
-                T1A_PG_CONTAINER,
-            ],
+            ["docker", "inspect", "-f", "{{.State.Running}}", T1A_PG_CONTAINER],
             check=False,
             capture_output=True,
             text=True,
@@ -40,72 +36,90 @@ def _container_running() -> bool:
 
 requires_t1a_pg = pytest.mark.skipif(
     not _container_running(),
-    reason=f"disposable container {T1A_PG_CONTAINER} not running",
+    reason=f"disposable container {T1A_PG_CONTAINER} not running — not acceptance evidence",
 )
-
-
-def _psql(sql: str) -> str:
-    result = subprocess.run(
-        [
-            "docker",
-            "exec",
-            T1A_PG_CONTAINER,
-            "psql",
-            "-U",
-            T1A_PG_USER,
-            "-d",
-            DISPOSABLE_TARGET_DB,
-            "-tAc",
-            sql,
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return (result.stdout or "").strip()
-
-
-@requires_t1a_pg
-def test_isolated_pg_dump_mutate_restore_recovers_rows(tmp_path: Path) -> None:
-    meta = assert_t1a_container_isolated()
-    assert meta["database"] == DISPOSABLE_TARGET_DB
-    assert "5433" in meta["inspect"] or "127.0.0.1" in meta["inspect"]
-
-    _psql(
-        "CREATE TABLE IF NOT EXISTS t1a_synth_probe "
-        "(id int PRIMARY KEY, label text NOT NULL);"
-        "TRUNCATE t1a_synth_probe;"
-        "INSERT INTO t1a_synth_probe VALUES (1, 'baseline-row');"
-    )
-    assert _psql("SELECT label FROM t1a_synth_probe WHERE id=1") == "baseline-row"
-    alembic_before = _psql("SELECT version_num FROM alembic_version")
-
-    dump = pg_dump_disposable_bytes()
-    run_dir = write_isolated_snapshot(
-        run_id="pg-restore-acceptance",
-        db_dump_bytes=dump,
-        alembic_head=alembic_before,
-        git_tip="local-t1a",
-        root=tmp_path,
-    )
-
-    def mutate() -> None:
-        _psql(
-            "UPDATE t1a_synth_probe SET label='mutated' WHERE id=1;"
-            "INSERT INTO t1a_synth_probe VALUES (2, 'extra');"
-        )
-
-    mutate_with_snapshot_gate(run_dir, mutate_fn=mutate)
-    assert _psql("SELECT label FROM t1a_synth_probe WHERE id=1") == "mutated"
-    assert _psql("SELECT count(*)::text FROM t1a_synth_probe") == "2"
-
-    restore_meta = restore_isolated_snapshot_to_postgres(run_dir)
-    assert restore_meta["restored_database"] == DISPOSABLE_TARGET_DB
-    assert _psql("SELECT label FROM t1a_synth_probe WHERE id=1") == "baseline-row"
-    assert _psql("SELECT count(*)::text FROM t1a_synth_probe") == "1"
-    assert _psql("SELECT version_num FROM alembic_version") == alembic_before
 
 
 def test_refuses_household_container_name() -> None:
     with pytest.raises(RuntimeError, match="household"):
         assert_t1a_container_isolated("compose-postgres-1")
+
+
+@requires_t1a_pg
+def test_isolated_pg_dump_mutate_restore_recovers_034_fields(tmp_path: Path) -> None:
+    meta = assert_t1a_container_isolated()
+    assert meta["database"] == DISPOSABLE_TARGET_DB
+    assert meta["host_port"] == "5433"
+    assert meta["host_ip"] == "127.0.0.1"
+
+    seed_034_probe_row()
+    before = measure_post_restore()
+    assert before["probe_transparency"] == "opaque"
+    assert before["probe_history_sync"] == "batch-acceptance-1"
+    assert before["alembic_version"] == "034_external_event_free_busy"
+
+    dump = pg_dump_disposable_bytes()
+    run_dir = write_isolated_snapshot(
+        run_id="pg-restore-unit",
+        db_dump_bytes=dump,
+        alembic_head=before["alembic_version"],
+        git_tip="unit",
+        root=tmp_path,
+    )
+
+    def mutate() -> None:
+        psql_t(
+            "UPDATE external_calendar_events SET transparency='transparent', "
+            "free_busy_sync_run_id='mutated' WHERE external_event_id='t1a-synth-034'"
+        )
+        psql_t(
+            "DELETE FROM external_calendar_events WHERE external_event_id='t1a-synth-034'"
+        )
+
+    mutate_with_snapshot_gate(run_dir, mutate_fn=mutate)
+    assert measure_post_restore()["probe_count"] == "0"
+
+    restore_meta = restore_isolated_snapshot_to_postgres(run_dir)
+    assert restore_meta["pg_restore_rc"] == "0"
+    measured = measure_post_restore()
+    assert measured["probe_count"] == "1"
+    assert measured["probe_transparency"] == before["probe_transparency"]
+    assert measured["probe_provenance"] == before["probe_provenance"]
+    assert measured["probe_sync_run_id"] == before["probe_sync_run_id"]
+    assert measured["probe_history_sync"] == before["probe_history_sync"]
+    assert measured["alembic_version"] == before["alembic_version"]
+
+    from app.scheduler.free_busy import verify_snapshot_checksums
+
+    evidence_path = finalize_snapshot_evidence(
+        run_dir,
+        {
+            "isolation": meta,
+            "before": before,
+            "after_restore": measured,
+            "restore": {
+                "restored_database": restore_meta["restored_database"],
+                "pg_restore_rc": restore_meta["pg_restore_rc"],
+            },
+        },
+    )
+    assert evidence_path.is_file()
+    assert verify_snapshot_checksums(run_dir)
+    checksum_text = (run_dir / "checksums.sha256").read_text(encoding="utf-8")
+    assert "evidence.json" in checksum_text
+
+
+@requires_t1a_pg
+def test_failed_pg_restore_does_not_pass_gate(tmp_path: Path) -> None:
+    assert_t1a_container_isolated()
+    seed_034_probe_row()
+    run_dir = write_isolated_snapshot(
+        run_id="pg-restore-negative",
+        db_dump_bytes=b"this-is-not-a-custom-format-dump",
+        alembic_head="034_external_event_free_busy",
+        root=tmp_path,
+    )
+    with pytest.raises(RuntimeError, match="pg_restore failed"):
+        restore_isolated_snapshot_to_postgres(run_dir)
+    # Probe still present — failed restore must not clear acceptance via rc=1 ignore
+    assert measure_post_restore()["probe_count"] == "1"

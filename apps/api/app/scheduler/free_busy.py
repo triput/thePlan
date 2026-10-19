@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
-import subprocess
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -30,11 +30,8 @@ ProvenanceLabel = Literal[
 
 T1A_FIXTURE_ROOT = Path(r"F:\thePlan-imports\investigation-2026-10-19\t1a-fixtures")
 DISPOSABLE_TARGET_DB = "theplan_t1a_test"
-T1A_PG_CONTAINER = "theplan-t1a-postgres"
-T1A_PG_USER = "t1a"
 REQUIRED_SNAPSHOT_ARTIFACTS = ("db.dump", "manifest.json", "checksums.sha256")
-# Household compose Postgres container — refuse any restore targeting it by name.
-_HOUSEHOLD_PG_CONTAINER = "compose-postgres-1"
+EVIDENCE_ARTIFACT = "evidence.json"
 
 # Exception policies: owner / provider / calendar / series (never title alone).
 _EXCEPTION_POLICIES: dict[tuple[str, str, str, str], FreeBusyKind] = {}
@@ -504,13 +501,7 @@ def write_isolated_snapshot(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
-    checksum_lines = []
-    for name in ("db.dump", "manifest.json"):
-        path = run_dir / name
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        checksum_lines.append(f"{digest}  {name}")
-    checksum_path = run_dir / "checksums.sha256"
-    checksum_path.write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
+    _write_checksums(run_dir, ("db.dump", "manifest.json"))
 
     if not verify_snapshot_checksums(run_dir):
         shutil.rmtree(run_dir, ignore_errors=True)
@@ -545,8 +536,10 @@ def verify_snapshot_checksums(run_dir: Path) -> bool:
 
 
 def restore_isolated_snapshot(run_dir: Path, *, restore_to: Path) -> Path:
-    """Copy verified db.dump to a disposable path (unit-test helper). Prefer
-    ``restore_isolated_snapshot_to_postgres`` for acceptance."""
+    """Copy verified db.dump to a disposable path (unit-test helper).
+
+    Postgres restore lives in ``tests.support.t1a_pg`` (not runtime scheduler).
+    """
     if not verify_snapshot_checksums(run_dir):
         raise RuntimeError("snapshot checksum failed; refuse restore / mutation")
     dump = run_dir / "db.dump"
@@ -555,127 +548,31 @@ def restore_isolated_snapshot(run_dir: Path, *, restore_to: Path) -> Path:
     return restore_to
 
 
-def _docker_exec(container: str, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["docker", "exec", container, *args],
-        check=check,
-        capture_output=True,
-        text=True,
+def _write_checksums(run_dir: Path, names: Sequence[str]) -> None:
+    lines = []
+    for name in names:
+        path = run_dir / name
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        lines.append(f"{digest}  {name}")
+    (run_dir / "checksums.sha256").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
     )
 
 
-def assert_t1a_container_isolated(container: str = T1A_PG_CONTAINER) -> dict[str, str]:
-    """Refuse household compose Postgres; require disposable container + DB name."""
-    if container == _HOUSEHOLD_PG_CONTAINER:
-        raise RuntimeError("refusing household compose-postgres-1")
-    if container != T1A_PG_CONTAINER:
-        raise RuntimeError(
-            f"refusing unexpected container {container!r}; expected {T1A_PG_CONTAINER!r}"
-        )
-    inspect = subprocess.run(
-        [
-            "docker",
-            "inspect",
-            container,
-            "--format",
-            "{{.Name}} {{.State.Status}} {{range $p, $c := .NetworkSettings.Ports}}{{$p}}={{json $c}} {{end}}",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    db = _docker_exec(
-        container, "psql", "-U", T1A_PG_USER, "-d", DISPOSABLE_TARGET_DB, "-tAc", "SELECT current_database()"
-    )
-    name = (db.stdout or "").strip()
-    if name != DISPOSABLE_TARGET_DB:
-        raise RuntimeError(f"current_database is {name!r}, expected {DISPOSABLE_TARGET_DB!r}")
-    return {"container": container, "database": name, "inspect": inspect.stdout.strip()}
-
-
-def pg_dump_disposable_bytes(*, container: str = T1A_PG_CONTAINER) -> bytes:
-    """Custom-format pg_dump from disposable DB only (via docker exec)."""
-    import tempfile
-
-    assert_t1a_container_isolated(container)
-    remote = "/tmp/t1a_acceptance.dump"
-    _docker_exec(
-        container,
-        "pg_dump",
-        "-U",
-        T1A_PG_USER,
-        "-d",
-        DISPOSABLE_TARGET_DB,
-        "-Fc",
-        "-f",
-        remote,
-    )
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    try:
-        subprocess.run(
-            ["docker", "cp", f"{container}:{remote}", str(tmp_path)],
-            check=True,
-            capture_output=True,
-        )
-        data = tmp_path.read_bytes()
-        if not data:
-            raise RuntimeError("pg_dump produced empty dump")
-        return data
-    finally:
-        tmp_path.unlink(missing_ok=True)
-
-
-def restore_isolated_snapshot_to_postgres(
-    run_dir: Path,
-    *,
-    container: str = T1A_PG_CONTAINER,
-) -> dict[str, str]:
-    """pg_restore verified db.dump into disposable theplan_t1a_test only."""
+def finalize_snapshot_evidence(run_dir: Path, evidence: Mapping[str, Any]) -> Path:
+    """Write evidence.json, fold it into checksums, mark artifacts read-only."""
+    if not (run_dir / "db.dump").is_file() or not (run_dir / "manifest.json").is_file():
+        raise RuntimeError("cannot finalize evidence without dump+manifest")
+    path = run_dir / EVIDENCE_ARTIFACT
+    path.write_text(json.dumps(dict(evidence), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_checksums(run_dir, ("db.dump", "manifest.json", EVIDENCE_ARTIFACT))
     if not verify_snapshot_checksums(run_dir):
-        raise RuntimeError("snapshot checksum failed; refuse restore / mutation")
-    meta = assert_t1a_container_isolated(container)
-    dump = run_dir / "db.dump"
-    remote = "/tmp/t1a_restore.dump"
-    subprocess.run(
-        ["docker", "cp", str(dump), f"{container}:{remote}"],
-        check=True,
-        capture_output=True,
-    )
-    # --clean --if-exists restores schema/data from custom dump.
-    result = _docker_exec(
-        container,
-        "pg_restore",
-        "-U",
-        T1A_PG_USER,
-        "-d",
-        DISPOSABLE_TARGET_DB,
-        "--clean",
-        "--if-exists",
-        remote,
-        check=False,
-    )
-    # pg_restore returns 1 with benign warnings on some objects; fail on real errors.
-    if result.returncode not in (0, 1):
-        raise RuntimeError(
-            f"pg_restore failed rc={result.returncode}: {result.stderr[-500:]}"
-        )
-    db = _docker_exec(
-        container,
-        "psql",
-        "-U",
-        T1A_PG_USER,
-        "-d",
-        DISPOSABLE_TARGET_DB,
-        "-tAc",
-        "SELECT current_database()",
-    )
-    restored_db = (db.stdout or "").strip()
-    if restored_db != DISPOSABLE_TARGET_DB:
-        raise RuntimeError(f"restore landed on {restored_db!r}")
-    meta["restored_database"] = restored_db
-    meta["pg_restore_rc"] = str(result.returncode)
-    return meta
+        raise RuntimeError("evidence checksum verification failed")
+    for name in ("db.dump", "manifest.json", EVIDENCE_ARTIFACT, "checksums.sha256"):
+        target = run_dir / name
+        if target.is_file():
+            os.chmod(target, 0o444)
+    return path
 
 
 def mutate_with_snapshot_gate(

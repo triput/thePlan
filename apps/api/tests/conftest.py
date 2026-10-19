@@ -11,6 +11,20 @@ from sqlalchemy.orm import Session
 # Avoid lifespan demo seed against the shared local Postgres during tests.
 os.environ.setdefault("SEED_DEMO_USER", "false")
 
+# T1-A: when set, refuse any engine target other than disposable theplan_t1a_test@:5433
+# before fixtures import-bind the engine. Set alongside DATABASE_URL for matrix runs.
+if os.environ.get("T1A_REQUIRE_DISPOSABLE_DSN") == "1":
+    _url = os.environ.get("DATABASE_URL", "")
+    if "theplan_t1a_test" not in _url or "5433" not in _url:
+        raise RuntimeError(
+            "T1A_REQUIRE_DISPOSABLE_DSN=1 requires DATABASE_URL with "
+            "theplan_t1a_test on :5433 (refusing other targets)"
+        )
+    if "5432" in _url.split("@")[-1]:
+        raise RuntimeError(
+            "T1A_REQUIRE_DISPOSABLE_DSN=1 refusing household-port DATABASE_URL"
+        )
+
 from app.bootstrap import BOOTSTRAP_USER_ID
 from app.config import get_settings
 from app.db import engine, get_db
