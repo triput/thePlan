@@ -537,25 +537,56 @@ def test_upsert_sets_zone_flag_history_and_series_loss(monkeypatch: pytest.Monke
     assert len(existing.free_busy_change_history) == 1
 
 
-def test_api_busy_input_trust_listing_from_evaluate() -> None:
-    """API path: evaluate → format_cli_listing (time + rollup), not a hardcoded string."""
-    from app.scheduler.free_busy import format_cli_listing
+def test_api_busy_input_trust_route_feeds_cli_dispatch(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Call production get_busy_input_trust, then feed listing through CLI dispatch."""
+    import argparse
+    import sys
+    from pathlib import Path
+    from unittest.mock import MagicMock
+    from uuid import uuid4
 
-    unknown = _Evt(
+    from app.api.routes.calendar import get_busy_input_trust
+    from app.models import CalendarSubscription, ExternalCalendarEvent
+
+    event = _Evt(
         None,
         "unknown_legacy",
         datetime(2026, 10, 19, 18, 0, tzinfo=timezone.utc),
         datetime(2026, 10, 19, 19, 0, tzinfo=timezone.utc),
         title="Kubernetes graded assessment",
         external_event_id="evt-k8s-1",
+        calendar_id="cal-1",
     )
-    trust = evaluate_busy_input_trust(
-        [unknown],
-        horizon_start=HORIZON_START,
-        horizon_end=HORIZON_END,
-        calendar_name_by_id={"cal-1": "TP@Gmail"},
+    subscription = SimpleNamespace(
+        external_calendar_id="cal-1",
+        summary="TP@Gmail",
+        owner_id=uuid4(),
     )
-    listing = format_cli_listing(trust)
+    user = SimpleNamespace(id=uuid4())
+
+    def _query(model: object) -> MagicMock:
+        q = MagicMock()
+        if model is ExternalCalendarEvent:
+            q.filter.return_value.all.return_value = [event]
+        elif model is CalendarSubscription:
+            q.filter.return_value.all.return_value = [subscription]
+        else:
+            q.filter.return_value.all.return_value = []
+        return q
+
+    db = MagicMock()
+    db.query.side_effect = _query
+
+    payload = get_busy_input_trust(
+        start=HORIZON_START,
+        end=HORIZON_END,
+        db=db,
+        user=user,  # type: ignore[arg-type]
+    )
+    assert payload["trust"]["ok"] is False
+    listing = payload["cli_listing"]
     assert "BusyInputTrust.ok=False" in listing
     assert "TP@Gmail" in listing
     assert "Kubernetes graded assessment" in listing
@@ -563,3 +594,28 @@ def test_api_busy_input_trust_listing_from_evaluate() -> None:
     assert "2026-10-19T18:00:00" in listing
     assert "Rollups:" in listing
     assert 'refresh "TP@Gmail"' in listing
+
+    cli_root = str(Path(__file__).resolve().parents[2] / "cli")
+    if cli_root not in sys.path:
+        sys.path.insert(0, cli_root)
+    from theplan.commands.schedule import run_schedule
+
+    def fake_api(method: str, path: str, **kwargs):  # type: ignore[no-untyped-def]
+        assert method == "GET"
+        assert path == "/api/v1/calendar/busy-input-trust"
+        return payload
+
+    monkeypatch.setattr("theplan.commands.schedule.api_json", fake_api)
+    monkeypatch.setattr("theplan.commands.schedule.get_output_format", lambda: "text")
+    run_schedule(
+        argparse.Namespace(
+            schedule_command="free-busy-diagnostics",
+            start="2026-10-19T17:00:00Z",
+            end="2026-10-20T01:00:00Z",
+        )
+    )
+    out = capsys.readouterr().out
+    assert "BusyInputTrust.ok=False" in out
+    assert "TP@Gmail" in out
+    assert "2026-10-19T18:00:00" in out
+    assert 'refresh "TP@Gmail"' in out
