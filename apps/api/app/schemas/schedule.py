@@ -20,6 +20,8 @@ StaleCategory = Literal[
     "due_at_soft_target",
     "time_map_overrides",
     "availability",
+    "composition",
+    "priority_ups",
     "scheduling_activation",
     "provenance",
 ]
@@ -58,21 +60,21 @@ class ScheduleExplanationOut(BaseModel):
     input_snapshot: dict[str, Any] | None = Field(
         default=None,
         description=(
-            "v3 inputs captured at calculation: duration, deadline, map_style, deps, "
-            "pins, project daily cap, timezone/horizon/workweek, lifecycle, external busy, "
-            "prerequisite state, due_at and soft target, and time-map overrides on the "
-            "effective map. Not in this snapshot: priority/UPS."
+            "Task inputs captured at calculation (snapshot v3/v4). Includes duration, "
+            "deadline, map_style, deps, pins, project daily cap, timezone/horizon/workweek, "
+            "lifecycle, external busy, prerequisite state, due_at and soft target, "
+            "time-map overrides, availability, composition, and priority_ups where present. "
+            "Stored v3 rows compared as provenance when live version differs."
         ),
     )
     is_stale: bool
     stale_categories: list[StaleCategory] = Field(
         description=(
-            "v3: duration, deadline, map_style, deps, pins, project_daily_cap, "
-            "timezone_horizon_workweek, lifecycle, busy_external, prerequisite_state, "
-            "due_at_soft_target, time_map_overrides, availability, "
-            "scheduling_activation. provenance means the stored "
-            "snapshot is missing or another version (including v2). priority_ups "
-            "is not compared and is never reported."
+            "Compared categories: duration, deadline, map_style, deps, pins, "
+            "project_daily_cap, timezone_horizon_workweek, lifecycle, busy_external, "
+            "prerequisite_state, due_at_soft_target, time_map_overrides, availability, "
+            "composition, priority_ups, scheduling_activation. provenance means the "
+            "stored snapshot is missing or another version (including v2)."
         )
     )
 

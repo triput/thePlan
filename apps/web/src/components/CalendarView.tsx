@@ -352,6 +352,10 @@ export function CalendarView({ onPreviewSchedule }: CalendarViewProps) {
       prerequisite_state: "prerequisite state changed",
       due_at_soft_target: "due date or soft target changed",
       time_map_overrides: "time map overrides changed",
+      availability: "availability changed",
+      composition: "scheduling rules changed",
+      priority_ups: "priority or UPS ranking changed",
+      scheduling_activation: "scheduling activation changed",
       provenance: "older snapshot",
     };
     const detail = scan.categories.map((c) => labels[c] ?? c).join(", ");

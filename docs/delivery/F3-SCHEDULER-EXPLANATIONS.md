@@ -77,9 +77,9 @@ Full formatter coverage: [apps/api/app/scheduler/reasons.py](../../apps/api/app/
 
 New replans persist **`input_snapshot`** with **`v`: 3** and **`algorithm_version`: `f3-w2`**. **`v`** is the fingerprint contract only — the placement algorithm version stays **`f3-w2`**. Older rows (missing snapshot or **`v` ≠ 3**, including F3 **v2**) surface **`provenance`** in **`stale_categories`** on read — categories are not guessed across versions.
 
-**Compared on GET** (never starts replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`, **`time_map_overrides`** (F4-W2 — all overrides on the task's **effective** map; override create/patch/delete on that map changes live compare without auto-replan).
+**Compared on GET** (never starts replan): `duration`, `deadline`, `map_style`, `deps`, `pins`, `project_daily_cap`, `timezone_horizon_workweek` (settings, not absolute horizon instants), `lifecycle`, `busy_external` (owner pinned blocks and non-mirror external events), `prerequisite_state` (blocker duration, completion, trash — edge membership stays on `deps`), `due_at_soft_target`, **`time_map_overrides`** (F4-W2 — all overrides on the task's **effective** map; override create/patch/delete on that map changes live compare without auto-replan), plus S2 categories **`availability`**, **`composition`**, **`priority_ups`**, **`scheduling_activation`** when present in the live snapshot.
 
-**Not compared:** **`priority_ups`** only. A matching v3 fingerprint is **not** proof priority or UPS weights are unchanged.
+**Compared (S2-V4b+):** **`priority_ups`** is included in live snapshots and stale compare. Response schemas must list it on `StaleCategory` (Track 0 repair, 2026-10-19) so stale-summary does not 500 when it drifts.
 
 Implementation: [apps/api/app/scheduler/input_fingerprint.py](../../apps/api/app/scheduler/input_fingerprint.py). Override write path: [apps/api/app/services/time_map_overrides.py](../../apps/api/app/services/time_map_overrides.py). API mirror: [05-api-contract.md](../05-api-contract.md) § Schedule · F4: [F4-TIME-MAP-OVERRIDES.md](./F4-TIME-MAP-OVERRIDES.md).
 
@@ -134,7 +134,7 @@ Canonical checkboxes (F3 W1 + W2): **[MANUAL-CHECKLIST.md](./MANUAL-CHECKLIST.md
 
 | Item | Notes |
 |------|-------|
-| **Stale compare deferrals** | **`priority_ups`** — not in v3 fingerprint; changing only priority/UPS may not set **`is_stale`**. **`time_map_overrides`** compared since F4-W2 / snapshot v3. |
+| **Stale compare deferrals** | None for **`priority_ups`** after S2-V4b compare + Track 0 response-schema repair (2026-10-19). Older doc rows that said priority/UPS were not compared are superseded. |
 | **F6 preview** | No preview/async diff UI; calculate/apply split is in place for a later slice |
 | **Run summary UI** | No dedicated schedule-run explanation browser in web — task panel + CLI/API only |
 | **F3-B inheritance depth** | Fuller Time Map override provenance (F4 overlap) remains roadmap, not W2 exit scope |

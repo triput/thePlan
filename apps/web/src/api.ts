@@ -1872,6 +1872,10 @@ export type StaleCategory =
   | "prerequisite_state"
   | "due_at_soft_target"
   | "time_map_overrides"
+  | "availability"
+  | "composition"
+  | "priority_ups"
+  | "scheduling_activation"
   | "provenance";
 export type ScheduleEvaluationState = "evaluated" | "never_evaluated";
 
