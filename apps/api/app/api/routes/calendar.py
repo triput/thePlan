@@ -14,7 +14,7 @@ from app.api.deps import get_current_user
 from app.api.errors import ApiError
 from app.config import get_settings
 from app.db import get_db
-from app.models import CalendarAccount, CalendarSubscription, ExternalCalendarEvent, User
+from app.models import CalendarAccount, CalendarSubscription, ExternalCalendarEvent, User, UserSettings
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.schemas import (
     CalendarAccountOut,
@@ -428,8 +428,20 @@ def sync_calendar_account(
     account = _owned_account(db, account_id, user)
     settings = get_settings()
     now = datetime.now(timezone.utc)
-    time_min = start or (now - timedelta(days=7))
-    time_max = end or (now + timedelta(days=21))
+    if start is None or end is None:
+        from app.scheduler.calendar_freshness import required_coverage_window
+
+        user_settings = (
+            db.query(UserSettings).filter(UserSettings.owner_id == user.id).one_or_none()
+        )
+        if user_settings is None:
+            raise ApiError(422, "User settings required for sync window", "SETTINGS_MISSING")
+        padded_min, padded_max = required_coverage_window(user_settings, now)
+        time_min = start or padded_min
+        time_max = end or padded_max
+    else:
+        time_min = start
+        time_max = end
     if time_max <= time_min:
         raise ApiError(422, "end must be after start", "INVALID_TIME_RANGE")
     if account.provider == CalendarProvider.google:

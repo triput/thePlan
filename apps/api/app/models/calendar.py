@@ -68,6 +68,24 @@ class CalendarSubscription(Base, TimestampMixin):
     sync_cursor: Mapped[str | None] = mapped_column(Text)
     # Provider calendar default zone (IANA or Windows id); never owner settings TZ.
     provider_timezone: Mapped[str | None] = mapped_column(String(64))
+    # T1-C: complete-window coverage evidence (Google success minting only in this slice).
+    coverage_window_start: Mapped[datetime | None] = mapped_column()
+    coverage_window_end: Mapped[datetime | None] = mapped_column()
+    coverage_mode: Mapped[str | None] = mapped_column(String(16))
+    coverage_success_at: Mapped[datetime | None] = mapped_column()
+    coverage_fetched_at: Mapped[datetime | None] = mapped_column()
+    coverage_pagination_complete: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
+    coverage_active_generation: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    coverage_success_generation: Mapped[int | None] = mapped_column()
+    coverage_show_deleted: Mapped[bool | None] = mapped_column(Boolean)
+    coverage_single_events: Mapped[bool | None] = mapped_column(Boolean)
+    coverage_page_count: Mapped[int | None] = mapped_column()
+    coverage_item_count: Mapped[int | None] = mapped_column()
+    coverage_token_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    coverage_last_failure_at: Mapped[datetime | None] = mapped_column()
+    coverage_last_failure_cause: Mapped[str | None] = mapped_column(String(128))
 
     calendar_account: Mapped["CalendarAccount"] = relationship(back_populates="subscriptions")
 
@@ -126,11 +144,16 @@ class ExternalCalendarEvent(Base):
     free_busy_pending_exception: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
+    # T1-C: provider-reported cancellation (distinct from Track 3 pending_deletion).
+    is_provider_cancelled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     @classmethod
     def immovable_busy_clause(cls) -> tuple:
-        """External busy: not our mirror, and not a delete tombstone."""
+        """External busy: not our mirror, tombstone, or provider-cancelled cache row."""
         return (
             cls.scheduled_block_id.is_(None),
             cls.pending_deletion.is_(False),
+            cls.is_provider_cancelled.is_(False),
         )

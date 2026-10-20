@@ -14,6 +14,7 @@ from app.models import ScheduleRun
 from app.scheduler.apply import apply_calculation
 from app.scheduler.calculate import calculate
 from app.scheduler.collect import collect_inputs
+from app.scheduler.calendar_freshness import CalendarFreshnessError
 from app.scheduler.free_busy import BusyInputTrustError, require_busy_input_trust
 from app.services.scheduling_revision import lock_owner_scheduling
 
@@ -52,6 +53,16 @@ def run_replan(run_id: UUID, db: Session | None = None) -> None:
             run.error_message = str(exc)
             run.finished_at = datetime.now(timezone.utc)
             run.stats_json = {"busy_input_trust": exc.trust.to_dict()}
+            db.commit()
+    except CalendarFreshnessError as exc:
+        logger.warning("Schedule run %s blocked by CalendarFreshness", run_id)
+        db.rollback()
+        run = db.get(ScheduleRun, run_id)
+        if run is not None:
+            run.status = "failed"
+            run.error_message = str(exc)
+            run.finished_at = datetime.now(timezone.utc)
+            run.stats_json = {"calendar_freshness_trust": exc.trust.to_dict()}
             db.commit()
     except Exception as exc:
         logger.exception("Schedule run %s failed", run_id)

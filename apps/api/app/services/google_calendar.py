@@ -309,12 +309,14 @@ def _paginate_events(
     url: str,
     *,
     params: dict[str, str],
-) -> tuple[list[dict[str, Any]], str | None]:
+) -> tuple[list[dict[str, Any]], str | None, int]:
     items: list[dict[str, Any]] = []
     page_token: str | None = None
     next_sync_token: str | None = None
+    page_count = 0
     with httpx.Client(timeout=60.0) as client:
         while True:
+            page_count += 1
             query = dict(params)
             if page_token:
                 query["pageToken"] = page_token
@@ -339,7 +341,7 @@ def _paginate_events(
                 next_sync_token = payload["nextSyncToken"]
             if not page_token:
                 break
-    return items, next_sync_token
+    return items, next_sync_token, page_count
 
 
 def list_google_calendars(access_token: str) -> list[dict[str, Any]]:
@@ -376,11 +378,12 @@ def list_calendar_events(
     *,
     time_min: datetime,
     time_max: datetime,
-) -> tuple[list[dict[str, Any]], str | None]:
+) -> tuple[list[dict[str, Any]], str | None, int]:
     params = {
         "timeMin": _iso_z(time_min),
         "timeMax": _iso_z(time_max),
         "singleEvents": "true",
+        "showDeleted": "true",
         "orderBy": "startTime",
         "maxResults": "2500",
     }
@@ -391,8 +394,8 @@ def list_calendar_events_incremental(
     access_token: str,
     calendar_id: str,
     sync_token: str,
-) -> tuple[list[dict[str, Any]], str | None]:
-    params = {"syncToken": sync_token}
+) -> tuple[list[dict[str, Any]], str | None, int]:
+    params = {"syncToken": sync_token, "singleEvents": "true"}
     return _paginate_events(access_token, _calendar_events_base(calendar_id), params=params)
 
 
@@ -662,7 +665,22 @@ def _upsert_external_event(
     ):
         row.free_busy_pending_exception = True
     row.provider_series_id = new_series
+    row.is_provider_cancelled = False
     return True
+
+
+def _mark_provider_cancelled(
+    db: Session,
+    *,
+    owner_id,
+    external_id: str,
+    now: datetime,
+) -> None:
+    row = _find_external_event(db, owner_id=owner_id, external_id=external_id)
+    if row is None:
+        return
+    row.is_provider_cancelled = True
+    row.last_synced_at = now
 
 
 def _pull_subscription_changes(
@@ -672,27 +690,34 @@ def _pull_subscription_changes(
     subscription: CalendarSubscription,
     time_min: datetime,
     time_max: datetime,
-) -> tuple[list[dict[str, Any]], str | None, bool]:
-    """Fetch provider events before the owner scheduling lock. Returns (events, cursor, is_full)."""
+) -> tuple[list[dict[str, Any]], str | None, bool, int]:
+    """Fetch provider events before the owner scheduling lock."""
+    from app.services.calendar_coverage import invalidate_subscription_coverage
+
     if subscription.sync_cursor:
         try:
-            events, next_sync_token = list_calendar_events_incremental(
+            events, next_sync_token, page_count = list_calendar_events_incremental(
                 access,
                 subscription.external_calendar_id,
                 subscription.sync_cursor,
             )
-            return events, next_sync_token, False
+            return events, next_sync_token, False, page_count
         except GoogleSyncTokenExpired:
-            subscription.sync_cursor = None
+            invalidate_subscription_coverage(
+                subscription,
+                now=datetime.now(timezone.utc),
+                cause="google_sync_token_expired",
+                clear_sync_cursor=True,
+            )
             db.flush()
 
-    events, next_sync_token = list_calendar_events(
+    events, next_sync_token, page_count = list_calendar_events(
         access,
         subscription.external_calendar_id,
         time_min=time_min,
         time_max=time_max,
     )
-    return events, next_sync_token, True
+    return events, next_sync_token, True, page_count
 
 
 def _apply_subscription_full(
@@ -705,56 +730,93 @@ def _apply_subscription_full(
     time_min: datetime,
     time_max: datetime,
     now: datetime,
+    coverage_generation: int,
+    page_count: int,
     suppressed_external_ids: set[str] | None = None,
 ) -> int:
+    from app.services.calendar_coverage import (
+        commit_subscription_coverage_success,
+        record_subscription_refresh_failure,
+    )
+
     suppressed = suppressed_external_ids or set()
     seen_external_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"google-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
-    for event in events:
-        status = event.get("status")
-        external_id = event.get("id")
-        if not external_id or status == "cancelled":
-            if external_id and status == "cancelled":
-                pending = _find_external_event(
-                    db, owner_id=account.owner_id, external_id=external_id
-                )
-                if pending is not None and pending.pending_deletion:
-                    db.delete(pending)
-            continue
-        if external_id in suppressed:
-            continue
-        seen_external_ids.add(external_id)
-        if _upsert_external_event(
-            db,
-            account=account,
-            subscription=subscription,
-            event=event,
-            now=now,
-            sync_run_id=sync_run_id,
-        ):
-            upserted += 1
+    try:
+        for event in events:
+            status = event.get("status")
+            external_id = event.get("id")
+            if not external_id or status == "cancelled":
+                if external_id and status == "cancelled":
+                    pending = _find_external_event(
+                        db, owner_id=account.owner_id, external_id=external_id
+                    )
+                    if pending is not None and pending.pending_deletion:
+                        db.delete(pending)
+                    else:
+                        _mark_provider_cancelled(
+                            db,
+                            owner_id=account.owner_id,
+                            external_id=external_id,
+                            now=now,
+                        )
+                continue
+            if external_id in suppressed:
+                continue
+            seen_external_ids.add(external_id)
+            if _upsert_external_event(
+                db,
+                account=account,
+                subscription=subscription,
+                event=event,
+                now=now,
+                sync_run_id=sync_run_id,
+            ):
+                upserted += 1
 
-    stale = (
-        db.query(ExternalCalendarEvent)
-        .filter(
-            ExternalCalendarEvent.calendar_account_id == account.id,
-            ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
-            *ExternalCalendarEvent.immovable_busy_clause(),
-            ExternalCalendarEvent.start_time < time_max,
-            ExternalCalendarEvent.end_time > time_min,
+        stale = (
+            db.query(ExternalCalendarEvent)
+            .filter(
+                ExternalCalendarEvent.calendar_account_id == account.id,
+                ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
+                *ExternalCalendarEvent.immovable_busy_clause(),
+                ExternalCalendarEvent.start_time < time_max,
+                ExternalCalendarEvent.end_time > time_min,
+            )
+            .all()
         )
-        .all()
-    )
-    for row in stale:
-        if row.external_event_id not in seen_external_ids:
-            db.delete(row)
+        for row in stale:
+            if row.external_event_id not in seen_external_ids:
+                db.delete(row)
 
-    if next_sync_token:
-        subscription.sync_cursor = next_sync_token
-    db.flush()
-    return upserted
+        if next_sync_token:
+            subscription.sync_cursor = next_sync_token
+        commit_subscription_coverage_success(
+            subscription,
+            now=now,
+            window_start=time_min,
+            window_end=time_max,
+            mode="full",
+            pagination_complete=True,
+            page_count=page_count,
+            item_count=len(events),
+            show_deleted=True,
+            single_events=True,
+            sync_token=next_sync_token,
+            generation=coverage_generation,
+        )
+        db.flush()
+        return upserted
+    except Exception:
+        record_subscription_refresh_failure(
+            subscription,
+            now=now,
+            cause="google_apply_full_failed",
+        )
+        db.flush()
+        raise
 
 
 def _apply_subscription_incremental(
@@ -765,38 +827,82 @@ def _apply_subscription_incremental(
     events: list[dict[str, Any]],
     next_sync_token: str | None,
     now: datetime,
+    coverage_generation: int,
+    page_count: int,
     suppressed_external_ids: set[str] | None = None,
 ) -> int:
+    from app.services.calendar_coverage import (
+        commit_subscription_coverage_success,
+        record_subscription_refresh_failure,
+    )
+
     suppressed = suppressed_external_ids or set()
     upserted = 0
     sync_run_id = f"google-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
-    for event in events:
-        status = event.get("status")
-        external_id = event.get("id")
-        if not external_id:
-            continue
-        if status == "cancelled":
-            row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
-            if row is not None:
-                db.delete(row)
-            continue
-        if external_id in suppressed:
-            continue
-        if _upsert_external_event(
-            db,
-            account=account,
-            subscription=subscription,
-            event=event,
-            now=now,
-            sync_run_id=sync_run_id,
-        ):
-            upserted += 1
+    window_start = subscription.coverage_window_start
+    window_end = subscription.coverage_window_end
+    if window_start is None or window_end is None:
+        raise RuntimeError("incremental apply requires prior full coverage window")
 
-    if next_sync_token:
-        subscription.sync_cursor = next_sync_token
-    db.flush()
-    return upserted
+    try:
+        for event in events:
+            status = event.get("status")
+            external_id = event.get("id")
+            if not external_id:
+                continue
+            if status == "cancelled":
+                pending = _find_external_event(
+                    db, owner_id=account.owner_id, external_id=external_id
+                )
+                if pending is not None and pending.pending_deletion:
+                    db.delete(pending)
+                else:
+                    _mark_provider_cancelled(
+                        db,
+                        owner_id=account.owner_id,
+                        external_id=external_id,
+                        now=now,
+                    )
+                continue
+            if external_id in suppressed:
+                continue
+            if _upsert_external_event(
+                db,
+                account=account,
+                subscription=subscription,
+                event=event,
+                now=now,
+                sync_run_id=sync_run_id,
+            ):
+                upserted += 1
+
+        if next_sync_token:
+            subscription.sync_cursor = next_sync_token
+        commit_subscription_coverage_success(
+            subscription,
+            now=now,
+            window_start=window_start,
+            window_end=window_end,
+            mode="incremental",
+            pagination_complete=True,
+            page_count=page_count,
+            item_count=len(events),
+            show_deleted=subscription.coverage_show_deleted,
+            single_events=True,
+            sync_token=next_sync_token,
+            generation=coverage_generation,
+        )
+        db.flush()
+        return upserted
+    except Exception:
+        record_subscription_refresh_failure(
+            subscription,
+            now=now,
+            cause="google_apply_incremental_failed",
+        )
+        db.flush()
+        raise
 
 
 def sync_account_events(
@@ -807,6 +913,14 @@ def sync_account_events(
     time_min: datetime,
     time_max: datetime,
 ) -> int:
+    from app.models import UserSettings
+    from app.services.calendar_coverage import (
+        begin_subscription_refresh,
+        coverage_window_wider_than,
+        invalidate_subscription_coverage,
+        record_subscription_refresh_failure,
+        subscription_refresh_lock,
+    )
     from app.services.mirror_tombstone import retry_pending_deletions
     from app.services.scheduling_revision import (
         immovable_busy_signature,
@@ -816,6 +930,9 @@ def sync_account_events(
 
     access = get_valid_access_token(db, settings=settings, account=account)
     now = datetime.now(timezone.utc)
+    user_settings = (
+        db.query(UserSettings).filter(UserSettings.owner_id == account.owner_id).one_or_none()
+    )
     subscriptions = (
         db.query(CalendarSubscription)
         .filter(
@@ -835,17 +952,6 @@ def sync_account_events(
             .all()
         )
 
-    pulled: list[tuple[CalendarSubscription, list[dict[str, Any]], str | None, bool]] = []
-    for subscription in subscriptions:
-        events, next_cursor, is_full = _pull_subscription_changes(
-            db,
-            access=access,
-            subscription=subscription,
-            time_min=time_min,
-            time_max=time_max,
-        )
-        pulled.append((subscription, events, next_cursor, is_full))
-
     scheduling_settings = lock_owner_scheduling(db, account.owner_id)
     before_busy = immovable_busy_signature(db, account.owner_id)
     suppressed = retry_pending_deletions(
@@ -855,29 +961,64 @@ def sync_account_events(
         delete_event=delete_google_event,
     )
     upserted = 0
-    for subscription, events, next_cursor, is_full in pulled:
-        if is_full:
-            upserted += _apply_subscription_full(
-                db,
-                account=account,
-                subscription=subscription,
-                events=events,
-                next_sync_token=next_cursor,
-                time_min=time_min,
-                time_max=time_max,
-                now=now,
-                suppressed_external_ids=suppressed,
-            )
-        else:
-            upserted += _apply_subscription_incremental(
-                db,
-                account=account,
-                subscription=subscription,
-                events=events,
-                next_sync_token=next_cursor,
-                now=now,
-                suppressed_external_ids=suppressed,
-            )
+    for subscription in subscriptions:
+        with subscription_refresh_lock(subscription.id):
+            if user_settings is not None and coverage_window_wider_than(
+                subscription,
+                required_start=time_min,
+                required_end=time_max,
+            ):
+                invalidate_subscription_coverage(
+                    subscription,
+                    now=now,
+                    cause="coverage_horizon_widened",
+                    clear_sync_cursor=True,
+                )
+                db.flush()
+            try:
+                events, next_cursor, is_full, page_count = _pull_subscription_changes(
+                    db,
+                    access=access,
+                    subscription=subscription,
+                    time_min=time_min,
+                    time_max=time_max,
+                )
+                generation = begin_subscription_refresh(subscription, now=now)
+                db.flush()
+                if is_full:
+                    upserted += _apply_subscription_full(
+                        db,
+                        account=account,
+                        subscription=subscription,
+                        events=events,
+                        next_sync_token=next_cursor,
+                        time_min=time_min,
+                        time_max=time_max,
+                        now=now,
+                        coverage_generation=generation,
+                        page_count=page_count,
+                        suppressed_external_ids=suppressed,
+                    )
+                else:
+                    upserted += _apply_subscription_incremental(
+                        db,
+                        account=account,
+                        subscription=subscription,
+                        events=events,
+                        next_sync_token=next_cursor,
+                        now=now,
+                        coverage_generation=generation,
+                        page_count=page_count,
+                        suppressed_external_ids=suppressed,
+                    )
+            except Exception:
+                record_subscription_refresh_failure(
+                    subscription,
+                    now=now,
+                    cause="google_subscription_refresh_failed",
+                )
+                db.flush()
+                raise
 
     account.last_synced_at = now
     db.flush()

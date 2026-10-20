@@ -19,6 +19,7 @@ from app.db import SessionLocal
 from app.models import SchedulePreview, UserSettings
 from app.scheduler.calculate import calculate
 from app.scheduler.collect import collect_inputs
+from app.scheduler.calendar_freshness import CalendarFreshnessError
 from app.scheduler.free_busy import BusyInputTrustError, require_busy_input_trust
 from app.scheduler.input_fingerprint import ALGORITHM_VERSION
 from app.scheduler.preview_inputs import fingerprint_collected_inputs, live_owner_fingerprint
@@ -145,6 +146,18 @@ def run_preview(preview_id: UUID, db: Session | None = None) -> None:
             preview.expires_at = None
             preview.proposal_json = None
             preview.stats_json = {"busy_input_trust": exc.trust.to_dict()}
+            db.commit()
+    except CalendarFreshnessError as exc:
+        logger.warning("Schedule preview %s blocked by CalendarFreshness", preview_id)
+        db.rollback()
+        preview = db.get(SchedulePreview, preview_id)
+        if preview is not None:
+            preview.status = "failed"
+            preview.error_message = str(exc)
+            preview.finished_at = datetime.now(timezone.utc)
+            preview.expires_at = None
+            preview.proposal_json = None
+            preview.stats_json = {"calendar_freshness_trust": exc.trust.to_dict()}
             db.commit()
     except Exception as exc:
         logger.exception("Schedule preview %s failed", preview_id)

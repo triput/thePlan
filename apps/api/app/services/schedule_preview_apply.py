@@ -20,6 +20,12 @@ from app.api.errors import ApiError
 from app.models import SchedulePreview, ScheduleRun, User
 from app.scheduler.apply import apply_calculation
 from app.scheduler.collect import collect_inputs
+from app.scheduler.calendar_freshness import (
+    CalendarFreshnessError,
+    evaluate_calendar_freshness,
+    proposal_padded_coverage_window,
+    require_calendar_freshness,
+)
 from app.scheduler.free_busy import BusyInputTrustError, require_busy_input_trust
 from app.scheduler.preview_inputs import collected_at_from_snapshot, live_owner_fingerprint
 from app.scheduler.preview_proposal import calculation_result_from_proposal
@@ -37,6 +43,15 @@ def _raise_busy_input_trust(exc: BusyInputTrustError) -> None:
         str(exc),
         "BUSY_INPUT_TRUST",
         busy_input_trust=exc.trust.to_dict(),
+    ) from exc
+
+
+def _raise_calendar_freshness(exc: CalendarFreshnessError) -> None:
+    raise ApiError(
+        409,
+        str(exc),
+        "CALENDAR_FRESHNESS",
+        calendar_freshness_trust=exc.trust.to_dict(),
     ) from exc
 
 
@@ -121,6 +136,23 @@ def _validate_ready_for_apply(
         require_busy_input_trust(inputs_now.busy_input_trust)
     except BusyInputTrustError as exc:
         _raise_busy_input_trust(exc)
+    placement_start, placement_end = proposal_padded_coverage_window(
+        preview.proposal_json,
+        inputs_now.user_settings,
+        now,
+    )
+    freshness_now = evaluate_calendar_freshness(
+        db,
+        preview.owner_id,
+        inputs_now.user_settings,
+        now,
+        required_start=placement_start,
+        required_end=placement_end,
+    )
+    try:
+        require_calendar_freshness(freshness_now)
+    except CalendarFreshnessError as exc:
+        _raise_calendar_freshness(exc)
     temporal = temporal_stale_categories(
         inputs_now,
         preview.proposal_json,
@@ -188,6 +220,23 @@ def apply_schedule_preview(db: Session, user: User, preview: SchedulePreview) ->
         require_busy_input_trust(inputs.busy_input_trust)
     except BusyInputTrustError as exc:
         _raise_busy_input_trust(exc)
+    placement_start, placement_end = proposal_padded_coverage_window(
+        proposal,
+        inputs.user_settings,
+        now,
+    )
+    freshness_apply = evaluate_calendar_freshness(
+        db,
+        preview.owner_id,
+        inputs.user_settings,
+        now,
+        required_start=placement_start,
+        required_end=placement_end,
+    )
+    try:
+        require_calendar_freshness(freshness_apply)
+    except CalendarFreshnessError as exc:
+        _raise_calendar_freshness(exc)
 
     run = ScheduleRun(owner_id=preview.owner_id, status="running")
     db.add(run)

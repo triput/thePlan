@@ -1,7 +1,7 @@
 """Track 1 T1-A: Google free/busy trust, diagnostics, and exception identity.
 
 BusyInputTrust is a collect-time input check only — ok=True does not mean
-overall scheduling readiness (deps, caps, freshness, etc.).
+overall scheduling readiness (deps, caps, calendar freshness, etc.).
 
 Fail-closed: calculate/replan/preview must refuse placement when ok=False.
 """
@@ -420,6 +420,8 @@ def events_for_busy_merge(events: Sequence[Any]) -> list[Any]:
     """Opaque/busy only. Unknowns are excluded from occupancy (trust blocks instead)."""
     out = []
     for event in events:
+        if bool(getattr(event, "is_provider_cancelled", False)):
+            continue
         if bool(getattr(event, "free_busy_pending_exception", False)):
             continue
         if source_zone_untrusted(event):
