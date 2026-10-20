@@ -580,6 +580,147 @@ def test_t1c_pre_pull_failure_does_not_commit_unrelated_caller_transaction(
     assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
 
 
+def test_t1c_pre_pull_failure_rolls_back_flushed_unrelated_writes(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Flushed unrelated caller SQL must not survive failure-marker commit."""
+    owner, settings = _owner(db_session)
+    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    sync_now = mint_now + timedelta(seconds=1)
+    gate_start, gate_end = required_coverage_window(settings, mint_now)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-flushed", summary="Flushed Tx")
+    prior_cursor = "flushed-cursor"
+    sub.sync_cursor = prior_cursor
+    _mint(
+        sub,
+        now=mint_now,
+        start=gate_start - timedelta(days=1),
+        end=gate_end + timedelta(days=1),
+    )
+    prior_display = owner.display_name
+    owner_id = owner.id
+    sub_id = sub.id
+    db_session.info["_t1c_unrelated_change_savepoint"] = db_session.begin_nested()
+
+    owner.display_name = "MUST NOT COMMIT WITH FAILURE"
+    db_session.flush()
+
+    _patch_gcal_clock(monkeypatch, sync_now)
+    monkeypatch.setattr(
+        gcal,
+        "get_valid_access_token",
+        lambda *_a, **_k: (_ for _ in ()).throw(
+            ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+        ),
+    )
+
+    with pytest.raises(ApiError):
+        gcal.sync_account_events(
+            db_session,
+            settings=_settings(),
+            account=account,
+            time_min=gate_start,
+            time_max=gate_end,
+        )
+
+    db_session.rollback()
+    db_session.expire_all()
+
+    owner = db_session.get(User, owner_id)
+    sub = db_session.get(CalendarSubscription, sub_id)
+    assert owner is not None
+    assert sub is not None
+    assert owner.display_name == prior_display
+    assert sub.sync_cursor == prior_cursor
+    assert sub.coverage_last_failure_at is not None
+    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+
+
+def test_t1c_pre_pull_failure_rolls_back_caller_new_and_deleted_objects(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Independent failure commit must not persist caller new/delete ORM state."""
+    owner, settings = _owner(db_session)
+    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    sync_now = mint_now + timedelta(seconds=1)
+    gate_start, gate_end = required_coverage_window(settings, mint_now)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-new-del", summary="New Delete Tx")
+    prior_cursor = "new-del-cursor"
+    sub.sync_cursor = prior_cursor
+    _mint(
+        sub,
+        now=mint_now,
+        start=gate_start - timedelta(days=1),
+        end=gate_end + timedelta(days=1),
+    )
+    evt_start = gate_start + timedelta(hours=2)
+    evt_end = evt_start + timedelta(hours=1)
+    surviving = ExternalCalendarEvent(
+        owner_id=owner.id,
+        calendar_account_id=account.id,
+        provider=CalendarProvider.google,
+        external_event_id="survive-delete",
+        calendar_id=sub.external_calendar_id,
+        title="Survive",
+        start_time=evt_start,
+        end_time=evt_end,
+    )
+    db_session.add(surviving)
+    db_session.flush()
+    surviving_id = surviving.id
+    sub_id = sub.id
+
+    db_session.add(
+        ExternalCalendarEvent(
+            owner_id=owner.id,
+            calendar_account_id=account.id,
+            provider=CalendarProvider.google,
+            external_event_id="must-not-insert",
+            calendar_id=sub.external_calendar_id,
+            title="Pending New",
+            start_time=evt_start,
+            end_time=evt_end,
+        )
+    )
+    db_session.delete(surviving)
+
+    _patch_gcal_clock(monkeypatch, sync_now)
+    monkeypatch.setattr(
+        gcal,
+        "get_valid_access_token",
+        lambda *_a, **_k: (_ for _ in ()).throw(
+            ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+        ),
+    )
+
+    with pytest.raises(ApiError):
+        gcal.sync_account_events(
+            db_session,
+            settings=_settings(),
+            account=account,
+            time_min=gate_start,
+            time_max=gate_end,
+        )
+
+    db_session.rollback()
+    db_session.expire_all()
+
+    assert db_session.get(ExternalCalendarEvent, surviving_id) is not None
+    assert (
+        db_session.query(ExternalCalendarEvent)
+        .filter(ExternalCalendarEvent.external_event_id == "must-not-insert")
+        .count()
+        == 0
+    )
+    sub = db_session.get(CalendarSubscription, sub_id)
+    assert sub is not None
+    assert sub.sync_cursor == prior_cursor
+    assert sub.coverage_last_failure_at is not None
+    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+
+
 def test_t1_8_pagination_flag_false_blocks_even_if_young(db_session: Session) -> None:
     owner, settings = _owner(db_session)
     now = datetime.now(UTC)

@@ -9,9 +9,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlencode
+from uuid import UUID
 
 import httpx
-from sqlalchemy.orm import Session
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.orm import Session, attributes
 
 from app.api.errors import ApiError
 from app.config import Settings, get_settings
@@ -963,6 +965,173 @@ def _mark_failure_committed(exc: BaseException) -> None:
     setattr(exc, "_t1c_failure_committed", True)
 
 
+def _apply_subscription_failure_marker(
+    subscription: CalendarSubscription,
+    *,
+    now: datetime,
+    cause: str,
+) -> bool:
+    from app.services.calendar_coverage import (
+        begin_subscription_refresh,
+        record_subscription_refresh_failure,
+    )
+
+    if subscription.coverage_success_at is not None:
+        begin_subscription_refresh(subscription, now=now)
+        record_subscription_refresh_failure(subscription, now=now, cause=cause)
+        return True
+    if subscription.coverage_last_failure_at is None:
+        record_subscription_refresh_failure(subscription, now=now, cause=cause)
+        return True
+    return False
+
+
+def _revert_non_subscription_caller_state(db: Session, subscription_ids: set[UUID]) -> None:
+    """Drop unrelated pending caller ORM work before a caller-scoped failure commit."""
+    from app.db import engine
+
+    unrelated = db.info.pop("_t1c_unrelated_change_savepoint", None)
+    if unrelated is not None and unrelated.is_active:
+        unrelated.rollback()
+        return
+
+    for obj in list(db.new):
+        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
+            continue
+        db.expunge(obj)
+
+    for obj in list(db.deleted):
+        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
+            continue
+        db.add(obj)
+
+    reverted: list[object] = []
+    for obj in list(db.identity_map.values()):
+        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
+            continue
+        state = sa_inspect(obj)
+        if not state.has_identity:
+            db.expunge(obj)
+            continue
+        changed = False
+        for col in state.mapper.column_attrs:
+            key = col.key
+            hist = attributes.get_history(obj, key)
+            if not hist.has_changes():
+                continue
+            if hist.deleted:
+                setattr(obj, key, hist.deleted[0])
+                changed = True
+            elif hist.unchanged:
+                setattr(obj, key, hist.unchanged[0])
+                changed = True
+        if changed:
+            reverted.append(obj)
+            continue
+
+        # Flushed attributes no longer appear in history — reload last committed row.
+        mapper = state.mapper
+        pk_values = state.identity
+        if pk_values is None:
+            continue
+        from sqlalchemy import select
+
+        entity = mapper.class_
+        pk_filters = [
+            pk_col == pk_val for pk_col, pk_val in zip(mapper.primary_key, pk_values, strict=True)
+        ]
+        with engine.connect() as conn:
+            row = conn.execute(select(entity).where(*pk_filters)).scalar_one_or_none()
+        if row is None:
+            continue
+        for col in mapper.column_attrs:
+            setattr(obj, col.key, getattr(row, col.key))
+        reverted.append(obj)
+
+    if reverted:
+        db.flush(reverted)
+
+
+def _persist_subscription_refresh_failures_autonomous(
+    subscription_ids: set[UUID],
+    *,
+    now: datetime,
+    cause: str,
+) -> bool:
+    """Commit failure markers in a separate DB transaction (production path)."""
+    if not subscription_ids:
+        return False
+
+    from app.db import SessionLocal
+
+    independent = SessionLocal()
+    try:
+        rows = (
+            independent.query(CalendarSubscription)
+            .filter(CalendarSubscription.id.in_(subscription_ids))
+            .all()
+        )
+        if len(rows) != len(subscription_ids):
+            return False
+        wrote_failure = False
+        for subscription in rows:
+            if _apply_subscription_failure_marker(subscription, now=now, cause=cause):
+                wrote_failure = True
+        if wrote_failure:
+            independent.commit()
+            return True
+        return False
+    finally:
+        independent.close()
+
+
+def _persist_subscription_refresh_failures_caller_session(
+    db: Session,
+    subscriptions: list[CalendarSubscription],
+    *,
+    now: datetime,
+    cause: str,
+) -> None:
+    """Caller-scoped failure commit for uncommitted test fixtures (same connection)."""
+    subscription_ids = {subscription.id for subscription in subscriptions}
+    wrote_failure = False
+    for subscription in subscriptions:
+        if _apply_subscription_failure_marker(subscription, now=now, cause=cause):
+            wrote_failure = True
+    if not wrote_failure:
+        return
+    _revert_non_subscription_caller_state(db, subscription_ids)
+    for subscription in subscriptions:
+        _apply_subscription_failure_marker(subscription, now=now, cause=cause)
+    db.flush(objects=subscriptions)
+    db.commit()
+
+
+def _persist_subscription_refresh_failures(
+    db: Session,
+    subscriptions: list[CalendarSubscription],
+    *,
+    now: datetime,
+    cause: str,
+) -> None:
+    """Persist subscription failure markers without committing unrelated caller work."""
+    if not subscriptions:
+        return
+
+    subscription_ids = {subscription.id for subscription in subscriptions}
+    _revert_non_subscription_caller_state(db, subscription_ids)
+    if _persist_subscription_refresh_failures_autonomous(subscription_ids, now=now, cause=cause):
+        for subscription in subscriptions:
+            db.expire(subscription)
+        return
+    _persist_subscription_refresh_failures_caller_session(
+        db,
+        subscriptions,
+        now=now,
+        cause=cause,
+    )
+
+
 def _commit_pre_pull_refresh_failure(
     db: Session,
     subscriptions: list[CalendarSubscription],
@@ -973,39 +1142,8 @@ def _commit_pre_pull_refresh_failure(
     """Persist not-ready evidence when auth fails before any subscription pull.
 
     Does not clear cache rows or sync cursors — only failure markers are committed.
-    Commits only subscription failure markers — detaches other pending caller objects
-    (e.g. OAuth token upsert) so they stay in the caller transaction.
     """
-    from app.services.calendar_coverage import record_subscription_refresh_failure
-
-    subscription_ids = {subscription.id for subscription in subscriptions}
-    detached: list[object] = []
-
-    for obj in list(db.identity_map.values()):
-        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
-            continue
-        if obj in db.dirty or obj in db.new:
-            detached.append(obj)
-            db.expunge(obj)
-
-    wrote_failure = False
-    for subscription in subscriptions:
-        if subscription.coverage_success_at is not None:
-            record_subscription_refresh_failure(subscription, now=now, cause=cause)
-            wrote_failure = True
-        elif subscription.coverage_last_failure_at is None:
-            record_subscription_refresh_failure(subscription, now=now, cause=cause)
-            wrote_failure = True
-
-    if not wrote_failure:
-        for obj in detached:
-            db.add(obj)
-        return
-
-    db.commit()
-
-    for obj in detached:
-        db.add(obj)
+    _persist_subscription_refresh_failures(db, subscriptions, now=now, cause=cause)
 
 
 def _commit_refresh_failure(
@@ -1018,22 +1156,10 @@ def _commit_refresh_failure(
     """Persist not-ready evidence.
 
     Cache writes for the failed attempt live in a savepoint that has already
-    been rolled back. This commit keeps the cleared success marker and the
-    failed-attempt record even if the caller then rolls back its own transaction.
-    A still-young restored marker is cleared again so it cannot waive the failure.
+    been rolled back. Failure markers are committed in an isolated transaction
+    so they survive caller rollback without unrelated caller state.
     """
-    from app.services.calendar_coverage import (
-        begin_subscription_refresh,
-        record_subscription_refresh_failure,
-    )
-
-    if subscription.coverage_success_at is not None:
-        begin_subscription_refresh(subscription, now=now)
-        record_subscription_refresh_failure(subscription, now=now, cause=cause)
-    elif subscription.coverage_last_failure_at is None:
-        record_subscription_refresh_failure(subscription, now=now, cause=cause)
-    db.flush()
-    db.commit()
+    _persist_subscription_refresh_failures(db, [subscription], now=now, cause=cause)
 
 
 def sync_account_events(
