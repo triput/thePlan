@@ -985,6 +985,44 @@ def ensure_primary_subscription(
     return sub
 
 
+def _validated_oauth_token_fields(
+    payload: dict[str, Any],
+    *,
+    missing_access_detail: str,
+    shape_code: str,
+    shape_detail: str,
+) -> tuple[str, int, str | None]:
+    """Validate consumed token fields before any account mutation.
+
+    ``access_token`` must be a nonempty ``str`` (``MICROSOFT_NO_ACCESS_TOKEN``).
+    ``expires_in`` absent or empty keeps the historical 3600 default; any other
+    value must coerce with ``int`` or this raises ``ApiError`` (``shape_code``).
+    A present non-str ``refresh_token`` fails closed the same way. Callers
+    mutate the account only after this returns.
+    """
+    access = payload.get("access_token")
+    if not isinstance(access, str) or not access:
+        raise ApiError(502, missing_access_detail, "MICROSOFT_NO_ACCESS_TOKEN")
+
+    raw_expires = payload.get("expires_in")
+    if not raw_expires:
+        expires_in = 3600
+    else:
+        try:
+            expires_in = int(raw_expires)
+        except (TypeError, ValueError) as exc:
+            raise ApiError(502, f"{shape_detail}: expires_in", shape_code) from exc
+
+    refresh = payload.get("refresh_token")
+    if refresh is None or refresh == "":
+        refresh_token: str | None = None
+    elif not isinstance(refresh, str):
+        raise ApiError(502, f"{shape_detail}: refresh_token", shape_code)
+    else:
+        refresh_token = refresh
+    return access, expires_in, refresh_token
+
+
 def upsert_account_tokens(
     db: Session,
     *,
@@ -994,10 +1032,12 @@ def upsert_account_tokens(
     token_payload: dict[str, Any],
     existing: CalendarAccount | None = None,
 ) -> CalendarAccount:
-    access = token_payload.get("access_token")
-    if not access:
-        raise ApiError(502, "Microsoft did not return an access token", "MICROSOFT_NO_ACCESS_TOKEN")
-    expires_in = int(token_payload.get("expires_in") or 3600)
+    access, expires_in, refresh = _validated_oauth_token_fields(
+        token_payload,
+        missing_access_detail="Microsoft did not return an access token",
+        shape_code="MICROSOFT_TOKEN_EXCHANGE",
+        shape_detail="Microsoft token response returned an invalid token field",
+    )
     expires_at = datetime.now(timezone.utc) + timedelta(seconds=max(60, expires_in - 60))
 
     account = existing
@@ -1021,7 +1061,6 @@ def upsert_account_tokens(
 
     account.account_email = account_email or account.account_email
     account.access_token_enc = encrypt_token(settings, access)
-    refresh = token_payload.get("refresh_token")
     if refresh:
         account.refresh_token_enc = encrypt_token(settings, refresh)
     elif not account.refresh_token_enc:
@@ -1058,14 +1097,16 @@ def get_valid_access_token(
     config = load_microsoft_oauth_config(settings)
     refresh = decrypt_token(settings, account.refresh_token_enc)
     payload = refresh_access_token(config, refresh)
-    access = payload.get("access_token")
-    if not access:
-        raise ApiError(502, "Microsoft refresh did not return access token", "MICROSOFT_NO_ACCESS_TOKEN")
+    access, expires_in, rotated_refresh = _validated_oauth_token_fields(
+        payload,
+        missing_access_detail="Microsoft refresh did not return access token",
+        shape_code="MICROSOFT_TOKEN_REFRESH",
+        shape_detail="Microsoft token refresh returned an invalid token field",
+    )
     account.access_token_enc = encrypt_token(settings, access)
-    expires_in = int(payload.get("expires_in") or 3600)
     account.token_expires_at = now + timedelta(seconds=max(60, expires_in - 60))
-    if payload.get("refresh_token"):
-        account.refresh_token_enc = encrypt_token(settings, payload["refresh_token"])
+    if rotated_refresh:
+        account.refresh_token_enc = encrypt_token(settings, rotated_refresh)
     db.flush()
     return access
 

@@ -10,7 +10,9 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
+from types import SimpleNamespace
 from typing import Any, Iterator
+from unittest.mock import MagicMock
 from uuid import UUID
 
 import httpx
@@ -36,7 +38,7 @@ from app.scheduler.calendar_freshness import (
 )
 from app.scheduler.free_busy import evaluate_busy_input_trust
 from app.services import microsoft_calendar as ms_cal
-from app.services.token_crypto import encrypt_token
+from app.services.token_crypto import decrypt_token, encrypt_token
 from support.t1a_pg import assert_disposable_database_url, assert_t1a_container_isolated
 
 UTC = timezone.utc
@@ -1446,6 +1448,201 @@ def test_dex_auth_token_invalid_json_marks_all_enabled_subs(
             for sub_id in fx.sub_ids:
                 durable = verify.get(CalendarSubscription, sub_id)
                 assert durable is not None
+                assert durable.coverage_success_at is None
+                assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+            assert len(trust.blocking_diagnostics) >= 2
+        finally:
+            verify.close()
+
+
+def test_validated_oauth_token_fields_shape() -> None:
+    """Field shape is typed ApiError before any caller can mutate an account."""
+    kwargs = {
+        "missing_access_detail": "missing access",
+        "shape_code": "MICROSOFT_TOKEN_REFRESH",
+        "shape_detail": "bad shape",
+    }
+    access, expires_in, refresh = ms_cal._validated_oauth_token_fields(
+        {"access_token": "ok"},
+        **kwargs,
+    )
+    assert (access, expires_in, refresh) == ("ok", 3600, None)
+
+    access, expires_in, refresh = ms_cal._validated_oauth_token_fields(
+        {"access_token": "ok", "expires_in": "", "refresh_token": ""},
+        **kwargs,
+    )
+    assert (access, expires_in, refresh) == ("ok", 3600, None)
+
+    access, expires_in, refresh = ms_cal._validated_oauth_token_fields(
+        {"access_token": "ok", "expires_in": "7200", "refresh_token": "rotated"},
+        **kwargs,
+    )
+    assert (access, expires_in, refresh) == ("ok", 7200, "rotated")
+
+    with pytest.raises(ApiError) as raised:
+        ms_cal._validated_oauth_token_fields(
+            {"access_token": "synthetic", "expires_in": "invalid"},
+            **kwargs,
+        )
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+
+    with pytest.raises(ApiError) as raised:
+        ms_cal._validated_oauth_token_fields(
+            {"access_token": {"nested": True}, "expires_in": 3600},
+            **kwargs,
+        )
+    assert raised.value.content["code"] == "MICROSOFT_NO_ACCESS_TOKEN"
+
+    with pytest.raises(ApiError) as raised:
+        ms_cal._validated_oauth_token_fields(
+            {"access_token": "ok", "expires_in": 3600, "refresh_token": {"x": 1}},
+            **kwargs,
+        )
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+
+
+def test_get_valid_access_token_rejects_malformed_refresh_before_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = _settings()
+    prior_access = encrypt_token(settings, "prior-access")
+    prior_refresh = encrypt_token(settings, "prior-refresh")
+    prior_expiry = datetime(2000, 1, 1, tzinfo=UTC)
+    account = SimpleNamespace(
+        access_token_enc=prior_access,
+        refresh_token_enc=prior_refresh,
+        token_expires_at=prior_expiry,
+    )
+    monkeypatch.setattr(
+        ms_cal,
+        "refresh_access_token",
+        lambda *_a, **_k: {"access_token": "synthetic", "expires_in": "invalid"},
+    )
+    db = MagicMock()
+    with pytest.raises(ApiError) as raised:
+        ms_cal.get_valid_access_token(db, settings=settings, account=account)
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+    assert account.access_token_enc == prior_access
+    assert account.refresh_token_enc == prior_refresh
+    assert account.token_expires_at == prior_expiry
+    db.flush.assert_not_called()
+
+    monkeypatch.setattr(
+        ms_cal,
+        "refresh_access_token",
+        lambda *_a, **_k: {"access_token": {"nested": True}, "expires_in": 3600},
+    )
+    with pytest.raises(ApiError) as raised:
+        ms_cal.get_valid_access_token(db, settings=settings, account=account)
+    assert raised.value.content["code"] == "MICROSOFT_NO_ACCESS_TOKEN"
+    assert account.access_token_enc == prior_access
+    db.flush.assert_not_called()
+
+
+def test_upsert_account_tokens_rejects_bad_fields_before_db() -> None:
+    db = MagicMock()
+    with pytest.raises(ApiError) as raised:
+        ms_cal.upsert_account_tokens(
+            db,
+            settings=_settings(),
+            owner_id=uuid.uuid4(),
+            account_email="shape@example.test",
+            token_payload={"access_token": "synthetic", "expires_in": "invalid", "refresh_token": "r"},
+        )
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_EXCHANGE"
+    db.add.assert_not_called()
+    db.flush.assert_not_called()
+    db.query.assert_not_called()
+
+    with pytest.raises(ApiError) as raised:
+        ms_cal.upsert_account_tokens(
+            db,
+            settings=_settings(),
+            owner_id=uuid.uuid4(),
+            account_email="shape@example.test",
+            token_payload={
+                "access_token": "synthetic",
+                "expires_in": 3600,
+                "refresh_token": {"nested": True},
+            },
+        )
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_EXCHANGE"
+    db.query.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("slug", "token_body", "error_code"),
+    [
+        (
+            "expires",
+            {"access_token": "synthetic", "expires_in": "invalid"},
+            "MICROSOFT_TOKEN_REFRESH",
+        ),
+        (
+            "access-obj",
+            {"access_token": {"nested": True}, "expires_in": 3600},
+            "MICROSOFT_NO_ACCESS_TOKEN",
+        ),
+    ],
+)
+def test_dex_malformed_refresh_fields_mark_all_enabled_subs(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+    slug: str,
+    token_body: dict[str, Any],
+    error_code: str,
+) -> None:
+    """HTTP 200 token bodies with bad fields must not skip the E15b unreadiness path.
+
+    Young prior ``ms_view`` on two enabled subs stays trusted if ``ValueError`` /
+    ``AttributeError`` escape ``get_valid_access_token`` after a partial token write.
+    """
+    with _committed_ms(
+        db_session,
+        calendars=[(f"cal-dex-shape-{slug}-a", "Shape A"), (f"cal-dex-shape-{slug}-b", "Shape B")],
+    ) as fx:
+        owner, _settings_row, account, subs = _load(db_session, fx)
+        account.token_expires_at = datetime(2000, 1, 1, tzinfo=UTC)
+        account.refresh_token_enc = encrypt_token(_settings(), "refresh-dex-shape")
+        db_session.flush()
+        prior_access = account.access_token_enc
+        prior_expiry = account.token_expires_at
+        owner.display_name = "MUST NOT COMMIT WITH FAILURE"
+        for sub in subs:
+            sub.summary = "CALLER EDIT"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "oauth2/v2.0/token" in str(request.url):
+                return httpx.Response(200, json=token_body)
+            raise AssertionError(f"unexpected request {request.url}")
+
+        _patch_httpx(monkeypatch, handler)
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == error_code
+        assert account.access_token_enc == prior_access
+        assert account.token_expires_at == prior_expiry
+        assert owner.display_name == "MUST NOT COMMIT WITH FAILURE"
+        for sub in subs:
+            assert sub.summary == "CALLER EDIT"
+            assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            user = verify.get(User, fx.owner_id)
+            durable_account = verify.get(CalendarAccount, fx.account_id)
+            assert user is not None and durable_account is not None
+            assert user.display_name == fx.prior_display
+            assert decrypt_token(_settings(), durable_account.access_token_enc) == "access-token"
+            for sub_id in fx.sub_ids:
+                durable = verify.get(CalendarSubscription, sub_id)
+                assert durable is not None
+                assert durable.summary == fx.summaries[sub_id]
+                assert durable.sync_cursor == fx.cursors[sub_id]
                 assert durable.coverage_success_at is None
                 assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
             trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
