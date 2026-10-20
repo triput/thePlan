@@ -251,16 +251,31 @@ def _ms_provenance_zone(
     *,
     calendar_timezone: str | None,
 ) -> tuple[str | None, bool]:
-    """Resolve MS *source provenance* from original* / calendar (not display).
+    """Resolve MS *source provenance*: original* else calendar default.
 
-    Returns ``(iana, missing)``. Display ``start/end.timeZone`` is Prefer/display
-    only and is never used as provenance here.
+    Precedence (Track-1-Contracts §1.3 / Dex):
+
+    1. ``originalStartTimeZone`` / ``originalEndTimeZone`` — considered together;
+       must agree when both present. Explicit unsupported values fail closed
+       (never fall through to the calendar default).
+    2. Else owning-calendar default (``calendar_timezone``).
+
+    Display ``start/end.timeZone`` is Prefer/display only and is never used as
+    provenance here. Returns ``(iana, missing)``.
     """
-    zone, indeterminate = pick_consistent_zone(
-        event.get("originalStartTimeZone"),
-        event.get("originalEndTimeZone"),
-        calendar_timezone,
-    )
+
+    def _nonempty(raw: Any) -> bool:
+        return raw is not None and str(raw).strip() != ""
+
+    orig_start = event.get("originalStartTimeZone")
+    orig_end = event.get("originalEndTimeZone")
+    if _nonempty(orig_start) or _nonempty(orig_end):
+        zone, indeterminate = pick_consistent_zone(orig_start, orig_end)
+        if indeterminate or zone is None:
+            return None, True
+        return zone, False
+
+    zone, indeterminate = pick_consistent_zone(calendar_timezone)
     if indeterminate or zone is None:
         return None, True
     return zone, False

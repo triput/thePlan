@@ -225,6 +225,24 @@ def _event_identity(event: Any) -> ExceptionIdentity | None:
     )
 
 
+def source_zone_untrusted(event: Any) -> bool:
+    """True when stored bounds must not enter trusted busy merge / trust-ok.
+
+    Explicit ``source_zone_missing`` always wins. Narrow containment for
+    pre-035 / uncertain all-day rows: all-day with null ``source_timezone`` is
+    untrusted even when the boolean flag defaulted false (034 server default).
+    Timed absolute events may keep null named provenance. No live provider
+    backfill / resync required.
+    """
+    if bool(getattr(event, "source_zone_missing", False)):
+        return True
+    if bool(getattr(event, "is_all_day", False)) and not getattr(
+        event, "source_timezone", None
+    ):
+        return True
+    return False
+
+
 def evaluate_busy_input_trust(
     events: Sequence[Any],
     *,
@@ -242,7 +260,7 @@ def evaluate_busy_input_trust(
         provenance = getattr(event, "free_busy_provenance", None)
         identity = _event_identity(event)
         pending = bool(getattr(event, "free_busy_pending_exception", False))
-        missing_zone = bool(getattr(event, "source_zone_missing", False))
+        missing_zone = source_zone_untrusted(event)
         kind = effective_free_busy_kind(
             transparency=transparency,
             provenance=provenance,
@@ -404,7 +422,7 @@ def events_for_busy_merge(events: Sequence[Any]) -> list[Any]:
     for event in events:
         if bool(getattr(event, "free_busy_pending_exception", False)):
             continue
-        if bool(getattr(event, "source_zone_missing", False)):
+        if source_zone_untrusted(event):
             continue
         kind = effective_free_busy_kind(
             transparency=getattr(event, "transparency", None),

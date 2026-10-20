@@ -30,6 +30,18 @@ def upgrade() -> None:
         "calendar_subscriptions",
         sa.Column("provider_timezone", sa.String(length=64), nullable=True),
     )
+    # Narrow containment (no live provider backfill/resync): 034 defaulted
+    # source_zone_missing=false, so pre-existing all-day rows would otherwise
+    # remain trusted with UTC-midnight placeholders after this column add.
+    # Mark all-day rows that have no named source zone as untrusted; timed
+    # absolute events keep null source_timezone with the flag unchanged.
+    op.execute(
+        sa.text(
+            "UPDATE external_calendar_events "
+            "SET source_zone_missing = true "
+            "WHERE is_all_day = true AND source_timezone IS NULL"
+        )
+    )
 
 
 def downgrade() -> None:

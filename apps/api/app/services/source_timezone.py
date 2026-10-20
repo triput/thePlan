@@ -26,8 +26,10 @@ Precedence for this client (Prefer UTC on calendarView):
 1. **Decode zone** = response ``start/end.timeZone`` (or explicit offset/Z on
    ``dateTime``). Prefer/display UTC → attach/decode as UTC. Do **not** decode
    timed wall clocks through ``original*``.
-2. **Provenance zone** = ``originalStartTimeZone`` / ``originalEndTimeZone``,
-   else owning-calendar default. Stored as ``source_timezone`` when resolved.
+2. **Provenance zone** = ``originalStartTimeZone`` / ``originalEndTimeZone``
+   (must agree when both present; unsupported explicit values fail closed),
+   **else** owning-calendar default. Do not pick originals and calendar
+   simultaneously. Stored as ``source_timezone`` when resolved.
 3. All-day: recover source-local civil midnights by converting decoded absolute
    instants into the provenance zone. If they are not midnights there, fail
    closed (do not slice the UTC calendar date and reattach provenance).

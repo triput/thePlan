@@ -215,7 +215,9 @@ def test_t1_7_missing_zone_blocks_trust_not_busy_merge() -> None:
         provider_series_id=None,
         owner_id="owner-1",
         provider="google",
+        is_all_day=True,
         source_zone_missing=True,
+        source_timezone=None,
         free_busy_pending_exception=False,
     )
     horizon_start = datetime(2026, 10, 19, 17, 0, tzinfo=UTC)
@@ -415,7 +417,9 @@ def test_bounds_feed_proposal_trust_when_zone_known() -> None:
         provider_series_id=None,
         owner_id="owner-1",
         provider="google",
+        is_all_day=True,
         source_zone_missing=False,
+        source_timezone=SOURCE_EASTERN,
         free_busy_pending_exception=False,
         scheduled_block_id=None,
         pending_deletion=False,
@@ -481,7 +485,9 @@ def test_isolated_legacy_vs_absolute_trust_not_nullability() -> None:
         provider_series_id=None,
         owner_id="o",
         provider="google",
+        is_all_day=True,
         source_zone_missing=legacy_all_day.source_zone_missing,
+        source_timezone=legacy_all_day.source_timezone,
         free_busy_pending_exception=False,
         scheduled_block_id=None,
         pending_deletion=False,
@@ -497,7 +503,9 @@ def test_isolated_legacy_vs_absolute_trust_not_nullability() -> None:
         provider_series_id=None,
         owner_id="o",
         provider="microsoft",
+        is_all_day=False,
         source_zone_missing=absolute_timed.source_zone_missing,
+        source_timezone=absolute_timed.source_timezone,
         free_busy_pending_exception=False,
         scheduled_block_id=None,
         pending_deletion=False,
@@ -513,6 +521,110 @@ def test_isolated_legacy_vs_absolute_trust_not_nullability() -> None:
     assert abs_trust.ok is True
     assert events_for_busy_merge([legacy_row]) == []
     assert events_for_busy_merge([abs_row]) == [abs_row]
+
+
+def test_ms_provenance_original_beats_calendar_default() -> None:
+    """Dex: original* else calendar — explicit event zone must win over calendar."""
+    event = {
+        "isAllDay": True,
+        "originalStartTimeZone": "Eastern Standard Time",
+        "originalEndTimeZone": "Eastern Standard Time",
+        "start": {"dateTime": "2026-10-19T04:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-20T04:00:00.0000000", "timeZone": "UTC"},
+    }
+    parsed = parse_microsoft_event_times(
+        event, calendar_timezone="America/Los_Angeles"
+    )
+    assert parsed is not None and not parsed.source_zone_missing
+    assert parsed.source_timezone == SOURCE_EASTERN
+    assert parsed.start == datetime(2026, 10, 19, 4, 0, tzinfo=UTC)
+
+
+def test_ms_provenance_unsupported_original_not_calendar_fallback() -> None:
+    """Dex: unsupported explicit original* fails closed — no calendar fallthrough."""
+    event = {
+        "isAllDay": True,
+        "originalStartTimeZone": "Mars/Olympus_Mons",
+        "originalEndTimeZone": "Mars/Olympus_Mons",
+        "start": {"dateTime": "2026-10-19T04:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-20T04:00:00.0000000", "timeZone": "UTC"},
+    }
+    parsed = parse_microsoft_event_times(
+        event, calendar_timezone=SOURCE_EASTERN
+    )
+    assert parsed is not None
+    assert parsed.source_zone_missing is True
+    assert parsed.source_timezone is None
+
+
+def test_ms_provenance_calendar_default_when_originals_absent() -> None:
+    event = {
+        "isAllDay": True,
+        "start": {"dateTime": "2026-10-19T04:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-20T04:00:00.0000000", "timeZone": "UTC"},
+    }
+    parsed = parse_microsoft_event_times(
+        event, calendar_timezone=SOURCE_EASTERN
+    )
+    assert parsed is not None and not parsed.source_zone_missing
+    assert parsed.source_timezone == SOURCE_EASTERN
+
+
+def test_legacy_all_day_null_source_timezone_containment() -> None:
+    """Pre-035 all-day with flag default false + null zone must not stay trusted."""
+    from app.scheduler.free_busy import source_zone_untrusted
+
+    legacy = SimpleNamespace(
+        transparency="opaque",
+        free_busy_provenance="provider_explicit",
+        start_time=datetime(2026, 10, 19, 0, 0, tzinfo=UTC),
+        end_time=datetime(2026, 10, 20, 0, 0, tzinfo=UTC),
+        calendar_id="cal",
+        title="legacy-utc-midnight",
+        external_event_id="legacy-contain",
+        provider_series_id=None,
+        owner_id="o",
+        provider="google",
+        is_all_day=True,
+        source_zone_missing=False,  # 034 server default
+        source_timezone=None,
+        free_busy_pending_exception=False,
+        scheduled_block_id=None,
+        pending_deletion=False,
+    )
+    abs_timed = SimpleNamespace(
+        transparency="opaque",
+        free_busy_provenance="provider_explicit",
+        start_time=datetime(2026, 10, 19, 17, 0, tzinfo=UTC),
+        end_time=datetime(2026, 10, 19, 18, 0, tzinfo=UTC),
+        calendar_id="cal",
+        title="abs-z",
+        external_event_id="abs-null-prov",
+        provider_series_id=None,
+        owner_id="o",
+        provider="microsoft",
+        is_all_day=False,
+        source_zone_missing=False,
+        source_timezone=None,  # Julie: null named provenance OK for Z-offset timed
+        free_busy_pending_exception=False,
+        scheduled_block_id=None,
+        pending_deletion=False,
+    )
+    assert source_zone_untrusted(legacy) is True
+    assert source_zone_untrusted(abs_timed) is False
+    horizon_start = datetime(2026, 10, 19, 16, 0, tzinfo=UTC)
+    horizon_end = datetime(2026, 10, 19, 19, 0, tzinfo=UTC)
+    legacy_trust = evaluate_busy_input_trust(
+        [legacy], horizon_start=horizon_start, horizon_end=horizon_end
+    )
+    abs_trust = evaluate_busy_input_trust(
+        [abs_timed], horizon_start=horizon_start, horizon_end=horizon_end
+    )
+    assert legacy_trust.ok is False
+    assert any(d.cause == "missing_source_zone" for d in legacy_trust.blocking_diagnostics)
+    assert events_for_busy_merge([legacy]) == []
+    assert abs_trust.ok is True
+    assert events_for_busy_merge([abs_timed]) == [abs_timed]
 
 
 def test_upsert_persists_source_timezone(monkeypatch: pytest.MonkeyPatch) -> None:

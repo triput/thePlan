@@ -6,7 +6,7 @@ import copy
 import threading
 import time
 import uuid
-from datetime import datetime, time as time_of_day, timedelta, timezone
+from datetime import date, datetime, time as time_of_day, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -253,6 +253,143 @@ def test_f6_c_apply_rejects_stale_inputs_without_domain_writes(
     assert "duration" in body["stale_categories"]
     after = _block_set(db_session, owner_id)
     assert before == after
+
+
+def test_t1b_eastern_source_zone_bounds_constrain_proposal_and_survive_apply(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Corrected Eastern all-day bounds constrain placement and survive Apply.
+
+    Eastern Oct 10 civil = 04:00Z–04:00Z next (not UTC-midnight 00Z–00Z).
+    With UTC owner hours from 00:00, a 60m block may land in 00:00–04:00Z
+    (free under Eastern, busy under wrong UTC midnight) and must not overlap
+    the Eastern busy extent. No provider calls.
+    """
+    from app.services.source_timezone import all_day_bounds_utc
+
+    _patch_schedule_clock(monkeypatch)
+    patch_settings = __import__("cutover_hours", fromlist=["patch_settings_with_availability"])
+    patch_settings.patch_settings_with_availability(
+        client,
+        {
+            "timezone": "UTC",
+            "workweek_days": 7,
+            "workday_start_local": "00:00",
+            "workday_minutes": 24 * 60,
+            "upcoming_horizon_days": 7,
+            "inter_block_buffer_minutes": 0,
+            "default_schedule_style": "standalone",
+        },
+    )
+    owner_id = _owner_id(client)
+    eastern_start, eastern_end = all_day_bounds_utc(
+        date(2026, 10, 10), date(2026, 10, 11), "America/New_York"
+    )
+    assert eastern_start == datetime(2026, 10, 10, 4, 0, tzinfo=UTC)
+    wrong_utc_midnight_start = datetime(2026, 10, 10, 0, 0, tzinfo=UTC)
+
+    account = CalendarAccount(
+        owner_id=owner_id,
+        provider=CalendarProvider.google,
+        account_email=f"t1b-zone-{_uid()}@example.test",
+        is_enabled=True,
+        mirror_blocks=False,
+    )
+    db_session.add(account)
+    db_session.flush()
+    cal_id = f"cal-east-{_uid()}"
+    # Fill remainder of Oct 9 so the 60m task must place on Oct 10+.
+    db_session.add(
+        ExternalCalendarEvent(
+            owner_id=owner_id,
+            calendar_account_id=account.id,
+            scheduled_block_id=None,
+            provider=CalendarProvider.google,
+            external_event_id=f"t1b-fill-oct9-{_uid()}",
+            calendar_id=cal_id,
+            title="Fill Oct 9",
+            start_time=FIXED_NOW,
+            end_time=datetime(2026, 10, 10, 0, 0, tzinfo=UTC),
+            is_all_day=False,
+            last_synced_at=FIXED_NOW,
+            transparency="opaque",
+            free_busy_provenance="provider_explicit",
+            source_zone_missing=False,
+            source_timezone=None,
+        )
+    )
+    db_session.add(
+        ExternalCalendarEvent(
+            owner_id=owner_id,
+            calendar_account_id=account.id,
+            scheduled_block_id=None,
+            provider=CalendarProvider.google,
+            external_event_id=f"t1b-east-allday-{_uid()}",
+            calendar_id=cal_id,
+            title="NY all-day",
+            start_time=eastern_start,
+            end_time=eastern_end,
+            is_all_day=True,
+            last_synced_at=FIXED_NOW,
+            transparency="opaque",
+            free_busy_provenance="provider_explicit",
+            source_zone_missing=False,
+            source_timezone="America/New_York",
+        )
+    )
+    db_session.flush()
+
+    task = _create_task(
+        client, estimated_duration_minutes=60, schedule_style="standalone"
+    )
+    preview = _ready_preview(client, db_session, monkeypatch)
+    proposed = [
+        row
+        for row in preview["proposal"]["proposed_blocks"]
+        if row.get("task_id") == task["id"]
+    ]
+    assert proposed, "expected at least one proposed block for the task"
+    for row in proposed:
+        start = datetime.fromisoformat(row["start_time"])
+        end = datetime.fromisoformat(row["end_time"])
+        assert not (start < eastern_end and end > eastern_start), (
+            f"proposal overlaps Eastern busy {eastern_start.isoformat()}–"
+            f"{eastern_end.isoformat()}: {start.isoformat()}–{end.isoformat()}"
+        )
+
+    # Stronger: at least one block in the Eastern-only free window 00:00–04:00Z
+    # on Oct 10 proves we did not use wrong UTC-midnight occupancy.
+    early_free = [
+        row
+        for row in proposed
+        if (
+            datetime.fromisoformat(row["start_time"])
+            >= wrong_utc_midnight_start
+            and datetime.fromisoformat(row["end_time"]) <= eastern_start
+        )
+    ]
+    assert early_free, (
+        "expected a block in 00:00–04:00Z Oct 10 (free under Eastern bounds, "
+        "busy under wrong UTC midnight)"
+    )
+
+    applied = client.post(f"/api/v1/schedule/previews/{preview['id']}/apply")
+    assert applied.status_code == 200, applied.text
+    blocks = (
+        db_session.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == owner_id,
+            ScheduledBlock.task_id == uuid.UUID(task["id"]),
+        )
+        .all()
+    )
+    assert blocks
+    for block in blocks:
+        assert not (
+            block.start_time < eastern_end and block.end_time > eastern_start
+        ), "applied block overlaps Eastern source-zone busy"
 
 
 def test_t1a_apply_rejects_unknown_busy_input_trust_without_domain_writes(
