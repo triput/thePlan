@@ -9,18 +9,22 @@ from __future__ import annotations
 
 import threading
 import uuid
+from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
-from typing import Any
+from typing import Any, Iterator
 from urllib.parse import parse_qs, urlparse
+from uuid import UUID
 
 import httpx
 import pytest
 from cryptography.fernet import Fernet
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import Settings
-from app.db import engine
+from app.db import SessionLocal, engine
 from app.models import (
     CalendarAccount,
     CalendarSubscription,
@@ -255,6 +259,125 @@ def _wide_bounds(settings: UserSettings, now: datetime) -> tuple[datetime, datet
     return start - timedelta(hours=2), end + timedelta(hours=2)
 
 
+@dataclass(frozen=True)
+class _CommittedCalendar:
+    owner_id: UUID
+    account_id: UUID
+    sub_id: UUID
+    prior_display: str
+    prior_cursor: str | None
+    prior_token: bytes | str | None
+    mint_now: datetime
+    gate_start: datetime
+    gate_end: datetime
+    window_start: datetime
+    window_end: datetime
+    summary: str
+
+
+def _cleanup_committed_owner(owner_id: UUID) -> None:
+    cleanup = SessionLocal()
+    try:
+        cleanup.query(ExternalCalendarEvent).filter(
+            ExternalCalendarEvent.owner_id == owner_id
+        ).delete(synchronize_session=False)
+        cleanup.query(CalendarSubscription).filter(
+            CalendarSubscription.owner_id == owner_id
+        ).delete(synchronize_session=False)
+        cleanup.query(CalendarAccount).filter(CalendarAccount.owner_id == owner_id).delete(
+            synchronize_session=False
+        )
+        cleanup.query(UserSettings).filter(UserSettings.owner_id == owner_id).delete(
+            synchronize_session=False
+        )
+        cleanup.query(User).filter(User.id == owner_id).delete(synchronize_session=False)
+        cleanup.commit()
+    finally:
+        cleanup.close()
+
+
+@contextmanager
+def _committed_google_calendar(
+    caller: Session,
+    *,
+    calendar_id: str,
+    summary: str,
+    cursor: str | None = "stable-cursor",
+    mint_now: datetime | None = None,
+    expire_token: bool = False,
+    mint_coverage: bool = True,
+) -> Iterator[_CommittedCalendar]:
+    """Commit owner/account/subscription via SessionLocal so autonomous can see them.
+
+    ``caller`` is the pytest ``db_session``. It is rolled back before cleanup so
+    locks from ``lock_owner_scheduling`` / flush do not block fixture teardown.
+    """
+    mint_now = mint_now or datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    seed = SessionLocal()
+    owner_id: UUID | None = None
+    try:
+        owner, settings = _owner(seed)
+        gate_start, gate_end = required_coverage_window(settings, mint_now)
+        window_start, window_end = _wide_bounds(settings, mint_now)
+        account = _account(seed, owner)
+        if expire_token:
+            account.token_expires_at = mint_now - timedelta(minutes=1)
+        sub = _sub(
+            seed,
+            account,
+            calendar_id=calendar_id,
+            summary=summary,
+            cursor=cursor,
+        )
+        if mint_coverage:
+            _mint(
+                sub,
+                now=mint_now,
+                start=gate_start - timedelta(days=1),
+                end=gate_end + timedelta(days=1),
+            )
+            # Mid-refresh / apply paths use the wider fetch window.
+            sub.coverage_window_start = window_start
+            sub.coverage_window_end = window_end
+        prior_display = owner.display_name
+        prior_token = account.access_token_enc
+        prior_cursor = sub.sync_cursor
+        seed.commit()
+        owner_id = owner.id
+        yield _CommittedCalendar(
+            owner_id=owner.id,
+            account_id=account.id,
+            sub_id=sub.id,
+            prior_display=prior_display,
+            prior_cursor=prior_cursor,
+            prior_token=prior_token,
+            mint_now=mint_now,
+            gate_start=gate_start,
+            gate_end=gate_end,
+            window_start=window_start,
+            window_end=window_end,
+            summary=summary,
+        )
+    finally:
+        seed.close()
+        try:
+            caller.rollback()
+            caller.expire_all()
+        except Exception:
+            pass
+        if owner_id is not None:
+            _cleanup_committed_owner(owner_id)
+
+
+def _load_committed(db: Session, fx: _CommittedCalendar) -> tuple[User, UserSettings, CalendarAccount, CalendarSubscription]:
+    owner = db.get(User, fx.owner_id)
+    settings = db.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+    account = db.get(CalendarAccount, fx.account_id)
+    sub = db.get(CalendarSubscription, fx.sub_id)
+    assert owner is not None and account is not None and sub is not None
+    return owner, settings, account, sub
+
+
 def _patch_google_httpx(monkeypatch: pytest.MonkeyPatch, handler: Any) -> list[httpx.Request]:
     seen: list[httpx.Request] = []
 
@@ -417,265 +540,227 @@ def test_t1c_default_sync_window_insufficient_beyond_fetch_headroom(
 def test_t1c_auth_failure_with_young_prior_marker_persists_after_rollback(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    owner, settings = _owner(db_session)
-    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
-    sync_now = mint_now + timedelta(seconds=1)
-    gate_start, gate_end = required_coverage_window(settings, mint_now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="dex-auth", summary="Auth Fail")
-    prior_cursor = "stable-cursor"
-    sub.sync_cursor = prior_cursor
-    _mint(
-        sub,
-        now=mint_now,
-        start=gate_start - timedelta(days=1),
-        end=gate_end + timedelta(days=1),
-    )
-    db_session.flush()
-    sub_id = sub.id
-    owner_id = owner.id
+    with _committed_google_calendar(db_session, calendar_id="dex-auth", summary="Auth Fail") as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        owner, settings, account, sub = _load_committed(db_session, fx)
 
-    _patch_gcal_clock(monkeypatch, sync_now)
-    monkeypatch.setattr(
-        gcal,
-        "get_valid_access_token",
-        lambda *_a, **_k: (_ for _ in ()).throw(
-            ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
-        ),
-    )
-
-    with pytest.raises(ApiError):
-        gcal.sync_account_events(
-            db_session,
-            settings=_settings(),
-            account=account,
-            time_min=gate_start,
-            time_max=gate_end,
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "get_valid_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(
+                ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+            ),
         )
 
-    db_session.rollback()
-    db_session.expire_all()
-    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
-    sub = db_session.get(CalendarSubscription, sub_id)
-    assert sub is not None
-    assert sub.sync_cursor == prior_cursor
-    assert sub.coverage_last_failure_at is not None
-    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
-    trust = evaluate_calendar_freshness(db_session, owner_id, settings, sync_now)
-    assert trust.ok is False
-    assert "Auth Fail" in _names(trust)
+        with pytest.raises(ApiError):
+            gcal.sync_account_events(
+                db_session,
+                settings=_settings(),
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
+
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            assert sub is not None
+            assert sub.sync_cursor == fx.prior_cursor
+            assert sub.coverage_last_failure_at is not None
+            assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, sync_now)
+            assert trust.ok is False
+            assert "Auth Fail" in _names(trust)
+        finally:
+            verify.close()
 
 
 def test_t1c_token_refresh_transport_failure_persists_after_rollback(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    owner, settings = _owner(db_session)
-    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
-    sync_now = mint_now + timedelta(seconds=1)
-    gate_start, gate_end = required_coverage_window(settings, mint_now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="dex-transport", summary="Token Timeout")
-    prior_cursor = "stable-cursor"
-    sub.sync_cursor = prior_cursor
-    _mint(
-        sub,
-        now=mint_now,
-        start=gate_start - timedelta(days=1),
-        end=gate_end + timedelta(days=1),
-    )
-    account.token_expires_at = mint_now - timedelta(minutes=1)
-    db_session.flush()
-    sub_id = sub.id
-    owner_id = owner.id
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-transport",
+        summary="Token Timeout",
+        expire_token=True,
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        _owner_row, _settings_row, account, _sub = _load_committed(db_session, fx)
 
-    _patch_gcal_clock(monkeypatch, sync_now)
-    monkeypatch.setattr(
-        gcal,
-        "refresh_access_token",
-        lambda *_a, **_k: (_ for _ in ()).throw(httpx.ReadTimeout("Synthetic token timeout")),
-    )
-
-    with pytest.raises(httpx.ReadTimeout):
-        gcal.sync_account_events(
-            db_session,
-            settings=_settings(),
-            account=account,
-            time_min=gate_start,
-            time_max=gate_end,
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "refresh_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(httpx.ReadTimeout("Synthetic token timeout")),
         )
 
-    db_session.rollback()
-    db_session.expire_all()
-    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
-    sub = db_session.get(CalendarSubscription, sub_id)
-    assert sub is not None
-    assert sub.sync_cursor == prior_cursor
-    assert sub.coverage_last_failure_at is not None
-    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
-    trust = evaluate_calendar_freshness(db_session, owner_id, settings, sync_now)
-    assert trust.ok is False
-    assert "Token Timeout" in _names(trust)
+        with pytest.raises(httpx.ReadTimeout):
+            gcal.sync_account_events(
+                db_session,
+                settings=_settings(),
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
+
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            assert sub is not None
+            assert sub.sync_cursor == fx.prior_cursor
+            assert sub.coverage_last_failure_at is not None
+            assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, sync_now)
+            assert trust.ok is False
+            assert "Token Timeout" in _names(trust)
+        finally:
+            verify.close()
 
 
 def test_t1c_pre_pull_failure_does_not_commit_unrelated_caller_transaction(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """google_oauth_callback pattern: failure markers persist; caller tx rolls back."""
-    owner, settings = _owner(db_session)
-    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
-    sync_now = mint_now + timedelta(seconds=1)
-    gate_start, gate_end = required_coverage_window(settings, mint_now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="dex-oauth-tx", summary="OAuth Tx")
-    prior_cursor = "oauth-cursor"
-    sub.sync_cursor = prior_cursor
-    _mint(
-        sub,
-        now=mint_now,
-        start=gate_start - timedelta(days=1),
-        end=gate_end + timedelta(days=1),
-    )
-    cfg = _settings()
-    prior_token = account.access_token_enc
-    prior_display = owner.display_name
-    owner_id = owner.id
-    account_id = account.id
-    sub_id = sub.id
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-oauth-tx",
+        summary="OAuth Tx",
+        cursor="oauth-cursor",
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        owner, _settings_row, account, _sub = _load_committed(db_session, fx)
+        cfg = _settings()
 
-    db_session.flush()
+        owner.display_name = "MUST NOT COMMIT WITH FAILURE"
+        account.access_token_enc = encrypt_token(cfg, "oauth-pending-access")
+        account.token_expires_at = fx.mint_now - timedelta(minutes=1)
 
-    owner.display_name = "MUST NOT COMMIT WITH FAILURE"
-    account.access_token_enc = encrypt_token(cfg, "oauth-pending-access")
-    account.token_expires_at = mint_now - timedelta(minutes=1)
-
-    _patch_gcal_clock(monkeypatch, sync_now)
-    monkeypatch.setattr(
-        gcal,
-        "refresh_access_token",
-        lambda *_a, **_k: (_ for _ in ()).throw(httpx.ReadTimeout("Synthetic token timeout")),
-    )
-
-    with pytest.raises(httpx.ReadTimeout):
-        gcal.sync_account_events(
-            db_session,
-            settings=cfg,
-            account=account,
-            time_min=gate_start,
-            time_max=gate_end,
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "refresh_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(httpx.ReadTimeout("Synthetic token timeout")),
         )
 
-    db_session.rollback()
-    db_session.expire_all()
+        with pytest.raises(httpx.ReadTimeout):
+            gcal.sync_account_events(
+                db_session,
+                settings=cfg,
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
 
-    owner = db_session.get(User, owner_id)
-    account = db_session.get(CalendarAccount, account_id)
-    sub = db_session.get(CalendarSubscription, sub_id)
-    assert owner is not None
-    assert account is not None
-    assert sub is not None
-    assert owner.display_name == prior_display
-    assert account.access_token_enc == prior_token
-    assert sub.sync_cursor == prior_cursor
-    assert sub.coverage_last_failure_at is not None
-    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            owner = verify.get(User, fx.owner_id)
+            account = verify.get(CalendarAccount, fx.account_id)
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            assert owner is not None
+            assert account is not None
+            assert sub is not None
+            assert owner.display_name == fx.prior_display
+            assert account.access_token_enc == fx.prior_token
+            assert sub.sync_cursor == fx.prior_cursor
+            assert sub.coverage_last_failure_at is not None
+            assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+        finally:
+            verify.close()
 
 
 def test_t1c_pre_pull_failure_rolls_back_flushed_unrelated_writes(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Flushed unrelated caller SQL must not survive failure-marker commit."""
-    owner, settings = _owner(db_session)
-    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
-    sync_now = mint_now + timedelta(seconds=1)
-    gate_start, gate_end = required_coverage_window(settings, mint_now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="dex-flushed", summary="Flushed Tx")
-    prior_cursor = "flushed-cursor"
-    sub.sync_cursor = prior_cursor
-    _mint(
-        sub,
-        now=mint_now,
-        start=gate_start - timedelta(days=1),
-        end=gate_end + timedelta(days=1),
-    )
-    prior_display = owner.display_name
-    owner_id = owner.id
-    sub_id = sub.id
-    db_session.info["_t1c_unrelated_change_savepoint"] = db_session.begin_nested()
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-flushed",
+        summary="Flushed Tx",
+        cursor="flushed-cursor",
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        owner, _settings_row, account, _sub = _load_committed(db_session, fx)
 
-    owner.display_name = "MUST NOT COMMIT WITH FAILURE"
-    db_session.flush()
+        owner.display_name = "MUST NOT COMMIT WITH FAILURE"
+        db_session.flush()
 
-    _patch_gcal_clock(monkeypatch, sync_now)
-    monkeypatch.setattr(
-        gcal,
-        "get_valid_access_token",
-        lambda *_a, **_k: (_ for _ in ()).throw(
-            ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
-        ),
-    )
-
-    with pytest.raises(ApiError):
-        gcal.sync_account_events(
-            db_session,
-            settings=_settings(),
-            account=account,
-            time_min=gate_start,
-            time_max=gate_end,
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "get_valid_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(
+                ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+            ),
         )
 
-    db_session.rollback()
-    db_session.expire_all()
+        with pytest.raises(ApiError):
+            gcal.sync_account_events(
+                db_session,
+                settings=_settings(),
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
 
-    owner = db_session.get(User, owner_id)
-    sub = db_session.get(CalendarSubscription, sub_id)
-    assert owner is not None
-    assert sub is not None
-    assert owner.display_name == prior_display
-    assert sub.sync_cursor == prior_cursor
-    assert sub.coverage_last_failure_at is not None
-    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            owner = verify.get(User, fx.owner_id)
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            assert owner is not None
+            assert sub is not None
+            assert owner.display_name == fx.prior_display
+            assert sub.sync_cursor == fx.prior_cursor
+            assert sub.coverage_last_failure_at is not None
+            assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+        finally:
+            verify.close()
 
 
 def test_t1c_pre_pull_failure_rolls_back_caller_new_and_deleted_objects(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Independent failure commit must not persist caller new/delete ORM state."""
-    owner, settings = _owner(db_session)
-    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
-    sync_now = mint_now + timedelta(seconds=1)
-    gate_start, gate_end = required_coverage_window(settings, mint_now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="dex-new-del", summary="New Delete Tx")
-    prior_cursor = "new-del-cursor"
-    sub.sync_cursor = prior_cursor
-    _mint(
-        sub,
-        now=mint_now,
-        start=gate_start - timedelta(days=1),
-        end=gate_end + timedelta(days=1),
-    )
-    evt_start = gate_start + timedelta(hours=2)
-    evt_end = evt_start + timedelta(hours=1)
-    surviving = ExternalCalendarEvent(
-        owner_id=owner.id,
-        calendar_account_id=account.id,
-        provider=CalendarProvider.google,
-        external_event_id="survive-delete",
-        calendar_id=sub.external_calendar_id,
-        title="Survive",
-        start_time=evt_start,
-        end_time=evt_end,
-    )
-    db_session.add(surviving)
-    db_session.flush()
-    surviving_id = surviving.id
-    sub_id = sub.id
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-new-del",
+        summary="New Delete Tx",
+        cursor="new-del-cursor",
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        owner, _settings_row, account, sub = _load_committed(db_session, fx)
+        evt_start = fx.gate_start + timedelta(hours=2)
+        evt_end = evt_start + timedelta(hours=1)
 
-    db_session.add(
-        ExternalCalendarEvent(
-            owner_id=owner.id,
-            calendar_account_id=account.id,
+        seed = SessionLocal()
+        try:
+            surviving = ExternalCalendarEvent(
+                owner_id=fx.owner_id,
+                calendar_account_id=fx.account_id,
+                provider=CalendarProvider.google,
+                external_event_id="survive-delete",
+                calendar_id=sub.external_calendar_id,
+                title="Survive",
+                start_time=evt_start,
+                end_time=evt_end,
+            )
+            seed.add(surviving)
+            seed.commit()
+            surviving_id = surviving.id
+        finally:
+            seed.close()
+
+        surviving = db_session.get(ExternalCalendarEvent, surviving_id)
+        assert surviving is not None
+        pending_new = ExternalCalendarEvent(
+            owner_id=fx.owner_id,
+            calendar_account_id=fx.account_id,
             provider=CalendarProvider.google,
             external_event_id="must-not-insert",
             calendar_id=sub.external_calendar_id,
@@ -683,42 +768,170 @@ def test_t1c_pre_pull_failure_rolls_back_caller_new_and_deleted_objects(
             start_time=evt_start,
             end_time=evt_end,
         )
-    )
-    db_session.delete(surviving)
+        db_session.add(pending_new)
+        db_session.delete(surviving)
+        db_session.flush()
+        pending_new_id = pending_new.id
 
-    _patch_gcal_clock(monkeypatch, sync_now)
-    monkeypatch.setattr(
-        gcal,
-        "get_valid_access_token",
-        lambda *_a, **_k: (_ for _ in ()).throw(
-            ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
-        ),
-    )
+        assert db_session.get(ExternalCalendarEvent, pending_new_id) is not None
+        assert db_session.get(ExternalCalendarEvent, surviving_id) is None
 
-    with pytest.raises(ApiError):
-        gcal.sync_account_events(
-            db_session,
-            settings=_settings(),
-            account=account,
-            time_min=gate_start,
-            time_max=gate_end,
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "get_valid_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(
+                ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+            ),
         )
 
-    db_session.rollback()
-    db_session.expire_all()
+        with pytest.raises(ApiError):
+            gcal.sync_account_events(
+                db_session,
+                settings=_settings(),
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
 
-    assert db_session.get(ExternalCalendarEvent, surviving_id) is not None
-    assert (
-        db_session.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.external_event_id == "must-not-insert")
-        .count()
-        == 0
-    )
-    sub = db_session.get(CalendarSubscription, sub_id)
-    assert sub is not None
-    assert sub.sync_cursor == prior_cursor
-    assert sub.coverage_last_failure_at is not None
-    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+        # Caller txn still holds flushed new + delete; autonomous did not absorb them.
+        assert db_session.get(ExternalCalendarEvent, pending_new_id) is not None
+        assert db_session.get(ExternalCalendarEvent, surviving_id) is None
+
+        verify = SessionLocal()
+        try:
+            assert verify.get(ExternalCalendarEvent, surviving_id) is not None
+            assert (
+                verify.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == "must-not-insert")
+                .count()
+                == 0
+            )
+            durable = verify.get(CalendarSubscription, fx.sub_id)
+            assert durable is not None
+            assert durable.sync_cursor == fx.prior_cursor
+            assert durable.coverage_last_failure_at is not None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+        finally:
+            verify.close()
+
+        db_session.rollback()
+
+
+def test_t1c_autonomous_failure_commit_leaves_caller_state(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Explicit autonomous path: original exception, caller dirty, durable marker."""
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-autonomous",
+        summary="Autonomous Path",
+        cursor="auto-cursor",
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        owner, _settings_row, account, sub = _load_committed(db_session, fx)
+        evt_start = fx.gate_start + timedelta(hours=2)
+        evt_end = evt_start + timedelta(hours=1)
+
+        seed = SessionLocal()
+        try:
+            surviving = ExternalCalendarEvent(
+                owner_id=fx.owner_id,
+                calendar_account_id=fx.account_id,
+                provider=CalendarProvider.google,
+                external_event_id="auto-survive",
+                calendar_id=sub.external_calendar_id,
+                title="Survive",
+                start_time=evt_start,
+                end_time=evt_end,
+            )
+            seed.add(surviving)
+            seed.commit()
+            surviving_id = surviving.id
+        finally:
+            seed.close()
+
+        surviving = db_session.get(ExternalCalendarEvent, surviving_id)
+        assert surviving is not None
+        owner.display_name = "CALLER DIRTY DISPLAY"
+        pending_new = ExternalCalendarEvent(
+            owner_id=fx.owner_id,
+            calendar_account_id=fx.account_id,
+            provider=CalendarProvider.google,
+            external_event_id="auto-pending-new",
+            calendar_id=sub.external_calendar_id,
+            title="Pending New",
+            start_time=evt_start,
+            end_time=evt_end,
+        )
+        db_session.add(pending_new)
+        db_session.delete(surviving)
+        db_session.flush()
+        pending_new_id = pending_new.id
+
+        seen_lock_timeout: list[str] = []
+
+        def _capture_lock_timeout(_conn, _cursor, statement, _parameters, _context, _executemany):
+            if "lock_timeout" in statement.lower():
+                seen_lock_timeout.append(statement)
+
+        event.listen(engine, "before_cursor_execute", _capture_lock_timeout)
+        try:
+            _patch_gcal_clock(monkeypatch, sync_now)
+            monkeypatch.setattr(
+                gcal,
+                "get_valid_access_token",
+                lambda *_a, **_k: (_ for _ in ()).throw(
+                    ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+                ),
+            )
+
+            with pytest.raises(ApiError) as raised:
+                gcal.sync_account_events(
+                    db_session,
+                    settings=_settings(),
+                    account=account,
+                    time_min=fx.gate_start,
+                    time_max=fx.gate_end,
+                )
+            assert raised.value.content["code"] == "SYNTHETIC_AUTH"
+            assert type(raised.value) is ApiError
+
+            assert owner.display_name == "CALLER DIRTY DISPLAY"
+            assert db_session.get(ExternalCalendarEvent, pending_new_id) is not None
+            assert db_session.get(ExternalCalendarEvent, surviving_id) is None
+            assert any("lock_timeout" in stmt.lower() and "2s" in stmt for stmt in seen_lock_timeout)
+
+            mid = SessionLocal()
+            try:
+                durable = mid.get(CalendarSubscription, fx.sub_id)
+                assert durable is not None
+                assert durable.coverage_last_failure_at is not None
+                assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+                assert mid.get(User, fx.owner_id).display_name == fx.prior_display
+                assert mid.get(ExternalCalendarEvent, surviving_id) is not None
+                assert (
+                    mid.query(ExternalCalendarEvent)
+                    .filter(ExternalCalendarEvent.external_event_id == "auto-pending-new")
+                    .count()
+                    == 0
+                )
+            finally:
+                mid.close()
+
+            db_session.rollback()
+
+            after = SessionLocal()
+            try:
+                durable = after.get(CalendarSubscription, fx.sub_id)
+                assert durable is not None
+                assert durable.coverage_last_failure_at is not None
+                assert after.get(User, fx.owner_id).display_name == fx.prior_display
+                assert after.get(ExternalCalendarEvent, surviving_id) is not None
+            finally:
+                after.close()
+        finally:
+            event.remove(engine, "before_cursor_execute", _capture_lock_timeout)
 
 
 def test_t1_8_pagination_flag_false_blocks_even_if_young(db_session: Session) -> None:
@@ -814,156 +1027,196 @@ def test_t1_8_covering_sync_drains_pages_and_keeps_overlap(
 def test_t1_8_truncated_page_does_not_mint_or_advance_cursor(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    owner, settings = _owner(db_session)
-    now = datetime.now(UTC)
-    window_start, window_end = _wide_bounds(settings, now)
-    account = _account(db_session, owner)
-    sub = _sub(
+    now = datetime(2026, 10, 19, 15, 0, tzinfo=UTC)
+    with _committed_google_calendar(
         db_session,
-        account,
         calendar_id="cal-trunc",
         summary="Truncated",
         cursor="old-cursor",
-    )
-    _mint(sub, now=now, start=window_start, end=window_end)
-    sub.sync_cursor = "old-cursor"
-    db_session.flush()
+        mint_now=now,
+    ) as fx:
+        owner, settings, account, _sub_row = _load_committed(db_session, fx)
+        window_start, window_end = fx.window_start, fx.window_end
 
-    def _handler(request: httpx.Request) -> httpx.Response:
-        params = _params(request)
-        if params.get("pageToken") == "page-2":
+        def _handler(request: httpx.Request) -> httpx.Response:
+            params = _params(request)
+            if params.get("pageToken") == "page-2":
+                return httpx.Response(
+                    200,
+                    json={
+                        "items": [_g_event("secret", window_start, window_end)],
+                        "nextSyncToken": "should-not-store",
+                    },
+                )
             return httpx.Response(
-                200, json={"items": [_g_event("secret", window_start, window_end)], "nextSyncToken": "should-not-store"}
+                200,
+                json={
+                    "items": [
+                        _g_event(
+                            "partial",
+                            window_start + timedelta(hours=1),
+                            window_start + timedelta(hours=2),
+                        )
+                    ],
+                    "nextPageToken": "page-2",
+                    "nextSyncToken": "partial-token-ignored",
+                },
             )
-        return httpx.Response(
-            200,
-            json={
-                "items": [_g_event("partial", window_start + timedelta(hours=1), window_start + timedelta(hours=2))],
-                "nextPageToken": "page-2",
-                "nextSyncToken": "partial-token-ignored",
-            },
-        )
 
-    _patch_google_httpx(monkeypatch, _handler)
-    gcal.pagination_max_pages = 1
-    with pytest.raises(ApiError) as raised:
-        _sync(db_session, account, window_start, window_end)
-    assert raised.value.content["code"] == "CALENDAR_PAGINATION_INCOMPLETE"
+        _patch_google_httpx(monkeypatch, _handler)
+        gcal.pagination_max_pages = 1
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, window_start, window_end)
+        assert raised.value.content["code"] == "CALENDAR_PAGINATION_INCOMPLETE"
 
-    db_session.expire_all()
-    sub = db_session.get(CalendarSubscription, sub.id)
-    assert sub is not None
-    assert sub.sync_cursor in (None, "old-cursor")
-    assert sub.sync_cursor != "should-not-store"
-    assert sub.sync_cursor != "partial-token-ignored"
-    assert sub.coverage_success_at is None or (
-        sub.coverage_last_failure_at is not None
-        and sub.coverage_last_failure_at > sub.coverage_success_at
-    )
-    trust = _trust(db_session, owner, settings, now)
-    assert trust.ok is False
-    assert "Truncated" in _names(trust)
-    assert "calendar_coverage_stale" not in _causes(trust)
-    cached = (
-        db_session.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.external_event_id.in_(["partial", "secret"]))
-        .count()
-    )
-    assert cached == 0
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            owner = verify.get(User, fx.owner_id)
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            assert sub is not None and owner is not None
+            assert sub.sync_cursor in (None, "old-cursor")
+            assert sub.sync_cursor != "should-not-store"
+            assert sub.sync_cursor != "partial-token-ignored"
+            assert sub.coverage_success_at is None or (
+                sub.coverage_last_failure_at is not None
+                and sub.coverage_last_failure_at > sub.coverage_success_at
+            )
+            trust = _trust(verify, owner, settings, now)
+            assert trust.ok is False
+            assert "Truncated" in _names(trust)
+            assert "calendar_coverage_stale" not in _causes(trust)
+            cached = (
+                verify.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id.in_(["partial", "secret"]))
+                .count()
+            )
+            assert cached == 0
+        finally:
+            verify.close()
 
 
 def test_t1c_mid_refresh_write_then_fail_is_not_ready(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    owner, settings = _owner(db_session)
-    now = datetime.now(UTC)
-    window_start, window_end = _wide_bounds(settings, now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="cal-mid", summary="Mid Refresh", cursor=None)
-    _mint(sub, now=now, start=window_start, end=window_end)
-    prior_success = sub.coverage_success_at
-    db_session.flush()
-    writes = {"n": 0}
-    real = gcal._upsert_external_event
+    now = datetime(2026, 10, 19, 15, 0, tzinfo=UTC)
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="cal-mid",
+        summary="Mid Refresh",
+        cursor=None,
+        mint_now=now,
+    ) as fx:
+        owner, settings, account, sub = _load_committed(db_session, fx)
+        prior_success = sub.coverage_success_at
+        writes = {"n": 0}
+        real = gcal._upsert_external_event
 
-    def _write_then_fail(*args: Any, **kwargs: Any) -> bool:
-        writes["n"] += 1
-        real(*args, **kwargs)
-        raise RuntimeError("mid-refresh injected")
+        def _write_then_fail(*args: Any, **kwargs: Any) -> bool:
+            writes["n"] += 1
+            real(*args, **kwargs)
+            raise RuntimeError("mid-refresh injected")
 
-    monkeypatch.setattr(gcal, "_upsert_external_event", _write_then_fail)
+        monkeypatch.setattr(gcal, "_upsert_external_event", _write_then_fail)
 
-    def _full(*_a: Any, **_k: Any):
-        return (
-            [_g_event("new-evt", window_start + timedelta(hours=4), window_start + timedelta(hours=5))],
-            "cursor-should-not-advance",
-            1,
-        )
+        def _full(*_a: Any, **_k: Any):
+            return (
+                [
+                    _g_event(
+                        "new-evt",
+                        fx.window_start + timedelta(hours=4),
+                        fx.window_start + timedelta(hours=5),
+                    )
+                ],
+                "cursor-should-not-advance",
+                1,
+            )
 
-    _patch_lists(monkeypatch, full=_full)
-    with pytest.raises(RuntimeError, match="mid-refresh injected"):
-        _sync(db_session, account, window_start, window_end)
+        _patch_lists(monkeypatch, full=_full)
+        with pytest.raises(RuntimeError, match="mid-refresh injected"):
+            _sync(db_session, account, fx.window_start, fx.window_end)
 
-    assert writes["n"] >= 1
-    db_session.expire_all()
-    sub = db_session.get(CalendarSubscription, sub.id)
-    assert sub is not None
-    assert sub.sync_cursor != "cursor-should-not-advance"
-    assert sub.coverage_success_at != prior_success or sub.coverage_last_failure_at is not None
-    assert sub.coverage_last_failure_cause
-    assert "token" not in (sub.coverage_last_failure_cause or "")
-    trust = _trust(db_session, owner, settings, now)
-    assert trust.ok is False
-    assert "Mid Refresh" in _names(trust)
+        assert writes["n"] >= 1
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            assert sub is not None
+            assert sub.sync_cursor != "cursor-should-not-advance"
+            assert sub.coverage_success_at != prior_success or sub.coverage_last_failure_at is not None
+            assert sub.coverage_last_failure_cause
+            assert "token" not in (sub.coverage_last_failure_cause or "")
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            owner = verify.get(User, fx.owner_id)
+            assert owner is not None
+            trust = _trust(verify, owner, settings, now)
+            assert trust.ok is False
+            assert "Mid Refresh" in _names(trust)
+        finally:
+            verify.close()
 
 
 def test_t1c_failed_attempt_stays_unready_after_rollback(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Rollback may restore a consistent cache; it must not restore readiness."""
-    owner, settings = _owner(db_session)
-    now = datetime.now(UTC)
-    window_start, window_end = _wide_bounds(settings, now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="cal-rollback", summary="Rollback")
-    _mint(sub, now=now, start=window_start, end=window_end)
-    db_session.flush()
-    sub_id = sub.id
-    owner_id = owner.id
-    real = gcal._upsert_external_event
+    now = datetime(2026, 10, 19, 15, 0, tzinfo=UTC)
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="cal-rollback",
+        summary="Rollback",
+        cursor=None,
+        mint_now=now,
+    ) as fx:
+        _owner_row, _settings_row, account, _sub = _load_committed(db_session, fx)
+        real = gcal._upsert_external_event
 
-    def _write_then_fail(*args: Any, **kwargs: Any) -> bool:
-        real(*args, **kwargs)
-        raise RuntimeError("rollback case")
+        def _write_then_fail(*args: Any, **kwargs: Any) -> bool:
+            real(*args, **kwargs)
+            raise RuntimeError("rollback case")
 
-    monkeypatch.setattr(gcal, "_upsert_external_event", _write_then_fail)
+        monkeypatch.setattr(gcal, "_upsert_external_event", _write_then_fail)
 
-    def _full(*_a: Any, **_k: Any):
-        return (
-            [_g_event("rolled-evt", window_start + timedelta(hours=4), window_start + timedelta(hours=5))],
-            "nope",
-            1,
-        )
+        def _full(*_a: Any, **_k: Any):
+            return (
+                [
+                    _g_event(
+                        "rolled-evt",
+                        fx.window_start + timedelta(hours=4),
+                        fx.window_start + timedelta(hours=5),
+                    )
+                ],
+                "nope",
+                1,
+            )
 
-    _patch_lists(monkeypatch, full=_full)
-    with pytest.raises(RuntimeError, match="rollback case"):
-        _sync(db_session, account, window_start, window_end)
+        _patch_lists(monkeypatch, full=_full)
+        with pytest.raises(RuntimeError, match="rollback case"):
+            _sync(db_session, account, fx.window_start, fx.window_end)
 
-    db_session.rollback()
-    db_session.expire_all()
-    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
-    sub = db_session.get(CalendarSubscription, sub_id)
-    assert sub is not None
-    trust = _trust(db_session, owner, settings, now)
-    assert trust.ok is False
-    assert "Rollback" in _names(trust)
-    young_success_still_validates = (
-        sub.coverage_success_at is not None
-        and (sub.coverage_last_failure_at is None or sub.coverage_last_failure_at <= sub.coverage_success_at)
-        and sub.coverage_pagination_complete
-        and sub.coverage_success_generation == sub.coverage_active_generation
-    )
-    assert young_success_still_validates is False
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            sub = verify.get(CalendarSubscription, fx.sub_id)
+            owner = verify.get(User, fx.owner_id)
+            assert sub is not None and owner is not None
+            trust = _trust(verify, owner, settings, now)
+            assert trust.ok is False
+            assert "Rollback" in _names(trust)
+            young_success_still_validates = (
+                sub.coverage_success_at is not None
+                and (
+                    sub.coverage_last_failure_at is None
+                    or sub.coverage_last_failure_at <= sub.coverage_success_at
+                )
+                and sub.coverage_pagination_complete
+                and sub.coverage_success_generation == sub.coverage_active_generation
+            )
+            assert young_success_still_validates is False
+        finally:
+            verify.close()
 
 
 def test_t1c_refresh_entry_points_are_serialized(
@@ -1174,51 +1427,115 @@ def test_t1c_google_incremental_omits_forbidden_filters(monkeypatch: pytest.Monk
         assert forbidden not in params
 
 
+_COVERAGE_SNAPSHOT_KEYS = (
+    "sync_cursor",
+    "coverage_window_start",
+    "coverage_window_end",
+    "coverage_mode",
+    "coverage_success_at",
+    "coverage_fetched_at",
+    "coverage_pagination_complete",
+    "coverage_active_generation",
+    "coverage_success_generation",
+    "coverage_show_deleted",
+    "coverage_single_events",
+    "coverage_page_count",
+    "coverage_item_count",
+    "coverage_token_fingerprint",
+    "coverage_last_failure_at",
+    "coverage_last_failure_cause",
+)
+
+
+def _coverage_snapshot(sub: CalendarSubscription) -> dict[str, Any]:
+    return {key: getattr(sub, key) for key in _COVERAGE_SNAPSHOT_KEYS}
+
+
+def _persist_subscription_coverage_snapshot(sub_id: UUID, snapshot: dict[str, Any]) -> None:
+    """Write coverage/cursor state via SessionLocal (caller must already be unlocked)."""
+    persist = SessionLocal()
+    try:
+        row = persist.get(CalendarSubscription, sub_id)
+        assert row is not None
+        for key, value in snapshot.items():
+            setattr(row, key, value)
+        persist.commit()
+    finally:
+        persist.close()
+
+
 def test_t1c_410_remints_full_baseline_and_failed_baseline_stays_unready(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    owner, settings = _owner(db_session)
-    now = datetime.now(UTC)
-    window_start, window_end = _wide_bounds(settings, now)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account, calendar_id="cal-410", summary="Gone", cursor="stale-token")
-    _mint(sub, now=now, start=window_start, end=window_end)
-    sub.sync_cursor = "stale-token"
-    db_session.flush()
-    phase = {"full_fail": False, "incr": 0, "full": 0}
+    now = datetime(2026, 10, 19, 15, 0, tzinfo=UTC)
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="cal-410",
+        summary="Gone",
+        cursor="stale-token",
+        mint_now=now,
+    ) as fx:
+        owner, settings, account, sub = _load_committed(db_session, fx)
+        window_start, window_end = fx.window_start, fx.window_end
+        phase = {"full_fail": False, "incr": 0, "full": 0}
 
-    def _incr(*_a: Any, **_k: Any):
-        phase["incr"] += 1
-        raise gcal.GoogleSyncTokenExpired()
+        def _incr(*_a: Any, **_k: Any):
+            phase["incr"] += 1
+            raise gcal.GoogleSyncTokenExpired()
 
-    def _full(*_a: Any, **_k: Any):
-        phase["full"] += 1
-        if phase["full_fail"]:
-            raise ApiError(502, "baseline failed", "GOOGLE_EVENTS_LIST")
-        start = window_start + timedelta(hours=2)
-        return ([_g_event("after-410", start, start + timedelta(minutes=45))], "baseline-new", 1)
+        def _full(*_a: Any, **_k: Any):
+            phase["full"] += 1
+            if phase["full_fail"]:
+                raise ApiError(502, "baseline failed", "GOOGLE_EVENTS_LIST")
+            start = window_start + timedelta(hours=2)
+            return (
+                [_g_event("after-410", start, start + timedelta(minutes=45))],
+                "baseline-new",
+                1,
+            )
 
-    _patch_lists(monkeypatch, full=_full, incremental=_incr)
-    _sync(db_session, account, window_start, window_end)
-    db_session.refresh(sub)
-    assert phase["incr"] == 1
-    assert phase["full"] == 1
-    assert sub.sync_cursor == "baseline-new"
-    assert sub.sync_cursor != "stale-token"
-    assert sub.coverage_success_at is not None
-    assert _trust(db_session, owner, settings, now).ok is True
-
-    phase["full_fail"] = True
-    sub.sync_cursor = "will-410"
-    db_session.flush()
-    with pytest.raises(ApiError):
+        _patch_lists(monkeypatch, full=_full, incremental=_incr)
         _sync(db_session, account, window_start, window_end)
-    db_session.expire_all()
-    sub = db_session.get(CalendarSubscription, sub.id)
-    assert sub is not None
-    trust = _trust(db_session, owner, settings, now)
-    assert trust.ok is False
-    assert sub.sync_cursor != "will-410"
+        db_session.refresh(sub)
+        assert phase["incr"] == 1
+        assert phase["full"] == 1
+        assert sub.sync_cursor == "baseline-new"
+        assert sub.sync_cursor != "stale-token"
+        assert sub.coverage_success_at is not None
+        assert _trust(db_session, owner, settings, now).ok is True
+
+        # Snapshot in memory, drop caller locks, then persist on a free connection so
+        # the autonomous failure UPDATE is not blocked by this session.
+        success_snapshot = _coverage_snapshot(sub)
+        db_session.rollback()
+        _persist_subscription_coverage_snapshot(fx.sub_id, success_snapshot)
+        seed_cursor = SessionLocal()
+        try:
+            row = seed_cursor.get(CalendarSubscription, fx.sub_id)
+            assert row is not None
+            row.sync_cursor = "will-410"
+            seed_cursor.commit()
+        finally:
+            seed_cursor.close()
+        owner, settings, account, sub = _load_committed(db_session, fx)
+
+        phase["full_fail"] = True
+        with pytest.raises(ApiError):
+            _sync(db_session, account, window_start, window_end)
+
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, fx.sub_id)
+            owner = verify.get(User, fx.owner_id)
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            assert durable is not None and owner is not None
+            trust = _trust(verify, owner, settings, now)
+            assert trust.ok is False
+            assert durable.coverage_last_failure_at is not None
+            # Failed remint must not mint a new success cursor.
+            assert durable.sync_cursor != "baseline-new"
+        finally:
+            verify.close()
 
 
 def test_t1c_widened_horizon_remints_on_explicit_sync_only(

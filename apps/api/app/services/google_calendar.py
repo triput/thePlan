@@ -12,8 +12,9 @@ from urllib.parse import quote, urlencode
 from uuid import UUID
 
 import httpx
-from sqlalchemy import inspect as sa_inspect
-from sqlalchemy.orm import Session, attributes
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import Settings, get_settings
@@ -986,70 +987,11 @@ def _apply_subscription_failure_marker(
     return False
 
 
-def _revert_non_subscription_caller_state(db: Session, subscription_ids: set[UUID]) -> None:
-    """Drop unrelated pending caller ORM work before a caller-scoped failure commit."""
-    from app.db import engine
-
-    unrelated = db.info.pop("_t1c_unrelated_change_savepoint", None)
-    if unrelated is not None and unrelated.is_active:
-        unrelated.rollback()
-        return
-
-    for obj in list(db.new):
-        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
-            continue
-        db.expunge(obj)
-
-    for obj in list(db.deleted):
-        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
-            continue
-        db.add(obj)
-
-    reverted: list[object] = []
-    for obj in list(db.identity_map.values()):
-        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
-            continue
-        state = sa_inspect(obj)
-        if not state.has_identity:
-            db.expunge(obj)
-            continue
-        changed = False
-        for col in state.mapper.column_attrs:
-            key = col.key
-            hist = attributes.get_history(obj, key)
-            if not hist.has_changes():
-                continue
-            if hist.deleted:
-                setattr(obj, key, hist.deleted[0])
-                changed = True
-            elif hist.unchanged:
-                setattr(obj, key, hist.unchanged[0])
-                changed = True
-        if changed:
-            reverted.append(obj)
-            continue
-
-        # Flushed attributes no longer appear in history — reload last committed row.
-        mapper = state.mapper
-        pk_values = state.identity
-        if pk_values is None:
-            continue
-        from sqlalchemy import select
-
-        entity = mapper.class_
-        pk_filters = [
-            pk_col == pk_val for pk_col, pk_val in zip(mapper.primary_key, pk_values, strict=True)
-        ]
-        with engine.connect() as conn:
-            row = conn.execute(select(entity).where(*pk_filters)).scalar_one_or_none()
-        if row is None:
-            continue
-        for col in mapper.column_attrs:
-            setattr(obj, col.key, getattr(row, col.key))
-        reverted.append(obj)
-
-    if reverted:
-        db.flush(reverted)
+@dataclass(frozen=True)
+class _FailurePersistOutcome:
+    committed_ids: frozenset[UUID]
+    settled_ids: frozenset[UUID]
+    unseen_ids: frozenset[UUID]
 
 
 def _persist_subscription_refresh_failures_autonomous(
@@ -1057,54 +999,50 @@ def _persist_subscription_refresh_failures_autonomous(
     *,
     now: datetime,
     cause: str,
-) -> bool:
-    """Commit failure markers in a separate DB transaction (production path)."""
+) -> _FailurePersistOutcome:
+    """Commit failure markers in a separate DB transaction (sole production path).
+
+    Updates calendar_subscriptions failure columns only. A missing sibling does
+    not skip visible rows. On lock wait (OperationalError), rolls back and
+    returns empty sets so the caller session is left alone.
+    """
+    empty = _FailurePersistOutcome(frozenset(), frozenset(), frozenset())
     if not subscription_ids:
-        return False
+        return empty
 
     from app.db import SessionLocal
 
     independent = SessionLocal()
     try:
+        independent.execute(text("SET LOCAL lock_timeout = '2s'"))
         rows = (
             independent.query(CalendarSubscription)
             .filter(CalendarSubscription.id.in_(subscription_ids))
             .all()
         )
-        if len(rows) != len(subscription_ids):
-            return False
-        wrote_failure = False
+        seen_ids = {row.id for row in rows}
+        unseen_ids = frozenset(subscription_ids - seen_ids)
+        committed: set[UUID] = set()
+        settled: set[UUID] = set()
         for subscription in rows:
             if _apply_subscription_failure_marker(subscription, now=now, cause=cause):
-                wrote_failure = True
-        if wrote_failure:
+                committed.add(subscription.id)
+            else:
+                settled.add(subscription.id)
+        if committed:
             independent.commit()
-            return True
-        return False
+        else:
+            independent.rollback()
+        return _FailurePersistOutcome(
+            frozenset(committed),
+            frozenset(settled),
+            unseen_ids,
+        )
+    except OperationalError:
+        independent.rollback()
+        return empty
     finally:
         independent.close()
-
-
-def _persist_subscription_refresh_failures_caller_session(
-    db: Session,
-    subscriptions: list[CalendarSubscription],
-    *,
-    now: datetime,
-    cause: str,
-) -> None:
-    """Caller-scoped failure commit for uncommitted test fixtures (same connection)."""
-    subscription_ids = {subscription.id for subscription in subscriptions}
-    wrote_failure = False
-    for subscription in subscriptions:
-        if _apply_subscription_failure_marker(subscription, now=now, cause=cause):
-            wrote_failure = True
-    if not wrote_failure:
-        return
-    _revert_non_subscription_caller_state(db, subscription_ids)
-    for subscription in subscriptions:
-        _apply_subscription_failure_marker(subscription, now=now, cause=cause)
-    db.flush(objects=subscriptions)
-    db.commit()
 
 
 def _persist_subscription_refresh_failures(
@@ -1114,22 +1052,26 @@ def _persist_subscription_refresh_failures(
     now: datetime,
     cause: str,
 ) -> None:
-    """Persist subscription failure markers without committing unrelated caller work."""
+    """Persist failure markers via autonomous SessionLocal only.
+
+    Caller session is never committed or reverted. Committed rows are expired
+    so a later flush cannot overwrite the durable marker; unseen (uncommitted)
+    rows get an in-memory marker only; lock-timeout leaves instances alone.
+    """
     if not subscriptions:
         return
 
     subscription_ids = {subscription.id for subscription in subscriptions}
-    _revert_non_subscription_caller_state(db, subscription_ids)
-    if _persist_subscription_refresh_failures_autonomous(subscription_ids, now=now, cause=cause):
-        for subscription in subscriptions:
-            db.expire(subscription)
-        return
-    _persist_subscription_refresh_failures_caller_session(
-        db,
-        subscriptions,
+    outcome = _persist_subscription_refresh_failures_autonomous(
+        subscription_ids,
         now=now,
         cause=cause,
     )
+    for subscription in subscriptions:
+        if subscription.id in outcome.committed_ids:
+            db.expire(subscription)
+        elif subscription.id in outcome.unseen_ids:
+            _apply_subscription_failure_marker(subscription, now=now, cause=cause)
 
 
 def _commit_pre_pull_refresh_failure(
@@ -1229,6 +1171,7 @@ def sync_account_events(
     upserted = 0
     for subscription in subscriptions:
         with subscription_refresh_lock(subscription.id):
+            refresh_scope = db.begin_nested()
             try:
                 if user_settings is not None and coverage_window_wider_than(
                     subscription,
@@ -1251,6 +1194,8 @@ def sync_account_events(
                 )
                 if not _pull_pagination_complete:
                     begin_subscription_refresh(subscription, now=now)
+                    if refresh_scope.is_active:
+                        refresh_scope.rollback()
                     _commit_refresh_failure(
                         db,
                         subscription,
@@ -1306,8 +1251,8 @@ def sync_account_events(
                 except Exception as exc:
                     if nested.is_active:
                         nested.rollback()
-                    db.expire(subscription)
-                    db.refresh(subscription)
+                    if refresh_scope.is_active:
+                        refresh_scope.rollback()
                     cause = (
                         "google_apply_full_failed"
                         if is_full
@@ -1316,14 +1261,12 @@ def sync_account_events(
                     _commit_refresh_failure(db, subscription, now=now, cause=cause)
                     _mark_failure_committed(exc)
                     raise
+                if refresh_scope.is_active:
+                    refresh_scope.commit()
             except Exception as exc:
                 if not _failure_committed(exc):
-                    try:
-                        db.expire(subscription)
-                        db.refresh(subscription)
-                    except Exception:
-                        db.rollback()
-                        raise
+                    if refresh_scope.is_active:
+                        refresh_scope.rollback()
                     _commit_refresh_failure(
                         db,
                         subscription,

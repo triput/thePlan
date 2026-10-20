@@ -56,7 +56,7 @@ def test_isolated_pg_dump_mutate_restore_recovers_034_fields(tmp_path: Path) -> 
     before = measure_post_restore()
     assert before["probe_transparency"] == "opaque"
     assert before["probe_history_sync"] == "batch-acceptance-1"
-    assert before["alembic_version"] == "035_source_timezone"
+    assert before["alembic_version"] == "036_calendar_coverage_freshness"
 
     dump = pg_dump_disposable_bytes()
     run_dir = write_isolated_snapshot(
@@ -88,6 +88,22 @@ def test_isolated_pg_dump_mutate_restore_recovers_034_fields(tmp_path: Path) -> 
     assert measured["probe_sync_run_id"] == before["probe_sync_run_id"]
     assert measured["probe_history_sync"] == before["probe_history_sync"]
     assert measured["alembic_version"] == before["alembic_version"]
+    assert (
+        psql_t(
+            "SELECT count(*)::text FROM information_schema.columns "
+            "WHERE table_name='calendar_subscriptions' "
+            "AND column_name='coverage_last_failure_at'"
+        )
+        == "1"
+    )
+    assert (
+        psql_t(
+            "SELECT count(*)::text FROM information_schema.columns "
+            "WHERE table_name='external_calendar_events' "
+            "AND column_name='is_provider_cancelled'"
+        )
+        == "1"
+    )
 
     from app.scheduler.free_busy import verify_snapshot_checksums
 
@@ -116,7 +132,7 @@ def test_failed_pg_restore_does_not_pass_gate(tmp_path: Path) -> None:
     run_dir = write_isolated_snapshot(
         run_id="pg-restore-negative",
         db_dump_bytes=b"this-is-not-a-custom-format-dump",
-        alembic_head="035_source_timezone",
+        alembic_head="036_calendar_coverage_freshness",
         root=tmp_path,
     )
     with pytest.raises(RuntimeError, match="pg_restore failed"):
