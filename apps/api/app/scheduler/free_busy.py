@@ -75,6 +75,7 @@ class FreeBusyDiagnostic:
     blocking_current_proposal: bool
     affected_horizon: str
     provenance: str | None = None
+    recovery: str | None = None
 
     def display_line(self) -> str:
         when = "unknown time"
@@ -96,6 +97,7 @@ class FreeBusyDiagnostic:
             "blocking_current_proposal": self.blocking_current_proposal,
             "affected_horizon": self.affected_horizon,
             "provenance": self.provenance,
+            **({"recovery": self.recovery} if self.recovery else {}),
         }
 
 

@@ -110,6 +110,43 @@ def _subscription_label(subscription: CalendarSubscription) -> str:
     return (subscription.summary or subscription.external_calendar_id or str(subscription.id))[:255]
 
 
+def _recovery_for(cause: str) -> str:
+    """Operator hint. Must not describe Microsoft as incomplete solely for lacking a delta cursor."""
+    hints = {
+        "calendar_coverage_missing": (
+            "Request an explicit sync that finishes the padded horizon before collect or Apply."
+        ),
+        "calendar_coverage_stale": (
+            "Request an explicit sync; this calendar's complete-window evidence is older than 15 minutes."
+        ),
+        "calendar_coverage_window_insufficient": (
+            "Request an explicit sync covering the full padded horizon, including the right edge."
+        ),
+        "calendar_pagination_incomplete": (
+            "Retry the explicit sync until the provider page chain is fully drained."
+        ),
+        "calendar_coverage_generation_mismatch": (
+            "Retry the explicit sync so cache, cursor, and coverage finish as one generation."
+        ),
+        "calendar_coverage_window_missing": (
+            "Request an explicit sync that records a complete coverage window."
+        ),
+        "calendar_freshness_not_evaluated": (
+            "Re-run collect so calendar freshness is evaluated before Apply."
+        ),
+        "microsoft_coverage_unverified": (
+            "Microsoft coverage is unverified this increment and does not count as fresh."
+        ),
+        "google_subscription_refresh_failed": (
+            "Retry an explicit Google sync for this calendar; last refresh failed before minting coverage."
+        ),
+        "calendar_refresh_failed": (
+            "Retry an explicit sync for this calendar; last refresh failed before minting coverage."
+        ),
+    }
+    return hints.get(cause, "Retry an explicit sync for this calendar before collect or Apply.")
+
+
 def _evaluate_one_subscription(
     subscription: CalendarSubscription,
     account: CalendarAccount,
@@ -132,6 +169,7 @@ def _evaluate_one_subscription(
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
             provenance="microsoft_success_minting_deferred",
+            recovery=_recovery_for("microsoft_coverage_unverified"),
         )
 
     if _failure_blocks_readiness(subscription):
@@ -144,6 +182,7 @@ def _evaluate_one_subscription(
             end=None,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for(subscription.coverage_last_failure_cause or "calendar_refresh_failed"),
         )
 
     success_at = subscription.coverage_success_at
@@ -157,6 +196,7 @@ def _evaluate_one_subscription(
             end=None,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for("calendar_coverage_missing"),
         )
 
     age = _ensure_utc(now_utc) - _ensure_utc(success_at)
@@ -170,6 +210,7 @@ def _evaluate_one_subscription(
             end=subscription.coverage_window_end,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for("calendar_coverage_stale"),
         )
 
     if not subscription.coverage_pagination_complete:
@@ -182,6 +223,7 @@ def _evaluate_one_subscription(
             end=None,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for("calendar_pagination_incomplete"),
         )
 
     active_gen = int(subscription.coverage_active_generation or 0)
@@ -196,6 +238,7 @@ def _evaluate_one_subscription(
             end=None,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for("calendar_coverage_generation_mismatch"),
         )
 
     win_start = subscription.coverage_window_start
@@ -210,6 +253,7 @@ def _evaluate_one_subscription(
             end=None,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for("calendar_coverage_window_missing"),
         )
 
     ws = _ensure_utc(win_start)
@@ -224,6 +268,7 @@ def _evaluate_one_subscription(
             end=we,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
+            recovery=_recovery_for("calendar_coverage_window_insufficient"),
         )
 
     return None
@@ -295,6 +340,7 @@ def require_calendar_freshness(trust: CalendarFreshnessTrust | None) -> None:
                     end=None,
                     blocking_current_proposal=True,
                     affected_horizon="unknown_extent",
+                    recovery=_recovery_for("calendar_freshness_not_evaluated"),
                 )
             ],
             affected_horizon="unknown_extent",

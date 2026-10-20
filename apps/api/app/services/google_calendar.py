@@ -48,6 +48,13 @@ class GoogleSyncTokenExpired(Exception):
     """Raised when Google returns 410 for an incremental sync token."""
 
 
+# Production drains every page. Tests may set a positive cap so a remaining
+# nextPageToken fails closed (no success mint, no cursor advance).
+pagination_max_pages: int | None = None
+# Real paginator sets this. Mocked list_* leaves the pull default of True.
+_pull_pagination_complete: bool = True
+
+
 @dataclass(frozen=True)
 class GoogleOAuthConfig:
     client_id: str
@@ -310,6 +317,7 @@ def _paginate_events(
     *,
     params: dict[str, str],
 ) -> tuple[list[dict[str, Any]], str | None, int]:
+    global _pull_pagination_complete
     items: list[dict[str, Any]] = []
     page_token: str | None = None
     next_sync_token: str | None = None
@@ -340,7 +348,12 @@ def _paginate_events(
             if payload.get("nextSyncToken"):
                 next_sync_token = payload["nextSyncToken"]
             if not page_token:
+                _pull_pagination_complete = True
                 break
+            if pagination_max_pages is not None and page_count >= pagination_max_pages:
+                # Prefix only. Drop any token so a partial chain cannot advance the cursor.
+                _pull_pagination_complete = False
+                return items, None, page_count
     return items, next_sync_token, page_count
 
 
@@ -683,6 +696,17 @@ def _mark_provider_cancelled(
     row.last_synced_at = now
 
 
+def _unpack_listed_events(
+    result: tuple[Any, ...],
+) -> tuple[list[dict[str, Any]], str | None, int]:
+    """Accept 2-tuples from older test doubles and 3-tuples from the paginator."""
+    if len(result) == 2:
+        events, token = result
+        return list(events or []), token, 1
+    events, token, page_count = result
+    return list(events or []), token, int(page_count)
+
+
 def _pull_subscription_changes(
     db: Session,
     *,
@@ -692,14 +716,20 @@ def _pull_subscription_changes(
     time_max: datetime,
 ) -> tuple[list[dict[str, Any]], str | None, bool, int]:
     """Fetch provider events before the owner scheduling lock."""
+    global _pull_pagination_complete
     from app.services.calendar_coverage import invalidate_subscription_coverage
+
+    # Mocked list_* never enters _paginate_events; default is a complete drain.
+    _pull_pagination_complete = True
 
     if subscription.sync_cursor:
         try:
-            events, next_sync_token, page_count = list_calendar_events_incremental(
-                access,
-                subscription.external_calendar_id,
-                subscription.sync_cursor,
+            events, next_sync_token, page_count = _unpack_listed_events(
+                list_calendar_events_incremental(
+                    access,
+                    subscription.external_calendar_id,
+                    subscription.sync_cursor,
+                )
             )
             return events, next_sync_token, False, page_count
         except GoogleSyncTokenExpired:
@@ -711,11 +741,13 @@ def _pull_subscription_changes(
             )
             db.flush()
 
-    events, next_sync_token, page_count = list_calendar_events(
-        access,
-        subscription.external_calendar_id,
-        time_min=time_min,
-        time_max=time_max,
+    events, next_sync_token, page_count = _unpack_listed_events(
+        list_calendar_events(
+            access,
+            subscription.external_calendar_id,
+            time_min=time_min,
+            time_max=time_max,
+        )
     )
     return events, next_sync_token, True, page_count
 
@@ -732,6 +764,7 @@ def _apply_subscription_full(
     now: datetime,
     coverage_generation: int,
     page_count: int,
+    pagination_complete: bool = True,
     suppressed_external_ids: set[str] | None = None,
 ) -> int:
     from app.services.calendar_coverage import (
@@ -741,15 +774,23 @@ def _apply_subscription_full(
 
     suppressed = suppressed_external_ids or set()
     seen_external_ids: set[str] = set()
+    cancelled_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"google-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
     try:
+        if not pagination_complete:
+            raise ApiError(
+                502,
+                "Calendar event page chain was not fully drained",
+                "CALENDAR_PAGINATION_INCOMPLETE",
+            )
         for event in events:
             status = event.get("status")
             external_id = event.get("id")
             if not external_id or status == "cancelled":
                 if external_id and status == "cancelled":
+                    cancelled_ids.add(external_id)
                     pending = _find_external_event(
                         db, owner_id=account.owner_id, external_id=external_id
                     )
@@ -788,8 +829,10 @@ def _apply_subscription_full(
             .all()
         )
         for row in stale:
-            if row.external_event_id not in seen_external_ids:
-                db.delete(row)
+            # Cancelled payload rows are not "missing"; soft-cancel must survive reconcile.
+            if row.external_event_id in seen_external_ids or row.external_event_id in cancelled_ids:
+                continue
+            db.delete(row)
 
         if next_sync_token:
             subscription.sync_cursor = next_sync_token
@@ -799,7 +842,7 @@ def _apply_subscription_full(
             window_start=time_min,
             window_end=time_max,
             mode="full",
-            pagination_complete=True,
+            pagination_complete=pagination_complete,
             page_count=page_count,
             item_count=len(events),
             show_deleted=True,
@@ -829,6 +872,10 @@ def _apply_subscription_incremental(
     now: datetime,
     coverage_generation: int,
     page_count: int,
+    window_start: datetime | None,
+    window_end: datetime | None,
+    show_deleted: bool | None,
+    pagination_complete: bool = True,
     suppressed_external_ids: set[str] | None = None,
 ) -> int:
     from app.services.calendar_coverage import (
@@ -840,12 +887,15 @@ def _apply_subscription_incremental(
     upserted = 0
     sync_run_id = f"google-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
-    window_start = subscription.coverage_window_start
-    window_end = subscription.coverage_window_end
-    if window_start is None or window_end is None:
-        raise RuntimeError("incremental apply requires prior full coverage window")
-
     try:
+        if not pagination_complete:
+            raise ApiError(
+                502,
+                "Calendar event page chain was not fully drained",
+                "CALENDAR_PAGINATION_INCOMPLETE",
+            )
+        if window_start is None or window_end is None:
+            raise RuntimeError("incremental apply requires prior full coverage window")
         for event in events:
             status = event.get("status")
             external_id = event.get("id")
@@ -885,10 +935,10 @@ def _apply_subscription_incremental(
             window_start=window_start,
             window_end=window_end,
             mode="incremental",
-            pagination_complete=True,
+            pagination_complete=pagination_complete,
             page_count=page_count,
             item_count=len(events),
-            show_deleted=subscription.coverage_show_deleted,
+            show_deleted=show_deleted,
             single_events=True,
             sync_token=next_sync_token,
             generation=coverage_generation,
@@ -905,6 +955,42 @@ def _apply_subscription_incremental(
         raise
 
 
+def _failure_committed(exc: BaseException) -> bool:
+    return bool(getattr(exc, "_t1c_failure_committed", False))
+
+
+def _mark_failure_committed(exc: BaseException) -> None:
+    setattr(exc, "_t1c_failure_committed", True)
+
+
+def _commit_refresh_failure(
+    db: Session,
+    subscription: CalendarSubscription,
+    *,
+    now: datetime,
+    cause: str,
+) -> None:
+    """Persist not-ready evidence.
+
+    Cache writes for the failed attempt live in a savepoint that has already
+    been rolled back. This commit keeps the cleared success marker and the
+    failed-attempt record even if the caller then rolls back its own transaction.
+    A still-young restored marker is cleared again so it cannot waive the failure.
+    """
+    from app.services.calendar_coverage import (
+        begin_subscription_refresh,
+        record_subscription_refresh_failure,
+    )
+
+    if subscription.coverage_success_at is not None:
+        begin_subscription_refresh(subscription, now=now)
+        record_subscription_refresh_failure(subscription, now=now, cause=cause)
+    elif subscription.coverage_last_failure_at is None:
+        record_subscription_refresh_failure(subscription, now=now, cause=cause)
+    db.flush()
+    db.commit()
+
+
 def sync_account_events(
     db: Session,
     *,
@@ -918,7 +1004,6 @@ def sync_account_events(
         begin_subscription_refresh,
         coverage_window_wider_than,
         invalidate_subscription_coverage,
-        record_subscription_refresh_failure,
         subscription_refresh_lock,
     )
     from app.services.mirror_tombstone import retry_pending_deletions
@@ -963,19 +1048,19 @@ def sync_account_events(
     upserted = 0
     for subscription in subscriptions:
         with subscription_refresh_lock(subscription.id):
-            if user_settings is not None and coverage_window_wider_than(
-                subscription,
-                required_start=time_min,
-                required_end=time_max,
-            ):
-                invalidate_subscription_coverage(
-                    subscription,
-                    now=now,
-                    cause="coverage_horizon_widened",
-                    clear_sync_cursor=True,
-                )
-                db.flush()
             try:
+                if user_settings is not None and coverage_window_wider_than(
+                    subscription,
+                    required_start=time_min,
+                    required_end=time_max,
+                ):
+                    invalidate_subscription_coverage(
+                        subscription,
+                        now=now,
+                        cause="coverage_horizon_widened",
+                        clear_sync_cursor=True,
+                    )
+                    db.flush()
                 events, next_cursor, is_full, page_count = _pull_subscription_changes(
                     db,
                     access=access,
@@ -983,41 +1068,88 @@ def sync_account_events(
                     time_min=time_min,
                     time_max=time_max,
                 )
+                if not _pull_pagination_complete:
+                    begin_subscription_refresh(subscription, now=now)
+                    _commit_refresh_failure(
+                        db,
+                        subscription,
+                        now=now,
+                        cause="calendar_pagination_incomplete",
+                    )
+                    incomplete = ApiError(
+                        502,
+                        "Calendar event page chain was not fully drained",
+                        "CALENDAR_PAGINATION_INCOMPLETE",
+                    )
+                    _mark_failure_committed(incomplete)
+                    raise incomplete
+                prior_start = subscription.coverage_window_start
+                prior_end = subscription.coverage_window_end
+                prior_show_deleted = subscription.coverage_show_deleted
                 generation = begin_subscription_refresh(subscription, now=now)
                 db.flush()
-                if is_full:
-                    upserted += _apply_subscription_full(
-                        db,
-                        account=account,
-                        subscription=subscription,
-                        events=events,
-                        next_sync_token=next_cursor,
-                        time_min=time_min,
-                        time_max=time_max,
-                        now=now,
-                        coverage_generation=generation,
-                        page_count=page_count,
-                        suppressed_external_ids=suppressed,
+                nested = db.begin_nested()
+                try:
+                    if is_full:
+                        upserted += _apply_subscription_full(
+                            db,
+                            account=account,
+                            subscription=subscription,
+                            events=events,
+                            next_sync_token=next_cursor,
+                            time_min=time_min,
+                            time_max=time_max,
+                            now=now,
+                            coverage_generation=generation,
+                            page_count=page_count,
+                            pagination_complete=True,
+                            suppressed_external_ids=suppressed,
+                        )
+                    else:
+                        upserted += _apply_subscription_incremental(
+                            db,
+                            account=account,
+                            subscription=subscription,
+                            events=events,
+                            next_sync_token=next_cursor,
+                            now=now,
+                            coverage_generation=generation,
+                            page_count=page_count,
+                            window_start=prior_start,
+                            window_end=prior_end,
+                            show_deleted=prior_show_deleted,
+                            pagination_complete=True,
+                            suppressed_external_ids=suppressed,
+                        )
+                    nested.commit()
+                except Exception as exc:
+                    if nested.is_active:
+                        nested.rollback()
+                    db.expire(subscription)
+                    db.refresh(subscription)
+                    cause = (
+                        "google_apply_full_failed"
+                        if is_full
+                        else "google_apply_incremental_failed"
                     )
-                else:
-                    upserted += _apply_subscription_incremental(
+                    _commit_refresh_failure(db, subscription, now=now, cause=cause)
+                    _mark_failure_committed(exc)
+                    raise
+            except Exception as exc:
+                if not _failure_committed(exc):
+                    try:
+                        db.expire(subscription)
+                        db.refresh(subscription)
+                    except Exception:
+                        db.rollback()
+                        raise
+                    _commit_refresh_failure(
                         db,
-                        account=account,
-                        subscription=subscription,
-                        events=events,
-                        next_sync_token=next_cursor,
+                        subscription,
                         now=now,
-                        coverage_generation=generation,
-                        page_count=page_count,
-                        suppressed_external_ids=suppressed,
+                        cause="google_subscription_refresh_failed",
                     )
-            except Exception:
-                record_subscription_refresh_failure(
-                    subscription,
-                    now=now,
-                    cause="google_subscription_refresh_failed",
-                )
-                db.flush()
+                    _mark_failure_committed(exc)
                 raise
 
     account.last_synced_at = now
