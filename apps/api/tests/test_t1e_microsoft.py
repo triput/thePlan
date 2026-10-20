@@ -1104,13 +1104,36 @@ def test_e15c_unflushed_summary_survives_narrow_expire(
 # --- Dex bounce: response shape / decode (0653bd7) ------------------------------
 
 
+def test_graph_collection_page_rejects_missing_value_object() -> None:
+    """Unit seam: HTTP 200 ``{}`` is malformed, not an empty collection."""
+    response = httpx.Response(200, json={})
+    with pytest.raises(ApiError) as raised:
+        ms_cal._graph_collection_page(
+            response,
+            list_error_code="MICROSOFT_EVENTS_LIST",
+            list_error_detail="Microsoft Calendar events list failed",
+        )
+    assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+
+
+def test_graph_collection_page_accepts_genuine_empty_list() -> None:
+    items, next_link, delta_link = ms_cal._graph_collection_page(
+        httpx.Response(200, json={"value": []}),
+        list_error_code="MICROSOFT_EVENTS_LIST",
+        list_error_detail="Microsoft Calendar events list failed",
+    )
+    assert items == []
+    assert next_link is None
+    assert delta_link is None
+
+
 def test_dex_missing_value_does_not_mint_empty_ms_view(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """HTTP 200 ``{}`` must not coerce to empty ``value`` and mint success."""
     with _committed_ms(db_session, calendars=[("cal-dex-missing", "Missing")]) as fx:
-        _owner_row, _settings_row, account, subs = _load(db_session, fx)
-        sub = subs[0]
+        # Seed cached busy before attaching rows to the caller session so the
+        # autonomous failure UPDATE is not blocked (E15c lock path).
         start = fx.window_start + timedelta(hours=3)
         seed = SessionLocal()
         try:
@@ -1128,6 +1151,9 @@ def test_dex_missing_value_does_not_mint_empty_ms_view(
             seed.commit()
         finally:
             seed.close()
+
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
         _patch_token(monkeypatch)
         _patch_httpx(monkeypatch, lambda _request: httpx.Response(200, json={}))
         with pytest.raises(ApiError) as raised:
@@ -1149,6 +1175,8 @@ def test_dex_missing_value_does_not_mint_empty_ms_view(
             assert row.id == kept_id
             settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
             trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            # Gate may surface microsoft_coverage_unverified after failure clears mode
+            # (T1-E tip residual); unreadiness is required, not a specific cause string.
             assert trust.ok is False
         finally:
             verify.close()
@@ -1237,9 +1265,6 @@ def test_dex_invalid_json_initial_page_is_durable_unreadiness(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     with _committed_ms(db_session, calendars=[("cal-dex-json", "Bad JSON")]) as fx:
-        owner, _settings_row, account, subs = _load(db_session, fx)
-        sub = subs[0]
-        owner.display_name = "MUST NOT COMMIT WITH FAILURE"
         start = fx.window_start + timedelta(hours=4)
         seed = SessionLocal()
         try:
@@ -1256,6 +1281,10 @@ def test_dex_invalid_json_initial_page_is_durable_unreadiness(
             seed.commit()
         finally:
             seed.close()
+
+        owner, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        owner.display_name = "MUST NOT COMMIT WITH FAILURE"
         _patch_token(monkeypatch)
         _patch_httpx(
             monkeypatch,
