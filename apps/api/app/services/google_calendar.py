@@ -25,8 +25,10 @@ from app.models import (
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.scheduler.free_busy import apply_transparency_update, resolve_google_transparency
 from app.services.source_timezone import (
+    IndeterminateLocalTime,
     ParsedEventBounds,
     all_day_bounds_utc,
+    attach_naive_wall_clock,
     parse_civil_date,
     pick_consistent_zone,
     resolve_iana_zone,
@@ -172,17 +174,16 @@ def _google_datetime_has_offset(raw: Any) -> bool:
 
 
 def _attach_google_zone(raw: str, zone_name: str | None) -> datetime:
+    """Attach zone to Google dateTime; raises IndeterminateLocalTime on DST gaps/folds."""
     text = raw.replace("Z", "+00:00")
     dt = datetime.fromisoformat(text)
     if dt.tzinfo is not None:
         return dt.astimezone(timezone.utc)
     iana = resolve_iana_zone(zone_name)
     if iana is None:
-        # Naive without resolvable zone — leave naive; caller flags missing.
+        # Naive without resolvable zone — UTC storage only; caller flags missing.
         return dt.replace(tzinfo=timezone.utc)
-    from zoneinfo import ZoneInfo
-
-    return dt.replace(tzinfo=ZoneInfo(iana)).astimezone(timezone.utc)
+    return attach_naive_wall_clock(dt, iana)
 
 
 def parse_google_event_times(
@@ -232,8 +233,19 @@ def parse_google_event_times(
                 source_timezone=None,
                 source_zone_missing=True,
             )
-        start_dt = _attach_google_zone(start_raw, zone)
-        end_dt = _attach_google_zone(end_raw, zone)
+        try:
+            start_dt = _attach_google_zone(start_raw, zone)
+            end_dt = _attach_google_zone(end_raw, zone)
+        except IndeterminateLocalTime:
+            start_dt = _attach_google_zone(start_raw, None)
+            end_dt = _attach_google_zone(end_raw, None)
+            return ParsedEventBounds(
+                start=start_dt,
+                end=end_dt,
+                is_all_day=False,
+                source_timezone=None,
+                source_zone_missing=True,
+            )
         return ParsedEventBounds(
             start=start_dt,
             end=end_dt,

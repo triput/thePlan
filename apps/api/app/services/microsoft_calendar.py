@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import quote, urlencode
 
@@ -22,8 +22,11 @@ from app.models import (
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.services.source_timezone import (
+    IndeterminateLocalTime,
     ParsedEventBounds,
     all_day_bounds_utc,
+    attach_naive_wall_clock,
+    is_local_midnight,
     parse_civil_date,
     pick_consistent_zone,
     resolve_iana_zone,
@@ -204,8 +207,7 @@ def _graph_local_utc(dt: datetime) -> str:
     return _ensure_aware(dt).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def _parse_graph_datetime(value: str, time_zone: str | None = None) -> datetime:
-    """Parse Graph dateTime; attach ``time_zone`` only when the value is naive."""
+def _normalize_graph_datetime_text(value: str) -> str:
     text = value.strip()
     if text.endswith("Z"):
         text = f"{text[:-1]}+00:00"
@@ -218,39 +220,86 @@ def _parse_graph_datetime(value: str, time_zone: str | None = None) -> datetime:
             idx += 1
         frac = "".join(digits)[:6].ljust(6, "0")
         text = f"{head}.{frac}{rest[idx:]}"
+    return text
+
+
+def _graph_datetime_has_offset(text: str) -> bool:
+    return text.endswith("Z") or "+" in text[10:] or (
+        text.count("-") >= 3 and "T" in text
+    )
+
+
+def _parse_graph_datetime(value: str, time_zone: str | None = None) -> datetime:
+    """Parse Graph dateTime; attach ``time_zone`` only when the value is naive.
+
+    Raises ``IndeterminateLocalTime`` when naive attachment is DST-ambiguous or
+    nonexistent (never silent ``fold=0``).
+    """
+    text = _normalize_graph_datetime_text(value)
     dt = datetime.fromisoformat(text)
     if dt.tzinfo is not None:
         return dt.astimezone(timezone.utc)
     iana = resolve_iana_zone(time_zone)
     if iana is not None:
-        from zoneinfo import ZoneInfo
-
-        return dt.replace(tzinfo=ZoneInfo(iana)).astimezone(timezone.utc)
+        return attach_naive_wall_clock(dt, iana)
     # Naive with no resolvable zone — UTC attach is storage only; caller must flag.
     return dt.replace(tzinfo=timezone.utc)
 
 
-def _ms_source_zone_candidates(
+def _ms_provenance_zone(
     event: dict[str, Any],
     *,
     calendar_timezone: str | None,
-) -> tuple[str | None, bool, bool]:
-    """Resolve MS source zone from provenance fields (not display alone).
+) -> tuple[str | None, bool]:
+    """Resolve MS *source provenance* from original* / calendar (not display).
 
-    Returns ``(iana, missing, indeterminate)``.
-    Display ``start/end.timeZone`` alone is insufficient (Prefer shifts display).
+    Returns ``(iana, missing)``. Display ``start/end.timeZone`` is Prefer/display
+    only and is never used as provenance here.
     """
-    originals = (
+    zone, indeterminate = pick_consistent_zone(
         event.get("originalStartTimeZone"),
         event.get("originalEndTimeZone"),
+        calendar_timezone,
     )
-    zone, indeterminate = pick_consistent_zone(*originals, calendar_timezone)
+    if indeterminate or zone is None:
+        return None, True
+    return zone, False
+
+
+def _ms_response_decode_zone(
+    start: dict[str, Any],
+    end: dict[str, Any],
+) -> tuple[str | None, bool]:
+    """Zone used to decode returned wall-clock ``dateTime`` values.
+
+    Prefer/display ``timeZone`` on start/end — distinct from original* provenance.
+    """
+    zone, indeterminate = pick_consistent_zone(
+        start.get("timeZone"),
+        end.get("timeZone"),
+    )
     if indeterminate:
-        return None, True, True
-    if zone is not None:
-        return zone, False, False
-    # No original* / calendar provenance — display timeZone alone ≠ source.
-    return None, True, False
+        return None, True
+    return zone, zone is None
+
+
+def _untrusted_all_day(
+    start_day: date,
+    end_day: date,
+    *,
+    start: datetime | None = None,
+    end: datetime | None = None,
+) -> ParsedEventBounds:
+    if start is None or end is None:
+        placeholder = utc_midnight_placeholder(start_day, end_day)
+        start, end = placeholder[0], placeholder[1]
+    return ParsedEventBounds(
+        start=start,
+        end=end,
+        is_all_day=True,
+        source_timezone=None,
+        source_zone_missing=True,
+    )
 
 
 def parse_microsoft_event_times(
@@ -260,11 +309,14 @@ def parse_microsoft_event_times(
 ) -> ParsedEventBounds | None:
     """Parse Graph event times with source-zone provenance (T1-B).
 
-    Canonical all-day: ``isAllDay`` + dateTimeTimeZone midnights. Civil dates are
-    interpreted in ``originalStartTimeZone`` / ``originalEndTimeZone`` (or calendar
-    default) — never owner TZ, never display ``timeZone`` alone.
+    Decode zone (response Prefer/display ``timeZone`` / offset) is separate from
+    provenance (``original*`` / calendar). Timed Prefer-UTC wall clocks decode as
+    UTC absolutes even when original* is Pacific. All-day recovers civil midnights
+    via absolute→provenance conversion — never by slicing the UTC date string.
     Non-canonical ``start.date`` / ``end.date`` keys → unsupported / missing zone.
     """
+    from zoneinfo import ZoneInfo
+
     start = event.get("start") or {}
     end = event.get("end") or {}
 
@@ -272,14 +324,7 @@ def parse_microsoft_event_times(
     if start.get("date") and end.get("date"):
         start_day = parse_civil_date(start["date"])
         end_day = parse_civil_date(end["date"])
-        placeholder = utc_midnight_placeholder(start_day, end_day)
-        return ParsedEventBounds(
-            start=placeholder[0],
-            end=placeholder[1],
-            is_all_day=True,
-            source_timezone=None,
-            source_zone_missing=True,
-        )
+        return _untrusted_all_day(start_day, end_day)
 
     start_raw = start.get("dateTime")
     end_raw = end.get("dateTime")
@@ -287,58 +332,69 @@ def parse_microsoft_event_times(
         return None
 
     is_all_day = bool(event.get("isAllDay"))
-    zone, missing, indeterminate = _ms_source_zone_candidates(
+    provenance, provenance_missing = _ms_provenance_zone(
         event, calendar_timezone=calendar_timezone
     )
-    if indeterminate:
-        missing = True
-        zone = None
+    decode_zone, decode_missing = _ms_response_decode_zone(start, end)
+
+    start_text = str(start_raw).strip()
+    end_text = str(end_raw).strip()
+    start_has_offset = _graph_datetime_has_offset(start_text)
+    end_has_offset = _graph_datetime_has_offset(end_text)
+
+    def _decode_abs(raw: str, has_offset: bool) -> datetime | None:
+        try:
+            if has_offset:
+                return _parse_graph_datetime(raw)
+            if decode_missing or decode_zone is None:
+                return None
+            return _parse_graph_datetime(raw, decode_zone)
+        except IndeterminateLocalTime:
+            return None
 
     if is_all_day:
-        start_day = parse_civil_date(str(start_raw))
-        end_day = parse_civil_date(str(end_raw))
-        if missing or zone is None:
-            placeholder = utc_midnight_placeholder(start_day, end_day)
-            return ParsedEventBounds(
-                start=placeholder[0],
-                end=placeholder[1],
-                is_all_day=True,
-                source_timezone=None,
-                source_zone_missing=True,
+        start_day = parse_civil_date(start_text)
+        end_day = parse_civil_date(end_text)
+        start_abs = _decode_abs(start_text, start_has_offset)
+        end_abs = _decode_abs(end_text, end_has_offset)
+        if start_abs is None or end_abs is None:
+            return _untrusted_all_day(start_day, end_day)
+        if provenance_missing or provenance is None:
+            # Absolute Prefer instants may be known, but floating civil trust needs
+            # provenance — fail closed for busy merge.
+            return _untrusted_all_day(
+                start_day, end_day, start=start_abs, end=end_abs
             )
         try:
-            start_dt, end_dt = all_day_bounds_utc(start_day, end_day, zone)
-        except ValueError:
-            placeholder = utc_midnight_placeholder(start_day, end_day)
-            return ParsedEventBounds(
-                start=placeholder[0],
-                end=placeholder[1],
-                is_all_day=True,
-                source_timezone=None,
-                source_zone_missing=True,
+            tz = ZoneInfo(provenance)
+        except (KeyError, ValueError):
+            return _untrusted_all_day(
+                start_day, end_day, start=start_abs, end=end_abs
+            )
+        start_local = start_abs.astimezone(tz)
+        end_local = end_abs.astimezone(tz)
+        if not is_local_midnight(start_local) or not is_local_midnight(end_local):
+            # Not source-local midnights — do not slice UTC date + reattach zone.
+            return _untrusted_all_day(
+                start_day, end_day, start=start_abs, end=end_abs
+            )
+        civil_start: date = start_local.date()
+        civil_end: date = end_local.date()
+        try:
+            start_dt, end_dt = all_day_bounds_utc(civil_start, civil_end, provenance)
+        except (ValueError, IndeterminateLocalTime):
+            return _untrusted_all_day(
+                civil_start, civil_end, start=start_abs, end=end_abs
             )
         return ParsedEventBounds(
             start=start_dt,
             end=end_dt,
             is_all_day=True,
-            source_timezone=zone,
+            source_timezone=provenance,
             source_zone_missing=False,
         )
 
-    # Timed: absolute offset/Z is trustworthy extent; attach zone only when naive.
-    start_text = str(start_raw).strip()
-    end_text = str(end_raw).strip()
-    start_has_offset = start_text.endswith("Z") or "+" in start_text[10:] or (
-        start_text.count("-") >= 3 and "T" in start_text
-    )
-    end_has_offset = end_text.endswith("Z") or "+" in end_text[10:] or (
-        end_text.count("-") >= 3 and "T" in end_text
-    )
-    # Prefer UTC responses are typically offset-naive wall times labeled UTC —
-    # treat explicit resolvable original zone OR labeled UTC display with naive
-    # values as absolute when Prefer pins UTC (current client Prefer header).
-    display_start = resolve_iana_zone(start.get("timeZone"))
-    display_end = resolve_iana_zone(end.get("timeZone"))
+    # Timed: decode with response zone / offset; store original* as provenance only.
     if start_has_offset and end_has_offset:
         start_dt = _parse_graph_datetime(start_text)
         end_dt = _parse_graph_datetime(end_text)
@@ -346,17 +402,11 @@ def parse_microsoft_event_times(
             start=start_dt,
             end=end_dt,
             is_all_day=False,
-            source_timezone=zone,
+            source_timezone=None if provenance_missing else provenance,
             source_zone_missing=False,
         )
 
-    # Naive timed: require provenance zone (original*/calendar), not display alone.
-    attach_zone = zone
-    if attach_zone is None and display_start == "UTC" and display_end == "UTC":
-        # Client Prefer outlook.timezone="UTC" — naive wall clock is UTC absolute.
-        attach_zone = "UTC"
-        missing = False
-    if attach_zone is None:
+    if decode_missing or decode_zone is None:
         start_dt = _parse_graph_datetime(start_text)
         end_dt = _parse_graph_datetime(end_text)
         return ParsedEventBounds(
@@ -366,13 +416,24 @@ def parse_microsoft_event_times(
             source_timezone=None,
             source_zone_missing=True,
         )
-    start_dt = _parse_graph_datetime(start_text, attach_zone)
-    end_dt = _parse_graph_datetime(end_text, attach_zone)
+    try:
+        start_dt = _parse_graph_datetime(start_text, decode_zone)
+        end_dt = _parse_graph_datetime(end_text, decode_zone)
+    except IndeterminateLocalTime:
+        start_dt = _parse_graph_datetime(start_text)
+        end_dt = _parse_graph_datetime(end_text)
+        return ParsedEventBounds(
+            start=start_dt,
+            end=end_dt,
+            is_all_day=False,
+            source_timezone=None,
+            source_zone_missing=True,
+        )
     return ParsedEventBounds(
         start=start_dt,
         end=end_dt,
         is_all_day=False,
-        source_timezone=zone or attach_zone,
+        source_timezone=None if provenance_missing else provenance,
         source_zone_missing=False,
     )
 

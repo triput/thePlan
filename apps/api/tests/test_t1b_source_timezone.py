@@ -13,7 +13,14 @@ from app.scheduler.free_busy import evaluate_busy_input_trust, events_for_busy_m
 from app.services.google_calendar import parse_google_event_times
 from app.services.microsoft_calendar import parse_microsoft_event_times
 from app.services.source_timezone import (
+    CLDR_WINDOWS_ZONES_OTHER_VERSION,
+    CLDR_WINDOWS_ZONES_RELEASE,
+    CLDR_WINDOWS_ZONES_TYPE_VERSION,
+    CLDR_WINDOWS_ZONES_URL,
+    IndeterminateLocalTime,
     all_day_bounds_utc,
+    attach_naive_wall_clock,
+    pick_consistent_zone,
     resolve_iana_zone,
     windows_to_iana,
 )
@@ -23,14 +30,38 @@ OWNER_TZ = "America/Los_Angeles"  # must never reinterpret known source-local da
 SOURCE_EASTERN = "America/New_York"
 SOURCE_PACIFIC = "America/Los_Angeles"
 SOURCE_CHICAGO = "America/Chicago"
+SOURCE_TOKYO = "Asia/Tokyo"
+
+
+def test_cldr_windows_zones_citation_pinned() -> None:
+    """Dex item 6: cite CLDR windowsZones.xml source/version used for the map."""
+    assert CLDR_WINDOWS_ZONES_RELEASE == "release-48"
+    assert CLDR_WINDOWS_ZONES_OTHER_VERSION == "7e11800"
+    assert CLDR_WINDOWS_ZONES_TYPE_VERSION == "2021a"
+    assert "windowsZones.xml" in CLDR_WINDOWS_ZONES_URL
+    assert "release-48" in CLDR_WINDOWS_ZONES_URL
 
 
 def test_windows_to_iana_common_graph_ids() -> None:
     assert windows_to_iana("Pacific Standard Time") == "America/Los_Angeles"
     assert windows_to_iana("Eastern Standard Time") == "America/New_York"
+    assert windows_to_iana("Tokyo Standard Time") == "Asia/Tokyo"
     assert resolve_iana_zone("Pacific Standard Time") == "America/Los_Angeles"
     assert resolve_iana_zone("America/Chicago") == "America/Chicago"
     assert resolve_iana_zone("Not A Real Zone/Anywhere") is None
+
+
+def test_unsupported_explicit_candidate_not_silently_dropped() -> None:
+    """Dex item 4: unsupported explicit zone must not fall through to another candidate."""
+    zone, indeterminate = pick_consistent_zone(
+        "Mars/Olympus_Mons",
+        SOURCE_EASTERN,
+    )
+    assert zone is None
+    assert indeterminate is True
+
+    alone, alone_indet = pick_consistent_zone("NotAWindowsId")
+    assert alone is None and alone_indet is True
 
 
 def test_t1_6_google_source_local_not_owner_reinterpretation() -> None:
@@ -112,6 +143,45 @@ def test_t1_6_timed_conversion_with_zone() -> None:
     assert parsed.end == datetime(2026, 10, 19, 14, 30, tzinfo=UTC)
 
 
+def test_dst_indeterminate_ambiguous_fold_fails_closed() -> None:
+    """Dex item 3: ambiguous local wall clock must not silently use fold=0."""
+    naive = datetime(2026, 11, 1, 1, 30, 0)
+    with pytest.raises(IndeterminateLocalTime):
+        attach_naive_wall_clock(naive, SOURCE_PACIFIC)
+
+    event = {
+        "start": {"dateTime": "2026-11-01T01:30:00", "timeZone": SOURCE_PACIFIC},
+        "end": {"dateTime": "2026-11-01T02:30:00", "timeZone": SOURCE_PACIFIC},
+    }
+    parsed = parse_google_event_times(event)
+    assert parsed is not None
+    assert parsed.source_zone_missing is True
+
+
+def test_dst_indeterminate_nonexistent_gap_fails_closed() -> None:
+    """Dex item 3: spring-forward gap must not silently fold."""
+    naive = datetime(2026, 3, 8, 2, 30, 0)
+    with pytest.raises(IndeterminateLocalTime):
+        attach_naive_wall_clock(naive, SOURCE_PACIFIC)
+
+    event = {
+        "isAllDay": False,
+        "originalStartTimeZone": "Pacific Standard Time",
+        "originalEndTimeZone": "Pacific Standard Time",
+        "start": {
+            "dateTime": "2026-03-08T02:30:00.0000000",
+            "timeZone": "Pacific Standard Time",
+        },
+        "end": {
+            "dateTime": "2026-03-08T03:30:00.0000000",
+            "timeZone": "Pacific Standard Time",
+        },
+    }
+    parsed = parse_microsoft_event_times(event)
+    assert parsed is not None
+    assert parsed.source_zone_missing is True
+
+
 def test_t1_6_google_calendar_default_zone_fallback() -> None:
     event = {
         "start": {"date": "2026-10-19"},
@@ -181,10 +251,53 @@ def test_t1_7_indeterminate_conflicting_zones() -> None:
     assert parsed.source_zone_missing is True
 
 
-def test_ms_all_day_uses_original_not_display_zone() -> None:
-    """Prefer display UTC alone is not source provenance; original* wins."""
+def test_ms_timed_prefer_utc_does_not_reinterpret_original_pacific() -> None:
+    """Dex item 1: Prefer UTC wall clock + original* Pacific → absolute UTC, not Pacific wall."""
     event = {
-        "id": "ms-1",
+        "isAllDay": False,
+        "originalStartTimeZone": "Pacific Standard Time",
+        "originalEndTimeZone": "Pacific Standard Time",
+        "start": {"dateTime": "2026-10-19T17:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-19T18:00:00.0000000", "timeZone": "UTC"},
+    }
+    parsed = parse_microsoft_event_times(event)
+    assert parsed is not None
+    assert parsed.source_zone_missing is False
+    assert parsed.start == datetime(2026, 10, 19, 17, 0, tzinfo=UTC)
+    assert parsed.end == datetime(2026, 10, 19, 18, 0, tzinfo=UTC)
+    # Provenance may retain original* separately from the decode zone.
+    assert parsed.source_timezone == SOURCE_PACIFIC
+    # Must NOT be 17:00 Pacific → 00:00Z next day (PDT) or 01:00Z (PST).
+    assert parsed.start != datetime(2026, 10, 20, 0, 0, tzinfo=UTC)
+    assert parsed.start != datetime(2026, 10, 20, 1, 0, tzinfo=UTC)
+
+
+def test_ms_all_day_tokyo_prefer_utc_recovers_civil_via_absolute() -> None:
+    """Dex item 2: Prefer-UTC Tokyo all-day — do not slice UTC date then reattach Tokyo."""
+    event = {
+        "isAllDay": True,
+        "originalStartTimeZone": "Tokyo Standard Time",
+        "originalEndTimeZone": "Tokyo Standard Time",
+        # Tokyo Oct 19 midnight = Oct 18 15:00Z; exclusive end Oct 20 midnight = Oct 19 15:00Z.
+        "start": {"dateTime": "2026-10-18T15:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-19T15:00:00.0000000", "timeZone": "UTC"},
+    }
+    parsed = parse_microsoft_event_times(event)
+    assert parsed is not None and not parsed.source_zone_missing
+    assert parsed.source_timezone == SOURCE_TOKYO
+    assert parsed.start == datetime(2026, 10, 18, 15, 0, tzinfo=UTC)
+    assert parsed.end == datetime(2026, 10, 19, 15, 0, tzinfo=UTC)
+    # Wrong slice-and-reattach would treat civil Oct 18 Tokyo → Oct 17 15:00Z.
+    wrong_slice, _ = all_day_bounds_utc(
+        date(2026, 10, 18), date(2026, 10, 19), SOURCE_TOKYO
+    )
+    assert parsed.start != wrong_slice
+
+
+def test_ms_all_day_utc_midnight_labeled_without_source_midnight_fails_closed() -> None:
+    """Unproven floating: UTC 00:00 labeled + Eastern originals is not source midnight."""
+    event = {
+        "id": "ms-float",
         "subject": "Holiday",
         "isAllDay": True,
         "originalStartTimeZone": "Eastern Standard Time",
@@ -192,18 +305,53 @@ def test_ms_all_day_uses_original_not_display_zone() -> None:
         "start": {"dateTime": "2026-10-19T00:00:00.0000000", "timeZone": "UTC"},
         "end": {"dateTime": "2026-10-20T00:00:00.0000000", "timeZone": "UTC"},
     }
+    rejected = parse_microsoft_event_times(event)
+    assert rejected is not None and rejected.source_zone_missing is True
+
+
+def test_ms_all_day_prefer_utc_converted_eastern_trusted() -> None:
+    """Prefer UTC correctly shifted Eastern midnight → recover civil + trust."""
+    event = {
+        "isAllDay": True,
+        "originalStartTimeZone": "Eastern Standard Time",
+        "originalEndTimeZone": "Eastern Standard Time",
+        "start": {"dateTime": "2026-10-19T04:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-20T04:00:00.0000000", "timeZone": "UTC"},
+    }
     parsed = parse_microsoft_event_times(event)
     assert parsed is not None and not parsed.source_zone_missing
     assert parsed.source_timezone == SOURCE_EASTERN
     assert parsed.start == datetime(2026, 10, 19, 4, 0, tzinfo=UTC)
     assert parsed.end == datetime(2026, 10, 20, 4, 0, tzinfo=UTC)
 
+
+def test_ms_all_day_response_in_original_zone_midnight() -> None:
+    """When response timeZone matches provenance midnight, decode + recover."""
+    event = {
+        "isAllDay": True,
+        "originalStartTimeZone": "Eastern Standard Time",
+        "originalEndTimeZone": "Eastern Standard Time",
+        "start": {
+            "dateTime": "2026-10-19T00:00:00.0000000",
+            "timeZone": "Eastern Standard Time",
+        },
+        "end": {
+            "dateTime": "2026-10-20T00:00:00.0000000",
+            "timeZone": "Eastern Standard Time",
+        },
+    }
+    parsed = parse_microsoft_event_times(event)
+    assert parsed is not None and not parsed.source_zone_missing
+    assert parsed.start == datetime(2026, 10, 19, 4, 0, tzinfo=UTC)
+
+
+def test_ms_all_day_display_only_fails_closed() -> None:
     display_only = {
         "id": "ms-2",
         "subject": "Holiday",
         "isAllDay": True,
-        "start": {"dateTime": "2026-10-19T00:00:00.0000000", "timeZone": "UTC"},
-        "end": {"dateTime": "2026-10-20T00:00:00.0000000", "timeZone": "UTC"},
+        "start": {"dateTime": "2026-10-19T04:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-20T04:00:00.0000000", "timeZone": "UTC"},
     }
     rejected = parse_microsoft_event_times(display_only)
     assert rejected is not None and rejected.source_zone_missing is True
@@ -233,13 +381,13 @@ def test_ms_timed_prefer_utc_naive_is_absolute() -> None:
     assert parsed.end == datetime(2026, 10, 19, 19, 0, tzinfo=UTC)
 
 
-def test_ms_windows_zone_spring_forward() -> None:
+def test_ms_windows_zone_spring_forward_prefer_utc() -> None:
     event = {
         "isAllDay": True,
         "originalStartTimeZone": "Pacific Standard Time",
         "originalEndTimeZone": "Pacific Standard Time",
-        "start": {"dateTime": "2026-03-08T00:00:00.0000000", "timeZone": "UTC"},
-        "end": {"dateTime": "2026-03-09T00:00:00.0000000", "timeZone": "UTC"},
+        "start": {"dateTime": "2026-03-08T08:00:00.0000000", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-03-09T07:00:00.0000000", "timeZone": "UTC"},
     }
     parsed = parse_microsoft_event_times(event)
     assert parsed is not None and not parsed.source_zone_missing
@@ -283,6 +431,88 @@ def test_bounds_feed_proposal_trust_when_zone_known() -> None:
     assert len(merged) == 1
     assert merged[0].start == parsed.start
     assert merged[0].end == parsed.end
+
+
+def test_isolated_legacy_vs_absolute_trust_not_nullability() -> None:
+    """Dex item 9: source_zone_missing + trust from actual flags, not nullability."""
+    legacy_all_day = parse_google_event_times(
+        {"start": {"date": "2026-10-19"}, "end": {"date": "2026-10-20"}}
+    )
+    assert legacy_all_day is not None
+    assert legacy_all_day.source_zone_missing is True
+    # Null source_timezone alone is not the trust signal — missing flag is.
+    assert legacy_all_day.source_timezone is None
+
+    absolute_timed = parse_microsoft_event_times(
+        {
+            "isAllDay": False,
+            "start": {"dateTime": "2026-10-19T17:00:00Z", "timeZone": "UTC"},
+            "end": {"dateTime": "2026-10-19T18:00:00Z", "timeZone": "UTC"},
+        }
+    )
+    assert absolute_timed is not None
+    assert absolute_timed.source_zone_missing is False
+    # Provenance may be null while bounds are still trusted absolutes.
+    assert absolute_timed.source_timezone is None
+
+    ambiguous = parse_microsoft_event_times(
+        {
+            "isAllDay": True,
+            "originalStartTimeZone": "Eastern Standard Time",
+            "originalEndTimeZone": "Pacific Standard Time",
+            "start": {"dateTime": "2026-10-19T04:00:00.0000000", "timeZone": "UTC"},
+            "end": {"dateTime": "2026-10-20T04:00:00.0000000", "timeZone": "UTC"},
+        }
+    )
+    assert ambiguous is not None
+    assert ambiguous.source_zone_missing is True
+
+    horizon_start = datetime(2026, 10, 19, 16, 0, tzinfo=UTC)
+    horizon_end = datetime(2026, 10, 19, 19, 0, tzinfo=UTC)
+
+    legacy_row = SimpleNamespace(
+        transparency="opaque",
+        free_busy_provenance="provider_explicit",
+        start_time=legacy_all_day.start,
+        end_time=legacy_all_day.end,
+        calendar_id="cal",
+        title="legacy",
+        external_event_id="legacy-1",
+        provider_series_id=None,
+        owner_id="o",
+        provider="google",
+        source_zone_missing=legacy_all_day.source_zone_missing,
+        free_busy_pending_exception=False,
+        scheduled_block_id=None,
+        pending_deletion=False,
+    )
+    abs_row = SimpleNamespace(
+        transparency="opaque",
+        free_busy_provenance="provider_explicit",
+        start_time=absolute_timed.start,
+        end_time=absolute_timed.end,
+        calendar_id="cal",
+        title="abs",
+        external_event_id="abs-1",
+        provider_series_id=None,
+        owner_id="o",
+        provider="microsoft",
+        source_zone_missing=absolute_timed.source_zone_missing,
+        free_busy_pending_exception=False,
+        scheduled_block_id=None,
+        pending_deletion=False,
+    )
+    legacy_trust = evaluate_busy_input_trust(
+        [legacy_row], horizon_start=horizon_start, horizon_end=horizon_end
+    )
+    abs_trust = evaluate_busy_input_trust(
+        [abs_row], horizon_start=horizon_start, horizon_end=horizon_end
+    )
+    assert legacy_trust.ok is False
+    assert any(d.cause == "missing_source_zone" for d in legacy_trust.blocking_diagnostics)
+    assert abs_trust.ok is True
+    assert events_for_busy_merge([legacy_row]) == []
+    assert events_for_busy_merge([abs_row]) == [abs_row]
 
 
 def test_upsert_persists_source_timezone(monkeypatch: pytest.MonkeyPatch) -> None:

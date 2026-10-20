@@ -294,6 +294,18 @@ def measure_post_restore() -> dict[str, Any]:
             "SELECT count(*)::text FROM external_calendar_events "
             "WHERE external_event_id = 't1a-synth-034'"
         ),
+        "probe_source_timezone": psql_t(
+            "SELECT COALESCE(source_timezone, '<null>') FROM external_calendar_events "
+            "WHERE external_event_id = 't1a-synth-034'"
+        ),
+        "probe_source_zone_missing": psql_t(
+            "SELECT source_zone_missing::text FROM external_calendar_events "
+            "WHERE external_event_id = 't1a-synth-034'"
+        ),
+        "has_source_timezone_column": psql_t(
+            "SELECT count(*)::text FROM information_schema.columns "
+            "WHERE table_name='external_calendar_events' AND column_name='source_timezone'"
+        ),
     }
 
 
