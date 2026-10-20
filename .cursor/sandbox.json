@@ -1,0 +1,29 @@
+{
+  // Helps Auto-review keep more shell work inside the sandbox.
+  // Note: 127.0.0.1 is still blocked by Cursor's SSRF defaults — pytest→5433
+  // must run out-of-sandbox via terminalAllowlist / classifier allow_instructions.
+
+  "type": "workspace_readwrite",
+  "readBoundary": "system",
+  "additionalReadonlyPaths": [
+    "F:\\Code Repo\\Cabinet",
+    "C:\\Users\\trish\\.cursor\\projects\\f-Code-Repo-ThePlan"
+  ],
+  "additionalReadwritePaths": [
+    "C:\\Users\\trish\\AppData\\Local\\Temp"
+  ],
+  "enableSharedBuildCache": true,
+  "networkPolicy": {
+    "default": "deny",
+    "allow": [
+      "pypi.org",
+      "files.pythonhosted.org",
+      "pypi.python.org",
+      "github.com",
+      "*.githubusercontent.com",
+      "registry.npmjs.org",
+      "cursor.com",
+      "*.cursor.com"
+    ]
+  }
+}

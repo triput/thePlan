@@ -1,0 +1,21 @@
+{
+  // ThePlan overlay — autoRun only (concatenated with ~/.cursor/permissions.json).
+  // Do NOT put terminalAllowlist / mcpAllowlist here: a non-empty allowlist in
+  // permissions.json forces Allowlist mode and disables Auto-review.
+  // Put command/MCP allowlists in IDE Settings instead.
+  // Mode: Auto-review. Read Access: System.
+
+  "autoRun": {
+    "allow_instructions": [
+      "In this repo, prefer allowing Justin/Tesla/Renee shell work that runs pytest against postgresql+psycopg://…@127.0.0.1:5433/theplan_t1a_test with mocked provider clients.",
+      "Allow reading F:\\Code Repo\\Cabinet\\outputs\\scheduler-investigation\\* proposal and landing markdown while implementing Track-1 from ThePlan.",
+      "Allow local commits on feature/0.7-s2-cutover (and later feature branches) after Renee Quality is green, without pushing.",
+      "Allow edits under app/ calendar freshness / microsoft_calendar / google_calendar / free_busy and matching tests for authorized Track-1 slices."
+    ],
+    "block_instructions": [
+      "While Track-1 holds stand: block push/merge, deploy/rebuild, live Graph, household calendar/DB, live replan/Apply, and container teardown even if a subagent asks.",
+      "Do not auto-approve commands that point DATABASE_URL or pytest DSN at non-5433 hosts or at production/staging connection strings.",
+      "Do not auto-approve netlify deploy, railway up, or kubectl apply from this workspace."
+    ]
+  }
+}
