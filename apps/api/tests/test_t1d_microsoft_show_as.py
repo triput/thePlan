@@ -3,13 +3,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, time, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+from cryptography.fernet import Fernet
+from sqlalchemy.orm import Session
 
+from app.config import Settings
+from app.db import engine
+from app.models import (
+    CalendarAccount,
+    CalendarSubscription,
+    ExternalCalendarEvent,
+    User,
+    UserSettings,
+)
+from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
 from app.scheduler.free_busy import (
     apply_transparency_update,
     effective_free_busy_kind,
@@ -18,10 +30,16 @@ from app.scheduler.free_busy import (
     resolve_microsoft_show_as,
 )
 from app.services import microsoft_calendar as ms_cal
-
+from app.services.token_crypto import encrypt_token
+from support.t1a_pg import assert_disposable_database_url, assert_t1a_container_isolated
 
 HORIZON_START = datetime(2026, 10, 19, 17, 0, tzinfo=timezone.utc)
 HORIZON_END = datetime(2026, 10, 20, 1, 0, tzinfo=timezone.utc)
+UTC = timezone.utc
+_FERNET = Fernet.generate_key().decode("utf-8")
+
+SEED_START = datetime(2026, 10, 19, 18, 0, tzinfo=UTC)
+SEED_END = datetime(2026, 10, 19, 19, 0, tzinfo=UTC)
 
 
 @dataclass
@@ -79,11 +97,20 @@ def test_resolve_microsoft_missing_on_complete_is_unknown_missing() -> None:
 
 
 def test_resolve_microsoft_projection_and_incomplete() -> None:
+    # Projected field sets always demote, even with an explicit showAs value.
     assert resolve_microsoft_show_as(
         {"showAs": "busy"}, field_projected=True
     ) == (None, "unknown_projection", "unknown")
+    # Incomplete + explicit showAs still maps (incomplete-update handler).
     assert resolve_microsoft_show_as(
         {"showAs": "busy"}, complete_representation=False
+    ) == ("opaque", "provider_explicit", "busy")
+    assert resolve_microsoft_show_as(
+        {"showAs": "free"}, complete_representation=False
+    ) == ("transparent", "provider_explicit", "free")
+    # Incomplete + omitted showAs → unknown_projection (not unknown_missing).
+    assert resolve_microsoft_show_as(
+        {}, complete_representation=False
     ) == (None, "unknown_projection", "unknown")
     # Projection wins even when showAs is absent.
     assert resolve_microsoft_show_as({}, field_projected=True)[1] == "unknown_projection"
@@ -97,6 +124,51 @@ def test_resolve_microsoft_differs_from_google_defaults() -> None:
     assert (g_stored, g_prov, g_kind) == ("opaque", "provider_default_omitted", "busy")
     m_stored, m_prov, m_kind = resolve_microsoft_show_as({})
     assert (m_stored, m_prov, m_kind) == (None, "unknown_missing", "unknown")
+
+
+# --- complete_representation fetch-shape evidence (no live Graph) -------------
+
+
+def test_event_list_params_omit_event_select() -> None:
+    """calendarView / delta list builders must not pass event $select."""
+    window = ms_cal.microsoft_event_list_window_params(
+        time_min=SEED_START, time_max=SEED_END
+    )
+    with_top = ms_cal.microsoft_event_list_window_params(
+        time_min=SEED_START, time_max=SEED_END, top="100"
+    )
+    assert ms_cal.microsoft_event_list_omits_event_select(window)
+    assert ms_cal.microsoft_event_list_omits_event_select(with_top)
+    assert ms_cal.microsoft_event_list_omits_event_select(None)
+    assert ms_cal.MS_EVENT_LIST_SELECT_PARAM not in window
+    assert ms_cal.MS_EVENT_LIST_SELECT_PARAM not in with_top
+    assert set(window) == {"startDateTime", "endDateTime"}
+    assert set(with_top) == {"startDateTime", "endDateTime", "$top"}
+
+
+def test_list_calendar_events_passes_no_event_select(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[dict[str, str] | None] = []
+
+    def _capture(access_token, url, *, params=None, **kwargs):
+        captured.append(params)
+        return [], None
+
+    monkeypatch.setattr(ms_cal, "_graph_collect", _capture)
+    ms_cal.list_calendar_events(
+        "tok", "cal-1", time_min=SEED_START, time_max=SEED_END
+    )
+    ms_cal.list_calendar_view(
+        "tok", "cal-1", time_min=SEED_START, time_max=SEED_END
+    )
+    ms_cal.list_calendar_events_incremental(
+        "tok",
+        "https://graph.microsoft.com/v1.0/me/calendars/cal-1/calendarView/delta?$deltatok=x",
+    )
+    assert len(captured) == 3
+    assert all(ms_cal.microsoft_event_list_omits_event_select(p) for p in captured)
+    assert captured[2] is None  # incremental delta-link follow
 
 
 # --- Trust / merge for MS-labeled rows ----------------------------------------
@@ -137,7 +209,7 @@ def test_ms_working_elsewhere_and_tentative_effective_kinds() -> None:
     )
 
 
-# --- Upsert transitions through real _upsert_external_event -------------------
+# --- Complete-path upsert unit transitions (in-memory row shell) --------------
 
 
 def _ms_row_shell(**overrides: object) -> SimpleNamespace:
@@ -147,12 +219,12 @@ def _ms_row_shell(**overrides: object) -> SimpleNamespace:
         provider_series_id=None,
         calendar_account_id=None,
         title=None,
-        start_time=None,
-        end_time=None,
+        start_time=SEED_START,
+        end_time=SEED_END,
         is_all_day=False,
         last_synced_at=None,
         source_zone_missing=False,
-        source_timezone=None,
+        source_timezone="UTC",
         transparency=None,
         free_busy_provenance=None,
         free_busy_prior_transparency=None,
@@ -174,6 +246,14 @@ def _timed_graph_event(*, show_as: str | None = "busy", omit_show_as: bool = Fal
         "start": {"dateTime": "2026-10-19T18:00:00", "timeZone": "UTC"},
         "end": {"dateTime": "2026-10-19T19:00:00", "timeZone": "UTC"},
     }
+    if not omit_show_as:
+        event["showAs"] = show_as
+    return event
+
+
+def _partial_graph_event(*, show_as: str | None = None, omit_show_as: bool = False) -> dict:
+    """Synthetic incomplete payload: id (+ optional showAs), no start/end."""
+    event: dict = {"id": "ms-evt-1"}
     if not omit_show_as:
         event["showAs"] = show_as
     return event
@@ -274,10 +354,10 @@ def test_upsert_explicit_unknown_and_missing(monkeypatch: pytest.MonkeyPatch) ->
     assert len(existing.free_busy_change_history) == 2
 
 
-def test_upsert_partial_omit_goes_through_apply_not_silent_erase(
+def test_upsert_complete_omit_goes_through_apply_not_silent_erase(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Delta omit must call apply_transparency_update (history retained)."""
+    """Complete payload omitting showAs → unknown_missing; history retained."""
     owner = uuid4()
     account = SimpleNamespace(id=uuid4(), owner_id=owner)
     subscription = SimpleNamespace(
@@ -326,6 +406,28 @@ def test_upsert_partial_omit_goes_through_apply_not_silent_erase(
     assert existing.free_busy_provenance == "unknown_missing"
     assert len(existing.free_busy_change_history) == 2
     assert existing.free_busy_change_history[0]["sync_run_id"] == "prior"
+
+
+def test_upsert_incomplete_without_existing_returns_false(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    owner = uuid4()
+    account = SimpleNamespace(id=uuid4(), owner_id=owner)
+    subscription = SimpleNamespace(
+        id=uuid4(), external_calendar_id="cal-ms-1", provider_timezone="UTC"
+    )
+    monkeypatch.setattr(ms_cal, "_find_external_event", lambda *a, **k: None)
+    assert (
+        ms_cal._upsert_external_event(
+            MagicMock(),
+            account=account,
+            subscription=subscription,
+            event=_partial_graph_event(show_as="busy"),
+            now=datetime.now(timezone.utc),
+            sync_run_id="ms-no-row",
+        )
+        is False
+    )
 
 
 def test_upsert_unrecognized_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -429,3 +531,365 @@ def test_apply_incremental_mints_ms_incr_sync_run_id(
     assert len(captured) == 1
     assert captured[0].startswith("ms-incr-20261020T123000Z-")
     assert sub_id.hex[:8] in captured[0]
+
+
+# --- Disposable Postgres: real ExternalCalendarEvent persistence --------------
+
+
+@pytest.fixture()
+def disposable_db() -> None:
+    """Guard household DSN; require theplan-t1a-postgres @ 127.0.0.1:5433."""
+    meta = assert_t1a_container_isolated()
+    assert meta["host_port"] == "5433"
+    assert meta["host_ip"] == "127.0.0.1"
+    assert meta["database"] == "theplan_t1a_test"
+    assert_disposable_database_url(engine.url.render_as_string(hide_password=False))
+
+
+def _settings() -> Settings:
+    return Settings(
+        token_encryption_key=_FERNET,
+        microsoft_client_id="t1d-ms-client",
+        microsoft_client_secret="t1d-ms-secret",
+        microsoft_redirect_uri="http://127.0.0.1/unused-ms",
+    )
+
+
+def _seed_owner_account_sub(
+    db: Session,
+) -> tuple[User, CalendarAccount, CalendarSubscription]:
+    token = uuid4().hex[:10]
+    user = User(
+        email=f"t1d-renee-{token}@example.test",
+        username=f"t1d_{token}",
+        display_name="T1D residual",
+        is_admin=False,
+        is_disabled=False,
+        must_change_password=False,
+        session_epoch=0,
+    )
+    db.add(user)
+    db.flush()
+    db.add(
+        UserSettings(
+            owner_id=user.id,
+            timezone="UTC",
+            workday_minutes=480,
+            workday_start_local=time(8, 0),
+            workweek_days=5,
+            inter_block_buffer_minutes=15,
+            upcoming_horizon_days=7,
+            default_schedule_style=ScheduleStyle.standalone,
+            scheduling_revision=0,
+        )
+    )
+    cfg = _settings()
+    account = CalendarAccount(
+        owner_id=user.id,
+        provider=CalendarProvider.microsoft,
+        account_email=f"t1d-{uuid4().hex[:8]}@example.test",
+        access_token_enc=encrypt_token(cfg, "access-token"),
+        refresh_token_enc=encrypt_token(cfg, "refresh-token"),
+        token_expires_at=datetime.now(UTC) + timedelta(hours=2),
+        is_enabled=True,
+        mirror_blocks=False,
+        last_synced_at=None,
+    )
+    db.add(account)
+    db.flush()
+    sub = CalendarSubscription(
+        owner_id=user.id,
+        calendar_account_id=account.id,
+        external_calendar_id="cal-ms-t1d",
+        summary="T1D calendar",
+        role=CalendarSubscriptionRole.primary,
+        is_enabled=True,
+        provider_timezone="UTC",
+    )
+    db.add(sub)
+    db.flush()
+    return user, account, sub
+
+
+def _seed_external_event(
+    db: Session,
+    *,
+    account: CalendarAccount,
+    calendar_id: str,
+    external_id: str,
+    transparency: str | None,
+    provenance: str,
+    title: str = "Seeded free block",
+    history: list[dict] | None = None,
+) -> ExternalCalendarEvent:
+    row = ExternalCalendarEvent(
+        owner_id=account.owner_id,
+        calendar_account_id=account.id,
+        provider=CalendarProvider.microsoft,
+        external_event_id=external_id,
+        calendar_id=calendar_id,
+        title=title,
+        start_time=SEED_START,
+        end_time=SEED_END,
+        is_all_day=False,
+        source_zone_missing=False,
+        source_timezone="UTC",
+        transparency=transparency,
+        free_busy_provenance=provenance,
+        free_busy_change_history=history
+        or [
+            {
+                "at": "2026-10-19T12:00:00Z",
+                "sync_run_id": "seed-run",
+                "from_transparency": None,
+                "from_provenance": None,
+                "to_transparency": transparency,
+                "to_provenance": provenance,
+            }
+        ],
+        free_busy_sync_run_id="seed-run",
+        last_synced_at=datetime(2026, 10, 19, 12, 0, tzinfo=UTC),
+    )
+    db.add(row)
+    db.flush()
+    return row
+
+
+def test_db_partial_show_as_busy_flips_seeded_free(
+    disposable_db: None, db_session: Session
+) -> None:
+    """Dex residual: {id, showAs: busy} must flip trusted free → busy on disk."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-partial-busy-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+    prior_history_len = len(seeded.free_busy_change_history or [])
+    prior_title = seeded.title
+    prior_start = seeded.start_time
+    prior_end = seeded.end_time
+    prior_all_day = seeded.is_all_day
+    prior_zone = seeded.source_timezone
+    prior_zone_missing = seeded.source_zone_missing
+
+    ok = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event={"id": external_id, "showAs": "busy"},
+        now=datetime(2026, 10, 20, 9, 0, tzinfo=UTC),
+        sync_run_id="ms-incr-partial-busy",
+    )
+    assert ok is True
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.transparency == "opaque"
+    assert row.free_busy_provenance == "provider_explicit"
+    assert row.free_busy_prior_transparency == "transparent"
+    assert row.free_busy_sync_run_id == "ms-incr-partial-busy"
+    assert row.start_time == prior_start
+    assert row.end_time == prior_end
+    assert row.is_all_day == prior_all_day
+    assert row.source_timezone == prior_zone
+    assert row.source_zone_missing == prior_zone_missing
+    assert row.title == prior_title
+    assert len(row.free_busy_change_history or []) == prior_history_len + 1
+    assert row.free_busy_change_history[0]["sync_run_id"] == "seed-run"
+    assert row.free_busy_change_history[-1]["to_transparency"] == "opaque"
+    assert (
+        effective_free_busy_kind(
+            transparency=row.transparency, provenance=row.free_busy_provenance
+        )
+        == "busy"
+    )
+    assert events_for_busy_merge([row]) == [row]
+
+
+def test_db_partial_show_as_unknown_trust_posture(
+    disposable_db: None, db_session: Session
+) -> None:
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-partial-unk-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="opaque",
+        provenance="provider_explicit",
+    )
+
+    ok = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event={"id": external_id, "showAs": "unknown"},
+        now=datetime(2026, 10, 20, 9, 5, tzinfo=UTC),
+        sync_run_id="ms-incr-partial-unknown",
+    )
+    assert ok is True
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.transparency is None
+    assert row.free_busy_provenance == "provider_explicit"
+    assert row.start_time == SEED_START
+    assert row.end_time == SEED_END
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_partial_omit_show_as_demotes_unknown_projection(
+    disposable_db: None,
+    db_session: Session,
+) -> None:
+    """Incomplete omit must not leave trusted free intact."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-partial-omit-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+
+    ok = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event={"id": external_id},
+        now=datetime(2026, 10, 20, 9, 10, tzinfo=UTC),
+        sync_run_id="ms-incr-partial-omit",
+    )
+    assert ok is True
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.transparency is None
+    assert row.free_busy_provenance == "unknown_projection"
+    assert row.free_busy_prior_transparency == "transparent"
+    assert row.free_busy_prior_provenance == "provider_explicit"
+    assert row.start_time == SEED_START
+    assert row.end_time == SEED_END
+    assert (
+        effective_free_busy_kind(
+            transparency=row.transparency, provenance=row.free_busy_provenance
+        )
+        == "unknown"
+    )
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_transitions_free_busy_unknown_and_incomplete_omit(
+    disposable_db: None,
+    db_session: Session,
+) -> None:
+    """Persisted free↔busy, explicit unknown, then incomplete omit demotion."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-trans-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="opaque",
+        provenance="provider_explicit",
+        title="Transition subject",
+    )
+
+    # Complete free
+    assert (
+        ms_cal._upsert_external_event(
+            db_session,
+            account=account,
+            subscription=sub,
+            event=_timed_graph_event(show_as="free") | {"id": external_id},
+            now=datetime(2026, 10, 20, 10, 0, tzinfo=UTC),
+            sync_run_id="ms-full-free",
+        )
+        is True
+    )
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert (row.transparency, row.free_busy_provenance) == (
+        "transparent",
+        "provider_explicit",
+    )
+
+    # Incomplete busy (Dex residual shape)
+    assert (
+        ms_cal._upsert_external_event(
+            db_session,
+            account=account,
+            subscription=sub,
+            event={"id": external_id, "showAs": "busy"},
+            now=datetime(2026, 10, 20, 10, 1, tzinfo=UTC),
+            sync_run_id="ms-incr-busy",
+        )
+        is True
+    )
+    db_session.flush()
+    db_session.expire(row)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert (row.transparency, row.free_busy_provenance) == (
+        "opaque",
+        "provider_explicit",
+    )
+    assert row.start_time == SEED_START
+    assert row.end_time == SEED_END
+
+    # Incomplete explicit unknown
+    assert (
+        ms_cal._upsert_external_event(
+            db_session,
+            account=account,
+            subscription=sub,
+            event={"id": external_id, "showAs": "unknown"},
+            now=datetime(2026, 10, 20, 10, 2, tzinfo=UTC),
+            sync_run_id="ms-incr-unk",
+        )
+        is True
+    )
+    db_session.flush()
+    db_session.expire(row)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert (row.transparency, row.free_busy_provenance) == (None, "provider_explicit")
+
+    # Incomplete omit → unknown_projection
+    assert (
+        ms_cal._upsert_external_event(
+            db_session,
+            account=account,
+            subscription=sub,
+            event={"id": external_id},
+            now=datetime(2026, 10, 20, 10, 3, tzinfo=UTC),
+            sync_run_id="ms-incr-omit",
+        )
+        is True
+    )
+    db_session.flush()
+    db_session.expire(row)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert (row.transparency, row.free_busy_provenance) == (None, "unknown_projection")
+    assert len(row.free_busy_change_history or []) >= 4
+    assert row.free_busy_change_history[0]["sync_run_id"] == "seed-run"
+    assert row.free_busy_change_history[-1]["to_provenance"] == "unknown_projection"

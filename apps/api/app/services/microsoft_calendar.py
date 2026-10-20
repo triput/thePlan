@@ -570,6 +570,39 @@ def list_microsoft_calendars(access_token: str) -> list[dict[str, Any]]:
     return normalized
 
 
+# Evidence for complete_representation on upsert: event-list Graph calls
+# (calendarView / calendarView/delta) do not pass event `$select`. Params are
+# only window bounds (and optional `$top`); incremental delta follows the
+# link with no params. Do not claim complete_representation when upsert
+# payloads lack parseable times.
+MS_EVENT_LIST_SELECT_PARAM = "$select"
+
+
+def microsoft_event_list_window_params(
+    *,
+    time_min: datetime,
+    time_max: datetime,
+    top: str | None = None,
+) -> dict[str, str]:
+    """Build calendarView / delta list params — window bounds only, no `$select`."""
+    params: dict[str, str] = {
+        "startDateTime": _iso_z(time_min),
+        "endDateTime": _iso_z(time_max),
+    }
+    if top is not None:
+        params["$top"] = top
+    return params
+
+
+def microsoft_event_list_omits_event_select(
+    params: dict[str, str] | None,
+) -> bool:
+    """True when a Graph event-list call does not project via event `$select`."""
+    if params is None:
+        return True
+    return MS_EVENT_LIST_SELECT_PARAM not in params
+
+
 def list_calendar_events(
     access_token: str,
     calendar_id: str,
@@ -577,10 +610,7 @@ def list_calendar_events(
     time_min: datetime,
     time_max: datetime,
 ) -> tuple[list[dict[str, Any]], str | None]:
-    params = {
-        "startDateTime": _iso_z(time_min),
-        "endDateTime": _iso_z(time_max),
-    }
+    params = microsoft_event_list_window_params(time_min=time_min, time_max=time_max)
     return _graph_collect(
         access_token,
         _calendar_view_delta_url(calendar_id),
@@ -598,11 +628,9 @@ def list_calendar_view(
     time_min: datetime,
     time_max: datetime,
 ) -> list[dict[str, Any]]:
-    params = {
-        "startDateTime": _iso_z(time_min),
-        "endDateTime": _iso_z(time_max),
-        "$top": "100",
-    }
+    params = microsoft_event_list_window_params(
+        time_min=time_min, time_max=time_max, top="100"
+    )
     items, _ = _graph_collect(
         access_token,
         _calendar_view_url(calendar_id),
@@ -617,6 +645,7 @@ def list_calendar_events_incremental(
     access_token: str,
     delta_link: str,
 ) -> tuple[list[dict[str, Any]], str | None]:
+    # Delta-link follow: no query params (hence no event $select).
     return _graph_collect(
         access_token,
         _absolute_graph_url(delta_link),
@@ -889,6 +918,14 @@ def _event_removed(event: dict[str, Any]) -> bool:
     return False
 
 
+def _row_has_usable_bounds(row: ExternalCalendarEvent) -> bool:
+    start = row.start_time
+    end = row.end_time
+    if start is None or end is None:
+        return False
+    return end > start
+
+
 def _upsert_external_event(
     db: Session,
     *,
@@ -901,44 +938,56 @@ def _upsert_external_event(
     external_id = event.get("id")
     if not external_id:
         return False
-    times = parse_microsoft_event_times(
-        event, calendar_timezone=subscription.provider_timezone
-    )
-    if times is None:
-        return False
-    if times.end <= times.start:
-        return False
 
     row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
     if row is not None and row.pending_deletion:
         return False
-    if row is None:
-        row = ExternalCalendarEvent(
-            owner_id=account.owner_id,
-            calendar_account_id=account.id,
-            provider=CalendarProvider.microsoft,
-            external_event_id=external_id,
-            calendar_id=subscription.external_calendar_id,
-            start_time=times.start,
-            end_time=times.end,
-        )
-        db.add(row)
+
+    times = parse_microsoft_event_times(
+        event, calendar_timezone=subscription.provider_timezone
+    )
+    times_ok = times is not None and times.end > times.start
+    # complete_representation only when this upsert payload has parseable times
+    # (complete-enough for the showAs boundary). Fetch shape evidence: event-list
+    # Graph calls omit event $select (see microsoft_event_list_omits_event_select).
+    complete_representation = times_ok
+
+    if not times_ok:
+        # Incomplete update: preserve known bounds on an existing row; never
+        # fabricate times or leave falsely trusted free without a transparency pass.
+        if row is None or not _row_has_usable_bounds(row):
+            return False
+    else:
+        assert times is not None  # times_ok
+        if row is None:
+            row = ExternalCalendarEvent(
+                owner_id=account.owner_id,
+                calendar_account_id=account.id,
+                provider=CalendarProvider.microsoft,
+                external_event_id=external_id,
+                calendar_id=subscription.external_calendar_id,
+                start_time=times.start,
+                end_time=times.end,
+            )
+            db.add(row)
+        row.start_time = times.start
+        row.end_time = times.end
+        row.is_all_day = times.is_all_day
+        row.source_zone_missing = times.source_zone_missing
+        row.source_timezone = times.source_timezone
 
     row.calendar_account_id = account.id
-    row.title = (event.get("subject") or "Busy")[:500]
-    row.start_time = times.start
-    row.end_time = times.end
-    row.is_all_day = times.is_all_day
+    if "subject" in event or times_ok:
+        row.title = (event.get("subject") or "Busy")[:500]
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
-    row.source_zone_missing = times.source_zone_missing
-    row.source_timezone = times.source_timezone
     # T1-D: Graph showAs → stored transparency/provenance. No busy default.
-    # calendarView/delta return full events (no event $select); if showAs is
-    # absent on this payload — including delta partials — resolve as
-    # unknown_missing (cannot prove Graph always sends showAs on delta).
+    # Incomplete + explicit showAs maps that value; incomplete + omitted showAs
+    # → unknown_projection. Complete + omitted showAs → unknown_missing.
     stored, provenance, _kind = resolve_microsoft_show_as(
-        event, complete_representation=True, field_projected=False
+        event,
+        complete_representation=complete_representation,
+        field_projected=False,
     )
     apply_transparency_update(
         row, stored=stored, provenance=provenance, sync_run_id=sync_run_id

@@ -188,14 +188,22 @@ def resolve_microsoft_show_as(
     missing showAs on a complete event is ``unknown_missing`` (not busy default);
     ``workingElsewhere`` is free/transparent; Graph ``unknown`` stores null
     transparency with ``provider_explicit``.
+
+    Incomplete updates (no parseable times): an explicit ``showAs`` key is still
+    mapped; omitted ``showAs`` demotes to ``unknown_projection`` (not
+    ``unknown_missing``, which is reserved for complete-enough payloads).
+    Projected field sets always demote — the value cannot be trusted.
     """
-    if field_projected or not complete_representation:
+    if field_projected:
         return None, "unknown_projection", "unknown"
 
     if "showAs" not in event:
+        if not complete_representation:
+            # Incomplete payload omitted showAs — fail closed; do not leave
+            # trusted free intact and do not invent unknown_missing.
+            return None, "unknown_projection", "unknown"
         # Absent on an otherwise complete payload → unknown_missing (not Google's
-        # provider_default_omitted busy). Delta/partial payloads that omit the key
-        # are treated the same: we cannot prove Graph always sends showAs on delta.
+        # provider_default_omitted busy).
         return None, "unknown_missing", "unknown"
 
     raw = event.get("showAs")
