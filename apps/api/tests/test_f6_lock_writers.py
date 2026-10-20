@@ -250,7 +250,7 @@ def test_google_and_microsoft_busy_sync_lock_before_mutation(
     monkeypatch.setattr(gcal, "list_calendar_events", google_list)
     monkeypatch.setattr(gcal, "_upsert_external_event", google_upsert)
     monkeypatch.setattr(ms_cal, "get_valid_access_token", lambda db, *, settings, account: "tok")
-    monkeypatch.setattr(ms_cal, "list_calendar_events", microsoft_list)
+    monkeypatch.setattr(ms_cal, "list_calendar_view", microsoft_list)
     monkeypatch.setattr(ms_cal, "_upsert_external_event", microsoft_upsert)
 
     gcal.sync_account_events(

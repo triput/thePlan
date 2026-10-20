@@ -781,25 +781,27 @@ def test_f6_c_busy_ingest_bumps_only_when_intervals_change(
     event = {
         "id": f"evt-{_uid()}",
         "subject": "Dentist",
+        "showAs": "busy",
         "start": {"dateTime": "2026-10-09T18:00:00", "timeZone": "UTC"},
         "end": {"dateTime": "2026-10-09T19:00:00", "timeZone": "UTC"},
     }
-
-    def fake_list(access: str, calendar: str, *, time_min: datetime, time_max: datetime):
-        return [event], "cursor-1"
-
-    def fake_incremental(access: str, cursor: str):
-        renamed = dict(event)
-        renamed["subject"] = "Dentist renamed"
-        return [renamed], "cursor-2"
 
     monkeypatch.setattr(
         ms_cal,
         "get_valid_access_token",
         lambda db, *, settings, account: "tok",
     )
-    monkeypatch.setattr(ms_cal, "list_calendar_events", fake_list)
-    monkeypatch.setattr(ms_cal, "list_calendar_events_incremental", fake_incremental)
+    phase = {"n": 0}
+
+    def fake_view(access: str, calendar: str, *, time_min: datetime, time_max: datetime):
+        phase["n"] += 1
+        if phase["n"] == 1:
+            return [event]
+        renamed = dict(event)
+        renamed["subject"] = "Dentist renamed"
+        return [renamed]
+
+    monkeypatch.setattr(ms_cal, "list_calendar_view", fake_view)
 
     window_start = FIXED_NOW - timedelta(days=1)
     window_end = FIXED_NOW + timedelta(days=7)

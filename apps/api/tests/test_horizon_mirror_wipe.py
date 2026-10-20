@@ -459,14 +459,15 @@ def test_sync_retries_tombstone_and_does_not_reimport_as_busy(
             {
                 "id": other_id,
                 "subject": "Dentist",
+                "showAs": "busy",
                 "start": {"dateTime": "2099-03-02T18:00:00", "timeZone": "UTC"},
                 "end": {"dateTime": "2099-03-02T19:00:00", "timeZone": "UTC"},
             },
         ]
         monkeypatch.setattr(
             microsoft_calendar,
-            "list_calendar_events",
-            lambda access, cal, *, time_min, time_max: (pulled, "cursor"),
+            "list_calendar_view",
+            lambda access, cal, *, time_min, time_max: pulled,
         )
         monkeypatch.setattr(microsoft_calendar, "delete_microsoft_event", _retry_delete)
         upserted = microsoft_calendar.sync_account_events(

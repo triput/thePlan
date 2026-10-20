@@ -22,6 +22,12 @@ from app.models import (
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.scheduler.free_busy import apply_transparency_update, resolve_microsoft_show_as
+from app.services.calendar_refresh_failures import (
+    commit_pre_pull_refresh_failure as _commit_pre_pull_refresh_failure,
+    commit_refresh_failure as _commit_refresh_failure,
+    failure_committed as _failure_committed,
+    mark_failure_committed as _mark_failure_committed,
+)
 from app.services.source_timezone import (
     IndeterminateLocalTime,
     ParsedEventBounds,
@@ -36,6 +42,14 @@ from app.services.source_timezone import (
 from app.services.token_crypto import decrypt_token, encrypt_token
 
 logger = logging.getLogger(__name__)
+
+# Bounded coverage strategy (T1-E). Explicit sync always pulls ordinary
+# calendarView and mints only this mode. Delta helpers stay for unit isolation.
+COVERAGE_MODE_MS_VIEW = "ms_view"
+
+# Production drains every calendarView page. Tests may set a positive cap so a
+# remaining @odata.nextLink fails closed (no success mint).
+pagination_max_pages: int | None = None
 
 GRAPH_BASE = "https://graph.microsoft.com/v1.0"
 _GRAPH_ORIGIN = "https://graph.microsoft.com/"
@@ -54,6 +68,24 @@ _DELTA_RESYNC_CODES = frozenset(
 
 class MicrosoftDeltaExpired(Exception):
     """Raised when Graph rejects a calendarView delta token (resync required)."""
+
+
+@dataclass
+class GraphPageStats:
+    """Filled by ``_graph_collect`` when the caller asks for drain vs truncation."""
+
+    page_count: int = 0
+    pagination_complete: bool = True
+
+
+@dataclass(frozen=True)
+class MsViewPull:
+    """Ordinary calendarView pull. ``mode`` is the coverage strategy signal."""
+
+    events: list[dict[str, Any]]
+    page_count: int
+    pagination_complete: bool
+    mode: str
 
 
 @dataclass(frozen=True)
@@ -502,14 +534,26 @@ def _graph_collect(
     list_error_code: str,
     list_error_detail: str,
     delta_mode: bool = False,
+    page_stats: GraphPageStats | None = None,
+    page_cap: int | None = None,
 ) -> tuple[list[dict[str, Any]], str | None]:
+    """GET a Graph collection, following ``@odata.nextLink``.
+
+    ``page_cap`` stops after that many pages when another nextLink remains.
+    The returned delta link is cleared on truncation so a partial chain cannot
+    be stored as a cursor. ``page_stats`` reports page_count and whether the
+    chain drained.
+    """
     items: list[dict[str, Any]] = []
     delta_link: str | None = None
     headers = _graph_headers(access_token)
-    next_url = url
+    next_url: str | None = url
     next_params = params
+    page_count = 0
+    pagination_complete = True
     with httpx.Client(timeout=60.0) as client:
         while next_url:
+            page_count += 1
             next_url = _absolute_graph_url(next_url)
             response = client.get(next_url, params=next_params, headers=headers)
             if delta_mode and _is_delta_resync(response):
@@ -526,8 +570,19 @@ def _graph_collect(
             next_link = payload.get("@odata.nextLink")
             if payload.get("@odata.deltaLink"):
                 delta_link = str(payload["@odata.deltaLink"])
-            next_url = str(next_link) if next_link else None
+            if not next_link:
+                next_url = None
+                break
+            if page_cap is not None and page_count >= page_cap:
+                pagination_complete = False
+                delta_link = None
+                next_url = None
+                break
+            next_url = str(next_link)
             next_params = None
+    if page_stats is not None:
+        page_stats.page_count = page_count
+        page_stats.pagination_complete = pagination_complete
     return items, delta_link
 
 
@@ -627,18 +682,40 @@ def list_calendar_view(
     *,
     time_min: datetime,
     time_max: datetime,
-) -> list[dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], int, bool]:
+    """Ordinary calendarView. Returns ``(items, page_count, pagination_complete)``.
+
+    Does not follow delta and does not return a deltaLink. A remaining nextLink
+    at ``pagination_max_pages`` is truncation: ``pagination_complete`` is False.
+    """
     params = microsoft_event_list_window_params(
         time_min=time_min, time_max=time_max, top="100"
     )
-    items, _ = _graph_collect(
+    stats = GraphPageStats()
+    items, _delta = _graph_collect(
         access_token,
         _calendar_view_url(calendar_id),
         params=params,
         list_error_code="MICROSOFT_EVENTS_LIST",
         list_error_detail="Microsoft Calendar events list failed",
+        page_stats=stats,
+        page_cap=pagination_max_pages,
     )
-    return items
+    return items, stats.page_count, stats.pagination_complete
+
+
+def _unpack_calendar_view(
+    result: Any,
+) -> tuple[list[dict[str, Any]], int, bool]:
+    """Accept a bare list or ``(items, delta)`` from older doubles, or the 3-tuple."""
+    if isinstance(result, list):
+        return result, 1, True
+    if isinstance(result, tuple):
+        if len(result) >= 3 and isinstance(result[1], int) and isinstance(result[2], bool):
+            return list(result[0] or []), int(result[1]), bool(result[2])
+        if len(result) == 2 and isinstance(result[0], list):
+            return list(result[0] or []), 1, True
+    raise TypeError("list_calendar_view returned an unexpected shape")
 
 
 def list_calendar_events_incremental(
@@ -1014,6 +1091,7 @@ def _upsert_external_event(
             provenance="unknown_projection",
             sync_run_id=sync_run_id,
         )
+        row.is_provider_cancelled = False
         return True
     else:
         # Omit-times incomplete update: preserve known bounds; apply showAs
@@ -1037,7 +1115,26 @@ def _upsert_external_event(
     apply_transparency_update(
         row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
     )
+    row.is_provider_cancelled = False
     return True
+
+
+def _mark_provider_cancelled(
+    db: Session,
+    *,
+    owner_id,
+    external_id: str,
+    now: datetime,
+) -> None:
+    row = _find_external_event(db, owner_id=owner_id, external_id=external_id)
+    if row is None or row.pending_deletion:
+        return
+    row.is_provider_cancelled = True
+    row.last_synced_at = now
+
+
+def _unresolvable_view_item(detail: str) -> ApiError:
+    return ApiError(502, detail, "MS_VIEW_ITEM_UNRESOLVABLE")
 
 
 def _pull_subscription_changes(
@@ -1047,39 +1144,157 @@ def _pull_subscription_changes(
     subscription: CalendarSubscription,
     time_min: datetime,
     time_max: datetime,
-) -> tuple[list[dict[str, Any]], str | None, bool]:
-    """Fetch provider events before the owner scheduling lock. Returns (events, cursor, is_full)."""
-    if subscription.sync_cursor:
-        try:
-            events, next_delta_link = list_calendar_events_incremental(
-                access,
-                subscription.sync_cursor,
-            )
-            return events, next_delta_link, False
-        except MicrosoftDeltaExpired:
-            logger.warning(
-                "Microsoft delta expired for subscription %s; falling back to full window",
-                subscription.id,
-            )
-            subscription.sync_cursor = None
-            db.flush()
+) -> MsViewPull:
+    """Fetch ordinary calendarView before the owner scheduling lock.
+
+    ``sync_cursor`` does not select delta or incremental. This path does not
+    write ``sync_cursor`` or a deltaLink. Delta helpers remain callable directly.
+    ``db`` is unused: cursor bypass does not flush.
+    """
+    del db
+    events, page_count, pagination_complete = _unpack_calendar_view(
+        list_calendar_view(
+            access,
+            subscription.external_calendar_id,
+            time_min=time_min,
+            time_max=time_max,
+        )
+    )
+    return MsViewPull(
+        events=events,
+        page_count=page_count,
+        pagination_complete=pagination_complete,
+        mode=COVERAGE_MODE_MS_VIEW,
+    )
+
+
+def _apply_subscription_ms_view(
+    db: Session,
+    *,
+    account: CalendarAccount,
+    subscription: CalendarSubscription,
+    events: list[dict[str, Any]],
+    time_min: datetime,
+    time_max: datetime,
+    now: datetime,
+    mode: str,
+    coverage_generation: int,
+    page_count: int,
+    pagination_complete: bool,
+    suppressed_external_ids: set[str] | None = None,
+) -> int:
+    """Apply a drained calendarView and mint ``ms_view`` coverage.
+
+    Soft-cancels unseen and ``@removed`` / ``isCancelled`` rows. Does not
+    hard-delete ``pending_deletion`` tombstones and does not write ``sync_cursor``.
+    """
+    from app.services.calendar_coverage import (
+        commit_subscription_coverage_success,
+        record_subscription_refresh_failure,
+    )
+
+    suppressed = suppressed_external_ids or set()
+    seen_external_ids: set[str] = set()
+    upserted = 0
+    sync_run_id = f"ms-view-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
     try:
-        events, next_delta_link = list_calendar_events(
-            access,
-            subscription.external_calendar_id,
-            time_min=time_min,
-            time_max=time_max,
+        if mode != COVERAGE_MODE_MS_VIEW:
+            raise ApiError(
+                500,
+                "Microsoft coverage mint requires ms_view",
+                "MS_VIEW_MODE_REQUIRED",
+            )
+        if not pagination_complete:
+            raise ApiError(
+                502,
+                "Calendar event page chain was not fully drained",
+                "CALENDAR_PAGINATION_INCOMPLETE",
+            )
+        for event in events:
+            if not isinstance(event, dict):
+                raise _unresolvable_view_item("Microsoft calendarView item is not an object")
+            external_id = event.get("id")
+            if external_id is None or str(external_id).strip() == "":
+                raise _unresolvable_view_item("Microsoft calendarView item is missing an id")
+            external_id = str(external_id)
+            if _event_removed(event):
+                pending = _find_external_event(
+                    db, owner_id=account.owner_id, external_id=external_id
+                )
+                if pending is not None and pending.pending_deletion:
+                    continue
+                _mark_provider_cancelled(
+                    db,
+                    owner_id=account.owner_id,
+                    external_id=external_id,
+                    now=now,
+                )
+                continue
+            if external_id in suppressed:
+                continue
+            existing = _find_external_event(
+                db, owner_id=account.owner_id, external_id=external_id
+            )
+            if existing is not None and existing.pending_deletion:
+                continue
+            handled = _upsert_external_event(
+                db,
+                account=account,
+                subscription=subscription,
+                event=event,
+                now=now,
+                sync_run_id=sync_run_id,
+            )
+            if not handled:
+                raise _unresolvable_view_item(
+                    f"Microsoft calendarView item {external_id} was not applied"
+                )
+            seen_external_ids.add(external_id)
+            upserted += 1
+
+        stale = (
+            db.query(ExternalCalendarEvent)
+            .filter(
+                ExternalCalendarEvent.calendar_account_id == account.id,
+                ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
+                ExternalCalendarEvent.provider == CalendarProvider.microsoft,
+                *ExternalCalendarEvent.immovable_busy_clause(),
+                ExternalCalendarEvent.start_time < time_max,
+                ExternalCalendarEvent.end_time > time_min,
+            )
+            .all()
         )
-    except MicrosoftDeltaExpired:
-        events = list_calendar_view(
-            access,
-            subscription.external_calendar_id,
-            time_min=time_min,
-            time_max=time_max,
+        for row in stale:
+            if row.external_event_id in seen_external_ids or row.pending_deletion:
+                continue
+            row.is_provider_cancelled = True
+            row.last_synced_at = now
+
+        commit_subscription_coverage_success(
+            subscription,
+            now=now,
+            window_start=time_min,
+            window_end=time_max,
+            mode=COVERAGE_MODE_MS_VIEW,
+            pagination_complete=True,
+            page_count=page_count,
+            item_count=len(events),
+            show_deleted=None,
+            single_events=None,
+            sync_token=None,
+            generation=coverage_generation,
         )
-        next_delta_link = None
-    return events, next_delta_link, True
+        db.flush()
+        return upserted
+    except Exception:
+        record_subscription_refresh_failure(
+            subscription,
+            now=now,
+            cause="microsoft_apply_ms_view_failed",
+        )
+        db.flush()
+        raise
 
 
 def _apply_subscription_full(
@@ -1094,6 +1309,7 @@ def _apply_subscription_full(
     now: datetime,
     suppressed_external_ids: set[str] | None = None,
 ) -> int:
+    """Delta baseline apply for unit isolation. Does not mint coverage."""
     suppressed = suppressed_external_ids or set()
     seen_external_ids: set[str] = set()
     upserted = 0
@@ -1193,6 +1409,10 @@ def sync_account_events(
     time_min: datetime,
     time_max: datetime,
 ) -> int:
+    from app.services.calendar_coverage import (
+        begin_subscription_refresh,
+        subscription_refresh_lock,
+    )
     from app.services.mirror_tombstone import retry_pending_deletions
     from app.services.scheduling_revision import (
         immovable_busy_signature,
@@ -1200,7 +1420,6 @@ def sync_account_events(
         lock_owner_scheduling,
     )
 
-    access = get_valid_access_token(db, settings=settings, account=account)
     now = datetime.now(timezone.utc)
     subscriptions = (
         db.query(CalendarSubscription)
@@ -1210,6 +1429,18 @@ def sync_account_events(
         )
         .all()
     )
+    try:
+        access = get_valid_access_token(db, settings=settings, account=account)
+    except (ApiError, httpx.TransportError) as exc:
+        _commit_pre_pull_refresh_failure(
+            db,
+            subscriptions,
+            now=now,
+            cause="calendar_refresh_failed",
+        )
+        _mark_failure_committed(exc)
+        raise
+
     if not subscriptions:
         ensure_primary_subscription(db, account, settings=settings, access_token=access)
         subscriptions = (
@@ -1221,16 +1452,26 @@ def sync_account_events(
             .all()
         )
 
-    pulled: list[tuple[CalendarSubscription, list[dict[str, Any]], str | None, bool]] = []
+    pulled: list[tuple[CalendarSubscription, MsViewPull]] = []
     for subscription in subscriptions:
-        events, next_cursor, is_full = _pull_subscription_changes(
-            db,
-            access=access,
-            subscription=subscription,
-            time_min=time_min,
-            time_max=time_max,
-        )
-        pulled.append((subscription, events, next_cursor, is_full))
+        try:
+            view = _pull_subscription_changes(
+                db,
+                access=access,
+                subscription=subscription,
+                time_min=time_min,
+                time_max=time_max,
+            )
+        except (ApiError, httpx.TransportError, MicrosoftDeltaExpired) as exc:
+            _commit_refresh_failure(
+                db,
+                subscription,
+                now=now,
+                cause="calendar_refresh_failed",
+            )
+            _mark_failure_committed(exc)
+            raise
+        pulled.append((subscription, view))
 
     scheduling_settings = lock_owner_scheduling(db, account.owner_id)
     before_busy = immovable_busy_signature(db, account.owner_id)
@@ -1241,29 +1482,73 @@ def sync_account_events(
         delete_event=delete_microsoft_event,
     )
     upserted = 0
-    for subscription, events, next_cursor, is_full in pulled:
-        if is_full:
-            upserted += _apply_subscription_full(
-                db,
-                account=account,
-                subscription=subscription,
-                events=events,
-                next_delta_link=next_cursor,
-                time_min=time_min,
-                time_max=time_max,
-                now=now,
-                suppressed_external_ids=suppressed,
-            )
-        else:
-            upserted += _apply_subscription_incremental(
-                db,
-                account=account,
-                subscription=subscription,
-                events=events,
-                next_delta_link=next_cursor,
-                now=now,
-                suppressed_external_ids=suppressed,
-            )
+    for subscription, view in pulled:
+        with subscription_refresh_lock(subscription.id):
+            refresh_scope = db.begin_nested()
+            try:
+                if not view.pagination_complete:
+                    begin_subscription_refresh(subscription, now=now)
+                    if refresh_scope.is_active:
+                        refresh_scope.rollback()
+                    _commit_refresh_failure(
+                        db,
+                        subscription,
+                        now=now,
+                        cause="calendar_pagination_incomplete",
+                    )
+                    incomplete = ApiError(
+                        502,
+                        "Calendar event page chain was not fully drained",
+                        "CALENDAR_PAGINATION_INCOMPLETE",
+                    )
+                    _mark_failure_committed(incomplete)
+                    raise incomplete
+                generation = begin_subscription_refresh(subscription, now=now)
+                db.flush()
+                nested = db.begin_nested()
+                try:
+                    upserted += _apply_subscription_ms_view(
+                        db,
+                        account=account,
+                        subscription=subscription,
+                        events=view.events,
+                        time_min=time_min,
+                        time_max=time_max,
+                        now=now,
+                        mode=view.mode,
+                        coverage_generation=generation,
+                        page_count=view.page_count,
+                        pagination_complete=True,
+                        suppressed_external_ids=suppressed,
+                    )
+                    nested.commit()
+                except Exception as exc:
+                    if nested.is_active:
+                        nested.rollback()
+                    if refresh_scope.is_active:
+                        refresh_scope.rollback()
+                    _commit_refresh_failure(
+                        db,
+                        subscription,
+                        now=now,
+                        cause="microsoft_apply_ms_view_failed",
+                    )
+                    _mark_failure_committed(exc)
+                    raise
+                if refresh_scope.is_active:
+                    refresh_scope.commit()
+            except Exception as exc:
+                if not _failure_committed(exc):
+                    if refresh_scope.is_active:
+                        refresh_scope.rollback()
+                    _commit_refresh_failure(
+                        db,
+                        subscription,
+                        now=now,
+                        cause="microsoft_subscription_refresh_failed",
+                    )
+                    _mark_failure_committed(exc)
+                raise
 
     account.last_synced_at = now
     db.flush()

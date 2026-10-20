@@ -305,7 +305,7 @@ def test_sync_full_upserts_microsoft_events(
     event_id = f"evt-{uuid.uuid4()}"
     settings = _ms_settings()
     graph = FakeGraph(calendar_id)
-    graph.delta_events = [
+    graph.view_events = [
         _graph_event(event_id, "Standup", "2026-08-14T15:00:00", "2026-08-14T16:00:00"),
     ]
     _patch_ms_httpx(monkeypatch, graph)
@@ -339,11 +339,14 @@ def test_sync_full_upserts_microsoft_events(
         .filter(CalendarSubscription.calendar_account_id == account.id)
         .one()
     )
-    assert sub.sync_cursor == graph.delta_link
-    assert any("calendarView/delta" in url for _, url in graph.calls)
+    assert sub.sync_cursor is None
+    assert any("calendarView" in url and "calendarView/delta" not in url for _, url in graph.calls)
+    assert not any("calendarView/delta" in url for _, url in graph.calls)
+    assert sub.coverage_mode == "ms_view"
+    assert sub.coverage_success_at is not None
 
 
-def test_sync_delta_incremental_and_expired_fallback(
+def test_sync_ignores_populated_cursor_and_uses_calendar_view(
     client: TestClient,
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
@@ -353,6 +356,9 @@ def test_sync_delta_incremental_and_expired_fallback(
     settings = _ms_settings()
     graph = FakeGraph(calendar_id)
     cursor = f"{_GRAPH}/me/calendars/{quote(calendar_id, safe='')}/calendarView/delta?$deltatoken=cursor-1"
+    graph.view_events = [
+        _graph_event(event_id, "View meet", "2026-08-15T10:00:00", "2026-08-15T10:30:00", show_as="busy"),
+    ]
     graph.incremental_events = [
         _graph_event(event_id, "Delta meet", "2026-08-15T10:00:00", "2026-08-15T10:30:00"),
     ]
@@ -382,29 +388,28 @@ def test_sync_delta_incremental_and_expired_fallback(
         .one()
     )
     assert row.provider == CalendarProvider.microsoft
-    assert row.title == "Delta meet"
-
-    expired_id = f"evt-{uuid.uuid4()}"
-    graph.incremental_status = 410
-    graph.delta_events = [
-        _graph_event(expired_id, "Resync", "2026-08-16T09:00:00", "2026-08-16T10:00:00"),
-    ]
-    upserted = ms_cal.sync_account_events(
-        db_session,
-        settings=settings,
-        account=account,
-        time_min=now - timedelta(days=7),
-        time_max=now + timedelta(days=21),
-    )
-    db_session.flush()
-    assert upserted == 1
-    recovered = (
-        db_session.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.external_event_id == expired_id)
+    assert row.title == "View meet"
+    sub = (
+        db_session.query(CalendarSubscription)
+        .filter(CalendarSubscription.calendar_account_id == account.id)
         .one()
     )
-    assert recovered.provider == CalendarProvider.microsoft
-    assert recovered.title == "Resync"
+    assert sub.sync_cursor == cursor
+    assert sub.coverage_mode == "ms_view"
+    assert not any("calendarView/delta" in url for _, url in graph.calls)
+
+
+def test_incremental_helper_still_raises_when_delta_expires(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Delta HTTP helper stays for unit isolation; explicit sync does not call it."""
+    calendar_id = str(uuid.uuid4())
+    graph = FakeGraph(calendar_id)
+    graph.incremental_status = 410
+    _patch_ms_httpx(monkeypatch, graph)
+    delta = f"{_GRAPH}/me/calendars/{quote(calendar_id, safe='')}/calendarView/delta?$deltatoken=cursor-1"
+    with pytest.raises(ms_cal.MicrosoftDeltaExpired):
+        ms_cal.list_calendar_events_incremental("ms-access", delta)
 
 
 def test_push_scheduled_block_creates_graph_event_when_mirroring(

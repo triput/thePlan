@@ -1895,9 +1895,10 @@ def test_t1c_incremental_cancellation_keeps_row(
     assert phase["n"] == 1
 
 
-def test_t1c_microsoft_unverified_blocks_and_does_not_mint(
+def test_t1c_microsoft_drained_ms_view_mints_coverage(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """T1-E: a drained calendarView mints ms_view. Mode other than ms_view stays unverified (E11)."""
     owner, settings = _owner(db_session)
     now = datetime.now(UTC)
     window_start, window_end = _wide_bounds(settings, now)
@@ -1907,20 +1908,22 @@ def test_t1c_microsoft_unverified_blocks_and_does_not_mint(
 
     monkeypatch.setattr(ms_cal, "get_valid_access_token", lambda *_a, **_k: "ms-access")
 
-    def _delta(*_a: Any, **_k: Any):
-        raise ms_cal.MicrosoftDeltaExpired()
+    def _no_delta(*_a: Any, **_k: Any):
+        raise AssertionError("bounded ms_view strategy must not call delta helpers")
 
     def _view(*_a: Any, **_k: Any):
         return [
             {
                 "id": "ms-evt",
                 "subject": "Graph block",
+                "showAs": "busy",
                 "start": {"dateTime": "2026-10-20T15:00:00", "timeZone": "UTC"},
                 "end": {"dateTime": "2026-10-20T16:00:00", "timeZone": "UTC"},
             }
         ]
 
-    monkeypatch.setattr(ms_cal, "list_calendar_events", _delta)
+    monkeypatch.setattr(ms_cal, "list_calendar_events", _no_delta)
+    monkeypatch.setattr(ms_cal, "list_calendar_events_incremental", _no_delta)
     monkeypatch.setattr(ms_cal, "list_calendar_view", _view)
     ms_cal.sync_account_events(
         db_session,
@@ -1931,19 +1934,18 @@ def test_t1c_microsoft_unverified_blocks_and_does_not_mint(
     )
     db_session.refresh(sub)
     db_session.refresh(account)
-    assert sub.coverage_success_at is None
-    assert sub.coverage_success_generation is None
-    assert sub.coverage_pagination_complete is False
+    assert sub.coverage_mode == "ms_view"
+    assert sub.coverage_success_at is not None
+    assert sub.coverage_success_generation == sub.coverage_active_generation
+    assert sub.coverage_pagination_complete is True
+    assert sub.coverage_show_deleted is None
+    assert sub.coverage_single_events is None
+    assert sub.sync_cursor is None
     assert account.last_synced_at is not None
 
     trust = _trust(db_session, owner, settings, now)
-    assert trust.ok is False
-    diag = trust.blocking_diagnostics[0]
-    assert diag.cause == "microsoft_coverage_unverified"
-    assert diag.provenance == "microsoft_success_minting_deferred"
-    blob = str(trust.to_dict()).lower()
-    assert "delta" not in blob
-    assert "incomplete" not in diag.cause
+    assert trust.ok is True
+    assert "microsoft_coverage_unverified" not in _causes(trust)
 
 
 def test_t1c_disabled_subscription_does_not_block(db_session: Session) -> None:

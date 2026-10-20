@@ -215,7 +215,9 @@ def _evaluate_one_subscription(
     name = _subscription_label(subscription)
     horizon_label = f"{required_start.isoformat()} – {required_end.isoformat()}"
 
-    if account.provider == CalendarProvider.microsoft:
+    # T1-E: narrow MS short-circuit only when coverage_mode is the bounded
+    # view provenance. Arbitrary populated success fields do not count.
+    if account.provider == CalendarProvider.microsoft and subscription.coverage_mode != "ms_view":
         return FreeBusyDiagnostic(
             cause="microsoft_coverage_unverified",
             calendar_name=name,
