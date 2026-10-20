@@ -1459,28 +1459,42 @@ def test_dex_auth_token_invalid_json_marks_all_enabled_subs(
 
 def test_validated_oauth_token_fields_shape() -> None:
     """Field shape is typed ApiError before any caller can mutate an account."""
+    now = datetime(2026, 10, 20, 15, 0, tzinfo=UTC)
     kwargs = {
         "missing_access_detail": "missing access",
         "shape_code": "MICROSOFT_TOKEN_REFRESH",
         "shape_detail": "bad shape",
+        "now": now,
     }
-    access, expires_in, refresh = ms_cal._validated_oauth_token_fields(
+    access, expires_in, refresh, expires_at = ms_cal._validated_oauth_token_fields(
         {"access_token": "ok"},
         **kwargs,
     )
     assert (access, expires_in, refresh) == ("ok", 3600, None)
+    assert expires_at == now + timedelta(seconds=3540)
 
-    access, expires_in, refresh = ms_cal._validated_oauth_token_fields(
+    access, expires_in, refresh, expires_at = ms_cal._validated_oauth_token_fields(
         {"access_token": "ok", "expires_in": "", "refresh_token": ""},
         **kwargs,
     )
     assert (access, expires_in, refresh) == ("ok", 3600, None)
+    assert expires_at == now + timedelta(seconds=3540)
 
-    access, expires_in, refresh = ms_cal._validated_oauth_token_fields(
+    access, expires_in, refresh, expires_at = ms_cal._validated_oauth_token_fields(
         {"access_token": "ok", "expires_in": "7200", "refresh_token": "rotated"},
         **kwargs,
     )
     assert (access, expires_in, refresh) == ("ok", 7200, "rotated")
+    assert expires_at == now + timedelta(seconds=7140)
+
+    # Large negatives clamp to the existing 60s floor; they are representable.
+    access, expires_in, refresh, expires_at = ms_cal._validated_oauth_token_fields(
+        {"access_token": "ok", "expires_in": -(10**30)},
+        **kwargs,
+    )
+    assert expires_in == -(10**30)
+    assert refresh is None
+    assert expires_at == now + timedelta(seconds=60)
 
     with pytest.raises(ApiError) as raised:
         ms_cal._validated_oauth_token_fields(
@@ -1502,6 +1516,53 @@ def test_validated_oauth_token_fields_shape() -> None:
             **kwargs,
         )
     assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+
+
+@pytest.mark.parametrize(
+    "raw_expires",
+    [10**30, 10**12, 10**14, str(10**30), float("inf")],
+)
+@pytest.mark.parametrize(
+    "shape_code",
+    ["MICROSOFT_TOKEN_REFRESH", "MICROSOFT_TOKEN_EXCHANGE"],
+)
+def test_validated_oauth_token_fields_rejects_unrepresentable_expiry(
+    raw_expires: object,
+    shape_code: str,
+) -> None:
+    """int() success is not enough: the expiry instant must be representable."""
+    with pytest.raises(ApiError) as raised:
+        ms_cal._validated_oauth_token_fields(
+            {"access_token": "ok", "expires_in": raw_expires},
+            missing_access_detail="missing access",
+            shape_code=shape_code,
+            shape_detail="bad shape",
+            now=datetime(2026, 10, 20, 15, 0, tzinfo=UTC),
+        )
+    assert raised.value.content["code"] == shape_code
+    assert raised.value.status_code == 502
+    assert isinstance(raised.value.__cause__, OverflowError)
+
+
+def test_validated_oauth_token_fields_maps_expiry_valueerror(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ValueError from the instant construction uses the same auth shape code."""
+
+    def _boom(*_args: object, **_kwargs: object) -> timedelta:
+        raise ValueError("unrepresentable expiry")
+
+    monkeypatch.setattr(ms_cal, "timedelta", _boom)
+    with pytest.raises(ApiError) as raised:
+        ms_cal._validated_oauth_token_fields(
+            {"access_token": "ok", "expires_in": 3600},
+            missing_access_detail="missing access",
+            shape_code="MICROSOFT_TOKEN_REFRESH",
+            shape_detail="bad shape",
+            now=datetime(2026, 10, 20, 15, 0, tzinfo=UTC),
+        )
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+    assert isinstance(raised.value.__cause__, ValueError)
 
 
 def test_get_valid_access_token_rejects_malformed_refresh_before_mutation(
@@ -1542,6 +1603,36 @@ def test_get_valid_access_token_rejects_malformed_refresh_before_mutation(
     db.flush.assert_not_called()
 
 
+@pytest.mark.parametrize("expires_in", [10**30, 10**12, 10**14])
+def test_get_valid_access_token_rejects_unrepresentable_expiry_before_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+    expires_in: int,
+) -> None:
+    settings = _settings()
+    prior_access = encrypt_token(settings, "prior-access")
+    prior_refresh = encrypt_token(settings, "prior-refresh")
+    prior_expiry = datetime(2000, 1, 1, tzinfo=UTC)
+    account = SimpleNamespace(
+        access_token_enc=prior_access,
+        refresh_token_enc=prior_refresh,
+        token_expires_at=prior_expiry,
+    )
+    monkeypatch.setattr(
+        ms_cal,
+        "refresh_access_token",
+        lambda *_a, **_k: {"access_token": "synthetic", "expires_in": expires_in},
+    )
+    db = MagicMock()
+    with pytest.raises(ApiError) as raised:
+        ms_cal.get_valid_access_token(db, settings=settings, account=account)
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+    assert isinstance(raised.value.__cause__, OverflowError)
+    assert account.access_token_enc == prior_access
+    assert account.refresh_token_enc == prior_refresh
+    assert account.token_expires_at == prior_expiry
+    db.flush.assert_not_called()
+
+
 def test_upsert_account_tokens_rejects_bad_fields_before_db() -> None:
     db = MagicMock()
     with pytest.raises(ApiError) as raised:
@@ -1573,6 +1664,45 @@ def test_upsert_account_tokens_rejects_bad_fields_before_db() -> None:
     db.query.assert_not_called()
 
 
+@pytest.mark.parametrize("expires_in", [10**30, 10**12, 10**14])
+def test_upsert_account_tokens_rejects_unrepresentable_expiry_before_db(
+    expires_in: int,
+) -> None:
+    prior_access = object()
+    prior_refresh = object()
+    prior_expiry = datetime(2000, 1, 1, tzinfo=UTC)
+    existing = SimpleNamespace(
+        account_email="shape@example.test",
+        access_token_enc=prior_access,
+        refresh_token_enc=prior_refresh,
+        token_expires_at=prior_expiry,
+        is_enabled=False,
+    )
+    db = MagicMock()
+    with pytest.raises(ApiError) as raised:
+        ms_cal.upsert_account_tokens(
+            db,
+            settings=_settings(),
+            owner_id=uuid.uuid4(),
+            account_email="shape@example.test",
+            token_payload={
+                "access_token": "synthetic",
+                "expires_in": expires_in,
+                "refresh_token": "r",
+            },
+            existing=existing,
+        )
+    assert raised.value.content["code"] == "MICROSOFT_TOKEN_EXCHANGE"
+    assert isinstance(raised.value.__cause__, OverflowError)
+    assert existing.access_token_enc is prior_access
+    assert existing.refresh_token_enc is prior_refresh
+    assert existing.token_expires_at == prior_expiry
+    assert existing.is_enabled is False
+    db.add.assert_not_called()
+    db.flush.assert_not_called()
+    db.query.assert_not_called()
+
+
 @pytest.mark.parametrize(
     ("slug", "token_body", "error_code"),
     [
@@ -1585,6 +1715,16 @@ def test_upsert_account_tokens_rejects_bad_fields_before_db() -> None:
             "access-obj",
             {"access_token": {"nested": True}, "expires_in": 3600},
             "MICROSOFT_NO_ACCESS_TOKEN",
+        ),
+        (
+            "expires-huge",
+            {"access_token": "synthetic", "expires_in": 10**30},
+            "MICROSOFT_TOKEN_REFRESH",
+        ),
+        (
+            "expires-range",
+            {"access_token": "synthetic", "expires_in": 10**12},
+            "MICROSOFT_TOKEN_REFRESH",
         ),
     ],
 )
@@ -1599,6 +1739,10 @@ def test_dex_malformed_refresh_fields_mark_all_enabled_subs(
 
     Young prior ``ms_view`` on two enabled subs stays trusted if ``ValueError`` /
     ``AttributeError`` escape ``get_valid_access_token`` after a partial token write.
+    The same rollback leaves freshness ``ok=True`` when ``expires_in`` passes
+    ``int`` and ``timedelta`` / ``datetime`` then raises ``OverflowError`` after
+    ``access_token_enc`` was assigned (``10**30``, and ``10**12`` which overflows
+    the datetime range rather than ``timedelta`` itself).
     """
     with _committed_ms(
         db_session,

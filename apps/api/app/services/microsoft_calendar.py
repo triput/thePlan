@@ -985,20 +985,43 @@ def ensure_primary_subscription(
     return sub
 
 
+def _oauth_expires_at(
+    expires_in: int,
+    *,
+    now: datetime,
+    shape_code: str,
+    shape_detail: str,
+) -> datetime:
+    """Stored expiry instant, or ``shape_code`` if that instant is unrepresentable.
+
+    Skew floor stays ``max(60, expires_in - 60)``. Large negatives that clamp to
+    60 seconds remain valid — this is not a new expiry policy. ``OverflowError``
+    and ``ValueError`` from ``timedelta`` or the ``datetime`` addition (huge
+    positive ``expires_in``) become ``ApiError`` before any account write.
+    """
+    try:
+        return now + timedelta(seconds=max(60, expires_in - 60))
+    except (OverflowError, ValueError) as exc:
+        raise ApiError(502, f"{shape_detail}: expires_in", shape_code) from exc
+
+
 def _validated_oauth_token_fields(
     payload: dict[str, Any],
     *,
     missing_access_detail: str,
     shape_code: str,
     shape_detail: str,
-) -> tuple[str, int, str | None]:
+    now: datetime,
+) -> tuple[str, int, str | None, datetime]:
     """Validate consumed token fields before any account mutation.
 
     ``access_token`` must be a nonempty ``str`` (``MICROSOFT_NO_ACCESS_TOKEN``).
     ``expires_in`` absent or empty keeps the historical 3600 default; any other
     value must coerce with ``int`` or this raises ``ApiError`` (``shape_code``).
-    A present non-str ``refresh_token`` fails closed the same way. Callers
-    mutate the account only after this returns.
+    ``int`` ``OverflowError`` (non-finite floats) fails the same way. The stored
+    expiry instant is built here via ``_oauth_expires_at`` so range failures
+    cannot land after a token write. A present non-str ``refresh_token`` fails
+    closed the same way. Callers mutate the account only after this returns.
     """
     access = payload.get("access_token")
     if not isinstance(access, str) or not access:
@@ -1010,8 +1033,14 @@ def _validated_oauth_token_fields(
     else:
         try:
             expires_in = int(raw_expires)
-        except (TypeError, ValueError) as exc:
+        except (TypeError, ValueError, OverflowError) as exc:
             raise ApiError(502, f"{shape_detail}: expires_in", shape_code) from exc
+    expires_at = _oauth_expires_at(
+        expires_in,
+        now=now,
+        shape_code=shape_code,
+        shape_detail=shape_detail,
+    )
 
     refresh = payload.get("refresh_token")
     if refresh is None or refresh == "":
@@ -1020,7 +1049,7 @@ def _validated_oauth_token_fields(
         raise ApiError(502, f"{shape_detail}: refresh_token", shape_code)
     else:
         refresh_token = refresh
-    return access, expires_in, refresh_token
+    return access, expires_in, refresh_token, expires_at
 
 
 def upsert_account_tokens(
@@ -1032,13 +1061,13 @@ def upsert_account_tokens(
     token_payload: dict[str, Any],
     existing: CalendarAccount | None = None,
 ) -> CalendarAccount:
-    access, expires_in, refresh = _validated_oauth_token_fields(
+    access, _expires_in, refresh, expires_at = _validated_oauth_token_fields(
         token_payload,
         missing_access_detail="Microsoft did not return an access token",
         shape_code="MICROSOFT_TOKEN_EXCHANGE",
         shape_detail="Microsoft token response returned an invalid token field",
+        now=datetime.now(timezone.utc),
     )
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=max(60, expires_in - 60))
 
     account = existing
     if account is None:
@@ -1097,14 +1126,15 @@ def get_valid_access_token(
     config = load_microsoft_oauth_config(settings)
     refresh = decrypt_token(settings, account.refresh_token_enc)
     payload = refresh_access_token(config, refresh)
-    access, expires_in, rotated_refresh = _validated_oauth_token_fields(
+    access, _expires_in, rotated_refresh, expires_at = _validated_oauth_token_fields(
         payload,
         missing_access_detail="Microsoft refresh did not return access token",
         shape_code="MICROSOFT_TOKEN_REFRESH",
         shape_detail="Microsoft token refresh returned an invalid token field",
+        now=now,
     )
     account.access_token_enc = encrypt_token(settings, access)
-    account.token_expires_at = now + timedelta(seconds=max(60, expires_in - 60))
+    account.token_expires_at = expires_at
     if rotated_refresh:
         account.refresh_token_enc = encrypt_token(settings, rotated_refresh)
     db.flush()
