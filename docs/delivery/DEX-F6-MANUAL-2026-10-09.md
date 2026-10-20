@@ -43,9 +43,9 @@ Artifacts: `f6-retest/source-manifest.json`, `retest.py`, `reparent_repro.py`, a
 
 **One P1 and three P2s from the initial pass; F6 remains Open.** Reviewed frozen uncommitted F6 over `094663f`, captured about 15:27 Pacific. 362 source/config/fixture hashes; final comparison found no source drift. No product code edits, commits, or pushes by Dex. **Current disposition:** three P2s **Verified closed** (Dex retest); archive P1 closed; P1 R1 **Fixed (code), awaiting Dex retest** (Tesla).
 
-## Jules fix wave — 2026-10-09 (working tree, not pushed)
+## Justin fix wave — 2026-10-09 (working tree, not pushed)
 
-**Fixes retested: three P2s closed; archive P1 closed; P1 residual R1 fixed in code (Tesla), awaiting Dex retest.** No commits or pushes from Jules/Tesla in these waves.
+**Fixes retested: three P2s closed; archive P1 closed; P1 residual R1 fixed in code (Tesla), awaiting Dex retest.** No commits or pushes from Justin/Tesla in these waves.
 
 | # | Severity | Dex symptom | Fix (working tree) | Retest |
 |---|----------|-------------|-------------------|--------|
@@ -70,7 +70,7 @@ Evidence: preview `73761d89-c0e7-44bf-9fa8-101935fd3f96`; successful receipt `09
 
 `projects.py:138–145` archives without taking the scheduling lock or revision bump. Other scheduling-relevant project/epic and map writes need the same audit. Acquire the common lock **before reading/mutating** scheduling state and hold through commit; simply bumping after a separately committed mutation does not satisfy the atomic validation contract. Apply validation boundary: `schedule_preview_apply.py:78` and `:142`.
 
-**Fix (Jules, working tree):** Scheduling writers participate in apply serialization (project archive and related audit). **Verified closed (Dex retest)** — archive interleaving repro passes. Epic reparent residual: **Tesla fix wave** above.
+**Fix (Justin, working tree):** Scheduling writers participate in apply serialization (project archive and related audit). **Verified closed (Dex retest)** — archive interleaving repro passes. Epic reparent residual: **Tesla fix wave** above.
 
 ### 2. [P2] A preview calculated during available time is already too old to apply — **Verified closed** (Dex retest)
 
@@ -78,7 +78,7 @@ With UTC, seven workdays, workday 00:00–24:00, and a standalone 60-minute task
 
 Keep the past-block rejection, but provide an explicit future planning boundary/lead time at calculation so the operator can review and apply the immutable proposal. Do not silently slide it during apply. Sources: `scheduler/preview.py:46–55`, `schedule_preview_apply.py:98`.
 
-**Fix (Jules, working tree):** Preview **planning lead** at calculate — UTC wall time **ceiled to the next whole minute**, then **+ 90 seconds** (`preview_planning.py`); snapshot `collected_at` drives placement; apply unchanged (**PREVIEW_PAST_BLOCKS** only). **Verified closed (Dex retest)** — available-now create → immediate apply.
+**Fix (Justin, working tree):** Preview **planning lead** at calculate — UTC wall time **ceiled to the next whole minute**, then **+ 90 seconds** (`preview_planning.py`); snapshot `collected_at` drives placement; apply unchanged (**PREVIEW_PAST_BLOCKS** only). **Verified closed (Dex retest)** — available-now create → immediate apply.
 
 ### 3. [P2] Summary move counts contradict the before/after list — **Verified closed** (Dex retest)
 
@@ -86,7 +86,7 @@ Browser repro: existing task block at 16:28 Pacific; changed work window moved p
 
 Source: `services/schedule_previews.py:74–77`. Screenshot `diff-counts.png` records the contradictory display. Browser apply of this future proposal succeeded.
 
-**Fix (Jules, working tree):** Moved pairing in **diff_counts** / summarize path aligned with MOVED display. **Verified closed (Dex retest)** — browser summary agrees with MOVED row.
+**Fix (Justin, working tree):** Moved pairing in **diff_counts** / summarize path aligned with MOVED display. **Verified closed (Dex retest)** — browser summary agrees with MOVED row.
 
 ### 4. [P2] Overlapping duplicate apply can return PREVIEW_STALE instead of the original receipt — **Verified closed** (Dex retest)
 
@@ -94,7 +94,7 @@ Two sessions loaded the same ready preview, matching the route's pre-lock `_get_
 
 Evidence: preview `280b2dd1-be99-4e28-969d-10b2f58f2b89`, first receipt `a10c336c-f7bd-49b9-83df-5d3e9b2a27ac`. Sequential fresh-request retry passes; this is specifically overlapping requests with a preloaded row. Refresh/populate the locked row before checking status and stored receipt. Source: `schedule_preview_apply.py:108–116`.
 
-**Fix (Jules, working tree):** Locked-row refresh before apply status/receipt check. **Verified closed (Dex retest)** — overlapping sessions replay same receipt.
+**Fix (Justin, working tree):** Locked-row refresh before apply status/receipt check. **Verified closed (Dex retest)** — overlapping sessions replay same receipt.
 
 ## Verified behavior and limits
 
@@ -113,4 +113,4 @@ Scratch: `C:\Users\trish\.codex\visualizations\2026\10\08\01a11d56-e98c-7c31-995
 
 `source-manifest.json`, `initial-evidence.json` (available-now rejection), `manual_checks.py`, `manual-evidence.json` (HTTP and real CLI results), `concurrency_repros.py`, `retry_repro.py`, corresponding fixture IDs, and `diff-counts.png` retained. Concurrency scripts require fresh ready preview IDs to repeat after successful apply; they operate only on the disposable fixture.
 
-Disposable stack removed after testing. Trish Done sign-off recorded **2026-10-10**; no migration on daily-driver. Dex: no commits or pushes. **Jules + Tesla fix waves:** local working tree only — **not pushed**. Dex retest closed three P2s, archive P1, and **P1 R1 (`epic_id` / `target_date`) Verified closed (Wave 1 retest 2026-10-10).** F6 **not Closed** (F6-B–D).
+Disposable stack removed after testing. Trish Done sign-off recorded **2026-10-10**; no migration on daily-driver. Dex: no commits or pushes. **Justin + Tesla fix waves:** local working tree only — **not pushed**. Dex retest closed three P2s, archive P1, and **P1 R1 (`epic_id` / `target_date`) Verified closed (Wave 1 retest 2026-10-10).** F6 **not Closed** (F6-B–D).

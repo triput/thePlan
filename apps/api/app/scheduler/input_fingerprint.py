@@ -146,7 +146,7 @@ ALGORITHM_VERSION = "f3-w2"
 def live_snapshot_version() -> int:
     """Task snapshot ``v`` for new collects.
 
-    v4 is live with the placer/resolver, not with Jules's write-guard flip.
+    v4 is live with the placer/resolver, not with Justin's write-guard flip.
     Stored v3 rows compare as ``provenance``. Historical explanation JSON is
     not rewritten.
     """
@@ -704,7 +704,7 @@ def diff_stale_categories(stored: dict[str, Any] | None, live: dict[str, Any]) -
 
 
 def outcome_family(primary_reason_code: str | None) -> str:
-    """Coarse outcome stored beside Jules' primary reason code."""
+    """Coarse outcome stored beside Justin's primary reason code."""
     code = primary_reason_code or ""
     if code == "placed" or code.startswith("placed"):
         return "placed"

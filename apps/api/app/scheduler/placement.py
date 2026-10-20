@@ -85,7 +85,7 @@ class PlacementResult:
     last_block_end: datetime | None = None
     last_placed_tier: str | None = None
     proposed_blocks: list[ProposedBlock] | None = None
-    # Jules' reason codes, priority order. First entry is the primary constraint.
+    # Justin's reason codes, priority order. First entry is the primary constraint.
     observed_constraints: list[str] = field(default_factory=list)
     # ``last_failure`` is set only when this call placed zero blocks.
     # ``pass_hints`` lists those failure hints. A pre-existing fixed-buffer
@@ -101,7 +101,7 @@ class PlacementResult:
     preference_decision: dict[str, Any] | None = None
 
 
-# Short codes Jules maps onto ``unplaced_*`` reason codes. Do not rename without
+# Short codes Justin maps onto ``unplaced_*`` reason codes. Do not rename without
 # updating ``_HINT_BY_REASON`` and the placement_facts copy in calculate.
 HINT_DEADLINE_LIMIT = "deadline_limit"
 HINT_DAILY_CAP = "daily_cap"
@@ -268,7 +268,7 @@ def split_span_for_band_evaluation(
 ) -> list[BandEvaluationInterval]:
     """Split ``[start, end)`` at schedule-local midnights and override bounds.
 
-    Jules: placer interval splitter for legacy band clocks (V3-D1).
+    Justin: placer interval splitter for legacy band clocks (V3-D1).
     ``split_scheduling_day_by_overrides`` stays the one-civil-day override
     split used by effective reads; it does not cross schedule-local midnight.
     Use this function when an interval can start on one schedule-local date
@@ -910,7 +910,7 @@ def _pass_hints(
     buffer_minutes: int = 0,
     fixed_conflicts: list[FixedBufferConflict] | None = None,
 ) -> list[dict[str, Any]]:
-    """Structured hints in the same order as ``codes`` (Jules' priority)."""
+    """Structured hints in the same order as ``codes`` (Justin's priority)."""
     hints: list[dict[str, Any]] = []
     for code in codes:
         short = _HINT_BY_REASON.get(code)

@@ -24,9 +24,9 @@
 
 | Wave | Scope | Owner | Status |
 |------|--------|--------|--------|
-| **W1** | Versioned predicate engine + SQLAlchemy apply; migration extending `saved_filters`; full `/views` CRUD + `/{id}/tasks` (and system slug read path); backfill system predicates to v1; Renee API tests for F7-A/C/D foundations + F7-B timezone | **Tesla** (predicate validate/compile/apply) + **Jules** (migration, schemas, routes, CRUD, system backfill) | **Quality green** — **64** pytest (Renee **2026-10-10**) |
-| **W2** | CLI `theplan views` list/get/create/patch/delete/query — same API + engine; pagination + truthful totals | **Jules** | **Implemented** — CLI tests green (`test_views_commands.py`; **~32** with main smoke) |
-| **W3** | Web filter builder + Save view + sidebar user entries; List/Board via saved-view task query; repair banner; F2 board hook where wired | **Andi** (UI) + **Jules** (api.ts / ViewSelection) | **Implemented** — `npm run build` green; **automated W3 suite** **36** tests green (`npm test`, Renee **2026-10-10**); load-more / mode PATCH / sort / sidebar reorder **Verified closed** Dex+Trish **2026-10-10** (see table) |
+| **W1** | Versioned predicate engine + SQLAlchemy apply; migration extending `saved_filters`; full `/views` CRUD + `/{id}/tasks` (and system slug read path); backfill system predicates to v1; Renee API tests for F7-A/C/D foundations + F7-B timezone | **Tesla** (predicate validate/compile/apply) + **Justin** (migration, schemas, routes, CRUD, system backfill) | **Quality green** — **64** pytest (Renee **2026-10-10**) |
+| **W2** | CLI `theplan views` list/get/create/patch/delete/query — same API + engine; pagination + truthful totals | **Justin** | **Implemented** — CLI tests green (`test_views_commands.py`; **~32** with main smoke) |
+| **W3** | Web filter builder + Save view + sidebar user entries; List/Board via saved-view task query; repair banner; F2 board hook where wired | **Andi** (UI) + **Justin** (api.ts / ViewSelection) | **Implemented** — `npm run build` green; **automated W3 suite** **36** tests green (`npm test`, Renee **2026-10-10**); load-more / mode PATCH / sort / sidebar reorder **Verified closed** Dex+Trish **2026-10-10** (see table) |
 
 ### W3 gaps (Dex / follow-up — do not mark F7 Closed)
 
@@ -37,7 +37,7 @@
 | Load-more on saved views | **Verified closed** Dex+Trish **2026-10-10** — list page size **200**, board **500**; **Load more** continues `offset` on saved-view task query ([`TaskList.tsx`](../../apps/web/src/components/TaskList.tsx), [`TaskBoard.tsx`](../../apps/web/src/components/TaskBoard.tsx)). |
 | Automated W3 tests | **Quality green (2026-10-10):** web `npm test` **36** — regression for forest/reorder/presentation/saved-view predicate and related W3 paths. **B-F7-1 closed (disposition)** Trish **2026-10-10**. F7 **Open:** sign-off — not Closed. |
 
-Parallelism: W1 Tesla (`services/saved_filter_*.py`, predicate tests) and Jules (`routes/views.py`, schemas, migration, model) may run in parallel once the **predicate v1 JSON shape** in this brief is treated as locked.
+Parallelism: W1 Tesla (`services/saved_filter_*.py`, predicate tests) and Justin (`routes/views.py`, schemas, migration, model) may run in parallel once the **predicate v1 JSON shape** in this brief is treated as locked.
 
 ## Discovery inventory (baseline — do not invent a second store)
 
@@ -150,7 +150,7 @@ No other Trish blockers identified for starting W1.
 | Owner | Owns |
 |-------|------|
 | **Tesla (lead)** | Predicate v1 schema validation; compile → SQLAlchemy `Query` filters; rolling-date evaluation in owner TZ; complexity bounds; missing-ref detection; unit tests for engine (F7-B/C foundations). Prefer Grok per model policy when dispatched. |
-| **Jules** | Alembic **`027_saved_filter_presentation`** (name flexible); model + Pydantic schemas; `routes/views.py` + wire in `main.py`; CRUD semantics; system predicate backfill to v1; `GET …/tasks` orchestration calling Tesla’s apply; integrate archived/trash defaults. Prefer Composer. |
+| **Justin** | Alembic **`027_saved_filter_presentation`** (name flexible); model + Pydantic schemas; `routes/views.py` + wire in `main.py`; CRUD semantics; system predicate backfill to v1; `GET …/tasks` orchestration calling Tesla’s apply; integrate archived/trash defaults. Prefer Composer. |
 | **Renee (after W1 code)** | Integration pytest matrix below — Quality gate before Page closes docs. Prefer Grok. |
 | **Page** | W1–W3 + W3 completion gaps **Verified closed** Dex+Trish **2026-10-10**; automated W3 suite **36** green Renee **2026-10-10**; **B-F7-1 closed (disposition)** Trish **2026-10-10** (fresh + synthetic); F7 remains **Open** for human sign-off. |
 | **Andi** | Not W1. |
@@ -269,6 +269,6 @@ cd "F:\Code Repo\ThePlan\apps/api"
 - Baseline store exists; no competing design.
 - Spec acceptance and design defaults are sufficient; one soft product callout (Today block-overlap) locked by default without blocking.
 - Alembic successor clear: **`027` after `026_pending_deletion`**.
-- **First Implementation owner: Tesla** (predicate engine + query apply). Jules starts migration/CRUD in parallel against this locked v1 shape.
+- **First Implementation owner: Tesla** (predicate engine + query apply). Justin starts migration/CRUD in parallel against this locked v1 shape.
 
 Parent dispatches builders after reviewing this Discovery — **do not** treat this doc as Closed/shipped.

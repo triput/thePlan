@@ -63,23 +63,23 @@ Docs and checklist text that lag verified reality. **Owner: Page.** No product c
 |----|------|--------|-------|
 | **B-F6-1** | Dex retest P1 R1 — project **`epic_id`** reparent/detach + epic **`target_date`** lock+bump | Dex / ops (code already Tesla) | **Closed 2026-10-10** — Wave 1 retest **37** API tests ([DEX-WAVE1-RETEST](./DEX-WAVE1-RETEST-2026-10-10.md)). |
 | **B-F6-2** | Operator manual rows still open / PARTIAL | Trish + Dex | W1 ready fields, apply paths, stale/expiry live spot-checks; many AUTOMATED PASS only. |
-| **B-F6-3** | **F6-B–D** slice acceptance not fully closed | Jules/Tesla if gaps found; else Renee + operator | Pytest green ≠ slice accepted. After B-F6-1, decide ship-with-known-limitations vs more UX. |
+| **B-F6-3** | **F6-B–D** slice acceptance not fully closed | Justin/Tesla if gaps found; else Renee + operator | Pytest green ≠ slice accepted. After B-F6-1, decide ship-with-known-limitations vs more UX. |
 | **B-F6-4** | W3 / F6-E operator-readable before/after polish | Andi | Modal landed; full readability open. |
 
 ### B3 — F4 deferred W3 remainder
 
 | ID | Item | Owner | Notes |
 |----|------|--------|-------|
-| **B-F4-1** | CLI override list/create/edit/delete | Jules or Tesla | **Dex verified closed 2026-10-10** — operator CRUD ([DEX-WAVE1-RETEST](./DEX-WAVE1-RETEST-2026-10-10.md)). Trish Done **2026-10-10**; F4 **not Closed** (optional DST). |
+| **B-F4-1** | CLI override list/create/edit/delete | Justin or Tesla | **Dex verified closed 2026-10-10** — operator CRUD ([DEX-WAVE1-RETEST](./DEX-WAVE1-RETEST-2026-10-10.md)). Trish Done **2026-10-10**; F4 **not Closed** (optional DST). |
 | **B-F4-2** | Calendar **day-mode** override overlay | Andi | **Dex verified closed 2026-10-10**; week overlay prior Dex-verified baseline. |
-| **B-F4-3** | **F4-D** UX — red precedence, pins/busy disclosure, stale schedule indicators in UI | Andi (+ Jules if scheduler copy) | **Dex verified closed 2026-10-10** incl. **W1-R1** volume stale; Trish Done **2026-10-10**; F4 **not Closed**. |
+| **B-F4-3** | **F4-D** UX — red precedence, pins/busy disclosure, stale schedule indicators in UI | Andi (+ Justin if scheduler copy) | **Dex verified closed 2026-10-10** incl. **W1-R1** volume stale; Trish Done **2026-10-10**; F4 **not Closed**. |
 | **B-F4-4** | Optional DST browser spot-check | Dex / Trish | Pytest matrix green; optional only. |
 
 ### B4 — F5 deferred / incomplete operator
 
 | ID | Item | Owner | Notes |
 |----|------|--------|-------|
-| **B-F5-1** | **Outline ↔ Templates panel merge** | Jules + Andi | **Dex verified closed 2026-10-10** (**IM-R1**): [`ImportPanel.tsx`](../../apps/web/src/components/ImportPanel.tsx) — [DEX-IMPORT-VOLUME](./DEX-IMPORT-VOLUME-2026-10-10.md). Trish Done **2026-10-10**; F5 **not Closed** (PARTIAL operator rows). |
+| **B-F5-1** | **Outline ↔ Templates panel merge** | Justin + Andi | **Dex verified closed 2026-10-10** (**IM-R1**): [`ImportPanel.tsx`](../../apps/web/src/components/ImportPanel.tsx) — [DEX-IMPORT-VOLUME](./DEX-IMPORT-VOLUME-2026-10-10.md). Trish Done **2026-10-10**; F5 **not Closed** (PARTIAL operator rows). |
 | **B-F5-2** | Remaining PARTIAL manual rows (example download, source-ref/warning presentation, post-apply label visibility in browser) | Andi / Dex | Quality green; operator polish. |
 
 ### B5 — Earlier-wave checklist residue (version hygiene, not new features)
@@ -87,7 +87,7 @@ Docs and checklist text that lag verified reality. **Owner: Page.** No product c
 | ID | Item | Owner | Notes |
 |----|------|--------|-------|
 | **B-F2-*** | Work-board archived picker quirk; native Space dropdown open; drag peer/within-column; archived project detail browser | Andi / Dex | PARTIAL rows in MANUAL-CHECKLIST — disposition or finish. |
-| **B-F3-polish** | Prerequisite titles (not UUIDs); overbooked vs prerequisite copy; `priority_ups` stale compare; schedule-run summary web | Jules / later | Listed under “Not on this gate” as F3 backlog / W3 — pick only if she wants polish inside this version. |
+| **B-F3-polish** | Prerequisite titles (not UUIDs); overbooked vs prerequisite copy; `priority_ups` stale compare; schedule-run summary web | Justin / later | Listed under “Not on this gate” as F3 backlog / W3 — pick only if she wants polish inside this version. |
 
 ---
 
@@ -132,7 +132,7 @@ Phase gates: Discovery (this brief) → Implementation → Quality → Documenta
 | **1a** | F7 automated W3 suite | Renee (+ Andi fixtures) | `apps/web/tests/*` | **Done (Quality):** `npm test` **36** green — F7 W3 regression; Trish Done **2026-10-10**; F7 **not Closed** |
 | **1b** | F6 Dex retest R1 (`epic_id` / `target_date`) | Dex | Disposable stack only | **Closed 2026-10-10** — Wave 1 retest |
 | **1c** | F7 migration verify (fresh + synthetic) | Tesla | Alembic/runbook docs; **no** daily-driver | **Dispositioned (Trish 2026-10-10):** **B-F7-1** closed — household dump not required |
-| **1d** | F4 CLI + day overlay + F4-D UI slice | Jules/Tesla + Andi | CLI `overrides`; web calendar/day + F4-D chrome | **Dex verified closed 2026-10-10**; Trish Done **2026-10-10**; F4 **not Closed** |
+| **1d** | F4 CLI + day overlay + F4-D UI slice | Justin/Tesla + Andi | CLI `overrides`; web calendar/day + F4-D chrome | **Dex verified closed 2026-10-10**; Trish Done **2026-10-10**; F4 **not Closed** |
 
 Lanes 1a / 1b / 1c remain file-disjoint; **1d** docs updated in [F4-TIME-MAP-OVERRIDES](./F4-TIME-MAP-OVERRIDES.md) and [CLI.md](../CLI.md).
 
@@ -140,7 +140,7 @@ Lanes 1a / 1b / 1c remain file-disjoint; **1d** docs updated in [F4-TIME-MAP-OVE
 
 Ordered recommendation if she says “finish the version”:
 
-1. **F4 CLI overrides** (Jules/Tesla) — API done; CLI parity matches F5/F7 pattern.  
+1. **F4 CLI overrides** (Justin/Tesla) — API done; CLI parity matches F5/F7 pattern.  
 2. **F4 day overlay** (Andi) — web-only, calendar files.  
 3. **F4-D stale/red/pins UI** (Andi) — after day overlay or parallel if different components.  
 4. **F6-E readability + remaining operator** (Andi + Trish).  
@@ -171,7 +171,7 @@ After Wave 0 Page polish (or in parallel once commit lands):
 
 **Kick: B-F7-2 — Automated W3 suite (Renee).**
 
-Why: concrete, no Trish data decision, closes a hard Open line in F7 delivery and DEX checklist, does not thrash Jules/Andi product files if scoped to tests first, and Quality gate is Renee’s lane. Immediate second ops kick if capacity: **B-F6-1 Dex retest** (unblocks F6 paper).
+Why: concrete, no Trish data decision, closes a hard Open line in F7 delivery and DEX checklist, does not thrash Justin/Andi product files if scoped to tests first, and Quality gate is Renee’s lane. Immediate second ops kick if capacity: **B-F6-1 Dex retest** (unblocks F6 paper).
 
 ---
 

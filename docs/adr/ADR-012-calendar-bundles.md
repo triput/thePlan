@@ -18,7 +18,7 @@ Ship a **manual** path: operator selects tasks (or an existing parent) → **Blo
 | **Task views** | Members stay individual in lists / detail (complete, edit, deps, labels unchanged) |
 | **Membership** | Explicit member task ids **or** parent + descendants resolved at create |
 | **Create path** | **Manual first** — select tasks or existing parent → **Block as bundle** |
-| **Duration** | Synthetic/parent duration **or** sum of member estimates (operator-facing create chooses one rule; Jules implements the cheaper of the two that matches UI) |
+| **Duration** | Synthetic/parent duration **or** sum of member estimates (operator-facing create chooses one rule; Justin implements the cheaper of the two that matches UI) |
 | **Auto-replan** | **Out** — no knockout / scoped bundle materialization on Update Schedule in this smash |
 
 ### Persistence (cheapest that works)
@@ -57,7 +57,7 @@ Existing enum value still means **exclude from Update Schedule auto-placement** 
 
 ### DEF-020 capacity tools
 
-[DEF-020](../DEFECTS.md#def-020--calendar-capacity-release-early-complete--bulk-clear) **release-remainder** and **clear-unpinned** should **eventually** apply to aggregate blocks the same as ordinary blocks (truncate/delete the one row). Wire when Jules ships the slice — do not invent special bundle capacity semantics in this ADR.
+[DEF-020](../DEFECTS.md#def-020--calendar-capacity-release-early-complete--bulk-clear) **release-remainder** and **clear-unpinned** should **eventually** apply to aggregate blocks the same as ordinary blocks (truncate/delete the one row). Wire when Justin ships the slice — do not invent special bundle capacity semantics in this ADR.
 
 ## Explicitly deferred
 
@@ -71,7 +71,7 @@ Existing enum value still means **exclude from Update Schedule auto-placement** 
 
 - ADR-006 replan contract unchanged — still **no** bundle materialization on Update Schedule.
 - One Alembic column + API/UI for manual create and gray/remove is the smash budget.
-- Accept gates Jules implementation; DEF-019 stays open until code ships.
+- Accept gates Justin implementation; DEF-019 stays open until code ships.
 
 ## Related
 

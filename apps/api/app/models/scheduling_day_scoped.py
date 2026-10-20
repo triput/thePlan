@@ -14,7 +14,7 @@ Sibling table to ``scheduling_rule_exceptions``. **Not** ``time_map_overrides``,
 
 Tesla loads these rows to fold into effective windows **after** standing
 ``resolve_effective_composition`` and **before** May union / Must intersect /
-Prefer rank (``composition_search_windows``). Jules owns writers; Tesla owns
+Prefer rank (``composition_search_windows``). Justin owns writers; Tesla owns
 resolution / fingerprint hashing.
 
 Column contract

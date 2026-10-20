@@ -6,7 +6,7 @@ returns, keyed by that function's ``day`` argument. A scoped replacement back
 onto a legacy Time Map uses that map's band contract (green, yellow, red,
 strictness, dated overrides) instead of flattening bands into May windows.
 
-Jules owns writers and the table. Until ``load_day_scoped_declarations`` exists
+Justin owns writers and the table. Until ``load_day_scoped_declarations`` exists
 on ``app.services.scheduling_assignments``, ``load_day_scoped_declarations``
 here returns an empty map. Resolution accepts :class:`DayScopedDeclaration`
 either way.
@@ -165,7 +165,7 @@ class LegacyMapView:
 
 @dataclass(frozen=True)
 class DayScopedDeclaration:
-    """One authorized scoped op. Storage spelling is Jules's; this is the resolver contract."""
+    """One authorized scoped op. Storage spelling is Justin's; this is the resolver contract."""
 
     declaration_id: str
     operation: DayScopedOp
@@ -1769,7 +1769,7 @@ def load_day_scoped_declarations(
     projects: Mapping[Any, Any] | None = None,
     epics: Mapping[Any, Any] | None = None,
 ) -> dict[Any, tuple[DayScopedDeclaration, ...]]:
-    """Load Jules's ``scheduling_day_scoped_ops`` rows for the tasks being resolved.
+    """Load Justin's ``scheduling_day_scoped_ops`` rows for the tasks being resolved.
 
     Empty when the table is absent or there is no session. Does not write.
     """

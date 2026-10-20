@@ -53,7 +53,7 @@ class ScheduleRun(Base):
 class ScheduleTaskOutcome(Base):
     """Per-task scheduling result for one schedule run (F3 explanations).
 
-    Jules writes reason facts from apply. Tesla stamps provenance via
+    Justin writes reason facts from apply. Tesla stamps provenance via
     ``app.scheduler.outcomes.persist_calculation_outcomes`` (fingerprint,
     snapshot, algorithm version). Reads compare the snapshot and never replan.
     """

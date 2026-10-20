@@ -2,7 +2,7 @@
 
 V3 Working/General and legacy map ∩ Working stay in place when no new-rule
 assignment is supplied. These tests build the composition contract directly so
-they do not need Jules's assignment tables.
+they do not need Justin's assignment tables.
 """
 
 from __future__ import annotations
@@ -570,7 +570,7 @@ def test_composition_fingerprint_is_its_own_compared_category() -> None:
     assert stored["availability"] == live["availability"]
 
 
-def test_resolver_seam_is_empty_until_jules_lands() -> None:
+def test_resolver_seam_is_empty_until_justin_lands() -> None:
     assert load_compositions_by_task(None, uuid4(), [], {}, {}) == {}
 
 

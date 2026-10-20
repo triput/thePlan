@@ -7,7 +7,7 @@
 #  Last Update: 2026-10-14 (legacy standing map rides with the composition)
 # ==============================================================================
 
-"""Bridge from Jules assignment rows to Tesla's composition stack.
+"""Bridge from Justin assignment rows to Tesla's composition stack.
 
 ``composition_resolver`` imports ``resolve_new_rule_compositions`` from this
 module. Do not query assignment tables from placement.py / collect.py directly.

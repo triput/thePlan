@@ -1,6 +1,6 @@
 """Persist per-task schedule outcomes for F3 reads.
 
-Jules' apply path should call ``persist_calculation_outcomes`` so each row
+Justin's apply path should call ``persist_calculation_outcomes`` so each row
 gets an input snapshot and fingerprint. Direct ``ScheduleTaskOutcome`` inserts
 still satisfy the table; a missing snapshot is ``provenance`` stale on read.
 
@@ -342,7 +342,7 @@ def live_snapshots_by_task(db: Session, tasks: list[Task]) -> dict[UUID, dict[st
 
 
 def summary_text_for_facts(facts: list[ReasonFact] | list[dict[str, Any]]) -> str:
-    """Jules' formatter when the reason objects are available; same text from stored JSON."""
+    """Justin's formatter when the reason objects are available; same text from stored JSON."""
     typed: list[ReasonFact] = []
     for fact in facts:
         if isinstance(fact, ReasonFact):

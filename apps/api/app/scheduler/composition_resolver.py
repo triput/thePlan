@@ -1,6 +1,6 @@
-"""Seam from collect / live snapshot reads to Jules's assignment resolver.
+"""Seam from collect / live snapshot reads to Justin's assignment resolver.
 
-Jules owns the stored assignment rows. This module does not query them. When
+Justin owns the stored assignment rows. This module does not query them. When
 ``app.scheduler.new_rule_resolver.resolve_new_rule_compositions`` (or
 ``app.scheduler.assignment_resolver`` with the same symbol) exists, collect and
 ``live_snapshots_by_task`` both call it and then
@@ -59,7 +59,7 @@ def load_compositions_by_task(
     projects: dict[UUID, Any],
     epics: dict[UUID, Any],
 ) -> dict[UUID, CompositionInput]:
-    """Raw resolver payload. Empty when Jules has not landed the symbol."""
+    """Raw resolver payload. Empty when Justin has not landed the symbol."""
     if not tasks:
         return {}
     fn = _resolver()

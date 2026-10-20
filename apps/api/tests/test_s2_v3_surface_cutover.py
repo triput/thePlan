@@ -1,4 +1,4 @@
-"""S2-V3 Jules surface: reject legacy workweek settings, effective-read honesty, A11e."""
+"""S2-V3 Justin surface: reject legacy workweek settings, effective-read honesty, A11e."""
 
 from __future__ import annotations
 

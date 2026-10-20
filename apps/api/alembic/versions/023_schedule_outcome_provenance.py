@@ -4,7 +4,7 @@ Revision ID: 023_schedule_outcome_provenance
 Revises: 022_schedule_task_outcomes
 Create Date: 2026-10-08
 
-Additive on Jules' schedule_task_outcomes (022). Reads compare
+Additive on Justin's schedule_task_outcomes (022). Reads compare
 input_snapshot to live inputs and do not replan.
 """
 

@@ -107,7 +107,7 @@ The due-only system-engine default was accepted as documented. Existing web Toda
 
 ## Resolution (Dex retest passed)
 
-Implementation landed **2026-10-10** (Andi+Jules). Dex verified all six original repros closed on the same date. Completion gaps **Verified closed** Dex+Trish **2026-10-10**; Trish Done sign-off recorded; F7 **not Closed/shipped** (non-goal alias).
+Implementation landed **2026-10-10** (Andi+Justin). Dex verified all six original repros closed on the same date. Completion gaps **Verified closed** Dex+Trish **2026-10-10**; Trish Done sign-off recorded; F7 **not Closed/shipped** (non-goal alias).
 
 | ID | Fix direction landed |
 |----|----------------------|

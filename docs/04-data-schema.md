@@ -408,7 +408,7 @@ One row per task evaluated by a schedule run (F3). Alembic `022_schedule_task_ou
 | owner_id | UUID FK | |
 | task_id | UUID FK | `tasks`, cascade delete |
 | requested_minutes, pinned_minutes, placed_minutes, remaining_minutes | INT | |
-| primary_reason_code | VARCHAR(64) | Jules' reason code |
+| primary_reason_code | VARCHAR(64) | Justin's reason code |
 | reason_facts | JSONB | `[{code, params}, ...]` |
 | summary_text | TEXT | Stored formatter output; reads re-derive from `reason_facts` |
 | created_at | TIMESTAMPTZ | Row insert |
