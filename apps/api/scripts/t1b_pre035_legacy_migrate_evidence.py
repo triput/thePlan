@@ -254,6 +254,31 @@ def main() -> None:
         and r["flag_only_would_trust"]
         for r in recorded
     )
+    # Prove schema-only 035: legacy all-day keeps flag=false; read path blocks.
+    for r in recorded:
+        if r["eid"] == "t1b-pre035-abs":
+            if r["db_source_zone_missing"] is not False:
+                raise RuntimeError(
+                    f"absolute control must keep source_zone_missing=false: {r}"
+                )
+            if r["source_zone_untrusted"] or not r["trust_ok"] or r["merge_count"] != 1:
+                raise RuntimeError(f"absolute control must stay trusted: {r}")
+            continue
+        if r["db_source_zone_missing"] is not False:
+            raise RuntimeError(
+                "035 must not mutate source_zone_missing; "
+                f"legacy/ambig expected false after schema-only upgrade: {r}"
+            )
+        if (
+            not r["source_zone_untrusted"]
+            or r["trust_ok"]
+            or r["merge_count"] != 0
+            or "missing_source_zone" not in r["causes"]
+        ):
+            raise RuntimeError(
+                "read-path source_zone_untrusted must block legacy/ambig "
+                f"despite flag=false: {r}"
+            )
     out = {
         "git_tip": tip,
         "isolation": {
@@ -266,8 +291,9 @@ def main() -> None:
         "alembic_seed": "034_external_event_free_busy",
         "alembic_after": at_035,
         "method": (
-            "seed at 034 without source_timezone column; alembic upgrade 035; "
-            "trust path on persisted columns only (no provider reparse)"
+            "seed at 034 without source_timezone column; alembic upgrade 035 "
+            "(schema only, no flag UPDATE); trust path on persisted columns "
+            "only (no provider reparse)"
         ),
         "absolute_control": (
             "t1b-pre035-abs is Z-offset timed with null named provenance "
@@ -275,12 +301,10 @@ def main() -> None:
         ),
         "containment": {
             "needed_if_flag_only_trusts_uncertain_all_day": hole,
-            "proposal": (
-                "Narrow containment — no live backfill/resync: "
-                "(1) 035 upgrade SET source_zone_missing=true WHERE is_all_day "
-                "AND source_timezone IS NULL; "
-                "(2) read-path source_zone_untrusted: all-day + null "
-                "source_timezone → missing_source_zone. "
+            "sole_rule": (
+                "read-path source_zone_untrusted: all-day + null "
+                "source_timezone → missing_source_zone (flag may stay false). "
+                "035 adds columns only — no data UPDATE. "
                 "Timed absolute null provenance stays trusted."
             ),
             "implemented": True,
