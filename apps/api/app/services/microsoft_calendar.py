@@ -21,6 +21,7 @@ from app.models import (
     Task,
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
+from app.scheduler.free_busy import apply_transparency_update, resolve_microsoft_show_as
 from app.services.source_timezone import (
     IndeterminateLocalTime,
     ParsedEventBounds,
@@ -895,6 +896,7 @@ def _upsert_external_event(
     subscription: CalendarSubscription,
     event: dict[str, Any],
     now: datetime,
+    sync_run_id: str,
 ) -> bool:
     external_id = event.get("id")
     if not external_id:
@@ -931,6 +933,16 @@ def _upsert_external_event(
     row.last_synced_at = now
     row.source_zone_missing = times.source_zone_missing
     row.source_timezone = times.source_timezone
+    # T1-D: Graph showAs → stored transparency/provenance. No busy default.
+    # calendarView/delta return full events (no event $select); if showAs is
+    # absent on this payload — including delta partials — resolve as
+    # unknown_missing (cannot prove Graph always sends showAs on delta).
+    stored, provenance, _kind = resolve_microsoft_show_as(
+        event, complete_representation=True, field_projected=False
+    )
+    apply_transparency_update(
+        row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
+    )
     return True
 
 
@@ -991,6 +1003,7 @@ def _apply_subscription_full(
     suppressed = suppressed_external_ids or set()
     seen_external_ids: set[str] = set()
     upserted = 0
+    sync_run_id = f"ms-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
     for event in events:
         external_id = event.get("id")
@@ -1011,6 +1024,7 @@ def _apply_subscription_full(
             subscription=subscription,
             event=event,
             now=now,
+            sync_run_id=sync_run_id,
         ):
             upserted += 1
 
@@ -1048,6 +1062,7 @@ def _apply_subscription_incremental(
 ) -> int:
     suppressed = suppressed_external_ids or set()
     upserted = 0
+    sync_run_id = f"ms-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
     for event in events:
         external_id = event.get("id")
@@ -1066,6 +1081,7 @@ def _apply_subscription_incremental(
             subscription=subscription,
             event=event,
             now=now,
+            sync_run_id=sync_run_id,
         ):
             upserted += 1
 

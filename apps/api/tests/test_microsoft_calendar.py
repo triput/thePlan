@@ -54,13 +54,27 @@ def _patch_ms_httpx(monkeypatch: pytest.MonkeyPatch, handler: object) -> None:
     monkeypatch.setattr(ms_cal.httpx, "Client", _factory)
 
 
-def _graph_event(event_id: str, subject: str, start: str, end: str) -> dict:
-    return {
+def _graph_event(
+    event_id: str,
+    subject: str,
+    start: str,
+    end: str,
+    *,
+    show_as: str | None = None,
+) -> dict:
+    """Build a Graph event payload. Omit showAs unless callers pass show_as.
+
+    T1-D: absent showAs resolves to unknown_missing (not a busy default).
+    """
+    payload: dict = {
         "id": event_id,
         "subject": subject,
         "start": {"dateTime": start, "timeZone": "UTC"},
         "end": {"dateTime": end, "timeZone": "UTC"},
     }
+    if show_as is not None:
+        payload["showAs"] = show_as
+    return payload
 
 
 class FakeGraph:

@@ -1,7 +1,9 @@
-"""Track 1 T1-A: Google free/busy trust, diagnostics, and exception identity.
+"""Track 1: free/busy trust, diagnostics, and exception identity.
 
-BusyInputTrust is a collect-time input check only — ok=True does not mean
-overall scheduling readiness (deps, caps, calendar freshness, etc.).
+T1-A Google transparency + T1-D Microsoft showAs map into the same stored
+transparency/provenance surface. BusyInputTrust is a collect-time input check
+only — ok=True does not mean overall scheduling readiness (deps, caps,
+calendar freshness, etc.).
 
 Fail-closed: calculate/replan/preview must refuse placement when ok=False.
 """
@@ -172,6 +174,47 @@ def resolve_google_transparency(
         return None, "unknown_projection", "unknown"
 
     return "opaque", "provider_default_omitted", "busy"
+
+
+def resolve_microsoft_show_as(
+    event: Mapping[str, Any],
+    *,
+    complete_representation: bool = True,
+    field_projected: bool = False,
+) -> tuple[str | None, ProvenanceLabel, FreeBusyKind]:
+    """Map Graph ``showAs`` → stored transparency + provenance + merge kind.
+
+    Locked Track-1-Contracts §1.2 / §1.5. Critical differences from Google:
+    missing showAs on a complete event is ``unknown_missing`` (not busy default);
+    ``workingElsewhere`` is free/transparent; Graph ``unknown`` stores null
+    transparency with ``provider_explicit``.
+    """
+    if field_projected or not complete_representation:
+        return None, "unknown_projection", "unknown"
+
+    if "showAs" not in event:
+        # Absent on an otherwise complete payload → unknown_missing (not Google's
+        # provider_default_omitted busy). Delta/partial payloads that omit the key
+        # are treated the same: we cannot prove Graph always sends showAs on delta.
+        return None, "unknown_missing", "unknown"
+
+    raw = event.get("showAs")
+    if raw == "free":
+        return "transparent", "provider_explicit", "free"
+    if raw == "busy":
+        return "opaque", "provider_explicit", "busy"
+    if raw == "oof":
+        return "opaque", "provider_explicit", "busy"
+    if raw == "tentative":
+        # Trish locked: tentative → busy / opaque.
+        return "opaque", "provider_explicit", "busy"
+    if raw == "workingElsewhere":
+        # Trish locked: workingElsewhere → free / transparent (not busy).
+        return "transparent", "provider_explicit", "free"
+    if raw == "unknown":
+        return None, "provider_explicit", "unknown"
+    # Unrecognized / future showAs — fail closed as unknown with explicit provenance.
+    return None, "provider_explicit", "unknown"
 
 
 def effective_free_busy_kind(
