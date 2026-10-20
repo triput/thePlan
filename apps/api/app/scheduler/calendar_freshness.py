@@ -20,6 +20,9 @@ from app.scheduler.horizon import compute_horizon
 # Engineering candidates — not live household settings (T1-C proposal).
 FRESHNESS_AGE_CEILING = timedelta(minutes=15)
 MIN_COVERAGE_PAD = timedelta(hours=24)
+# Default explicit sync pulls past the collect gate's right edge so rolling
+# ``now`` during the freshness interval does not outrun fetched coverage.
+COVERAGE_SYNC_FETCH_HEADROOM = FRESHNESS_AGE_CEILING
 
 
 class CalendarFreshnessError(RuntimeError):
@@ -78,6 +81,15 @@ def required_coverage_window(
     return horizon_start - pad, horizon_end + pad
 
 
+def default_explicit_sync_window(
+    user_settings: UserSettings,
+    now_utc: datetime,
+) -> tuple[datetime, datetime]:
+    """Provider pull bounds when the sync route omits start/end."""
+    req_start, req_end = required_coverage_window(user_settings, now_utc)
+    return req_start, req_end + COVERAGE_SYNC_FETCH_HEADROOM
+
+
 def proposal_padded_coverage_window(
     proposal: dict[str, Any],
     user_settings: UserSettings,
@@ -103,7 +115,7 @@ def _failure_blocks_readiness(subscription: CalendarSubscription) -> bool:
         return False
     if success_at is None:
         return True
-    return _ensure_utc(failure_at) > _ensure_utc(success_at)
+    return _ensure_utc(failure_at) >= _ensure_utc(success_at)
 
 
 def _subscription_label(subscription: CalendarSubscription) -> str:

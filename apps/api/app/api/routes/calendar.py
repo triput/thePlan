@@ -429,14 +429,14 @@ def sync_calendar_account(
     settings = get_settings()
     now = datetime.now(timezone.utc)
     if start is None or end is None:
-        from app.scheduler.calendar_freshness import required_coverage_window
+        from app.scheduler.calendar_freshness import default_explicit_sync_window
 
         user_settings = (
             db.query(UserSettings).filter(UserSettings.owner_id == user.id).one_or_none()
         )
         if user_settings is None:
             raise ApiError(422, "User settings required for sync window", "SETTINGS_MISSING")
-        padded_min, padded_max = required_coverage_window(user_settings, now)
+        padded_min, padded_max = default_explicit_sync_window(user_settings, now)
         time_min = start or padded_min
         time_max = end or padded_max
     else:

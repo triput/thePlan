@@ -34,6 +34,8 @@ from app.models import (
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
 from app.scheduler.busy_map import busy_from_sources, load_immovable_busy_sources
 from app.scheduler.calendar_freshness import (
+    COVERAGE_SYNC_FETCH_HEADROOM,
+    default_explicit_sync_window,
     evaluate_calendar_freshness,
     required_coverage_window,
 )
@@ -310,6 +312,147 @@ def test_t1_8_incomplete_right_edge_blocks(db_session: Session) -> None:
     trust = _trust(db_session, owner, settings, now)
     assert trust.ok is False
     assert "calendar_coverage_window_insufficient" in _causes(trust)
+
+
+def test_t1c_default_sync_window_ready_one_second_after_sync(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dex: gate-only required window moves with now; default sync must fetch headroom."""
+    owner, settings = _owner(db_session)
+    sync_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    collect_now = sync_now + timedelta(seconds=1)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-headroom", summary="Headroom")
+    fetch_start, fetch_end = default_explicit_sync_window(settings, sync_now)
+
+    monkeypatch.setattr(
+        gcal, "list_calendar_events", lambda *_a, **_k: ([], "headroom-token", 1)
+    )
+    gcal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=fetch_start,
+        time_max=fetch_end,
+    )
+    db_session.refresh(sub)
+    assert sub.coverage_window_end.astimezone(UTC) == fetch_end
+    assert fetch_end > required_coverage_window(settings, sync_now)[1]
+
+    trust = evaluate_calendar_freshness(db_session, owner.id, settings, collect_now)
+    assert trust.ok is True, _causes(trust)
+
+
+def test_t1c_gate_only_window_without_headroom_fails_one_second_later(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, settings = _owner(db_session)
+    sync_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    collect_now = sync_now + timedelta(seconds=1)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-narrow", summary="Narrow Fetch")
+    gate_start, gate_end = required_coverage_window(settings, sync_now)
+
+    monkeypatch.setattr(
+        gcal, "list_calendar_events", lambda *_a, **_k: ([], "narrow-token", 1)
+    )
+    gcal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=gate_start,
+        time_max=gate_end,
+    )
+    db_session.refresh(sub)
+
+    trust = evaluate_calendar_freshness(db_session, owner.id, settings, collect_now)
+    assert trust.ok is False
+    assert "calendar_coverage_window_insufficient" in _causes(trust)
+
+
+def test_t1c_default_sync_window_insufficient_beyond_fetch_headroom(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, settings = _owner(db_session)
+    sync_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    account = _account(db_session, owner)
+    _sub(db_session, account, calendar_id="dex-edge", summary="Fetch Edge")
+    fetch_start, fetch_end = default_explicit_sync_window(settings, sync_now)
+
+    monkeypatch.setattr(
+        gcal, "list_calendar_events", lambda *_a, **_k: ([], "edge-token", 1)
+    )
+    gcal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=fetch_start,
+        time_max=fetch_end,
+    )
+
+    beyond = sync_now + COVERAGE_SYNC_FETCH_HEADROOM + timedelta(seconds=1)
+    trust = evaluate_calendar_freshness(db_session, owner.id, settings, beyond)
+    assert trust.ok is False
+    assert "calendar_coverage_window_insufficient" in _causes(trust)
+
+
+def test_t1c_auth_failure_with_young_prior_marker_persists_after_rollback(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, settings = _owner(db_session)
+    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    sync_now = mint_now + timedelta(seconds=1)
+    gate_start, gate_end = required_coverage_window(settings, mint_now)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-auth", summary="Auth Fail")
+    prior_cursor = "stable-cursor"
+    sub.sync_cursor = prior_cursor
+    _mint(
+        sub,
+        now=mint_now,
+        start=gate_start - timedelta(days=1),
+        end=gate_end + timedelta(days=1),
+    )
+    db_session.flush()
+    sub_id = sub.id
+    owner_id = owner.id
+
+    class _FixedNow:
+        @classmethod
+        def now(cls, tz=None):
+            if tz is not None:
+                return sync_now.astimezone(tz)
+            return sync_now
+
+    monkeypatch.setattr(gcal, "datetime", _FixedNow)
+    monkeypatch.setattr(
+        gcal,
+        "get_valid_access_token",
+        lambda *_a, **_k: (_ for _ in ()).throw(
+            ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+        ),
+    )
+
+    with pytest.raises(ApiError):
+        gcal.sync_account_events(
+            db_session,
+            settings=_settings(),
+            account=account,
+            time_min=gate_start,
+            time_max=gate_end,
+        )
+
+    db_session.rollback()
+    db_session.expire_all()
+    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+    sub = db_session.get(CalendarSubscription, sub_id)
+    assert sub is not None
+    assert sub.sync_cursor == prior_cursor
+    assert sub.coverage_last_failure_at is not None
+    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+    trust = evaluate_calendar_freshness(db_session, owner_id, settings, sync_now)
+    assert trust.ok is False
+    assert "Auth Fail" in _names(trust)
 
 
 def test_t1_8_pagination_flag_false_blocks_even_if_young(db_session: Session) -> None:

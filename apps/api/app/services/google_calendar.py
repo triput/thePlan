@@ -963,6 +963,28 @@ def _mark_failure_committed(exc: BaseException) -> None:
     setattr(exc, "_t1c_failure_committed", True)
 
 
+def _commit_pre_pull_refresh_failure(
+    db: Session,
+    subscriptions: list[CalendarSubscription],
+    *,
+    now: datetime,
+    cause: str,
+) -> None:
+    """Persist not-ready evidence when auth fails before any subscription pull.
+
+    Does not clear cache rows or sync cursors — only failure markers are committed.
+    """
+    from app.services.calendar_coverage import record_subscription_refresh_failure
+
+    for subscription in subscriptions:
+        if subscription.coverage_success_at is not None:
+            record_subscription_refresh_failure(subscription, now=now, cause=cause)
+        elif subscription.coverage_last_failure_at is None:
+            record_subscription_refresh_failure(subscription, now=now, cause=cause)
+    db.flush()
+    db.commit()
+
+
 def _commit_refresh_failure(
     db: Session,
     subscription: CalendarSubscription,
@@ -1013,7 +1035,6 @@ def sync_account_events(
         lock_owner_scheduling,
     )
 
-    access = get_valid_access_token(db, settings=settings, account=account)
     now = datetime.now(timezone.utc)
     user_settings = (
         db.query(UserSettings).filter(UserSettings.owner_id == account.owner_id).one_or_none()
@@ -1036,6 +1057,17 @@ def sync_account_events(
             )
             .all()
         )
+
+    try:
+        access = get_valid_access_token(db, settings=settings, account=account)
+    except ApiError:
+        _commit_pre_pull_refresh_failure(
+            db,
+            subscriptions,
+            now=now,
+            cause="calendar_refresh_failed",
+        )
+        raise
 
     scheduling_settings = lock_owner_scheduling(db, account.owner_id)
     before_busy = immovable_busy_signature(db, account.owner_id)
