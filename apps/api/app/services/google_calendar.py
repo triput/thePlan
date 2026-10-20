@@ -9,10 +9,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlencode
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import httpx
-from sqlalchemy import text
+from sqlalchemy import select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
@@ -966,6 +967,16 @@ def _mark_failure_committed(exc: BaseException) -> None:
     setattr(exc, "_t1c_failure_committed", True)
 
 
+def _failure_marker_applies(
+    *,
+    coverage_success_at: datetime | None,
+    coverage_last_failure_at: datetime | None,
+) -> bool:
+    if coverage_success_at is not None:
+        return True
+    return coverage_last_failure_at is None
+
+
 def _apply_subscription_failure_marker(
     subscription: CalendarSubscription,
     *,
@@ -977,14 +988,15 @@ def _apply_subscription_failure_marker(
         record_subscription_refresh_failure,
     )
 
+    if not _failure_marker_applies(
+        coverage_success_at=subscription.coverage_success_at,
+        coverage_last_failure_at=subscription.coverage_last_failure_at,
+    ):
+        return False
     if subscription.coverage_success_at is not None:
         begin_subscription_refresh(subscription, now=now)
-        record_subscription_refresh_failure(subscription, now=now, cause=cause)
-        return True
-    if subscription.coverage_last_failure_at is None:
-        record_subscription_refresh_failure(subscription, now=now, cause=cause)
-        return True
-    return False
+    record_subscription_refresh_failure(subscription, now=now, cause=cause)
+    return True
 
 
 @dataclass(frozen=True)
@@ -994,24 +1006,113 @@ class _FailurePersistOutcome:
     unseen_ids: frozenset[UUID]
 
 
-def _persist_subscription_refresh_failures_autonomous(
+# Columns this persist path may write. begin_subscription_refresh clears success
+# evidence; record_subscription_refresh_failure sets the two failure markers.
+# summary and sync_cursor are not among them and must not be expired.
+_FAILURE_PERSIST_EXPIRE_ATTRS = (
+    "coverage_active_generation",
+    "coverage_success_at",
+    "coverage_fetched_at",
+    "coverage_success_generation",
+    "coverage_pagination_complete",
+    "coverage_window_start",
+    "coverage_window_end",
+    "coverage_mode",
+    "coverage_show_deleted",
+    "coverage_single_events",
+    "coverage_page_count",
+    "coverage_item_count",
+    "coverage_token_fingerprint",
+    "coverage_last_failure_at",
+    "coverage_last_failure_cause",
+)
+
+
+def _commit_refresh_failure_sidecar(
     subscription_ids: set[UUID],
     *,
     now: datetime,
     cause: str,
-) -> _FailurePersistOutcome:
-    """Commit failure markers in a separate DB transaction (sole production path).
+) -> tuple[frozenset[UUID], frozenset[UUID]]:
+    """Commit sidecar rows. Returns (written_ids, unseen_ids).
 
-    Updates calendar_subscriptions failure columns only. A missing sibling does
-    not skip visible rows. On lock wait (OperationalError), rolls back and
-    returns empty sets so the caller session is left alone.
+    INSERT only — no UPDATE of calendar_subscriptions — so the foreign key's
+    FOR KEY SHARE can land beside a caller's flushed row lock. Lock timeout
+    returns empty sets; the caller still attempts the column update.
     """
-    empty = _FailurePersistOutcome(frozenset(), frozenset(), frozenset())
-    if not subscription_ids:
-        return empty
+    from app.db import SessionLocal
+    from app.models.calendar import CalendarSubscriptionRefreshFailure
 
+    independent = SessionLocal()
+    try:
+        independent.execute(text("SET LOCAL lock_timeout = '2s'"))
+        found = independent.execute(
+            select(
+                CalendarSubscription.id,
+                CalendarSubscription.coverage_success_at,
+                CalendarSubscription.coverage_last_failure_at,
+            ).where(CalendarSubscription.id.in_(subscription_ids))
+        ).all()
+        seen_ids = {row.id for row in found}
+        unseen_ids = frozenset(subscription_ids - seen_ids)
+        needed = [
+            row.id
+            for row in found
+            if _failure_marker_applies(
+                coverage_success_at=row.coverage_success_at,
+                coverage_last_failure_at=row.coverage_last_failure_at,
+            )
+        ]
+        if not needed:
+            independent.rollback()
+            return frozenset(), unseen_ids
+        cause_s = cause[:128]
+        stmt = pg_insert(CalendarSubscriptionRefreshFailure).values(
+            [
+                {
+                    "id": uuid4(),
+                    "subscription_id": subscription_id,
+                    "failure_at": now,
+                    "cause": cause_s,
+                }
+                for subscription_id in needed
+            ]
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["subscription_id"],
+            set_={
+                "failure_at": stmt.excluded.failure_at,
+                "cause": stmt.excluded.cause,
+            },
+        )
+        independent.execute(stmt)
+        independent.commit()
+        return frozenset(needed), unseen_ids
+    except OperationalError:
+        independent.rollback()
+        logger.warning(
+            "calendar refresh failure sidecar insert hit lock_timeout",
+            exc_info=True,
+        )
+        return frozenset(), frozenset()
+    finally:
+        independent.close()
+
+
+def _commit_subscription_failure_columns(
+    subscription_ids: set[UUID],
+    *,
+    now: datetime,
+    cause: str,
+) -> _FailurePersistOutcome | None:
+    """Mirror failure columns onto calendar_subscriptions.
+
+    Returns None when the UPDATE hits lock_timeout. That transaction is rolled
+    back and does not undo a sidecar commit from the previous transaction.
+    """
     from app.db import SessionLocal
 
+    empty = _FailurePersistOutcome(frozenset(), frozenset(), frozenset())
     independent = SessionLocal()
     try:
         independent.execute(text("SET LOCAL lock_timeout = '2s'"))
@@ -1040,9 +1141,51 @@ def _persist_subscription_refresh_failures_autonomous(
         )
     except OperationalError:
         independent.rollback()
-        return empty
+        logger.warning(
+            "calendar subscription failure UPDATE hit lock_timeout; sidecar remains",
+            exc_info=True,
+        )
+        return None
     finally:
         independent.close()
+
+
+def _persist_subscription_refresh_failures_autonomous(
+    subscription_ids: set[UUID],
+    *,
+    now: datetime,
+    cause: str,
+) -> _FailurePersistOutcome:
+    """Commit failure evidence in separate transactions (sole production path).
+
+    Sidecar INSERT commits first (KEY SHARE, compatible with a flushed caller
+    row lock). The subscription UPDATE is a second transaction with
+    lock_timeout 2s. On lock wait that transaction rolls back and the sidecar
+    stays. Neither transaction commits or reverts the caller session.
+    """
+    empty = _FailurePersistOutcome(frozenset(), frozenset(), frozenset())
+    if not subscription_ids:
+        return empty
+
+    _sidecar_ids, sidecar_unseen = _commit_refresh_failure_sidecar(
+        subscription_ids,
+        now=now,
+        cause=cause,
+    )
+    row_outcome = _commit_subscription_failure_columns(
+        subscription_ids,
+        now=now,
+        cause=cause,
+    )
+    if row_outcome is None:
+        # Column UPDATE timed out. Sidecar (if it committed) is the durable
+        # signal; do not report committed_ids or the caller would expire.
+        if not _sidecar_ids:
+            logger.warning(
+                "calendar failure UPDATE hit lock_timeout and sidecar did not commit"
+            )
+        return _FailurePersistOutcome(frozenset(), frozenset(), sidecar_unseen)
+    return row_outcome
 
 
 def _persist_subscription_refresh_failures(
@@ -1054,9 +1197,12 @@ def _persist_subscription_refresh_failures(
 ) -> None:
     """Persist failure markers via autonomous SessionLocal only.
 
-    Caller session is never committed or reverted. Committed rows are expired
-    so a later flush cannot overwrite the durable marker; unseen (uncommitted)
-    rows get an in-memory marker only; lock-timeout leaves instances alone.
+    Caller session is never committed or reverted. Rows whose failure columns
+    committed are expired only on the coverage attributes this path writes, so
+    a later flush cannot restore stale success evidence and unflushed caller
+    attributes (summary, sync_cursor) stay put. Unseen (uncommitted) rows get
+    an in-memory marker only. Lock-timeout leaves instances alone; the sidecar
+    is what the trust gate reads after the caller rolls back.
     """
     if not subscriptions:
         return
@@ -1069,7 +1215,7 @@ def _persist_subscription_refresh_failures(
     )
     for subscription in subscriptions:
         if subscription.id in outcome.committed_ids:
-            db.expire(subscription)
+            db.expire(subscription, list(_FAILURE_PERSIST_EXPIRE_ATTRS))
         elif subscription.id in outcome.unseen_ids:
             _apply_subscription_failure_marker(subscription, now=now, cause=cause)
 

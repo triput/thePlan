@@ -90,6 +90,28 @@ class CalendarSubscription(Base, TimestampMixin):
     calendar_account: Mapped["CalendarAccount"] = relationship(back_populates="subscriptions")
 
 
+class CalendarSubscriptionRefreshFailure(Base):
+    """Durable refresh-failure sidecar (one open row per subscription).
+
+    INSERT takes FOR KEY SHARE on ``calendar_subscriptions``, which coexists
+    with a caller's flushed FOR NO KEY UPDATE. The freshness gate treats this
+    row like ``coverage_last_failure_*`` so a lock timeout on the subscription
+    UPDATE cannot fail open after the caller rolls back.
+    """
+
+    __tablename__ = "calendar_subscription_refresh_failures"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    subscription_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("calendar_subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    failure_at: Mapped[datetime] = mapped_column(nullable=False)
+    cause: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
 class ExternalCalendarEvent(Base):
     __tablename__ = "external_calendar_events"
     __table_args__ = (

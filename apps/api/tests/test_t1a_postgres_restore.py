@@ -56,7 +56,7 @@ def test_isolated_pg_dump_mutate_restore_recovers_034_fields(tmp_path: Path) -> 
     before = measure_post_restore()
     assert before["probe_transparency"] == "opaque"
     assert before["probe_history_sync"] == "batch-acceptance-1"
-    assert before["alembic_version"] == "036_calendar_coverage_freshness"
+    assert before["alembic_version"] == "037_refresh_failure_sidecar"
 
     dump = pg_dump_disposable_bytes()
     run_dir = write_isolated_snapshot(
@@ -101,6 +101,14 @@ def test_isolated_pg_dump_mutate_restore_recovers_034_fields(tmp_path: Path) -> 
             "SELECT count(*)::text FROM information_schema.columns "
             "WHERE table_name='external_calendar_events' "
             "AND column_name='is_provider_cancelled'"
+        )
+        == "1"
+    )
+    assert (
+        psql_t(
+            "SELECT count(*)::text FROM information_schema.tables "
+            "WHERE table_schema='public' "
+            "AND table_name='calendar_subscription_refresh_failures'"
         )
         == "1"
     )

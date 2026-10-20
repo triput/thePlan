@@ -2,7 +2,8 @@
 
 In-process refreshes for the same subscription are serialized (``subscription_refresh_lock``).
 Mid-refresh failure clears success evidence at refresh start; ``coverage_last_failure_*``
-keeps the subscription not-ready even if cache rows roll back to a prior generation.
+and the refresh-failure sidecar keep the subscription not-ready even if cache rows roll
+back to a prior generation.
 """
 
 from __future__ import annotations
@@ -14,7 +15,9 @@ from datetime import datetime, timezone
 from typing import Iterator
 from uuid import UUID
 
-from app.models import CalendarSubscription
+from sqlalchemy.orm import object_session
+
+from app.models import CalendarSubscription, CalendarSubscriptionRefreshFailure
 
 _lock_guard = threading.Lock()
 _subscription_locks: dict[UUID, threading.Lock] = {}
@@ -43,9 +46,26 @@ def subscription_refresh_lock(subscription_id: UUID) -> Iterator[None]:
         lock.release()
 
 
+def supersede_subscription_refresh_failures(subscription: CalendarSubscription) -> None:
+    """Drop the durable failure sidecar.
+
+    Called from success mint (clears ``coverage_last_failure_*``) and from
+    ``begin_subscription_refresh`` (the refresh start that clears success
+    evidence ahead of a new failure or a later success). The DELETE shares
+    the caller's transaction, so a rollback restores the sidecar.
+    """
+    session = object_session(subscription)
+    if session is None or subscription.id is None:
+        return
+    session.query(CalendarSubscriptionRefreshFailure).filter(
+        CalendarSubscriptionRefreshFailure.subscription_id == subscription.id
+    ).delete(synchronize_session=False)
+
+
 def begin_subscription_refresh(subscription: CalendarSubscription, *, now: datetime) -> int:
     """Bump active generation and clear success evidence before cache mutation."""
     now = _ensure_utc(now)
+    supersede_subscription_refresh_failures(subscription)
     generation = int(subscription.coverage_active_generation or 0) + 1
     subscription.coverage_active_generation = generation
     subscription.coverage_success_at = None
@@ -93,6 +113,7 @@ def commit_subscription_coverage_success(
     subscription.coverage_token_fingerprint = token_fingerprint(sync_token)
     subscription.coverage_last_failure_at = None
     subscription.coverage_last_failure_cause = None
+    supersede_subscription_refresh_failures(subscription)
 
 
 def record_subscription_refresh_failure(

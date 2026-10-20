@@ -12,7 +12,12 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.models import CalendarAccount, CalendarSubscription, UserSettings
+from app.models import (
+    CalendarAccount,
+    CalendarSubscription,
+    CalendarSubscriptionRefreshFailure,
+    UserSettings,
+)
 from app.models.enums import CalendarProvider
 from app.scheduler.free_busy import FreeBusyDiagnostic
 from app.scheduler.horizon import compute_horizon
@@ -108,14 +113,53 @@ def proposal_padded_coverage_window(
     return min(starts) - pad, max(ends) + pad
 
 
-def _failure_blocks_readiness(subscription: CalendarSubscription) -> bool:
-    failure_at = subscription.coverage_last_failure_at
+def _effective_failure(
+    subscription: CalendarSubscription,
+    sidecar: tuple[datetime, str] | None,
+) -> tuple[datetime | None, str | None]:
+    """Latest of the row failure columns and the durable sidecar, if any."""
+    best_at: datetime | None = None
+    best_cause: str | None = None
+    candidates: list[tuple[datetime, str | None]] = []
+    if subscription.coverage_last_failure_at is not None:
+        candidates.append(
+            (subscription.coverage_last_failure_at, subscription.coverage_last_failure_cause)
+        )
+    if sidecar is not None:
+        candidates.append(sidecar)
+    for failure_at, cause in candidates:
+        failure_utc = _ensure_utc(failure_at)
+        if best_at is None or failure_utc >= best_at:
+            best_at = failure_utc
+            best_cause = cause or "calendar_refresh_failed"
+    return best_at, best_cause
+
+
+def _failure_blocks_readiness(
+    subscription: CalendarSubscription,
+    sidecar: tuple[datetime, str] | None = None,
+) -> bool:
+    failure_at, _cause = _effective_failure(subscription, sidecar)
     success_at = subscription.coverage_success_at
     if failure_at is None:
         return False
     if success_at is None:
         return True
-    return _ensure_utc(failure_at) >= _ensure_utc(success_at)
+    return failure_at >= _ensure_utc(success_at)
+
+
+def _load_sidecar_failures(
+    db: Session,
+    subscription_ids: list[UUID],
+) -> dict[UUID, tuple[datetime, str]]:
+    if not subscription_ids:
+        return {}
+    rows = (
+        db.query(CalendarSubscriptionRefreshFailure)
+        .filter(CalendarSubscriptionRefreshFailure.subscription_id.in_(subscription_ids))
+        .all()
+    )
+    return {row.subscription_id: (row.failure_at, row.cause) for row in rows}
 
 
 def _subscription_label(subscription: CalendarSubscription) -> str:
@@ -166,6 +210,7 @@ def _evaluate_one_subscription(
     now_utc: datetime,
     required_start: datetime,
     required_end: datetime,
+    sidecar: tuple[datetime, str] | None = None,
 ) -> FreeBusyDiagnostic | None:
     name = _subscription_label(subscription)
     horizon_label = f"{required_start.isoformat()} – {required_end.isoformat()}"
@@ -184,9 +229,11 @@ def _evaluate_one_subscription(
             recovery=_recovery_for("microsoft_coverage_unverified"),
         )
 
-    if _failure_blocks_readiness(subscription):
+    if _failure_blocks_readiness(subscription, sidecar):
+        _failure_at, failure_cause = _effective_failure(subscription, sidecar)
+        cause = failure_cause or "calendar_refresh_failed"
         return FreeBusyDiagnostic(
-            cause=subscription.coverage_last_failure_cause or "calendar_refresh_failed",
+            cause=cause,
             calendar_name=name,
             event_title="(subscription)",
             event_id=str(subscription.id),
@@ -194,7 +241,7 @@ def _evaluate_one_subscription(
             end=None,
             blocking_current_proposal=True,
             affected_horizon=horizon_label,
-            recovery=_recovery_for(subscription.coverage_last_failure_cause or "calendar_refresh_failed"),
+            recovery=_recovery_for(cause),
         )
 
     success_at = subscription.coverage_success_at
@@ -313,6 +360,7 @@ def evaluate_calendar_freshness(
         .all()
     )
 
+    sidecar_by_sub = _load_sidecar_failures(db, [subscription.id for subscription, _account in rows])
     blocking: list[FreeBusyDiagnostic] = []
     for subscription, account in rows:
         diag = _evaluate_one_subscription(
@@ -321,6 +369,7 @@ def evaluate_calendar_freshness(
             now_utc=now_utc,
             required_start=required_start,
             required_end=required_end,
+            sidecar=sidecar_by_sub.get(subscription.id),
         )
         if diag is not None:
             blocking.append(diag)

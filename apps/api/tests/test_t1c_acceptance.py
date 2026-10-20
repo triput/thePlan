@@ -28,6 +28,7 @@ from app.db import SessionLocal, engine
 from app.models import (
     CalendarAccount,
     CalendarSubscription,
+    CalendarSubscriptionRefreshFailure,
     ExternalCalendarEvent,
     SchedulePreview,
     ScheduleRun,
@@ -932,6 +933,159 @@ def test_t1c_autonomous_failure_commit_leaves_caller_state(
                 after.close()
         finally:
             event.remove(engine, "before_cursor_execute", _capture_lock_timeout)
+
+
+def test_t1c_flushed_row_lock_failure_stays_closed_after_rollback(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Flushed edit locks the subscription row; sidecar still fail-closes after rollback."""
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-row-lock",
+        summary="Row Lock",
+        cursor="row-lock-cursor",
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        _owner, _settings_row, account, sub = _load_committed(db_session, fx)
+        sub.summary = "FLUSHED ROW LOCK"
+        db_session.flush()
+
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "get_valid_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(
+                ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+            ),
+        )
+
+        with pytest.raises(ApiError):
+            gcal.sync_account_events(
+                db_session,
+                settings=_settings(),
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
+
+        assert sub.summary == "FLUSHED ROW LOCK"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, fx.sub_id)
+            owner = verify.get(User, fx.owner_id)
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            sidecar = (
+                verify.query(CalendarSubscriptionRefreshFailure)
+                .filter(CalendarSubscriptionRefreshFailure.subscription_id == fx.sub_id)
+                .one()
+            )
+            assert durable is not None and owner is not None
+            assert durable.summary == fx.summary
+            assert durable.sync_cursor == fx.prior_cursor
+            assert durable.coverage_success_at is not None
+            assert durable.coverage_last_failure_at is None
+            assert sidecar.cause == "calendar_refresh_failed"
+            assert sidecar.failure_at is not None
+            trust = evaluate_calendar_freshness(verify, owner.id, settings, sync_now)
+            assert trust.ok is False
+            assert "calendar_refresh_failed" in _causes(trust)
+
+            # A later success mint in this transaction clears the sidecar.
+            # Rolling that back would restore it; committing retires it.
+            from app.services.calendar_coverage import commit_subscription_coverage_success
+
+            success_now = sync_now + timedelta(minutes=1)
+            commit_subscription_coverage_success(
+                durable,
+                now=success_now,
+                window_start=durable.coverage_window_start,
+                window_end=durable.coverage_window_end,
+                mode=durable.coverage_mode or "full",
+                pagination_complete=True,
+                page_count=int(durable.coverage_page_count or 1),
+                item_count=int(durable.coverage_item_count or 0),
+                show_deleted=True,
+                single_events=True,
+                sync_token=durable.sync_cursor,
+                generation=int(durable.coverage_active_generation or 0),
+            )
+            verify.commit()
+            assert (
+                verify.query(CalendarSubscriptionRefreshFailure)
+                .filter(CalendarSubscriptionRefreshFailure.subscription_id == fx.sub_id)
+                .count()
+                == 0
+            )
+            recovered = evaluate_calendar_freshness(verify, owner.id, settings, success_now)
+            assert recovered.ok is True
+        finally:
+            verify.close()
+
+
+def test_t1c_unflushed_summary_survives_autonomous_failure_persist(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Autonomous persist must not expire caller attrs it does not write."""
+    with _committed_google_calendar(
+        db_session,
+        calendar_id="dex-narrow-expire",
+        summary="Narrow Expire",
+        cursor="narrow-cursor",
+    ) as fx:
+        sync_now = fx.mint_now + timedelta(seconds=1)
+        _owner, _settings_row, account, sub = _load_committed(db_session, fx)
+        sub.summary = "CALLER EDIT"
+
+        _patch_gcal_clock(monkeypatch, sync_now)
+        monkeypatch.setattr(
+            gcal,
+            "get_valid_access_token",
+            lambda *_a, **_k: (_ for _ in ()).throw(
+                ApiError(502, "Synthetic auth failure", "SYNTHETIC_AUTH")
+            ),
+        )
+
+        with pytest.raises(ApiError):
+            gcal.sync_account_events(
+                db_session,
+                settings=_settings(),
+                account=account,
+                time_min=fx.gate_start,
+                time_max=fx.gate_end,
+            )
+
+        assert sub.summary == "CALLER EDIT"
+        assert "summary" not in gcal._FAILURE_PERSIST_EXPIRE_ATTRS
+        assert "sync_cursor" not in gcal._FAILURE_PERSIST_EXPIRE_ATTRS
+        mid = SessionLocal()
+        try:
+            durable = mid.get(CalendarSubscription, fx.sub_id)
+            assert durable is not None
+            assert durable.summary == fx.summary
+            assert durable.coverage_last_failure_at is not None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+        finally:
+            mid.close()
+        # Reading the reloaded failure column must not drop the pending edit.
+        assert sub.coverage_last_failure_at is not None
+        assert sub.summary == "CALLER EDIT"
+        db_session.rollback()
+
+        after = SessionLocal()
+        try:
+            durable = after.get(CalendarSubscription, fx.sub_id)
+            owner = after.get(User, fx.owner_id)
+            settings = after.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            assert durable is not None and owner is not None
+            assert durable.summary == fx.summary
+            assert durable.coverage_last_failure_at is not None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            trust = evaluate_calendar_freshness(after, owner.id, settings, sync_now)
+            assert trust.ok is False
+            assert "calendar_refresh_failed" in _causes(trust)
+        finally:
+            after.close()
 
 
 def test_t1_8_pagination_flag_false_blocks_even_if_young(db_session: Session) -> None:

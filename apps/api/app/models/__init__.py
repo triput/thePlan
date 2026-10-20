@@ -1,7 +1,12 @@
 """SQLAlchemy ORM models — domain modules with barrel re-exports."""
 
 from app.models.availability import AvailabilityPolicy, AvailabilityWindow
-from app.models.calendar import CalendarAccount, CalendarSubscription, ExternalCalendarEvent
+from app.models.calendar import (
+    CalendarAccount,
+    CalendarSubscription,
+    CalendarSubscriptionRefreshFailure,
+    ExternalCalendarEvent,
+)
 from app.models.enums import (
     AvailabilityPolicySlug,
     CalendarProvider,
@@ -47,6 +52,7 @@ __all__ = [
     "CalendarAccount",
     "CalendarProvider",
     "CalendarSubscription",
+    "CalendarSubscriptionRefreshFailure",
     "AvailabilityPolicy",
     "AvailabilityPolicySlug",
     "AvailabilityWindow",
