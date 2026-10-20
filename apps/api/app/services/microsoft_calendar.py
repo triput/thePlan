@@ -926,6 +926,31 @@ def _row_has_usable_bounds(row: ExternalCalendarEvent) -> bool:
     return end > start
 
 
+def _microsoft_payload_supplies_times(event: dict[str, Any]) -> bool:
+    """True when the Graph payload includes ``start`` and/or ``end`` keys.
+
+    Distinguishes omit-times partial updates (keys absent) from payloads that
+    supplied time fields but failed to yield a trusted interval (invalid range
+    or unresolvable parse). Presence of the key is enough — empty or malformed
+    objects still count as supplied.
+    """
+    return "start" in event or "end" in event
+
+
+def _parse_microsoft_event_times_for_upsert(
+    event: dict[str, Any],
+    *,
+    calendar_timezone: str | None,
+) -> ParsedEventBounds | None:
+    """Parse times for upsert; treat unresolvable supplied clocks as None."""
+    try:
+        return parse_microsoft_event_times(
+            event, calendar_timezone=calendar_timezone
+        )
+    except (ValueError, TypeError, IndeterminateLocalTime):
+        return None
+
+
 def _upsert_external_event(
     db: Session,
     *,
@@ -943,7 +968,8 @@ def _upsert_external_event(
     if row is not None and row.pending_deletion:
         return False
 
-    times = parse_microsoft_event_times(
+    times_supplied = _microsoft_payload_supplies_times(event)
+    times = _parse_microsoft_event_times_for_upsert(
         event, calendar_timezone=subscription.provider_timezone
     )
     times_ok = times is not None and times.end > times.start
@@ -952,12 +978,7 @@ def _upsert_external_event(
     # Graph calls omit event $select (see microsoft_event_list_omits_event_select).
     complete_representation = times_ok
 
-    if not times_ok:
-        # Incomplete update: preserve known bounds on an existing row; never
-        # fabricate times or leave falsely trusted free without a transparency pass.
-        if row is None or not _row_has_usable_bounds(row):
-            return False
-    else:
+    if times_ok:
         assert times is not None  # times_ok
         if row is None:
             row = ExternalCalendarEvent(
@@ -975,6 +996,30 @@ def _upsert_external_event(
         row.is_all_day = times.is_all_day
         row.source_zone_missing = times.source_zone_missing
         row.source_timezone = times.source_timezone
+    elif times_supplied:
+        # Supplied start/end but invalid (end<=start / equal / reversed) or
+        # unresolvable parse. Retain historical bounds as evidence when present,
+        # but fail closed on trust — never honor showAs as provider_explicit
+        # opaque busy at the prior interval.
+        if row is None or not _row_has_usable_bounds(row):
+            return False
+        row.calendar_account_id = account.id
+        if "subject" in event:
+            row.title = (event.get("subject") or "Busy")[:500]
+        row.calendar_id = subscription.external_calendar_id
+        row.last_synced_at = now
+        apply_transparency_update(
+            row,
+            stored=None,
+            provenance="unknown_projection",
+            sync_run_id=sync_run_id,
+        )
+        return True
+    else:
+        # Omit-times incomplete update: preserve known bounds; apply showAs
+        # when present; omitted showAs → unknown_projection via resolver.
+        if row is None or not _row_has_usable_bounds(row):
+            return False
 
     row.calendar_account_id = account.id
     if "subject" in event or times_ok:

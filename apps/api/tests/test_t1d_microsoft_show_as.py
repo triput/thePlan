@@ -893,3 +893,181 @@ def test_db_transitions_free_busy_unknown_and_incomplete_omit(
     assert len(row.free_busy_change_history or []) >= 4
     assert row.free_busy_change_history[0]["sync_run_id"] == "seed-run"
     assert row.free_busy_change_history[-1]["to_provenance"] == "unknown_projection"
+
+
+def _invalid_range_graph_event(
+    *,
+    start_dt: str,
+    end_dt: str,
+    show_as: str = "busy",
+    external_id: str,
+) -> dict:
+    """Graph-shaped payload with supplied start/end (may be invalid/reversed)."""
+    return {
+        "id": external_id,
+        "showAs": show_as,
+        "start": {"dateTime": start_dt, "timeZone": "UTC"},
+        "end": {"dateTime": end_dt, "timeZone": "UTC"},
+    }
+
+
+def test_db_invalid_reversed_bounds_fail_closed_trust(
+    disposable_db: None, db_session: Session
+) -> None:
+    """Dex residual: start=20:00/end=19:00 + showAs=busy must not keep trusted busy."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-inv-rev-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="opaque",
+        provenance="provider_explicit",
+        title="Prior busy block",
+    )
+    prior_start = seeded.start_time
+    prior_end = seeded.end_time
+    prior_history_len = len(seeded.free_busy_change_history or [])
+
+    ok = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event=_invalid_range_graph_event(
+            start_dt="2026-10-19T20:00:00",
+            end_dt="2026-10-19T19:00:00",
+            show_as="busy",
+            external_id=external_id,
+        ),
+        now=datetime(2026, 10, 20, 11, 0, tzinfo=UTC),
+        sync_run_id="ms-invalid-reversed",
+    )
+    assert ok is True
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    # Historical bounds retained as evidence — not rewritten to the invalid range.
+    assert row.start_time == prior_start == SEED_START
+    assert row.end_time == prior_end == SEED_END
+    assert row.start_time != datetime(2026, 10, 19, 20, 0, tzinfo=UTC)
+    # Fail closed on trust: showAs alone must not leave opaque/provider_explicit.
+    assert row.transparency is None
+    assert row.free_busy_provenance == "unknown_projection"
+    assert row.free_busy_prior_transparency == "opaque"
+    assert row.free_busy_prior_provenance == "provider_explicit"
+    assert row.free_busy_sync_run_id == "ms-invalid-reversed"
+    assert len(row.free_busy_change_history or []) == prior_history_len + 1
+    assert (
+        effective_free_busy_kind(
+            transparency=row.transparency, provenance=row.free_busy_provenance
+        )
+        == "unknown"
+    )
+    assert events_for_busy_merge([row]) == []
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+
+
+def test_db_invalid_equal_bounds_fail_closed_trust(
+    disposable_db: None, db_session: Session
+) -> None:
+    """Equal start/end is supplied-invalid, not omit-times."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-inv-eq-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+
+    ok = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event=_invalid_range_graph_event(
+            start_dt="2026-10-19T18:00:00",
+            end_dt="2026-10-19T18:00:00",
+            show_as="busy",
+            external_id=external_id,
+        ),
+        now=datetime(2026, 10, 20, 11, 5, tzinfo=UTC),
+        sync_run_id="ms-invalid-equal",
+    )
+    assert ok is True
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.start_time == SEED_START
+    assert row.end_time == SEED_END
+    assert row.transparency is None
+    assert row.free_busy_provenance == "unknown_projection"
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_unresolvable_supplied_times_fail_closed_trust(
+    disposable_db: None, db_session: Session
+) -> None:
+    """Time keys present but unparseable → fail closed; omit-times path untouched."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-inv-unres-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="opaque",
+        provenance="provider_explicit",
+    )
+
+    ok = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event={
+            "id": external_id,
+            "showAs": "busy",
+            "start": {"dateTime": "not-a-graph-datetime", "timeZone": "UTC"},
+            "end": {"dateTime": "also-not-valid", "timeZone": "UTC"},
+        },
+        now=datetime(2026, 10, 20, 11, 10, tzinfo=UTC),
+        sync_run_id="ms-invalid-unresolvable",
+    )
+    assert ok is True
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.start_time == SEED_START
+    assert row.end_time == SEED_END
+    assert row.transparency is None
+    assert row.free_busy_provenance == "unknown_projection"
+    assert row.free_busy_prior_provenance == "provider_explicit"
+    assert events_for_busy_merge([row]) == []
+
+    # Contrast: omit-times + explicit showAs still maps (prior Dex residual).
+    ok_omit = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event={"id": external_id, "showAs": "busy"},
+        now=datetime(2026, 10, 20, 11, 11, tzinfo=UTC),
+        sync_run_id="ms-omit-after-invalid",
+    )
+    assert ok_omit is True
+    db_session.flush()
+    db_session.expire(row)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.transparency == "opaque"
+    assert row.free_busy_provenance == "provider_explicit"
+    assert row.start_time == SEED_START
+    assert row.end_time == SEED_END
+    assert events_for_busy_merge([row]) == [row]
