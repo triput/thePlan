@@ -517,6 +517,69 @@ def test_t1c_token_refresh_transport_failure_persists_after_rollback(
     assert "Token Timeout" in _names(trust)
 
 
+def test_t1c_pre_pull_failure_does_not_commit_unrelated_caller_transaction(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """google_oauth_callback pattern: failure markers persist; caller tx rolls back."""
+    owner, settings = _owner(db_session)
+    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    sync_now = mint_now + timedelta(seconds=1)
+    gate_start, gate_end = required_coverage_window(settings, mint_now)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-oauth-tx", summary="OAuth Tx")
+    prior_cursor = "oauth-cursor"
+    sub.sync_cursor = prior_cursor
+    _mint(
+        sub,
+        now=mint_now,
+        start=gate_start - timedelta(days=1),
+        end=gate_end + timedelta(days=1),
+    )
+    cfg = _settings()
+    prior_token = account.access_token_enc
+    prior_display = owner.display_name
+    owner_id = owner.id
+    account_id = account.id
+    sub_id = sub.id
+
+    db_session.flush()
+
+    owner.display_name = "MUST NOT COMMIT WITH FAILURE"
+    account.access_token_enc = encrypt_token(cfg, "oauth-pending-access")
+    account.token_expires_at = mint_now - timedelta(minutes=1)
+
+    _patch_gcal_clock(monkeypatch, sync_now)
+    monkeypatch.setattr(
+        gcal,
+        "refresh_access_token",
+        lambda *_a, **_k: (_ for _ in ()).throw(httpx.ReadTimeout("Synthetic token timeout")),
+    )
+
+    with pytest.raises(httpx.ReadTimeout):
+        gcal.sync_account_events(
+            db_session,
+            settings=cfg,
+            account=account,
+            time_min=gate_start,
+            time_max=gate_end,
+        )
+
+    db_session.rollback()
+    db_session.expire_all()
+
+    owner = db_session.get(User, owner_id)
+    account = db_session.get(CalendarAccount, account_id)
+    sub = db_session.get(CalendarSubscription, sub_id)
+    assert owner is not None
+    assert account is not None
+    assert sub is not None
+    assert owner.display_name == prior_display
+    assert account.access_token_enc == prior_token
+    assert sub.sync_cursor == prior_cursor
+    assert sub.coverage_last_failure_at is not None
+    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+
+
 def test_t1_8_pagination_flag_false_blocks_even_if_young(db_session: Session) -> None:
     owner, settings = _owner(db_session)
     now = datetime.now(UTC)

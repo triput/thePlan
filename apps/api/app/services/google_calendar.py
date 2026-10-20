@@ -973,16 +973,39 @@ def _commit_pre_pull_refresh_failure(
     """Persist not-ready evidence when auth fails before any subscription pull.
 
     Does not clear cache rows or sync cursors — only failure markers are committed.
+    Commits only subscription failure markers — detaches other pending caller objects
+    (e.g. OAuth token upsert) so they stay in the caller transaction.
     """
     from app.services.calendar_coverage import record_subscription_refresh_failure
 
+    subscription_ids = {subscription.id for subscription in subscriptions}
+    detached: list[object] = []
+
+    for obj in list(db.identity_map.values()):
+        if isinstance(obj, CalendarSubscription) and obj.id in subscription_ids:
+            continue
+        if obj in db.dirty or obj in db.new:
+            detached.append(obj)
+            db.expunge(obj)
+
+    wrote_failure = False
     for subscription in subscriptions:
         if subscription.coverage_success_at is not None:
             record_subscription_refresh_failure(subscription, now=now, cause=cause)
+            wrote_failure = True
         elif subscription.coverage_last_failure_at is None:
             record_subscription_refresh_failure(subscription, now=now, cause=cause)
-    db.flush()
+            wrote_failure = True
+
+    if not wrote_failure:
+        for obj in detached:
+            db.add(obj)
+        return
+
     db.commit()
+
+    for obj in detached:
+        db.add(obj)
 
 
 def _commit_refresh_failure(

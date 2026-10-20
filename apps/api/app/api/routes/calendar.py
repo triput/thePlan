@@ -6,6 +6,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session
@@ -315,15 +316,20 @@ def google_oauth_callback(
         account_email=email,
         token_payload=tokens,
     )
-    now = datetime.now(timezone.utc)
-    sync_google_account_events(
-        db,
-        settings=settings,
-        account=account,
-        time_min=now - timedelta(days=7),
-        time_max=now + timedelta(days=21),
-    )
     db.commit()
+    now = datetime.now(timezone.utc)
+    try:
+        sync_google_account_events(
+            db,
+            settings=settings,
+            account=account,
+            time_min=now - timedelta(days=7),
+            time_max=now + timedelta(days=21),
+        )
+    except (ApiError, httpx.TransportError):
+        db.rollback()
+    else:
+        db.commit()
     return RedirectResponse(url=f"{frontend}/?gcal=connected", status_code=302)
 
 
