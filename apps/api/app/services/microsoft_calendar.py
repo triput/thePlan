@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -167,6 +168,94 @@ def build_authorize_url(config: MicrosoftOAuthConfig, state: str) -> str:
     return f"{_authorize_url(config.tenant_id)}?{urlencode(params)}"
 
 
+def _decode_json_object(
+    response: httpx.Response,
+    *,
+    detail: str,
+    code: str,
+) -> dict[str, Any]:
+    """Decode a JSON object body. Invalid JSON / non-objects become ApiError."""
+    try:
+        payload = response.json()
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise ApiError(
+            502,
+            detail,
+            code,
+            body=(response.text or "")[:500],
+        ) from exc
+    if not isinstance(payload, dict):
+        raise ApiError(
+            502,
+            detail,
+            code,
+            body=(response.text or "")[:500],
+        )
+    return payload
+
+
+def _odata_link(payload: dict[str, Any], key: str) -> str | None:
+    """Return a next/delta URL only when absent or a non-empty string.
+
+    Null / non-string pagination metadata must not invent drain or followables.
+    """
+    if key not in payload:
+        return None
+    value = payload[key]
+    if value is None:
+        raise ApiError(
+            502,
+            f"Microsoft Graph page has null {key}",
+            "MICROSOFT_GRAPH_PAGE_MALFORMED",
+        )
+    if not isinstance(value, str) or not value.strip():
+        raise ApiError(
+            502,
+            f"Microsoft Graph page has non-string {key}",
+            "MICROSOFT_GRAPH_PAGE_MALFORMED",
+        )
+    return value
+
+
+def _graph_collection_page(
+    response: httpx.Response,
+    *,
+    list_error_code: str,
+    list_error_detail: str,
+) -> tuple[list[Any], str | None, str | None]:
+    """Validate one Graph collection page: object with required list ``value``.
+
+    Genuine ``value: []`` is valid. Missing ``value``, null, or a non-list must
+    not be coerced to an empty collection (that would mint empty coverage /
+    soft-cancel as though absence were proven). Malformed ``@odata.nextLink`` /
+    ``@odata.deltaLink`` also fail closed.
+    """
+    del list_error_code  # HTTP errors keep the list code; decode/shape use page-malformed.
+    payload = _decode_json_object(
+        response,
+        detail=list_error_detail,
+        code="MICROSOFT_GRAPH_PAGE_MALFORMED",
+    )
+    if "value" not in payload:
+        raise ApiError(
+            502,
+            f"{list_error_detail}: collection page missing value",
+            "MICROSOFT_GRAPH_PAGE_MALFORMED",
+            body=(response.text or "")[:500],
+        )
+    value = payload["value"]
+    if not isinstance(value, list):
+        raise ApiError(
+            502,
+            f"{list_error_detail}: collection value is not a list",
+            "MICROSOFT_GRAPH_PAGE_MALFORMED",
+            body=(response.text or "")[:500],
+        )
+    return value, _odata_link(payload, "@odata.nextLink"), _odata_link(
+        payload, "@odata.deltaLink"
+    )
+
+
 def exchange_code_for_tokens(config: MicrosoftOAuthConfig, code: str) -> dict[str, Any]:
     with httpx.Client(timeout=30.0) as client:
         response = client.post(
@@ -187,7 +276,11 @@ def exchange_code_for_tokens(config: MicrosoftOAuthConfig, code: str) -> dict[st
             "MICROSOFT_TOKEN_EXCHANGE",
             body=response.text[:500],
         )
-    return response.json()
+    return _decode_json_object(
+        response,
+        detail="Microsoft token exchange returned invalid JSON",
+        code="MICROSOFT_TOKEN_EXCHANGE",
+    )
 
 
 def refresh_access_token(config: MicrosoftOAuthConfig, refresh_token: str) -> dict[str, Any]:
@@ -209,7 +302,11 @@ def refresh_access_token(config: MicrosoftOAuthConfig, refresh_token: str) -> di
             "MICROSOFT_TOKEN_REFRESH",
             body=response.text[:500],
         )
-    return response.json()
+    return _decode_json_object(
+        response,
+        detail="Microsoft token refresh returned invalid JSON",
+        code="MICROSOFT_TOKEN_REFRESH",
+    )
 
 
 def fetch_microsoft_email(access_token: str) -> str | None:
@@ -565,11 +662,14 @@ def _graph_collect(
                     list_error_code,
                     body=response.text[:500],
                 )
-            payload = response.json()
-            items.extend(payload.get("value") or [])
-            next_link = payload.get("@odata.nextLink")
-            if payload.get("@odata.deltaLink"):
-                delta_link = str(payload["@odata.deltaLink"])
+            page_items, next_link, page_delta = _graph_collection_page(
+                response,
+                list_error_code=list_error_code,
+                list_error_detail=list_error_detail,
+            )
+            items.extend(page_items)
+            if page_delta:
+                delta_link = page_delta
             if not next_link:
                 next_url = None
                 break
@@ -578,7 +678,7 @@ def _graph_collect(
                 delta_link = None
                 next_url = None
                 break
-            next_url = str(next_link)
+            next_url = next_link
             next_params = None
     if page_stats is not None:
         page_stats.page_count = page_count
@@ -1431,7 +1531,8 @@ def sync_account_events(
     )
     try:
         access = get_valid_access_token(db, settings=settings, account=account)
-    except (ApiError, httpx.TransportError) as exc:
+    except (ApiError, httpx.TransportError, json.JSONDecodeError) as exc:
+        # JSONDecodeError: auth token-body parse if a helper missed ApiError wrap.
         _commit_pre_pull_refresh_failure(
             db,
             subscriptions,
@@ -1462,7 +1563,14 @@ def sync_account_events(
                 time_min=time_min,
                 time_max=time_max,
             )
-        except (ApiError, httpx.TransportError, MicrosoftDeltaExpired) as exc:
+        except (
+            ApiError,
+            httpx.TransportError,
+            MicrosoftDeltaExpired,
+            json.JSONDecodeError,
+        ) as exc:
+            # Shape/decode failures become ApiError in _graph_collect; JSONDecodeError
+            # remains as a durable-unreadiness belt for any missed wrap.
             _commit_refresh_failure(
                 db,
                 subscription,

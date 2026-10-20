@@ -1101,6 +1101,331 @@ def test_e15c_unflushed_summary_survives_narrow_expire(
             verify.close()
 
 
+# --- Dex bounce: response shape / decode (0653bd7) ------------------------------
+
+
+def test_dex_missing_value_does_not_mint_empty_ms_view(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """HTTP 200 ``{}`` must not coerce to empty ``value`` and mint success."""
+    with _committed_ms(db_session, calendars=[("cal-dex-missing", "Missing")]) as fx:
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        start = fx.window_start + timedelta(hours=3)
+        seed = SessionLocal()
+        try:
+            account_row = seed.get(CalendarAccount, fx.account_id)
+            assert account_row is not None
+            kept = _seed_busy(
+                seed,
+                account=account_row,
+                calendar_id="cal-dex-missing",
+                external_id="dex-kept-missing",
+                start=start,
+                end=start + timedelta(hours=1),
+            )
+            kept_id = kept.id
+            seed.commit()
+        finally:
+            seed.close()
+        _patch_token(monkeypatch)
+        _patch_httpx(monkeypatch, lambda _request: httpx.Response(200, json={}))
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, sub.id)
+            row = (
+                verify.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == "dex-kept-missing")
+                .one()
+            )
+            assert durable is not None
+            assert durable.coverage_success_at is None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            assert row.is_provider_cancelled is False
+            assert row.id == kept_id
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+        finally:
+            verify.close()
+
+
+def test_dex_null_value_does_not_mint(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _committed_ms(db_session, calendars=[("cal-dex-null", "Null value")]) as fx:
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        _patch_token(monkeypatch)
+        _patch_httpx(
+            monkeypatch,
+            lambda _request: httpx.Response(200, json={"value": None}),
+        )
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, sub.id)
+            assert durable is not None
+            assert durable.coverage_success_at is None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+        finally:
+            verify.close()
+
+
+def test_dex_non_list_value_does_not_mint(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _committed_ms(db_session, calendars=[("cal-dex-obj-value", "Object value")]) as fx:
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        _patch_token(monkeypatch)
+        _patch_httpx(
+            monkeypatch,
+            lambda _request: httpx.Response(200, json={"value": {"id": "nope"}}),
+        )
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, sub.id)
+            assert durable is not None
+            assert durable.coverage_success_at is None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+        finally:
+            verify.close()
+
+
+def test_dex_genuine_empty_value_list_mints(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A drained page with ``value: []`` is a proven empty window — mint stays valid."""
+    with _committed_ms(db_session, calendars=[("cal-dex-empty", "Empty")], mint=False) as fx:
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        _patch_token(monkeypatch)
+        _patch_httpx(
+            monkeypatch,
+            lambda _request: httpx.Response(200, json={"value": []}),
+        )
+        assert _sync(db_session, account, fx.window_start, fx.window_end) == 0
+        db_session.refresh(sub)
+        assert sub.coverage_mode == "ms_view"
+        assert sub.coverage_item_count == 0
+        assert sub.coverage_success_at is not None
+        trust = evaluate_calendar_freshness(
+            db_session, fx.owner_id, _settings_row, datetime.now(UTC)
+        )
+        assert trust.ok is True
+
+
+def test_dex_invalid_json_initial_page_is_durable_unreadiness(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _committed_ms(db_session, calendars=[("cal-dex-json", "Bad JSON")]) as fx:
+        owner, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        owner.display_name = "MUST NOT COMMIT WITH FAILURE"
+        start = fx.window_start + timedelta(hours=4)
+        seed = SessionLocal()
+        try:
+            account_row = seed.get(CalendarAccount, fx.account_id)
+            assert account_row is not None
+            _seed_busy(
+                seed,
+                account=account_row,
+                calendar_id="cal-dex-json",
+                external_id="dex-kept-json",
+                start=start,
+                end=start + timedelta(hours=1),
+            )
+            seed.commit()
+        finally:
+            seed.close()
+        _patch_token(monkeypatch)
+        _patch_httpx(
+            monkeypatch,
+            lambda _request: httpx.Response(200, content=b"not json"),
+        )
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+        assert owner.display_name == "MUST NOT COMMIT WITH FAILURE"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, sub.id)
+            user = verify.get(User, fx.owner_id)
+            row = (
+                verify.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == "dex-kept-json")
+                .one()
+            )
+            assert durable is not None and user is not None
+            assert user.display_name == fx.prior_display
+            assert durable.coverage_success_at is None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            assert row.is_provider_cancelled is False
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+        finally:
+            verify.close()
+
+
+def test_dex_malformed_later_page_is_durable_unreadiness(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _committed_ms(db_session, calendars=[("cal-dex-later", "Later page")]) as fx:
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        _patch_token(monkeypatch)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "skiptoken" in str(request.url):
+                return httpx.Response(200, json={})
+            return httpx.Response(
+                200,
+                json={
+                    "value": [
+                        {
+                            "id": "should-not-stick",
+                            "subject": "Partial",
+                            "showAs": "busy",
+                            "start": {"dateTime": "2026-10-20T15:00:00", "timeZone": "UTC"},
+                            "end": {"dateTime": "2026-10-20T16:00:00", "timeZone": "UTC"},
+                        }
+                    ],
+                    "@odata.nextLink": (
+                        "https://graph.microsoft.com/v1.0/me/calendars/cal-dex-later/"
+                        "calendarView?$skiptoken=2"
+                    ),
+                },
+            )
+
+        _patch_httpx(monkeypatch, handler)
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, sub.id)
+            assert durable is not None
+            assert durable.coverage_success_at is None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            assert (
+                verify.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == "should-not-stick")
+                .count()
+                == 0
+            )
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+        finally:
+            verify.close()
+
+
+def test_dex_invalid_json_later_page_is_durable_unreadiness(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _committed_ms(db_session, calendars=[("cal-dex-later-json", "Later JSON")]) as fx:
+        _owner_row, _settings_row, account, subs = _load(db_session, fx)
+        sub = subs[0]
+        _patch_token(monkeypatch)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "skiptoken" in str(request.url):
+                return httpx.Response(200, content=b"{broken")
+            return httpx.Response(
+                200,
+                json={
+                    "value": [{"id": "page-1-only", "subject": "P1", "showAs": "busy"}],
+                    "@odata.nextLink": (
+                        "https://graph.microsoft.com/v1.0/me/calendars/cal-dex-later-json/"
+                        "calendarView?$skiptoken=2"
+                    ),
+                },
+            )
+
+        _patch_httpx(monkeypatch, handler)
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_GRAPH_PAGE_MALFORMED"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            durable = verify.get(CalendarSubscription, sub.id)
+            assert durable is not None
+            assert durable.coverage_success_at is None
+            assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            assert (
+                verify.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == "page-1-only")
+                .count()
+                == 0
+            )
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+        finally:
+            verify.close()
+
+
+def test_dex_auth_token_invalid_json_marks_all_enabled_subs(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Auth parse seam: invalid token JSON → durable unreadiness on every enabled sub."""
+    with _committed_ms(
+        db_session,
+        calendars=[("cal-dex-auth-a", "Auth A"), ("cal-dex-auth-b", "Auth B")],
+    ) as fx:
+        _owner_row, _settings_row, account, _subs = _load(db_session, fx)
+        # Force refresh path so token-body decode runs.
+        account.token_expires_at = datetime(2000, 1, 1, tzinfo=UTC)
+        account.refresh_token_enc = encrypt_token(_settings(), "refresh-dex-auth")
+        db_session.flush()
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if "oauth2/v2.0/token" in str(request.url):
+                return httpx.Response(200, content=b"not-a-token-json")
+            raise AssertionError(f"unexpected request {request.url}")
+
+        _patch_httpx(monkeypatch, handler)
+        with pytest.raises(ApiError) as raised:
+            _sync(db_session, account, fx.window_start, fx.window_end)
+        assert raised.value.content["code"] == "MICROSOFT_TOKEN_REFRESH"
+        db_session.rollback()
+        verify = SessionLocal()
+        try:
+            settings = verify.query(UserSettings).filter(UserSettings.owner_id == fx.owner_id).one()
+            for sub_id in fx.sub_ids:
+                durable = verify.get(CalendarSubscription, sub_id)
+                assert durable is not None
+                assert durable.coverage_success_at is None
+                assert durable.coverage_last_failure_cause == "calendar_refresh_failed"
+            trust = evaluate_calendar_freshness(verify, fx.owner_id, settings, fx.mint_now)
+            assert trust.ok is False
+            assert len(trust.blocking_diagnostics) >= 2
+        finally:
+            verify.close()
+
+
 def test_e16_one_failed_sub_blocks_the_proposal(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
