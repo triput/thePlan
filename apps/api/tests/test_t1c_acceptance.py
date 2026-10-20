@@ -33,6 +33,7 @@ from app.models import (
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
 from app.scheduler.busy_map import busy_from_sources, load_immovable_busy_sources
+from app.scheduler import calendar_freshness as cal_fresh
 from app.scheduler.calendar_freshness import (
     COVERAGE_SYNC_FETCH_HEADROOM,
     default_explicit_sync_window,
@@ -157,6 +158,17 @@ def _sub(
     db.add(row)
     db.flush()
     return row
+
+
+def _patch_gcal_clock(monkeypatch: pytest.MonkeyPatch, fixed: datetime) -> None:
+    class _FixedNow:
+        @classmethod
+        def now(cls, tz=None):
+            if tz is not None:
+                return fixed.astimezone(tz)
+            return fixed
+
+    monkeypatch.setattr(gcal, "datetime", _FixedNow)
 
 
 def _mint(
@@ -321,6 +333,7 @@ def test_t1c_default_sync_window_ready_one_second_after_sync(
     owner, settings = _owner(db_session)
     sync_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
     collect_now = sync_now + timedelta(seconds=1)
+    _patch_gcal_clock(monkeypatch, sync_now)
     account = _account(db_session, owner)
     sub = _sub(db_session, account, calendar_id="dex-headroom", summary="Headroom")
     fetch_start, fetch_end = default_explicit_sync_window(settings, sync_now)
@@ -349,6 +362,7 @@ def test_t1c_gate_only_window_without_headroom_fails_one_second_later(
     owner, settings = _owner(db_session)
     sync_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
     collect_now = sync_now + timedelta(seconds=1)
+    _patch_gcal_clock(monkeypatch, sync_now)
     account = _account(db_session, owner)
     sub = _sub(db_session, account, calendar_id="dex-narrow", summary="Narrow Fetch")
     gate_start, gate_end = required_coverage_window(settings, sync_now)
@@ -375,6 +389,7 @@ def test_t1c_default_sync_window_insufficient_beyond_fetch_headroom(
 ) -> None:
     owner, settings = _owner(db_session)
     sync_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    _patch_gcal_clock(monkeypatch, sync_now)
     account = _account(db_session, owner)
     _sub(db_session, account, calendar_id="dex-edge", summary="Fetch Edge")
     fetch_start, fetch_end = default_explicit_sync_window(settings, sync_now)
@@ -390,6 +405,9 @@ def test_t1c_default_sync_window_insufficient_beyond_fetch_headroom(
         time_max=fetch_end,
     )
 
+    # Headroom equals the age ceiling; roll collect past fetch headroom without
+    # hitting stale first so this case stays window-insufficient, not age-blocked.
+    monkeypatch.setattr(cal_fresh, "FRESHNESS_AGE_CEILING", timedelta(hours=1))
     beyond = sync_now + COVERAGE_SYNC_FETCH_HEADROOM + timedelta(seconds=1)
     trust = evaluate_calendar_freshness(db_session, owner.id, settings, beyond)
     assert trust.ok is False
@@ -417,14 +435,7 @@ def test_t1c_auth_failure_with_young_prior_marker_persists_after_rollback(
     sub_id = sub.id
     owner_id = owner.id
 
-    class _FixedNow:
-        @classmethod
-        def now(cls, tz=None):
-            if tz is not None:
-                return sync_now.astimezone(tz)
-            return sync_now
-
-    monkeypatch.setattr(gcal, "datetime", _FixedNow)
+    _patch_gcal_clock(monkeypatch, sync_now)
     monkeypatch.setattr(
         gcal,
         "get_valid_access_token",
@@ -453,6 +464,57 @@ def test_t1c_auth_failure_with_young_prior_marker_persists_after_rollback(
     trust = evaluate_calendar_freshness(db_session, owner_id, settings, sync_now)
     assert trust.ok is False
     assert "Auth Fail" in _names(trust)
+
+
+def test_t1c_token_refresh_transport_failure_persists_after_rollback(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, settings = _owner(db_session)
+    mint_now = datetime(2026, 10, 19, 12, 0, tzinfo=UTC)
+    sync_now = mint_now + timedelta(seconds=1)
+    gate_start, gate_end = required_coverage_window(settings, mint_now)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account, calendar_id="dex-transport", summary="Token Timeout")
+    prior_cursor = "stable-cursor"
+    sub.sync_cursor = prior_cursor
+    _mint(
+        sub,
+        now=mint_now,
+        start=gate_start - timedelta(days=1),
+        end=gate_end + timedelta(days=1),
+    )
+    account.token_expires_at = mint_now - timedelta(minutes=1)
+    db_session.flush()
+    sub_id = sub.id
+    owner_id = owner.id
+
+    _patch_gcal_clock(monkeypatch, sync_now)
+    monkeypatch.setattr(
+        gcal,
+        "refresh_access_token",
+        lambda *_a, **_k: (_ for _ in ()).throw(httpx.ReadTimeout("Synthetic token timeout")),
+    )
+
+    with pytest.raises(httpx.ReadTimeout):
+        gcal.sync_account_events(
+            db_session,
+            settings=_settings(),
+            account=account,
+            time_min=gate_start,
+            time_max=gate_end,
+        )
+
+    db_session.rollback()
+    db_session.expire_all()
+    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+    sub = db_session.get(CalendarSubscription, sub_id)
+    assert sub is not None
+    assert sub.sync_cursor == prior_cursor
+    assert sub.coverage_last_failure_at is not None
+    assert sub.coverage_last_failure_cause == "calendar_refresh_failed"
+    trust = evaluate_calendar_freshness(db_session, owner_id, settings, sync_now)
+    assert trust.ok is False
+    assert "Token Timeout" in _names(trust)
 
 
 def test_t1_8_pagination_flag_false_blocks_even_if_young(db_session: Session) -> None:

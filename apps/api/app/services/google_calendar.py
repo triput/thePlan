@@ -1060,7 +1060,7 @@ def sync_account_events(
 
     try:
         access = get_valid_access_token(db, settings=settings, account=account)
-    except ApiError:
+    except (ApiError, httpx.TransportError):
         _commit_pre_pull_refresh_failure(
             db,
             subscriptions,
