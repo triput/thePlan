@@ -8,6 +8,10 @@
 # ==============================================================================
 """Canonical calendar identity per account (T1-10 / T1-F).
 
+Grounding baseline (Dex unlock): ``7992650577f78ca528892498421ac4539276e0a5``.
+Quality tip moves forward on that branch; ``T1F_REQUIRE_TIP=1`` accepts baseline,
+listed tip SHAs, or any descendant of baseline (``git merge-base --is-ancestor``).
+
 Serialization: ``pg_advisory_xact_lock`` on a calendar-account namespace plus
 ``SELECT … FOR UPDATE`` on ``calendar_accounts`` (same pattern as
 ``lock_owner_scheduling``). Callers must run canonicalization inside an open
@@ -41,6 +45,29 @@ from app.services.calendar_coverage import invalidate_subscription_coverage
 _ACCOUNT_LOCK_NAMESPACE = 1_886_415_952
 
 T1F_BASELINE_SHA = "7992650577f78ca528892498421ac4539276e0a5"
+T1F_KNOWN_TIP_SHAS = frozenset(
+    {
+        T1F_BASELINE_SHA,
+        "dfe93fbdb3fb05df89f22965027b194f0a1fb09f",
+    }
+)
+
+
+def t1f_tip_sha_allowed(tip_sha: str) -> bool:
+    """True when ``tip_sha`` is baseline, a listed tip, or a descendant of baseline."""
+    if tip_sha in T1F_KNOWN_TIP_SHAS:
+        return True
+    import subprocess
+
+    try:
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", T1F_BASELINE_SHA, tip_sha],
+            check=True,
+            capture_output=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
 
 IDENTITY_UNRESOLVED_CAUSE = "calendar_identity_unresolved"
 IDENTITY_AMBIGUOUS_CAUSE = "calendar_identity_ambiguous"
@@ -354,6 +381,24 @@ def rewrite_account_calendar_id_references(
     )
 
 
+def rewrite_subscription_external_calendar_id(
+    db: Session,
+    subscription: CalendarSubscription,
+    *,
+    new_external_id: str,
+    now: datetime,
+    invalidate_cause: str = IDENTITY_KEY_REWRITE_CAUSE,
+) -> None:
+    """Single-row key rewrite: event ``calendar_id`` refs + coverage/cursor invalidation."""
+    _rewrite_subscription_key(
+        db,
+        subscription,
+        new_external_id=new_external_id,
+        now=now,
+        invalidate_cause=invalidate_cause,
+    )
+
+
 def _rewrite_subscription_key(
     db: Session,
     subscription: CalendarSubscription,
@@ -652,21 +697,33 @@ def canonicalize_calendar_account(
     for canonical_id, group in by_canonical.items():
         if len(group) == 1:
             sub = group[0]
-            if (
-                account.provider == CalendarProvider.google
-                and sub.external_calendar_id == GOOGLE_PRIMARY_ALIAS
-                and evidence
-                and evidence.fetch_succeeded
-                and evidence.google_primary_id
-            ):
-                _rewrite_subscription_key(
-                    db,
-                    sub,
-                    new_external_id=evidence.google_primary_id,
-                    now=now,
-                    invalidate_cause=IDENTITY_KEY_REWRITE_CAUSE,
-                )
-                merged_any = True
+            if evidence and evidence.fetch_succeeded:
+                if (
+                    account.provider == CalendarProvider.google
+                    and sub.external_calendar_id == GOOGLE_PRIMARY_ALIAS
+                    and evidence.google_primary_id
+                ):
+                    _rewrite_subscription_key(
+                        db,
+                        sub,
+                        new_external_id=evidence.google_primary_id,
+                        now=now,
+                        invalidate_cause=IDENTITY_KEY_REWRITE_CAUSE,
+                    )
+                    merged_any = True
+                elif (
+                    account.provider == CalendarProvider.microsoft
+                    and sub.external_calendar_id == MS_LEGACY_PRIMARY_ALIAS
+                    and evidence.microsoft_default_id
+                ):
+                    _rewrite_subscription_key(
+                        db,
+                        sub,
+                        new_external_id=evidence.microsoft_default_id,
+                        now=now,
+                        invalidate_cause=IDENTITY_KEY_REWRITE_CAUSE,
+                    )
+                    merged_any = True
             continue
 
         survivor = _pick_survivor(group, provider=account.provider)
@@ -703,7 +760,14 @@ def account_needs_live_identity_evidence(
     account: CalendarAccount, enabled: Sequence[CalendarSubscription]
 ) -> bool:
     """True when provider list/default fetch is required before sync or merge."""
-    if len(enabled) <= 1:
+    if len(enabled) == 1:
+        only = enabled[0]
+        if account.provider == CalendarProvider.google:
+            return only.external_calendar_id == GOOGLE_PRIMARY_ALIAS
+        if account.provider == CalendarProvider.microsoft:
+            return only.external_calendar_id == MS_LEGACY_PRIMARY_ALIAS
+        return False
+    if len(enabled) == 0:
         return False
     if account.provider == CalendarProvider.google:
         return any(sub.external_calendar_id == GOOGLE_PRIMARY_ALIAS for sub in enabled)

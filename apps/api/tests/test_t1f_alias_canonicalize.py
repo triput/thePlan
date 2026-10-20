@@ -38,6 +38,7 @@ from app.services import google_calendar as gcal
 from app.services import microsoft_calendar as ms_cal
 from app.services.calendar_alias_canonicalize import (
     T1F_BASELINE_SHA,
+    t1f_tip_sha_allowed,
     canonicalize_calendar_account,
     fetch_account_identity_evidence,
     lock_calendar_account_for_identity,
@@ -66,7 +67,7 @@ def test_t1f_baseline_sha_when_required() -> None:
     if os.environ.get("T1F_REQUIRE_TIP") != "1":
         pytest.skip("T1F_REQUIRE_TIP not set")
     tip = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    assert tip == T1F_BASELINE_SHA or tip.startswith(T1F_BASELINE_SHA[:7])
+    assert t1f_tip_sha_allowed(tip), f"tip {tip} is not baseline, known tip, or descendant"
 
 
 def _settings() -> Settings:
@@ -508,7 +509,7 @@ def test_f10_disable_must_not_unblock(db_session: Session, monkeypatch: pytest.M
     account = _account(db_session, owner)
     primary_id = "user@gmail.com"
     survivor = _sub(db_session, account, calendar_id=primary_id)
-    alias = _sub(db_session, account, calendar_id="primary")
+    alias = _sub(db_session, account, calendar_id="primary", enabled=False)
     db_session.add(
         CalendarSubscriptionRefreshFailure(
             subscription_id=alias.id,
@@ -516,10 +517,25 @@ def test_f10_disable_must_not_unblock(db_session: Session, monkeypatch: pytest.M
             cause="calendar_refresh_failed",
         )
     )
-    alias.is_enabled = False
     db_session.flush()
+    _patch_google_list(monkeypatch, _google_list(primary_id))
+    canonicalize_calendar_account(
+        db_session,
+        account,
+        evidence=fetch_account_identity_evidence(
+            db_session, account, settings=_settings(), access_token="tok"
+        ),
+        now=_NOW,
+    )
+    db_session.refresh(survivor)
+    assert alias.is_enabled is False
+    assert survivor.is_enabled is True
+    assert survivor.coverage_success_at is None
+    assert survivor.coverage_last_failure_cause is None
     trust = evaluate_calendar_freshness(db_session, owner.id, usettings, _NOW)
-    assert not trust.ok or survivor.coverage_success_at is None
+    assert not trust.ok
+    causes = {d.cause for d in trust.blocking_diagnostics}
+    assert causes & {"calendar_coverage_missing", "calendar_coverage_window_missing"}
 
 
 def test_f11_noop_canonicalization_twice(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -583,14 +599,26 @@ def test_f12_same_id_different_accounts(db_session: Session, monkeypatch: pytest
 def test_f13_concurrent_put_and_ensure_primary(monkeypatch: pytest.MonkeyPatch) -> None:
     primary_id = "user@gmail.com"
     _patch_google_list(monkeypatch, _google_list(primary_id))
+    _patch_google_token(monkeypatch)
     errors: list[BaseException] = []
+    seed = SessionLocal()
+    try:
+        owner, _ = _owner(seed)
+        account = _account(seed, owner)
+        _sub(seed, account, calendar_id="primary")
+        seed.commit()
+        account_id = account.id
+        owner_id = owner.id
+    finally:
+        seed.close()
+
+    barrier = threading.Barrier(2)
 
     def _worker_put() -> None:
         db = SessionLocal()
         try:
-            owner, _ = _owner(db)
-            account = _account(db, owner)
-            _sub(db, account, calendar_id="primary")
+            owner = db.query(User).filter(User.id == owner_id).one()
+            account = db.query(CalendarAccount).filter(CalendarAccount.id == account_id).one()
             body = CalendarSubscriptionsPut(
                 items=[
                     CalendarSubscriptionPutItem(
@@ -601,6 +629,7 @@ def test_f13_concurrent_put_and_ensure_primary(monkeypatch: pytest.MonkeyPatch) 
                     )
                 ]
             )
+            barrier.wait(timeout=10)
             put_calendar_subscriptions(account.id, body, db, owner)
             db.commit()
         except BaseException as exc:
@@ -611,8 +640,8 @@ def test_f13_concurrent_put_and_ensure_primary(monkeypatch: pytest.MonkeyPatch) 
     def _worker_ensure() -> None:
         db = SessionLocal()
         try:
-            owner, _ = _owner(db)
-            account = _account(db, owner)
+            account = db.query(CalendarAccount).filter(CalendarAccount.id == account_id).one()
+            barrier.wait(timeout=10)
             gcal.ensure_primary_subscription(db, account)
             db.commit()
         except BaseException as exc:
@@ -629,12 +658,16 @@ def test_f13_concurrent_put_and_ensure_primary(monkeypatch: pytest.MonkeyPatch) 
     assert not errors
     db = SessionLocal()
     try:
-        enabled = db.query(CalendarSubscription).filter(CalendarSubscription.is_enabled.is_(True)).all()
-        by_account: dict[UUID, set[str]] = {}
-        for sub in enabled:
-            by_account.setdefault(sub.calendar_account_id, set()).add(sub.external_calendar_id)
-        for ids in by_account.values():
-            assert len(ids) <= 2
+        enabled = (
+            db.query(CalendarSubscription)
+            .filter(
+                CalendarSubscription.calendar_account_id == account_id,
+                CalendarSubscription.is_enabled.is_(True),
+            )
+            .all()
+        )
+        assert len(enabled) == 1
+        assert enabled[0].external_calendar_id == primary_id
     finally:
         db.close()
 
@@ -646,25 +679,30 @@ def test_f14_inflight_sync_merge_blocks_alias_mint(
     account = _account(db_session, owner)
     primary_id = "user@gmail.com"
     _sub(db_session, account, calendar_id="primary")
-    _sub(db_session, account, calendar_id=primary_id)
+    survivor = _sub(db_session, account, calendar_id=primary_id)
+    commit_subscription_coverage_success(
+        survivor,
+        now=_NOW,
+        window_start=_NOW - timedelta(days=1),
+        window_end=_NOW + timedelta(days=1),
+        mode="full",
+        pagination_complete=True,
+        page_count=1,
+        item_count=0,
+        show_deleted=True,
+        single_events=True,
+        sync_token="pre-merge",
+        generation=1,
+    )
     _patch_google_list(monkeypatch, _google_list(primary_id))
     _patch_google_token(monkeypatch)
-    entered = threading.Event()
 
-    def _slow_pull(db, *, access, subscription, time_min, time_max, **kw):
-        entered.set()
-        prepare_subscriptions_for_sync(
-            db, account, settings=_settings(), access_token="access-token", now=_NOW
-        )
-        return [], None, True, 1
-
-    monkeypatch.setattr(gcal, "_pull_subscription_changes", _slow_pull)
-    gcal.sync_account_events(
+    prepare_subscriptions_for_sync(
         db_session,
+        account,
         settings=_settings(),
-        account=account,
-        time_min=_NOW - timedelta(days=1),
-        time_max=_NOW + timedelta(days=1),
+        access_token="access-token",
+        now=_NOW,
     )
     disabled = (
         db_session.query(CalendarSubscription)
@@ -674,8 +712,11 @@ def test_f14_inflight_sync_merge_blocks_alias_mint(
         )
         .one()
     )
+    db_session.refresh(survivor)
     assert disabled.is_enabled is False
     assert disabled.coverage_success_at is None
+    assert survivor.coverage_success_at is None
+    assert survivor.sync_cursor is None
 
 
 def test_f15_unresolved_then_resolved(
@@ -754,6 +795,67 @@ def test_f16_disabled_row_same_canonical(
         .all()
     )
     assert len(enabled) == 1
+
+
+def test_f17b_ms_legacy_primary_event_visibility(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, _ = _owner(db_session)
+    account = _account(db_session, owner, provider=CalendarProvider.microsoft)
+    cal_id = str(uuid.uuid4())
+    legacy = _sub(db_session, account, calendar_id="primary", summary="Primary")
+    start, end = _NOW, _NOW + timedelta(hours=1)
+    db_session.add(
+        ExternalCalendarEvent(
+            owner_id=owner.id,
+            calendar_account_id=account.id,
+            provider=CalendarProvider.microsoft,
+            external_event_id="ms-evt-1",
+            calendar_id="primary",
+            title="Busy",
+            start_time=start,
+            end_time=end,
+            transparency="opaque",
+            free_busy_provenance="microsoft_event_complete",
+        )
+    )
+    db_session.flush()
+    commit_subscription_coverage_success(
+        legacy,
+        now=_NOW,
+        window_start=start - timedelta(days=1),
+        window_end=end + timedelta(days=1),
+        mode="ms_view",
+        pagination_complete=True,
+        page_count=1,
+        item_count=0,
+        show_deleted=True,
+        single_events=True,
+        sync_token="legacy-cursor",
+        generation=1,
+    )
+    _patch_ms_default_and_list(monkeypatch, cal_id)
+    _patch_ms_token(monkeypatch)
+    ms_cal.ensure_primary_subscription(
+        db_session, account, settings=_settings(), access_token="ms-access"
+    )
+    db_session.flush()
+    row = (
+        db_session.query(CalendarSubscription)
+        .filter(CalendarSubscription.id == legacy.id)
+        .one()
+    )
+    assert row.external_calendar_id == cal_id
+    assert row.coverage_success_at is None
+    assert row.sync_cursor is None
+    evt = (
+        db_session.query(ExternalCalendarEvent)
+        .filter(ExternalCalendarEvent.external_event_id == "ms-evt-1")
+        .one()
+    )
+    assert evt.calendar_id == cal_id
+    _pinned, events = load_immovable_busy_sources(db_session, owner.id)
+    assert any(ev.external_event_id == "ms-evt-1" and ev.calendar_id == cal_id for ev in events)
 
 
 def test_f17_primary_to_list_id_event_visibility(

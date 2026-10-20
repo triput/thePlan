@@ -962,7 +962,6 @@ def ensure_primary_subscription(
             .one_or_none()
         )
         if legacy is not None:
-            legacy.external_calendar_id = calendar_id
             sub = legacy
         else:
             sub = CalendarSubscription(
@@ -986,9 +985,17 @@ def ensure_primary_subscription(
         canonicalize_calendar_account,
         fetch_account_identity_evidence,
         lock_calendar_account_for_identity,
+        rewrite_subscription_external_calendar_id,
     )
 
     now = datetime.now(timezone.utc)
+    if sub.external_calendar_id == "primary" and calendar_id != "primary":
+        rewrite_subscription_external_calendar_id(
+            db,
+            sub,
+            new_external_id=calendar_id,
+            now=now,
+        )
     lock_calendar_account_for_identity(db, account.id)
     try:
         evidence = fetch_account_identity_evidence(
