@@ -518,7 +518,36 @@ def ensure_primary_subscription(db: Session, account: CalendarAccount) -> Calend
         sub.role = CalendarSubscriptionRole.primary
         sub.is_enabled = True
     db.flush()
-    return sub
+    from app.config import get_settings
+    from app.services.calendar_alias_canonicalize import (
+        canonicalize_calendar_account,
+        fetch_account_identity_evidence,
+        lock_calendar_account_for_identity,
+    )
+
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    lock_calendar_account_for_identity(db, account.id)
+    try:
+        access = get_valid_access_token(db, settings=settings, account=account)
+        evidence = fetch_account_identity_evidence(
+            db, account, settings=settings, access_token=access
+        )
+    except ApiError:
+        evidence = None
+    canonicalize_calendar_account(db, account, evidence=evidence, now=now)
+    db.flush()
+    refreshed = (
+        db.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account.id,
+            CalendarSubscription.role == CalendarSubscriptionRole.primary,
+            CalendarSubscription.is_enabled.is_(True),
+        )
+        .order_by(CalendarSubscription.created_at)
+        .first()
+    )
+    return refreshed or sub
 
 
 def upsert_account_tokens(
@@ -988,16 +1017,10 @@ def sync_account_events(
     user_settings = (
         db.query(UserSettings).filter(UserSettings.owner_id == account.owner_id).one_or_none()
     )
-    subscriptions = (
-        db.query(CalendarSubscription)
-        .filter(
-            CalendarSubscription.calendar_account_id == account.id,
-            CalendarSubscription.is_enabled.is_(True),
-        )
-        .all()
-    )
-    if not subscriptions:
-        ensure_primary_subscription(db, account)
+
+    try:
+        access = get_valid_access_token(db, settings=settings, account=account)
+    except (ApiError, httpx.TransportError):
         subscriptions = (
             db.query(CalendarSubscription)
             .filter(
@@ -1006,10 +1029,6 @@ def sync_account_events(
             )
             .all()
         )
-
-    try:
-        access = get_valid_access_token(db, settings=settings, account=account)
-    except (ApiError, httpx.TransportError):
         _commit_pre_pull_refresh_failure(
             db,
             subscriptions,
@@ -1017,6 +1036,25 @@ def sync_account_events(
             cause="calendar_refresh_failed",
         )
         raise
+
+    from app.services.calendar_alias_canonicalize import prepare_subscriptions_for_sync
+
+    subscriptions = prepare_subscriptions_for_sync(
+        db,
+        account,
+        settings=settings,
+        access_token=access,
+        now=now,
+    )
+    if not subscriptions:
+        ensure_primary_subscription(db, account)
+        subscriptions = prepare_subscriptions_for_sync(
+            db,
+            account,
+            settings=settings,
+            access_token=access,
+            now=now,
+        )
 
     scheduling_settings = lock_owner_scheduling(db, account.owner_id)
     before_busy = immovable_busy_signature(db, account.owner_id)

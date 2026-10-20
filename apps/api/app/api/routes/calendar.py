@@ -28,6 +28,10 @@ from app.schemas import (
     GoogleCalendarListItem,
     PaginatedResponse,
 )
+from app.services.calendar_alias_canonicalize import (
+    canonicalize_calendar_account,
+    prepare_put_calendar_subscriptions,
+)
 from app.services.calendar_conflicts import find_conflicts
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 from app.services.google_calendar import (
@@ -215,6 +219,15 @@ def put_calendar_subscriptions(
 ) -> PaginatedResponse:
     account = _owned_account(db, account_id, user)
     items = body.items
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    evidence = prepare_put_calendar_subscriptions(
+        db,
+        account,
+        settings=settings,
+        items=items,
+        now=now,
+    )
 
     primary_candidates = [item for item in items if item.role == CalendarSubscriptionRole.primary]
     if len(primary_candidates) != 1:
@@ -255,6 +268,7 @@ def put_calendar_subscriptions(
         if sub.external_calendar_id not in requested_ids:
             sub.is_enabled = False
 
+    canonicalize_calendar_account(db, account, evidence=evidence, now=now)
     db.commit()
     updated = (
         db.query(CalendarSubscription)

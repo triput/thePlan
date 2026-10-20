@@ -982,6 +982,30 @@ def ensure_primary_subscription(
     sub.role = CalendarSubscriptionRole.primary
     sub.is_enabled = True
     db.flush()
+    from app.services.calendar_alias_canonicalize import (
+        canonicalize_calendar_account,
+        fetch_account_identity_evidence,
+        lock_calendar_account_for_identity,
+    )
+
+    now = datetime.now(timezone.utc)
+    lock_calendar_account_for_identity(db, account.id)
+    try:
+        evidence = fetch_account_identity_evidence(
+            db,
+            account,
+            settings=settings or get_settings(),
+            access_token=token,
+        )
+    except ApiError:
+        evidence = None
+    canonicalize_calendar_account(
+        db,
+        account,
+        evidence=evidence,
+        now=now,
+    )
+    db.flush()
     return sub
 
 
@@ -1592,17 +1616,17 @@ def sync_account_events(
     )
 
     now = datetime.now(timezone.utc)
-    subscriptions = (
-        db.query(CalendarSubscription)
-        .filter(
-            CalendarSubscription.calendar_account_id == account.id,
-            CalendarSubscription.is_enabled.is_(True),
-        )
-        .all()
-    )
     try:
         access = get_valid_access_token(db, settings=settings, account=account)
     except (ApiError, httpx.TransportError, json.JSONDecodeError) as exc:
+        subscriptions = (
+            db.query(CalendarSubscription)
+            .filter(
+                CalendarSubscription.calendar_account_id == account.id,
+                CalendarSubscription.is_enabled.is_(True),
+            )
+            .all()
+        )
         # JSONDecodeError: auth token-body parse if a helper missed ApiError wrap.
         _commit_pre_pull_refresh_failure(
             db,
@@ -1613,15 +1637,23 @@ def sync_account_events(
         _mark_failure_committed(exc)
         raise
 
+    from app.services.calendar_alias_canonicalize import prepare_subscriptions_for_sync
+
+    subscriptions = prepare_subscriptions_for_sync(
+        db,
+        account,
+        settings=settings,
+        access_token=access,
+        now=now,
+    )
     if not subscriptions:
         ensure_primary_subscription(db, account, settings=settings, access_token=access)
-        subscriptions = (
-            db.query(CalendarSubscription)
-            .filter(
-                CalendarSubscription.calendar_account_id == account.id,
-                CalendarSubscription.is_enabled.is_(True),
-            )
-            .all()
+        subscriptions = prepare_subscriptions_for_sync(
+            db,
+            account,
+            settings=settings,
+            access_token=access,
+            now=now,
         )
 
     pulled: list[tuple[CalendarSubscription, MsViewPull]] = []
