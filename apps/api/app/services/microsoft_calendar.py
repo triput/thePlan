@@ -1272,16 +1272,19 @@ def _find_external_event(
     *,
     owner_id,
     external_id: str,
+    for_update: bool = False,
 ) -> ExternalCalendarEvent | None:
-    return (
+    query = (
         db.query(ExternalCalendarEvent)
         .filter(
             ExternalCalendarEvent.provider == CalendarProvider.microsoft,
             ExternalCalendarEvent.external_event_id == external_id,
             ExternalCalendarEvent.owner_id == owner_id,
         )
-        .one_or_none()
     )
+    if for_update:
+        query = query.with_for_update().populate_existing()
+    return query.one_or_none()
 
 
 def _event_removed(event: dict[str, Any]) -> bool:
@@ -1335,9 +1338,32 @@ def _upsert_external_event(
     sync_run_id: str,
     event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> bool:
-    external_id = event.get("id")
-    if not external_id:
-        return False
+    from app.services.free_busy_series_policy import (
+        UpsertPostLockIdentityDriftError,
+        acquire_identity_advisory_locks,
+        apply_post_transparency_policy_effects,
+        identity_key_from_row,
+        microsoft_upsert_identity_keys_for_lock,
+    )
+    from app.services.microsoft_series_identity import (
+        IncompleteIdentity,
+        KnownNonRecurring,
+        KnownSeries,
+        MalformedIdentity,
+        MicrosoftSeriesIdentityError,
+        MicrosoftSeriesMasterInBatchError,
+        decided_series_id_for_write,
+        extract_microsoft_series_identity,
+    )
+
+    identity = extract_microsoft_series_identity(event)
+    if isinstance(identity, MalformedIdentity):
+        raise MicrosoftSeriesIdentityError(identity.reason)
+    if isinstance(identity, KnownSeries) and identity.source == "seriesMaster":
+        raise MicrosoftSeriesMasterInBatchError(identity.series_id)
+
+    # Extractor step 0 already rejected missing/blank id.
+    external_id = str(event["id"]).strip()
 
     row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
     if row is not None and row.pending_deletion:
@@ -1353,8 +1379,53 @@ def _upsert_external_event(
         times_ok=times_ok,
     )
 
+    # Non-mutative early exits — no locks / identity write.
+    if not times_ok:
+        if times_supplied:
+            if row is None or not _row_has_usable_bounds(row):
+                return False
+        else:
+            if row is None or not _row_has_usable_bounds(row):
+                return False
+
+    old_cal = row.calendar_id if row is not None else None
+    old_series = row.provider_series_id if row is not None else None
+    identity_snapshot = identity_key_from_row(row) if row is not None else None
+
+    incomplete_retains = isinstance(identity, IncompleteIdentity)
+    if isinstance(identity, KnownSeries):
+        new_series_for_lock: str | None = identity.series_id
+    elif isinstance(identity, KnownNonRecurring):
+        new_series_for_lock = None
+    else:
+        new_series_for_lock = None
+
+    lock_keys = microsoft_upsert_identity_keys_for_lock(
+        row=row,
+        new_calendar_id=subscription.external_calendar_id,
+        new_series_id=new_series_for_lock,
+        old_calendar_id=old_cal,
+        old_series_id=old_series,
+        owner_id=account.owner_id,
+        incomplete_retains_series=incomplete_retains,
+    )
+    if lock_keys:
+        acquire_identity_advisory_locks(db, lock_keys)
+        row = _find_external_event(
+            db,
+            owner_id=account.owner_id,
+            external_id=external_id,
+            for_update=True,
+        )
+        if row is not None and identity_snapshot is not None:
+            identity_locked = identity_key_from_row(row)
+            if identity_locked != identity_snapshot:
+                raise UpsertPostLockIdentityDriftError(
+                    f"identity drift for {external_id}"
+                )
+
     if times_ok:
-        assert times is not None  # times_ok
+        assert times is not None
         if row is None:
             row = ExternalCalendarEvent(
                 owner_id=account.owner_id,
@@ -1366,54 +1437,65 @@ def _upsert_external_event(
                 end_time=times.end,
             )
             db.add(row)
+            db.flush()
         row.start_time = times.start
         row.end_time = times.end
         row.is_all_day = times.is_all_day
         row.source_zone_missing = times.source_zone_missing
         row.source_timezone = times.source_timezone
-    elif times_supplied:
-        # Supplied start/end but invalid (end<=start / equal / reversed) or
-        # unresolvable parse. Retain historical bounds as evidence when present,
-        # but fail closed on trust — never honor showAs as provider_explicit
-        # opaque busy at the prior interval.
-        if row is None or not _row_has_usable_bounds(row):
-            return False
-        row.calendar_account_id = account.id
-        if "subject" in event:
-            row.title = (event.get("subject") or "Busy")[:500]
-        row.calendar_id = subscription.external_calendar_id
-        row.last_synced_at = now
-        apply_transparency_update(
-            row,
-            stored=None,
-            provenance="unknown_projection",
-            sync_run_id=sync_run_id,
-        )
-        row.is_provider_cancelled = False
-        return True
     else:
-        # Omit-times incomplete update: preserve known bounds; apply showAs
-        # when present; omitted showAs → unknown_projection via resolver.
-        if row is None or not _row_has_usable_bounds(row):
-            return False
+        # invalid-times or omit-times — historical bounds already validated.
+        assert row is not None
+
+    old_cal = old_cal if old_cal is not None else row.calendar_id
+    old_series = old_series if old_series is not None else row.provider_series_id
 
     row.calendar_account_id = account.id
     if "subject" in event or times_ok:
         row.title = (event.get("subject") or "Busy")[:500]
     row.calendar_id = subscription.external_calendar_id
     row.last_synced_at = now
-    # T1-D: Graph showAs → stored transparency/provenance. No busy default.
-    # Incomplete + explicit showAs maps that value; incomplete + omitted showAs
-    # → unknown_projection. Complete + omitted showAs → unknown_missing.
-    stored, provenance, _kind = resolve_microsoft_show_as(
-        event,
-        complete_representation=complete_representation,
-        field_projected=field_projected,
+
+    if times_ok or not times_supplied:
+        # times_ok or omit-times: apply showAs via resolver.
+        stored, provenance, _kind = resolve_microsoft_show_as(
+            event,
+            complete_representation=complete_representation,
+            field_projected=field_projected,
+        )
+        apply_transparency_update(
+            row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
+        )
+    else:
+        # invalid-times with usable historical bounds: unknown_projection.
+        apply_transparency_update(
+            row,
+            stored=None,
+            provenance="unknown_projection",
+            sync_run_id=sync_run_id,
+        )
+
+    new_series, state, incomplete_reason = decided_series_id_for_write(
+        identity, old_series_id=old_series
     )
-    apply_transparency_update(
-        row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
-    )
+    # Decided write of series id (KnownSeries / KnownNonRecurring) → pending on
+    # calendar move / series change / series loss. Incomplete retains prior id.
+    if not incomplete_retains and old_series and (
+        old_series != new_series or old_cal != subscription.external_calendar_id
+    ):
+        row.free_busy_pending_exception = True
+    row.provider_series_id = new_series
+    row.series_identity_state = state
+    row.series_identity_incomplete_reason = incomplete_reason
     row.is_provider_cancelled = False
+    apply_post_transparency_policy_effects(
+        db,
+        row,
+        identity_keys=lock_keys,
+        old_calendar_id=old_cal,
+        old_series_id=old_series,
+    )
+    db.flush()
     return True
 
 

@@ -40,9 +40,17 @@ _FREE_BUSY_IDENTITY_NAMESPACE = 1_886_415_953
 _AUTOMATIC_BASELINE_SOURCE = "automatic_first_trustworthy_observation"
 
 
-class GoogleUpsertPostLockIdentityDriftError(Exception):
-    """Post-lock identity drift during Google ingest; rollback and retry in a new transaction."""
+class UpsertPostLockIdentityDriftError(Exception):
+    """Post-lock identity drift during provider ingest; outer refresh rolls back (E1)."""
+
+
+# Backward-compatible alias (T1-4a Google tip / tests).
+GoogleUpsertPostLockIdentityDriftError = UpsertPostLockIdentityDriftError
+
 _CONFLICT_REVISION_SECRET = b"theplan-t1-4a-conflict-revision-v1"
+SERIES_IDENTITY_VERIFIED_SERIES = "verified_series"
+SERIES_IDENTITY_VERIFIED_NON_RECURRING = "verified_non_recurring"
+SERIES_IDENTITY_INCOMPLETE = "incomplete"
 
 IdentityKey = tuple[str, str, str, str]
 
@@ -114,12 +122,18 @@ def load_series_policies_for_owner(
     return out
 
 
+def series_identity_is_incomplete(row: ExternalCalendarEvent) -> bool:
+    return getattr(row, "series_identity_state", None) == SERIES_IDENTITY_INCOMPLETE
+
+
 def provider_trust_blocker(
     *,
     transparency: str | None,
     provenance: str | None,
     row: ExternalCalendarEvent,
 ) -> bool:
+    if series_identity_is_incomplete(row):
+        return True
     if source_zone_untrusted(row):
         return True
     kind = effective_free_busy_kind(
@@ -127,29 +141,42 @@ def provider_trust_blocker(
         provenance=provenance,
         identity=None,
         pending_exception=False,
+        series_identity_state=getattr(row, "series_identity_state", None),
     )
     return kind == "unknown"
 
 
 def occupancy_kind_from_stored(
-    transparency: str | None, provenance: str | None
+    transparency: str | None,
+    provenance: str | None,
+    *,
+    series_identity_state: str | None = None,
 ) -> FreeBusyKind:
     return effective_free_busy_kind(
         transparency=transparency,
         provenance=provenance,
         identity=None,
         pending_exception=False,
+        series_identity_state=series_identity_state,
     )
 
 
 def _provider_evidence_dict(row: ExternalCalendarEvent) -> dict[str, str | bool | None]:
+    state = getattr(row, "series_identity_state", None)
     return {
         "transparency": row.transparency,
         "provenance": row.free_busy_provenance,
         "occupancy_kind": occupancy_kind_from_stored(
-            row.transparency, row.free_busy_provenance
+            row.transparency,
+            row.free_busy_provenance,
+            series_identity_state=state,
         ),
         "source_zone_untrusted": source_zone_untrusted(row),
+        "series_identity_state": state,
+        "series_identity_incomplete_reason": getattr(
+            row, "series_identity_incomplete_reason", None
+        ),
+        "provider_series_id": row.provider_series_id,
     }
 
 
@@ -214,7 +241,15 @@ def compute_conflict_revision(
     pending: bool,
     latch_generation: int,
     source_zone_untrusted: bool,
+    series_identity_state: str | None = None,
+    series_identity_incomplete_reason: str | None = None,
 ) -> str:
+    state = series_identity_state or ""
+    reason = (
+        series_identity_incomplete_reason or ""
+        if state == SERIES_IDENTITY_INCOMPLETE
+        else ""
+    )
     payload = "|".join(
         [
             identity[0],
@@ -227,6 +262,8 @@ def compute_conflict_revision(
             "1" if source_zone_untrusted else "0",
             "1" if pending else "0",
             str(latch_generation),
+            state,
+            reason,
         ]
     )
     digest = hmac.new(
@@ -351,7 +388,11 @@ def seed_automatic_baseline_if_needed(
         row=row,
     ):
         return False
-    occ = occupancy_kind_from_stored(row.transparency, row.free_busy_provenance)
+    occ = occupancy_kind_from_stored(
+        row.transparency,
+        row.free_busy_provenance,
+        series_identity_state=getattr(row, "series_identity_state", None),
+    )
     db.add(
         FreeBusyOccurrenceBaseline(
             owner_id=row.owner_id,
@@ -524,6 +565,12 @@ def resolve_series_policy(
             "Event has no verified series identity",
             "FREE_BUSY_RESOLVE_INVALID",
         )
+    if series_identity_is_incomplete(trigger):
+        raise ApiError(
+            422,
+            "Series identity incomplete; cannot resolve",
+            "FREE_BUSY_SERIES_IDENTITY_INCOMPLETE",
+        )
 
     key = identity_key_from_row(trigger)
     if key is None:
@@ -538,6 +585,12 @@ def resolve_series_policy(
         .populate_existing()
         .one()
     )
+    if series_identity_is_incomplete(trigger_refreshed):
+        raise ApiError(
+            422,
+            "Series identity incomplete; cannot resolve",
+            "FREE_BUSY_SERIES_IDENTITY_INCOMPLETE",
+        )
     key_locked = identity_key_from_row(trigger_refreshed)
     if key_locked is None:
         raise ApiError(422, "Invalid series identity", "FREE_BUSY_RESOLVE_INVALID")
@@ -561,6 +614,12 @@ def resolve_series_policy(
     locked_events = lock_events_for_update(db, events_to_lock)
     locked_by_id = {e.id: e for e in locked_events}
     trigger = locked_by_id[trigger_id]
+    if series_identity_is_incomplete(trigger):
+        raise ApiError(
+            422,
+            "Series identity incomplete; cannot resolve",
+            "FREE_BUSY_SERIES_IDENTITY_INCOMPLETE",
+        )
     key_after_row_lock = identity_key_from_row(trigger)
     if key_after_row_lock is None:
         raise ApiError(422, "Invalid series identity", "FREE_BUSY_RESOLVE_INVALID")
@@ -592,6 +651,12 @@ def resolve_series_policy(
                 f"Unknown or non-pending conflict: {ack.external_event_id}",
                 "FREE_BUSY_RESOLVE_INVALID",
             )
+        if series_identity_is_incomplete(row):
+            raise ApiError(
+                422,
+                "Series identity incomplete; cannot resolve",
+                "FREE_BUSY_SERIES_IDENTITY_INCOMPLETE",
+            )
         expected = compute_conflict_revision(
             identity=key,
             external_event_id=row.external_event_id,
@@ -600,6 +665,10 @@ def resolve_series_policy(
             pending=True,
             latch_generation=int(policy.latch_generation),
             source_zone_untrusted=source_zone_untrusted(row),
+            series_identity_state=getattr(row, "series_identity_state", None),
+            series_identity_incomplete_reason=getattr(
+                row, "series_identity_incomplete_reason", None
+            ),
         )
         if not hmac.compare_digest(expected, ack.conflict_revision):
             raise ApiError(
@@ -695,6 +764,10 @@ def policy_diagnostic_enrichment(
         pending=True,
         latch_generation=latch_gen,
         source_zone_untrusted=source_zone_untrusted(event),
+        series_identity_state=getattr(event, "series_identity_state", None),
+        series_identity_incomplete_reason=getattr(
+            event, "series_identity_incomplete_reason", None
+        ),
     )
     if policy is None:
         retained = "no manual series policy decision yet"
@@ -737,6 +810,44 @@ def google_upsert_identity_keys_for_lock(
     if row is not None and row.provider_series_id:
         _add(row.calendar_id, row.provider_series_id)
     if old_series_id and (old_series_id != new_series_id or old_calendar_id != new_calendar_id):
+        if old_calendar_id and old_series_id:
+            _add(old_calendar_id, old_series_id)
+    if new_series_id:
+        _add(new_calendar_id, new_series_id)
+    return sort_identity_keys(keys)
+
+
+def microsoft_upsert_identity_keys_for_lock(
+    *,
+    row: ExternalCalendarEvent | None,
+    new_calendar_id: str,
+    new_series_id: str | None,
+    old_calendar_id: str | None,
+    old_series_id: str | None,
+    owner_id: UUID,
+    incomplete_retains_series: bool = False,
+) -> list[IdentityKey]:
+    """Discover advisory lock keys for MS upsert.
+
+    Incomplete payloads lock the **old** series key only when present
+    (``incomplete_retains_series=True``); they do not invent a new series lock.
+    """
+    keys: list[IdentityKey] = []
+    provider = CalendarProvider.microsoft.value
+
+    def _add(cal: str, series: str | None) -> None:
+        if series:
+            keys.append((str(owner_id), provider, cal, series))
+
+    if row is not None and row.provider_series_id:
+        _add(row.calendar_id, row.provider_series_id)
+    if incomplete_retains_series:
+        if old_series_id and old_calendar_id:
+            _add(old_calendar_id, old_series_id)
+        return sort_identity_keys(keys)
+    if old_series_id and (
+        old_series_id != new_series_id or old_calendar_id != new_calendar_id
+    ):
         if old_calendar_id and old_series_id:
             _add(old_calendar_id, old_series_id)
     if new_series_id:

@@ -241,7 +241,11 @@ def effective_free_busy_kind(
     identity: ExceptionIdentity | None = None,
     pending_exception: bool = False,
     policy_map: Mapping[tuple[str, str, str, str], FreeBusyKind] | None = None,
+    series_identity_state: str | None = None,
 ) -> FreeBusyKind:
+    if series_identity_state == "incomplete":
+        # T1-4-MS §4.8 — incomplete cannot be overridden by series free policy.
+        return "unknown"
     if pending_exception:
         return "unknown"
     if provenance in ("unknown_legacy", "unknown_projection", "unknown_missing") or (
@@ -325,12 +329,14 @@ def evaluate_busy_input_trust(
         identity = _event_identity(event)
         pending = bool(getattr(event, "free_busy_pending_exception", False))
         missing_zone = source_zone_untrusted(event)
+        identity_state = getattr(event, "series_identity_state", None)
         kind = effective_free_busy_kind(
             transparency=transparency,
             provenance=provenance,
             identity=identity,
             pending_exception=pending,
             policy_map=policy_map,
+            series_identity_state=identity_state,
         )
         start = getattr(event, "start_time", None)
         end = getattr(event, "end_time", None)
@@ -364,6 +370,10 @@ def evaluate_busy_input_trust(
             # §3.1: missing source zone is always blocking — stored bounds are
             # untrusted, so "outside horizon" is not a positive proof of irrelevance.
             _block("missing_source_zone", extent_unknown=True)
+            continue
+
+        if identity_state == "incomplete":
+            _block("series_identity_incomplete", extent_unknown=True)
             continue
 
         if pending:
@@ -515,11 +525,15 @@ def events_for_busy_merge(
             continue
         if source_zone_untrusted(event):
             continue
+        identity_state = getattr(event, "series_identity_state", None)
+        if identity_state == "incomplete":
+            continue
         kind = effective_free_busy_kind(
             transparency=getattr(event, "transparency", None),
             provenance=getattr(event, "free_busy_provenance", None),
             identity=_event_identity(event),
             policy_map=policy_map,
+            series_identity_state=identity_state,
         )
         if kind == "busy":
             start = getattr(event, "start_time", None)

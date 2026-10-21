@@ -682,7 +682,9 @@ def _upsert_external_event(
         return False
 
     from app.services.free_busy_series_policy import (
-        GoogleUpsertPostLockIdentityDriftError,
+        SERIES_IDENTITY_VERIFIED_NON_RECURRING,
+        SERIES_IDENTITY_VERIFIED_SERIES,
+        UpsertPostLockIdentityDriftError,
         acquire_identity_advisory_locks,
         apply_post_transparency_policy_effects,
         google_upsert_identity_keys_for_lock,
@@ -719,7 +721,7 @@ def _upsert_external_event(
         if row is not None and identity_snapshot is not None:
             identity_locked = identity_key_from_row(row)
             if identity_locked != identity_snapshot:
-                raise GoogleUpsertPostLockIdentityDriftError(
+                raise UpsertPostLockIdentityDriftError(
                     f"identity drift for {external_id}"
                 )
 
@@ -760,6 +762,12 @@ def _upsert_external_event(
     ):
         row.free_busy_pending_exception = True
     row.provider_series_id = new_series
+    if new_series:
+        row.series_identity_state = SERIES_IDENTITY_VERIFIED_SERIES
+        row.series_identity_incomplete_reason = None
+    else:
+        row.series_identity_state = SERIES_IDENTITY_VERIFIED_NON_RECURRING
+        row.series_identity_incomplete_reason = None
     row.is_provider_cancelled = False
     apply_post_transparency_policy_effects(
         db,

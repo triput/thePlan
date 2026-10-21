@@ -164,6 +164,10 @@ def _event(
         external_event_id=external_id,
         calendar_id=sub.external_calendar_id,
         provider_series_id=series_id,
+        series_identity_state=(
+            "verified_series" if series_id else "verified_non_recurring"
+        ),
+        series_identity_incomplete_reason=None,
         title=f"evt-{external_id}",
         start_time=start or H0,
         end_time=end or H1,
@@ -206,6 +210,10 @@ def _revision(
         pending=True,
         latch_generation=latch,
         source_zone_untrusted=source_zone_untrusted(row),
+        series_identity_state=getattr(row, "series_identity_state", None),
+        series_identity_incomplete_reason=getattr(
+            row, "series_identity_incomplete_reason", None
+        ),
     )
 
 
