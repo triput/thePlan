@@ -1417,7 +1417,10 @@ def _upsert_external_event(
             external_id=external_id,
             for_update=True,
         )
-        if row is not None and identity_snapshot is not None:
+        # Compare full pre/post snapshot including None: a previously
+        # non-series row that acquires series under lock-wait must abort
+        # (incomplete lock set) rather than mutate silently.
+        if row is not None:
             identity_locked = identity_key_from_row(row)
             if identity_locked != identity_snapshot:
                 raise UpsertPostLockIdentityDriftError(
@@ -1698,57 +1701,84 @@ def _apply_subscription_full(
     suppressed_external_ids: set[str] | None = None,
     event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> int:
-    """Delta baseline apply for unit isolation. Does not mint coverage."""
+    """Delta baseline apply for unit isolation. Does not mint coverage.
+
+    E1: mid-batch Malformed / drift / False upsert fails the whole apply
+    savepoint — no cursor advance, no partial durable identity writes.
+    """
     suppressed = suppressed_external_ids or set()
     fetch_context = event_fetch_context
     seen_external_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"ms-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
+    prior_cursor = subscription.sync_cursor
 
-    for event in events:
-        external_id = event.get("id")
-        if not external_id or _event_removed(event):
-            if external_id and _event_removed(event):
+    apply_scope = db.begin_nested()
+    try:
+        for event in events:
+            if not isinstance(event, dict):
+                raise _unresolvable_view_item("Microsoft delta item is not an object")
+            external_id = event.get("id")
+            if external_id is None or str(external_id).strip() == "":
+                raise _unresolvable_view_item("Microsoft delta item is missing an id")
+            external_id = str(external_id)
+            if _event_removed(event):
                 pending = _find_external_event(
                     db, owner_id=account.owner_id, external_id=external_id
                 )
                 if pending is not None and pending.pending_deletion:
                     db.delete(pending)
-            continue
-        if external_id in suppressed:
-            continue
-        seen_external_ids.add(external_id)
-        if _upsert_external_event(
-            db,
-            account=account,
-            subscription=subscription,
-            event=event,
-            now=now,
-            sync_run_id=sync_run_id,
-            event_fetch_context=fetch_context,
-        ):
+                continue
+            if external_id in suppressed:
+                continue
+            existing = _find_external_event(
+                db, owner_id=account.owner_id, external_id=external_id
+            )
+            # ``is True`` — avoid MagicMock truthiness in unit doubles.
+            if existing is not None and existing.pending_deletion is True:
+                continue
+            seen_external_ids.add(external_id)
+            if not _upsert_external_event(
+                db,
+                account=account,
+                subscription=subscription,
+                event=event,
+                now=now,
+                sync_run_id=sync_run_id,
+                event_fetch_context=fetch_context,
+            ):
+                raise _unresolvable_view_item(
+                    f"Microsoft delta item {external_id} was not applied"
+                )
             upserted += 1
 
-    stale = (
-        db.query(ExternalCalendarEvent)
-        .filter(
-            ExternalCalendarEvent.calendar_account_id == account.id,
-            ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
-            ExternalCalendarEvent.provider == CalendarProvider.microsoft,
-            *ExternalCalendarEvent.immovable_busy_clause(),
-            ExternalCalendarEvent.start_time < time_max,
-            ExternalCalendarEvent.end_time > time_min,
+        stale = (
+            db.query(ExternalCalendarEvent)
+            .filter(
+                ExternalCalendarEvent.calendar_account_id == account.id,
+                ExternalCalendarEvent.calendar_id == subscription.external_calendar_id,
+                ExternalCalendarEvent.provider == CalendarProvider.microsoft,
+                *ExternalCalendarEvent.immovable_busy_clause(),
+                ExternalCalendarEvent.start_time < time_max,
+                ExternalCalendarEvent.end_time > time_min,
+            )
+            .all()
         )
-        .all()
-    )
-    for row in stale:
-        if row.external_event_id not in seen_external_ids:
-            db.delete(row)
+        for row in stale:
+            if row.external_event_id not in seen_external_ids:
+                db.delete(row)
 
-    if next_delta_link:
-        subscription.sync_cursor = next_delta_link
-    db.flush()
-    return upserted
+        if next_delta_link:
+            subscription.sync_cursor = next_delta_link
+        db.flush()
+        apply_scope.commit()
+        return upserted
+    except Exception:
+        if apply_scope.is_active:
+            apply_scope.rollback()
+        # Restore cursor attribute in-session if flush wrote then rolled back.
+        subscription.sync_cursor = prior_cursor
+        raise
 
 
 def _apply_subscription_incremental(
@@ -1762,37 +1792,60 @@ def _apply_subscription_incremental(
     suppressed_external_ids: set[str] | None = None,
     event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> int:
+    """Incremental delta apply. E1 whole-batch rollback; no cursor on failure."""
     suppressed = suppressed_external_ids or set()
     fetch_context = event_fetch_context
     upserted = 0
     sync_run_id = f"ms-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
+    prior_cursor = subscription.sync_cursor
 
-    for event in events:
-        external_id = event.get("id")
-        if not external_id:
-            continue
-        if _event_removed(event):
-            row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
-            if row is not None:
-                db.delete(row)
-            continue
-        if external_id in suppressed:
-            continue
-        if _upsert_external_event(
-            db,
-            account=account,
-            subscription=subscription,
-            event=event,
-            now=now,
-            sync_run_id=sync_run_id,
-            event_fetch_context=fetch_context,
-        ):
+    apply_scope = db.begin_nested()
+    try:
+        for event in events:
+            if not isinstance(event, dict):
+                raise _unresolvable_view_item("Microsoft delta item is not an object")
+            external_id = event.get("id")
+            if external_id is None or str(external_id).strip() == "":
+                raise _unresolvable_view_item("Microsoft delta item is missing an id")
+            external_id = str(external_id)
+            if _event_removed(event):
+                row = _find_external_event(
+                    db, owner_id=account.owner_id, external_id=external_id
+                )
+                if row is not None:
+                    db.delete(row)
+                continue
+            if external_id in suppressed:
+                continue
+            existing = _find_external_event(
+                db, owner_id=account.owner_id, external_id=external_id
+            )
+            if existing is not None and existing.pending_deletion is True:
+                continue
+            if not _upsert_external_event(
+                db,
+                account=account,
+                subscription=subscription,
+                event=event,
+                now=now,
+                sync_run_id=sync_run_id,
+                event_fetch_context=fetch_context,
+            ):
+                raise _unresolvable_view_item(
+                    f"Microsoft delta item {external_id} was not applied"
+                )
             upserted += 1
 
-    if next_delta_link:
-        subscription.sync_cursor = next_delta_link
-    db.flush()
-    return upserted
+        if next_delta_link:
+            subscription.sync_cursor = next_delta_link
+        db.flush()
+        apply_scope.commit()
+        return upserted
+    except Exception:
+        if apply_scope.is_active:
+            apply_scope.rollback()
+        subscription.sync_cursor = prior_cursor
+        raise
 
 
 def sync_account_events(

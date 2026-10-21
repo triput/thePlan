@@ -374,6 +374,18 @@ def evaluate_busy_input_trust(
 
         if identity_state == "incomplete":
             _block("series_identity_incomplete", extent_unknown=True)
+            # Incomplete must not hide co-existing projection/occupancy quals.
+            if provenance in (
+                "unknown_legacy",
+                "unknown_projection",
+                "unknown_missing",
+            ):
+                overlap = _ranges_overlap(start, end, horizon_start, horizon_end)
+                if overlap is not False:
+                    _block(
+                        f"unknown_free_busy:{provenance}",
+                        extent_unknown=overlap is None,
+                    )
             continue
 
         if pending:

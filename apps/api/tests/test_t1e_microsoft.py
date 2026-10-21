@@ -1971,12 +1971,16 @@ def test_e22_unknown_projection_may_mint_but_busy_trust_stays_closed(
     assert sub.coverage_mode == "ms_view"
     assert sub.coverage_success_at is not None
     assert row.free_busy_provenance == "unknown_projection"
+    # Omit-type payload ⇒ incomplete; both quals must remain visible.
+    assert row.series_identity_state == "incomplete"
     trust = evaluate_busy_input_trust(
         [row],
         horizon_start=start - timedelta(minutes=5),
         horizon_end=start + timedelta(hours=2),
     )
     assert trust.ok is False
-    assert any("unknown_projection" in diag.cause for diag in trust.blocking_diagnostics)
+    causes = {diag.cause for diag in trust.blocking_diagnostics}
+    assert "series_identity_incomplete" in causes
+    assert any("unknown_projection" in c for c in causes)
     freshness = evaluate_calendar_freshness(db_session, owner.id, settings, now)
     assert freshness.ok is True

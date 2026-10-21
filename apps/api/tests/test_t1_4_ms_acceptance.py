@@ -8,6 +8,7 @@ rollback fixtures (E-MS-13 / E-MS-16).
 from __future__ import annotations
 
 import os
+import subprocess
 import tempfile
 import threading
 import time
@@ -17,8 +18,9 @@ from pathlib import Path
 from uuid import UUID
 
 import pytest
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from cryptography.fernet import Fernet
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.api.errors import ApiError
 from app.config import Settings, get_settings
@@ -60,6 +62,7 @@ from app.services.microsoft_calendar import (
     _apply_subscription_incremental,
     _apply_subscription_ms_view,
     _upsert_external_event,
+    sync_account_events,
 )
 from app.services.microsoft_series_identity import (
     IncompleteIdentity,
@@ -70,7 +73,11 @@ from app.services.microsoft_series_identity import (
     MicrosoftSeriesMasterInBatchError,
     extract_microsoft_series_identity,
 )
+from app.services.token_crypto import encrypt_token
 from support.t1a_pg import assert_disposable_database_url, assert_t1a_container_isolated
+
+_FERNET = Fernet.generate_key().decode("utf-8")
+_MIG040_DB = "theplan_t1a_mig040_disp"
 
 UTC = timezone.utc
 H0 = datetime(2026, 10, 20, 12, 0, tzinfo=UTC)
@@ -893,19 +900,47 @@ def test_ems_12_omit_times_participate(db_session: Session) -> None:
 # --- E1 whole-batch / seriesMaster ------------------------------------------
 
 
-def test_ems_13_ms_view_outer_rollback_verify_a() -> None:
-    """Injected Malformed on B — distinguished from real lock-wait (E-MS-9).
+def _ms_sync_settings() -> Settings:
+    return Settings(
+        token_encryption_key=_FERNET,
+        microsoft_client_id="t14ms-client",
+        microsoft_client_secret="t14ms-secret",
+        microsoft_redirect_uri="http://127.0.0.1/unused-ms",
+    )
 
-    A mutates inside the apply TX; outer failure rolls A back. Fresh session
-    sees pre-batch A/B. Not a concurrency / pg_locks proof.
+
+def _account_with_tokens(db: Session, owner: User) -> CalendarAccount:
+    cfg = _ms_sync_settings()
+    acct = CalendarAccount(
+        owner_id=owner.id,
+        provider=CalendarProvider.microsoft,
+        account_email=f"{uuid.uuid4().hex[:6]}@example.test",
+        access_token_enc=encrypt_token(cfg, "access-token"),
+        refresh_token_enc=encrypt_token(cfg, "refresh-token"),
+        token_expires_at=datetime.now(UTC) + timedelta(hours=2),
+        is_enabled=True,
+        mirror_blocks=False,
+    )
+    db.add(acct)
+    db.flush()
+    return acct
+
+
+def test_ems_13_injected_ms_view_malformed_not_lock_wait() -> None:
+    """Injected Malformed on B via ``_apply_subscription_ms_view`` only.
+
+    Distinguished from real lock-wait (E-MS-9) and from production
+    ``sync_account_events`` outer evidence (``test_ems_13_production_…``).
+    Caller still rolls the session; this does **not** prove production-outer
+    failure trust durability.
     """
     seed = SessionLocal()
     try:
         owner, _ = _owner(seed)
         account = _account(seed, owner)
-        sub = _sub(seed, account, cal_id=f"cal-roll-{uuid.uuid4().hex[:6]}")
-        ext_a = f"roll-a-{uuid.uuid4().hex[:8]}"
-        ext_b = f"roll-b-{uuid.uuid4().hex[:8]}"
+        sub = _sub(seed, account, cal_id=f"cal-inj-{uuid.uuid4().hex[:6]}")
+        ext_a = f"inj-a-{uuid.uuid4().hex[:8]}"
+        ext_b = f"inj-b-{uuid.uuid4().hex[:8]}"
         master = f"master-{uuid.uuid4().hex[:8]}"
         _seed_ms_row(
             seed,
@@ -941,7 +976,6 @@ def test_ems_13_ms_view_outer_rollback_verify_a() -> None:
         acct = caller.get(CalendarAccount, account_id)
         sub_row = caller.get(CalendarSubscription, sub_id)
         assert acct is not None and sub_row is not None
-        nested = caller.begin_nested()
         with pytest.raises(MicrosoftSeriesIdentityError):
             _apply_subscription_ms_view(
                 caller,
@@ -957,8 +991,6 @@ def test_ems_13_ms_view_outer_rollback_verify_a() -> None:
                 pagination_complete=True,
                 event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
             )
-        if nested.is_active:
-            nested.rollback()
         caller.rollback()
     finally:
         caller.close()
@@ -976,29 +1008,114 @@ def test_ems_13_ms_view_outer_rollback_verify_a() -> None:
     finally:
         verify.close()
 
-    # Replay consistent batch in a new transaction
+
+def test_ems_13_production_sync_outer_rollback_verify_a(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Production ``sync_account_events`` outer failure/rollback boundary.
+
+    Mocked fetch: A would succeed, B Malformed. Fresh session: A+B pre-batch,
+    durable subscription failure trust; then replay succeeds. Not lock-wait;
+    not apply-helper-only injection.
+    """
+    seed = SessionLocal()
+    try:
+        owner, _ = _owner(seed)
+        account = _account_with_tokens(seed, owner)
+        sub = _sub(seed, account, cal_id=f"cal-prod-{uuid.uuid4().hex[:6]}")
+        ext_a = f"prod-a-{uuid.uuid4().hex[:8]}"
+        ext_b = f"prod-b-{uuid.uuid4().hex[:8]}"
+        master = f"master-{uuid.uuid4().hex[:8]}"
+        _seed_ms_row(
+            seed,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_a,
+            series_id=master,
+            transparency="opaque",
+        )
+        _seed_ms_row(
+            seed,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_b,
+            series_id=master,
+            transparency="opaque",
+        )
+        seed.commit()
+        account_id = account.id
+        sub_id = sub.id
+        owner_id = owner.id
+    finally:
+        seed.close()
+
+    bad_batch = [
+        _ms_event_payload(ext_a, master=master, show_as="free"),
+        _ms_event_payload(ext_b, master={"bad": True}, show_as="free"),
+    ]
+    good_batch = [
+        _ms_event_payload(ext_a, master=master, show_as="free"),
+        _ms_event_payload(ext_b, master=master, show_as="free"),
+    ]
+    batches = iter([bad_batch, good_batch])
+
+    monkeypatch.setattr(
+        "app.services.microsoft_calendar.get_valid_access_token",
+        lambda *_a, **_k: "ms-access",
+    )
+    monkeypatch.setattr(
+        "app.services.microsoft_calendar.list_calendar_view",
+        lambda *_a, **_k: next(batches),
+    )
+
+    cfg = _ms_sync_settings()
+    t_min = H0 - timedelta(days=1)
+    t_max = H1 + timedelta(days=1)
+
+    fail_sess = SessionLocal()
+    try:
+        acct = fail_sess.get(CalendarAccount, account_id)
+        assert acct is not None
+        with pytest.raises(MicrosoftSeriesIdentityError):
+            sync_account_events(
+                fail_sess,
+                settings=cfg,
+                account=acct,
+                time_min=t_min,
+                time_max=t_max,
+            )
+        fail_sess.rollback()
+    finally:
+        fail_sess.close()
+
+    verify = SessionLocal()
+    try:
+        a = _row(verify, ext_a)
+        b = _row(verify, ext_b)
+        assert a.transparency == "opaque"
+        assert b.transparency == "opaque"
+        assert a.series_identity_state == SERIES_IDENTITY_VERIFIED_SERIES
+        assert a.provider_series_id == master
+        sub_v = verify.get(CalendarSubscription, sub_id)
+        assert sub_v is not None
+        assert sub_v.coverage_success_at is None
+        assert sub_v.coverage_last_failure_cause == "microsoft_apply_ms_view_failed"
+        assert sub_v.coverage_last_failure_at is not None
+    finally:
+        verify.close()
+
     replay = SessionLocal()
     try:
         acct = replay.get(CalendarAccount, account_id)
-        sub_row = replay.get(CalendarSubscription, sub_id)
-        assert acct is not None and sub_row is not None
-        good = [
-            _ms_event_payload(ext_a, master=master, show_as="free"),
-            _ms_event_payload(ext_b, master=master, show_as="free"),
-        ]
-        n = _apply_subscription_ms_view(
+        assert acct is not None
+        n = sync_account_events(
             replay,
+            settings=cfg,
             account=acct,
-            subscription=sub_row,
-            events=good,
-            time_min=H0 - timedelta(days=1),
-            time_max=H1 + timedelta(days=1),
-            now=datetime.now(UTC),
-            mode="ms_view",
-            coverage_generation=2,
-            page_count=1,
-            pagination_complete=True,
-            event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+            time_min=t_min,
+            time_max=t_max,
         )
         assert n == 2
         replay.commit()
@@ -1013,63 +1130,209 @@ def test_ems_13_ms_view_outer_rollback_verify_a() -> None:
         assert sub2 is not None
         assert sub2.coverage_mode == "ms_view"
         assert sub2.coverage_success_at is not None
+        assert sub2.coverage_last_failure_cause is None
+        _ = owner_id  # seeded owner retained for freshness quals if needed
     finally:
         verify2.close()
 
 
-def test_ems_14_full_incremental_e1_no_partial_identity(db_session: Session) -> None:
-    owner, _ = _owner(db_session)
-    account = _account(db_session, owner)
-    sub = _sub(db_session, account)
+def test_ems_14_full_incremental_e1_no_partial_identity() -> None:
+    """E1 owning savepoint: Malformed **and** False/unresolvable mid-batch.
+
+    Apply helpers own rollback — caller may commit the outer session after
+    failure without leaving A durable or advancing cursor. Fresh sessions.
+    """
+    # --- Malformed path (full + incremental) ---
+    seed = SessionLocal()
+    try:
+        owner, _ = _owner(seed)
+        account = _account(seed, owner)
+        sub = _sub(seed, account, cal_id=f"cal-e1m-{uuid.uuid4().hex[:6]}")
+        prior_cursor = f"cursor-prior-{uuid.uuid4().hex[:8]}"
+        sub.sync_cursor = prior_cursor
+        seed.commit()
+        account_id = account.id
+        sub_id = sub.id
+    finally:
+        seed.close()
+
     ext_a = f"full-a-{uuid.uuid4().hex[:8]}"
     ext_b = f"full-b-{uuid.uuid4().hex[:8]}"
     master = f"master-{uuid.uuid4().hex[:8]}"
-    prior_cursor = f"cursor-prior-{uuid.uuid4().hex[:8]}"
-    sub.sync_cursor = prior_cursor
-    db_session.flush()
-
-    events = [
+    malformed_events = [
         _ms_event_payload(ext_a, master=master),
         _ms_event_payload(ext_b, master={"nope": 1}),
     ]
-    nested = db_session.begin_nested()
-    with pytest.raises(MicrosoftSeriesIdentityError):
-        _apply_subscription_full(
-            db_session,
-            account=account,
-            subscription=sub,
-            events=events,
-            next_delta_link="cursor-must-not-stick",
-            time_min=H0 - timedelta(days=1),
-            time_max=H1 + timedelta(days=1),
-            now=datetime.now(UTC),
-            event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
-        )
-    nested.rollback()
-    db_session.expire_all()
-    assert (
-        db_session.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.external_event_id == ext_a)
-        .one_or_none()
-    ) is None
-    db_session.refresh(sub)
-    assert sub.sync_cursor == prior_cursor
 
-    # Incremental same shape
-    nested2 = db_session.begin_nested()
-    with pytest.raises(MicrosoftSeriesIdentityError):
-        _apply_subscription_incremental(
-            db_session,
-            account=account,
-            subscription=sub,
-            events=events,
-            next_delta_link="cursor-must-not-stick-incr",
-            now=datetime.now(UTC),
-            event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
-        )
-    nested2.rollback()
-    db_session.refresh(sub)
-    assert sub.sync_cursor == prior_cursor
+    apply_sess = SessionLocal()
+    try:
+        acct = apply_sess.get(CalendarAccount, account_id)
+        sub_row = apply_sess.get(CalendarSubscription, sub_id)
+        assert acct is not None and sub_row is not None
+        with pytest.raises(MicrosoftSeriesIdentityError):
+            _apply_subscription_full(
+                apply_sess,
+                account=acct,
+                subscription=sub_row,
+                events=malformed_events,
+                next_delta_link="cursor-must-not-stick",
+                time_min=H0 - timedelta(days=1),
+                time_max=H1 + timedelta(days=1),
+                now=datetime.now(UTC),
+                event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+            )
+        # Owning boundary rolled the apply savepoint — outer commit must not
+        # durably mint A or advance cursor.
+        apply_sess.commit()
+    finally:
+        apply_sess.close()
+
+    verify = SessionLocal()
+    try:
+        assert (
+            verify.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.external_event_id == ext_a)
+            .one_or_none()
+        ) is None
+        sub_v = verify.get(CalendarSubscription, sub_id)
+        assert sub_v is not None
+        assert sub_v.sync_cursor == prior_cursor
+    finally:
+        verify.close()
+
+    apply_incr = SessionLocal()
+    try:
+        acct = apply_incr.get(CalendarAccount, account_id)
+        sub_row = apply_incr.get(CalendarSubscription, sub_id)
+        assert acct is not None and sub_row is not None
+        with pytest.raises(MicrosoftSeriesIdentityError):
+            _apply_subscription_incremental(
+                apply_incr,
+                account=acct,
+                subscription=sub_row,
+                events=malformed_events,
+                next_delta_link="cursor-must-not-stick-incr",
+                now=datetime.now(UTC),
+                event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+            )
+        apply_incr.commit()
+    finally:
+        apply_incr.close()
+
+    verify_i = SessionLocal()
+    try:
+        assert (
+            verify_i.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.external_event_id == ext_a)
+            .one_or_none()
+        ) is None
+        sub_i = verify_i.get(CalendarSubscription, sub_id)
+        assert sub_i is not None
+        assert sub_i.sync_cursor == prior_cursor
+    finally:
+        verify_i.close()
+
+    # --- False / unresolvable path: A gains identity, B new+unusable bounds ---
+    seed2 = SessionLocal()
+    try:
+        owner2, _ = _owner(seed2)
+        account2 = _account(seed2, owner2)
+        sub2 = _sub(seed2, account2, cal_id=f"cal-e1f-{uuid.uuid4().hex[:6]}")
+        prior2 = f"cursor-false-{uuid.uuid4().hex[:8]}"
+        sub2.sync_cursor = prior2
+        seed2.commit()
+        account2_id = account2.id
+        sub2_id = sub2.id
+    finally:
+        seed2.close()
+
+    ext_a2 = f"false-a-{uuid.uuid4().hex[:8]}"
+    ext_b2 = f"false-b-{uuid.uuid4().hex[:8]}"
+    master2 = f"master-{uuid.uuid4().hex[:8]}"
+    false_events = [
+        _ms_event_payload(ext_a2, master=master2),
+        {
+            "id": ext_b2,
+            "type": "occurrence",
+            "seriesMasterId": master2,
+            "showAs": "busy",
+            "start": {"dateTime": "not-a-graph-datetime", "timeZone": "UTC"},
+            "end": {"dateTime": "also-not-valid", "timeZone": "UTC"},
+        },
+    ]
+
+    apply_f = SessionLocal()
+    try:
+        acct = apply_f.get(CalendarAccount, account2_id)
+        sub_row = apply_f.get(CalendarSubscription, sub2_id)
+        assert acct is not None and sub_row is not None
+        with pytest.raises(ApiError) as ei:
+            _apply_subscription_full(
+                apply_f,
+                account=acct,
+                subscription=sub_row,
+                events=false_events,
+                next_delta_link="cursor-false-must-not-stick",
+                time_min=H0 - timedelta(days=1),
+                time_max=H1 + timedelta(days=1),
+                now=datetime.now(UTC),
+                event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+            )
+        assert ei.value.content["code"] == "MS_VIEW_ITEM_UNRESOLVABLE"
+        apply_f.commit()
+    finally:
+        apply_f.close()
+
+    verify_f = SessionLocal()
+    try:
+        assert (
+            verify_f.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.external_event_id == ext_a2)
+            .one_or_none()
+        ) is None
+        assert (
+            verify_f.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.external_event_id == ext_b2)
+            .one_or_none()
+        ) is None
+        sub_f = verify_f.get(CalendarSubscription, sub2_id)
+        assert sub_f is not None
+        assert sub_f.sync_cursor == prior2
+    finally:
+        verify_f.close()
+
+    apply_fi = SessionLocal()
+    try:
+        acct = apply_fi.get(CalendarAccount, account2_id)
+        sub_row = apply_fi.get(CalendarSubscription, sub2_id)
+        assert acct is not None and sub_row is not None
+        with pytest.raises(ApiError) as ei:
+            _apply_subscription_incremental(
+                apply_fi,
+                account=acct,
+                subscription=sub_row,
+                events=false_events,
+                next_delta_link="cursor-false-incr-no",
+                now=datetime.now(UTC),
+                event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+            )
+        assert ei.value.content["code"] == "MS_VIEW_ITEM_UNRESOLVABLE"
+        apply_fi.commit()
+    finally:
+        apply_fi.close()
+
+    verify_fi = SessionLocal()
+    try:
+        assert (
+            verify_fi.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.external_event_id == ext_a2)
+            .one_or_none()
+        ) is None
+        sub_fi = verify_fi.get(CalendarSubscription, sub2_id)
+        assert sub_fi is not None
+        assert sub_fi.sync_cursor == prior2
+    finally:
+        verify_fi.close()
 
 
 def test_ems_16a_series_master_only_fail_closed(db_session: Session) -> None:
@@ -1196,134 +1459,366 @@ def test_ems_2e_contradiction_refresh_fail(db_session: Session) -> None:
     nested.rollback()
 
 
-# --- Migration backfill (E-MS-17) -------------------------------------------
+# --- Migration backfill (E-MS-17) — real 040 on dedicated disposable DB -----
 
 
-def test_ems_17_provider_aware_backfill_legacy_ms_null() -> None:
-    """Disposable DSN only — seed legacy-shaped MS row and assert incomplete.
+def _mig040_admin_connect():
+    import psycopg
 
-    Columns already exist after alembic upgrade head; we simulate legacy by
-    inserting with incomplete reason matching backfill codes via raw SQL reset
-    of a microsoft NULL-series row's state as the migration would leave it.
+    return psycopg.connect("postgresql://t1a@127.0.0.1:5433/postgres")
+
+
+def _mig040_dsn() -> str:
+    return f"postgresql+psycopg://t1a@127.0.0.1:5433/{_MIG040_DB}"
+
+
+def _mig040_alembic(revision: str) -> None:
+    env = os.environ.copy()
+    env["DATABASE_URL"] = _mig040_dsn()
+    env["SEED_DEMO_USER"] = "false"
+    api_root = Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [str(api_root / ".venv" / "Scripts" / "python.exe"), "-m", "alembic", "upgrade", revision],
+        cwd=str(api_root),
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise AssertionError(
+            f"alembic upgrade {revision} failed ({proc.returncode}):\n"
+            f"{proc.stdout}\n{proc.stderr}"
+        )
+
+
+def test_ems_17_real_migration_040_provider_aware_backfill() -> None:
+    """Run actual migration 040 against pre-040 fixtures on a dedicated DB.
+
+    Does **not** downgrade the shared ``theplan_t1a_test`` database.
     """
-    seed = SessionLocal()
+    admin = _mig040_admin_connect()
+    admin.autocommit = True
     try:
-        owner, _ = _owner(seed)
-        account = _account(seed, owner)
-        sub = _sub(seed, account)
-        ext = f"legacy-{uuid.uuid4().hex[:8]}"
-        # Insert as if pre-migration MS row then apply backfill SQL semantics.
-        seed.execute(
-            text(
-                """
-                INSERT INTO external_calendar_events (
-                    id, owner_id, calendar_account_id, provider, external_event_id,
-                    calendar_id, title, start_time, end_time, is_all_day,
-                    pending_deletion, transparency, free_busy_provenance,
-                    provider_series_id, free_busy_pending_exception,
-                    source_zone_missing, is_provider_cancelled,
-                    series_identity_state, series_identity_incomplete_reason
-                ) VALUES (
-                    :id, :owner, :acct, 'microsoft', :ext,
-                    :cal, 'legacy', :start, :end, false,
-                    false, 'transparent', 'provider_explicit',
-                    NULL, false,
-                    false, false,
-                    'incomplete', 'legacy_ms_unverified'
+        with admin.cursor() as cur:
+            cur.execute(f'DROP DATABASE IF EXISTS "{_MIG040_DB}" WITH (FORCE)')
+            cur.execute(f'CREATE DATABASE "{_MIG040_DB}"')
+    finally:
+        admin.close()
+
+    try:
+        _mig040_alembic("039_free_busy_series_policy")
+
+        eng = create_engine(_mig040_dsn())
+        try:
+            with eng.begin() as conn:
+                # Confirm pre-040: identity columns absent.
+                cols = {
+                    r[0]
+                    for r in conn.execute(
+                        text(
+                            """
+                            SELECT column_name FROM information_schema.columns
+                            WHERE table_name = 'external_calendar_events'
+                            """
+                        )
+                    )
+                }
+                assert "series_identity_state" not in cols
+
+                owner_g = str(uuid.uuid4())
+                owner_m = str(uuid.uuid4())
+                acct_g = str(uuid.uuid4())
+                acct_m = str(uuid.uuid4())
+                for oid, email, uname in (
+                    (owner_g, "g-mig@example.test", "g_mig040"),
+                    (owner_m, "m-mig@example.test", "m_mig040"),
+                ):
+                    conn.execute(
+                        text(
+                            """
+                            INSERT INTO users (
+                                id, email, username, display_name,
+                                is_admin, is_disabled, must_change_password, session_epoch
+                            ) VALUES (
+                                :id, :email, :uname, 'mig',
+                                false, false, false, 1
+                            )
+                            """
+                        ),
+                        {"id": oid, "email": email, "uname": uname},
+                    )
+                conn.execute(
+                    text(
+                        """
+                        INSERT INTO calendar_accounts (
+                            id, owner_id, provider, account_email, is_enabled, mirror_blocks
+                        ) VALUES
+                        (:g, :og, 'google', 'g@example.test', true, false),
+                        (:m, :om, 'microsoft', 'm@example.test', true, false)
+                        """
+                    ),
+                    {"g": acct_g, "og": owner_g, "m": acct_m, "om": owner_m},
                 )
-                """
-            ),
-            {
-                "id": str(uuid.uuid4()),
-                "owner": str(owner.id),
-                "acct": str(account.id),
-                "ext": ext,
-                "cal": sub.external_calendar_id,
-                "start": H0,
-                "end": H1,
-            },
-        )
-        seed.commit()
-        owner_id = owner.id
-    finally:
-        seed.close()
 
-    verify = SessionLocal()
-    try:
-        row = _row(verify, ext)
-        assert row.provider_series_id is None
-        assert row.series_identity_state == SERIES_IDENTITY_INCOMPLETE
-        assert row.series_identity_incomplete_reason == "legacy_ms_unverified"
-        assert row.transparency == "transparent"
-        _trust_blocked_incomplete(verify, verify.get(User, owner_id), row)  # type: ignore[arg-type]
-    finally:
-        verify.close()
-
-
-def test_ems_17b_google_null_still_verified_non_recurring() -> None:
-    """Google NULL series backfill semantics preserved (not incomplete)."""
-    seed = SessionLocal()
-    try:
-        token = uuid.uuid4().hex[:8]
-        user = User(
-            email=f"g-bf-{token}@example.test",
-            username=f"g_bf_{token}",
-            display_name="G",
-            is_admin=False,
-            is_disabled=False,
-            must_change_password=False,
-            session_epoch=1,
-        )
-        seed.add(user)
-        seed.flush()
-        acct = CalendarAccount(
-            owner_id=user.id,
-            provider=CalendarProvider.google,
-            account_email=f"{token}@example.test",
-            is_enabled=True,
-            mirror_blocks=False,
-        )
-        seed.add(acct)
-        seed.flush()
-        ext = f"g-legacy-{token}"
-        seed.execute(
-            text(
-                """
-                INSERT INTO external_calendar_events (
-                    id, owner_id, calendar_account_id, provider, external_event_id,
-                    calendar_id, title, start_time, end_time, is_all_day,
-                    pending_deletion, provider_series_id, free_busy_pending_exception,
-                    source_zone_missing, is_provider_cancelled,
-                    series_identity_state, series_identity_incomplete_reason
-                ) VALUES (
-                    :id, :owner, :acct, 'google', :ext,
-                    'g-cal', 'g', :start, :end, false,
-                    false, NULL, false,
-                    false, false,
-                    'verified_non_recurring', NULL
+                history = (
+                    '[{"at":"2026-10-19T12:00:00Z","sync_run_id":"pre040",'
+                    '"from_transparency":null,"from_provenance":null,'
+                    '"to_transparency":"transparent","to_provenance":"provider_explicit"}]'
                 )
-                """
-            ),
-            {
-                "id": str(uuid.uuid4()),
-                "owner": str(user.id),
-                "acct": str(acct.id),
-                "ext": ext,
-                "start": H0,
-                "end": H1,
-            },
-        )
-        seed.commit()
-    finally:
-        seed.close()
+                fixtures = [
+                    # Google NULL → verified_non_recurring
+                    ("g-null", acct_g, owner_g, "google", None, False, "opaque", history),
+                    # Google non-NULL → verified_series
+                    ("g-ser", acct_g, owner_g, "google", "g-series-1", False, "opaque", history),
+                    # MS NULL + free storage + pending → incomplete / legacy_ms_unverified
+                    (
+                        "m-null",
+                        acct_m,
+                        owner_m,
+                        "microsoft",
+                        None,
+                        True,
+                        "transparent",
+                        history,
+                    ),
+                    # MS seeded series retained + latch-style pending
+                    (
+                        "m-seed",
+                        acct_m,
+                        owner_m,
+                        "microsoft",
+                        "ms-series-kept",
+                        True,
+                        "transparent",
+                        history,
+                    ),
+                ]
+                for ext, acct, owner, prov, series, pending, transp, hist in fixtures:
+                    conn.execute(
+                        text(
+                            """
+                            INSERT INTO external_calendar_events (
+                                id, owner_id, calendar_account_id, provider,
+                                external_event_id, calendar_id, title,
+                                start_time, end_time, is_all_day,
+                                pending_deletion, transparency, free_busy_provenance,
+                                free_busy_change_history,
+                                provider_series_id, free_busy_pending_exception,
+                                source_zone_missing, is_provider_cancelled
+                            ) VALUES (
+                                :id, :owner, :acct, :prov,
+                                :ext, :cal, :title,
+                                :start, :end, false,
+                                false, :transp, 'provider_explicit',
+                                CAST(:hist AS jsonb),
+                                :series, :pending,
+                                false, false
+                            )
+                            """
+                        ),
+                        {
+                            "id": str(uuid.uuid4()),
+                            "owner": owner,
+                            "acct": acct,
+                            "prov": prov,
+                            "ext": ext,
+                            "cal": "cal-mig",
+                            "title": ext,
+                            "start": H0,
+                            "end": H1,
+                            "transp": transp,
+                            "hist": hist,
+                            "series": series,
+                            "pending": pending,
+                        },
+                    )
 
-    verify = SessionLocal()
-    try:
-        row = _row(verify, ext)
-        assert row.series_identity_state == SERIES_IDENTITY_VERIFIED_NON_RECURRING
-        assert row.series_identity_incomplete_reason is None
+                # Policy latch for MS seeded series — must survive 040.
+                policy_id = str(uuid.uuid4())
+                conn.execute(
+                    text(
+                        """
+                        INSERT INTO free_busy_series_policies (
+                            id, owner_id, provider, calendar_id, provider_series_id,
+                            mapping, conflict_pending_latched, latch_generation
+                        ) VALUES (
+                            :id, :owner, 'microsoft', 'cal-mig', 'ms-series-kept',
+                            'free', true, 3
+                        )
+                        """
+                    ),
+                    {"id": policy_id, "owner": owner_m},
+                )
+        finally:
+            eng.dispose()
+
+        _mig040_alembic("040_series_identity_state")
+
+        eng2 = create_engine(_mig040_dsn())
+        SessionMig = sessionmaker(bind=eng2)
+        try:
+            with eng2.connect() as conn:
+                rows = {
+                    r.external_event_id: r
+                    for r in conn.execute(
+                        text(
+                            """
+                            SELECT external_event_id, provider, provider_series_id,
+                                   series_identity_state, series_identity_incomplete_reason,
+                                   free_busy_pending_exception, transparency,
+                                   free_busy_change_history
+                            FROM external_calendar_events
+                            """
+                        )
+                    )
+                }
+                assert rows["g-null"].series_identity_state == (
+                    SERIES_IDENTITY_VERIFIED_NON_RECURRING
+                )
+                assert rows["g-null"].series_identity_incomplete_reason is None
+                assert rows["g-ser"].series_identity_state == SERIES_IDENTITY_VERIFIED_SERIES
+                assert rows["g-ser"].provider_series_id == "g-series-1"
+
+                assert rows["m-null"].series_identity_state == SERIES_IDENTITY_INCOMPLETE
+                assert rows["m-null"].series_identity_incomplete_reason == (
+                    "legacy_ms_unverified"
+                )
+                assert rows["m-null"].provider_series_id is None
+                assert rows["m-null"].free_busy_pending_exception is True
+                assert rows["m-null"].transparency == "transparent"
+                assert rows["m-null"].free_busy_change_history is not None
+
+                assert rows["m-seed"].series_identity_state == SERIES_IDENTITY_INCOMPLETE
+                assert rows["m-seed"].series_identity_incomplete_reason == (
+                    "legacy_ms_unverified_seeded"
+                )
+                assert rows["m-seed"].provider_series_id == "ms-series-kept"
+                assert rows["m-seed"].free_busy_pending_exception is True
+
+                pol = conn.execute(
+                    text(
+                        """
+                        SELECT conflict_pending_latched, latch_generation
+                        FROM free_busy_series_policies
+                        WHERE provider_series_id = 'ms-series-kept'
+                        """
+                    )
+                ).one()
+                assert pol.conflict_pending_latched is True
+                assert pol.latch_generation == 3
+
+            # Verified MS ingest recovery on post-040 incomplete row.
+            mig = SessionMig()
+            try:
+                acct = (
+                    mig.query(CalendarAccount)
+                    .filter(CalendarAccount.provider == CalendarProvider.microsoft)
+                    .one()
+                )
+                sub = CalendarSubscription(
+                    owner_id=acct.owner_id,
+                    calendar_account_id=acct.id,
+                    external_calendar_id="cal-mig",
+                    summary="mig",
+                    role=CalendarSubscriptionRole.primary,
+                    is_enabled=True,
+                    provider_timezone="UTC",
+                )
+                mig.add(sub)
+                mig.flush()
+                ok = _upsert_external_event(
+                    mig,
+                    account=acct,
+                    subscription=sub,
+                    event=_ms_event_payload(
+                        "m-null",
+                        type="singleInstance",
+                        include_master_key=False,
+                        show_as="busy",
+                    ),
+                    now=datetime.now(UTC),
+                    sync_run_id="mig040-recover",
+                    event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+                )
+                assert ok is True
+                mig.commit()
+                row = (
+                    mig.query(ExternalCalendarEvent)
+                    .filter(ExternalCalendarEvent.external_event_id == "m-null")
+                    .one()
+                )
+                assert row.series_identity_state == SERIES_IDENTITY_VERIFIED_NON_RECURRING
+                assert row.series_identity_incomplete_reason is None
+                assert row.provider_series_id is None
+            finally:
+                mig.close()
+        finally:
+            eng2.dispose()
     finally:
-        verify.close()
+        admin = _mig040_admin_connect()
+        admin.autocommit = True
+        try:
+            with admin.cursor() as cur:
+                cur.execute(f'DROP DATABASE IF EXISTS "{_MIG040_DB}" WITH (FORCE)')
+        finally:
+            admin.close()
+
+
+def test_ems_none_snapshot_post_lock_series_acquire_aborts(
+    db_session: Session,
+) -> None:
+    """Previously non-series row acquires series under lock ⇒ drift (None≠key).
+
+    Payload is KnownSeries (locks new master). Pre-lock snapshot is None; a
+    concurrent writer attaches series before for_update reload. Revalidation
+    must abort — not skip because ``identity_snapshot is None``.
+    """
+    from app.services import microsoft_calendar as ms_mod
+
+    owner, _ = _owner(db_session)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account)
+    ext = f"none-snap-{uuid.uuid4().hex[:8]}"
+    master = f"master-{uuid.uuid4().hex[:8]}"
+    concurrent = f"concurrent-{uuid.uuid4().hex[:8]}"
+    _seed_ms_row(
+        db_session,
+        owner=owner,
+        account=account,
+        sub=sub,
+        external_id=ext,
+        series_id=None,
+        state=SERIES_IDENTITY_VERIFIED_NON_RECURRING,
+        transparency="opaque",
+    )
+    db_session.flush()
+
+    original = ms_mod._find_external_event
+
+    def _wrapped(db, *, owner_id, external_id, for_update=False):
+        row = original(
+            db, owner_id=owner_id, external_id=external_id, for_update=for_update
+        )
+        if for_update and row is not None and row.provider_series_id is None:
+            row.provider_series_id = concurrent
+            db.flush()
+        return row
+
+    ms_mod._find_external_event = _wrapped  # type: ignore[assignment]
+    try:
+        with pytest.raises(UpsertPostLockIdentityDriftError):
+            _upsert_external_event(
+                db_session,
+                account=account,
+                subscription=sub,
+                event=_ms_event_payload(ext, master=master, show_as="busy"),
+                now=datetime.now(UTC),
+                sync_run_id="none-snap",
+                event_fetch_context=MS_EVENT_LIST_FETCH_CONTEXT,
+            )
+    finally:
+        ms_mod._find_external_event = original  # type: ignore[assignment]
 
 
 # --- Real lock wait (E-MS-9) — distinguished from injected rollback ---------

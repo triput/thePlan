@@ -747,11 +747,12 @@ def test_db_partial_show_as_busy_flips_seeded_free(
     prior_zone = seeded.source_timezone
     prior_zone_missing = seeded.source_zone_missing
 
+    # Complete singleInstance identity — showAs-only residual, not incomplete gate.
     ok = ms_cal._upsert_external_event(
         db_session,
         account=account,
         subscription=sub,
-        event={"id": external_id, "showAs": "busy"},
+        event={"id": external_id, "type": "singleInstance", "showAs": "busy"},
         now=datetime(2026, 10, 20, 9, 0, tzinfo=UTC),
         sync_run_id="ms-incr-partial-busy",
     )
@@ -773,6 +774,7 @@ def test_db_partial_show_as_busy_flips_seeded_free(
     assert len(row.free_busy_change_history or []) == prior_history_len + 1
     assert row.free_busy_change_history[0]["sync_run_id"] == "seed-run"
     assert row.free_busy_change_history[-1]["to_transparency"] == "opaque"
+    assert row.series_identity_state == "verified_non_recurring"
     assert (
         effective_free_busy_kind(
             transparency=row.transparency, provenance=row.free_busy_provenance
@@ -780,6 +782,30 @@ def test_db_partial_show_as_busy_flips_seeded_free(
         == "busy"
     )
     assert events_for_busy_merge([row]) == [row]
+
+    # Deliberately incomplete omit-type payload: new blocker, not showAs merge.
+    ok_inc = ms_cal._upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event={"id": external_id, "showAs": "free"},
+        now=datetime(2026, 10, 20, 9, 1, tzinfo=UTC),
+        sync_run_id="ms-incr-partial-incomplete",
+    )
+    assert ok_inc is True
+    db_session.flush()
+    db_session.expire(row)
+    row_inc = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row_inc is not None
+    assert row_inc.series_identity_state == "incomplete"
+    assert events_for_busy_merge([row_inc]) == []
+    trust_inc = evaluate_busy_input_trust(
+        [row_inc], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust_inc.ok is False
+    assert any(
+        d.cause == "series_identity_incomplete" for d in trust_inc.blocking_diagnostics
+    )
 
 
 def test_db_partial_show_as_unknown_trust_posture(
@@ -1459,6 +1485,7 @@ def test_db_unresolvable_supplied_times_fail_closed_trust(
         subscription=sub,
         event={
             "id": external_id,
+            "type": "singleInstance",
             "showAs": "busy",
             "start": {"dateTime": "not-a-graph-datetime", "timeZone": "UTC"},
             "end": {"dateTime": "also-not-valid", "timeZone": "UTC"},
@@ -1476,14 +1503,15 @@ def test_db_unresolvable_supplied_times_fail_closed_trust(
     assert row.transparency is None
     assert row.free_busy_provenance == "unknown_projection"
     assert row.free_busy_prior_provenance == "provider_explicit"
+    assert row.series_identity_state == "verified_non_recurring"
     assert events_for_busy_merge([row]) == []
 
-    # Contrast: omit-times + explicit showAs still maps (prior Dex residual).
+    # Contrast: omit-times + complete singleInstance + explicit showAs still maps.
     ok_omit = ms_cal._upsert_external_event(
         db_session,
         account=account,
         subscription=sub,
-        event={"id": external_id, "showAs": "busy"},
+        event={"id": external_id, "type": "singleInstance", "showAs": "busy"},
         now=datetime(2026, 10, 20, 11, 11, tzinfo=UTC),
         sync_run_id="ms-omit-after-invalid",
     )
@@ -1496,4 +1524,5 @@ def test_db_unresolvable_supplied_times_fail_closed_trust(
     assert row.free_busy_provenance == "provider_explicit"
     assert row.start_time == SEED_START
     assert row.end_time == SEED_END
+    assert row.series_identity_state == "verified_non_recurring"
     assert events_for_busy_merge([row]) == [row]
