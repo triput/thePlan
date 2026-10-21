@@ -1050,7 +1050,13 @@ def test_f16c_ms_sync_entry_collision_no_bootstrap_then_put_pulls(
         pulls.append(subscription.external_calendar_id)
         from app.services.microsoft_calendar import MsViewPull
 
-        return MsViewPull(events=[], mode="ms_view", page_count=1, pagination_complete=True)
+        return MsViewPull(
+            events=[],
+            page_count=1,
+            pagination_complete=True,
+            mode="ms_view",
+            event_fetch_context=ms_cal.MS_EVENT_LIST_FETCH_CONTEXT,
+        )
 
     monkeypatch.setattr(ms_cal, "_pull_subscription_changes", _pull)
     ms_cal.sync_account_events(

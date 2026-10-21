@@ -92,6 +92,7 @@ class MsViewPull:
     page_count: int
     pagination_complete: bool
     mode: str
+    event_fetch_context: MicrosoftEventFetchContext
 
 
 @dataclass(frozen=True)
@@ -755,6 +756,12 @@ MS_EVENT_LIST_FETCH_CONTEXT = MicrosoftEventFetchContext(
     show_as_representation_established=True,
 )
 
+# Delta-link follow (``params is None``) or apply without session evidence.
+MS_EVENT_FETCH_CONTEXT_UNCERTAIN = MicrosoftEventFetchContext(
+    show_as_field_projected=False,
+    show_as_representation_established=False,
+)
+
 
 def _microsoft_select_field_names(select: str) -> frozenset[str]:
     return frozenset(part.strip() for part in select.split(",") if part.strip())
@@ -766,11 +773,11 @@ def microsoft_event_fetch_context_from_list_params(
     """Derive showAs fetch evidence from Graph list params (not delta token bodies).
 
     ``params is None`` is delta-link continuation (no query params). Callers must
-    pass the qualification inherited from the sync session — this helper treats
-    that shape like an unprojected list when used alone.
+    pass the qualification inherited from the sync session — this helper does not
+    infer established representation from an opaque delta URL alone.
     """
     if params is None:
-        return MS_EVENT_LIST_FETCH_CONTEXT
+        return MS_EVENT_FETCH_CONTEXT_UNCERTAIN
     if MS_EVENT_LIST_SELECT_PARAM not in params:
         return MS_EVENT_LIST_FETCH_CONTEXT
     fields = _microsoft_select_field_names(params[MS_EVENT_LIST_SELECT_PARAM])
@@ -842,6 +849,17 @@ def list_calendar_events(
     )
 
 
+def microsoft_calendar_view_list_params(
+    *,
+    time_min: datetime,
+    time_max: datetime,
+) -> dict[str, str]:
+    """Query params for production calendarView list pulls (window + ``$top``)."""
+    return microsoft_event_list_window_params(
+        time_min=time_min, time_max=time_max, top="100"
+    )
+
+
 def list_calendar_view(
     access_token: str,
     calendar_id: str,
@@ -854,8 +872,8 @@ def list_calendar_view(
     Does not follow delta and does not return a deltaLink. A remaining nextLink
     at ``pagination_max_pages`` is truncation: ``pagination_complete`` is False.
     """
-    params = microsoft_event_list_window_params(
-        time_min=time_min, time_max=time_max, top="100"
+    params = microsoft_calendar_view_list_params(
+        time_min=time_min, time_max=time_max
     )
     stats = GraphPageStats()
     items, _delta = _graph_collect(
@@ -1432,6 +1450,10 @@ def _pull_subscription_changes(
     ``db`` is unused: cursor bypass does not flush.
     """
     del db
+    list_params = microsoft_calendar_view_list_params(
+        time_min=time_min, time_max=time_max
+    )
+    fetch_context = microsoft_event_fetch_context_from_list_params(list_params)
     events, page_count, pagination_complete = _unpack_calendar_view(
         list_calendar_view(
             access,
@@ -1445,6 +1467,7 @@ def _pull_subscription_changes(
         page_count=page_count,
         pagination_complete=pagination_complete,
         mode=COVERAGE_MODE_MS_VIEW,
+        event_fetch_context=fetch_context,
     )
 
 
@@ -1475,11 +1498,7 @@ def _apply_subscription_ms_view(
     )
 
     suppressed = suppressed_external_ids or set()
-    fetch_context = (
-        event_fetch_context
-        if event_fetch_context is not None
-        else MS_EVENT_LIST_FETCH_CONTEXT
-    )
+    fetch_context = event_fetch_context
     seen_external_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"ms-view-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
@@ -1599,11 +1618,7 @@ def _apply_subscription_full(
 ) -> int:
     """Delta baseline apply for unit isolation. Does not mint coverage."""
     suppressed = suppressed_external_ids or set()
-    fetch_context = (
-        event_fetch_context
-        if event_fetch_context is not None
-        else MS_EVENT_LIST_FETCH_CONTEXT
-    )
+    fetch_context = event_fetch_context
     seen_external_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"ms-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
@@ -1666,11 +1681,7 @@ def _apply_subscription_incremental(
     event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> int:
     suppressed = suppressed_external_ids or set()
-    fetch_context = (
-        event_fetch_context
-        if event_fetch_context is not None
-        else MS_EVENT_LIST_FETCH_CONTEXT
-    )
+    fetch_context = event_fetch_context
     upserted = 0
     sync_run_id = f"ms-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
@@ -1842,6 +1853,7 @@ def sync_account_events(
                         page_count=view.page_count,
                         pagination_complete=True,
                         suppressed_external_ids=suppressed,
+                        event_fetch_context=view.event_fetch_context,
                     )
                     nested.commit()
                 except Exception as exc:

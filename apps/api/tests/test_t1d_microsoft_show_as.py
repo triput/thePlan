@@ -199,7 +199,13 @@ def test_list_calendar_events_passes_no_event_select(
         ms_cal.MS_EVENT_LIST_FETCH_CONTEXT
     )
     assert ms_cal.microsoft_event_fetch_context_from_list_params(captured[2]) == (
-        ms_cal.MS_EVENT_LIST_FETCH_CONTEXT
+        ms_cal.MS_EVENT_FETCH_CONTEXT_UNCERTAIN
+    )
+
+
+def test_fetch_context_none_params_is_uncertain_not_established() -> None:
+    assert ms_cal.microsoft_event_fetch_context_from_list_params(None) == (
+        ms_cal.MS_EVENT_FETCH_CONTEXT_UNCERTAIN
     )
 
 
@@ -845,6 +851,10 @@ def test_db_apply_full_list_context_omit_show_as_unknown_missing(
     assert row is not None
     assert row.free_busy_provenance == "unknown_missing"
     assert events_for_busy_merge([row]) == []
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
 
 
 def test_db_apply_full_projected_omit_show_as_unknown_projection(
@@ -888,6 +898,10 @@ def test_db_apply_full_projected_omit_show_as_unknown_projection(
     assert row.free_busy_provenance == "unknown_projection"
     assert row.free_busy_prior_transparency == "transparent"
     assert events_for_busy_merge([row]) == []
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
 
 
 def test_db_apply_incremental_preserves_projected_fetch_context(
@@ -925,6 +939,110 @@ def test_db_apply_incremental_preserves_projected_fetch_context(
     assert row is not None
     assert row.free_busy_provenance == "unknown_projection"
     assert sub.sync_cursor == "https://graph.microsoft.com/v1.0/delta?$deltatoken=opaque"
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+
+
+def _patch_ms_sync_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        ms_cal, "get_valid_access_token", lambda *_a, **_k: "access-token"
+    )
+
+
+def test_db_sync_ms_view_derived_fetch_context_omit_show_as_unknown_missing(
+    disposable_db: None,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``sync_account_events`` threads pull-derived list context into ms_view apply."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-sync-miss-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+    _patch_ms_sync_token(monkeypatch)
+    fixed = datetime(2026, 10, 20, 14, 0, tzinfo=UTC)
+    real_dt = ms_cal.datetime
+
+    class _FixedNow(real_dt):
+        @classmethod
+        def now(cls, tz=None):
+            if tz is not None:
+                return fixed.astimezone(tz)
+            return fixed
+
+    monkeypatch.setattr(ms_cal, "datetime", _FixedNow)
+    monkeypatch.setattr(
+        ms_cal,
+        "list_calendar_view",
+        lambda *_a, **_k: (
+            [_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+            1,
+            True,
+        ),
+    )
+    count = ms_cal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=HORIZON_START - timedelta(hours=1),
+        time_max=HORIZON_END + timedelta(hours=1),
+    )
+    assert count == 1
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.free_busy_provenance == "unknown_missing"
+    assert row.free_busy_prior_transparency == "transparent"
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_apply_incremental_without_fetch_context_omit_show_as_uncertain(
+    disposable_db: None,
+    db_session: Session,
+) -> None:
+    """Opaque delta continuation with no inherited session context stays uncertain."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-incr-nctx-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+    now = datetime(2026, 10, 20, 12, 15, tzinfo=UTC)
+    ms_cal._apply_subscription_incremental(
+        db_session,
+        account=account,
+        subscription=sub,
+        events=[_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+        next_delta_link="https://graph.microsoft.com/v1.0/delta?$deltatoken=opaque",
+        now=now,
+    )
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.free_busy_provenance == "unknown_projection"
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+    assert events_for_busy_merge([row]) == []
 
 
 def test_db_partial_omit_show_as_demotes_unknown_projection(
