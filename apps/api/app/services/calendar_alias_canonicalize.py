@@ -50,6 +50,7 @@ T1F_KNOWN_TIP_SHAS = frozenset(
         T1F_BASELINE_SHA,
         "dfe93fbdb3fb05df89f22965027b194f0a1fb09f",
         "cd233cac9da3dfb5350253a15d7e20e15f527bf0",
+        "b2822440d41e0d5265959bc4f1a1c5573b11876e",
     }
 )
 
