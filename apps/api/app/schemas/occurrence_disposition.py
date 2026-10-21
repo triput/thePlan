@@ -7,7 +7,13 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 DispositionResolution = Literal["unresolved_held", "released", "skipped"]
-DispositionEventType = Literal["miss_detected", "leave_held", "duplicate_miss"]
+DispositionEventType = Literal[
+    "miss_detected",
+    "leave_held",
+    "duplicate_miss",
+    "released",
+    "skipped",
+]
 
 
 class DispositionEventOut(BaseModel):
@@ -31,5 +37,20 @@ class HeldDispositionOut(BaseModel):
 
 
 class LeaveHeldIn(BaseModel):
+    expected_revision: int
+    note: str | None = None
+
+
+class ReleaseHeldIn(BaseModel):
+    disposition_id: UUID
+    expected_revision: int
+    note: str | None = None
+    start_no_earlier_at: datetime | None = None
+    start_no_later_at: datetime | None = None
+    deadline_at: datetime | None = None
+
+
+class SkipHeldIn(BaseModel):
+    disposition_id: UUID
     expected_revision: int
     note: str | None = None

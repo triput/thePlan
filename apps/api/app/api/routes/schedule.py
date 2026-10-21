@@ -21,9 +21,19 @@ from app.services.schedule_explanations import latest_for_task, page_for_run, st
 from app.services.schedule_preview_dispatch import admit_preview, dispatch_preview
 from app.services.schedule_preview_apply import apply_schedule_preview
 from app.services.schedule_previews import preview_to_dict, refresh_preview_staleness
-from app.schemas.occurrence_disposition import HeldDispositionOut, LeaveHeldIn
+from app.schemas.occurrence_disposition import (
+    HeldDispositionOut,
+    LeaveHeldIn,
+    ReleaseHeldIn,
+    SkipHeldIn,
+)
 from app.schemas.task_scheduling import TaskSchedulingEffectiveOut
-from app.services.occurrence_disposition import leave_held_acknowledgment, list_held_dispositions
+from app.services.occurrence_disposition import (
+    leave_held_acknowledgment,
+    list_held_dispositions,
+    release_held,
+    skip_held,
+)
 from app.services.task_scheduling_effective import build_task_scheduling_effective
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
@@ -250,6 +260,57 @@ def leave_held_miss(
         db,
         owner_id=user.id,
         task_id=task_id,
+        expected_revision=body.expected_revision,
+        note=body.note,
+    )
+    db.commit()
+    db.refresh(row)
+    return _held_to_out(row)
+
+
+@router.post("/held-misses/{task_id}/release", response_model=HeldDispositionOut)
+def release_held_miss(
+    task_id: UUID,
+    body: ReleaseHeldIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> HeldDispositionOut:
+    task = db.get(Task, task_id)
+    if task is None or task.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    bounds_updates = body.model_dump(
+        exclude_unset=True,
+        include={"start_no_earlier_at", "start_no_later_at", "deadline_at"},
+    )
+    row = release_held(
+        db,
+        owner_id=user.id,
+        task_id=task_id,
+        disposition_id=body.disposition_id,
+        expected_revision=body.expected_revision,
+        note=body.note,
+        bounds_updates=bounds_updates or None,
+    )
+    db.commit()
+    db.refresh(row)
+    return _held_to_out(row)
+
+
+@router.post("/held-misses/{task_id}/skip", response_model=HeldDispositionOut)
+def skip_held_miss(
+    task_id: UUID,
+    body: SkipHeldIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> HeldDispositionOut:
+    task = db.get(Task, task_id)
+    if task is None or task.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    row = skip_held(
+        db,
+        owner_id=user.id,
+        task_id=task_id,
+        disposition_id=body.disposition_id,
         expected_revision=body.expected_revision,
         note=body.note,
     )

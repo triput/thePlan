@@ -20,6 +20,8 @@ RESOLUTION_SKIPPED = "skipped"
 EVENT_MISS_DETECTED = "miss_detected"
 EVENT_LEAVE_HELD = "leave_held"
 EVENT_DUPLICATE_MISS = "duplicate_miss"
+EVENT_RELEASED = "released"
+EVENT_SKIPPED = "skipped"
 
 
 class TaskOccurrenceDisposition(Base, TimestampMixin):

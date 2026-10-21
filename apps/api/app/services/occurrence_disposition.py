@@ -1,8 +1,8 @@
 # ==============================================================================
 #  File: apps/api/app/services/occurrence_disposition.py
-#  Description: T2-S2 B-auto durable miss dispositions (outside pure calculate).
+#  Description: T2-S2 B-auto durable miss dispositions + R/S release/skip writers.
 #  Component: Occurrence disposition
-#  Version: 1.1
+#  Version: 1.2
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -24,14 +24,39 @@ from app.models.task_occurrence_disposition import (
     EVENT_DUPLICATE_MISS,
     EVENT_LEAVE_HELD,
     EVENT_MISS_DETECTED,
+    EVENT_RELEASED,
+    EVENT_SKIPPED,
+    RESOLUTION_RELEASED,
     RESOLUTION_SKIPPED,
     RESOLUTION_UNRESOLVED_HELD,
     DispositionEvent,
 )
 from app.scheduler.input_fingerprint import normalize_occurrence_bounds
-from app.scheduler.occurrence_bounds import has_occurrence_bounds
+from app.scheduler.occurrence_bounds import (
+    effective_latest_start,
+    has_occurrence_bounds,
+    unsupported_shape,
+)
 from app.scheduler.reasons import REASON_OCCURRENCE_BOUNDS_MISS, ReasonFact
-from app.services.scheduling_revision import assert_scheduling_revision, lock_owner_scheduling
+from app.scheduler.task_effort import placement_effort_minutes
+from app.services.scheduling_revision import (
+    assert_scheduling_revision,
+    increment_scheduling_revision,
+    lock_owner_scheduling,
+)
+from app.services.task_occurrence_bounds import (
+    require_timezone_aware_instant,
+    validate_occurrence_bounds_patch,
+)
+
+_BOUNDS_PATCH_FIELDS = frozenset(
+    {"start_no_earlier_at", "start_no_later_at", "deadline_at"}
+)
+_TERMINAL_COVERED = (
+    RESOLUTION_UNRESOLVED_HELD,
+    RESOLUTION_RELEASED,
+    RESOLUTION_SKIPPED,
+)
 
 
 def _canonical(value: Any) -> str:
@@ -149,6 +174,17 @@ def stage_auto_misses(
     if not misses:
         return staged
     task_ids = list(misses)
+    # Task-wide skip: never open a new unresolved_held for a skipped task.
+    skipped_task_ids = {
+        row.task_id
+        for row in db.query(TaskOccurrenceDisposition.task_id)
+        .filter(
+            TaskOccurrenceDisposition.owner_id == owner_id,
+            TaskOccurrenceDisposition.task_id.in_(task_ids),
+            TaskOccurrenceDisposition.resolution == RESOLUTION_SKIPPED,
+        )
+        .all()
+    }
     tasks = {
         row.id: row
         for row in db.query(Task)
@@ -157,6 +193,8 @@ def stage_auto_misses(
         .all()
     }
     for task_id, fact in misses.items():
+        if task_id in skipped_task_ids:
+            continue
         task = tasks.get(task_id)
         if task is None or not _task_still_matches_miss(task, fact):
             continue
@@ -188,6 +226,8 @@ def stage_auto_misses(
             )
             continue
         if existing is not None:
+            # Terminal released/skipped (or unexpected) — do not overwrite history.
+            covered_episode_keys.add(key)
             continue
         row = TaskOccurrenceDisposition(
             owner_id=owner_id,
@@ -224,11 +264,12 @@ def stage_auto_misses(
 
 
 def covered_episode_set(db: Session, owner_id: UUID) -> set[tuple[UUID, str]]:
+    """Episode keys that must not re-insert — held + terminal released/skipped."""
     rows = (
         db.query(TaskOccurrenceDisposition.task_id, TaskOccurrenceDisposition.episode_key)
         .filter(
             TaskOccurrenceDisposition.owner_id == owner_id,
-            TaskOccurrenceDisposition.resolution == RESOLUTION_UNRESOLVED_HELD,
+            TaskOccurrenceDisposition.resolution.in_(_TERMINAL_COVERED),
         )
         .all()
     )
@@ -282,6 +323,226 @@ def leave_held_acknowledgment(
         )
     )
     db.flush()
+    return row
+
+
+def _load_named_disposition(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+) -> TaskOccurrenceDisposition | None:
+    return (
+        db.query(TaskOccurrenceDisposition)
+        .options(joinedload(TaskOccurrenceDisposition.events))
+        .filter(
+            TaskOccurrenceDisposition.id == disposition_id,
+            TaskOccurrenceDisposition.owner_id == owner_id,
+            TaskOccurrenceDisposition.task_id == task_id,
+        )
+        .populate_existing()
+        .one_or_none()
+    )
+
+
+def _live_bounds_refs(task: Task) -> dict[str, str | None]:
+    return {
+        "start_no_earlier_at": (
+            task.start_no_earlier_at.isoformat() if task.start_no_earlier_at else None
+        ),
+        "start_no_later_at": (
+            task.start_no_later_at.isoformat() if task.start_no_later_at else None
+        ),
+        "deadline_at": task.deadline_at.isoformat() if task.deadline_at else None,
+    }
+
+
+def _assert_usable_dates_for_release(
+    task: Task,
+    settings: Any,
+    *,
+    now_utc: datetime,
+) -> None:
+    """Temporal miss/invalid only — not free-slot / horizon placement promise."""
+    effort = placement_effort_minutes(task)
+    if unsupported_shape(task, settings, effort_minutes=effort):
+        raise ApiError(
+            422,
+            "Occurrence bounds still missed or invalid for remaining work",
+            "BOUNDS_STILL_MISSED",
+        )
+    latest = effective_latest_start(task, effort_minutes=effort)
+    now = now_utc
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    else:
+        now = now.astimezone(timezone.utc)
+    if latest is not None and latest < now:
+        raise ApiError(
+            422,
+            "Occurrence bounds still missed or invalid for remaining work",
+            "BOUNDS_STILL_MISSED",
+        )
+
+
+def _apply_live_bounds_patch(task: Task, bounds_updates: dict[str, Any]) -> None:
+    updates = {
+        key: value
+        for key, value in bounds_updates.items()
+        if key in _BOUNDS_PATCH_FIELDS
+    }
+    if not updates:
+        return
+    if "deadline_at" in updates and updates["deadline_at"] is not None:
+        updates["deadline_at"] = require_timezone_aware_instant(
+            updates["deadline_at"],  # type: ignore[arg-type]
+            field="deadline_at",
+        )
+    validate_occurrence_bounds_patch(task, updates)
+    for key, value in updates.items():
+        setattr(task, key, value)
+
+
+def release_held(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+    expected_revision: int,
+    note: str | None = None,
+    bounds_updates: dict[str, Any] | None = None,
+) -> TaskOccurrenceDisposition:
+    """R-retry: clear named unresolved_held → released (+ optional atomic bounds)."""
+    settings = lock_owner_scheduling(db, owner_id)
+    # Stale revision precedes terminal no-op (§10.2).
+    assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+    row = _load_named_disposition(
+        db,
+        owner_id=owner_id,
+        task_id=task_id,
+        disposition_id=disposition_id,
+    )
+    if row is None:
+        raise ApiError(
+            404,
+            "Held disposition not found for this task",
+            "DISPOSITION_NOT_FOUND",
+        )
+    if row.resolution == RESOLUTION_RELEASED:
+        # Same-terminal idempotent: no event, no rev bump, no bounds patch.
+        return row
+    if row.resolution == RESOLUTION_SKIPPED:
+        raise ApiError(
+            409,
+            "Disposition already terminal with a different resolution",
+            "CONFLICT_TERMINAL",
+        )
+    if row.resolution != RESOLUTION_UNRESOLVED_HELD:
+        raise ApiError(
+            409,
+            "Disposition already terminal with a different resolution",
+            "CONFLICT_TERMINAL",
+        )
+
+    task = (
+        db.query(Task)
+        .filter(Task.id == task_id, Task.owner_id == owner_id)
+        .populate_existing()
+        .one_or_none()
+    )
+    if task is None:
+        raise ApiError(404, "Task not found", "TASK_NOT_FOUND")
+
+    snapshot_before = dict(row.bounds_snapshot)
+    now_utc = utc_now()
+    # Nested savepoint: bounds + resolution + event + rev roll back together.
+    with db.begin_nested():
+        before_live = _live_bounds_refs(task)
+        if bounds_updates:
+            _apply_live_bounds_patch(task, bounds_updates)
+        after_live = _live_bounds_refs(task)
+        _assert_usable_dates_for_release(task, settings, now_utc=now_utc)
+        row.resolution = RESOLUTION_RELEASED
+        payload: dict[str, Any] = {
+            "live_bounds_before": before_live,
+            "live_bounds_after": after_live,
+        }
+        if note:
+            payload["note"] = note
+        db.add(
+            DispositionEvent(
+                disposition_id=row.id,
+                event_type=EVENT_RELEASED,
+                payload=payload,
+            )
+        )
+        increment_scheduling_revision(db, settings)
+        db.flush()
+        # Immutable miss evidence — never rewrite snapshot.
+        if dict(row.bounds_snapshot) != snapshot_before:
+            raise ApiError(
+                500,
+                "bounds_snapshot mutated during release",
+                "DISPOSITION_SNAPSHOT_CORRUPT",
+            )
+    db.refresh(row)
+    return row
+
+
+def skip_held(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+    expected_revision: int,
+    note: str | None = None,
+) -> TaskOccurrenceDisposition:
+    """S-suppress: named unresolved_held → skipped (no rev bump; no block mutation)."""
+    settings = lock_owner_scheduling(db, owner_id)
+    assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+    row = _load_named_disposition(
+        db,
+        owner_id=owner_id,
+        task_id=task_id,
+        disposition_id=disposition_id,
+    )
+    if row is None:
+        raise ApiError(
+            404,
+            "Held disposition not found for this task",
+            "DISPOSITION_NOT_FOUND",
+        )
+    if row.resolution == RESOLUTION_SKIPPED:
+        return row
+    if row.resolution == RESOLUTION_RELEASED:
+        raise ApiError(
+            409,
+            "Disposition already terminal with a different resolution",
+            "CONFLICT_TERMINAL",
+        )
+    if row.resolution != RESOLUTION_UNRESOLVED_HELD:
+        raise ApiError(
+            409,
+            "Disposition already terminal with a different resolution",
+            "CONFLICT_TERMINAL",
+        )
+
+    row.resolution = RESOLUTION_SKIPPED
+    payload: dict[str, Any] = {}
+    if note:
+        payload["note"] = note
+    db.add(
+        DispositionEvent(
+            disposition_id=row.id,
+            event_type=EVENT_SKIPPED,
+            payload=payload,
+        )
+    )
+    db.flush()
+    db.refresh(row)
     return row
 
 

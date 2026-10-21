@@ -92,6 +92,36 @@ def register_schedule(sub: argparse._SubParsersAction) -> None:
     leave.add_argument("--task-id", dest="task_id", required=True, metavar="UUID")
     leave.add_argument("--expected-revision", dest="expected_revision", type=int, required=True)
     leave.add_argument("--note", default=None)
+    release = held_sub.add_parser(
+        "release",
+        help="R-retry: release named held disposition (optional bounds patch)",
+    )
+    release.add_argument("--task-id", dest="task_id", required=True, metavar="UUID")
+    release.add_argument(
+        "--disposition-id", dest="disposition_id", required=True, metavar="UUID"
+    )
+    release.add_argument(
+        "--expected-revision", dest="expected_revision", type=int, required=True
+    )
+    release.add_argument("--note", default=None)
+    release.add_argument(
+        "--start-no-earlier-at", dest="start_no_earlier_at", default=None, metavar="ISO8601"
+    )
+    release.add_argument(
+        "--start-no-later-at", dest="start_no_later_at", default=None, metavar="ISO8601"
+    )
+    release.add_argument(
+        "--deadline-at", dest="deadline_at", default=None, metavar="ISO8601"
+    )
+    skip = held_sub.add_parser("skip", help="S-suppress: skip named held disposition")
+    skip.add_argument("--task-id", dest="task_id", required=True, metavar="UUID")
+    skip.add_argument(
+        "--disposition-id", dest="disposition_id", required=True, metavar="UUID"
+    )
+    skip.add_argument(
+        "--expected-revision", dest="expected_revision", type=int, required=True
+    )
+    skip.add_argument("--note", default=None)
 
 
 _FRESH_PREVIEW = "Create a fresh preview."
@@ -204,6 +234,39 @@ def run_schedule(args: argparse.Namespace) -> None:
                 "POST",
                 f"/api/v1/schedule/held-misses/{args.task_id}/leave-held",
                 json={
+                    "expected_revision": args.expected_revision,
+                    "note": args.note,
+                },
+                persist_session=True,
+            )
+            emit_ok(body if isinstance(body, dict) else {})
+            return
+        if held_cmd == "release":
+            payload: dict[str, Any] = {
+                "disposition_id": args.disposition_id,
+                "expected_revision": args.expected_revision,
+                "note": args.note,
+            }
+            if args.start_no_earlier_at is not None:
+                payload["start_no_earlier_at"] = args.start_no_earlier_at
+            if args.start_no_later_at is not None:
+                payload["start_no_later_at"] = args.start_no_later_at
+            if args.deadline_at is not None:
+                payload["deadline_at"] = args.deadline_at
+            body = api_json(
+                "POST",
+                f"/api/v1/schedule/held-misses/{args.task_id}/release",
+                json=payload,
+                persist_session=True,
+            )
+            emit_ok(body if isinstance(body, dict) else {})
+            return
+        if held_cmd == "skip":
+            body = api_json(
+                "POST",
+                f"/api/v1/schedule/held-misses/{args.task_id}/skip",
+                json={
+                    "disposition_id": args.disposition_id,
                     "expected_revision": args.expected_revision,
                     "note": args.note,
                 },
