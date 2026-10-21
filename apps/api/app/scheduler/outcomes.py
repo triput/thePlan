@@ -133,6 +133,7 @@ def snapshots_from_collected(
     working_windows: list[Any] | None = None,
     general_windows: list[Any] | None = None,
     composition_by_task: dict[UUID, Any] | None = None,
+    disposition_by_task: dict[UUID, Any] | None = None,
 ) -> dict[UUID, dict[str, Any]]:
     """Build v3 snapshots from values already collected for calculation.
 
@@ -151,7 +152,9 @@ def snapshots_from_collected(
     known_tasks = tasks_by_id or {task.id: task for task in tasks}
     pins_by_task = pinned_blocks_by_task or {}
     overrides_by_map = time_map_overrides_by_map or {}
+    disposition_map = disposition_by_task or {}
     busy_payload = normalize_busy_intervals(busy_intervals or [])
+    from app.services.occurrence_disposition import normalize_disposition_category
     workday_start = user_settings.workday_start_local
     ups_weights = dict(user_settings.ups_weights or {})
     competing_by_task: dict[UUID, list[dict[str, Any]]] = {}
@@ -206,6 +209,7 @@ def snapshots_from_collected(
             effective_max = None
             min_source = None
             max_source = None
+        disp_row = disposition_map.get(task.id)
         snapshots[task.id] = assemble_snapshot(
             estimated_duration_minutes=task.estimated_duration_minutes,
             min_block_duration_minutes=snap_min,
@@ -221,6 +225,7 @@ def snapshots_from_collected(
             deadline_at=task.deadline_at,
             start_no_earlier_at=task.start_no_earlier_at,
             start_no_later_at=task.start_no_later_at,
+            occurrence_disposition=normalize_disposition_category(disp_row),
             schedule_style=style.value,
             time_window_id=window_id,
             strict_mode=window.strict_mode if window is not None else None,

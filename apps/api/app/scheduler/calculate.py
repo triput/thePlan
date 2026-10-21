@@ -50,6 +50,8 @@ from app.scheduler.reasons import (
     REASON_OCCURRENCE_BOUNDS_MISS,
     REASON_OCCURRENCE_BOUNDS_NO_SLOT,
     REASON_OCCURRENCE_BOUNDS_UNSUPPORTED_SHAPE,
+    REASON_OCCURRENCE_DISPOSITION_HELD,
+    REASON_OCCURRENCE_DISPOSITION_SKIPPED,
 )
 from app.scheduler.style import effective_schedule_style_source
 
@@ -576,6 +578,8 @@ def _finalize_candidate_outcomes(
                     REASON_OCCURRENCE_BOUNDS_HORIZON,
                     REASON_OCCURRENCE_BOUNDS_UNSUPPORTED_SHAPE,
                     REASON_OCCURRENCE_BOUNDS_NO_SLOT,
+                    REASON_OCCURRENCE_DISPOSITION_HELD,
+                    REASON_OCCURRENCE_DISPOSITION_SKIPPED,
                 }:
                     outcomes.append(
                         TaskSchedulingOutcome(
@@ -847,6 +851,23 @@ def calculate(
                 inputs.horizon_start,
             )
             pin_blocks = list(inputs.pinned_blocks_by_task.get(task_id, []))
+            if task_id in inputs.skipped_task_ids:
+                occurrence_bounds_facts_by_task[task_id] = [
+                    ReasonFact(
+                        REASON_OCCURRENCE_DISPOSITION_SKIPPED,
+                        {"resolution": "skipped"},
+                    )
+                ]
+                continue
+            if task_id in inputs.unresolved_held_task_ids:
+                held_row = inputs.disposition_by_task.get(task_id)
+                params: dict[str, Any] = {"resolution": "unresolved_held"}
+                if held_row is not None and held_row.miss_reason_params:
+                    params["miss_evidence"] = dict(held_row.miss_reason_params)
+                occurrence_bounds_facts_by_task[task_id] = [
+                    ReasonFact(REASON_OCCURRENCE_DISPOSITION_HELD, params)
+                ]
+                continue
             bounds_decision = evaluate_occurrence_bounds(
                 candidate.task,
                 inputs.user_settings,

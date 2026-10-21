@@ -48,7 +48,7 @@ from test_schedule_replan import (
 
 UTC = timezone.utc
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "041_task_occurrence_bounds"
+_REQUIRED_HEAD = "042_task_occurrence_dispositions"
 
 
 @pytest.fixture(autouse=True)

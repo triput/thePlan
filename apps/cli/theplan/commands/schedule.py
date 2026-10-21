@@ -85,6 +85,14 @@ def register_schedule(sub: argparse._SubParsersAction) -> None:
     fb.add_argument("--start", required=True, metavar="ISO8601")
     fb.add_argument("--end", required=True, metavar="ISO8601")
 
+    held = schedule_sub.add_parser("held", help="Held occurrence misses (unresolved_held)")
+    held_sub = held.add_subparsers(dest="held_command", required=True)
+    held_sub.add_parser("list", help="List unresolved held dispositions")
+    leave = held_sub.add_parser("leave", help="Acknowledge leave_held (stays unresolved)")
+    leave.add_argument("--task-id", dest="task_id", required=True, metavar="UUID")
+    leave.add_argument("--expected-revision", dest="expected_revision", type=int, required=True)
+    leave.add_argument("--note", default=None)
+
 
 _FRESH_PREVIEW = "Create a fresh preview."
 
@@ -184,6 +192,29 @@ def run_schedule(args: argparse.Namespace) -> None:
     if cmd == "preview":
         _run_preview(args)
         return
+    if cmd == "held":
+        held_cmd = args.held_command
+        if held_cmd == "list":
+            body = api_json("GET", "/api/v1/schedule/held-misses", persist_session=True)
+            emit_ok(body or [])
+            return
+        if held_cmd == "leave":
+            body = api_json(
+                "POST",
+                f"/api/v1/schedule/held-misses/{args.task_id}/leave-held",
+                json={
+                    "expected_revision": args.expected_revision,
+                    "note": args.note,
+                },
+                persist_session=True,
+            )
+            emit_ok(body or {})
+            return
+        raise CliError(
+            code="INVALID_USAGE",
+            message=f"Unknown schedule held command: {held_cmd}",
+            exit_code=1,
+        )
     if cmd == "explain":
         body = api_json(
             "GET",

@@ -50,6 +50,10 @@ from app.models.task import (
     TaskDependency,
     TaskProgressEntry,
 )
+from app.models.task_occurrence_disposition import (
+    DispositionEvent,
+    TaskOccurrenceDisposition,
+)
 from app.models.time_map_override import TimeMapOverride, TimeMapOverrideBand
 from app.models.user import SavedFilter, User, UserSettings
 
@@ -98,6 +102,8 @@ __all__ = [
     "Section",
     "Task",
     "TaskDependency",
+    "TaskOccurrenceDisposition",
+    "DispositionEvent",
     "TaskLabel",
     "TaskProgressEntry",
     "TaskPriority",

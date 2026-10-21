@@ -93,6 +93,10 @@ class SchedulingInputs:
     busy_input_trust: BusyInputTrust | None = None
     # T1-C: calendar complete-window freshness (gate-only — never triggers sync).
     calendar_freshness_trust: CalendarFreshnessTrust | None = None
+    # T2-S2: durable disposition reads (calculate must not write these).
+    unresolved_held_task_ids: set[UUID] = field(default_factory=set)
+    skipped_task_ids: set[UUID] = field(default_factory=set)
+    disposition_by_task: dict[UUID, Any] = field(default_factory=dict)
 
 
 def _load_user_settings(db: Session, owner_id: UUID) -> UserSettings:
@@ -283,6 +287,10 @@ def collect_inputs(
     from app.scheduler.outcomes import load_blocker_tasks, snapshots_from_collected
 
     tasks_by_id = load_blocker_tasks(db, owner_id, snapshot_tasks, dependencies)
+    from app.services.occurrence_disposition import load_disposition_maps
+
+    unresolved_held, skipped, disposition_by_task = load_disposition_maps(db, owner_id)
+
     input_snapshots = snapshots_from_collected(
         user_settings=user_settings,
         tasks=snapshot_tasks,
@@ -298,6 +306,7 @@ def collect_inputs(
         working_windows=working_windows,
         general_windows=general_windows,
         composition_by_task=composition_by_task,
+        disposition_by_task=disposition_by_task,
     )
 
     return SchedulingInputs(
@@ -329,4 +338,7 @@ def collect_inputs(
         composition_by_task=composition_by_task,
         busy_input_trust=busy_input_trust,
         calendar_freshness_trust=calendar_freshness_trust,
+        unresolved_held_task_ids=unresolved_held,
+        skipped_task_ids=skipped,
+        disposition_by_task=disposition_by_task,
     )

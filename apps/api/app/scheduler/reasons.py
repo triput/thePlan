@@ -49,6 +49,8 @@ REASON_OCCURRENCE_BOUNDS_HORIZON = "occurrence_bounds_horizon"
 REASON_OCCURRENCE_BOUNDS_MISS = "occurrence_bounds_miss"
 REASON_OCCURRENCE_BOUNDS_NO_SLOT = "occurrence_bounds_no_slot"
 REASON_OCCURRENCE_BOUNDS_PIN_CONFLICT = "occurrence_bounds_pin_conflict"
+REASON_OCCURRENCE_DISPOSITION_HELD = "occurrence_disposition_held"
+REASON_OCCURRENCE_DISPOSITION_SKIPPED = "occurrence_disposition_skipped"
 
 
 @dataclass

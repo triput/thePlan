@@ -125,8 +125,10 @@ S2_V3_STALE_CATEGORIES: tuple[str, ...] = (STALE_AVAILABILITY,)
 S2_V4_STALE_CATEGORIES: tuple[str, ...] = (STALE_COMPOSITION,)
 
 STALE_OCCURRENCE_BOUNDS = "occurrence_bounds"
+STALE_OCCURRENCE_DISPOSITION = "occurrence_disposition"
 
 S2_T2_S1_STALE_CATEGORIES: tuple[str, ...] = (STALE_OCCURRENCE_BOUNDS,)
+S2_T2_S2_STALE_CATEGORIES: tuple[str, ...] = (STALE_OCCURRENCE_DISPOSITION,)
 
 STALE_PRIORITY_UPS = "priority_ups"
 
@@ -139,6 +141,7 @@ COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
     + S2_V3_STALE_CATEGORIES
     + S2_V4_STALE_CATEGORIES
     + S2_T2_S1_STALE_CATEGORIES
+    + S2_T2_S2_STALE_CATEGORIES
     + (STALE_PRIORITY_UPS,)
     + (STALE_SCHEDULING_ACTIVATION,)
 )
@@ -245,6 +248,18 @@ def normalize_occurrence_bounds(
     return {
         "start_no_earlier_at": _iso_datetime(start_no_earlier_at),
         "start_no_later_at": _iso_datetime(start_no_later_at),
+    }
+
+
+def normalize_occurrence_disposition(
+    resolution: str | None,
+    episode_key: str | None,
+) -> dict[str, str | None]:
+    if resolution is None:
+        return {"resolution": None, "episode_key": None}
+    return {
+        "resolution": str(resolution),
+        "episode_key": str(episode_key) if episode_key else None,
     }
 
 
@@ -540,6 +555,7 @@ def assemble_snapshot(
     competing_rank: list[dict[str, Any]] | None = None,
     start_no_earlier_at: datetime | None = None,
     start_no_later_at: datetime | None = None,
+    occurrence_disposition: dict[str, str | None] | None = None,
 ) -> dict[str, Any]:
     """Canonical task input snapshot (v3 or v4). Callers pass the effective map.
 
@@ -597,6 +613,8 @@ def assemble_snapshot(
             start_no_earlier_at,
             start_no_later_at,
         ),
+        "occurrence_disposition": occurrence_disposition
+        or normalize_occurrence_disposition(None, None),
         "map_style": {
             "schedule_style": schedule_style,
             "time_window_id": window,
