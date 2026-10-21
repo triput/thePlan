@@ -1,8 +1,8 @@
 # T2-S2-UI synthetic browser evidence (2026-10-21)
 
-**Env:** Vite `http://127.0.0.1:5173` → API `http://127.0.0.1:8000` → Postgres `theplan_s1_test` @ `127.0.0.1:5433`. Demo user `nebula@localhost` (disposable seed; not household/live).
+**Env:** Vite `http://127.0.0.1:5173` → API `http://127.0.0.1:8000` → Postgres `theplan_s1_test` @ `127.0.0.1:5433`. Demo user `nebula@localhost` (disposable seed; not household/live). Sign-in pointer: `SYNTHETIC-SIGNIN.md` (credentials in gitignored `.secrets-backup/` — never Slack).
 
-**Code tip under review:** bounce fix `@ f40ded6` (+ this docs tip commit).
+**Code tip under review:** bounce fix `@ f40ded6` (+ this docs tip commit). **W10 request ledger:** `REQUEST-LEDGER.md`.
 
 | Shot | Claim |
 | --- | --- |
@@ -14,5 +14,9 @@
 | `W5-skip-success.png` | Skip confirm → banner cleared |
 | `W6-bounds-still-missed.png` / `W6-release-success.png` | Bad dates → bounds alert; fix + Save dates & release clears held |
 | `W7-stale-revision-409.png` | Stale `expected_revision` → conflict alert; dates unchanged |
+| `W10-dirty-title-after-dates-only-release.png` | Dirty title stayed unsaved after dates-only PATCH + release |
+| `W10-409-no-retry.png` | Single leave-held 409; no auto-retry POST |
 
 Loading copy “Loading held…” observed on first CalendarSupportIdle paint (transient; not a separate PNG).
+
+**Honesty:** W1–W7 + W10 screenshots = Jim Cursor browser on the synthetic stack above (same URL Dex IAB can open). W8 = code review of named `disposition_id`; W9 = unit. Observed network bodies for leave / skip / dates-only→release / 409 = `REQUEST-LEDGER.md`.
