@@ -34,6 +34,10 @@ from app.services.source_timezone import (
     resolve_iana_zone,
     utc_midnight_placeholder,
 )
+from app.services.export_baseline import (
+    GOOGLE_MIRROR_PUSH_SOURCE,
+    apply_export_baseline_after_mirror_push,
+)
 from app.services.calendar_refresh_failures import (
     FAILURE_PERSIST_EXPIRE_ATTRS as _FAILURE_PERSIST_EXPIRE_ATTRS,
     commit_pre_pull_refresh_failure as _commit_pre_pull_refresh_failure,
@@ -1238,8 +1242,9 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
     )
     now = datetime.now(timezone.utc)
 
+    is_all_day = False
     if existing:
-        patch_google_event(
+        event = patch_google_event(
             access,
             calendar_id,
             existing.external_event_id,
@@ -1252,6 +1257,18 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
         existing.end_time = block.end_time
         existing.calendar_id = calendar_id
         existing.last_synced_at = now
+        apply_export_baseline_after_mirror_push(
+            existing,
+            source=GOOGLE_MIRROR_PUSH_SOURCE,
+            export_calendar_id=calendar_id,
+            title=title,
+            start=block.start_time,
+            end=block.end_time,
+            is_all_day=is_all_day,
+            provider=CalendarProvider.google,
+            api_response=event,
+            exported_at=now,
+        )
     else:
         event = create_google_event(
             access,
@@ -1274,10 +1291,22 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
             title=title,
             start_time=block.start_time,
             end_time=block.end_time,
-            is_all_day=False,
+            is_all_day=is_all_day,
             last_synced_at=now,
         )
         db.add(row)
+        apply_export_baseline_after_mirror_push(
+            row,
+            source=GOOGLE_MIRROR_PUSH_SOURCE,
+            export_calendar_id=calendar_id,
+            title=title,
+            start=block.start_time,
+            end=block.end_time,
+            is_all_day=is_all_day,
+            provider=CalendarProvider.google,
+            api_response=event,
+            exported_at=now,
+        )
 
     db.flush()
 

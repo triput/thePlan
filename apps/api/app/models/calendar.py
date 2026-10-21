@@ -170,6 +170,15 @@ class ExternalCalendarEvent(Base):
     is_provider_cancelled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
+    # T1-11: export-only comparison baseline (successful mirror push); ingest must not write.
+    export_baseline_at: Mapped[datetime | None] = mapped_column()
+    export_baseline_source: Mapped[str | None] = mapped_column(String(64))
+    export_calendar_id: Mapped[str | None] = mapped_column(String(255))
+    export_baseline_etag: Mapped[str | None] = mapped_column(String(512))
+    export_baseline_change_key: Mapped[str | None] = mapped_column(String(512))
+    export_baseline_updated: Mapped[datetime | None] = mapped_column()
+    export_baseline_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    export_baseline_schema_version: Mapped[int | None] = mapped_column()
 
     @classmethod
     def immovable_busy_clause(cls) -> tuple:

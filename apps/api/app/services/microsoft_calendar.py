@@ -23,6 +23,10 @@ from app.models import (
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole
 from app.scheduler.free_busy import apply_transparency_update, resolve_microsoft_show_as
+from app.services.export_baseline import (
+    MICROSOFT_MIRROR_PUSH_SOURCE,
+    apply_export_baseline_after_mirror_push,
+)
 from app.services.calendar_refresh_failures import (
     commit_pre_pull_refresh_failure as _commit_pre_pull_refresh_failure,
     commit_refresh_failure as _commit_refresh_failure,
@@ -1845,8 +1849,9 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
     )
     now = datetime.now(timezone.utc)
 
+    is_all_day = False
     if existing:
-        patch_microsoft_event(
+        event = patch_microsoft_event(
             access,
             calendar_id,
             existing.external_event_id,
@@ -1859,6 +1864,18 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
         existing.end_time = block.end_time
         existing.calendar_id = calendar_id
         existing.last_synced_at = now
+        apply_export_baseline_after_mirror_push(
+            existing,
+            source=MICROSOFT_MIRROR_PUSH_SOURCE,
+            export_calendar_id=calendar_id,
+            title=title,
+            start=block.start_time,
+            end=block.end_time,
+            is_all_day=is_all_day,
+            provider=CalendarProvider.microsoft,
+            api_response=event,
+            exported_at=now,
+        )
     else:
         event = create_microsoft_event(
             access,
@@ -1881,10 +1898,22 @@ def push_scheduled_block(db: Session, settings: Settings, block: ScheduledBlock)
             title=title,
             start_time=block.start_time,
             end_time=block.end_time,
-            is_all_day=False,
+            is_all_day=is_all_day,
             last_synced_at=now,
         )
         db.add(row)
+        apply_export_baseline_after_mirror_push(
+            row,
+            source=MICROSOFT_MIRROR_PUSH_SOURCE,
+            export_calendar_id=calendar_id,
+            title=title,
+            start=block.start_time,
+            end=block.end_time,
+            is_all_day=is_all_day,
+            provider=CalendarProvider.microsoft,
+            api_response=event,
+            exported_at=now,
+        )
 
     db.flush()
 
