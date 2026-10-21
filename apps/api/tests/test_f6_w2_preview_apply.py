@@ -943,7 +943,7 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     db_session.flush()
 
     # Savepoint Session on the *same* fixture connection — flush-visible only.
-    # Not a separate-TCP committed readback; that probe is
+    # Not a separate-session/transaction committed readback; that probe is
     # test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection.
     fresh = Session(bind=db_session.connection(), join_transaction_mode="create_savepoint")
     try:
@@ -990,11 +990,14 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
 def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """§5.1 committed separate-connection evidence (distinct from savepoint Session).
+    """§5.1 committed separate-session/transaction evidence (≠ savepoint Session).
 
-    Disposable owner is COMMITTED so a second TCP SessionLocal() can read sync
-    persistence and post-Apply preview status. Complements the transactional
-    fixture test which only proves flush/savepoint visibility on one connection.
+    Disposable owner is COMMITTED so a later SessionLocal() can read sync
+    persistence and post-Apply preview status across session/transaction
+    boundaries. Sequential SessionLocal() may reuse a pooled physical
+    connection — this is not a proved new-TCP probe, and a different physical
+    connection is unnecessary for the sequential commit-visibility claim.
+    Complements the transactional fixture test (flush/savepoint on one connection).
     """
     _patch_schedule_clock(monkeypatch)
     _purge_t1_stale_commit_users()
@@ -1074,7 +1077,8 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
         finally:
             seed.close()
 
-        # Separate-connection readback after COMMIT (not create_savepoint).
+        # Separate-session/transaction readback after COMMIT (not create_savepoint).
+        # Not a proved new-TCP probe — pool may reuse the physical connection.
         readback = SessionLocal()
         try:
             row = (
@@ -1114,11 +1118,30 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
             assert isinstance(trust, dict)
             assert trust["ok"] is False
             assert trust["blocking_diagnostics"]
+            # Zero staged writes: assert on Apply session BEFORE rollback.
+            # Post-rollback counts alone only prove durability after undo.
+            apply_db.flush()
+            assert (
+                apply_db.query(ScheduledBlock)
+                .filter(ScheduledBlock.owner_id == owner_id)
+                .count()
+                == before_blocks
+            )
+            assert (
+                apply_db.query(ScheduleRun)
+                .filter(ScheduleRun.owner_id == owner_id)
+                .count()
+                == runs_before
+            )
+            assert _revision(apply_db, owner_id) == rev_before
+            preview_after_reject = apply_db.get(SchedulePreview, preview_id)
+            assert preview_after_reject is not None
+            assert preview_after_reject.status == "ready"
             apply_db.rollback()
         finally:
             apply_db.close()
 
-        # Post-reject preview status on yet another connection.
+        # Post-rollback committed readback on a later SessionLocal().
         after = SessionLocal()
         try:
             preview_row = after.get(SchedulePreview, preview_id)
