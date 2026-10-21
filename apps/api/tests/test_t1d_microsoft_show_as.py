@@ -146,6 +146,32 @@ def test_event_list_params_omit_event_select() -> None:
     assert set(with_top) == {"startDateTime", "endDateTime", "$top"}
 
 
+def test_fetch_context_from_list_params_select_projection() -> None:
+    """``$select`` without showAs → projected; with showAs → established."""
+    window = ms_cal.microsoft_event_list_window_params(
+        time_min=SEED_START, time_max=SEED_END
+    )
+    assert (
+        ms_cal.microsoft_event_fetch_context_from_list_params(window)
+        == ms_cal.MS_EVENT_LIST_FETCH_CONTEXT
+    )
+    projected = ms_cal.microsoft_event_fetch_context_from_list_params(
+        {**window, "$select": "id,subject,start,end"}
+    )
+    assert projected.show_as_field_projected is True
+    assert projected.show_as_representation_established is False
+    complete, field_projected = ms_cal.microsoft_show_as_resolver_flags(
+        fetch_context=projected,
+        times_ok=True,
+    )
+    assert complete is False and field_projected is True
+    with_show = ms_cal.microsoft_event_fetch_context_from_list_params(
+        {**window, "$select": "id,showAs,start,end"}
+    )
+    assert with_show.show_as_field_projected is False
+    assert with_show.show_as_representation_established is True
+
+
 def test_list_calendar_events_passes_no_event_select(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -169,6 +195,12 @@ def test_list_calendar_events_passes_no_event_select(
     assert len(captured) == 3
     assert all(ms_cal.microsoft_event_list_omits_event_select(p) for p in captured)
     assert captured[2] is None  # incremental delta-link follow
+    assert ms_cal.microsoft_event_fetch_context_from_list_params(captured[0]) == (
+        ms_cal.MS_EVENT_LIST_FETCH_CONTEXT
+    )
+    assert ms_cal.microsoft_event_fetch_context_from_list_params(captured[2]) == (
+        ms_cal.MS_EVENT_LIST_FETCH_CONTEXT
+    )
 
 
 # --- Trust / merge for MS-labeled rows ----------------------------------------
@@ -344,6 +376,7 @@ def test_upsert_explicit_unknown_and_missing(monkeypatch: pytest.MonkeyPatch) ->
             event=_timed_graph_event(omit_show_as=True),
             now=datetime.now(timezone.utc),
             sync_run_id="ms-run-missing",
+            event_fetch_context=ms_cal.MS_EVENT_LIST_FETCH_CONTEXT,
         )
         is True
     )
@@ -398,6 +431,7 @@ def test_upsert_complete_omit_goes_through_apply_not_silent_erase(
             event=_timed_graph_event(omit_show_as=True),
             now=datetime.now(timezone.utc),
             sync_run_id="ms-incr-partial",
+            event_fetch_context=ms_cal.MS_EVENT_LIST_FETCH_CONTEXT,
         )
         is True
     )
@@ -464,6 +498,34 @@ def test_upsert_unrecognized_fail_closed(monkeypatch: pytest.MonkeyPatch) -> Non
     )
 
 
+def test_upsert_without_fetch_context_omit_show_as_unknown_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No fetch evidence → explicit uncertainty (not unknown_missing)."""
+    owner = uuid4()
+    account = SimpleNamespace(id=uuid4(), owner_id=owner)
+    subscription = SimpleNamespace(
+        id=uuid4(), external_calendar_id="cal-ms-1", provider_timezone="UTC"
+    )
+    existing = _ms_row_shell(
+        transparency="transparent",
+        free_busy_provenance="provider_explicit",
+    )
+    monkeypatch.setattr(ms_cal, "_find_external_event", lambda *a, **k: existing)
+    assert (
+        ms_cal._upsert_external_event(
+            MagicMock(),
+            account=account,
+            subscription=subscription,
+            event=_timed_graph_event(omit_show_as=True),
+            now=datetime.now(timezone.utc),
+            sync_run_id="ms-no-context",
+        )
+        is True
+    )
+    assert existing.free_busy_provenance == "unknown_projection"
+
+
 def test_apply_full_mints_ms_full_sync_run_id(monkeypatch: pytest.MonkeyPatch) -> None:
     owner = uuid4()
     account = SimpleNamespace(id=uuid4(), owner_id=owner)
@@ -476,7 +538,7 @@ def test_apply_full_mints_ms_full_sync_run_id(monkeypatch: pytest.MonkeyPatch) -
     )
     captured: list[str] = []
 
-    def _capture(db, *, account, subscription, event, now, sync_run_id):
+    def _capture(db, *, account, subscription, event, now, sync_run_id, **kwargs):
         captured.append(sync_run_id)
         return True
 
@@ -513,7 +575,7 @@ def test_apply_incremental_mints_ms_incr_sync_run_id(
     )
     captured: list[str] = []
 
-    def _capture(db, *, account, subscription, event, now, sync_run_id):
+    def _capture(db, *, account, subscription, event, now, sync_run_id, **kwargs):
         captured.append(sync_run_id)
         return True
 
@@ -748,6 +810,121 @@ def test_db_partial_show_as_unknown_trust_posture(
     )
     assert trust.ok is False
     assert events_for_busy_merge([row]) == []
+
+
+def test_db_apply_full_list_context_omit_show_as_unknown_missing(
+    disposable_db: None,
+    db_session: Session,
+) -> None:
+    """Apply path with default list fetch context → unknown_missing (not placement escape)."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-apply-miss-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="opaque",
+        provenance="provider_explicit",
+    )
+    now = datetime(2026, 10, 20, 12, 0, tzinfo=UTC)
+    ms_cal._apply_subscription_full(
+        db_session,
+        account=account,
+        subscription=sub,
+        events=[_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+        next_delta_link=None,
+        time_min=SEED_START,
+        time_max=SEED_END,
+        now=now,
+        event_fetch_context=ms_cal.MS_EVENT_LIST_FETCH_CONTEXT,
+    )
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.free_busy_provenance == "unknown_missing"
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_apply_full_projected_omit_show_as_unknown_projection(
+    disposable_db: None,
+    db_session: Session,
+) -> None:
+    """Parseable bounds + projected fetch → unknown_projection; blocks trusted free."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-apply-proj-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+    projected = ms_cal.microsoft_event_fetch_context_from_list_params(
+        {
+            "startDateTime": "2026-10-19T18:00:00Z",
+            "endDateTime": "2026-10-19T20:00:00Z",
+            "$select": "id,subject,start,end",
+        }
+    )
+    now = datetime(2026, 10, 20, 12, 5, tzinfo=UTC)
+    ms_cal._apply_subscription_full(
+        db_session,
+        account=account,
+        subscription=sub,
+        events=[_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+        next_delta_link=None,
+        time_min=SEED_START,
+        time_max=SEED_END,
+        now=now,
+        event_fetch_context=projected,
+    )
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.free_busy_provenance == "unknown_projection"
+    assert row.free_busy_prior_transparency == "transparent"
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_apply_incremental_preserves_projected_fetch_context(
+    disposable_db: None,
+    db_session: Session,
+) -> None:
+    """Delta continuation apply keeps session fetch qualification (no URL decode)."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-incr-proj-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+    projected = ms_cal.MicrosoftEventFetchContext(
+        show_as_field_projected=True,
+        show_as_representation_established=False,
+    )
+    now = datetime(2026, 10, 20, 12, 10, tzinfo=UTC)
+    ms_cal._apply_subscription_incremental(
+        db_session,
+        account=account,
+        subscription=sub,
+        events=[_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+        next_delta_link="https://graph.microsoft.com/v1.0/delta?$deltatoken=opaque",
+        now=now,
+        event_fetch_context=projected,
+    )
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.free_busy_provenance == "unknown_projection"
+    assert sub.sync_cursor == "https://graph.microsoft.com/v1.0/delta?$deltatoken=opaque"
 
 
 def test_db_partial_omit_show_as_demotes_unknown_projection(

@@ -730,12 +730,73 @@ def list_microsoft_calendars(access_token: str) -> list[dict[str, Any]]:
     return normalized
 
 
-# Evidence for complete_representation on upsert: event-list Graph calls
-# (calendarView / calendarView/delta) do not pass event `$select`. Params are
-# only window bounds (and optional `$top`); incremental delta follows the
-# link with no params. Do not claim complete_representation when upsert
-# payloads lack parseable times.
+# Fetch-context evidence for showAs completeness: list/view/delta apply paths
+# pass ``MicrosoftEventFetchContext`` into upsert. Completeness requires
+# parseable bounds AND established representation — not ``times_ok`` alone.
+# Delta-link continuation inherits caller context; delta tokens are not decoded.
 MS_EVENT_LIST_SELECT_PARAM = "$select"
+
+
+@dataclass(frozen=True, slots=True)
+class MicrosoftEventFetchContext:
+    """Graph fetch evidence carried into upsert for showAs completeness.
+
+    Do not infer projection from a missing ``showAs`` key alone — only from
+    established list/view/delta request shape (or an explicit caller context).
+    """
+
+    show_as_field_projected: bool = False
+    show_as_representation_established: bool = False
+
+
+# Default calendarView / calendarView/delta list pulls omit event ``$select``.
+MS_EVENT_LIST_FETCH_CONTEXT = MicrosoftEventFetchContext(
+    show_as_field_projected=False,
+    show_as_representation_established=True,
+)
+
+
+def _microsoft_select_field_names(select: str) -> frozenset[str]:
+    return frozenset(part.strip() for part in select.split(",") if part.strip())
+
+
+def microsoft_event_fetch_context_from_list_params(
+    params: dict[str, str] | None,
+) -> MicrosoftEventFetchContext:
+    """Derive showAs fetch evidence from Graph list params (not delta token bodies).
+
+    ``params is None`` is delta-link continuation (no query params). Callers must
+    pass the qualification inherited from the sync session — this helper treats
+    that shape like an unprojected list when used alone.
+    """
+    if params is None:
+        return MS_EVENT_LIST_FETCH_CONTEXT
+    if MS_EVENT_LIST_SELECT_PARAM not in params:
+        return MS_EVENT_LIST_FETCH_CONTEXT
+    fields = _microsoft_select_field_names(params[MS_EVENT_LIST_SELECT_PARAM])
+    if not fields or "showAs" in fields:
+        return MicrosoftEventFetchContext(
+            show_as_field_projected=False,
+            show_as_representation_established=True,
+        )
+    return MicrosoftEventFetchContext(
+        show_as_field_projected=True,
+        show_as_representation_established=False,
+    )
+
+
+def microsoft_show_as_resolver_flags(
+    *,
+    fetch_context: MicrosoftEventFetchContext | None,
+    times_ok: bool,
+) -> tuple[bool, bool]:
+    """Map fetch evidence + parseable bounds → resolver completeness flags."""
+    if fetch_context is None:
+        return False, False
+    if fetch_context.show_as_field_projected:
+        return False, True
+    complete = times_ok and fetch_context.show_as_representation_established
+    return complete, False
 
 
 def microsoft_event_list_window_params(
@@ -1254,6 +1315,7 @@ def _upsert_external_event(
     event: dict[str, Any],
     now: datetime,
     sync_run_id: str,
+    event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> bool:
     external_id = event.get("id")
     if not external_id:
@@ -1268,10 +1330,10 @@ def _upsert_external_event(
         event, calendar_timezone=subscription.provider_timezone
     )
     times_ok = times is not None and times.end > times.start
-    # complete_representation only when this upsert payload has parseable times
-    # (complete-enough for the showAs boundary). Fetch shape evidence: event-list
-    # Graph calls omit event $select (see microsoft_event_list_omits_event_select).
-    complete_representation = times_ok
+    complete_representation, field_projected = microsoft_show_as_resolver_flags(
+        fetch_context=event_fetch_context,
+        times_ok=times_ok,
+    )
 
     if times_ok:
         assert times is not None  # times_ok
@@ -1328,7 +1390,7 @@ def _upsert_external_event(
     stored, provenance, _kind = resolve_microsoft_show_as(
         event,
         complete_representation=complete_representation,
-        field_projected=False,
+        field_projected=field_projected,
     )
     apply_transparency_update(
         row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
@@ -1400,6 +1462,7 @@ def _apply_subscription_ms_view(
     page_count: int,
     pagination_complete: bool,
     suppressed_external_ids: set[str] | None = None,
+    event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> int:
     """Apply a drained calendarView and mint ``ms_view`` coverage.
 
@@ -1412,6 +1475,11 @@ def _apply_subscription_ms_view(
     )
 
     suppressed = suppressed_external_ids or set()
+    fetch_context = (
+        event_fetch_context
+        if event_fetch_context is not None
+        else MS_EVENT_LIST_FETCH_CONTEXT
+    )
     seen_external_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"ms-view-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
@@ -1463,6 +1531,7 @@ def _apply_subscription_ms_view(
                 event=event,
                 now=now,
                 sync_run_id=sync_run_id,
+                event_fetch_context=fetch_context,
             )
             if not handled:
                 raise _unresolvable_view_item(
@@ -1526,9 +1595,15 @@ def _apply_subscription_full(
     time_max: datetime,
     now: datetime,
     suppressed_external_ids: set[str] | None = None,
+    event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> int:
     """Delta baseline apply for unit isolation. Does not mint coverage."""
     suppressed = suppressed_external_ids or set()
+    fetch_context = (
+        event_fetch_context
+        if event_fetch_context is not None
+        else MS_EVENT_LIST_FETCH_CONTEXT
+    )
     seen_external_ids: set[str] = set()
     upserted = 0
     sync_run_id = f"ms-full-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
@@ -1553,6 +1628,7 @@ def _apply_subscription_full(
             event=event,
             now=now,
             sync_run_id=sync_run_id,
+            event_fetch_context=fetch_context,
         ):
             upserted += 1
 
@@ -1587,8 +1663,14 @@ def _apply_subscription_incremental(
     next_delta_link: str | None,
     now: datetime,
     suppressed_external_ids: set[str] | None = None,
+    event_fetch_context: MicrosoftEventFetchContext | None = None,
 ) -> int:
     suppressed = suppressed_external_ids or set()
+    fetch_context = (
+        event_fetch_context
+        if event_fetch_context is not None
+        else MS_EVENT_LIST_FETCH_CONTEXT
+    )
     upserted = 0
     sync_run_id = f"ms-incr-{now.strftime('%Y%m%dT%H%M%SZ')}-{subscription.id.hex[:8]}"
 
@@ -1610,6 +1692,7 @@ def _apply_subscription_incremental(
             event=event,
             now=now,
             sync_run_id=sync_run_id,
+            event_fetch_context=fetch_context,
         ):
             upserted += 1
 
