@@ -435,7 +435,17 @@ def _outcomes_for_lifecycle(
     return outcomes
 
 
-def _outcomes_for_excluded(inputs: SchedulingInputs) -> list[TaskSchedulingOutcome]:
+def _outcomes_for_excluded(
+    db: Session,
+    inputs: SchedulingInputs,
+    *,
+    scheduled_blocks_by_task: dict[UUID, list[ScheduledBlock]],
+) -> list[TaskSchedulingOutcome]:
+    from app.scheduler.occurrence_bounds import (
+        evaluate_occurrence_bounds,
+        has_occurrence_bounds,
+    )
+
     outcomes: list[TaskSchedulingOutcome] = []
     for item in inputs.excluded_tasks:
         if item.schedule_style in {ScheduleStyle.bundle, ScheduleStyle.manual}:
@@ -472,6 +482,21 @@ def _outcomes_for_excluded(inputs: SchedulingInputs) -> list[TaskSchedulingOutco
                     },
                 )
             ]
+        if has_occurrence_bounds(item.task):
+            pin_blocks = list(inputs.pinned_blocks_by_task.get(item.task.id, []))
+            bounds_decision = evaluate_occurrence_bounds(
+                item.task,
+                inputs.user_settings,
+                effort_minutes=item.requested_minutes,
+                reserved_minutes=item.pinned_minutes,
+                pin_blocks=pin_blocks,
+                scheduled_blocks=scheduled_blocks_by_task.get(item.task.id, []),
+                horizon_start=inputs.horizon_start,
+                horizon_end=inputs.horizon_end,
+                now_utc=inputs.now_utc,
+            )
+            if bounds_decision.primary_code == REASON_OCCURRENCE_BOUNDS_HOLD_INFLIGHT:
+                facts = bounds_decision.reason_facts()
         outcomes.append(
             TaskSchedulingOutcome(
                 task_id=item.task.id,
@@ -653,6 +678,11 @@ def _finalize_candidate_outcomes(
             for code in constraints:
                 if code == REASON_UNPLACED_HORIZON_EXHAUSTED:
                     continue
+                if (
+                    code == REASON_UNPLACED_DEADLINE_LIMIT
+                    and has_occurrence_bounds(task)
+                ):
+                    code = REASON_OCCURRENCE_BOUNDS_NO_SLOT
                 observed_params = hint_params.get(code)
                 if observed_params is not None:
                     facts.append(ReasonFact(code, dict(observed_params)))
@@ -773,17 +803,16 @@ def calculate(
     occurrence_bounds_facts_by_task: dict[UUID, list[ReasonFact]] = {}
 
     candidate_ids = {item.task.id for item in ordered}
-    horizon_blocks = (
+    evaluated_ids = candidate_ids | {item.task.id for item in inputs.excluded_tasks}
+    all_task_blocks = (
         db.query(ScheduledBlock)
         .filter(
             ScheduledBlock.owner_id == inputs.owner_id,
-            ScheduledBlock.task_id.in_(candidate_ids),
-            ScheduledBlock.start_time < inputs.horizon_end,
-            ScheduledBlock.end_time > inputs.horizon_start,
+            ScheduledBlock.task_id.in_(evaluated_ids),
         )
         .all()
     )
-    scheduled_by_task = scheduled_blocks_by_task(horizon_blocks, candidate_ids)
+    scheduled_by_task = scheduled_blocks_by_task(all_task_blocks, evaluated_ids)
 
     placed_in_sweep = True
     while placed_in_sweep:
@@ -1005,7 +1034,9 @@ def calculate(
         if by_code:
             hint_params_by_task[task_id] = by_code
 
-    excluded_outcomes = _outcomes_for_excluded(inputs)
+    excluded_outcomes = _outcomes_for_excluded(
+        db, inputs, scheduled_blocks_by_task=scheduled_by_task
+    )
     lifecycle_outcomes = _outcomes_for_lifecycle(inputs.lifecycle_excluded_tasks)
     candidate_outcomes = _finalize_candidate_outcomes(
         inputs,

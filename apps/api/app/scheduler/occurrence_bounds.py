@@ -78,20 +78,20 @@ def pin_bounds_conflict(
     task: Task,
     *,
     pin_intervals: list[tuple[datetime, datetime]],
+    effort_minutes: int,
 ) -> bool:
+    """Preserved pin intervals that violate explicit start bounds or finish-by."""
     earliest = earliest_start_bound(task)
-    latest = effective_latest_start(task, effort_minutes=1)
-    if earliest is None and latest is None:
+    latest = effective_latest_start(task, effort_minutes=effort_minutes)
+    deadline = _utc(task.deadline_at)
+    if not pin_intervals:
         return False
-    for start, end in pin_intervals:
-        pin_start, pin_end = start, end
-        if earliest is not None and pin_end <= earliest:
-            continue
-        if latest is not None and pin_start > latest:
-            continue
+    for pin_start, pin_end in pin_intervals:
         if earliest is not None and pin_start < earliest:
             return True
         if latest is not None and pin_start > latest:
+            return True
+        if deadline is not None and pin_end > deadline:
             return True
     return False
 
@@ -127,6 +127,36 @@ def unsupported_shape(task: Task, settings: UserSettings, *, effort_minutes: int
     return False
 
 
+def feasible_start_window(
+    task: Task,
+    *,
+    effort_minutes: int,
+    horizon_start: datetime,
+    horizon_end: datetime,
+) -> tuple[datetime, datetime] | None:
+    """Intersect feasible block-start instants with horizon (exists-start, not all-starts)."""
+    if effort_minutes <= 0:
+        return None
+    hs = _utc(horizon_start) or horizon_start
+    he = _utc(horizon_end) or horizon_end
+    start_lo = hs
+    earliest = earliest_start_bound(task)
+    if earliest is not None and earliest > start_lo:
+        start_lo = earliest
+    start_hi = he - timedelta(minutes=effort_minutes)
+    latest = effective_latest_start(task, effort_minutes=effort_minutes)
+    if latest is not None and latest < start_hi:
+        start_hi = latest
+    deadline = _utc(task.deadline_at)
+    if deadline is not None:
+        by_finish = deadline - timedelta(minutes=effort_minutes)
+        if by_finish < start_hi:
+            start_hi = by_finish
+    if start_lo > start_hi:
+        return None
+    return start_lo, start_hi
+
+
 def _feasible_start_exists_in_horizon(
     task: Task,
     *,
@@ -134,28 +164,15 @@ def _feasible_start_exists_in_horizon(
     horizon_start: datetime,
     horizon_end: datetime,
 ) -> bool:
-    earliest = earliest_start_bound(task) or horizon_start
-    latest = effective_latest_start(task, effort_minutes=effort_minutes)
-    if latest is None:
-        latest = horizon_end - timedelta(minutes=effort_minutes)
-    deadline = _utc(task.deadline_at)
-    hs = _utc(horizon_start) or horizon_start
-    he = _utc(horizon_end) or horizon_end
-    if earliest > latest:
-        return False
-    # Quick probe: latest feasible start must fit completion inside horizon and deadline.
-    start_hi = latest
-    start_lo = max(earliest, hs)
-    if start_hi < start_lo:
-        return False
-    finish_cap = he
-    if deadline is not None:
-        finish_cap = min(finish_cap, deadline)
-    if start_lo + timedelta(minutes=effort_minutes) > finish_cap:
-        return False
-    if start_hi + timedelta(minutes=effort_minutes) > finish_cap:
-        return False
-    return start_lo <= start_hi
+    return (
+        feasible_start_window(
+            task,
+            effort_minutes=effort_minutes,
+            horizon_start=horizon_start,
+            horizon_end=horizon_end,
+        )
+        is not None
+    )
 
 
 def horizon_blocks_placement(
@@ -221,7 +238,9 @@ def evaluate_occurrence_bounds(
         ),
     }
     secondaries: list[str] = []
-    if pin_bounds_conflict(task, pin_intervals=pin_intervals):
+    if pin_bounds_conflict(
+        task, pin_intervals=pin_intervals, effort_minutes=effort_minutes
+    ):
         secondaries.append(REASON_OCCURRENCE_BOUNDS_PIN_CONFLICT)
 
     if in_flight_hold_trigger(
