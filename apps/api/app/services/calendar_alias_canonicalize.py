@@ -71,6 +71,7 @@ def t1f_tip_sha_allowed(tip_sha: str) -> bool:
 
 IDENTITY_UNRESOLVED_CAUSE = "calendar_identity_unresolved"
 IDENTITY_AMBIGUOUS_CAUSE = "calendar_identity_ambiguous"
+IDENTITY_DISABLED_TARGET_COLLISION_CAUSE = "calendar_identity_disabled_target_collision"
 IDENTITY_MERGE_CAUSE = "calendar_identity_merged"
 IDENTITY_KEY_REWRITE_CAUSE = "calendar_identity_key_rewritten"
 
@@ -280,6 +281,14 @@ def _pick_survivor(
     provider: CalendarProvider,
 ) -> CalendarSubscription:
     return min(group, key=lambda sub: _survivor_rank(sub, provider=provider))
+
+
+def _contradictory_enabled_disabled_pair(
+    left: CalendarSubscription,
+    right: CalendarSubscription,
+) -> bool:
+    """True when the same canonical identity has conflicting enable intent."""
+    return left.is_enabled != right.is_enabled
 
 
 def _sidecar_for(
@@ -516,6 +525,7 @@ def _clear_identity_unresolved_markers(subscriptions: Iterable[CalendarSubscript
         if sub.coverage_last_failure_cause in {
             IDENTITY_UNRESOLVED_CAUSE,
             IDENTITY_AMBIGUOUS_CAUSE,
+            IDENTITY_DISABLED_TARGET_COLLISION_CAUSE,
         }:
             sub.coverage_last_failure_cause = None
             sub.coverage_last_failure_at = None
@@ -737,6 +747,14 @@ def canonicalize_calendar_account(
                         db, account.id, rewrite_target
                     )
                     if occupant is not None and occupant.id != sub.id:
+                        if _contradictory_enabled_disabled_pair(sub, occupant):
+                            _mark_identity_failure(
+                                sub,
+                                now=now,
+                                cause=IDENTITY_DISABLED_TARGET_COLLISION_CAUSE,
+                            )
+                            identity_blocked.add(sub.id)
+                            continue
                         survivor = _pick_survivor(
                             [sub, occupant],
                             provider=account.provider,
@@ -816,6 +834,7 @@ def subscription_blocked_for_identity(subscription: CalendarSubscription) -> boo
     return subscription.coverage_last_failure_cause in {
         IDENTITY_UNRESOLVED_CAUSE,
         IDENTITY_AMBIGUOUS_CAUSE,
+        IDENTITY_DISABLED_TARGET_COLLISION_CAUSE,
     }
 
 

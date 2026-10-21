@@ -36,7 +36,9 @@ from app.scheduler.calendar_freshness import evaluate_calendar_freshness, requir
 from app.schemas.calendar import CalendarSubscriptionPutItem, CalendarSubscriptionsPut
 from app.services import google_calendar as gcal
 from app.services import microsoft_calendar as ms_cal
+from app.services import calendar_alias_canonicalize as cal_canon
 from app.services.calendar_alias_canonicalize import (
+    IDENTITY_DISABLED_TARGET_COLLISION_CAUSE,
     T1F_BASELINE_SHA,
     t1f_tip_sha_allowed,
     canonicalize_calendar_account,
@@ -715,51 +717,147 @@ def test_f13_concurrent_put_and_ensure_primary(monkeypatch: pytest.MonkeyPatch) 
         db.close()
 
 
-def test_f14_inflight_sync_merge_blocks_alias_mint(
-    db_session: Session, monkeypatch: pytest.MonkeyPatch
+def test_f14_independent_session_sync_put_merge_no_stale_alias_mint(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    owner, _ = _owner(db_session)
-    account = _account(db_session, owner)
+    """Provider sync entry and ensure_primary in separate DB sessions under account lock."""
+    from sqlalchemy import text
+    from sqlalchemy.exc import DBAPIError
+
     primary_id = "user@gmail.com"
-    _sub(db_session, account, calendar_id="primary")
-    survivor = _sub(db_session, account, calendar_id=primary_id)
-    commit_subscription_coverage_success(
-        survivor,
-        now=_NOW,
-        window_start=_NOW - timedelta(days=1),
-        window_end=_NOW + timedelta(days=1),
-        mode="full",
-        pagination_complete=True,
-        page_count=1,
-        item_count=0,
-        show_deleted=True,
-        single_events=True,
-        sync_token="pre-merge",
-        generation=1,
-    )
     _patch_google_list(monkeypatch, _google_list(primary_id))
     _patch_google_token(monkeypatch)
 
-    prepare_subscriptions_for_sync(
-        db_session,
-        account,
-        settings=_settings(),
-        access_token="access-token",
-        now=_NOW,
-    )
-    disabled = (
-        db_session.query(CalendarSubscription)
-        .filter(
-            CalendarSubscription.calendar_account_id == account.id,
-            CalendarSubscription.external_calendar_id == "primary",
+    def _fast_pull(*_a, subscription: CalendarSubscription, **_k):
+        return [], None, True, 1
+
+    monkeypatch.setattr(gcal, "_pull_subscription_changes", _fast_pull)
+
+    real_lock = cal_canon.lock_calendar_account_for_identity
+    lock_held = threading.Event()
+    release_sync = threading.Event()
+    sync_finished = threading.Event()
+    errors: list[BaseException] = []
+
+    def _lock_with_sync_barrier(db: Session, account_id: UUID) -> CalendarAccount:
+        account = real_lock(db, account_id)
+        if getattr(threading.current_thread(), "t1f_f14_sync", False):
+            lock_held.set()
+            assert release_sync.wait(timeout=20)
+        return account
+
+    monkeypatch.setattr(cal_canon, "lock_calendar_account_for_identity", _lock_with_sync_barrier)
+
+    seed = SessionLocal()
+    try:
+        owner, _ = _owner(seed)
+        account = _account(seed, owner)
+        alias = _sub(seed, account, calendar_id="primary", summary="Primary")
+        survivor = _sub(seed, account, calendar_id=primary_id)
+        seed.add(
+            CalendarSubscriptionRefreshFailure(
+                subscription_id=alias.id,
+                failure_at=_NOW - timedelta(hours=2),
+                cause="calendar_refresh_failed",
+            )
         )
-        .one()
-    )
-    db_session.refresh(survivor)
-    assert disabled.is_enabled is False
-    assert disabled.coverage_success_at is None
-    assert survivor.coverage_success_at is None
-    assert survivor.sync_cursor is None
+        seed.commit()
+        account_id = account.id
+        owner_id = owner.id
+        alias_id = alias.id
+        survivor_id = survivor.id
+    finally:
+        seed.close()
+
+    def _sync_worker() -> None:
+        db = SessionLocal()
+        try:
+            threading.current_thread().t1f_f14_sync = True  # type: ignore[attr-defined]
+            account = db.query(CalendarAccount).filter(CalendarAccount.id == account_id).one()
+            gcal.sync_account_events(
+                db,
+                settings=_settings(),
+                account=account,
+                time_min=_NOW - timedelta(days=1),
+                time_max=_NOW + timedelta(days=1),
+            )
+            db.commit()
+        except BaseException as exc:
+            errors.append(exc)
+        finally:
+            sync_finished.set()
+            db.close()
+
+    def _ensure_worker() -> None:
+        db = SessionLocal()
+        try:
+            assert lock_held.wait(timeout=20)
+            db.execute(text("SET lock_timeout = '8000ms'"))
+            account = db.query(CalendarAccount).filter(CalendarAccount.id == account_id).one()
+            try:
+                gcal.ensure_primary_subscription(db, account)
+                db.commit()
+            except DBAPIError:
+                db.rollback()
+            release_sync.set()
+            assert sync_finished.wait(timeout=30)
+            db2 = SessionLocal()
+            try:
+                account2 = db2.query(CalendarAccount).filter(CalendarAccount.id == account_id).one()
+                gcal.ensure_primary_subscription(db2, account2)
+                db2.commit()
+            finally:
+                db2.close()
+        except BaseException as exc:
+            errors.append(exc)
+            release_sync.set()
+        finally:
+            db.close()
+
+    t_sync = threading.Thread(target=_sync_worker, name="f14-sync")
+    t_ensure = threading.Thread(target=_ensure_worker, name="f14-ensure")
+    t_sync.start()
+    t_ensure.start()
+    t_sync.join(timeout=45)
+    t_ensure.join(timeout=45)
+    assert not errors, errors
+
+    verify = SessionLocal()
+    try:
+        enabled = (
+            verify.query(CalendarSubscription)
+            .filter(
+                CalendarSubscription.calendar_account_id == account_id,
+                CalendarSubscription.is_enabled.is_(True),
+            )
+            .all()
+        )
+        assert len(enabled) == 1
+        assert enabled[0].external_calendar_id == primary_id
+        assert enabled[0].role == CalendarSubscriptionRole.primary
+        primary_rows = (
+            verify.query(CalendarSubscription)
+            .filter(
+                CalendarSubscription.calendar_account_id == account_id,
+                CalendarSubscription.external_calendar_id == "primary",
+            )
+            .all()
+        )
+        assert len(primary_rows) == 1
+        assert primary_rows[0].is_enabled is False
+        sidecar = (
+            verify.query(CalendarSubscriptionRefreshFailure)
+            .filter(CalendarSubscriptionRefreshFailure.subscription_id == survivor_id)
+            .one_or_none()
+        )
+        assert sidecar is not None
+        assert sidecar.cause == "calendar_refresh_failed"
+        verify.refresh(verify.query(CalendarSubscription).filter(CalendarSubscription.id == survivor_id).one())
+        survivor_row = verify.query(CalendarSubscription).filter(CalendarSubscription.id == survivor_id).one()
+        assert survivor_row.coverage_last_failure_cause == "calendar_refresh_failed"
+        _ = alias_id
+    finally:
+        verify.close()
 
 
 def test_f15_unresolved_then_resolved(
@@ -809,11 +907,11 @@ def test_f15_unresolved_then_resolved(
     )
 
 
-def test_f16a_pre_sync_disabled_target_key_rewrite_collision(
+def test_f16a_pre_sync_disabled_target_collision_blocks_without_mutation(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Enabled ``primary`` + disabled stable id — rewrite must not unique-clash."""
-    owner, _ = _owner(db_session)
+    """Enabled ``primary`` + disabled stable id — fail closed; freshness + PUT resolve."""
+    owner, usettings = _owner(db_session)
     account = _account(db_session, owner)
     primary_id = "user@gmail.com"
     alias = _sub(db_session, account, calendar_id="primary", summary="Primary")
@@ -826,23 +924,44 @@ def test_f16a_pre_sync_disabled_target_key_rewrite_collision(
         role=CalendarSubscriptionRole.informational,
     )
     _patch_google_list(monkeypatch, _google_list(primary_id))
-    prepare_subscriptions_for_sync(
+    _patch_google_token(monkeypatch)
+    eligible = prepare_subscriptions_for_sync(
         db_session, account, settings=_settings(), access_token="tok", now=_NOW
     )
     db_session.flush()
     db_session.refresh(disabled_stable)
     db_session.refresh(alias)
     assert disabled_stable.is_enabled is False
-    assert alias.is_enabled is False
-    assert (
+    assert alias.is_enabled is True
+    assert alias.coverage_last_failure_cause == IDENTITY_DISABLED_TARGET_COLLISION_CAUSE
+    assert len(eligible) == 0
+    trust = evaluate_calendar_freshness(db_session, owner.id, usettings, _NOW)
+    assert not trust.ok
+    causes = {d.cause for d in trust.blocking_diagnostics}
+    assert IDENTITY_DISABLED_TARGET_COLLISION_CAUSE in causes
+
+    body = CalendarSubscriptionsPut(
+        items=[
+            CalendarSubscriptionPutItem(
+                external_calendar_id=primary_id,
+                summary="Primary",
+                role=CalendarSubscriptionRole.primary,
+                is_enabled=True,
+            )
+        ]
+    )
+    put_calendar_subscriptions(account.id, body, db_session, owner)
+    enabled = (
         db_session.query(CalendarSubscription)
         .filter(
             CalendarSubscription.calendar_account_id == account.id,
-            CalendarSubscription.external_calendar_id == primary_id,
+            CalendarSubscription.is_enabled.is_(True),
         )
-        .count()
-        == 1
+        .all()
     )
+    assert len(enabled) == 1
+    assert enabled[0].external_calendar_id == primary_id
+    assert enabled[0].coverage_last_failure_cause is None
 
 
 def test_f16_disabled_row_same_canonical(
