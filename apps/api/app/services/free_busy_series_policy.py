@@ -37,8 +37,11 @@ from app.services.free_busy_resolver_allowlist import user_may_resolve
 _logger = logging.getLogger(__name__)
 
 _FREE_BUSY_IDENTITY_NAMESPACE = 1_886_415_953
-_GOOGLE_UPSERT_IDENTITY_DRIFT_MAX_RETRIES = 3
 _AUTOMATIC_BASELINE_SOURCE = "automatic_first_trustworthy_observation"
+
+
+class GoogleUpsertPostLockIdentityDriftError(Exception):
+    """Post-lock identity drift during Google ingest; rollback and retry in a new transaction."""
 _CONFLICT_REVISION_SECRET = b"theplan-t1-4a-conflict-revision-v1"
 
 IdentityKey = tuple[str, str, str, str]
@@ -532,6 +535,7 @@ def resolve_series_policy(
     trigger_refreshed = (
         db.query(ExternalCalendarEvent)
         .filter(ExternalCalendarEvent.id == trigger_id)
+        .populate_existing()
         .one()
     )
     key_locked = identity_key_from_row(trigger_refreshed)
@@ -557,6 +561,15 @@ def resolve_series_policy(
     locked_events = lock_events_for_update(db, events_to_lock)
     locked_by_id = {e.id: e for e in locked_events}
     trigger = locked_by_id[trigger_id]
+    key_after_row_lock = identity_key_from_row(trigger)
+    if key_after_row_lock is None:
+        raise ApiError(422, "Invalid series identity", "FREE_BUSY_RESOLVE_INVALID")
+    if key_after_row_lock != key_locked:
+        raise ApiError(
+            409,
+            "Series identity changed; retry resolve",
+            "FREE_BUSY_IDENTITY_DRIFT",
+        )
     key = key_locked
     locked_pending = [e for e in locked_events if e.free_busy_pending_exception]
     pending_by_ext = {e.external_event_id: e for e in locked_pending}

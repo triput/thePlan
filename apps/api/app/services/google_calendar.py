@@ -682,7 +682,7 @@ def _upsert_external_event(
         return False
 
     from app.services.free_busy_series_policy import (
-        _GOOGLE_UPSERT_IDENTITY_DRIFT_MAX_RETRIES,
+        GoogleUpsertPostLockIdentityDriftError,
         acquire_identity_advisory_locks,
         apply_post_transparency_policy_effects,
         google_upsert_identity_keys_for_lock,
@@ -692,46 +692,36 @@ def _upsert_external_event(
     recurring = event.get("recurringEventId")
     new_series = str(recurring) if recurring else None
 
-    row: ExternalCalendarEvent | None = None
-    lock_keys: list[tuple[str, str, str, str]] = []
-    old_cal: str | None = None
-    old_series: str | None = None
-    for attempt in range(_GOOGLE_UPSERT_IDENTITY_DRIFT_MAX_RETRIES):
-        row = _find_external_event(
-            db, owner_id=account.owner_id, external_id=external_id
-        )
-        if row is not None and row.pending_deletion:
-            return False
-
-        old_cal = row.calendar_id if row is not None else None
-        old_series = row.provider_series_id if row is not None else None
-        identity_snapshot = identity_key_from_row(row) if row is not None else None
-
-        lock_keys = google_upsert_identity_keys_for_lock(
-            row=row,
-            new_calendar_id=subscription.external_calendar_id,
-            new_series_id=new_series,
-            old_calendar_id=old_cal,
-            old_series_id=old_series,
-            owner_id=account.owner_id,
-        )
-        if lock_keys:
-            acquire_identity_advisory_locks(db, lock_keys)
-            row = _find_external_event(
-                db,
-                owner_id=account.owner_id,
-                external_id=external_id,
-                for_update=True,
-            )
-            if row is not None and identity_snapshot is not None:
-                identity_locked = identity_key_from_row(row)
-                if identity_locked != identity_snapshot:
-                    if attempt + 1 >= _GOOGLE_UPSERT_IDENTITY_DRIFT_MAX_RETRIES:
-                        return False
-                    continue
-        break
-    else:
+    row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
+    if row is not None and row.pending_deletion:
         return False
+
+    old_cal = row.calendar_id if row is not None else None
+    old_series = row.provider_series_id if row is not None else None
+    identity_snapshot = identity_key_from_row(row) if row is not None else None
+
+    lock_keys = google_upsert_identity_keys_for_lock(
+        row=row,
+        new_calendar_id=subscription.external_calendar_id,
+        new_series_id=new_series,
+        old_calendar_id=old_cal,
+        old_series_id=old_series,
+        owner_id=account.owner_id,
+    )
+    if lock_keys:
+        acquire_identity_advisory_locks(db, lock_keys)
+        row = _find_external_event(
+            db,
+            owner_id=account.owner_id,
+            external_id=external_id,
+            for_update=True,
+        )
+        if row is not None and identity_snapshot is not None:
+            identity_locked = identity_key_from_row(row)
+            if identity_locked != identity_snapshot:
+                raise GoogleUpsertPostLockIdentityDriftError(
+                    f"identity drift for {external_id}"
+                )
 
     if row is None:
         row = ExternalCalendarEvent(
