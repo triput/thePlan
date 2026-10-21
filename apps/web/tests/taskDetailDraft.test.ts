@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Task } from "../src/api.ts";
 import {
+  buildTaskUpdateFromDraft,
   isTaskDraftDirty,
   shouldResetTaskDetailDraft,
   TASK_TITLE_MAX_LENGTH,
@@ -17,6 +18,8 @@ const baseTask = {
   due_at: null,
   soft_target_at: null,
   deadline_at: null,
+  start_no_earlier_at: null,
+  start_no_later_at: null,
   estimated_duration_minutes: 60,
   project_id: null,
   section_id: null,
@@ -59,5 +62,36 @@ describe("taskDetailDraft", () => {
     const draft = taskToDraft(baseTask);
     draft.title = "x".repeat(TASK_TITLE_MAX_LENGTH + 1);
     assert.match(validateTaskDraftForSave(draft) ?? "", /500/);
+  });
+
+  it("omits unchanged occurrence bounds from PATCH", () => {
+    const withBounds = {
+      ...baseTask,
+      start_no_earlier_at: "2026-10-21T15:00:00.000Z",
+      start_no_later_at: "2026-10-21T17:00:00.000Z",
+    } as Task;
+    const draft = taskToDraft(withBounds);
+    const body = buildTaskUpdateFromDraft(withBounds, draft);
+    assert.ok(body);
+    assert.equal("start_no_earlier_at" in body!, false);
+    assert.equal("start_no_later_at" in body!, false);
+  });
+
+  it("sends null when occurrence bound is cleared", () => {
+    const withBounds = {
+      ...baseTask,
+      start_no_earlier_at: "2026-10-21T15:00:00.000Z",
+    } as Task;
+    const draft = taskToDraft(withBounds);
+    draft.startNoEarlierAtLocal = "";
+    const body = buildTaskUpdateFromDraft(withBounds, draft);
+    assert.ok(body);
+    assert.equal(body!.start_no_earlier_at, null);
+  });
+
+  it("detects start window edits as dirty", () => {
+    const draft = taskToDraft(baseTask);
+    draft.startNoLaterAtLocal = "2026-10-22T12:00";
+    assert.equal(isTaskDraftDirty(baseTask, draft), true);
   });
 });

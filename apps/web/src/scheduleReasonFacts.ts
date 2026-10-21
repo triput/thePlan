@@ -114,6 +114,30 @@ export function formatScheduleReasonFact(code: string, params: Record<string, un
     const scope = paramStr(p, "archived_scope") ?? "container";
     return `Excluded from auto-scheduling (${scope} archived).`;
   }
+  if (code === "occurrence_bounds_miss") {
+    return (
+      "The latest allowed start passed without a placement — this occurrence is held as missed."
+    );
+  }
+  if (code === "occurrence_disposition_held") {
+    return "This occurrence remains held as a missed start window (not released or skipped).";
+  }
+  if (code === "occurrence_disposition_skipped") {
+    return "This occurrence was skipped — it will not be auto-scheduled; history is kept.";
+  }
+  if (code === "occurrence_bounds_hold_inflight") {
+    return (
+      "Start window bounds are set; work is in flight or protected — no new automatic placement for this occurrence."
+    );
+  }
+  if (code === "occurrence_bounds_horizon") {
+    return "Start window bounds cannot be satisfied within the calculation horizon.";
+  }
+  if (code === "occurrence_bounds_unsupported_shape") {
+    return (
+      "Start window bounds are not enforced on split or multi-block arrangements in this release."
+    );
+  }
   const extras = Object.keys(p).length ? ` (${JSON.stringify(p)})` : "";
   return `Scheduling note: ${code}${extras}.`;
 }

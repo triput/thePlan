@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { fetchHeldMisses, type HeldDispositionOut } from "../api";
+import { HELD_MISSES_QUERY_KEY } from "../heldMissesQuery";
+import { formatScheduleReasonFact } from "../scheduleReasonFacts";
 import type { CalendarSupportSnapshot } from "../supportDockContext";
 
 export interface CalendarSupportIdleProps {
@@ -8,6 +12,24 @@ export interface CalendarSupportIdleProps {
   onSelectTask: (taskId: string) => void;
 }
 
+const HELD_LIST_CAP = 8;
+
+function heldTitle(
+  held: HeldDispositionOut,
+  tasksById: ReadonlyMap<string, { title: string }>,
+): string {
+  const cached = tasksById.get(held.task_id);
+  if (cached?.title) return cached.title;
+  return `Task ${held.task_id.slice(0, 8)}…`;
+}
+
+function heldMissLine(held: HeldDispositionOut): string {
+  if (held.miss_reason_code) {
+    return formatScheduleReasonFact(held.miss_reason_code, held.miss_reason_params ?? {});
+  }
+  return "Held miss";
+}
+
 export function CalendarSupportIdle({
   snapshot,
   onOpenPreview,
@@ -15,7 +37,18 @@ export function CalendarSupportIdle({
   previewPolling,
   onSelectTask,
 }: CalendarSupportIdleProps) {
-  const { unscheduledTotal, unscheduledSample, scheduleStaleHint, legend } = snapshot;
+  const { unscheduledTotal, unscheduledSample, scheduleStaleHint, legend, tasksById } = snapshot;
+
+  const heldQuery = useQuery({
+    queryKey: HELD_MISSES_QUERY_KEY,
+    queryFn: fetchHeldMisses,
+    staleTime: 15_000,
+  });
+
+  const heldRows = (heldQuery.data ?? []).filter(
+    (row) => row.resolution === "unresolved_held",
+  );
+  const heldSample = heldRows.slice(0, HELD_LIST_CAP);
 
   return (
     <div className="calendar-support-idle">
@@ -38,6 +71,61 @@ export function CalendarSupportIdle({
         >
           {previewPolling ? "Calculating…" : previewReady ? "Review open preview" : "Preview changes"}
         </button>
+      </section>
+
+      <section className="support-dock-section" aria-labelledby="cal-support-held-heading">
+        <h3 id="cal-support-held-heading" className="support-dock-section-title">
+          Held misses
+        </h3>
+        {heldQuery.isLoading && (
+          <p className="muted small" role="status">
+            Loading held…
+          </p>
+        )}
+        {heldQuery.isError && (
+          <p className="form-error" role="alert">
+            Could not load held misses.{" "}
+            <button
+              type="button"
+              className="btn link small"
+              onClick={() => void heldQuery.refetch()}
+            >
+              Retry
+            </button>
+          </p>
+        )}
+        {heldQuery.isSuccess && heldRows.length === 0 && (
+          <p className="muted small">No held misses.</p>
+        )}
+        {heldQuery.isSuccess && heldRows.length > 0 && (
+          <>
+            <p className="muted small">
+              {heldRows.length} held miss{heldRows.length === 1 ? "" : "es"}
+            </p>
+            <ul className="calendar-support-unscheduled-list">
+              {heldSample.map((row) => (
+                <li key={row.id}>
+                  <button
+                    type="button"
+                    className="btn link small calendar-support-task-link"
+                    onClick={() => onSelectTask(row.task_id)}
+                  >
+                    {heldTitle(row, tasksById)}
+                  </button>
+                  <span className="muted small calendar-support-held-reason">
+                    {" "}
+                    — {heldMissLine(row)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {heldRows.length > heldSample.length && (
+              <p className="muted small">
+                {heldRows.length - heldSample.length} more — open a task for leave / skip / release.
+              </p>
+            )}
+          </>
+        )}
       </section>
 
       <section className="support-dock-section" aria-labelledby="cal-support-unscheduled-heading">

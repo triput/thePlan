@@ -1,16 +1,31 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ApiError,
+  describeApiError,
+  fetchHeldMisses,
+  fetchSettings,
   fetchTaskScheduleExplanation,
+  postLeaveHeld,
+  postReleaseHeld,
+  postSkipHeld,
   type FocusWindow,
+  type HeldDispositionOut,
   type Plan,
   type ScheduleStyle,
   type StaleCategory,
+  type Task,
 } from "../api";
+import { HELD_MISSES_QUERY_KEY, invalidateAfterHeldMutation } from "../heldMissesQuery";
 import { formatScheduleReasonFact } from "../scheduleReasonFacts";
+import { formatInstantInZone } from "../taskDetailDraft";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { emitToast } from "./ToastHost";
 import { TaskDetailSection, type DetailSectionId } from "./TaskDetailSection";
 
 interface TaskDetailSchedulingProps {
   taskId: string;
+  task: Task;
   open: boolean;
   onToggle: (id: DetailSectionId) => void;
   planId: string;
@@ -26,6 +41,10 @@ interface TaskDetailSchedulingProps {
   onScheduleStyleChange: (value: "" | ScheduleStyle) => void;
   inheritScheduleStyleHint: string | null;
   scheduleStatus: string;
+  timezone: string;
+  datesDirty: boolean;
+  onSaveDatesForRelease: () => Promise<boolean>;
+  saveDatesPending: boolean;
 }
 
 const STALE_LABELS: Record<StaleCategory, string> = {
@@ -50,8 +69,28 @@ const STALE_LABELS: Record<StaleCategory, string> = {
   provenance: "older snapshot",
 };
 
+function snapshotInstant(
+  snapshot: Record<string, unknown>,
+  key: string,
+): string | null {
+  const value = snapshot[key];
+  if (value == null || value === "") return null;
+  return String(value);
+}
+
+function heldMissSummary(held: HeldDispositionOut): string {
+  if (held.miss_reason_code) {
+    return formatScheduleReasonFact(
+      held.miss_reason_code,
+      held.miss_reason_params ?? {},
+    );
+  }
+  return "Held as a missed start window.";
+}
+
 export function TaskDetailScheduling({
   taskId,
+  task,
   open,
   onToggle,
   planId,
@@ -67,8 +106,15 @@ export function TaskDetailScheduling({
   onScheduleStyleChange,
   inheritScheduleStyleHint,
   scheduleStatus,
+  timezone,
+  datesDirty,
+  onSaveDatesForRelease,
+  saveDatesPending,
 }: TaskDetailSchedulingProps) {
   const isOverbooked = scheduleStatus === "overbooked";
+  const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [skipTarget, setSkipTarget] = useState<HeldDispositionOut | null>(null);
 
   const explanationQuery = useQuery({
     queryKey: ["schedule-explanation", taskId],
@@ -77,14 +123,231 @@ export function TaskDetailScheduling({
     staleTime: 30_000,
   });
 
+  const heldQuery = useQuery({
+    queryKey: HELD_MISSES_QUERY_KEY,
+    queryFn: fetchHeldMisses,
+    enabled: open && Boolean(taskId),
+    staleTime: 15_000,
+  });
+
   const explanationData = explanationQuery.data;
   const explanation = explanationData?.explanation;
   const neverEvaluated = explanationData?.evaluation_state === "never_evaluated";
   const showStale = explanationData?.is_stale ?? false;
   const staleCategories = explanationData?.stale_categories ?? [];
 
+  const heldForTask = (heldQuery.data ?? []).filter(
+    (row) => row.task_id === taskId && row.resolution === "unresolved_held",
+  );
+
+  const leaveMutation = useMutation({
+    mutationFn: async () => {
+      const settings = await queryClient.fetchQuery({
+        queryKey: ["settings"],
+        queryFn: fetchSettings,
+      });
+      return postLeaveHeld(taskId, {
+        expected_revision: settings.scheduling_revision,
+      });
+    },
+    onSuccess: () => {
+      setActionError(null);
+      emitToast("Acknowledged leave-held — task stays held");
+      invalidateAfterHeldMutation(queryClient);
+    },
+    onError: (err) => {
+      const message = describeApiError(err);
+      setActionError(message);
+      emitToast(`Leave-held failed — ${message}`);
+      if (err instanceof ApiError && err.status === 409) {
+        void queryClient.invalidateQueries({ queryKey: ["settings"] });
+        void queryClient.invalidateQueries({ queryKey: HELD_MISSES_QUERY_KEY });
+      }
+    },
+  });
+
+  const releaseMutation = useMutation({
+    mutationFn: async (held: HeldDispositionOut) => {
+      if (datesDirty) {
+        const saved = await onSaveDatesForRelease();
+        if (!saved) {
+          throw new Error("Save dates before release failed");
+        }
+      }
+      await queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      await queryClient.invalidateQueries({ queryKey: HELD_MISSES_QUERY_KEY });
+      const settings = await queryClient.fetchQuery({
+        queryKey: ["settings"],
+        queryFn: fetchSettings,
+      });
+      const heldFresh = await queryClient.fetchQuery({
+        queryKey: HELD_MISSES_QUERY_KEY,
+        queryFn: fetchHeldMisses,
+      });
+      const stillHeld = heldFresh.find(
+        (row) => row.id === held.id && row.resolution === "unresolved_held",
+      );
+      if (!stillHeld) {
+        throw new Error("Held episode no longer unresolved — refresh and try again");
+      }
+      // Date-first: bounds already on task via save; release sends named id + rev only.
+      return postReleaseHeld(taskId, {
+        disposition_id: stillHeld.id,
+        expected_revision: settings.scheduling_revision,
+      });
+    },
+    onSuccess: () => {
+      setActionError(null);
+      emitToast("Released held occurrence");
+      invalidateAfterHeldMutation(queryClient);
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error && err.message === "Save dates before release failed"
+          ? "Could not save date edits before release."
+          : describeApiError(err);
+      setActionError(message);
+      emitToast(`Release failed — ${message}`);
+      // 409: no auto-retry; do not overwrite user edits (form owned by panel).
+      if (err instanceof ApiError && err.status === 409) {
+        void queryClient.invalidateQueries({ queryKey: ["settings"] });
+        void queryClient.invalidateQueries({ queryKey: HELD_MISSES_QUERY_KEY });
+      }
+    },
+  });
+
+  const skipMutation = useMutation({
+    mutationFn: async (held: HeldDispositionOut) => {
+      const settings = await queryClient.fetchQuery({
+        queryKey: ["settings"],
+        queryFn: fetchSettings,
+      });
+      return postSkipHeld(taskId, {
+        disposition_id: held.id,
+        expected_revision: settings.scheduling_revision,
+      });
+    },
+    onSuccess: () => {
+      setSkipTarget(null);
+      setActionError(null);
+      emitToast("Skipped held occurrence — will not auto-schedule");
+      invalidateAfterHeldMutation(queryClient);
+    },
+    onError: (err) => {
+      const message = describeApiError(err);
+      setActionError(message);
+      emitToast(`Skip failed — ${message}`);
+      if (err instanceof ApiError && err.status === 409) {
+        void queryClient.invalidateQueries({ queryKey: ["settings"] });
+        void queryClient.invalidateQueries({ queryKey: HELD_MISSES_QUERY_KEY });
+      }
+    },
+  });
+
+  const mutationPending =
+    leaveMutation.isPending ||
+    releaseMutation.isPending ||
+    skipMutation.isPending ||
+    saveDatesPending;
+
   return (
     <TaskDetailSection id="scheduling" title="Scheduling" open={open} onToggle={onToggle}>
+      {heldQuery.isLoading && (
+        <p className="muted small" role="status">
+          Loading held…
+        </p>
+      )}
+      {heldQuery.isError && (
+        <p className="form-error" role="alert">
+          Could not load held misses.{" "}
+          <button
+            type="button"
+            className="btn link small"
+            onClick={() => void heldQuery.refetch()}
+          >
+            Retry
+          </button>
+        </p>
+      )}
+      {heldQuery.isSuccess &&
+        heldForTask.map((held) => {
+          const snap = held.bounds_snapshot ?? {};
+          return (
+            <div
+              key={held.id}
+              className="held-miss-banner"
+              role="region"
+              aria-label="Held miss"
+            >
+              <p className="held-miss-banner-title">
+                <strong>Held miss</strong>
+              </p>
+              <p className="muted small">{heldMissSummary(held)}</p>
+              <div className="held-miss-compare muted small">
+                <p>
+                  <strong>Original miss</strong> ({timezone}): earliest{" "}
+                  {formatInstantInZone(snapshotInstant(snap, "start_no_earlier_at"), timezone)}
+                  ; latest{" "}
+                  {formatInstantInZone(snapshotInstant(snap, "start_no_later_at"), timezone)}
+                  ; deadline{" "}
+                  {formatInstantInZone(snapshotInstant(snap, "deadline_at"), timezone)}
+                </p>
+                <p>
+                  <strong>Current dates</strong> ({timezone}): earliest{" "}
+                  {formatInstantInZone(task.start_no_earlier_at ?? null, timezone)}; latest{" "}
+                  {formatInstantInZone(task.start_no_later_at ?? null, timezone)}; deadline{" "}
+                  {formatInstantInZone(task.deadline_at, timezone)}
+                </p>
+              </div>
+              <p className="field-hint muted small">
+                Leave held keeps this task held (revision + note only — does not target a named
+                episode). Edit dates above, then Release. Skip does not schedule and keeps history.
+              </p>
+              {actionError && (
+                <p className="form-error" role="alert">
+                  {actionError}
+                </p>
+              )}
+              <div className="form-actions held-miss-actions">
+                <button
+                  type="button"
+                  className="btn secondary small"
+                  disabled={mutationPending}
+                  onClick={() => leaveMutation.mutate()}
+                >
+                  {leaveMutation.isPending ? "Leaving…" : "Leave held"}
+                </button>
+                <button
+                  type="button"
+                  className="btn secondary small"
+                  disabled={mutationPending}
+                  onClick={() => setSkipTarget(held)}
+                >
+                  Skip…
+                </button>
+                <button
+                  type="button"
+                  className="btn primary small"
+                  disabled={mutationPending}
+                  onClick={() => releaseMutation.mutate(held)}
+                  title={
+                    datesDirty
+                      ? "Saves your date edits, then releases this held episode"
+                      : "Release this held episode using current task dates"
+                  }
+                >
+                  {releaseMutation.isPending
+                    ? "Releasing…"
+                    : datesDirty
+                      ? "Save dates & release"
+                      : "Release"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
       <div className="schedule-explanation-panel" aria-labelledby="schedule-why-heading">
         <div className="schedule-explanation-header">
           <h4 id="schedule-why-heading" className="schedule-explanation-title">
@@ -222,6 +485,21 @@ export function TaskDetailScheduling({
           Manual / backlog and bundle tasks are excluded from Update Schedule auto-placement
         </span>
       </label>
+
+      <ConfirmDialog
+        open={skipTarget !== null}
+        title="Skip held occurrence?"
+        message="Don’t schedule this occurrence; keep history. The task will no longer block as an unresolved held miss."
+        confirmLabel="Skip"
+        destructive
+        pending={skipMutation.isPending}
+        onClose={() => {
+          if (!skipMutation.isPending) setSkipTarget(null);
+        }}
+        onConfirm={() => {
+          if (skipTarget) skipMutation.mutate(skipTarget);
+        }}
+      />
     </TaskDetailSection>
   );
 }

@@ -587,6 +587,39 @@
   color: #b45309;
 }
 
+.held-miss-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: color-mix(in srgb, #b45309 8%, var(--panel));
+  border: 1px solid color-mix(in srgb, #b45309 30%, var(--border));
+  border-radius: 6px;
+}
+
+.held-miss-banner-title {
+  margin: 0 0 0.35rem;
+}
+
+.held-miss-compare {
+  margin: 0.35rem 0;
+}
+
+.held-miss-compare p {
+  margin: 0.2rem 0;
+}
+
+.held-miss-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 0.45rem;
+}
+
+.calendar-support-held-reason {
+  display: inline;
+}
+
 .schedule-explanation-panel {
   margin-bottom: 1rem;
   padding: 0.65rem 0.75rem;

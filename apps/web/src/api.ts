@@ -168,6 +168,8 @@ export interface Task {
   priority: TaskPriority;
   due_at: string | null;
   deadline_at: string | null;
+  start_no_earlier_at?: string | null;
+  start_no_later_at?: string | null;
   soft_target_at: string | null;
   plan_id: string | null;
   plan_name?: string | null;
@@ -334,6 +336,8 @@ export interface TaskUpdate {
   priority?: TaskPriority;
   due_at?: string | null;
   deadline_at?: string | null;
+  start_no_earlier_at?: string | null;
+  start_no_later_at?: string | null;
   soft_target_at?: string | null;
   plan_id?: string | null;
   schedule_style?: ScheduleStyle | null;
@@ -375,6 +379,8 @@ export interface UserSettings {
   default_schedule_style: ScheduleStyle;
   auto_defer_enabled: boolean;
   max_auto_schedule_minutes_per_project_per_day: number | null;
+  /** Owner-scoped SoT for disposition expected_revision (not board_revision). */
+  scheduling_revision: number;
   ups_weights?: Record<string, unknown>;
   id?: string;
   owner_id?: string;
@@ -1918,6 +1924,80 @@ export interface TaskScheduleExplanationOut {
 
 export function fetchTaskScheduleExplanation(taskId: string) {
   return apiFetch<TaskScheduleExplanationOut>(`/api/v1/tasks/${taskId}/schedule-explanation`);
+}
+
+export type DispositionResolution = "unresolved_held" | "released" | "skipped";
+
+export type DispositionEventType =
+  | "miss_detected"
+  | "leave_held"
+  | "duplicate_miss"
+  | "released"
+  | "skipped";
+
+export interface DispositionEventOut {
+  id: string;
+  event_type: DispositionEventType;
+  payload: Record<string, unknown> | null;
+  preview_id: string | null;
+  created_at: string;
+}
+
+export interface HeldDispositionOut {
+  id: string;
+  task_id: string;
+  episode_key: string;
+  resolution: DispositionResolution;
+  bounds_snapshot: Record<string, unknown>;
+  miss_reason_code: string | null;
+  miss_reason_params: Record<string, unknown> | null;
+  updated_at: string;
+  events: DispositionEventOut[];
+}
+
+export interface LeaveHeldIn {
+  expected_revision: number;
+  note?: string | null;
+}
+
+export interface ReleaseHeldIn {
+  disposition_id: string;
+  expected_revision: number;
+  note?: string | null;
+  start_no_earlier_at?: string | null;
+  start_no_later_at?: string | null;
+  deadline_at?: string | null;
+}
+
+export interface SkipHeldIn {
+  disposition_id: string;
+  expected_revision: number;
+  note?: string | null;
+}
+
+export function fetchHeldMisses() {
+  return apiFetch<HeldDispositionOut[]>("/api/v1/schedule/held-misses");
+}
+
+export function postLeaveHeld(taskId: string, body: LeaveHeldIn) {
+  return apiFetch<HeldDispositionOut>(`/api/v1/schedule/held-misses/${taskId}/leave-held`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function postReleaseHeld(taskId: string, body: ReleaseHeldIn) {
+  return apiFetch<HeldDispositionOut>(`/api/v1/schedule/held-misses/${taskId}/release`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function postSkipHeld(taskId: string, body: SkipHeldIn) {
+  return apiFetch<HeldDispositionOut>(`/api/v1/schedule/held-misses/${taskId}/skip`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function fetchScheduleRunExplanations(

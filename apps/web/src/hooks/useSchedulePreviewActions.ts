@@ -35,6 +35,7 @@ export function useSchedulePreviewActions() {
     queryClient.invalidateQueries({ queryKey: ["schedule-explanation"] });
     queryClient.invalidateQueries({ queryKey: ["schedule-runs"] });
     queryClient.invalidateQueries({ queryKey: ["schedule-run-stale-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["held-misses"] });
   }, [queryClient]);
 
   const pollPreviewUntilSettled = useCallback(async (previewId: string) => {

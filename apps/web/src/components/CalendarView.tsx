@@ -382,6 +382,7 @@ export function CalendarView({ onPreviewSchedule }: CalendarViewProps) {
     queryClient.invalidateQueries({ queryKey: ["schedule-explanation"] });
     queryClient.invalidateQueries({ queryKey: ["schedule-runs"] });
     queryClient.invalidateQueries({ queryKey: ["schedule-run-stale-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["held-misses"] });
   }, [queryClient]);
 
   const [replanPolling, setReplanPolling] = useState(false);

@@ -9,6 +9,8 @@ export interface TaskDetailDraft {
   dueAtLocal: string;
   softTargetAtLocal: string;
   deadlineAtLocal: string;
+  startNoEarlierAtLocal: string;
+  startNoLaterAtLocal: string;
   duration: string;
   projectId: string;
   sectionId: string;
@@ -27,6 +29,8 @@ export function taskToDraft(task: Task): TaskDetailDraft {
     dueAtLocal: toDatetimeLocal(task.due_at),
     softTargetAtLocal: toDatetimeLocal(task.soft_target_at),
     deadlineAtLocal: toDatetimeLocal(task.deadline_at),
+    startNoEarlierAtLocal: toDatetimeLocal(task.start_no_earlier_at ?? null),
+    startNoLaterAtLocal: toDatetimeLocal(task.start_no_later_at ?? null),
     duration:
       task.estimated_duration_minutes > 0 ? String(task.estimated_duration_minutes) : "",
     projectId: task.project_id ?? "",
@@ -47,6 +51,8 @@ export function isTaskDraftDirty(task: Task, draft: TaskDetailDraft): boolean {
   if (draft.dueAtLocal !== baseline.dueAtLocal) return true;
   if (draft.softTargetAtLocal !== baseline.softTargetAtLocal) return true;
   if (draft.deadlineAtLocal !== baseline.deadlineAtLocal) return true;
+  if (draft.startNoEarlierAtLocal !== baseline.startNoEarlierAtLocal) return true;
+  if (draft.startNoLaterAtLocal !== baseline.startNoLaterAtLocal) return true;
   if (draft.duration.trim() !== baseline.duration.trim()) return true;
   if (draft.projectId !== baseline.projectId) return true;
   if (draft.sectionId !== baseline.sectionId) return true;
@@ -81,11 +87,16 @@ export function validateTaskDraftForSave(draft: TaskDetailDraft): string | null 
   return null;
 }
 
-export function buildTaskUpdateFromDraft(_task: Task, draft: TaskDetailDraft): TaskUpdate | null {
+/**
+ * Build PATCH body. Occurrence bounds use omit-unchanged / null-clear (API exclude_unset);
+ * other date fields keep existing always-send semantics.
+ */
+export function buildTaskUpdateFromDraft(task: Task, draft: TaskDetailDraft): TaskUpdate | null {
   if (validateTaskDraftForSave(draft)) return null;
   const trimmed = draft.title.trim();
   const parsedDuration = draft.duration.trim() ? parseInt(draft.duration, 10) : 0;
-  return {
+  const baseline = taskToDraft(task);
+  const body: TaskUpdate = {
     title: trimmed,
     description: draft.description.trim() || null,
     priority: draft.priority,
@@ -101,16 +112,47 @@ export function buildTaskUpdateFromDraft(_task: Task, draft: TaskDetailDraft): T
     schedule_style: draft.scheduleStyle || null,
     plan_id: draft.planId || null,
   };
+  if (draft.startNoEarlierAtLocal !== baseline.startNoEarlierAtLocal) {
+    body.start_no_earlier_at = fromDatetimeLocal(draft.startNoEarlierAtLocal);
+  }
+  if (draft.startNoLaterAtLocal !== baseline.startNoLaterAtLocal) {
+    body.start_no_later_at = fromDatetimeLocal(draft.startNoLaterAtLocal);
+  }
+  return body;
 }
 
-function toDatetimeLocal(iso: string | null): string {
+export function toDatetimeLocal(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function fromDatetimeLocal(value: string): string | null {
+export function fromDatetimeLocal(value: string): string | null {
   if (!value) return null;
-  return new Date(value).toISOString();
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+/** Format an ISO instant for display with an explicit zone label (settings timezone). */
+export function formatInstantInZone(iso: string | null | undefined, timeZone: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  try {
+    const formatted = new Intl.DateTimeFormat(undefined, {
+      timeZone,
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
+    }).format(d);
+    return formatted;
+  } catch {
+    return d.toISOString();
+  }
 }

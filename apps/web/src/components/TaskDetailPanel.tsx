@@ -22,6 +22,7 @@ import {
   fetchPlans,
   fetchProjects,
   fetchSections,
+  fetchSettings,
   fetchTaskReminders,
   fetchTasks,
   promoteTaskToProject,
@@ -54,8 +55,10 @@ import { TaskDetailScheduling } from "./TaskDetailScheduling";
 import type { DetailSectionId } from "./TaskDetailSection";
 import {
   buildTaskUpdateFromDraft,
+  fromDatetimeLocal,
   isTaskDraftDirty,
   shouldResetTaskDetailDraft,
+  toDatetimeLocal,
   validateTaskDraftForSave,
   type TaskDetailDraft,
 } from "../taskDetailDraft";
@@ -142,18 +145,6 @@ function isMobileTaskDetailLayout(): boolean {
   return typeof window !== "undefined" && window.matchMedia(MOBILE_LAYOUT_MQ).matches;
 }
 
-function toDatetimeLocal(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDatetimeLocal(value: string): string | null {
-  if (!value) return null;
-  return new Date(value).toISOString();
-}
-
 function isDescendantOf(candidate: Task, ancestorId: string, byId: Map<string, Task>): boolean {
   let current: Task | undefined = candidate;
   const seen = new Set<string>();
@@ -178,6 +169,12 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
     priority: body.priority ?? task.priority,
     due_at: body.due_at !== undefined ? body.due_at : task.due_at,
     deadline_at: body.deadline_at !== undefined ? body.deadline_at : task.deadline_at,
+    start_no_earlier_at:
+      body.start_no_earlier_at !== undefined
+        ? body.start_no_earlier_at
+        : task.start_no_earlier_at,
+    start_no_later_at:
+      body.start_no_later_at !== undefined ? body.start_no_later_at : task.start_no_later_at,
     soft_target_at:
       body.soft_target_at !== undefined ? body.soft_target_at : task.soft_target_at,
     plan_id: body.plan_id !== undefined ? body.plan_id : task.plan_id,
@@ -204,6 +201,8 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
   const [dueAtLocal, setDueAtLocal] = useState("");
   const [softTargetAtLocal, setSoftTargetAtLocal] = useState("");
   const [deadlineAtLocal, setDeadlineAtLocal] = useState("");
+  const [startNoEarlierAtLocal, setStartNoEarlierAtLocal] = useState("");
+  const [startNoLaterAtLocal, setStartNoLaterAtLocal] = useState("");
   const [duration, setDuration] = useState("");
   const [projectId, setProjectId] = useState<string>("");
   const [sectionId, setSectionId] = useState<string>("");
@@ -450,6 +449,8 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
     dueAtLocal,
     softTargetAtLocal,
     deadlineAtLocal,
+    startNoEarlierAtLocal,
+    startNoLaterAtLocal,
     duration,
     projectId,
     sectionId,
@@ -467,6 +468,8 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
     setDueAtLocal(toDatetimeLocal(source.due_at));
     setSoftTargetAtLocal(toDatetimeLocal(source.soft_target_at));
     setDeadlineAtLocal(toDatetimeLocal(source.deadline_at));
+    setStartNoEarlierAtLocal(toDatetimeLocal(source.start_no_earlier_at ?? null));
+    setStartNoLaterAtLocal(toDatetimeLocal(source.start_no_later_at ?? null));
     setDuration(
       source.estimated_duration_minutes > 0 ? String(source.estimated_duration_minutes) : "",
     );
@@ -477,6 +480,31 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
     setPreferredTimeWindowId(source.preferred_time_window_id ?? "");
     setScheduleStyle(source.schedule_style ?? "");
     setPlanId(source.plan_id ?? "");
+  };
+
+  const settingsQuery = useQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+    staleTime: 30_000,
+  });
+  const settingsTimezone = settingsQuery.data?.timezone ?? "UTC";
+
+  /** Date-first release: persist dirty draft without closing; keep form on failure. */
+  const saveDraftKeepingForm = async (): Promise<boolean> => {
+    if (!task) return false;
+    const validationError = validateTaskDraftForSave(readDraft());
+    if (validationError) {
+      emitToast(validationError);
+      return false;
+    }
+    const body = buildTaskUpdateFromDraft(task, readDraft());
+    if (!body) return false;
+    try {
+      await updateMutation.mutateAsync({ body, closeAfterSave: false });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const resetEphemeralFields = (source: Task | null) => {
@@ -541,6 +569,8 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
       dueAtLocal,
       softTargetAtLocal,
       deadlineAtLocal,
+      startNoEarlierAtLocal,
+      startNoLaterAtLocal,
       duration,
       projectId,
       sectionId,
@@ -892,9 +922,34 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
               Hard commit — scheduler must not miss
             </span>
           </label>
+          <label className="field">
+            <span>Start no earlier</span>
+            <input
+              type="datetime-local"
+              className="field-datetime"
+              value={startNoEarlierAtLocal}
+              onChange={(e) => setStartNoEarlierAtLocal(e.target.value)}
+            />
+            <span className="field-hint muted small">
+              Occurrence earliest start · zone {settingsTimezone}
+            </span>
+          </label>
+          <label className="field">
+            <span>Start no later</span>
+            <input
+              type="datetime-local"
+              className="field-datetime"
+              value={startNoLaterAtLocal}
+              onChange={(e) => setStartNoLaterAtLocal(e.target.value)}
+            />
+            <span className="field-hint muted small">
+              Occurrence latest start · zone {settingsTimezone}
+            </span>
+          </label>
 
           <TaskDetailScheduling
             taskId={task.id}
+            task={task}
             open={sectionOpen.scheduling}
             onToggle={toggleSection}
             planId={planId}
@@ -910,6 +965,10 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
             onScheduleStyleChange={setScheduleStyle}
             inheritScheduleStyleHint={inheritScheduleStyleHint}
             scheduleStatus={task.status}
+            timezone={settingsTimezone}
+            datesDirty={task ? isTaskDraftDirty(task, readDraft()) : false}
+            onSaveDatesForRelease={saveDraftKeepingForm}
+            saveDatesPending={updateMutation.isPending}
           />
 
           <TaskDetailRecurrence
