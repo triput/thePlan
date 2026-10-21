@@ -33,7 +33,9 @@ from app.models.task_occurrence_disposition import (
 )
 from app.scheduler.input_fingerprint import normalize_occurrence_bounds
 from app.scheduler.occurrence_bounds import (
+    earliest_start_bound,
     effective_latest_start,
+    geometry_infeasible,
     has_occurrence_bounds,
     unsupported_shape,
 )
@@ -364,7 +366,12 @@ def _assert_usable_dates_for_release(
     *,
     now_utc: datetime,
 ) -> None:
-    """Temporal miss/invalid only — not free-slot / horizon placement promise."""
+    """Temporal miss/invalid only — not free-slot / horizon placement promise.
+
+    Reuses established geometry helpers: unsupported shape, ``geometry_infeasible``
+    (earliest + remaining effort vs finish-by), and earliest vs
+    ``effective_latest_start`` (including ``max(now, earliest) > latest``).
+    """
     effort = placement_effort_minutes(task)
     if unsupported_shape(task, settings, effort_minutes=effort):
         raise ApiError(
@@ -372,13 +379,28 @@ def _assert_usable_dates_for_release(
             "Occurrence bounds still missed or invalid for remaining work",
             "BOUNDS_STILL_MISSED",
         )
+    if geometry_infeasible(task, effort_minutes=effort):
+        raise ApiError(
+            422,
+            "Occurrence bounds still missed or invalid for remaining work",
+            "BOUNDS_STILL_MISSED",
+        )
     latest = effective_latest_start(task, effort_minutes=effort)
+    earliest = earliest_start_bound(task)
     now = now_utc
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     else:
         now = now.astimezone(timezone.utc)
     if latest is not None and latest < now:
+        raise ApiError(
+            422,
+            "Occurrence bounds still missed or invalid for remaining work",
+            "BOUNDS_STILL_MISSED",
+        )
+    # Equivalent floor: cannot start early enough for remaining work.
+    start_floor = now if earliest is None else max(now, earliest)
+    if latest is not None and start_floor > latest:
         raise ApiError(
             422,
             "Occurrence bounds still missed or invalid for remaining work",

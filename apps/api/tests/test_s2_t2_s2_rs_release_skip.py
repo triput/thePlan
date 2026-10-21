@@ -992,3 +992,206 @@ def test_idempotent_release_ignores_new_bounds_patch(
     task_after = client.get(f"/api/v1/tasks/{task['id']}").json()
     assert task_after["start_no_later_at"] == task_mid["start_no_later_at"]
     assert len([e for e in second.json()["events"] if e["event_type"] == EVENT_RELEASED]) == 1
+
+
+# ---------------------------------------------------------------------------
+# Dex bounce: temporal geometry gate (NOT ACCEPTED 2fdaba0)
+# ---------------------------------------------------------------------------
+
+
+def _assert_unchanged_held(
+    client: TestClient,
+    db: Session,
+    *,
+    task_id: str,
+    disp_id: uuid.UUID,
+    snapshot_before: dict,
+    rev: int,
+    task_before: dict,
+) -> None:
+    db.expire_all()
+    reread = db.get(TaskOccurrenceDisposition, disp_id)
+    assert reread is not None
+    assert reread.resolution == RESOLUTION_UNRESOLVED_HELD
+    assert dict(reread.bounds_snapshot) == snapshot_before
+    assert not any(e.event_type == EVENT_RELEASED for e in reread.events)
+    assert _revision(client) == rev
+    task_after = client.get(f"/api/v1/tasks/{task_id}").json()
+    for key in ("start_no_earlier_at", "start_no_later_at", "deadline_at"):
+        assert task_after.get(key) == task_before.get(key)
+
+
+def test_dex_geometry_infeasible_atomic_release_rejects(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dex probe: 60m effort, earliest=+1d, latest=+2d, finish-by=earliest+1m → reject."""
+    _prepare(client, db_session)
+    task = _miss_task(client, db_session)
+    _ready_preview(client, db_session, monkeypatch)
+    row = _held_row(db_session, task["id"])
+    snapshot_before = dict(row.bounds_snapshot)
+    rev = _revision(client)
+    task_before = client.get(f"/api/v1/tasks/{task['id']}").json()
+    # Wall-clock relative: release_held uses utc_now(), not FIXED_NOW.
+    base = datetime.now(UTC)
+    earliest = base + timedelta(days=1)
+    explicit_latest = base + timedelta(days=2)
+    finish_by = earliest + timedelta(minutes=1)
+    resp = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/release",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": rev,
+            "start_no_earlier_at": earliest.isoformat().replace("+00:00", "Z"),
+            "start_no_later_at": explicit_latest.isoformat().replace("+00:00", "Z"),
+            "deadline_at": finish_by.isoformat().replace("+00:00", "Z"),
+        },
+    )
+    assert resp.status_code == 422, resp.text
+    assert resp.json()["code"] == "BOUNDS_STILL_MISSED"
+    _assert_unchanged_held(
+        client,
+        db_session,
+        task_id=task["id"],
+        disp_id=row.id,
+        snapshot_before=snapshot_before,
+        rev=rev,
+        task_before=task_before,
+    )
+
+
+def test_dex_geometry_equality_boundary_accepted(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exactly enough duration (earliest + effort == deadline) must release."""
+    _prepare(client, db_session)
+    task = _miss_task(client, db_session)
+    _ready_preview(client, db_session, monkeypatch)
+    row = _held_row(db_session, task["id"])
+    base = datetime.now(UTC)
+    earliest = base + timedelta(days=1)
+    finish_by = earliest + timedelta(minutes=60)
+    explicit_latest = base + timedelta(days=3)
+    resp = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/release",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": _revision(client),
+            "start_no_earlier_at": earliest.isoformat().replace("+00:00", "Z"),
+            "start_no_later_at": explicit_latest.isoformat().replace("+00:00", "Z"),
+            "deadline_at": finish_by.isoformat().replace("+00:00", "Z"),
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["resolution"] == RESOLUTION_RELEASED
+
+
+def test_dex_geometry_mixed_offsets_infeasible(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same geometry with different UTC offsets still rejects."""
+    _prepare(client, db_session)
+    task = _miss_task(client, db_session)
+    _ready_preview(client, db_session, monkeypatch)
+    row = _held_row(db_session, task["id"])
+    snapshot_before = dict(row.bounds_snapshot)
+    rev = _revision(client)
+    task_before = client.get(f"/api/v1/tasks/{task['id']}").json()
+    base = datetime.now(UTC)
+    # Same instants with mixed offsets (+05:00 earliest/latest; −08:00 finish-by).
+    earliest_local = (base + timedelta(days=1)).astimezone(
+        timezone(timedelta(hours=5))
+    )
+    finish_local = (base + timedelta(days=1, minutes=1)).astimezone(
+        timezone(timedelta(hours=-8))
+    )
+    latest_local = (base + timedelta(days=2)).astimezone(
+        timezone(timedelta(hours=5))
+    )
+    resp = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/release",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": rev,
+            "start_no_earlier_at": earliest_local.isoformat(),
+            "start_no_later_at": latest_local.isoformat(),
+            "deadline_at": finish_local.isoformat(),
+        },
+    )
+    assert resp.status_code == 422, resp.text
+    assert resp.json()["code"] == "BOUNDS_STILL_MISSED"
+    _assert_unchanged_held(
+        client,
+        db_session,
+        task_id=task["id"],
+        disp_id=row.id,
+        snapshot_before=snapshot_before,
+        rev=rev,
+        task_before=task_before,
+    )
+
+
+def test_dex_geometry_date_first_then_release(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Date-first path: infeasible patch then release rejects; feasible then release ok."""
+    _prepare(client, db_session)
+    task = _miss_task(client, db_session)
+    _ready_preview(client, db_session, monkeypatch)
+    row = _held_row(db_session, task["id"])
+    snapshot_before = dict(row.bounds_snapshot)
+    rev = _revision(client)
+    base = datetime.now(UTC)
+    earliest = base + timedelta(days=1)
+    bad_deadline = earliest + timedelta(minutes=1)
+    patched_bad = client.patch(
+        f"/api/v1/tasks/{task['id']}",
+        json={
+            "expected_revision": rev,
+            "start_no_earlier_at": earliest.isoformat().replace("+00:00", "Z"),
+            "start_no_later_at": (base + timedelta(days=2))
+            .isoformat()
+            .replace("+00:00", "Z"),
+            "deadline_at": bad_deadline.isoformat().replace("+00:00", "Z"),
+        },
+    )
+    assert patched_bad.status_code == 200, patched_bad.text
+    rev_after_patch = _revision(client)
+    task_before_release = client.get(f"/api/v1/tasks/{task['id']}").json()
+    reject = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/release",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": rev_after_patch,
+        },
+    )
+    assert reject.status_code == 422, reject.text
+    assert reject.json()["code"] == "BOUNDS_STILL_MISSED"
+    db_session.expire_all()
+    still = db_session.get(TaskOccurrenceDisposition, row.id)
+    assert still is not None and still.resolution == RESOLUTION_UNRESOLVED_HELD
+    assert dict(still.bounds_snapshot) == snapshot_before
+    assert not any(e.event_type == EVENT_RELEASED for e in still.events)
+    assert _revision(client) == rev_after_patch
+    # Live bounds from the (valid) task patch remain — release did not mutate further.
+    task_mid = client.get(f"/api/v1/tasks/{task['id']}").json()
+    assert task_mid["deadline_at"] == task_before_release["deadline_at"]
+
+    good_deadline = earliest + timedelta(minutes=60)
+    patched_good = client.patch(
+        f"/api/v1/tasks/{task['id']}",
+        json={
+            "expected_revision": _revision(client),
+            "deadline_at": good_deadline.isoformat().replace("+00:00", "Z"),
+        },
+    )
+    assert patched_good.status_code == 200, patched_good.text
+    ok = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/release",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": _revision(client),
+        },
+    )
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["resolution"] == RESOLUTION_RELEASED
