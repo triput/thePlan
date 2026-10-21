@@ -5,6 +5,9 @@ from __future__ import annotations
 import os
 
 import pytest
+
+# Baseline @ fdfaa448^ runs only from isolated worktree — never against post-change tip.
+collect_ignore = ["baseline"]
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 

@@ -36,8 +36,8 @@ from app.models import (
     User,
     UserSettings,
 )
+from app.models.scheduling_assignment import SchedulingAssignment
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
-from app.scheduler.horizon import compute_horizon
 from app.services.scheduling_revision import (
     immovable_busy_signature,
     owner_scheduling_lock_key,
@@ -143,19 +143,6 @@ def _add_external_event(
     return row
 
 
-def _pre_change_count_gate_would_bump(db: Session, account_id: uuid.UUID) -> bool:
-    """Disconnect invalidation @ fdfaa448^ — row-count gate, not signature twin."""
-    return (
-        db.query(ExternalCalendarEvent.id)
-        .filter(
-            ExternalCalendarEvent.calendar_account_id == account_id,
-            *ExternalCalendarEvent.immovable_busy_clause(),
-        )
-        .count()
-        > 0
-    )
-
-
 def _patch_signature_premises_capture(
     monkeypatch: pytest.MonkeyPatch, holder: dict[str, object]
 ) -> None:
@@ -198,6 +185,7 @@ def _patch_signature_premises_capture(
 
 
 def _owner_retained_snapshot(db: Session, owner_id: uuid.UUID) -> dict[str, object]:
+    """E8 compare tuples — selected fields only, not every DB column (see tip doc qual)."""
     settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
     tasks = (
         db.query(Task)
@@ -240,6 +228,12 @@ def _owner_retained_snapshot(db: Session, owner_id: uuid.UUID) -> dict[str, obje
         db.query(ExternalCalendarEvent)
         .filter(ExternalCalendarEvent.owner_id == owner_id)
         .order_by(ExternalCalendarEvent.id.asc())
+        .all()
+    )
+    assignments = (
+        db.query(SchedulingAssignment)
+        .filter(SchedulingAssignment.owner_id == owner_id)
+        .order_by(SchedulingAssignment.scope_id.asc())
         .all()
     )
     return {
@@ -312,6 +306,24 @@ def _owner_retained_snapshot(db: Session, owner_id: uuid.UUID) -> dict[str, obje
         ),
         "free_busy_decisions": tuple(
             (str(d.id), str(d.policy_id), d.mapping, d.decision_source) for d in fb_decisions
+        ),
+        "scheduling_assignments": tuple(
+            (
+                row.scope_kind.value,
+                str(row.scope_id),
+                row.may_presence.value,
+                tuple(
+                    (
+                        rule.name,
+                        rule.kind.value,
+                        str(rule.policy_id) if rule.policy_id else None,
+                        bool(rule.empty_set),
+                        int(rule.sort_order),
+                    )
+                    for rule in sorted(row.rules, key=lambda r: (r.sort_order, r.name))
+                ),
+            )
+            for row in assignments
         ),
         "external_events": tuple(
             (
@@ -433,8 +445,26 @@ def _commit_e7_rollback_fixture() -> dict[str, object]:
             "account_id": account.id,
             "sub_id": sub.id,
             "event_ids": (event.id, linked.id),
+            "task_id": task.id,
             "block_id": block.id,
             "rev_before": 5,
+            "task_block_values": {
+                "task": (
+                    str(task.id),
+                    task.title,
+                    int(task.estimated_duration_minutes or 0),
+                    task.schedule_style.value if task.schedule_style else None,
+                    str(task.preferred_time_window_id) if task.preferred_time_window_id else None,
+                    int(task.remaining_minutes or 0),
+                ),
+                "block": (
+                    str(block.id),
+                    str(block.task_id),
+                    block.start_time.astimezone(UTC).isoformat(),
+                    block.end_time.astimezone(UTC).isoformat(),
+                    bool(block.is_pinned),
+                ),
+            },
         }
     except Exception:
         db.rollback()
@@ -581,72 +611,6 @@ def test_e3_busy_and_trust_disconnect_single_bump(
     rejected = client.post(f"/api/v1/schedule/previews/{preview['id']}/apply")
     assert rejected.status_code == 409, rejected.text
     assert rejected.json()["code"] == "PREVIEW_STALE"
-
-
-def test_baseline_pre_change_e1_count_gate_bumps_without_signature_twin(
-    client: TestClient,
-    db_session: Session,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """BASELINE-PRE-CHANGE (@ fdfaa448^ count-gate): E1 fixture row still triggers gate."""
-    _patch_schedule_clock(monkeypatch)
-    _prepare_settings(client)
-    owner_id = _owner_id(client)
-    account, calendar_id = _calendar_account(db_session, owner_id)
-    start, end = _in_horizon_window()
-    _add_external_event(
-        db_session,
-        owner_id=owner_id,
-        account=account,
-        calendar_id=calendar_id,
-        start_time=start,
-        end_time=end,
-        transparency=None,
-        free_busy_provenance="unknown_projection",
-    )
-    db_session.flush()
-    disconnect_now = datetime.now(UTC)
-    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
-    horizon_start, horizon_end = compute_horizon(settings, disconnect_now)
-    before_busy = immovable_busy_signature(db_session, owner_id)
-    before_trust = trust_blocking_signature(
-        db_session, owner_id, horizon_start=horizon_start, horizon_end=horizon_end
-    )
-    assert before_trust != ()
-    assert _pre_change_count_gate_would_bump(db_session, account.id) is True
-    assert before_busy == immovable_busy_signature(db_session, owner_id)
-
-
-def test_baseline_pre_change_e2_count_gate_bumps_without_signature_twin(
-    client: TestClient,
-    db_session: Session,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """BASELINE-PRE-CHANGE (@ fdfaa448^ count-gate): E2 busy row triggers gate."""
-    _patch_schedule_clock(monkeypatch)
-    _prepare_settings(client)
-    owner_id = _owner_id(client)
-    account, calendar_id = _calendar_account(db_session, owner_id)
-    start, end = _in_horizon_window()
-    _add_external_event(
-        db_session,
-        owner_id=owner_id,
-        account=account,
-        calendar_id=calendar_id,
-        start_time=start,
-        end_time=end,
-        transparency="opaque",
-        free_busy_provenance="provider_explicit",
-    )
-    db_session.flush()
-    disconnect_now = datetime.now(UTC)
-    settings = db_session.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
-    horizon_start, horizon_end = compute_horizon(settings, disconnect_now)
-    before_trust = trust_blocking_signature(
-        db_session, owner_id, horizon_start=horizon_start, horizon_end=horizon_end
-    )
-    assert before_trust == ()
-    assert _pre_change_count_gate_would_bump(db_session, account.id) is True
 
 
 def test_e4_trusted_free_disconnect_revision_flat(
@@ -847,6 +811,7 @@ def test_e7_disconnect_pre_commit_failure_rolls_back_committed_state(
     probe = {"armed": True, "increment_reached": False}
     real_inc = srev.increment_scheduling_revision_if_busy_or_trust_changed
     real_commit = Session.commit
+    boundary: dict[str, object] = {}
 
     def traced_inc(*args, **kwargs):  # noqa: ANN002, ANN003
         probe["increment_reached"] = True
@@ -856,6 +821,45 @@ def test_e7_disconnect_pre_commit_failure_rolls_back_committed_state(
         if probe["armed"]:
             for frame in inspect.stack():
                 if frame.function == "disconnect_calendar_account":
+                    owner_id = boundary["owner_id"]
+                    account_id = boundary["account_id"]
+                    sub_id = boundary["sub_id"]
+                    event_ids = boundary["event_ids"]
+                    rev_before = boundary["rev_before"]
+                    values_before = boundary["task_block_values"]
+
+                    assert self.get(CalendarAccount, account_id) is None
+                    assert self.get(CalendarSubscription, sub_id) is None
+                    assert (
+                        self.query(CalendarSubscriptionRefreshFailure)
+                        .filter(CalendarSubscriptionRefreshFailure.subscription_id == sub_id)
+                        .count()
+                        == 0
+                    )
+                    for event_id in event_ids:
+                        assert self.get(ExternalCalendarEvent, event_id) is None
+                    assert _revision(self, owner_id) == int(rev_before) + 1
+
+                    task = self.get(Task, boundary["task_id"])
+                    block = self.get(ScheduledBlock, boundary["block_id"])
+                    assert task is not None
+                    assert block is not None
+                    assert (
+                        str(task.id),
+                        task.title,
+                        int(task.estimated_duration_minutes or 0),
+                        task.schedule_style.value if task.schedule_style else None,
+                        str(task.preferred_time_window_id) if task.preferred_time_window_id else None,
+                        int(task.remaining_minutes or 0),
+                    ) == values_before["task"]
+                    assert (
+                        str(block.id),
+                        str(block.task_id),
+                        block.start_time.astimezone(UTC).isoformat(),
+                        block.end_time.astimezone(UTC).isoformat(),
+                        bool(block.is_pinned),
+                    ) == values_before["block"]
+
                     probe["armed"] = False
                     raise RuntimeError("forced disconnect pre-commit rollback")
         return real_commit(self)
@@ -867,12 +871,15 @@ def test_e7_disconnect_pre_commit_failure_rolls_back_committed_state(
     _purge_e7_rollback_users()
     try:
         seeded = _commit_e7_rollback_fixture()
+        boundary.update(seeded)
         owner_id = seeded["owner_id"]
         account_id = seeded["account_id"]
         sub_id = seeded["sub_id"]
         rev_before = seeded["rev_before"]
         event_ids = seeded["event_ids"]
         block_id = seeded["block_id"]
+        task_id = seeded["task_id"]
+        values_before = seeded["task_block_values"]
 
         worker = SessionLocal()
         try:
@@ -900,9 +907,25 @@ def test_e7_disconnect_pre_commit_failure_rolls_back_committed_state(
             )
             for event_id in event_ids:
                 assert readback.get(ExternalCalendarEvent, event_id) is not None
+            task = readback.get(Task, task_id)
             block = readback.get(ScheduledBlock, block_id)
+            assert task is not None
             assert block is not None
-            assert block.owner_id == owner_id
+            assert (
+                str(task.id),
+                task.title,
+                int(task.estimated_duration_minutes or 0),
+                task.schedule_style.value if task.schedule_style else None,
+                str(task.preferred_time_window_id) if task.preferred_time_window_id else None,
+                int(task.remaining_minutes or 0),
+            ) == values_before["task"]
+            assert (
+                str(block.id),
+                str(block.task_id),
+                block.start_time.astimezone(UTC).isoformat(),
+                block.end_time.astimezone(UTC).isoformat(),
+                bool(block.is_pinned),
+            ) == values_before["block"]
         finally:
             readback.close()
     finally:
@@ -914,7 +937,7 @@ def test_e8_full_retained_set_unchanged_on_disconnect(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """E8: disconnect removes only target account import rows; retained set unchanged."""
+    """E8: retained-set tuple equality (selected fields, not every column) + Prefer rule."""
     _patch_schedule_clock(monkeypatch)
     _prepare_settings(client)
     owner_id = _owner_id(client)
@@ -939,8 +962,32 @@ def test_e8_full_retained_set_unchanged_on_disconnect(
         client,
         estimated_duration_minutes=90,
         schedule_style="standalone",
-        preferred_time_window_id=focus.json()["id"],
     )
+    personal = client.patch(
+        "/api/v1/availability-policies/personal",
+        json={
+            "windows": [
+                {
+                    "weekday": 0,
+                    "start_time": "14:00",
+                    "duration_minutes": 120,
+                    "sort_order": 0,
+                }
+            ]
+        },
+    )
+    assert personal.status_code == 200, personal.text
+    sched_rev = int(client.get("/api/v1/settings").json()["scheduling_revision"])
+    prefer_put = client.put(
+        f"/api/v1/tasks/{task['id']}/scheduling",
+        json={
+            "expected_revision": sched_rev,
+            "may": {"presence": "omit", "rules": []},
+            "must": [],
+            "prefer": [{"name": "retain-prefer", "policy_id": personal.json()["id"]}],
+        },
+    )
+    assert prefer_put.status_code == 200, prefer_put.text
     start = FIXED_NOW + timedelta(hours=3)
     created = client.post(
         "/api/v1/scheduled-blocks",
@@ -1033,6 +1080,7 @@ def test_e8_full_retained_set_unchanged_on_disconnect(
     assert after["focus_windows"] == before["focus_windows"]
     assert after["free_busy_policies"] == before["free_busy_policies"]
     assert after["free_busy_decisions"] == before["free_busy_decisions"]
+    assert after["scheduling_assignments"] == before["scheduling_assignments"]
     assert after["scheduled_blocks"] == before["scheduled_blocks"]
 
     before_events = before["external_events"]
