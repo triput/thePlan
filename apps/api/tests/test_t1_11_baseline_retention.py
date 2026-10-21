@@ -6,6 +6,7 @@ Disposable Postgres only (T1A_REQUIRE_DISPOSABLE_DSN=1); provider HTTP mocked.
 
 from __future__ import annotations
 
+import json
 import subprocess
 import uuid
 from datetime import datetime, time, timedelta, timezone
@@ -140,13 +141,25 @@ def _account(
     return account
 
 
-def _block(db: Session, owner: User, *, title: str = "Deep work") -> ScheduledBlock:
+def _block(
+    db: Session,
+    owner: User,
+    *,
+    title: str = "Deep work",
+    start: datetime | None = None,
+    end: datetime | None = None,
+) -> ScheduledBlock:
     task = Task(owner_id=owner.id, title=title)
     db.add(task)
     db.flush()
-    start = datetime(2026, 8, 14, 18, 0, tzinfo=UTC)
-    end = start + timedelta(hours=1)
-    block = ScheduledBlock(owner_id=owner.id, task_id=task.id, start_time=start, end_time=end)
+    block_start = start or datetime(2026, 8, 14, 18, 0, tzinfo=UTC)
+    block_end = end or (block_start + timedelta(hours=1))
+    block = ScheduledBlock(
+        owner_id=owner.id,
+        task_id=task.id,
+        start_time=block_start,
+        end_time=block_end,
+    )
     db.add(block)
     db.flush()
     return block
@@ -293,6 +306,7 @@ def test_mirror_push_captures_export_baseline(
         assert row.export_calendar_id == calendar_id
         assert row.export_baseline_schema_version == EXPORT_BASELINE_SCHEMA_VERSION
         fp = compute_export_baseline_fingerprint(
+            provider=provider,
             title=row.title or "",
             start=block.start_time,
             end=block.end_time,
@@ -391,19 +405,42 @@ def test_ingest_refresh_does_not_overwrite_baseline(
         db.close()
 
 
+@pytest.mark.parametrize(
+    ("provider", "push", "patch_http", "patch_fn"),
+    [
+        (
+            CalendarProvider.google,
+            gcal.push_scheduled_block,
+            _patch_google_mirror_httpx,
+            "patch_google_event",
+        ),
+        (
+            CalendarProvider.microsoft,
+            ms_cal.push_scheduled_block,
+            _patch_ms_mirror_httpx,
+            "patch_microsoft_event",
+        ),
+    ],
+    ids=["google-g3", "microsoft-g3"],
+)
 def test_second_successful_push_replaces_single_latest_baseline(
     monkeypatch: pytest.MonkeyPatch,
+    provider: CalendarProvider,
+    push: Any,
+    patch_http: Any,
+    patch_fn: str,
 ) -> None:
-    calendar_id = "user@gmail.com"
-    _patch_google_mirror_httpx(monkeypatch, calendar_id=calendar_id)
-    monkeypatch.setattr(gcal, "get_valid_access_token", lambda *_a, **_k: "mock-access")
+    calendar_id = f"cal-{uuid.uuid4().hex[:8]}"
+    patch_http(monkeypatch, calendar_id=calendar_id)
+    mod = gcal if provider == CalendarProvider.google else ms_cal
+    monkeypatch.setattr(mod, "get_valid_access_token", lambda *_a, **_k: "mock-access")
     db = SessionLocal()
     try:
         owner = _owner(db)
-        _account(db, owner, provider=CalendarProvider.google, calendar_id=calendar_id)
+        _account(db, owner, provider=provider, calendar_id=calendar_id)
         block = _block(db, owner, title="First")
         db.commit()
-        gcal.push_scheduled_block(db, _settings(), block)
+        push(db, _settings(), block)
         db.commit()
         row = (
             db.query(ExternalCalendarEvent)
@@ -416,20 +453,34 @@ def test_second_successful_push_replaces_single_latest_baseline(
         task.title = "Second export title"
         db.commit()
 
-        def _patch_2(*_a, **_k):
-            return {
-                "id": row.external_event_id,
-                "etag": '"patch-2"',
-                "updated": "2026-08-14T20:00:00.000Z",
-            }
+        if provider == CalendarProvider.google:
 
-        monkeypatch.setattr(gcal, "patch_google_event", _patch_2)
-        gcal.push_scheduled_block(db, _settings(), block)
+            def _patch_2(*_a, **_k):
+                return {
+                    "id": row.external_event_id,
+                    "etag": '"patch-2"',
+                    "updated": "2026-08-14T20:00:00.000Z",
+                }
+        else:
+
+            def _patch_2(*_a, **_k):
+                return {
+                    "id": row.external_event_id,
+                    "@odata.etag": 'W/"patch-2"',
+                    "changeKey": "ck-2",
+                    "lastModifiedDateTime": "2026-08-14T20:00:00.000Z",
+                }
+
+        monkeypatch.setattr(mod, patch_fn, _patch_2)
+        push(db, _settings(), block)
         db.commit()
         row2 = db.get(ExternalCalendarEvent, row.id)
         assert row2 is not None
         assert row2.export_baseline_fingerprint != first_fp
-        assert row2.export_baseline_etag == '"patch-2"'
+        if provider == CalendarProvider.google:
+            assert row2.export_baseline_etag == '"patch-2"'
+        else:
+            assert row2.export_baseline_change_key == "ck-2"
     finally:
         db.close()
 
@@ -454,32 +505,54 @@ def test_soft_cancel_row_does_not_invent_baseline(db_session: Session) -> None:
     assert row.export_baseline_at is None
 
 
-def test_provider_cancelled_mirror_row_keeps_baseline(db_session: Session) -> None:
+@pytest.mark.parametrize(
+    ("provider", "mark_cancelled", "source"),
+    [
+        (CalendarProvider.google, gcal._mark_provider_cancelled, GOOGLE_MIRROR_PUSH_SOURCE),
+        (
+            CalendarProvider.microsoft,
+            ms_cal._mark_provider_cancelled,
+            MICROSOFT_MIRROR_PUSH_SOURCE,
+        ),
+    ],
+    ids=["google-g5", "microsoft-g5"],
+)
+def test_provider_cancelled_mirror_row_keeps_baseline(
+    db_session: Session,
+    provider: CalendarProvider,
+    mark_cancelled: Any,
+    source: str,
+) -> None:
+    calendar_id = f"cal-cancel-{uuid.uuid4().hex[:6]}"
     owner = _owner(db_session)
-    account = _account(db_session, owner, provider=CalendarProvider.google, calendar_id="cal-cancel")
+    account = _account(db_session, owner, provider=provider, calendar_id=calendar_id)
     block = _block(db_session, owner)
+    external_id = f"ext-cancel-{uuid.uuid4().hex[:8]}"
     row = ExternalCalendarEvent(
         owner_id=owner.id,
         calendar_account_id=account.id,
         scheduled_block_id=block.id,
         task_id=block.task_id,
-        provider=CalendarProvider.google,
-        external_event_id="ext-cancel",
-        calendar_id="cal-cancel",
+        provider=provider,
+        external_event_id=external_id,
+        calendar_id=calendar_id,
         title="Mirrored",
         start_time=block.start_time,
         end_time=block.end_time,
         is_all_day=False,
         export_baseline_at=_NOW,
-        export_baseline_source=GOOGLE_MIRROR_PUSH_SOURCE,
-        export_calendar_id="cal-cancel",
+        export_baseline_source=source,
+        export_calendar_id=calendar_id,
         export_baseline_fingerprint="abc",
         export_baseline_schema_version=1,
     )
     db_session.add(row)
     db_session.flush()
-    gcal._mark_provider_cancelled(
-        db_session, owner_id=owner.id, external_id="ext-cancel", now=_NOW + timedelta(minutes=5)
+    mark_cancelled(
+        db_session,
+        owner_id=owner.id,
+        external_id=external_id,
+        now=_NOW + timedelta(minutes=5),
     )
     db_session.flush()
     assert row.is_provider_cancelled is True
@@ -838,37 +911,243 @@ def test_failed_patch_api_error_leaves_baseline_unchanged(
         db.close()
 
 
-def test_successful_patch_missing_tokens_clears_stale_revision_fields(
+@pytest.mark.parametrize(
+    ("provider", "push", "patch_http", "patch_fn", "token_mode"),
+    [
+        (
+            CalendarProvider.google,
+            gcal.push_scheduled_block,
+            _patch_google_mirror_httpx,
+            "patch_google_event",
+            "absent",
+        ),
+        (
+            CalendarProvider.google,
+            gcal.push_scheduled_block,
+            _patch_google_mirror_httpx,
+            "patch_google_event",
+            "malformed",
+        ),
+        (
+            CalendarProvider.microsoft,
+            ms_cal.push_scheduled_block,
+            _patch_ms_mirror_httpx,
+            "patch_microsoft_event",
+            "absent",
+        ),
+        (
+            CalendarProvider.microsoft,
+            ms_cal.push_scheduled_block,
+            _patch_ms_mirror_httpx,
+            "patch_microsoft_event",
+            "malformed",
+        ),
+    ],
+    ids=[
+        "google-absent-tokens",
+        "google-malformed-tokens",
+        "microsoft-absent-tokens",
+        "microsoft-malformed-tokens",
+    ],
+)
+def test_successful_patch_revision_tokens_clear_stale_fields(
     monkeypatch: pytest.MonkeyPatch,
+    provider: CalendarProvider,
+    push: Any,
+    patch_http: Any,
+    patch_fn: str,
+    token_mode: str,
 ) -> None:
-    calendar_id = "user@gmail.com"
-    _patch_google_mirror_httpx(monkeypatch, calendar_id=calendar_id)
-    monkeypatch.setattr(gcal, "get_valid_access_token", lambda *_a, **_k: "mock-access")
+    calendar_id = f"cal-{uuid.uuid4().hex[:8]}"
+    patch_http(monkeypatch, calendar_id=calendar_id)
+    mod = gcal if provider == CalendarProvider.google else ms_cal
+    monkeypatch.setattr(mod, "get_valid_access_token", lambda *_a, **_k: "mock-access")
     db = SessionLocal()
     try:
         owner = _owner(db)
-        _account(db, owner, provider=CalendarProvider.google, calendar_id=calendar_id)
+        _account(db, owner, provider=provider, calendar_id=calendar_id)
         block = _block(db, owner)
         db.commit()
-        gcal.push_scheduled_block(db, _settings(), block)
+        push(db, _settings(), block)
         db.commit()
         row = (
             db.query(ExternalCalendarEvent)
             .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
             .one()
         )
-        assert row.export_baseline_etag is not None
+        if provider == CalendarProvider.google:
+            assert row.export_baseline_etag is not None
+        else:
+            assert row.export_baseline_change_key is not None
 
-        def _patch_bad_tokens(*_a, **_k):
-            return {"id": row.external_event_id, "etag": 12345, "updated": "not-a-date"}
+        if token_mode == "absent":
 
-        monkeypatch.setattr(gcal, "patch_google_event", _patch_bad_tokens)
-        gcal.push_scheduled_block(db, _settings(), block)
+            def _patch_no_tokens(*_a, **_k):
+                return {"id": row.external_event_id}
+
+        elif provider == CalendarProvider.google:
+
+            def _patch_no_tokens(*_a, **_k):
+                return {
+                    "id": row.external_event_id,
+                    "etag": 12345,
+                    "updated": "2026-10-20T12:00:00",
+                }
+
+        else:
+
+            def _patch_no_tokens(*_a, **_k):
+                return {
+                    "id": row.external_event_id,
+                    "@odata.etag": 999,
+                    "changeKey": "",
+                    "lastModifiedDateTime": "not-a-date",
+                }
+
+        monkeypatch.setattr(mod, patch_fn, _patch_no_tokens)
+        push(db, _settings(), block)
         db.commit()
         row2 = db.get(ExternalCalendarEvent, row.id)
         assert row2 is not None
         assert row2.export_baseline_etag is None
+        assert row2.export_baseline_change_key is None
         assert row2.export_baseline_updated is None
         assert row2.export_baseline_fingerprint is not None
+    finally:
+        db.close()
+
+
+@pytest.mark.parametrize(
+    ("provider", "push", "patch_http"),
+    [
+        (CalendarProvider.google, gcal.push_scheduled_block, _patch_google_mirror_httpx),
+        (CalendarProvider.microsoft, ms_cal.push_scheduled_block, _patch_ms_mirror_httpx),
+    ],
+    ids=["google-create-rollback", "microsoft-create-rollback"],
+)
+def test_successful_create_then_transaction_rollback_leaves_no_row_or_baseline(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: CalendarProvider,
+    push: Any,
+    patch_http: Any,
+) -> None:
+    calendar_id = f"cal-{uuid.uuid4().hex[:8]}"
+    patch_http(monkeypatch, calendar_id=calendar_id)
+    mod = gcal if provider == CalendarProvider.google else ms_cal
+    monkeypatch.setattr(mod, "get_valid_access_token", lambda *_a, **_k: "mock-access")
+    seed = SessionLocal()
+    try:
+        owner = _owner(seed)
+        _account(seed, owner, provider=provider, calendar_id=calendar_id)
+        block = _block(seed, owner)
+        seed.commit()
+        block_id = block.id
+    finally:
+        seed.close()
+
+    worker = SessionLocal()
+    try:
+        block = worker.get(ScheduledBlock, block_id)
+        assert block is not None
+        push(worker, _settings(), block)
+        worker.flush()
+        worker.rollback()
+    finally:
+        worker.close()
+
+    verify = SessionLocal()
+    try:
+        count = (
+            verify.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.scheduled_block_id == block_id)
+            .count()
+        )
+        assert count == 0
+    finally:
+        verify.close()
+
+
+@pytest.mark.parametrize(
+    ("provider", "push", "patch_http"),
+    [
+        (CalendarProvider.google, gcal.push_scheduled_block, _patch_google_mirror_httpx),
+        (CalendarProvider.microsoft, ms_cal.push_scheduled_block, _patch_ms_mirror_httpx),
+    ],
+    ids=["google-fingerprint-body", "microsoft-fingerprint-body"],
+)
+def test_export_baseline_fingerprint_matches_mirror_request_body(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: CalendarProvider,
+    push: Any,
+    patch_http: Any,
+) -> None:
+    """Microsecond wall times must hash like the provider JSON body (MS truncates seconds)."""
+    calendar_id = f"cal-{uuid.uuid4().hex[:8]}"
+    captured: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "POST" and "events" in str(request.url.path):
+            captured["body"] = json.loads(request.content.decode("utf-8"))
+            if provider == CalendarProvider.google:
+                return httpx.Response(
+                    200,
+                    json={
+                        "id": f"g-{uuid.uuid4().hex[:8]}",
+                        "etag": '"fp-etag"',
+                        "updated": "2026-08-14T18:30:45.123Z",
+                    },
+                )
+            return httpx.Response(
+                201,
+                json={
+                    "id": f"ms-{uuid.uuid4().hex[:8]}",
+                    "@odata.etag": 'W/"fp-ms"',
+                    "changeKey": "fp-ck",
+                    "lastModifiedDateTime": "2026-08-14T18:30:45.123Z",
+                },
+            )
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    real = httpx.Client
+    mod = gcal if provider == CalendarProvider.google else ms_cal
+
+    def factory(*args: object, **kwargs: object) -> httpx.Client:
+        kwargs["transport"] = transport
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(mod.httpx, "Client", factory)
+    monkeypatch.setattr(mod, "get_valid_access_token", lambda *_a, **_k: "mock-access")
+
+    micro_start = datetime(2026, 8, 14, 18, 30, 45, 123456, tzinfo=UTC)
+    micro_end = micro_start + timedelta(hours=1)
+
+    db = SessionLocal()
+    try:
+        owner = _owner(db)
+        _account(db, owner, provider=provider, calendar_id=calendar_id)
+        block = _block(db, owner, start=micro_start, end=micro_end)
+        db.commit()
+        push(db, _settings(), block)
+        db.commit()
+        row = (
+            db.query(ExternalCalendarEvent)
+            .filter(ExternalCalendarEvent.scheduled_block_id == block.id)
+            .one()
+        )
+        assert "body" in captured
+        body = captured["body"]
+        if provider == CalendarProvider.google:
+            assert body["start"]["dateTime"].endswith(".123456Z")
+        else:
+            assert body["start"]["dateTime"] == "2026-08-14T18:30:45"
+        expected_fp = compute_export_baseline_fingerprint(
+            provider=provider,
+            title=row.title or "",
+            start=block.start_time,
+            end=block.end_time,
+            is_all_day=False,
+        )
+        assert row.export_baseline_fingerprint == expected_fp
     finally:
         db.close()

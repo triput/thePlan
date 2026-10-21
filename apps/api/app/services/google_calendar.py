@@ -37,6 +37,7 @@ from app.services.source_timezone import (
 from app.services.export_baseline import (
     GOOGLE_MIRROR_PUSH_SOURCE,
     apply_export_baseline_after_mirror_push,
+    google_mirror_datetime_token,
 )
 from app.services.calendar_refresh_failures import (
     FAILURE_PERSIST_EXPIRE_ATTRS as _FAILURE_PERSIST_EXPIRE_ATTRS,
@@ -79,7 +80,7 @@ def _calendar_events_base(calendar_id: str) -> str:
 
 
 def _iso_z(dt: datetime) -> str:
-    return _ensure_aware(dt).astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    return google_mirror_datetime_token(dt)
 
 
 def load_google_oauth_config(settings: Settings | None = None) -> GoogleOAuthConfig:

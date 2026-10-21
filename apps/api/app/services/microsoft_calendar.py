@@ -26,6 +26,7 @@ from app.scheduler.free_busy import apply_transparency_update, resolve_microsoft
 from app.services.export_baseline import (
     MICROSOFT_MIRROR_PUSH_SOURCE,
     apply_export_baseline_after_mirror_push,
+    microsoft_mirror_datetime_token,
 )
 from app.services.calendar_refresh_failures import (
     commit_pre_pull_refresh_failure as _commit_pre_pull_refresh_failure,
@@ -338,7 +339,7 @@ def _iso_z(dt: datetime) -> str:
 
 
 def _graph_local_utc(dt: datetime) -> str:
-    return _ensure_aware(dt).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    return microsoft_mirror_datetime_token(dt)
 
 
 def _normalize_graph_datetime_text(value: str) -> str:

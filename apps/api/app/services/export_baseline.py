@@ -56,25 +56,63 @@ def _parse_rfc3339_instant(value: Any) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        return None
     return parsed.astimezone(timezone.utc)
+
+
+def _ensure_aware_utc(dt: datetime) -> datetime:
+    """Naive datetimes are explicit UTC wall clock (mirror writer convention)."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def google_mirror_datetime_token(dt: datetime) -> str:
+    """ISO-8601 UTC with ``Z`` suffix — matches Google mirror ``dateTime`` bodies."""
+    return _ensure_aware_utc(dt).isoformat().replace("+00:00", "Z")
+
+
+def microsoft_mirror_datetime_token(dt: datetime) -> str:
+    """Whole-second UTC local token — matches Graph ``dateTime`` when ``timeZone`` is UTC."""
+    return _ensure_aware_utc(dt).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _fingerprint_datetime_tokens(
+    *,
+    provider: CalendarProvider,
+    start: datetime,
+    end: datetime,
+) -> tuple[str, str]:
+    if provider == CalendarProvider.microsoft:
+        return (
+            microsoft_mirror_datetime_token(start),
+            microsoft_mirror_datetime_token(end),
+        )
+    return (
+        google_mirror_datetime_token(start),
+        google_mirror_datetime_token(end),
+    )
 
 
 def compute_export_baseline_fingerprint(
     *,
+    provider: CalendarProvider,
     title: str,
     start: datetime,
     end: datetime,
     is_all_day: bool,
 ) -> str:
     """Hash normalized scheduling payload mirror writers send (schema v1)."""
-    start_utc = start.astimezone(timezone.utc)
-    end_utc = end.astimezone(timezone.utc)
+    start_token, end_token = _fingerprint_datetime_tokens(
+        provider=provider,
+        start=start,
+        end=end,
+    )
     payload = {
         "v": EXPORT_BASELINE_SCHEMA_VERSION,
         "title": title,
-        "start": start_utc.isoformat().replace("+00:00", "Z"),
-        "end": end_utc.isoformat().replace("+00:00", "Z"),
+        "start": start_token,
+        "end": end_token,
         "is_all_day": bool(is_all_day),
     }
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
@@ -114,6 +152,7 @@ def apply_export_baseline_after_mirror_push(
     row.export_baseline_source = source
     row.export_calendar_id = export_calendar_id
     row.export_baseline_fingerprint = compute_export_baseline_fingerprint(
+        provider=provider,
         title=title,
         start=start,
         end=end,
