@@ -34,7 +34,13 @@ from app.services.calendar_alias_canonicalize import (
     prepare_put_calendar_subscriptions,
 )
 from app.services.calendar_conflicts import find_conflicts
-from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
+from app.scheduler.horizon import compute_horizon
+from app.services.scheduling_revision import (
+    immovable_busy_signature,
+    increment_scheduling_revision_if_busy_or_trust_changed,
+    lock_owner_scheduling,
+    trust_blocking_signature,
+)
 from app.services.google_calendar import (
     build_authorize_url as build_google_authorize_url,
     exchange_code_for_tokens as exchange_google_code_for_tokens,
@@ -410,23 +416,29 @@ def disconnect_calendar_account(
 ) -> Response:
     account = _owned_account(db, account_id, user)
     scheduling_settings = lock_owner_scheduling(db, user.id)
-    # Non-mirror rows are immovable busy. Count before the bulk delete so the
-    # identity map does not keep rows that synchronize_session=False will drop.
-    removes_busy = (
-        db.query(ExternalCalendarEvent.id)
-        .filter(
-            ExternalCalendarEvent.calendar_account_id == account.id,
-            *ExternalCalendarEvent.immovable_busy_clause(),
-        )
-        .count()
-        > 0
+    disconnect_now = datetime.now(timezone.utc)
+    horizon_start, horizon_end = compute_horizon(scheduling_settings, disconnect_now)
+    before_busy = immovable_busy_signature(db, user.id)
+    before_trust = trust_blocking_signature(
+        db,
+        user.id,
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
     )
     db.query(ExternalCalendarEvent).filter(
         ExternalCalendarEvent.calendar_account_id == account.id
     ).delete(synchronize_session=False)
     db.delete(account)
-    if removes_busy:
-        increment_scheduling_revision(db, scheduling_settings)
+    db.flush()
+    increment_scheduling_revision_if_busy_or_trust_changed(
+        db,
+        scheduling_settings,
+        user.id,
+        before_busy=before_busy,
+        before_trust=before_trust,
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
+    )
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
