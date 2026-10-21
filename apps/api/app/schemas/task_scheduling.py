@@ -129,6 +129,16 @@ class KeepInOneSchedulingConflictOut(BaseModel):
     detail: dict | None = None
 
 
+class OccurrenceBoundsEffectiveOut(BaseModel):
+    start_no_earlier_at: datetime | None = None
+    start_no_later_at: datetime | None = None
+    effective_latest_start_at: datetime | None = None
+    note: str = (
+        "Hard start window for single-block placement (T2-S1). "
+        "Finish-by remains deadline_at."
+    )
+
+
 class DurationEffectiveOut(BaseModel):
     original_estimate_minutes: int
     time_worked_minutes: int
@@ -175,3 +185,4 @@ class TaskSchedulingEffectiveOut(BaseModel):
     new_rule_assignment: ResolvedSchedulingOut | None = None
     dated_resolution: DatedResolutionOut
     duration: DurationEffectiveOut
+    occurrence_bounds: OccurrenceBoundsEffectiveOut | None = None

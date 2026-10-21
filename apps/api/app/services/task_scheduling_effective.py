@@ -46,12 +46,14 @@ from app.schemas.task_scheduling import (
     LegacyWorkweekActiveOut,
     SavedAvailabilityPolicyOut,
     SchedulingSourceOut,
+    OccurrenceBoundsEffectiveOut,
     TaskSchedulingEffectiveOut,
     TimeMapEffectiveOut,
     TimeMapEmptyKind,
     TimeMapOriginOut,
 )
 from app.services.auth_users import get_or_provision_user_settings
+from app.scheduler.occurrence_bounds import effective_latest_start, has_occurrence_bounds
 from app.services.chunking_effective import resolve_block_bounds
 from app.services.keep_in_one_conflicts import keep_in_one_scheduling_conflicts
 from app.services.s2_v3_availability_guard import (
@@ -901,6 +903,15 @@ def build_task_scheduling_effective(
             )
         )
 
+    occurrence_bounds = None
+    if has_occurrence_bounds(task):
+        latest = effective_latest_start(task, effort_minutes=effort)
+        occurrence_bounds = OccurrenceBoundsEffectiveOut(
+            start_no_earlier_at=task.start_no_earlier_at,
+            start_no_later_at=task.start_no_later_at,
+            effective_latest_start_at=latest,
+        )
+
     effective_note = scheduling_effective_note_for_surface()
     return TaskSchedulingEffectiveOut(
         task_id=task.id,
@@ -919,4 +930,5 @@ def build_task_scheduling_effective(
         new_rule_assignment=_resolved_assignment_out(resolved),
         dated_resolution=dated,
         duration=duration,
+        occurrence_bounds=occurrence_bounds,
     )

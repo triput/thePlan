@@ -21,6 +21,7 @@ StaleCategory = Literal[
     "time_map_overrides",
     "availability",
     "composition",
+    "occurrence_bounds",
     "priority_ups",
     "scheduling_activation",
     "provenance",

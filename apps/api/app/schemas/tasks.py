@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.services.task_occurrence_bounds import assert_merged_bounds_not_inverted
 from app.models.enums import (
     ReminderChannel,
     ScheduleStatus,
@@ -39,6 +40,8 @@ class TaskCreate(BaseModel):
     priority: TaskPriority = TaskPriority.p4
     due_at: datetime | None = None
     deadline_at: datetime | None = None
+    start_no_earlier_at: datetime | None = None
+    start_no_later_at: datetime | None = None
     soft_target_at: datetime | None = None
     # Omit or null to use user_settings.default_estimated_duration_minutes; explicit value wins.
     # int = minutes; str = friendly parse (e.g. 90m, 1h 30m, 1.5h, optional workdays at create).
@@ -52,6 +55,14 @@ class TaskCreate(BaseModel):
     max_block_duration_minutes: int | None = Field(default=None, gt=0)
     max_block_unbounded: bool | None = None
     keep_in_one_block: bool | None = None
+
+    @model_validator(mode="after")
+    def check_occurrence_bounds(self) -> "TaskCreate":
+        assert_merged_bounds_not_inverted(
+            earliest=self.start_no_earlier_at,
+            latest=self.start_no_later_at,
+        )
+        return self
 
 class ReminderCreate(BaseModel):
     fire_at: datetime
@@ -87,6 +98,8 @@ class TaskUpdate(BaseModel):
     priority: TaskPriority | None = None
     due_at: datetime | None = None
     deadline_at: datetime | None = None
+    start_no_earlier_at: datetime | None = None
+    start_no_later_at: datetime | None = None
     soft_target_at: datetime | None = None
     estimated_duration_minutes: int | str | None = None
     remaining_estimate_minutes: int | str | None = None
@@ -134,6 +147,8 @@ class TaskOut(BaseModel):
     priority: TaskPriority
     due_at: datetime | None
     deadline_at: datetime | None
+    start_no_earlier_at: datetime | None = None
+    start_no_later_at: datetime | None = None
     soft_target_at: datetime | None
     estimated_duration_minutes: int
     original_estimate_minutes: int

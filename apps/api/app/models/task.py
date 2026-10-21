@@ -112,6 +112,8 @@ class Task(Base, TimestampMixin):
     remaining_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     due_at: Mapped[datetime | None] = mapped_column()
     deadline_at: Mapped[datetime | None] = mapped_column()
+    start_no_earlier_at: Mapped[datetime | None] = mapped_column()
+    start_no_later_at: Mapped[datetime | None] = mapped_column()
     soft_target_at: Mapped[datetime | None] = mapped_column()
     preferred_time_window_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("focus_windows.id", ondelete="SET NULL")

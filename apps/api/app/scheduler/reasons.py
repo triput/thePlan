@@ -43,6 +43,12 @@ REASON_UNMET_PREFERENCE = "unmet_preference"
 REASON_DEFERRED_EXCEPTION_NOT_APPLIED = "deferred_exception_not_applied"
 # Both assignment families active at one scope. The placer does not pick one.
 REASON_ASSIGNMENT_FAMILY_CONFLICT = "assignment_family_conflict"
+REASON_OCCURRENCE_BOUNDS_HOLD_INFLIGHT = "occurrence_bounds_hold_inflight"
+REASON_OCCURRENCE_BOUNDS_UNSUPPORTED_SHAPE = "occurrence_bounds_unsupported_shape"
+REASON_OCCURRENCE_BOUNDS_HORIZON = "occurrence_bounds_horizon"
+REASON_OCCURRENCE_BOUNDS_MISS = "occurrence_bounds_miss"
+REASON_OCCURRENCE_BOUNDS_NO_SLOT = "occurrence_bounds_no_slot"
+REASON_OCCURRENCE_BOUNDS_PIN_CONFLICT = "occurrence_bounds_pin_conflict"
 
 
 @dataclass
@@ -324,6 +330,38 @@ def format_summary_text(facts: list[ReasonFact]) -> str:
         elif code == REASON_EXCLUDED_LIFECYCLE_ARCHIVED:
             scope = _param_str(p, "archived_scope") or "container"
             lines.append(f"Excluded from auto-scheduling ({scope} archived).")
+        elif code == REASON_OCCURRENCE_BOUNDS_HOLD_INFLIGHT:
+            lines.append(
+                "Start window bounds are set; work is in flight or protected — "
+                "no new automatic placement for this occurrence."
+            )
+        elif code == REASON_OCCURRENCE_BOUNDS_UNSUPPORTED_SHAPE:
+            lines.append(
+                "Start window bounds are not enforced on split or multi-block "
+                "arrangements in this release."
+            )
+        elif code == REASON_OCCURRENCE_BOUNDS_HORIZON:
+            lines.append(
+                "Start window bounds cannot be satisfied within the calculation horizon."
+            )
+        elif code == REASON_OCCURRENCE_BOUNDS_MISS:
+            lines.append(
+                "The latest allowed start passed without a placement — "
+                "this occurrence is held as missed."
+            )
+        elif code == REASON_OCCURRENCE_BOUNDS_NO_SLOT:
+            rem = p.get("remaining_minutes")
+            if rem is not None:
+                lines.append(
+                    f"No suitable slot within the start window for {rem} remaining minute(s)."
+                )
+            else:
+                lines.append("No suitable slot within the start window.")
+        elif code == REASON_OCCURRENCE_BOUNDS_PIN_CONFLICT:
+            lines.append(
+                "Pinned interval conflicts with the configured start window bounds "
+                "(pin preserved)."
+            )
         else:
             lines.append(f"Scheduling note: {code}.")
 

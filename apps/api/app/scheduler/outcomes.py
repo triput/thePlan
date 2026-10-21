@@ -219,6 +219,8 @@ def snapshots_from_collected(
             min_block_source=min_source,
             max_block_source=max_source,
             deadline_at=task.deadline_at,
+            start_no_earlier_at=task.start_no_earlier_at,
+            start_no_later_at=task.start_no_later_at,
             schedule_style=style.value,
             time_window_id=window_id,
             strict_mode=window.strict_mode if window is not None else None,

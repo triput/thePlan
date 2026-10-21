@@ -39,6 +39,18 @@ from app.scheduler.reasons import (
     ReasonFact,
     TaskSchedulingOutcome,
 )
+from app.scheduler.occurrence_bounds import (
+    evaluate_occurrence_bounds,
+    has_occurrence_bounds,
+    scheduled_blocks_by_task,
+)
+from app.scheduler.reasons import (
+    REASON_OCCURRENCE_BOUNDS_HOLD_INFLIGHT,
+    REASON_OCCURRENCE_BOUNDS_HORIZON,
+    REASON_OCCURRENCE_BOUNDS_MISS,
+    REASON_OCCURRENCE_BOUNDS_NO_SLOT,
+    REASON_OCCURRENCE_BOUNDS_UNSUPPORTED_SHAPE,
+)
 from app.scheduler.style import effective_schedule_style_source
 
 PRIORITY_ORDER = [
@@ -492,6 +504,7 @@ def _finalize_candidate_outcomes(
     buffer_warning_hints_by_task: dict[UUID, list[dict[str, Any]]] | None = None,
     unmet_preference_by_task: dict[UUID, dict[str, Any]] | None = None,
     deferred_exceptions_by_task: dict[UUID, list[dict[str, Any]]] | None = None,
+    occurrence_bounds_facts_by_task: dict[UUID, list[ReasonFact]] | None = None,
 ) -> list[TaskSchedulingOutcome]:
     outcomes: list[TaskSchedulingOutcome] = []
     for candidate in ordered:
@@ -529,6 +542,29 @@ def _finalize_candidate_outcomes(
                 )
         elif remaining > 0:
             facts = []
+            bound_facts = (occurrence_bounds_facts_by_task or {}).get(task_id)
+            if bound_facts and placed <= 0:
+                primary = bound_facts[0].code
+                if primary in {
+                    REASON_OCCURRENCE_BOUNDS_HOLD_INFLIGHT,
+                    REASON_OCCURRENCE_BOUNDS_MISS,
+                    REASON_OCCURRENCE_BOUNDS_HORIZON,
+                    REASON_OCCURRENCE_BOUNDS_UNSUPPORTED_SHAPE,
+                    REASON_OCCURRENCE_BOUNDS_NO_SLOT,
+                }:
+                    outcomes.append(
+                        TaskSchedulingOutcome(
+                            task_id=task_id,
+                            requested_minutes=requested,
+                            pinned_minutes=pinned,
+                            placed_minutes=placed,
+                            remaining_minutes=remaining,
+                            reason_facts=list(bound_facts),
+                            placement_facts=placement_facts_by_task.get(task_id),
+                        )
+                    )
+                    continue
+                facts.extend(bound_facts)
             if task_id in cycle_task_ids:
                 facts.append(
                     ReasonFact(
@@ -581,9 +617,12 @@ def _finalize_candidate_outcomes(
                 )
             elif not facts and not constraints:
                 if last_no_slot.get(task_id):
+                    no_slot_code = REASON_UNPLACED_NO_SLOT
+                    if has_occurrence_bounds(task):
+                        no_slot_code = REASON_OCCURRENCE_BOUNDS_NO_SLOT
                     facts.append(
                         ReasonFact(
-                            REASON_UNPLACED_NO_SLOT,
+                            no_slot_code,
                             {"remaining_minutes": remaining},
                         )
                     )
@@ -600,9 +639,12 @@ def _finalize_candidate_outcomes(
                 and not facts
                 and not constraints
             ):
+                no_slot_code = REASON_UNPLACED_NO_SLOT
+                if has_occurrence_bounds(task):
+                    no_slot_code = REASON_OCCURRENCE_BOUNDS_NO_SLOT
                 facts.append(
                     ReasonFact(
-                        REASON_UNPLACED_NO_SLOT,
+                        no_slot_code,
                         {"remaining_minutes": remaining},
                     )
                 )
@@ -728,6 +770,20 @@ def calculate(
     rank_mode_by_task: dict[UUID, str] = {}
     minutes_by_project: dict[str, int] = {}
     blocks_created = 0
+    occurrence_bounds_facts_by_task: dict[UUID, list[ReasonFact]] = {}
+
+    candidate_ids = {item.task.id for item in ordered}
+    horizon_blocks = (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == inputs.owner_id,
+            ScheduledBlock.task_id.in_(candidate_ids),
+            ScheduledBlock.start_time < inputs.horizon_end,
+            ScheduledBlock.end_time > inputs.horizon_start,
+        )
+        .all()
+    )
+    scheduled_by_task = scheduled_blocks_by_task(horizon_blocks, candidate_ids)
 
     placed_in_sweep = True
     while placed_in_sweep:
@@ -761,6 +817,23 @@ def calculate(
                 latest_block_end_by_task,
                 inputs.horizon_start,
             )
+            pin_blocks = list(inputs.pinned_blocks_by_task.get(task_id, []))
+            bounds_decision = evaluate_occurrence_bounds(
+                candidate.task,
+                inputs.user_settings,
+                effort_minutes=remaining,
+                reserved_minutes=candidate.reserved_minutes,
+                pin_blocks=pin_blocks,
+                scheduled_blocks=scheduled_by_task.get(task_id, []),
+                horizon_start=inputs.horizon_start,
+                horizon_end=inputs.horizon_end,
+                now_utc=inputs.now_utc,
+            )
+            if bounds_decision.skip_new_placement:
+                occurrence_bounds_facts_by_task[task_id] = bounds_decision.reason_facts()
+                continue
+            if bounds_decision.reason_facts():
+                occurrence_bounds_facts_by_task[task_id] = bounds_decision.reason_facts()
             result, busy = place_one_block(
                 db,
                 task=candidate.task,
@@ -952,6 +1025,7 @@ def calculate(
         buffer_warning_hints_by_task=buffer_warning_hints_by_task,
         unmet_preference_by_task=unmet_preference_by_task,
         deferred_exceptions_by_task=deferred_exceptions_by_task,
+        occurrence_bounds_facts_by_task=occurrence_bounds_facts_by_task,
     )
 
     return CalculationResult(

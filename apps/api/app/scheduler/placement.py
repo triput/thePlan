@@ -464,6 +464,7 @@ def find_slot(
     not_before: datetime,
     deadline: datetime | None,
     buffer_minutes: int = 0,
+    latest_start: datetime | None = None,
 ) -> tuple[datetime, datetime] | None:
     if duration_minutes <= 0:
         return None
@@ -475,6 +476,10 @@ def find_slot(
         busy = expand_fixed_busy_for_placement(busy, buffer_minutes)
 
     search_start = max(window_start, not_before)
+    if latest_start is not None:
+        latest_start = _ensure_utc(latest_start)
+        if search_start > latest_start:
+            return None
     if deadline is not None:
         deadline = _ensure_utc(deadline)
         if search_start >= deadline:
@@ -493,6 +498,9 @@ def find_slot(
     for item in relevant:
         if cursor + duration <= item.start and cursor < window_end:
             slot_end = cursor + duration
+            if latest_start is not None and cursor > latest_start:
+                cursor = item.end
+                continue
             if deadline is not None and slot_end > deadline:
                 return None
             if slot_end <= window_end:
@@ -502,6 +510,8 @@ def find_slot(
 
     if cursor + duration <= window_end:
         slot_end = cursor + duration
+        if latest_start is not None and cursor > latest_start:
+            return None
         if deadline is not None and slot_end > deadline:
             return None
         return cursor, slot_end
@@ -1141,6 +1151,10 @@ def place_task(
     preferred = preferred_windows.get(window_id) if window_id else None
 
     deadline = _ensure_utc(task.deadline_at) if task.deadline_at else None
+    from app.scheduler.occurrence_bounds import earliest_start_bound, effective_latest_start
+
+    earliest_bound = earliest_start_bound(task)
+    latest_start_bound = effective_latest_start(task, effort_minutes=remaining_minutes)
     soft_target = effective_soft_target(task, settings, horizon_start, horizon_end)
     not_before = horizon_start
     if soft_target is not None and soft_target > not_before:
@@ -1149,6 +1163,8 @@ def place_task(
         prerequisite_not_before = _ensure_utc(prerequisite_not_before)
         if prerequisite_not_before > not_before:
             not_before = prerequisite_not_before
+    if earliest_bound is not None and earliest_bound > not_before:
+        not_before = earliest_bound
 
     composition_active = (
         composition is not None and composition.family == AssignmentFamily.NEW_RULE
@@ -1324,6 +1340,7 @@ def place_task(
                         not_before,
                         deadline,
                         buffer_minutes=buffer_minutes,
+                        latest_start=latest_start_bound,
                     )
                     if slot is None:
                         continue

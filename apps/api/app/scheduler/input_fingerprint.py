@@ -82,6 +82,7 @@ SCHEDULING_ACTIVATIONS: tuple[str, ...] = (
     "s2-v3-working-general-availability",
     "s2-v4-may-must-prefer-composition",
     "s2-v4b-day-scoped-ranking-protection",
+    "s2-t2-s1-occurrence-bounds",
 )
 
 STALE_DURATION = "duration"
@@ -123,6 +124,10 @@ S2_V3_STALE_CATEGORIES: tuple[str, ...] = (STALE_AVAILABILITY,)
 
 S2_V4_STALE_CATEGORIES: tuple[str, ...] = (STALE_COMPOSITION,)
 
+STALE_OCCURRENCE_BOUNDS = "occurrence_bounds"
+
+S2_T2_S1_STALE_CATEGORIES: tuple[str, ...] = (STALE_OCCURRENCE_BOUNDS,)
+
 STALE_PRIORITY_UPS = "priority_ups"
 
 STALE_SCHEDULING_ACTIVATION = "scheduling_activation"
@@ -133,6 +138,7 @@ COMPARED_STALE_CATEGORIES: tuple[str, ...] = (
     + F4_W2_STALE_CATEGORIES
     + S2_V3_STALE_CATEGORIES
     + S2_V4_STALE_CATEGORIES
+    + S2_T2_S1_STALE_CATEGORIES
     + (STALE_PRIORITY_UPS,)
     + (STALE_SCHEDULING_ACTIVATION,)
 )
@@ -229,6 +235,16 @@ def normalize_duration_category_v4(
         "max_block_source": max_block_source,
         "max_block_unbounded": bool(max_unbounded),
         "keep_in_one_block": bool(keep_in_one_block),
+    }
+
+
+def normalize_occurrence_bounds(
+    start_no_earlier_at: datetime | None,
+    start_no_later_at: datetime | None,
+) -> dict[str, str | None]:
+    return {
+        "start_no_earlier_at": _iso_datetime(start_no_earlier_at),
+        "start_no_later_at": _iso_datetime(start_no_later_at),
     }
 
 
@@ -522,6 +538,8 @@ def assemble_snapshot(
     priority: str | None = None,
     ups_weights: dict[str, Any] | None = None,
     competing_rank: list[dict[str, Any]] | None = None,
+    start_no_earlier_at: datetime | None = None,
+    start_no_later_at: datetime | None = None,
 ) -> dict[str, Any]:
     """Canonical task input snapshot (v3 or v4). Callers pass the effective map.
 
@@ -575,6 +593,10 @@ def assemble_snapshot(
         "v": version,
         "duration": duration,
         "deadline": {"deadline_at": _iso_datetime(deadline_at)},
+        "occurrence_bounds": normalize_occurrence_bounds(
+            start_no_earlier_at,
+            start_no_later_at,
+        ),
         "map_style": {
             "schedule_style": schedule_style,
             "time_window_id": window,
@@ -715,6 +737,6 @@ def outcome_family(primary_reason_code: str | None) -> str:
         "blocked_dependency_cycle",
     }:
         return "blocked"
-    if code.startswith("unplaced"):
+    if code.startswith("unplaced") or code.startswith("occurrence_bounds"):
         return "unplaced"
     return "recorded"

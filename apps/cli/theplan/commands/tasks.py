@@ -145,7 +145,46 @@ def _add_scheduling_bound_flags(parser: argparse.ArgumentParser, *, for_patch: b
         choices=_SCHEDULE_STYLE_CHOICES,
         default=None,
     )
+    parser.add_argument(
+        "--start-no-earlier-at",
+        dest="start_no_earlier_at",
+        default=None,
+        metavar="ISO8601",
+        help="Hard start lower bound (timezone-aware ISO-8601 instant)",
+    )
+    parser.add_argument(
+        "--start-no-later-at",
+        dest="start_no_later_at",
+        default=None,
+        metavar="ISO8601",
+        help="Hard start upper bound (timezone-aware ISO-8601 instant)",
+    )
+    parser.add_argument(
+        "--deadline-at",
+        dest="deadline_at",
+        default=None,
+        metavar="ISO8601",
+        help="Finish-by deadline (timezone-aware ISO-8601 instant)",
+    )
     if for_patch:
+        parser.add_argument(
+            "--clear-start-no-earlier-at",
+            dest="clear_start_no_earlier_at",
+            action="store_true",
+            help="Clear start no-earlier bound (send null)",
+        )
+        parser.add_argument(
+            "--clear-start-no-later-at",
+            dest="clear_start_no_later_at",
+            action="store_true",
+            help="Clear start no-later bound (send null)",
+        )
+        parser.add_argument(
+            "--clear-deadline-at",
+            dest="clear_deadline_at",
+            action="store_true",
+            help="Clear finish-by deadline (send null)",
+        )
         parser.add_argument(
             "--clear-min-block",
             dest="clear_min_block",
@@ -614,6 +653,21 @@ def _apply_scheduling_bounds(args: argparse.Namespace, body: dict[str, Any]) -> 
     style = getattr(args, "schedule_style", None)
     if style is not None:
         body["schedule_style"] = style
+
+    if getattr(args, "clear_start_no_earlier_at", False):
+        body["start_no_earlier_at"] = None
+    elif getattr(args, "start_no_earlier_at", None) is not None:
+        body["start_no_earlier_at"] = args.start_no_earlier_at
+
+    if getattr(args, "clear_start_no_later_at", False):
+        body["start_no_later_at"] = None
+    elif getattr(args, "start_no_later_at", None) is not None:
+        body["start_no_later_at"] = args.start_no_later_at
+
+    if getattr(args, "clear_deadline_at", False):
+        body["deadline_at"] = None
+    elif getattr(args, "deadline_at", None) is not None:
+        body["deadline_at"] = args.deadline_at
 
 
 def _optional_task_fields(args: argparse.Namespace, *, for_create: bool) -> dict[str, Any]:

@@ -438,6 +438,8 @@ def create_task(
         priority=body.priority,
         due_at=body.due_at,
         deadline_at=body.deadline_at,
+        start_no_earlier_at=body.start_no_earlier_at,
+        start_no_later_at=body.start_no_later_at,
         soft_target_at=soft_target_at,
         preferred_time_window_id=body.preferred_time_window_id,
         plan_id=body.plan_id,

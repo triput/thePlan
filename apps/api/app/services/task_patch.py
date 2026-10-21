@@ -28,6 +28,7 @@ from app.services.task_chunking_guard import (
     reject_chunking_cutover_writes,
     validate_effective_chunking_bounds_after_patch,
 )
+from app.services.task_occurrence_bounds import validate_occurrence_bounds_patch
 from app.services.auth_users import get_or_provision_user_settings
 from app.services.task_helpers import collect_descendant_ids, resolve_nesting_level
 
@@ -119,6 +120,7 @@ def apply_task_patch(db: Session, task: Task, user: User, body: TaskUpdate) -> N
     section_explicit = "section_id" in updates
 
     reject_chunking_cutover_writes(updates)
+    validate_occurrence_bounds_patch(task, updates)
 
     chunking_touched = bool(
         {

@@ -74,6 +74,8 @@ TASK_SCHEDULING_PATCH_FIELDS = frozenset(
         "priority",
         "due_at",
         "deadline_at",
+        "start_no_earlier_at",
+        "start_no_later_at",
         "estimated_duration_minutes",
         "remaining_minutes",
         "min_block_duration_minutes",
