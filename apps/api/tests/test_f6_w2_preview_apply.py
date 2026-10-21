@@ -422,7 +422,11 @@ def test_t1a_apply_rejects_unknown_busy_input_trust_without_domain_writes(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Ready preview + in-horizon unknown MS event → Apply 409, zero domain writes."""
+    """Direct-insert trust fallback: revision flat → Apply BUSY_INPUT_TRUST (Boundary B).
+
+    Sync-path proactive PREVIEW_STALE is additive; this non-revision path still
+    proves recollection trust fail-closes with zero domain writes.
+    """
     _patch_schedule_clock(monkeypatch)
     _prepare_settings(client)
     _create_task(client, estimated_duration_minutes=60, schedule_style="standalone")
@@ -459,6 +463,7 @@ def test_t1a_apply_rejects_unknown_busy_input_trust_without_domain_writes(
             last_synced_at=FIXED_NOW,
             transparency=None,
             free_busy_provenance=None,
+            series_identity_state=SERIES_IDENTITY_VERIFIED_NON_RECURRING,
         )
     )
     db_session.flush()
@@ -867,14 +872,14 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """§5.1 evidence: MS sync of in-horizon showAs=unknown stays ready + flat revision.
+    """Boundary B / §5.1 updated: MS sync trust-blocker bumps revision → PREVIEW_STALE.
 
-    Production ``sync_account_events`` with a genuine Graph shape (``type=singleInstance``,
-    ``showAs=unknown``) — not direct ORM insert, not malformed-payload rollback.
-    Busy signature / scheduling_revision / owner fingerprint stay flat; Apply fails
-    closed via ``BUSY_INPUT_TRUST`` with zero domain writes; preview status stays
-    ``ready`` (no proactive PREVIEW_STALE). Contrasts with busy-interval bump +
-    title-only flat controls in ``test_f6_c_busy_ingest_bumps_only_when_intervals_change``.
+    Production ``sync_account_events`` with genuine Graph shape (``type=singleInstance``,
+    ``showAs=unknown``). Busy signature stays flat (merge-excluded); trust signature
+    changes → exactly one ``scheduling_revision`` bump. Apply fails via revision
+    mismatch as ``PREVIEW_STALE`` with zero domain writes. Stored preview status need
+    not flip at sync time. Direct-insert trust fallback remains in
+    ``test_t1a_apply_rejects_unknown_busy_input_trust_without_domain_writes``.
     """
     _patch_schedule_clock(monkeypatch)
     _prepare_settings(client)
@@ -913,14 +918,19 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     db_session.flush()
 
     # Valid Graph calendarView item: intentional unknown free/busy, complete identity.
+    # Bounds must land under real sync_now compute_horizon (not FIXED_NOW — preview
+    # clock patch does not cover calendar sync writers).
     external_id = f"evt-unk-{_uid()}"
+    wall = datetime.now(UTC)
+    start_s = (wall + timedelta(hours=2)).replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
+    end_s = (wall + timedelta(hours=3)).replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
     event = {
         "id": external_id,
         "type": "singleInstance",
         "subject": "Ambiguous free/busy",
         "showAs": "unknown",
-        "start": {"dateTime": "2026-10-09T18:00:00", "timeZone": "UTC"},
-        "end": {"dateTime": "2026-10-09T19:00:00", "timeZone": "UTC"},
+        "start": {"dateTime": start_s, "timeZone": "UTC"},
+        "end": {"dateTime": end_s, "timeZone": "UTC"},
     }
 
     monkeypatch.setattr(
@@ -930,8 +940,8 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     )
     monkeypatch.setattr(ms_cal, "list_calendar_view", lambda *a, **k: [event])
 
-    window_start = FIXED_NOW - timedelta(days=1)
-    window_end = FIXED_NOW + timedelta(days=7)
+    window_start = wall - timedelta(days=1)
+    window_end = wall + timedelta(days=40)
     upserted = ms_cal.sync_account_events(
         db_session,
         settings=get_settings(),
@@ -959,7 +969,7 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
         assert row.free_busy_provenance == "provider_explicit"
         assert row.series_identity_state == "verified_non_recurring"
         assert immovable_busy_signature(fresh, owner_id) == before_busy
-        assert _revision(fresh, owner_id) == rev_before
+        assert _revision(fresh, owner_id) == rev_before + 1
         stored = fresh.get(SchedulePreview, uuid.UUID(preview["id"]))
         assert stored is not None
         assert stored.status == "ready"
@@ -973,44 +983,38 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     rejected = client.post(f"/api/v1/schedule/previews/{preview['id']}/apply")
     assert rejected.status_code == 409, rejected.text
     body = rejected.json()
-    assert body["code"] == "BUSY_INPUT_TRUST"
-    trust = body["busy_input_trust"]
-    assert trust["ok"] is False
-    assert trust["blocking_diagnostics"]
-
+    assert body["code"] == "PREVIEW_STALE"
     assert _block_set(db_session, owner_id) == before_blocks
     assert _run_count(db_session, owner_id) == runs_before
-    assert _revision(db_session, owner_id) == rev_before
-
-    still = client.get(f"/api/v1/schedule/previews/{preview['id']}")
-    assert still.status_code == 200, still.text
-    assert still.json()["status"] == "ready"
+    assert _revision(db_session, owner_id) == rev_before + 1
 
 
 def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """§5.1 committed separate-session/transaction evidence (≠ savepoint Session).
+    """Boundary B committed separate-session evidence: trust sync bumps → PREVIEW_STALE.
 
     Disposable owner is COMMITTED so a later SessionLocal() can read sync
-    persistence and post-Apply preview status across session/transaction
-    boundaries. Sequential SessionLocal() may reuse a pooled physical
-    connection — this is not a proved new-TCP probe, and a different physical
-    connection is unnecessary for the sequential commit-visibility claim.
-    Complements the transactional fixture test (flush/savepoint on one connection).
+    persistence across session/transaction boundaries. Busy sig flat; revision
+    bumps exactly once; Apply → PREVIEW_STALE with pre-rollback zero domain writes.
+    Sequential SessionLocal() may reuse a pooled physical connection — not a
+    proved new-TCP probe.
     """
     _patch_schedule_clock(monkeypatch)
     _purge_t1_stale_commit_users()
     owner_id, preview_id = _commit_t1_stale_sync_probe_owner()
     calendar_id = f"cal-t1-stale-{_uid()}"
     external_id = f"evt-unk-commit-{_uid()}"
+    wall = datetime.now(UTC)
+    start_s = (wall + timedelta(hours=2)).replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
+    end_s = (wall + timedelta(hours=3)).replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
     event = {
         "id": external_id,
         "type": "singleInstance",
         "subject": "Ambiguous free/busy",
         "showAs": "unknown",
-        "start": {"dateTime": "2026-10-09T18:00:00", "timeZone": "UTC"},
-        "end": {"dateTime": "2026-10-09T19:00:00", "timeZone": "UTC"},
+        "start": {"dateTime": start_s, "timeZone": "UTC"},
+        "end": {"dateTime": end_s, "timeZone": "UTC"},
     }
     monkeypatch.setattr(
         ms_cal,
@@ -1066,8 +1070,8 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
                 seed,
                 settings=get_settings(),
                 account=account,
-                time_min=FIXED_NOW - timedelta(days=1),
-                time_max=FIXED_NOW + timedelta(days=7),
+                time_min=wall - timedelta(days=1),
+                time_max=wall + timedelta(days=40),
             )
             assert upserted == 1
             seed.commit()
@@ -1094,7 +1098,7 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
             assert row.series_identity_state == SERIES_IDENTITY_VERIFIED_NON_RECURRING
             assert row.calendar_id == calendar_id
             assert immovable_busy_signature(readback, owner_id) == before_busy
-            assert _revision(readback, owner_id) == rev_before
+            assert _revision(readback, owner_id) == rev_before + 1
             preview_row = readback.get(SchedulePreview, preview_id)
             assert preview_row is not None
             assert preview_row.status == "ready"
@@ -1113,13 +1117,8 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
             with pytest.raises(ApiError) as rejected:
                 apply_schedule_preview(apply_db, user, preview_row)
             assert rejected.value.status_code == 409
-            assert rejected.value.content["code"] == "BUSY_INPUT_TRUST"
-            trust = rejected.value.content["busy_input_trust"]
-            assert isinstance(trust, dict)
-            assert trust["ok"] is False
-            assert trust["blocking_diagnostics"]
+            assert rejected.value.content["code"] == "PREVIEW_STALE"
             # Zero staged writes: assert on Apply session BEFORE rollback.
-            # Post-rollback counts alone only prove durability after undo.
             apply_db.flush()
             assert (
                 apply_db.query(ScheduledBlock)
@@ -1133,10 +1132,7 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
                 .count()
                 == runs_before
             )
-            assert _revision(apply_db, owner_id) == rev_before
-            preview_after_reject = apply_db.get(SchedulePreview, preview_id)
-            assert preview_after_reject is not None
-            assert preview_after_reject.status == "ready"
+            assert _revision(apply_db, owner_id) == rev_before + 1
             apply_db.rollback()
         finally:
             apply_db.close()
@@ -1144,9 +1140,6 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
         # Post-rollback committed readback on a later SessionLocal().
         after = SessionLocal()
         try:
-            preview_row = after.get(SchedulePreview, preview_id)
-            assert preview_row is not None
-            assert preview_row.status == "ready"
             assert (
                 after.query(ScheduledBlock)
                 .filter(ScheduledBlock.owner_id == owner_id)
@@ -1157,7 +1150,7 @@ def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
                 after.query(ScheduleRun).filter(ScheduleRun.owner_id == owner_id).count()
                 == runs_before
             )
-            assert _revision(after, owner_id) == rev_before
+            assert _revision(after, owner_id) == rev_before + 1
         finally:
             after.close()
     finally:

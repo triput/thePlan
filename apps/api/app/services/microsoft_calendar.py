@@ -1861,10 +1861,12 @@ def sync_account_events(
         subscription_refresh_lock,
     )
     from app.services.mirror_tombstone import retry_pending_deletions
+    from app.scheduler.horizon import compute_horizon
     from app.services.scheduling_revision import (
         immovable_busy_signature,
-        increment_scheduling_revision,
+        increment_scheduling_revision_if_busy_or_trust_changed,
         lock_owner_scheduling,
+        trust_blocking_signature,
     )
 
     now = datetime.now(timezone.utc)
@@ -1942,7 +1944,16 @@ def sync_account_events(
         pulled.append((subscription, view))
 
     scheduling_settings = lock_owner_scheduling(db, account.owner_id)
+    # One sync_now + compute_horizon pair for before/after trust compare (Boundary B).
+    sync_now = datetime.now(timezone.utc)
+    horizon_start, horizon_end = compute_horizon(scheduling_settings, sync_now)
     before_busy = immovable_busy_signature(db, account.owner_id)
+    before_trust = trust_blocking_signature(
+        db,
+        account.owner_id,
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
+    )
     suppressed = retry_pending_deletions(
         db,
         account=account,
@@ -2021,8 +2032,15 @@ def sync_account_events(
 
     account.last_synced_at = now
     db.flush()
-    if immovable_busy_signature(db, account.owner_id) != before_busy:
-        increment_scheduling_revision(db, scheduling_settings)
+    increment_scheduling_revision_if_busy_or_trust_changed(
+        db,
+        scheduling_settings,
+        account.owner_id,
+        before_busy=before_busy,
+        before_trust=before_trust,
+        horizon_start=horizon_start,
+        horizon_end=horizon_end,
+    )
     return upserted
 
 
