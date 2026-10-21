@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+from urllib.parse import quote
 from uuid import uuid4
 
+import httpx
 import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
@@ -951,23 +953,22 @@ def _patch_ms_sync_token(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-def test_db_sync_ms_view_derived_fetch_context_omit_show_as_unknown_missing(
-    disposable_db: None,
-    db_session: Session,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """``sync_account_events`` threads pull-derived list context into ms_view apply."""
-    _user, account, sub = _seed_owner_account_sub(db_session)
-    external_id = f"ms-sync-miss-{uuid4().hex[:8]}"
-    seeded = _seed_external_event(
-        db_session,
-        account=account,
-        calendar_id=sub.external_calendar_id,
-        external_id=external_id,
-        transparency="transparent",
-        provenance="provider_explicit",
-    )
-    _patch_ms_sync_token(monkeypatch)
+def _patch_ms_httpx(monkeypatch: pytest.MonkeyPatch, handler: object) -> None:
+    transport = httpx.MockTransport(handler)  # type: ignore[arg-type]
+    real_client = httpx.Client
+
+    def _factory(*args: object, **kwargs: object) -> httpx.Client:
+        kwargs["transport"] = transport
+        return real_client(*args, **kwargs)
+
+    monkeypatch.setattr(ms_cal.httpx, "Client", _factory)
+
+
+def _request_query_params(request: httpx.Request) -> dict[str, str]:
+    return {key: value for key, value in request.url.params.multi_items()}
+
+
+def _patch_ms_sync_fixed_now(monkeypatch: pytest.MonkeyPatch) -> datetime:
     fixed = datetime(2026, 10, 20, 14, 0, tzinfo=UTC)
     real_dt = ms_cal.datetime
 
@@ -979,28 +980,158 @@ def test_db_sync_ms_view_derived_fetch_context_omit_show_as_unknown_missing(
             return fixed
 
     monkeypatch.setattr(ms_cal, "datetime", _FixedNow)
-    monkeypatch.setattr(
-        ms_cal,
-        "list_calendar_view",
-        lambda *_a, **_k: (
-            [_timed_graph_event(omit_show_as=True) | {"id": external_id}],
-            1,
-            True,
-        ),
+    return fixed
+
+
+def test_db_sync_ms_view_http_collect_unprojected_omit_show_as_unknown_missing(
+    disposable_db: None,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``sync_account_events`` via real ``list_calendar_view`` / ``_graph_collect`` (mock HTTP)."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-sync-miss-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
     )
+    _patch_ms_sync_token(monkeypatch)
+    _patch_ms_sync_fixed_now(monkeypatch)
+    time_min = HORIZON_START - timedelta(hours=1)
+    time_max = HORIZON_END + timedelta(hours=1)
+    builder_snapshots: list[dict[str, str]] = []
+    real_builder = ms_cal.microsoft_calendar_view_list_params
+
+    def _tracking_builder(*, time_min: datetime, time_max: datetime) -> dict[str, str]:
+        params = real_builder(time_min=time_min, time_max=time_max)
+        builder_snapshots.append(dict(params))
+        return params
+
+    monkeypatch.setattr(ms_cal, "microsoft_calendar_view_list_params", _tracking_builder)
+    requests_log: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests_log.append(request)
+        return httpx.Response(
+            200,
+            json={
+                "value": [_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+            },
+        )
+
+    _patch_ms_httpx(monkeypatch, handler)
     count = ms_cal.sync_account_events(
         db_session,
         settings=_settings(),
         account=account,
-        time_min=HORIZON_START - timedelta(hours=1),
-        time_max=HORIZON_END + timedelta(hours=1),
+        time_min=time_min,
+        time_max=time_max,
     )
     assert count == 1
+    assert len(builder_snapshots) >= 2
+    expected_params = builder_snapshots[0]
+    assert all(snapshot == expected_params for snapshot in builder_snapshots)
+    assert len(requests_log) == 1
+    assert _request_query_params(requests_log[0]) == expected_params
+    assert ms_cal.MS_EVENT_LIST_SELECT_PARAM not in expected_params
     db_session.flush()
     db_session.expire(seeded)
     row = db_session.get(ExternalCalendarEvent, seeded.id)
     assert row is not None
     assert row.free_busy_provenance == "unknown_missing"
+    assert row.free_busy_prior_transparency == "transparent"
+    trust = evaluate_busy_input_trust(
+        [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
+    )
+    assert trust.ok is False
+    assert events_for_busy_merge([row]) == []
+
+
+def test_db_sync_ms_view_http_collect_projected_builder_params_sent_nextlink(
+    disposable_db: None,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Projected builder seam → same params on wire; nextLink drain; demotes trusted free."""
+    _user, account, sub = _seed_owner_account_sub(db_session)
+    external_id = f"ms-sync-proj-{uuid4().hex[:8]}"
+    seeded = _seed_external_event(
+        db_session,
+        account=account,
+        calendar_id=sub.external_calendar_id,
+        external_id=external_id,
+        transparency="transparent",
+        provenance="provider_explicit",
+    )
+    _patch_ms_sync_token(monkeypatch)
+    _patch_ms_sync_fixed_now(monkeypatch)
+    time_min = HORIZON_START - timedelta(hours=1)
+    time_max = HORIZON_END + timedelta(hours=1)
+    builder_snapshots: list[dict[str, str]] = []
+    real_builder = ms_cal.microsoft_calendar_view_list_params
+    projected_select = "id,subject,start,end"
+
+    def _projected_builder(*, time_min: datetime, time_max: datetime) -> dict[str, str]:
+        params = {
+            **real_builder(time_min=time_min, time_max=time_max),
+            ms_cal.MS_EVENT_LIST_SELECT_PARAM: projected_select,
+        }
+        builder_snapshots.append(dict(params))
+        return params
+
+    monkeypatch.setattr(ms_cal, "microsoft_calendar_view_list_params", _projected_builder)
+    cal_id = sub.external_calendar_id
+    next_link = (
+        "https://graph.microsoft.com/v1.0/me/calendars/"
+        f"{quote(cal_id, safe='')}/calendarView?$skiptoken=page-2"
+    )
+    payloads = [
+        {
+            "value": [_timed_graph_event(omit_show_as=True) | {"id": external_id}],
+            "@odata.nextLink": next_link,
+        },
+        {"value": []},
+    ]
+    requests_log: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests_log.append(request)
+        return httpx.Response(200, json=payloads.pop(0))
+
+    _patch_ms_httpx(monkeypatch, handler)
+    count = ms_cal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=time_min,
+        time_max=time_max,
+    )
+    assert count == 1
+    assert len(builder_snapshots) >= 2
+    expected_params = builder_snapshots[0]
+    assert all(snapshot == expected_params for snapshot in builder_snapshots)
+    assert expected_params[ms_cal.MS_EVENT_LIST_SELECT_PARAM] == projected_select
+    assert (
+        ms_cal.microsoft_event_fetch_context_from_list_params(expected_params).show_as_field_projected
+        is True
+    )
+    assert len(requests_log) == 2
+    assert _request_query_params(requests_log[0]) == expected_params
+    second_q = _request_query_params(requests_log[1])
+    assert str(requests_log[1].url).startswith(next_link.split("?", 1)[0])
+    assert second_q.get("$skiptoken") == "page-2"
+    assert "startDateTime" not in second_q
+    assert "endDateTime" not in second_q
+    assert ms_cal.MS_EVENT_LIST_SELECT_PARAM not in second_q
+    db_session.flush()
+    db_session.expire(seeded)
+    row = db_session.get(ExternalCalendarEvent, seeded.id)
+    assert row is not None
+    assert row.free_busy_provenance == "unknown_projection"
     assert row.free_busy_prior_transparency == "transparent"
     trust = evaluate_busy_input_trust(
         [row], horizon_start=HORIZON_START, horizon_end=HORIZON_END
