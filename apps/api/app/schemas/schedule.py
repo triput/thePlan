@@ -22,6 +22,7 @@ StaleCategory = Literal[
     "availability",
     "composition",
     "occurrence_bounds",
+    "occurrence_disposition",
     "priority_ups",
     "scheduling_activation",
     "provenance",
@@ -74,8 +75,9 @@ class ScheduleExplanationOut(BaseModel):
             "Compared categories: duration, deadline, map_style, deps, pins, "
             "project_daily_cap, timezone_horizon_workweek, lifecycle, busy_external, "
             "prerequisite_state, due_at_soft_target, time_map_overrides, availability, "
-            "composition, priority_ups, scheduling_activation. provenance means the "
-            "stored snapshot is missing or another version (including v2)."
+            "composition, occurrence_bounds, occurrence_disposition, priority_ups, "
+            "scheduling_activation. provenance means the stored snapshot is missing "
+            "or another version (including v2)."
         )
     )
 

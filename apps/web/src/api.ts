@@ -1874,6 +1874,8 @@ export type StaleCategory =
   | "time_map_overrides"
   | "availability"
   | "composition"
+  | "occurrence_bounds"
+  | "occurrence_disposition"
   | "priority_ups"
   | "scheduling_activation"
   | "provenance";

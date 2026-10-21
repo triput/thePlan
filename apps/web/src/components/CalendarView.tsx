@@ -355,6 +355,7 @@ export function CalendarView({ onPreviewSchedule }: CalendarViewProps) {
       availability: "availability changed",
       composition: "scheduling rules changed",
       occurrence_bounds: "start window bounds changed",
+      occurrence_disposition: "held or skipped occurrence disposition changed",
       priority_ups: "priority or UPS ranking changed",
       scheduling_activation: "scheduling activation changed",
       provenance: "older snapshot",

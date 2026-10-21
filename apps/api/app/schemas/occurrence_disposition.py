@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+DispositionResolution = Literal["unresolved_held", "released", "skipped"]
+DispositionEventType = Literal["miss_detected", "leave_held", "duplicate_miss"]
+
 
 class DispositionEventOut(BaseModel):
     id: UUID
-    event_type: str
+    event_type: DispositionEventType
     payload: dict[str, Any] | None = None
     preview_id: UUID | None = None
     created_at: datetime
@@ -19,7 +22,7 @@ class HeldDispositionOut(BaseModel):
     id: UUID
     task_id: UUID
     episode_key: str
-    resolution: str
+    resolution: DispositionResolution
     bounds_snapshot: dict[str, Any]
     miss_reason_code: str | None = None
     miss_reason_params: dict[str, Any] | None = None

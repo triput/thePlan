@@ -2,7 +2,7 @@
 #  File: apps/api/app/services/occurrence_disposition.py
 #  Description: T2-S2 B-auto durable miss dispositions (outside pure calculate).
 #  Component: Occurrence disposition
-#  Version: 1.0
+#  Version: 1.1
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -153,6 +153,7 @@ def stage_auto_misses(
         row.id: row
         for row in db.query(Task)
         .filter(Task.owner_id == owner_id, Task.id.in_(task_ids))
+        .populate_existing()
         .all()
     }
     for task_id, fact in misses.items():
@@ -284,6 +285,17 @@ def leave_held_acknowledgment(
     return row
 
 
+def _non_disposition_task_drift(snap0: dict[str, Any], snap1: dict[str, Any]) -> bool:
+    """True when any task-snapshot category other than occurrence_disposition differs."""
+    keys = set(snap0) | set(snap1)
+    for key in keys:
+        if key == "occurrence_disposition":
+            continue
+        if snap0.get(key) != snap1.get(key):
+            return True
+    return False
+
+
 def orchestration_input_drift(
     *,
     revision_at_start: int,
@@ -296,6 +308,12 @@ def orchestration_input_drift(
     disposition_live: tuple[tuple[str, str, str], ...],
     staged_keys: set[tuple[str, str, str]],
 ) -> bool:
+    """External drift iff revision moved or fingerprint differs beyond staged disposition fields.
+
+    Exemption is exact: only ``occurrence_disposition`` on tasks whose disposition
+    rows were flushed in this txn (``staged_keys``). Any other field change on a
+    staged task, or any change on a non-staged task, is drift.
+    """
     if revision_live != revision_at_start:
         return True
     if fingerprint_at_start == fingerprint_live:
@@ -304,18 +322,32 @@ def orchestration_input_drift(
     live = set(disposition_live)
     if live != before | staged_keys:
         return True
-    ignore_tasks = {task_id for task_id, _, _ in staged_keys}
+    for key in ("dependency_edges", "ups_scores", "scheduling_activation", "snapshot_version"):
+        if snapshot_at_start.get(key) != snapshot_live.get(key):
+            return True
+    staged_task_ids = {task_id for task_id, _, _ in staged_keys}
+    snaps0 = snapshot_at_start.get("task_snapshots") or {}
+    snaps1 = snapshot_live.get("task_snapshots") or {}
+    if set(snaps0) != set(snaps1):
+        return True
+    if snaps0 or snaps1:
+        for task_id, snap0 in snaps0.items():
+            snap1 = snaps1.get(task_id) or {}
+            if not isinstance(snap0, dict) or not isinstance(snap1, dict):
+                return True
+            if task_id in staged_task_ids:
+                if _non_disposition_task_drift(snap0, snap1):
+                    return True
+            elif snap0 != snap1:
+                return True
+        return False
+    # Fallback when task_snapshots absent: only whole-task hash equality (no blanket skip).
     t0 = snapshot_at_start.get("task_fingerprints") or {}
     t1 = snapshot_live.get("task_fingerprints") or {}
     if set(t0) != set(t1):
         return True
     for task_id, hash0 in t0.items():
-        if task_id in ignore_tasks:
-            continue
         if hash0 != t1.get(task_id):
-            return True
-    for key in ("dependency_edges", "ups_scores", "scheduling_activation", "snapshot_version"):
-        if snapshot_at_start.get(key) != snapshot_live.get(key):
             return True
     return False
 

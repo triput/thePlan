@@ -196,7 +196,8 @@ def run_schedule(args: argparse.Namespace) -> None:
         held_cmd = args.held_command
         if held_cmd == "list":
             body = api_json("GET", "/api/v1/schedule/held-misses", persist_session=True)
-            emit_ok(body or [])
+            rows = body if isinstance(body, list) else []
+            emit_ok({"items": rows, "count": len(rows)})
             return
         if held_cmd == "leave":
             body = api_json(
@@ -208,7 +209,7 @@ def run_schedule(args: argparse.Namespace) -> None:
                 },
                 persist_session=True,
             )
-            emit_ok(body or {})
+            emit_ok(body if isinstance(body, dict) else {})
             return
         raise CliError(
             code="INVALID_USAGE",
