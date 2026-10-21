@@ -4,7 +4,7 @@
 #  Component: Scheduler / calendar ingest
 #  Version: 1.0
 #  Created: 2026-10-20
-#  Last Update: 2026-10-20
+#  Last Update: 2026-10-20 (Dex bounce — collision, role, snapshots)
 # ==============================================================================
 """Canonical calendar identity per account (T1-10 / T1-F).
 
@@ -304,20 +304,31 @@ def _failure_sort_key(
     return (1, _ensure_utc(failure_at), cause_key, cause or "", -subscription_id.int)
 
 
+def _subscription_failure_snapshot(
+    db: Session, sub: CalendarSubscription
+) -> tuple[UUID, datetime | None, str | None]:
+    """Latest blocking failure from sidecar and/or subscription row."""
+    sidecar = _sidecar_for(db, sub.id)
+    candidates: list[tuple[datetime | None, str | None]] = [
+        (sub.coverage_last_failure_at, sub.coverage_last_failure_cause),
+    ]
+    if sidecar is not None:
+        candidates.append((sidecar.failure_at, sidecar.cause))
+    winner_at, winner_cause = max(
+        candidates,
+        key=lambda pair: _failure_sort_key(
+            sub.id,
+            failure_at=pair[0],
+            cause=pair[1],
+        ),
+    )
+    return (sub.id, winner_at, winner_cause)
+
+
 def _failure_snapshots(
     db: Session, subscriptions: Sequence[CalendarSubscription]
 ) -> list[tuple[UUID, datetime | None, str | None]]:
-    snaps: list[tuple[UUID, datetime | None, str | None]] = []
-    for sub in subscriptions:
-        sidecar = _sidecar_for(db, sub.id)
-        snaps.append(
-            (
-                sub.id,
-                sidecar.failure_at if sidecar else sub.coverage_last_failure_at,
-                sidecar.cause if sidecar else sub.coverage_last_failure_cause,
-            )
-        )
-    return snaps
+    return [_subscription_failure_snapshot(db, sub) for sub in subscriptions]
 
 
 def _apply_latest_blocking_failure_to_survivor(
@@ -480,6 +491,9 @@ def _merge_alias_into_survivor(
             clear_sync_cursor=True,
         )
 
+    if alias.role == CalendarSubscriptionRole.primary:
+        survivor.role = CalendarSubscriptionRole.primary
+
     alias.is_enabled = False
     _apply_latest_blocking_failure_to_survivor(
         db, survivor=survivor, snapshots=failure_snaps, now=now
@@ -505,6 +519,21 @@ def _clear_identity_unresolved_markers(subscriptions: Iterable[CalendarSubscript
         }:
             sub.coverage_last_failure_cause = None
             sub.coverage_last_failure_at = None
+
+
+def _subscription_by_external_id(
+    db: Session,
+    account_id: UUID,
+    external_calendar_id: str,
+) -> CalendarSubscription | None:
+    return (
+        db.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account_id,
+            CalendarSubscription.external_calendar_id == external_calendar_id,
+        )
+        .one_or_none()
+    )
 
 
 def _enabled_subscriptions(db: Session, account_id: UUID) -> list[CalendarSubscription]:
@@ -646,14 +675,6 @@ def canonicalize_calendar_account(
     if not enabled:
         return CanonicalizeOutcome(merged=False, identity_blocked=frozenset())
 
-    if evidence and evidence.fetch_succeeded and not evidence.google_ambiguous and not evidence.microsoft_ambiguous:
-        all_on_account = (
-            db.query(CalendarSubscription)
-            .filter(CalendarSubscription.calendar_account_id == account.id)
-            .all()
-        )
-        _clear_identity_unresolved_markers(all_on_account)
-
     if evidence and evidence.fetch_succeeded:
         if account.provider == CalendarProvider.google and evidence.google_ambiguous:
             for sub in enabled:
@@ -698,32 +719,47 @@ def canonicalize_calendar_account(
         if len(group) == 1:
             sub = group[0]
             if evidence and evidence.fetch_succeeded:
+                rewrite_target: str | None = None
                 if (
                     account.provider == CalendarProvider.google
                     and sub.external_calendar_id == GOOGLE_PRIMARY_ALIAS
                     and evidence.google_primary_id
                 ):
-                    _rewrite_subscription_key(
-                        db,
-                        sub,
-                        new_external_id=evidence.google_primary_id,
-                        now=now,
-                        invalidate_cause=IDENTITY_KEY_REWRITE_CAUSE,
-                    )
-                    merged_any = True
+                    rewrite_target = evidence.google_primary_id
                 elif (
                     account.provider == CalendarProvider.microsoft
                     and sub.external_calendar_id == MS_LEGACY_PRIMARY_ALIAS
                     and evidence.microsoft_default_id
                 ):
-                    _rewrite_subscription_key(
-                        db,
-                        sub,
-                        new_external_id=evidence.microsoft_default_id,
-                        now=now,
-                        invalidate_cause=IDENTITY_KEY_REWRITE_CAUSE,
+                    rewrite_target = evidence.microsoft_default_id
+                if rewrite_target and rewrite_target != sub.external_calendar_id:
+                    occupant = _subscription_by_external_id(
+                        db, account.id, rewrite_target
                     )
-                    merged_any = True
+                    if occupant is not None and occupant.id != sub.id:
+                        survivor = _pick_survivor(
+                            [sub, occupant],
+                            provider=account.provider,
+                        )
+                        alias = sub if survivor.id == occupant.id else occupant
+                        _merge_alias_into_survivor(
+                            db,
+                            survivor=survivor,
+                            alias=alias,
+                            provider=account.provider,
+                            canonical_id=canonical_id,
+                            now=now,
+                        )
+                        merged_any = True
+                    else:
+                        _rewrite_subscription_key(
+                            db,
+                            sub,
+                            new_external_id=rewrite_target,
+                            now=now,
+                            invalidate_cause=IDENTITY_KEY_REWRITE_CAUSE,
+                        )
+                        merged_any = True
             continue
 
         survivor = _pick_survivor(group, provider=account.provider)

@@ -939,6 +939,16 @@ def ensure_primary_subscription(
     settings: Settings | None = None,
     access_token: str | None = None,
 ) -> CalendarSubscription:
+    from app.services.calendar_alias_canonicalize import (
+        canonicalize_calendar_account,
+        fetch_account_identity_evidence,
+        lock_calendar_account_for_identity,
+        rewrite_subscription_external_calendar_id,
+    )
+
+    now = datetime.now(timezone.utc)
+    lock_calendar_account_for_identity(db, account.id)
+
     token = access_token
     if token is None:
         token = get_valid_access_token(db, settings=settings or get_settings(), account=account)
@@ -981,14 +991,6 @@ def ensure_primary_subscription(
     sub.role = CalendarSubscriptionRole.primary
     sub.is_enabled = True
     db.flush()
-    from app.services.calendar_alias_canonicalize import (
-        canonicalize_calendar_account,
-        fetch_account_identity_evidence,
-        lock_calendar_account_for_identity,
-        rewrite_subscription_external_calendar_id,
-    )
-
-    now = datetime.now(timezone.utc)
     if sub.external_calendar_id == "primary" and calendar_id != "primary":
         rewrite_subscription_external_calendar_id(
             db,
@@ -996,7 +998,6 @@ def ensure_primary_subscription(
             new_external_id=calendar_id,
             now=now,
         )
-    lock_calendar_account_for_identity(db, account.id)
     try:
         evidence = fetch_account_identity_evidence(
             db,
@@ -1013,7 +1014,17 @@ def ensure_primary_subscription(
         now=now,
     )
     db.flush()
-    return sub
+    refreshed = (
+        db.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account.id,
+            CalendarSubscription.role == CalendarSubscriptionRole.primary,
+            CalendarSubscription.is_enabled.is_(True),
+        )
+        .order_by(CalendarSubscription.created_at)
+        .first()
+    )
+    return refreshed or sub
 
 
 def _oauth_expires_at(

@@ -496,6 +496,16 @@ def delete_google_event(access_token: str, calendar_id: str, event_id: str) -> N
 
 
 def ensure_primary_subscription(db: Session, account: CalendarAccount) -> CalendarSubscription:
+    from app.config import get_settings
+    from app.services.calendar_alias_canonicalize import (
+        canonicalize_calendar_account,
+        fetch_account_identity_evidence,
+        lock_calendar_account_for_identity,
+    )
+
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    lock_calendar_account_for_identity(db, account.id)
     sub = (
         db.query(CalendarSubscription)
         .filter(
@@ -518,16 +528,6 @@ def ensure_primary_subscription(db: Session, account: CalendarAccount) -> Calend
         sub.role = CalendarSubscriptionRole.primary
         sub.is_enabled = True
     db.flush()
-    from app.config import get_settings
-    from app.services.calendar_alias_canonicalize import (
-        canonicalize_calendar_account,
-        fetch_account_identity_evidence,
-        lock_calendar_account_for_identity,
-    )
-
-    settings = get_settings()
-    now = datetime.now(timezone.utc)
-    lock_calendar_account_for_identity(db, account.id)
     try:
         access = get_valid_access_token(db, settings=settings, account=account)
         evidence = fetch_account_identity_evidence(

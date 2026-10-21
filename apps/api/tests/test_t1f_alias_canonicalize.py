@@ -239,6 +239,7 @@ def test_f1_google_same_calendar_two_aliases(
     )
     assert len(enabled) == 1
     assert enabled[0].external_calendar_id == primary_id
+    assert enabled[0].role == CalendarSubscriptionRole.primary
     assert len(_sync_google.last_pulls) == 1  # type: ignore[attr-defined]
 
 
@@ -504,6 +505,47 @@ def test_f9_alias_failure_survives_merge(db_session: Session, monkeypatch: pytes
     assert not trust.ok
 
 
+def test_f9b_row_failure_newer_than_sidecar_on_merge(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, usettings = _owner(db_session)
+    account = _account(db_session, owner)
+    primary_id = "user@gmail.com"
+    survivor = _sub(db_session, account, calendar_id=primary_id)
+    alias = _sub(db_session, account, calendar_id="primary")
+    db_session.add(
+        CalendarSubscriptionRefreshFailure(
+            subscription_id=alias.id,
+            failure_at=_NOW - timedelta(days=2),
+            cause="calendar_refresh_failed",
+        )
+    )
+    alias.coverage_last_failure_at = _NOW - timedelta(hours=1)
+    alias.coverage_last_failure_cause = "calendar_coverage_missing"
+    db_session.flush()
+    _patch_google_list(monkeypatch, _google_list(primary_id))
+    canonicalize_calendar_account(
+        db_session,
+        account,
+        evidence=fetch_account_identity_evidence(
+            db_session, account, settings=_settings(), access_token="tok"
+        ),
+        now=_NOW,
+    )
+    db_session.flush()
+    db_session.refresh(survivor)
+    assert survivor.coverage_last_failure_cause == "calendar_coverage_missing"
+    sidecar = (
+        db_session.query(CalendarSubscriptionRefreshFailure)
+        .filter(CalendarSubscriptionRefreshFailure.subscription_id == survivor.id)
+        .one_or_none()
+    )
+    assert sidecar is not None
+    assert sidecar.cause == "calendar_coverage_missing"
+    trust = evaluate_calendar_freshness(db_session, owner.id, usettings, _NOW)
+    assert not trust.ok
+
+
 def test_f10_disable_must_not_unblock(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     owner, usettings = _owner(db_session)
     account = _account(db_session, owner)
@@ -668,6 +710,7 @@ def test_f13_concurrent_put_and_ensure_primary(monkeypatch: pytest.MonkeyPatch) 
         )
         assert len(enabled) == 1
         assert enabled[0].external_calendar_id == primary_id
+        assert enabled[0].role == CalendarSubscriptionRole.primary
     finally:
         db.close()
 
@@ -760,6 +803,42 @@ def test_f15_unresolved_then_resolved(
         .filter(
             CalendarSubscription.calendar_account_id == account.id,
             CalendarSubscription.is_enabled.is_(True),
+        )
+        .count()
+        == 1
+    )
+
+
+def test_f16a_pre_sync_disabled_target_key_rewrite_collision(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Enabled ``primary`` + disabled stable id — rewrite must not unique-clash."""
+    owner, _ = _owner(db_session)
+    account = _account(db_session, owner)
+    primary_id = "user@gmail.com"
+    alias = _sub(db_session, account, calendar_id="primary", summary="Primary")
+    disabled_stable = _sub(
+        db_session,
+        account,
+        calendar_id=primary_id,
+        summary="Primary",
+        enabled=False,
+        role=CalendarSubscriptionRole.informational,
+    )
+    _patch_google_list(monkeypatch, _google_list(primary_id))
+    prepare_subscriptions_for_sync(
+        db_session, account, settings=_settings(), access_token="tok", now=_NOW
+    )
+    db_session.flush()
+    db_session.refresh(disabled_stable)
+    db_session.refresh(alias)
+    assert disabled_stable.is_enabled is False
+    assert alias.is_enabled is False
+    assert (
+        db_session.query(CalendarSubscription)
+        .filter(
+            CalendarSubscription.calendar_account_id == account.id,
+            CalendarSubscription.external_calendar_id == primary_id,
         )
         .count()
         == 1
