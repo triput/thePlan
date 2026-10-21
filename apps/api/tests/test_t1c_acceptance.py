@@ -1744,19 +1744,28 @@ def test_t1c_widened_horizon_remints_on_explicit_sync_only(
 def test_t1_13_incremental_churn_updates_cache(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """Google parity control for T1-13: cache + collected busy intervals after churn.
+
+    MS twin: ``test_t1_13_ms_churn.test_t1_13_ms_churn_refreshes_collected_busy_via_production_sync``.
+    Occupancy evidence only — not Boundary B preview invalidation.
+    """
     owner, settings = _owner(db_session)
     now = datetime.now(UTC)
     window_start, window_end = _wide_bounds(settings, now)
     account = _account(db_session, owner)
     _sub(db_session, account, calendar_id="cal-churn", summary="Churn")
     original_start = window_start + timedelta(hours=5)
+    original_end = original_start + timedelta(hours=1)
     moved_start = original_start + timedelta(hours=2)
+    moved_end = moved_start + timedelta(hours=1)
+    added_start = moved_start + timedelta(hours=3)
+    added_end = moved_start + timedelta(hours=4)
     phase = {"n": 0}
 
     def _full(*_a: Any, **_k: Any):
         phase["n"] += 1
         return (
-            [_g_event("appt", original_start, original_start + timedelta(hours=1), summary="Original")],
+            [_g_event("appt", original_start, original_end, summary="Original")],
             "cursor-1",
             1,
         )
@@ -1765,8 +1774,8 @@ def test_t1_13_incremental_churn_updates_cache(
         phase["n"] += 1
         return (
             [
-                _g_event("appt", moved_start, moved_start + timedelta(hours=1), summary="Moved"),
-                _g_event("appt-new", moved_start + timedelta(hours=3), moved_start + timedelta(hours=4), summary="Added"),
+                _g_event("appt", moved_start, moved_end, summary="Moved"),
+                _g_event("appt-new", added_start, added_end, summary="Added"),
             ],
             "cursor-2",
             1,
@@ -1774,6 +1783,19 @@ def test_t1_13_incremental_churn_updates_cache(
 
     _patch_lists(monkeypatch, full=_full, incremental=_incr)
     _sync(db_session, account, window_start, window_end)
+    inputs0 = collect_inputs(db_session, owner.id, now)
+    pairs0 = {
+        (item.start.astimezone(UTC), item.end.astimezone(UTC))
+        for item in inputs0.immovable_busy
+        if item.source == "external"
+    }
+    assert (original_start, original_end) in pairs0
+    assert inputs0.busy_input_trust is not None and inputs0.busy_input_trust.ok
+    assert (
+        inputs0.calendar_freshness_trust is not None
+        and inputs0.calendar_freshness_trust.ok
+    )
+
     _sync(db_session, account, window_start, window_end)
     rows = {
         row.external_event_id: row
@@ -1786,6 +1808,22 @@ def test_t1_13_incremental_churn_updates_cache(
     assert "appt-new" in rows
     assert _trust(db_session, owner, settings, now).ok is True
     assert phase["n"] == 2
+
+    inputs = collect_inputs(db_session, owner.id, now)
+    pairs = {
+        (item.start.astimezone(UTC), item.end.astimezone(UTC))
+        for item in inputs.immovable_busy
+        if item.source == "external"
+    }
+    assert (original_start, original_end) not in pairs
+    assert (moved_start, moved_end) in pairs
+    assert (added_start, added_end) in pairs
+    assert len(pairs) == 2
+    assert inputs.busy_input_trust is not None and inputs.busy_input_trust.ok
+    assert (
+        inputs.calendar_freshness_trust is not None
+        and inputs.calendar_freshness_trust.ok
+    )
 
 
 def test_t1c_cancellation_is_not_pending_deletion_and_exception_kept(
