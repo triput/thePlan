@@ -37,6 +37,7 @@ from app.services.free_busy_resolver_allowlist import user_may_resolve
 _logger = logging.getLogger(__name__)
 
 _FREE_BUSY_IDENTITY_NAMESPACE = 1_886_415_953
+_GOOGLE_UPSERT_IDENTITY_DRIFT_MAX_RETRIES = 3
 _AUTOMATIC_BASELINE_SOURCE = "automatic_first_trustworthy_observation"
 _CONFLICT_REVISION_SECRET = b"theplan-t1-4a-conflict-revision-v1"
 
@@ -528,14 +529,15 @@ def resolve_series_policy(
     trigger_id = trigger.id
     acquire_identity_advisory_locks(db, [key])
 
-    trigger = (
+    trigger_refreshed = (
         db.query(ExternalCalendarEvent)
         .filter(ExternalCalendarEvent.id == trigger_id)
-        .with_for_update()
-        .populate_existing()
         .one()
     )
-    if identity_key_from_row(trigger) != key:
+    key_locked = identity_key_from_row(trigger_refreshed)
+    if key_locked is None:
+        raise ApiError(422, "Invalid series identity", "FREE_BUSY_RESOLVE_INVALID")
+    if key_locked != key:
         raise ApiError(
             409,
             "Series identity changed; retry resolve",
@@ -545,11 +547,18 @@ def resolve_series_policy(
     pending_all = authoritative_pending_events(
         db,
         owner_id=user.id,
-        provider=trigger.provider,
-        calendar_id=key[2],
-        provider_series_id=key[3],
+        provider=trigger_refreshed.provider,
+        calendar_id=key_locked[2],
+        provider_series_id=key_locked[3],
     )
-    locked_pending = lock_events_for_update(db, pending_all)
+    events_to_lock: list[ExternalCalendarEvent] = list(pending_all)
+    if trigger_id not in {e.id for e in events_to_lock}:
+        events_to_lock.append(trigger_refreshed)
+    locked_events = lock_events_for_update(db, events_to_lock)
+    locked_by_id = {e.id: e for e in locked_events}
+    trigger = locked_by_id[trigger_id]
+    key = key_locked
+    locked_pending = [e for e in locked_events if e.free_busy_pending_exception]
     pending_by_ext = {e.external_event_id: e for e in locked_pending}
 
     policy = get_or_create_policy_for_identity(
@@ -674,12 +683,15 @@ def policy_diagnostic_enrichment(
         latch_generation=latch_gen,
         source_zone_untrusted=source_zone_untrusted(event),
     )
-    retained = "free (series policy)"
-    if policy and policy.resolved_at:
+    if policy is None:
+        retained = "no manual series policy decision yet"
+    elif policy.resolved_at:
         retained = (
             f"free — last resolve {policy.resolved_at.isoformat()} "
             f"by {policy.resolved_by_user_id}"
         )
+    else:
+        retained = "free (series policy)"
     cause = "policy_occupancy_disagreement"
     if policy and policy.conflict_pending_latched:
         cause = "policy_conflict_latched"

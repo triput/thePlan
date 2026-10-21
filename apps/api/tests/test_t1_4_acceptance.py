@@ -41,9 +41,11 @@ from app.scheduler.busy_map import busy_from_sources, load_immovable_busy_source
 from app.scheduler.collect import collect_inputs
 from app.scheduler.free_busy import (
     BusyInputTrustError,
+    apply_transparency_update,
     evaluate_busy_input_trust,
     events_for_busy_merge,
     require_busy_input_trust,
+    resolve_google_transparency,
     source_zone_untrusted,
 )
 from app.services.free_busy_resolver_allowlist import parse_resolver_allowlist_file
@@ -51,6 +53,7 @@ from app.services.free_busy_series_policy import (
     _FREE_BUSY_IDENTITY_NAMESPACE,
     ConflictAcknowledgment,
     ResolveSeriesPolicyRequest,
+    acquire_identity_advisory_locks,
     apply_post_transparency_policy_effects,
     authoritative_pending_events,
     compute_conflict_revision,
@@ -658,7 +661,29 @@ def test_diagnostics_enrichment_fields(db_session: Session) -> None:
     assert enrich["conflict_revision"]
     assert enrich["current_provider_evidence"]["transparency"] == "opaque"
     assert "source_zone_untrusted" in enrich["current_provider_evidence"]
-    assert "retained_manual_choice" in enrich
+    assert enrich["retained_manual_choice"] == "free (series policy)"
+
+
+def test_diagnostics_no_policy_retained_manual_choice(
+    db_session: Session,
+) -> None:
+    owner, _ = _owner(db_session)
+    acct = _account(db_session, owner)
+    sub = _sub(db_session, acct)
+    row = _event(
+        db_session,
+        owner=owner,
+        account=acct,
+        sub=sub,
+        external_id="diag-no-policy",
+        series_id="series-no-policy",
+        pending=True,
+    )
+    enrich = policy_diagnostic_enrichment(
+        db_session, row, policy_map=load_series_policies_for_owner(db_session, owner.id)
+    )
+    assert enrich is not None
+    assert enrich["retained_manual_choice"] == "no manual series policy decision yet"
 
 
 def test_first_pending_resolve_via_busy_input_trust_http(
@@ -787,10 +812,13 @@ def test_q1_google_ingest_opaque_to_transparent_stays_unlatched(
     assert policy.conflict_pending_latched is False
 
 
-def test_ingest_wins_stale_conflict_revision(
+def test_simulated_sequential_ingest_wins_stale_conflict_revision(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Ingest commits provider change before resolve; old diagnostic revision is stale."""
+    """Simulated sequential single session — not a concurrent DB race.
+
+    Ingest commits provider change before resolve; old diagnostic revision is stale.
+    """
     owner, _ = _owner(db_session)
     path = _allowlist_file(owner.id)
     monkeypatch.setenv("FREE_BUSY_RESOLVER_ALLOWLIST_PATH", path)
@@ -851,9 +879,10 @@ def test_ingest_wins_stale_conflict_revision(
         get_settings.cache_clear()
 
 
-def test_google_identity_drift_advisory_lock_keys_sorted(
+def test_unit_google_identity_drift_advisory_lock_keys_sorted(
     db_session: Session,
 ) -> None:
+    """Unit check: old+new identity four-tuples sort order — not a concurrency proof."""
     owner, _ = _owner(db_session)
     acct = _account(db_session, owner)
     sub = _sub(db_session, acct)
@@ -880,6 +909,203 @@ def test_google_identity_drift_advisory_lock_keys_sorted(
         ]
     )
     assert keys == expected
+
+
+def test_real_concurrent_google_post_lock_identity_drift_replays_ingest() -> None:
+    """Mover holds the identity lock with an uncommitted series change; ingest waits.
+
+    Real concurrent sessions. Post-lock drift must retry and apply the provider payload,
+    not report success with a skipped update.
+    """
+    series_old = f"drift-old-{uuid.uuid4().hex[:8]}"
+    series_new = f"drift-new-{uuid.uuid4().hex[:8]}"
+    ext_id = f"drift-{uuid.uuid4().hex[:6]}"
+    cal_old = f"cal-old-{uuid.uuid4().hex[:6]}"
+    cal_new = f"cal-new-{uuid.uuid4().hex[:6]}"
+
+    seed_db = SessionLocal()
+    try:
+        owner, _ = _owner(seed_db)
+        account = _account(seed_db, owner)
+        sub_old = _sub(seed_db, account, cal_id=cal_old)
+        sub_new = _sub(seed_db, account, cal_id=cal_new)
+        _event(
+            seed_db,
+            owner=owner,
+            account=account,
+            sub=sub_old,
+            external_id=ext_id,
+            series_id=series_old,
+            transparency="opaque",
+            pending=True,
+        )
+        owner_id = owner.id
+        account_id = account.id
+        sub_new_id = sub_new.id
+        seed_db.commit()
+    finally:
+        seed_db.close()
+
+    held = threading.Event()
+    release = threading.Event()
+    errors: list[BaseException] = []
+    prior_ungranted = sum(1 for granted, _query in _advisory_lock_rows() if not granted)
+
+    def _mover() -> None:
+        db = SessionLocal()
+        try:
+            row = _event_by_external_id(db, ext_id)
+            keys = google_upsert_identity_keys_for_lock(
+                row=row,
+                new_calendar_id=cal_old,
+                new_series_id=series_new,
+                old_calendar_id=cal_old,
+                old_series_id=series_old,
+                owner_id=owner_id,
+            )
+            acquire_identity_advisory_locks(db, keys)
+            row = (
+                db.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == ext_id)
+                .with_for_update()
+                .one()
+            )
+            row.provider_series_id = series_new
+            db.flush()
+            held.set()
+            if not release.wait(timeout=20):
+                raise TimeoutError("mover identity-lock hold was not released")
+            db.commit()
+        except BaseException as exc:
+            errors.append(exc)
+            db.rollback()
+            held.set()
+        finally:
+            db.close()
+
+    def _ingest() -> None:
+        db = SessionLocal()
+        try:
+            if not held.wait(timeout=20):
+                raise TimeoutError("mover never held the identity lock")
+            account = db.get(CalendarAccount, account_id)
+            sub = db.get(CalendarSubscription, sub_new_id)
+            assert account is not None and sub is not None
+            ok = _upsert_external_event(
+                db,
+                account=account,
+                subscription=sub,
+                event=_google_event(
+                    ext_id,
+                    series_new,
+                    "transparent",
+                    H0,
+                    H1,
+                ),
+                now=datetime.now(UTC),
+                sync_run_id="drift-replay",
+            )
+            if not ok:
+                raise AssertionError("ingest upsert returned false after drift retry")
+            db.commit()
+        except BaseException as exc:
+            errors.append(exc)
+            db.rollback()
+        finally:
+            db.close()
+
+    t_mover = threading.Thread(target=_mover, name="drift-mover")
+    t_ingest = threading.Thread(target=_ingest, name="drift-ingest")
+    t_ingest.start()
+    t_mover.start()
+    overlap_error: BaseException | None = None
+    try:
+        if not held.wait(timeout=25):
+            overlap_error = AssertionError(
+                f"mover did not hold the identity lock; thread errors={errors!r}"
+            )
+        else:
+            try:
+                _assert_new_advisory_waiter(prior_ungranted)
+            except BaseException as exc:
+                overlap_error = exc
+    finally:
+        release.set()
+    t_mover.join(timeout=30)
+    t_ingest.join(timeout=30)
+    if t_mover.is_alive() or t_ingest.is_alive():
+        raise AssertionError(f"drift threads still alive; errors={errors!r}")
+    if overlap_error is not None:
+        raise overlap_error
+    if errors:
+        raise AssertionError(errors)
+
+    verify = SessionLocal()
+    try:
+        row = _event_by_external_id(verify, ext_id)
+        assert row.provider_series_id == series_new
+        assert row.calendar_id == cal_new
+        assert row.transparency == "transparent"
+    finally:
+        verify.close()
+
+
+def test_google_post_lock_identity_drift_exhausted_skips_without_partial_write(
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Bounded retry exhausted: upsert returns false; provider row not half-written."""
+    import app.services.free_busy_series_policy as fbp
+
+    monkeypatch.setattr(fbp, "_GOOGLE_UPSERT_IDENTITY_DRIFT_MAX_RETRIES", 1)
+
+    series_live = f"ex-live-{uuid.uuid4().hex[:8]}"
+    ext_id = f"ex-{uuid.uuid4().hex[:6]}"
+    owner, _ = _owner(db_session)
+    account = _account(db_session, owner)
+    sub = _sub(db_session, account)
+    row = _event(
+        db_session,
+        owner=owner,
+        account=account,
+        sub=sub,
+        external_id=ext_id,
+        series_id=series_live,
+        transparency="opaque",
+        pending=False,
+    )
+
+    real_key = fbp.identity_key_from_row
+    calls = {"n": 0}
+
+    def _stale_pre_lock_snapshot(event_row: ExternalCalendarEvent):
+        calls["n"] += 1
+        key = real_key(event_row)
+        if key is not None and calls["n"] == 1:
+            return (key[0], key[1], key[2], f"stale-{uuid.uuid4().hex[:6]}")
+        return key
+
+    monkeypatch.setattr(fbp, "identity_key_from_row", _stale_pre_lock_snapshot)
+
+    ok = _upsert_external_event(
+        db_session,
+        account=account,
+        subscription=sub,
+        event=_google_event(
+            ext_id,
+            series_live,
+            "transparent",
+            H0,
+            H1,
+        ),
+        now=datetime.now(UTC),
+        sync_run_id="drift-exhaust",
+    )
+    assert ok is False
+    db_session.refresh(row)
+    assert row.provider_series_id == series_live
+    assert row.transparency == "opaque"
+    assert row.free_busy_pending_exception is False
 
 
 def test_source_zone_trust_change_invalidates_conflict_revision(
@@ -1282,6 +1508,153 @@ def test_real_concurrent_sibling_race() -> None:
         assert sibling.transparency == "transparent"
     finally:
         verify.close()
+
+
+def test_real_concurrent_ingest_holds_resolve_stale_after_fresh_lock() -> None:
+    """Ingest holds the identity lock with a flushed provider change; resolve waits.
+
+    Real concurrent sessions. Resolve entered with a pre-ingest conflict_revision and
+    must observe the fresh locked row set, returning 409 stale — not a false success.
+    """
+    series = f"race-ingest-{uuid.uuid4().hex[:12]}"
+    ext_a = f"ing-a-{uuid.uuid4().hex}"
+    seeded = _seed_committed_series(
+        series=series,
+        latch_for_revision=0,
+        policy_kwargs={
+            "mapping": "free",
+            "conflict_pending_latched": True,
+            "latch_generation": 1,
+        },
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "opaque",
+                "pending": True,
+                "start": H0,
+                "end": H0 + timedelta(hours=1),
+            },
+        ],
+    )
+    stale_rev = seeded["revisions"][ext_a]
+    path = _allowlist_file(seeded["owner_id"])
+
+    held = threading.Event()
+    release = threading.Event()
+    errors: list[BaseException] = []
+    resolve_errors: list[ApiError] = []
+    prior_ungranted = sum(1 for granted, _query in _advisory_lock_rows() if not granted)
+
+    def _ingest_hold() -> None:
+        db = SessionLocal()
+        try:
+            row = _event_by_external_id(db, ext_a)
+            keys = google_upsert_identity_keys_for_lock(
+                row=row,
+                new_calendar_id=seeded["calendar_id"],
+                new_series_id=series,
+                old_calendar_id=seeded["calendar_id"],
+                old_series_id=series,
+                owner_id=seeded["owner_id"],
+            )
+            acquire_identity_advisory_locks(db, keys)
+            row = (
+                db.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == ext_a)
+                .with_for_update()
+                .one()
+            )
+            stored, provenance, _kind = resolve_google_transparency(
+                {"transparency": "transparent"},
+                complete_representation=True,
+                field_projected=False,
+            )
+            apply_transparency_update(
+                row,
+                stored=stored,
+                provenance=provenance,
+                sync_run_id="ingest-hold",
+            )
+            db.flush()
+            held.set()
+            if not release.wait(timeout=20):
+                raise TimeoutError("ingest identity-lock hold was not released")
+            db.commit()
+        except BaseException as exc:
+            errors.append(exc)
+            db.rollback()
+            held.set()
+        finally:
+            db.close()
+
+    def _resolve_wait() -> None:
+        db = SessionLocal()
+        try:
+            if not held.wait(timeout=20):
+                raise TimeoutError("ingest never held the identity lock")
+            user = db.get(User, seeded["owner_id"])
+            assert user is not None
+            try:
+                resolve_series_policy(
+                    db,
+                    user=user,
+                    body=ResolveSeriesPolicyRequest(
+                        external_event_id=ext_a,
+                        conflict_acknowledgments=(
+                            ConflictAcknowledgment(ext_a, stale_rev),
+                        ),
+                        reason="cached revision before ingest landed",
+                    ),
+                    allowlist_path=path,
+                )
+                db.commit()
+            except ApiError as exc:
+                resolve_errors.append(exc)
+                db.rollback()
+        except BaseException as exc:
+            errors.append(exc)
+            db.rollback()
+        finally:
+            db.close()
+
+    t_ingest = threading.Thread(target=_ingest_hold, name="ingest-hold")
+    t_resolve = threading.Thread(target=_resolve_wait, name="resolve-wait")
+    t_resolve.start()
+    t_ingest.start()
+    overlap_error: BaseException | None = None
+    try:
+        if not held.wait(timeout=25):
+            overlap_error = AssertionError(
+                f"ingest did not hold the identity lock; thread errors={errors!r}"
+            )
+        else:
+            try:
+                _assert_new_advisory_waiter(prior_ungranted)
+            except BaseException as exc:
+                overlap_error = exc
+    finally:
+        release.set()
+    t_ingest.join(timeout=30)
+    t_resolve.join(timeout=30)
+    if t_ingest.is_alive() or t_resolve.is_alive():
+        raise AssertionError(f"ingest/resolve threads still alive; errors={errors!r}")
+    if overlap_error is not None:
+        raise overlap_error
+    if errors:
+        raise AssertionError(errors)
+
+    assert len(resolve_errors) == 1
+    assert resolve_errors[0].content["code"] == "FREE_BUSY_CONFLICT_STALE"
+
+    verify = SessionLocal()
+    try:
+        row = _event_by_external_id(verify, ext_a)
+        assert row.transparency == "transparent"
+        assert row.free_busy_pending_exception is True
+        assert _decision_count(verify, seeded["owner_id"]) == 0
+    finally:
+        verify.close()
+        Path(path).unlink(missing_ok=True)
 
 
 def test_real_concurrent_first_policy_race() -> None:
