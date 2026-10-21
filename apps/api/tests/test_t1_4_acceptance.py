@@ -1,21 +1,31 @@
-"""T1-4a acceptance — persisted series policy + resolve (Dex contract §9)."""
+"""T1-4a acceptance — persisted series policy + resolve (Dex contract §9).
+
+Real concurrent tests open separate ``SessionLocal`` connections and fail unless
+``pg_locks`` shows a new ungranted ``pg_advisory_xact_lock`` waiter while resolve
+is still uncommitted. Simulated tests use the single-session ``db_session``
+savepoint and are named ``test_simulated_*``.
+"""
 
 from __future__ import annotations
 
 import os
 import tempfile
+import threading
+import time
 import uuid
-from datetime import datetime, time, timedelta, timezone
+from collections.abc import Callable
+from datetime import datetime, time as dt_time, timedelta, timezone
 from pathlib import Path
 from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import get_settings
-from app.db import engine
+from app.db import SessionLocal, engine
 from app.models import (
     CalendarAccount,
     CalendarSubscription,
@@ -29,12 +39,19 @@ from app.models import (
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
 from app.scheduler.busy_map import busy_from_sources, load_immovable_busy_sources
 from app.scheduler.collect import collect_inputs
-from app.scheduler.free_busy import evaluate_busy_input_trust, events_for_busy_merge
+from app.scheduler.free_busy import (
+    BusyInputTrustError,
+    evaluate_busy_input_trust,
+    events_for_busy_merge,
+    require_busy_input_trust,
+)
 from app.services.free_busy_resolver_allowlist import parse_resolver_allowlist_file
 from app.services.free_busy_series_policy import (
+    _FREE_BUSY_IDENTITY_NAMESPACE,
     ConflictAcknowledgment,
     ResolveSeriesPolicyRequest,
     apply_post_transparency_policy_effects,
+    authoritative_pending_events,
     compute_conflict_revision,
     load_series_policies_for_owner,
     policy_diagnostic_enrichment,
@@ -74,7 +91,7 @@ def _owner(db: Session) -> tuple[User, UserSettings]:
         owner_id=user.id,
         timezone="UTC",
         workday_minutes=480,
-        workday_start_local=time(8, 0),
+        workday_start_local=dt_time(8, 0),
         workweek_days=5,
         inter_block_buffer_minutes=15,
         upcoming_horizon_days=7,
@@ -640,3 +657,1001 @@ def test_diagnostics_enrichment_fields(db_session: Session) -> None:
     assert enrich["conflict_revision"]
     assert enrich["current_provider_evidence"]["transparency"] == "opaque"
     assert "retained_manual_choice" in enrich
+
+
+def _gdt(value: datetime) -> str:
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _google_event(
+    ext_id: str,
+    series: str,
+    transparency: str,
+    start: datetime,
+    end: datetime,
+) -> dict[str, object]:
+    return {
+        "id": ext_id,
+        "summary": ext_id,
+        "start": {"dateTime": _gdt(start)},
+        "end": {"dateTime": _gdt(end)},
+        "transparency": transparency,
+        "recurringEventId": series,
+    }
+
+
+def _policies(db: Session, owner_id: UUID) -> list[FreeBusySeriesPolicy]:
+    return (
+        db.query(FreeBusySeriesPolicy)
+        .filter(FreeBusySeriesPolicy.owner_id == owner_id)
+        .all()
+    )
+
+
+def _decision_count(db: Session, owner_id: UUID) -> int:
+    return (
+        db.query(FreeBusySeriesPolicyDecision)
+        .join(FreeBusySeriesPolicy)
+        .filter(FreeBusySeriesPolicy.owner_id == owner_id)
+        .count()
+    )
+
+
+def _baseline_count(db: Session, owner_id: UUID) -> int:
+    return (
+        db.query(FreeBusyOccurrenceBaseline)
+        .filter(FreeBusyOccurrenceBaseline.owner_id == owner_id)
+        .count()
+    )
+
+
+def _event_by_external_id(db: Session, external_id: str) -> ExternalCalendarEvent:
+    return (
+        db.query(ExternalCalendarEvent)
+        .filter(ExternalCalendarEvent.external_event_id == external_id)
+        .one()
+    )
+
+
+def _advisory_lock_rows() -> list[tuple[bool, str | None]]:
+    db = SessionLocal()
+    try:
+        rows = db.execute(
+            text(
+                """
+                SELECT l.granted, a.query
+                FROM pg_locks AS l
+                JOIN pg_stat_activity AS a ON a.pid = l.pid
+                WHERE l.locktype = 'advisory'
+                  AND l.classid = :ns
+                """
+            ),
+            {"ns": _FREE_BUSY_IDENTITY_NAMESPACE},
+        ).all()
+        return [(bool(granted), query) for granted, query in rows]
+    finally:
+        db.close()
+
+
+def _dump_advisory_locks() -> list[tuple]:
+    db = SessionLocal()
+    try:
+        return list(
+            db.execute(
+                text(
+                    """
+                    SELECT classid, objid, granted, mode
+                    FROM pg_locks
+                    WHERE locktype = 'advisory'
+                    """
+                )
+            ).all()
+        )
+    finally:
+        db.close()
+
+
+def _assert_new_advisory_waiter(prior_ungranted: int) -> None:
+    """Fail unless a new session is blocked inside pg_advisory_xact_lock."""
+    deadline = time.monotonic() + 8
+    last: list[tuple[bool, str | None]] = []
+    while time.monotonic() < deadline:
+        last = _advisory_lock_rows()
+        ungranted = [(granted, query) for granted, query in last if not granted]
+        granted = [row for row in last if row[0]]
+        if len(ungranted) > prior_ungranted and granted:
+            queries = [query or "" for _granted, query in ungranted]
+            if any("pg_advisory_xact_lock" in query for query in queries):
+                return
+            if queries and all(query == "" for query in queries):
+                # Same-role query text hidden; ungranted advisory row is still a waiter.
+                return
+        time.sleep(0.05)
+    raise AssertionError(
+        "expected a new ungranted pg_advisory_xact_lock waiter while resolve "
+        f"held the identity lock; prior_ungranted={prior_ungranted} rows={last!r} "
+        f"all_advisory={_dump_advisory_locks()!r}"
+    )
+
+
+def _seed_committed_series(
+    *,
+    series: str,
+    rows: list[dict],
+    policy_kwargs: dict | None = None,
+    latch_for_revision: int = 0,
+) -> dict:
+    db = SessionLocal()
+    try:
+        owner, _settings = _owner(db)
+        account = _account(db, owner)
+        sub = _sub(db, account, cal_id=f"cal-{uuid.uuid4().hex[:8]}")
+        revisions: dict[str, str] = {}
+        external_ids: list[str] = []
+        for spec in rows:
+            row = _event(
+                db,
+                owner=owner,
+                account=account,
+                sub=sub,
+                series_id=series,
+                **spec,
+            )
+            external_ids.append(row.external_event_id)
+            revisions[row.external_event_id] = _revision(
+                owner, sub, series, row, latch=latch_for_revision
+            )
+        if policy_kwargs is not None:
+            kwargs = dict(policy_kwargs)
+            kwargs.setdefault("acknowledged_calendar_id", sub.external_calendar_id)
+            kwargs.setdefault("acknowledged_series_id", series)
+            db.add(
+                FreeBusySeriesPolicy(
+                    owner_id=owner.id,
+                    provider=CalendarProvider.google,
+                    calendar_id=sub.external_calendar_id,
+                    provider_series_id=series,
+                    **kwargs,
+                )
+            )
+        db.commit()
+        return {
+            "owner_id": owner.id,
+            "account_id": account.id,
+            "sub_id": sub.id,
+            "calendar_id": sub.external_calendar_id,
+            "series": series,
+            "external_ids": external_ids,
+            "revisions": revisions,
+        }
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def _run_resolve_holds_ingest_waits(
+    *,
+    seeded: dict,
+    allowlist_path: str,
+    resolve_external_id: str,
+    ingest_event: dict,
+    during_hold: Callable[[], None] | None = None,
+) -> None:
+    """Resolve keeps its transaction (and identity lock) open until ingest is waiting.
+
+    Real concurrent sessions. Not a simulated sequential call pair.
+    """
+    held = threading.Event()
+    release = threading.Event()
+    errors: list[BaseException] = []
+    prior_ungranted = sum(1 for granted, _query in _advisory_lock_rows() if not granted)
+
+    def _resolve() -> None:
+        db = SessionLocal()
+        try:
+            user = db.get(User, seeded["owner_id"])
+            assert user is not None
+            resolve_series_policy(
+                db,
+                user=user,
+                body=ResolveSeriesPolicyRequest(
+                    external_event_id=resolve_external_id,
+                    conflict_acknowledgments=(
+                        ConflictAcknowledgment(
+                            resolve_external_id,
+                            seeded["revisions"][resolve_external_id],
+                        ),
+                    ),
+                    reason="concurrent resolve holds identity lock",
+                ),
+                allowlist_path=allowlist_path,
+            )
+            held.set()
+            if not release.wait(timeout=20):
+                raise TimeoutError("resolve identity-lock hold was not released")
+            db.commit()
+        except BaseException as exc:
+            errors.append(exc)
+            db.rollback()
+            held.set()
+        finally:
+            db.close()
+
+    def _ingest() -> None:
+        db = SessionLocal()
+        try:
+            if not held.wait(timeout=20):
+                raise TimeoutError("resolve never held the identity lock")
+            account = db.get(CalendarAccount, seeded["account_id"])
+            sub = db.get(CalendarSubscription, seeded["sub_id"])
+            assert account is not None and sub is not None
+            ok = _upsert_external_event(
+                db,
+                account=account,
+                subscription=sub,
+                event=ingest_event,
+                now=datetime.now(UTC),
+                sync_run_id="t1-4a-race",
+            )
+            if not ok:
+                raise AssertionError("ingest upsert returned false")
+            db.commit()
+        except BaseException as exc:
+            errors.append(exc)
+            db.rollback()
+        finally:
+            db.close()
+
+    t_resolve = threading.Thread(target=_resolve, name="t1-4a-resolve")
+    t_ingest = threading.Thread(target=_ingest, name="t1-4a-ingest")
+    t_ingest.start()
+    t_resolve.start()
+    overlap_error: BaseException | None = None
+    try:
+        if not held.wait(timeout=25):
+            overlap_error = AssertionError(
+                f"resolve did not hold the identity lock; thread errors={errors!r}"
+            )
+        else:
+            try:
+                _assert_new_advisory_waiter(prior_ungranted)
+                if during_hold is not None:
+                    during_hold()
+            except BaseException as exc:
+                overlap_error = exc
+    finally:
+        release.set()
+    t_resolve.join(timeout=30)
+    t_ingest.join(timeout=30)
+    if t_resolve.is_alive() or t_ingest.is_alive():
+        raise AssertionError(f"race threads still alive; errors={errors!r}")
+    if overlap_error is not None:
+        raise overlap_error
+    if errors:
+        raise AssertionError(errors)
+
+
+def test_real_concurrent_sibling_race() -> None:
+    """Two siblings, one identity. Resolve holds the lock; ingest on B waits.
+
+    Real concurrent sessions. Coherent resolve-first outcome: A cleared, B stays
+    pending, latch retained, ingest's transparency write lands only after the lock.
+    """
+    series = f"race-sib-{uuid.uuid4().hex[:12]}"
+    ext_a = f"sib-a-{uuid.uuid4().hex}"
+    ext_b = f"sib-b-{uuid.uuid4().hex}"
+    seeded = _seed_committed_series(
+        series=series,
+        latch_for_revision=1,
+        policy_kwargs={
+            "mapping": "free",
+            "conflict_pending_latched": True,
+            "latch_generation": 1,
+            "acknowledged_series_id": series,
+        },
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "opaque",
+                "pending": True,
+                "start": H0,
+                "end": H0 + timedelta(hours=1),
+            },
+            {
+                "external_id": ext_b,
+                "transparency": "opaque",
+                "pending": True,
+                "start": H0 + timedelta(hours=2),
+                "end": H0 + timedelta(hours=3),
+            },
+        ],
+    )
+    path = _allowlist_file(seeded["owner_id"])
+
+    def _during_hold() -> None:
+        probe = SessionLocal()
+        try:
+            # Resolve has flushed but not committed; ingest has not committed.
+            assert _event_by_external_id(probe, ext_a).free_busy_pending_exception is True
+            sibling = _event_by_external_id(probe, ext_b)
+            assert sibling.transparency == "opaque"
+            assert sibling.free_busy_pending_exception is True
+            assert _decision_count(probe, seeded["owner_id"]) == 0
+        finally:
+            probe.close()
+
+    try:
+        _run_resolve_holds_ingest_waits(
+            seeded=seeded,
+            allowlist_path=path,
+            resolve_external_id=ext_a,
+            ingest_event=_google_event(
+                ext_b,
+                series,
+                "transparent",
+                H0 + timedelta(hours=2),
+                H0 + timedelta(hours=3),
+            ),
+            during_hold=_during_hold,
+        )
+    finally:
+        Path(path).unlink(missing_ok=True)
+
+    verify = SessionLocal()
+    try:
+        policies = _policies(verify, seeded["owner_id"])
+        assert len(policies) == 1
+        assert policies[0].conflict_pending_latched is True
+        assert int(policies[0].latch_generation) == 1
+        assert _decision_count(verify, seeded["owner_id"]) == 1
+        assert _event_by_external_id(verify, ext_a).free_busy_pending_exception is False
+        sibling = _event_by_external_id(verify, ext_b)
+        assert sibling.free_busy_pending_exception is True
+        assert sibling.transparency == "transparent"
+    finally:
+        verify.close()
+
+
+def test_real_concurrent_first_policy_race() -> None:
+    """No policy row yet. Resolve creates it under the identity lock; sibling ingest waits.
+
+    Real concurrent sessions. One policy, one decision, no duplicate insert.
+    """
+    series = f"race-first-{uuid.uuid4().hex[:12]}"
+    ext_a = f"first-a-{uuid.uuid4().hex}"
+    ext_b = f"first-b-{uuid.uuid4().hex}"
+    seeded = _seed_committed_series(
+        series=series,
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "opaque",
+                "pending": True,
+                "start": H0,
+                "end": H0 + timedelta(hours=1),
+            },
+            {
+                "external_id": ext_b,
+                "transparency": "opaque",
+                "pending": True,
+                "start": H0 + timedelta(hours=2),
+                "end": H0 + timedelta(hours=3),
+            },
+        ],
+    )
+    path = _allowlist_file(seeded["owner_id"])
+
+    def _during_hold() -> None:
+        probe = SessionLocal()
+        try:
+            assert _policies(probe, seeded["owner_id"]) == []
+            assert _decision_count(probe, seeded["owner_id"]) == 0
+            sibling = _event_by_external_id(probe, ext_b)
+            assert sibling.transparency == "opaque"
+            assert sibling.free_busy_pending_exception is True
+        finally:
+            probe.close()
+
+    try:
+        _run_resolve_holds_ingest_waits(
+            seeded=seeded,
+            allowlist_path=path,
+            resolve_external_id=ext_a,
+            ingest_event=_google_event(
+                ext_b,
+                series,
+                "transparent",
+                H0 + timedelta(hours=2),
+                H0 + timedelta(hours=3),
+            ),
+            during_hold=_during_hold,
+        )
+    finally:
+        Path(path).unlink(missing_ok=True)
+
+    verify = SessionLocal()
+    try:
+        policies = _policies(verify, seeded["owner_id"])
+        assert len(policies) == 1
+        assert policies[0].mapping == "free"
+        assert policies[0].conflict_pending_latched is True
+        assert _decision_count(verify, seeded["owner_id"]) == 1
+        assert _event_by_external_id(verify, ext_a).free_busy_pending_exception is False
+        sibling = _event_by_external_id(verify, ext_b)
+        assert sibling.free_busy_pending_exception is True
+        assert sibling.transparency == "transparent"
+    finally:
+        verify.close()
+
+
+def test_real_concurrent_new_instance_race() -> None:
+    """Resolve in flight; ingest inserts occurrence C only after the identity lock.
+
+    Real concurrent sessions. C is absent to other sessions during the wait.
+    After both commit, C's automatic baseline shows the new policy was visible.
+    """
+    series = f"race-new-{uuid.uuid4().hex[:12]}"
+    ext_a = f"new-a-{uuid.uuid4().hex}"
+    ext_c = f"new-c-{uuid.uuid4().hex}"
+    c_start = datetime(2026, 11, 2, 10, 0, tzinfo=UTC)
+    c_end = datetime(2026, 11, 2, 11, 0, tzinfo=UTC)
+    seeded = _seed_committed_series(
+        series=series,
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "transparent",
+                "pending": True,
+                "start": H0,
+                "end": H1,
+            },
+        ],
+    )
+    path = _allowlist_file(seeded["owner_id"])
+
+    def _during_hold() -> None:
+        probe = SessionLocal()
+        try:
+            assert (
+                probe.query(ExternalCalendarEvent)
+                .filter(ExternalCalendarEvent.external_event_id == ext_c)
+                .count()
+                == 0
+            )
+            assert _decision_count(probe, seeded["owner_id"]) == 0
+        finally:
+            probe.close()
+
+    try:
+        _run_resolve_holds_ingest_waits(
+            seeded=seeded,
+            allowlist_path=path,
+            resolve_external_id=ext_a,
+            ingest_event=_google_event(ext_c, series, "transparent", c_start, c_end),
+            during_hold=_during_hold,
+        )
+    finally:
+        Path(path).unlink(missing_ok=True)
+
+    verify = SessionLocal()
+    try:
+        policies = _policies(verify, seeded["owner_id"])
+        assert len(policies) == 1
+        assert policies[0].mapping == "free"
+        assert policies[0].conflict_pending_latched is False
+        assert _decision_count(verify, seeded["owner_id"]) == 1
+        trigger = _event_by_external_id(verify, ext_a)
+        assert trigger.free_busy_pending_exception is False
+        created = _event_by_external_id(verify, ext_c)
+        assert created.free_busy_pending_exception is False
+        assert created.provider_series_id == series
+        baseline = (
+            verify.query(FreeBusyOccurrenceBaseline)
+            .filter(
+                FreeBusyOccurrenceBaseline.owner_id == seeded["owner_id"],
+                FreeBusyOccurrenceBaseline.external_event_id == ext_c,
+            )
+            .one()
+        )
+        assert baseline.source == "automatic_first_trustworthy_observation"
+        decision = (
+            verify.query(FreeBusySeriesPolicyDecision)
+            .join(FreeBusySeriesPolicy)
+            .filter(FreeBusySeriesPolicy.owner_id == seeded["owner_id"])
+            .one()
+        )
+        acked = {
+            item["external_event_id"]
+            for item in decision.snapshot["conflict_acknowledgments"]
+        }
+        assert ext_c not in acked
+        assert decision.decided_by_user_id == seeded["owner_id"]
+    finally:
+        verify.close()
+
+
+def test_real_session_rollback_no_partial_write() -> None:
+    """Flushed resolve then rollback. A new session sees no policy, decision, or baseline."""
+    series = f"roll-{uuid.uuid4().hex[:12]}"
+    ext_a = f"roll-a-{uuid.uuid4().hex}"
+    seeded = _seed_committed_series(
+        series=series,
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "transparent",
+                "pending": True,
+                "start": H0,
+                "end": H1,
+            },
+        ],
+    )
+    path = _allowlist_file(seeded["owner_id"])
+    worker = SessionLocal()
+    try:
+        user = worker.get(User, seeded["owner_id"])
+        assert user is not None
+        resolve_series_policy(
+            worker,
+            user=user,
+            body=ResolveSeriesPolicyRequest(
+                external_event_id=ext_a,
+                conflict_acknowledgments=(
+                    ConflictAcknowledgment(ext_a, seeded["revisions"][ext_a]),
+                ),
+                reason="rollback me",
+            ),
+            allowlist_path=path,
+        )
+        assert len(_policies(worker, seeded["owner_id"])) == 1
+        assert _decision_count(worker, seeded["owner_id"]) == 1
+        assert _baseline_count(worker, seeded["owner_id"]) == 1
+        assert _event_by_external_id(worker, ext_a).free_busy_pending_exception is False
+        worker.rollback()
+    finally:
+        worker.close()
+        Path(path).unlink(missing_ok=True)
+
+    verify = SessionLocal()
+    try:
+        assert _policies(verify, seeded["owner_id"]) == []
+        assert _decision_count(verify, seeded["owner_id"]) == 0
+        assert _baseline_count(verify, seeded["owner_id"]) == 0
+        row = _event_by_external_id(verify, ext_a)
+        assert row.free_busy_pending_exception is True
+        assert row.transparency == "transparent"
+    finally:
+        verify.close()
+
+
+def test_real_session_restart_persists_resolved_and_latched() -> None:
+    """Commit, close, new session. Resolved trust survives; a later latch survives too."""
+    series = f"restart-{uuid.uuid4().hex[:12]}"
+    ext_a = f"restart-a-{uuid.uuid4().hex}"
+    seeded = _seed_committed_series(
+        series=series,
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "transparent",
+                "pending": True,
+                "start": H0,
+                "end": H1,
+            },
+        ],
+    )
+    path = _allowlist_file(seeded["owner_id"])
+    writer = SessionLocal()
+    try:
+        user = writer.get(User, seeded["owner_id"])
+        assert user is not None
+        resolve_series_policy(
+            writer,
+            user=user,
+            body=ResolveSeriesPolicyRequest(
+                external_event_id=ext_a,
+                conflict_acknowledgments=(
+                    ConflictAcknowledgment(ext_a, seeded["revisions"][ext_a]),
+                ),
+                reason="persist across sessions",
+            ),
+            allowlist_path=path,
+        )
+        writer.commit()
+    finally:
+        writer.close()
+        Path(path).unlink(missing_ok=True)
+
+    restarted = SessionLocal()
+    try:
+        inputs = collect_inputs(restarted, seeded["owner_id"], H0)
+        assert inputs.busy_input_trust is not None
+        assert inputs.busy_input_trust.ok is True
+        policies = _policies(restarted, seeded["owner_id"])
+        assert len(policies) == 1
+        assert policies[0].mapping == "free"
+        assert policies[0].conflict_pending_latched is False
+        assert _decision_count(restarted, seeded["owner_id"]) == 1
+        assert _event_by_external_id(restarted, ext_a).free_busy_pending_exception is False
+    finally:
+        restarted.close()
+
+    disagree = SessionLocal()
+    try:
+        account = disagree.get(CalendarAccount, seeded["account_id"])
+        sub = disagree.get(CalendarSubscription, seeded["sub_id"])
+        assert account is not None and sub is not None
+        ok = _upsert_external_event(
+            disagree,
+            account=account,
+            subscription=sub,
+            event=_google_event(ext_a, series, "opaque", H0, H1),
+            now=datetime.now(UTC),
+            sync_run_id="t1-4a-restart-disagree",
+        )
+        assert ok is True
+        disagree.commit()
+    finally:
+        disagree.close()
+
+    latched = SessionLocal()
+    try:
+        policies = _policies(latched, seeded["owner_id"])
+        assert len(policies) == 1
+        assert policies[0].conflict_pending_latched is True
+        row = _event_by_external_id(latched, ext_a)
+        assert row.free_busy_pending_exception is True
+        assert row.transparency == "opaque"
+        assert _decision_count(latched, seeded["owner_id"]) == 1
+        inputs = collect_inputs(latched, seeded["owner_id"], H0)
+        assert inputs.busy_input_trust is not None
+        assert inputs.busy_input_trust.ok is False
+    finally:
+        latched.close()
+
+
+def test_apply_recollect_gate_fresh_session_without_live_apply() -> None:
+    """Same collect + require_busy_input_trust gate Apply uses, without a preview write.
+
+    Fresh session after commit. Not a concurrent race and not live Apply.
+    """
+    series = f"recollect-{uuid.uuid4().hex[:12]}"
+    ext_a = f"recollect-a-{uuid.uuid4().hex}"
+    seeded = _seed_committed_series(
+        series=series,
+        rows=[
+            {
+                "external_id": ext_a,
+                "transparency": "transparent",
+                "pending": True,
+                "start": H0,
+                "end": H1,
+            },
+        ],
+    )
+    path = _allowlist_file(seeded["owner_id"])
+    writer = SessionLocal()
+    try:
+        user = writer.get(User, seeded["owner_id"])
+        assert user is not None
+        resolve_series_policy(
+            writer,
+            user=user,
+            body=ResolveSeriesPolicyRequest(
+                external_event_id=ext_a,
+                conflict_acknowledgments=(
+                    ConflictAcknowledgment(ext_a, seeded["revisions"][ext_a]),
+                ),
+                reason="recollect gate",
+            ),
+            allowlist_path=path,
+        )
+        writer.commit()
+    finally:
+        writer.close()
+        Path(path).unlink(missing_ok=True)
+
+    fresh = SessionLocal()
+    try:
+        # apply_schedule_preview collects at replay time and again at `now`
+        # inside _validate_ready_for_apply, then require_busy_input_trust.
+        at_replay = collect_inputs(fresh, seeded["owner_id"], H0)
+        at_now = collect_inputs(fresh, seeded["owner_id"], H0 + timedelta(hours=2))
+        require_busy_input_trust(at_replay.busy_input_trust)
+        require_busy_input_trust(at_now.busy_input_trust)
+        assert at_replay.busy_input_trust is not None and at_replay.busy_input_trust.ok
+        assert at_now.busy_input_trust is not None and at_now.busy_input_trust.ok
+
+        row = _event_by_external_id(fresh, ext_a)
+        row.free_busy_pending_exception = True
+        policy = _policies(fresh, seeded["owner_id"])[0]
+        policy.conflict_pending_latched = True
+        fresh.flush()
+        blocked = collect_inputs(fresh, seeded["owner_id"], H0)
+        with pytest.raises(BusyInputTrustError):
+            require_busy_input_trust(blocked.busy_input_trust)
+        fresh.rollback()
+    finally:
+        fresh.close()
+
+
+def test_simulated_mixed_sibling_unchanged_refresh_does_not_reopen() -> None:
+    """Simulated sequential single session — not a concurrent DB race.
+
+    One resolve accepts opaque A and transparent B. Unchanged refresh of B does
+    not reopen A. A later change on unacknowledged C still blocks.
+    """
+    db = SessionLocal()
+    path: str | None = None
+    try:
+        owner, _settings = _owner(db)
+        account = _account(db, owner)
+        sub = _sub(db, account)
+        series = f"mixed-{uuid.uuid4().hex[:12]}"
+        ext_a = f"mix-a-{uuid.uuid4().hex}"
+        ext_b = f"mix-b-{uuid.uuid4().hex}"
+        ext_c = f"mix-c-{uuid.uuid4().hex}"
+        row_a = _event(
+            db,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_a,
+            series_id=series,
+            transparency="opaque",
+            pending=True,
+            start=H0,
+            end=H0 + timedelta(hours=1),
+        )
+        row_b = _event(
+            db,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_b,
+            series_id=series,
+            transparency="transparent",
+            pending=True,
+            start=H0 + timedelta(hours=2),
+            end=H0 + timedelta(hours=3),
+        )
+        row_c = _event(
+            db,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_c,
+            series_id=series,
+            transparency="transparent",
+            pending=False,
+            start=H0 + timedelta(days=2),
+            end=H0 + timedelta(days=2, hours=1),
+        )
+        db.flush()
+        path = _allowlist_file(owner.id)
+        resolve_series_policy(
+            db,
+            user=owner,
+            body=ResolveSeriesPolicyRequest(
+                external_event_id=ext_a,
+                conflict_acknowledgments=(
+                    ConflictAcknowledgment(ext_a, _revision(owner, sub, series, row_a)),
+                    ConflictAcknowledgment(ext_b, _revision(owner, sub, series, row_b)),
+                ),
+                reason="mixed sibling ack",
+            ),
+            allowlist_path=path,
+        )
+        db.flush()
+        decision = (
+            db.query(FreeBusySeriesPolicyDecision)
+            .join(FreeBusySeriesPolicy)
+            .filter(FreeBusySeriesPolicy.owner_id == owner.id)
+            .one()
+        )
+        evidence = {
+            item["external_event_id"]: item["provider_evidence"]["transparency"]
+            for item in decision.snapshot["conflict_acknowledgments"]
+        }
+        assert evidence[ext_a] == "opaque"
+        assert evidence[ext_b] == "transparent"
+        assert ext_c not in evidence
+
+        ok = _upsert_external_event(
+            db,
+            account=account,
+            subscription=sub,
+            event=_google_event(
+                ext_b,
+                series,
+                "transparent",
+                H0 + timedelta(hours=2),
+                H0 + timedelta(hours=3),
+            ),
+            now=datetime.now(UTC),
+            sync_run_id="mixed-refresh-b",
+        )
+        assert ok is True
+        db.flush()
+        db.refresh(row_a)
+        db.refresh(row_b)
+        policy = _policies(db, owner.id)[0]
+        assert row_a.free_busy_pending_exception is False
+        assert row_b.free_busy_pending_exception is False
+        assert policy.conflict_pending_latched is False
+        baseline_b = (
+            db.query(FreeBusyOccurrenceBaseline)
+            .filter(FreeBusyOccurrenceBaseline.external_event_id == ext_b)
+            .one()
+        )
+        assert baseline_b.source == "manual_resolve"
+
+        ok = _upsert_external_event(
+            db,
+            account=account,
+            subscription=sub,
+            event=_google_event(
+                ext_c,
+                series,
+                "transparent",
+                H0 + timedelta(days=2),
+                H0 + timedelta(days=2, hours=1),
+            ),
+            now=datetime.now(UTC),
+            sync_run_id="mixed-seed-c",
+        )
+        assert ok is True
+        db.flush()
+        baseline_c = (
+            db.query(FreeBusyOccurrenceBaseline)
+            .filter(FreeBusyOccurrenceBaseline.external_event_id == ext_c)
+            .one()
+        )
+        assert baseline_c.source == "automatic_first_trustworthy_observation"
+        assert row_c.free_busy_pending_exception is False
+
+        ok = _upsert_external_event(
+            db,
+            account=account,
+            subscription=sub,
+            event=_google_event(
+                ext_c,
+                series,
+                "opaque",
+                H0 + timedelta(days=2),
+                H0 + timedelta(days=2, hours=1),
+            ),
+            now=datetime.now(UTC),
+            sync_run_id="mixed-change-c",
+        )
+        assert ok is True
+        db.flush()
+        db.refresh(row_a)
+        db.refresh(row_c)
+        db.refresh(policy)
+        assert row_a.free_busy_pending_exception is False
+        assert row_c.free_busy_pending_exception is True
+        assert policy.conflict_pending_latched is True
+        assert _decision_count(db, owner.id) == 1
+        trust = evaluate_busy_input_trust(
+            [row_a, row_b, row_c],
+            horizon_start=H0,
+            horizon_end=H0 + timedelta(days=3),
+            policy_map=load_series_policies_for_owner(db, owner.id),
+        )
+        assert trust.ok is False
+        assert any(item.event_id == ext_c for item in trust.blocking_diagnostics)
+        db.rollback()
+    finally:
+        db.close()
+        if path is not None:
+            Path(path).unlink(missing_ok=True)
+
+
+def test_simulated_window_outside_pending_retains_latch(
+    db_session: Session,
+) -> None:
+    """Simulated sequential single session — not a concurrent DB race.
+
+    Authoritative pending includes a sibling outside the queried window.
+    Acking only the in-window occurrence keeps the latch and the outside row.
+    """
+    owner, _settings = _owner(db_session)
+    path = _allowlist_file(owner.id)
+    try:
+        account = _account(db_session, owner)
+        sub = _sub(db_session, account)
+        series = f"window-{uuid.uuid4().hex[:12]}"
+        inside = _event(
+            db_session,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=f"win-in-{uuid.uuid4().hex}",
+            series_id=series,
+            pending=True,
+            start=H0,
+            end=H0 + timedelta(hours=1),
+        )
+        outside_start = H0 + timedelta(days=30)
+        outside = _event(
+            db_session,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=f"win-out-{uuid.uuid4().hex}",
+            series_id=series,
+            pending=True,
+            start=outside_start,
+            end=outside_start + timedelta(hours=1),
+        )
+        policy = FreeBusySeriesPolicy(
+            owner_id=owner.id,
+            provider=CalendarProvider.google,
+            calendar_id=sub.external_calendar_id,
+            provider_series_id=series,
+            mapping="free",
+            conflict_pending_latched=True,
+            latch_generation=4,
+        )
+        db_session.add(policy)
+        db_session.flush()
+
+        window_start = H0
+        window_end = H0 + timedelta(days=1)
+        in_window = (
+            db_session.query(ExternalCalendarEvent)
+            .filter(
+                ExternalCalendarEvent.owner_id == owner.id,
+                ExternalCalendarEvent.provider_series_id == series,
+                ExternalCalendarEvent.start_time < window_end,
+                ExternalCalendarEvent.end_time > window_start,
+            )
+            .all()
+        )
+        assert {row.external_event_id for row in in_window} == {inside.external_event_id}
+        authoritative = authoritative_pending_events(
+            db_session,
+            owner_id=owner.id,
+            provider=inside.provider,
+            calendar_id=sub.external_calendar_id,
+            provider_series_id=series,
+        )
+        assert {row.external_event_id for row in authoritative} == {
+            inside.external_event_id,
+            outside.external_event_id,
+        }
+
+        resolve_series_policy(
+            db_session,
+            user=owner,
+            body=ResolveSeriesPolicyRequest(
+                external_event_id=inside.external_event_id,
+                conflict_acknowledgments=(
+                    ConflictAcknowledgment(
+                        inside.external_event_id,
+                        _revision(owner, sub, series, inside, latch=4),
+                    ),
+                ),
+                reason="window-visible only",
+            ),
+            allowlist_path=path,
+        )
+        db_session.refresh(inside)
+        db_session.refresh(outside)
+        db_session.refresh(policy)
+        assert inside.free_busy_pending_exception is False
+        assert outside.free_busy_pending_exception is True
+        assert policy.conflict_pending_latched is True
+        trust = evaluate_busy_input_trust(
+            [inside, outside],
+            horizon_start=window_start,
+            horizon_end=window_end,
+            policy_map=load_series_policies_for_owner(db_session, owner.id),
+        )
+        assert trust.ok is False
+        assert any(item.event_id == outside.external_event_id for item in trust.blocking_diagnostics)
+    finally:
+        Path(path).unlink(missing_ok=True)
