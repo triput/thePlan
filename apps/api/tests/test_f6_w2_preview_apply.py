@@ -13,11 +13,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.api.errors import ApiError
 from app.api.routes import projects as project_routes
 from app.bootstrap import BOOTSTRAP_USER_ID
 from app.config import get_settings
 from app.db import SessionLocal
 from app.models import (
+    AvailabilityPolicy,
+    AvailabilityWindow,
     CalendarAccount,
     CalendarSubscription,
     Epic,
@@ -31,12 +34,22 @@ from app.models import (
     UserSettings,
 )
 from app.schemas import ProjectUpdate
-from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
+from app.models.enums import (
+    AvailabilityPolicySlug,
+    CalendarProvider,
+    CalendarSubscriptionRole,
+    ScheduleStyle,
+)
 from app.scheduler.preview import run_preview
 from app.scheduler.replan import run_replan
 from app.services import microsoft_calendar as ms_cal
 from app.scheduler.preview_planning import PREVIEW_PLANNING_LEAD_SECONDS, preview_collection_time
 from app.scheduler.preview_inputs import live_owner_fingerprint
+from app.services.availability_seed import (
+    derive_window_end,
+    ensure_default_availability_policies,
+)
+from app.services.microsoft_series_identity import SERIES_IDENTITY_VERIFIED_NON_RECURRING
 from app.services.schedule_previews import summarize_diff
 from app.services.schedule_preview_apply import apply_schedule_preview
 from app.services.scheduling_revision import (
@@ -244,9 +257,13 @@ def test_f6_c_apply_rejects_stale_inputs_without_domain_writes(
     before = _block_set(db_session, owner_id)
     rev_before = _revision(db_session, owner_id)
 
+    # Original estimate is immutable post-S1; duration stale uses remaining.
     patch = client.patch(
         f"/api/v1/tasks/{task['id']}",
-        json={"estimated_duration_minutes": 90},
+        json={
+            "remaining_estimate_minutes": 90,
+            "expected_revision": rev_before,
+        },
     )
     assert patch.status_code == 200, patch.text
     assert _revision(db_session, owner_id) == rev_before + 1
@@ -321,6 +338,8 @@ def test_t1b_eastern_source_zone_bounds_constrain_proposal_and_survive_apply(
             last_synced_at=FIXED_NOW,
             transparency="opaque",
             free_busy_provenance="provider_explicit",
+            # T1-4-MS server_default is incomplete; ORM inserts must set verified.
+            series_identity_state=SERIES_IDENTITY_VERIFIED_NON_RECURRING,
             source_zone_missing=False,
             source_timezone=None,
         )
@@ -340,6 +359,7 @@ def test_t1b_eastern_source_zone_bounds_constrain_proposal_and_survive_apply(
             last_synced_at=FIXED_NOW,
             transparency="opaque",
             free_busy_provenance="provider_explicit",
+            series_identity_state=SERIES_IDENTITY_VERIFIED_NON_RECURRING,
             source_zone_missing=False,
             source_timezone="America/New_York",
         )
@@ -922,7 +942,9 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     assert upserted == 1
     db_session.flush()
 
-    # Fresh session on the fixture connection (savepoint-durable; not a second TCP txn).
+    # Savepoint Session on the *same* fixture connection — flush-visible only.
+    # Not a separate-TCP committed readback; that probe is
+    # test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection.
     fresh = Session(bind=db_session.connection(), join_transaction_mode="create_savepoint")
     try:
         row = (
@@ -963,6 +985,160 @@ def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
     still = client.get(f"/api/v1/schedule/previews/{preview['id']}")
     assert still.status_code == 200, still.text
     assert still.json()["status"] == "ready"
+
+
+def test_t1_stale_preview_ms_sync_unknown_trust_committed_cross_connection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """§5.1 committed separate-connection evidence (distinct from savepoint Session).
+
+    Disposable owner is COMMITTED so a second TCP SessionLocal() can read sync
+    persistence and post-Apply preview status. Complements the transactional
+    fixture test which only proves flush/savepoint visibility on one connection.
+    """
+    _patch_schedule_clock(monkeypatch)
+    _purge_t1_stale_commit_users()
+    owner_id, preview_id = _commit_t1_stale_sync_probe_owner()
+    calendar_id = f"cal-t1-stale-{_uid()}"
+    external_id = f"evt-unk-commit-{_uid()}"
+    event = {
+        "id": external_id,
+        "type": "singleInstance",
+        "subject": "Ambiguous free/busy",
+        "showAs": "unknown",
+        "start": {"dateTime": "2026-10-09T18:00:00", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-09T19:00:00", "timeZone": "UTC"},
+    }
+    monkeypatch.setattr(
+        ms_cal,
+        "get_valid_access_token",
+        lambda db, *, settings, account: "tok",
+    )
+    monkeypatch.setattr(ms_cal, "list_calendar_view", lambda *a, **k: [event])
+
+    try:
+        # Ready preview first (no enabled calendars → no CalendarFreshness gate).
+        run_preview(preview_id)
+        seed = SessionLocal()
+        try:
+            stored = seed.get(SchedulePreview, preview_id)
+            assert stored is not None and stored.status == "ready", getattr(
+                stored, "error_message", None
+            )
+            proposal = stored.proposal_json or {}
+            assert proposal.get("proposed_blocks"), proposal
+            fp_before = stored.input_fingerprint
+            rev_before = int(stored.scheduling_revision)
+            before_busy = immovable_busy_signature(seed, owner_id)
+            before_blocks = (
+                seed.query(ScheduledBlock)
+                .filter(ScheduledBlock.owner_id == owner_id)
+                .count()
+            )
+            runs_before = (
+                seed.query(ScheduleRun).filter(ScheduleRun.owner_id == owner_id).count()
+            )
+            # Attach MS account after ready — same order as the savepoint §5.1 test.
+            account = CalendarAccount(
+                owner_id=owner_id,
+                provider=CalendarProvider.microsoft,
+                account_email=f"t1-stale-commit-{_uid()}@contoso.test",
+                is_enabled=True,
+                mirror_blocks=False,
+            )
+            seed.add(account)
+            seed.flush()
+            seed.add(
+                CalendarSubscription(
+                    owner_id=owner_id,
+                    calendar_account_id=account.id,
+                    external_calendar_id=calendar_id,
+                    summary="Calendar",
+                    role=CalendarSubscriptionRole.primary,
+                    is_enabled=True,
+                )
+            )
+            seed.flush()
+            upserted = ms_cal.sync_account_events(
+                seed,
+                settings=get_settings(),
+                account=account,
+                time_min=FIXED_NOW - timedelta(days=1),
+                time_max=FIXED_NOW + timedelta(days=7),
+            )
+            assert upserted == 1
+            seed.commit()
+        except Exception:
+            seed.rollback()
+            raise
+        finally:
+            seed.close()
+
+        # Separate-connection readback after COMMIT (not create_savepoint).
+        readback = SessionLocal()
+        try:
+            row = (
+                readback.query(ExternalCalendarEvent)
+                .filter(
+                    ExternalCalendarEvent.owner_id == owner_id,
+                    ExternalCalendarEvent.external_event_id == external_id,
+                )
+                .one()
+            )
+            assert row.transparency is None
+            assert row.free_busy_provenance == "provider_explicit"
+            assert row.series_identity_state == SERIES_IDENTITY_VERIFIED_NON_RECURRING
+            assert row.calendar_id == calendar_id
+            assert immovable_busy_signature(readback, owner_id) == before_busy
+            assert _revision(readback, owner_id) == rev_before
+            preview_row = readback.get(SchedulePreview, preview_id)
+            assert preview_row is not None
+            assert preview_row.status == "ready"
+            assert preview_row.input_fingerprint == fp_before
+            assert int(preview_row.scheduling_revision) == rev_before
+            _, live_fp = live_owner_fingerprint(readback, owner_id, FIXED_NOW)
+            assert live_fp == fp_before
+        finally:
+            readback.close()
+
+        apply_db = SessionLocal()
+        try:
+            user = apply_db.get(User, owner_id)
+            preview_row = apply_db.get(SchedulePreview, preview_id)
+            assert user is not None and preview_row is not None
+            with pytest.raises(ApiError) as rejected:
+                apply_schedule_preview(apply_db, user, preview_row)
+            assert rejected.value.status_code == 409
+            assert rejected.value.content["code"] == "BUSY_INPUT_TRUST"
+            trust = rejected.value.content["busy_input_trust"]
+            assert isinstance(trust, dict)
+            assert trust["ok"] is False
+            assert trust["blocking_diagnostics"]
+            apply_db.rollback()
+        finally:
+            apply_db.close()
+
+        # Post-reject preview status on yet another connection.
+        after = SessionLocal()
+        try:
+            preview_row = after.get(SchedulePreview, preview_id)
+            assert preview_row is not None
+            assert preview_row.status == "ready"
+            assert (
+                after.query(ScheduledBlock)
+                .filter(ScheduledBlock.owner_id == owner_id)
+                .count()
+                == before_blocks
+            )
+            assert (
+                after.query(ScheduleRun).filter(ScheduleRun.owner_id == owner_id).count()
+                == runs_before
+            )
+            assert _revision(after, owner_id) == rev_before
+        finally:
+            after.close()
+    finally:
+        _purge_t1_stale_commit_users()
 
 
 def test_f6_d_provider_failure_does_not_replay_local_apply(
@@ -1274,16 +1450,51 @@ def test_recurrence_due_fill_stales_ready_preview(
 
 
 _LOCK_PROBE_EMAIL_LIKE = "renee-f6-lock-%@example.com"
+_T1_STALE_COMMIT_EMAIL_LIKE = "renee-t1-stale-%@example.com"
 
 
-def _purge_lock_probe_users() -> None:
-    """Remove committed throwaway owners. The transactional fixture cannot host two sessions."""
+def _seed_always_on_availability(db: Session, owner_id: uuid.UUID) -> None:
+    """Restore retired workweek_days=7 / workday_minutes=1440 via availability windows.
+
+    S2-V3 placer reads availability policies, not UserSettings workday_* columns.
+    """
+    ensure_default_availability_policies(db, owner_id)
+    start = time_of_day(0, 0)
+    end, overnight = derive_window_end(start, 1440)
+    for slug in (AvailabilityPolicySlug.work.value, AvailabilityPolicySlug.general.value):
+        policy = (
+            db.query(AvailabilityPolicy)
+            .filter(
+                AvailabilityPolicy.owner_id == owner_id,
+                AvailabilityPolicy.slug == slug,
+            )
+            .one()
+        )
+        policy.windows.clear()
+        db.flush()
+        for weekday in range(7):
+            policy.windows.append(
+                AvailabilityWindow(
+                    owner_id=owner_id,
+                    weekday=weekday,
+                    start_time=start,
+                    end_time=end,
+                    ends_next_day=overnight,
+                    duration_minutes=1440,
+                    sort_order=0,
+                )
+            )
+    db.flush()
+
+
+def _purge_users_by_email_like(pattern: str) -> None:
+    """Remove committed throwaway owners visible to SessionLocal()."""
     db = SessionLocal()
     try:
         db.execute(text("SET LOCAL lock_timeout = '3s'"))
         db.execute(
             text("DELETE FROM users WHERE email LIKE :pattern"),
-            {"pattern": _LOCK_PROBE_EMAIL_LIKE},
+            {"pattern": pattern},
         )
         db.commit()
     except Exception:
@@ -1291,6 +1502,15 @@ def _purge_lock_probe_users() -> None:
         raise
     finally:
         db.close()
+
+
+def _purge_lock_probe_users() -> None:
+    """Remove committed throwaway owners. The transactional fixture cannot host two sessions."""
+    _purge_users_by_email_like(_LOCK_PROBE_EMAIL_LIKE)
+
+
+def _purge_t1_stale_commit_users() -> None:
+    _purge_users_by_email_like(_T1_STALE_COMMIT_EMAIL_LIKE)
 
 
 def _commit_lock_probe_owner() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID]:
@@ -1314,15 +1534,13 @@ def _commit_lock_probe_owner() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID]:
             UserSettings(
                 owner_id=user.id,
                 timezone="UTC",
-                workday_minutes=1440,
-                workday_start_local=time_of_day(0, 0),
-                workweek_days=7,
                 inter_block_buffer_minutes=0,
                 upcoming_horizon_days=7,
                 default_schedule_style=ScheduleStyle.standalone,
                 scheduling_revision=0,
             )
         )
+        _seed_always_on_availability(db, user.id)
         project = Project(owner_id=user.id, title=f"renee-f6-lock-{token}")
         db.add(project)
         db.flush()
@@ -1368,15 +1586,13 @@ def _commit_reparent_probe_owner() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, uui
             UserSettings(
                 owner_id=user.id,
                 timezone="UTC",
-                workday_minutes=1440,
-                workday_start_local=time_of_day(0, 0),
-                workweek_days=7,
                 inter_block_buffer_minutes=0,
                 upcoming_horizon_days=7,
                 default_schedule_style=ScheduleStyle.standalone,
                 scheduling_revision=0,
             )
         )
+        _seed_always_on_availability(db, user.id)
         epic = Epic(
             owner_id=user.id,
             title=f"renee-f6-manual-{token}",
@@ -1392,12 +1608,65 @@ def _commit_reparent_probe_owner() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, uui
                 project_id=project.id,
                 title=f"renee-f6-reparent-task-{token}",
                 estimated_duration_minutes=60,
+                schedule_style=ScheduleStyle.standalone,
             )
         )
         preview = SchedulePreview(owner_id=user.id, status="running")
         db.add(preview)
         db.commit()
         return user.id, project.id, preview.id, epic.id
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def _commit_t1_stale_sync_probe_owner() -> tuple[uuid.UUID, uuid.UUID]:
+    """Committed disposable owner+preview; MS account attached after ready (freshness)."""
+    token = uuid.uuid4().hex[:12]
+    db = SessionLocal()
+    try:
+        user = User(
+            email=f"renee-t1-stale-{token}@example.com",
+            username=f"renee-t1-stale-{token}",
+            display_name="Renee T1 stale commit probe",
+            is_admin=False,
+            is_disabled=False,
+            must_change_password=False,
+            session_epoch=0,
+        )
+        db.add(user)
+        db.flush()
+        if owner_scheduling_lock_key(user.id) == owner_scheduling_lock_key(BOOTSTRAP_USER_ID):
+            raise RuntimeError("probe owner collided with the bootstrap scheduling lock key")
+        db.add(
+            UserSettings(
+                owner_id=user.id,
+                timezone="UTC",
+                inter_block_buffer_minutes=0,
+                upcoming_horizon_days=7,
+                default_schedule_style=ScheduleStyle.standalone,
+                scheduling_revision=0,
+            )
+        )
+        _seed_always_on_availability(db, user.id)
+        project = Project(owner_id=user.id, title=f"renee-t1-stale-{token}")
+        db.add(project)
+        db.flush()
+        db.add(
+            Task(
+                owner_id=user.id,
+                project_id=project.id,
+                title=f"renee-t1-stale-task-{token}",
+                estimated_duration_minutes=60,
+                schedule_style=ScheduleStyle.standalone,
+            )
+        )
+        preview = SchedulePreview(owner_id=user.id, status="running")
+        db.add(preview)
+        db.commit()
+        return user.id, preview.id
     except Exception:
         db.rollback()
         raise
