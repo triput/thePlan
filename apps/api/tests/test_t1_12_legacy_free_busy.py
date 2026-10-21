@@ -1,6 +1,7 @@
 """T1-12 evidence — legacy null/null free/busy on production sync path (L1–L3, L-MS1).
 
-Grounding checkout at implementation start: feature/0.7-s2-cutover @ dc0701d.
+Implementation start (Cabinet checkpoint): feature/0.7-s2-cutover @ 4b2660b.
+Verified ancestry gate (_T1_12_START_SHA): dc0701d — older accepted ancestor @ tip.
 Dex unlock 2026-10-20: L1+L2+L3+L-MS1 mandatory; real sync_account_events only;
 NULL storage until upsert; L2 bounded skip + collect trust + later resolve step.
 Disposable Postgres only (T1A_REQUIRE_DISPOSABLE_DSN=1); provider HTTP mocked.
@@ -48,6 +49,7 @@ _FERNET = __import__("cryptography.fernet", fromlist=["Fernet"]).Fernet.generate
 )
 _NOW = datetime(2026, 10, 20, 16, 0, tzinfo=UTC)
 _LEGACY_EVENT_ID = "evt-legacy-k8s-1"
+_LEGACY_SEED_TITLE = "Pre-034 legacy cache"
 # Test-local observation only (Track-1-Contracts §4.1); not a provider guarantee.
 _NOT_IN_BATCH_STATUS = "not_in_provider_batch"
 
@@ -187,7 +189,7 @@ def _seed_legacy_row(
         provider=provider,
         external_event_id=external_id,
         calendar_id=calendar_id,
-        title="Pre-034 legacy cache",
+        title=_LEGACY_SEED_TITLE,
         start_time=start,
         end_time=end,
         is_all_day=False,
@@ -230,7 +232,7 @@ def _g_event_body(
 ) -> dict[str, Any]:
     body: dict[str, Any] = {
         "id": external_id,
-        "summary": "Legacy revisit",
+        "summary": _LEGACY_SEED_TITLE,
         "status": "confirmed",
         "start": {"dateTime": start.astimezone(UTC).isoformat().replace("+00:00", "Z")},
         "end": {"dateTime": end.astimezone(UTC).isoformat().replace("+00:00", "Z")},
@@ -277,6 +279,20 @@ def _captured_unchanged_metadata(external_event_id: str) -> list[dict[str, str]]
     return [{"external_event_id": external_event_id, "status": _NOT_IN_BATCH_STATUS}]
 
 
+def _assert_row_identity_unchanged(
+    row: ExternalCalendarEvent,
+    *,
+    external_id: str,
+    title: str,
+    start: datetime,
+    end: datetime,
+) -> None:
+    assert row.external_event_id == external_id
+    assert row.title == title
+    assert row.start_time == start
+    assert row.end_time == end
+
+
 @pytest.mark.parametrize(
     ("transparency", "expected_kind"),
     [("opaque", "busy"), ("transparent", "free")],
@@ -300,6 +316,7 @@ def test_l1_legacy_null_resolved_on_full_fetch(
         db_session, owner=owner, account=account, calendar_id=calendar_id
     )
     start, end = row.start_time, row.end_time
+    seed_title = row.title
     assert row.transparency is None and row.free_busy_provenance is None
 
     def _full_list(*_a: Any, **_k: Any) -> tuple[list[dict[str, Any]], str, int]:
@@ -335,10 +352,22 @@ def test_l1_legacy_null_resolved_on_full_fetch(
     assert history[0]["from_provenance"] is None
     assert history[0]["to_transparency"] == transparency
     assert history[0]["to_provenance"] == "provider_explicit"
+    _assert_row_identity_unchanged(
+        row,
+        external_id=_LEGACY_EVENT_ID,
+        title=seed_title,
+        start=start,
+        end=end,
+    )
+    assert seed_title == _LEGACY_SEED_TITLE
 
     trust = _trust_for_row(db_session, owner, settings, row)
     assert trust.ok is True
-    assert expected_kind in ("busy", "free")
+    merged = events_for_busy_merge([row])
+    if expected_kind == "busy":
+        assert merged == [row]
+    else:
+        assert merged == []
 
 
 def test_l2_incremental_skip_then_resolves_on_fetch(
@@ -356,6 +385,7 @@ def test_l2_incremental_skip_then_resolves_on_fetch(
         db_session, owner=owner, account=account, calendar_id=calendar_id
     )
     start, end = row.start_time, row.end_time
+    seed_title = row.title
     time_min, time_max = _sync_window()
     _mint_incremental_ready(sub, window_start=time_min, window_end=time_max)
     prior_sync_run = row.free_busy_sync_run_id
@@ -394,6 +424,13 @@ def test_l2_incremental_skip_then_resolves_on_fetch(
     assert row.free_busy_provenance is None
     assert row.free_busy_sync_run_id == prior_sync_run
     assert row.last_synced_at == prior_last_synced
+    _assert_row_identity_unchanged(
+        row,
+        external_id=_LEGACY_EVENT_ID,
+        title=seed_title,
+        start=start,
+        end=end,
+    )
     assert sub.coverage_success_at is not None
     assert sub.coverage_success_at >= prior_coverage_success
     assert sub.coverage_mode == "incremental"
@@ -437,8 +474,16 @@ def test_l2_incremental_skip_then_resolves_on_fetch(
     assert row.transparency == "opaque"
     assert row.free_busy_provenance == "provider_explicit"
     assert row.free_busy_sync_run_id is not None
+    _assert_row_identity_unchanged(
+        row,
+        external_id=_LEGACY_EVENT_ID,
+        title=seed_title,
+        start=start,
+        end=end,
+    )
     trust_after = _trust_for_row(db_session, owner, settings, row)
     assert trust_after.ok is True
+    assert events_for_busy_merge([row]) == [row]
     inputs_after = collect_inputs(db_session, owner.id, _NOW)
     require_busy_input_trust(inputs_after.busy_input_trust)
 
@@ -493,9 +538,20 @@ def test_l3_omitted_transparency_distinct_from_legacy_null(
     assert len(events_for_busy_merge([row])) == 1
 
 
+@pytest.mark.parametrize(
+    ("show_as", "expected_transparency", "expected_kind"),
+    [
+        ("busy", "opaque", "busy"),
+        ("free", "transparent", "free"),
+    ],
+    ids=["showAs-busy", "showAs-free"],
+)
 def test_l_ms1_legacy_null_resolved_on_ms_view_sync(
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
+    show_as: str,
+    expected_transparency: str,
+    expected_kind: str,
 ) -> None:
     """L-MS1: legacy null/null resolved via Microsoft calendarView sync (actual view path)."""
     _patch_ms_clock(monkeypatch, _NOW)
@@ -515,14 +571,15 @@ def test_l_ms1_legacy_null_resolved_on_ms_view_sync(
         provider=CalendarProvider.microsoft,
     )
     start, end = row.start_time, row.end_time
+    seed_title = row.title
 
     def _view(*_a: Any, **_k: Any) -> tuple[list[dict[str, Any]], int, bool]:
         return (
             [
                 {
                     "id": ms_external,
-                    "subject": "MS legacy",
-                    "showAs": "busy",
+                    "subject": _LEGACY_SEED_TITLE,
+                    "showAs": show_as,
                     "start": {
                         "dateTime": start.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S"),
                         "timeZone": "UTC",
@@ -555,15 +612,29 @@ def test_l_ms1_legacy_null_resolved_on_ms_view_sync(
     assert upserted == 1
     sub = _sub(db_session, account)
     assert sub.coverage_mode == "ms_view"
-    assert row.transparency == "opaque"
+    assert row.transparency == expected_transparency
     assert row.free_busy_provenance == "provider_explicit"
     assert row.free_busy_provenance != "unknown_legacy"
     history = row.free_busy_change_history or []
     assert len(history) == 1
     assert history[0]["from_transparency"] is None
     assert history[0]["from_provenance"] is None
+    assert history[0]["to_transparency"] == expected_transparency
+    assert history[0]["to_provenance"] == "provider_explicit"
+    _assert_row_identity_unchanged(
+        row,
+        external_id=ms_external,
+        title=seed_title,
+        start=start,
+        end=end,
+    )
     trust = _trust_for_row(db_session, owner, settings, row)
     assert trust.ok is True
+    merged = events_for_busy_merge([row])
+    if expected_kind == "busy":
+        assert merged == [row]
+    else:
+        assert merged == []
 
 
 def _patch_ms_clock(monkeypatch: pytest.MonkeyPatch, fixed: datetime) -> None:
