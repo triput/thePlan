@@ -919,8 +919,9 @@ def test_unit_google_identity_drift_advisory_lock_keys_sorted(
 def test_real_concurrent_google_post_lock_identity_drift_replays_ingest() -> None:
     """Mover holds the identity lock with an uncommitted series change; ingest waits.
 
-    Real concurrent sessions. Drift rejects the first transaction; a fresh session
-    replays the provider payload after the mover commits.
+    Two sessions: the mover, and the ingest. Drift rejects the ingest transaction.
+    Replay is ``rollback`` then a new transaction on that same ingest Session,
+    not a second ``SessionLocal``, after the mover commits.
     """
     series_old = f"drift-old-{uuid.uuid4().hex[:8]}"
     series_new = f"drift-new-{uuid.uuid4().hex[:8]}"
@@ -1035,7 +1036,7 @@ def test_real_concurrent_google_post_lock_identity_drift_replays_ingest() -> Non
                 sync_run_id="drift-replay",
             )
             if not ok:
-                raise AssertionError("fresh-session replay upsert returned false")
+                raise AssertionError("same-session replay upsert returned false")
             db.commit()
         except BaseException as exc:
             errors.append(exc)
@@ -1085,7 +1086,11 @@ def test_google_apply_post_lock_identity_drift_fails_refresh_without_cursor_cred
     db_session: Session,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Post-lock drift via _apply_subscription_incremental: rollback boundary, no cursor credit."""
+    """Incremental apply of the failing event only, then expire/reload here.
+
+    Does not call ``sync_account_events`` and does not include an earlier
+    successful upsert, so it cannot show that write rolling back.
+    """
     import app.services.free_busy_series_policy as fbp
 
     series_live = f"ex-live-{uuid.uuid4().hex[:8]}"
@@ -1158,6 +1163,286 @@ def test_google_apply_post_lock_identity_drift_fails_refresh_without_cursor_cred
     assert fresh_row.free_busy_pending_exception is False
     assert fresh_sub.sync_cursor == prior_cursor
     assert fresh_sub.sync_cursor != "cursor-must-not-stick"
+
+
+@pytest.mark.parametrize("mode", ["full", "incremental"])
+def test_google_outer_refresh_rolls_back_prior_upsert_on_post_lock_drift(
+    mode: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Mocked provider through ``sync_account_events``. No live Google calls.
+
+    Event A upserts inside the refresh savepoint (transparency is visible on
+    that Session). Event B then raises post-lock identity drift. The outer
+    handler rolls the savepoints back and commits failure trust autonomously.
+
+    A new ``SessionLocal`` sees A and B still opaque, the pre-refresh cursor,
+    and the apply-failure cause blocking freshness. Replay is another
+    ``SessionLocal``. The failure marker cleared the coverage window, so that
+    replay pulls the full list for both parameters.
+    """
+    import app.services.free_busy_series_policy as fbp
+    import app.services.google_calendar as gcal
+    from app.config import Settings
+    from app.scheduler.calendar_freshness import (
+        evaluate_calendar_freshness,
+        required_coverage_window,
+    )
+
+    token = uuid.uuid4().hex[:8]
+    ext_a = f"roll-a-{token}"
+    ext_b = f"roll-b-{token}"
+    series_a = f"series-a-{token}"
+    series_b = f"series-b-{token}"
+    cal_id = f"cal-roll-{token}"
+    prior_cursor = f"cursor-before-{token}" if mode == "incremental" else None
+    failed_cursor = f"cursor-must-not-stick-{token}"
+    replay_cursor = f"cursor-replay-{token}"
+    expected_cause = (
+        "google_apply_full_failed" if mode == "full" else "google_apply_incremental_failed"
+    )
+
+    owner_id: UUID | None = None
+    seed = SessionLocal()
+    try:
+        owner, user_settings = _owner(seed)
+        account = _account(seed, owner)
+        sub = _sub(seed, account, cal_id=cal_id)
+        gate_now = datetime.now(UTC)
+        req_start, req_end = required_coverage_window(user_settings, gate_now)
+        sub.coverage_window_start = req_start - timedelta(hours=2)
+        sub.coverage_window_end = req_end + timedelta(hours=2)
+        sub.coverage_mode = "full"
+        sub.coverage_success_at = gate_now - timedelta(minutes=1)
+        sub.coverage_fetched_at = sub.coverage_success_at
+        sub.coverage_pagination_complete = True
+        sub.coverage_active_generation = 1
+        sub.coverage_success_generation = 1
+        sub.coverage_show_deleted = True
+        sub.coverage_single_events = True
+        sub.sync_cursor = prior_cursor
+        event_start = req_start + timedelta(hours=30)
+        event_end = event_start + timedelta(hours=1)
+        _event(
+            seed,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_a,
+            series_id=series_a,
+            transparency="opaque",
+            start=event_start,
+            end=event_end,
+        )
+        _event(
+            seed,
+            owner=owner,
+            account=account,
+            sub=sub,
+            external_id=ext_b,
+            series_id=series_b,
+            transparency="opaque",
+            start=event_start,
+            end=event_end,
+        )
+        seed.commit()
+        owner_id = owner.id
+        account_id = account.id
+        sub_id = sub.id
+    finally:
+        seed.close()
+
+    assert owner_id is not None
+
+    def _events() -> list[dict[str, object]]:
+        return [
+            _google_event(ext_a, series_a, "transparent", event_start, event_end),
+            _google_event(ext_b, series_b, "transparent", event_start, event_end),
+        ]
+
+    listed = {"full": 0, "incr": 0}
+    expect_list = {"mode": mode}
+
+    def _full(*_args: object, **_kwargs: object):
+        listed["full"] += 1
+        if expect_list["mode"] != "full":
+            raise AssertionError(f"full list called; expected {expect_list['mode']}")
+        return (_events(), expect_list["token"], 1)
+
+    def _incremental(*_args: object, **_kwargs: object):
+        listed["incr"] += 1
+        if expect_list["mode"] != "incremental":
+            raise AssertionError(
+                f"incremental list called; expected {expect_list['mode']}"
+            )
+        return (_events(), expect_list["token"], 1)
+
+    expect_list["token"] = failed_cursor
+    monkeypatch.setattr(gcal, "list_calendar_events", _full)
+    monkeypatch.setattr(gcal, "list_calendar_events_incremental", _incremental)
+    monkeypatch.setattr(gcal, "get_valid_access_token", lambda *_a, **_k: "synthetic-access")
+
+    def _no_live_delete(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("delete_google_event must not run in this test")
+
+    monkeypatch.setattr(gcal, "delete_google_event", _no_live_delete)
+
+    real_key = fbp.identity_key_from_row
+    stale_calls = {"n": 0}
+
+    def _stale_pre_lock_for_b(event_row: ExternalCalendarEvent):
+        key = real_key(event_row)
+        if (
+            event_row.external_event_id == ext_b
+            and stale_calls["n"] == 0
+            and key is not None
+        ):
+            stale_calls["n"] += 1
+            return (key[0], key[1], key[2], f"stale-{token}")
+        return key
+
+    monkeypatch.setattr(fbp, "identity_key_from_row", _stale_pre_lock_for_b)
+
+    real_upsert = gcal._upsert_external_event
+    upsert_order: list[str] = []
+    saw_uncommitted_a = {"ok": False}
+
+    def _spy_upsert(
+        db: Session,
+        *,
+        account: CalendarAccount,
+        subscription: CalendarSubscription,
+        event: dict[str, object],
+        now: datetime,
+        sync_run_id: str,
+    ) -> bool:
+        ok = real_upsert(
+            db,
+            account=account,
+            subscription=subscription,
+            event=event,  # type: ignore[arg-type]
+            now=now,
+            sync_run_id=sync_run_id,
+        )
+        external_id = str(event["id"])
+        upsert_order.append(external_id)
+        if external_id == ext_a:
+            flushed = _event_by_external_id(db, ext_a)
+            assert flushed.transparency == "transparent"
+            saw_uncommitted_a["ok"] = True
+        return ok
+
+    monkeypatch.setattr(gcal, "_upsert_external_event", _spy_upsert)
+    sync_settings = Settings()
+
+    try:
+        caller = SessionLocal()
+        try:
+            account = caller.get(CalendarAccount, account_id)
+            assert account is not None
+            with pytest.raises(GoogleUpsertPostLockIdentityDriftError):
+                gcal.sync_account_events(
+                    caller,
+                    settings=sync_settings,
+                    account=account,
+                    time_min=req_start,
+                    time_max=req_end,
+                )
+        finally:
+            caller.rollback()
+            caller.close()
+
+        assert saw_uncommitted_a["ok"] is True
+        assert upsert_order == [ext_a]
+        assert stale_calls["n"] == 1
+        assert listed["full"] == (1 if mode == "full" else 0)
+        assert listed["incr"] == (1 if mode == "incremental" else 0)
+
+        verify = SessionLocal()
+        try:
+            row_a = _event_by_external_id(verify, ext_a)
+            row_b = _event_by_external_id(verify, ext_b)
+            fresh_sub = verify.get(CalendarSubscription, sub_id)
+            assert fresh_sub is not None
+            assert row_a.transparency == "opaque"
+            assert row_a.provider_series_id == series_a
+            assert row_a.free_busy_pending_exception is False
+            assert not row_a.free_busy_change_history
+            assert row_b.transparency == "opaque"
+            assert row_b.provider_series_id == series_b
+            assert row_b.free_busy_pending_exception is False
+            assert fresh_sub.sync_cursor == prior_cursor
+            assert fresh_sub.sync_cursor != failed_cursor
+            assert fresh_sub.coverage_last_failure_cause == expected_cause
+            assert fresh_sub.coverage_success_at is None
+            assert fresh_sub.coverage_window_start is None
+            assert fresh_sub.coverage_window_end is None
+            owner = verify.get(User, owner_id)
+            settings_row = (
+                verify.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+            )
+            assert owner is not None
+            trust = evaluate_calendar_freshness(verify, owner.id, settings_row, gate_now)
+            causes = {item.cause for item in trust.blocking_diagnostics}
+            assert trust.ok is False
+            assert expected_cause in causes, causes
+        finally:
+            verify.close()
+
+        monkeypatch.setattr(fbp, "identity_key_from_row", real_key)
+        upsert_order.clear()
+        fail_full = listed["full"]
+        fail_incr = listed["incr"]
+        expect_list["mode"] = "full"
+        expect_list["token"] = replay_cursor
+
+        replay = SessionLocal()
+        try:
+            account = replay.get(CalendarAccount, account_id)
+            assert account is not None
+            upserted = gcal.sync_account_events(
+                replay,
+                settings=sync_settings,
+                account=account,
+                time_min=req_start,
+                time_max=req_end,
+            )
+            assert upserted == 2
+            replay.commit()
+        finally:
+            replay.close()
+
+        assert upsert_order == [ext_a, ext_b]
+        assert listed["full"] == fail_full + 1
+        assert listed["incr"] == fail_incr
+
+        after = SessionLocal()
+        try:
+            row_a = _event_by_external_id(after, ext_a)
+            row_b = _event_by_external_id(after, ext_b)
+            fresh_sub = after.get(CalendarSubscription, sub_id)
+            assert fresh_sub is not None
+            assert row_a.transparency == "transparent"
+            assert row_b.transparency == "transparent"
+            assert fresh_sub.sync_cursor == replay_cursor
+            assert fresh_sub.coverage_last_failure_cause is None
+            owner = after.get(User, owner_id)
+            settings_row = (
+                after.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+            )
+            assert owner is not None
+            trust = evaluate_calendar_freshness(after, owner.id, settings_row, gate_now)
+            causes = {item.cause for item in trust.blocking_diagnostics}
+            assert trust.ok is True, causes
+        finally:
+            after.close()
+    finally:
+        cleanup = SessionLocal()
+        try:
+            cleanup.query(User).filter(User.id == owner_id).delete(synchronize_session=False)
+            cleanup.commit()
+        finally:
+            cleanup.close()
 
 
 def test_source_zone_trust_change_invalidates_conflict_revision(
