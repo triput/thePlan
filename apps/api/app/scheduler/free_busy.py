@@ -78,6 +78,7 @@ class FreeBusyDiagnostic:
     affected_horizon: str
     provenance: str | None = None
     recovery: str | None = None
+    policy_conflict: dict[str, Any] | None = None
 
     def display_line(self) -> str:
         when = "unknown time"
@@ -100,6 +101,7 @@ class FreeBusyDiagnostic:
             "affected_horizon": self.affected_horizon,
             "provenance": self.provenance,
             **({"recovery": self.recovery} if self.recovery else {}),
+            **({"policy_conflict": self.policy_conflict} if self.policy_conflict else {}),
         }
 
 
@@ -151,10 +153,17 @@ def clear_exception_policies() -> None:
     _EXCEPTION_POLICIES.clear()
 
 
-def lookup_exception_policy(identity: ExceptionIdentity | None) -> FreeBusyKind | None:
+def lookup_exception_policy(
+    identity: ExceptionIdentity | None,
+    *,
+    policy_map: Mapping[tuple[str, str, str, str], FreeBusyKind] | None = None,
+) -> FreeBusyKind | None:
     if identity is None or not identity.series_id:
         return None
-    return _EXCEPTION_POLICIES.get(identity.key())
+    key = identity.key()
+    if policy_map is not None:
+        return policy_map.get(key)
+    return _EXCEPTION_POLICIES.get(key)
 
 
 def resolve_google_transparency(
@@ -231,17 +240,17 @@ def effective_free_busy_kind(
     provenance: str | None,
     identity: ExceptionIdentity | None = None,
     pending_exception: bool = False,
+    policy_map: Mapping[tuple[str, str, str, str], FreeBusyKind] | None = None,
 ) -> FreeBusyKind:
     if pending_exception:
         return "unknown"
-    policy = lookup_exception_policy(identity)
-    if policy is not None:
-        return policy
-
     if provenance in ("unknown_legacy", "unknown_projection", "unknown_missing") or (
         transparency is None and provenance is None
     ):
         return "unknown"
+    policy = lookup_exception_policy(identity, policy_map=policy_map)
+    if policy is not None:
+        return policy
     if transparency == "transparent":
         return "free"
     if transparency == "opaque":
@@ -302,6 +311,8 @@ def evaluate_busy_input_trust(
     horizon_start: datetime,
     horizon_end: datetime,
     calendar_name_by_id: Mapping[str, str] | None = None,
+    policy_map: Mapping[tuple[str, str, str, str], FreeBusyKind] | None = None,
+    policy_enrichment_by_event_id: Mapping[str, dict[str, Any]] | None = None,
 ) -> BusyInputTrust:
     """Build BusyInputTrust. Cannot prove non-intersection ⇒ ok=False."""
     names = calendar_name_by_id or {}
@@ -319,6 +330,7 @@ def evaluate_busy_input_trust(
             provenance=provenance,
             identity=identity,
             pending_exception=pending,
+            policy_map=policy_map,
         )
         start = getattr(event, "start_time", None)
         end = getattr(event, "end_time", None)
@@ -355,8 +367,28 @@ def evaluate_busy_input_trust(
             continue
 
         if pending:
-            # Pending policy: cannot treat as busy or free until resolved.
-            _block("pending_exception_policy", extent_unknown=True)
+            enrichment = (policy_enrichment_by_event_id or {}).get(str(eid))
+            cause = "pending_exception_policy"
+            recovery = None
+            if enrichment:
+                cause = str(enrichment.get("cause", cause))
+                recovery = enrichment.get("recovery")
+            blocking.append(
+                FreeBusyDiagnostic(
+                    cause=cause,
+                    calendar_name=cal_name,
+                    event_title=title,
+                    event_id=str(eid),
+                    start=start,
+                    end=end,
+                    blocking_current_proposal=True,
+                    affected_horizon="unknown_extent",
+                    provenance=provenance,
+                    recovery=recovery,
+                    policy_conflict=enrichment,
+                )
+            )
+            unknown_extent = True
             continue
 
         if kind in ("busy", "free"):
@@ -469,7 +501,11 @@ def format_cli_listing(trust: BusyInputTrust) -> str:
     return "\n".join(lines)
 
 
-def events_for_busy_merge(events: Sequence[Any]) -> list[Any]:
+def events_for_busy_merge(
+    events: Sequence[Any],
+    *,
+    policy_map: Mapping[tuple[str, str, str, str], FreeBusyKind] | None = None,
+) -> list[Any]:
     """Opaque/busy only. Unknowns are excluded from occupancy (trust blocks instead)."""
     out = []
     for event in events:
@@ -483,6 +519,7 @@ def events_for_busy_merge(events: Sequence[Any]) -> list[Any]:
             transparency=getattr(event, "transparency", None),
             provenance=getattr(event, "free_busy_provenance", None),
             identity=_event_identity(event),
+            policy_map=policy_map,
         )
         if kind == "busy":
             start = getattr(event, "start_time", None)

@@ -681,6 +681,30 @@ def _upsert_external_event(
     row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
     if row is not None and row.pending_deletion:
         return False
+
+    recurring = event.get("recurringEventId")
+    new_series = str(recurring) if recurring else None
+    old_cal = row.calendar_id if row is not None else None
+    old_series = row.provider_series_id if row is not None else None
+
+    from app.services.free_busy_series_policy import (
+        acquire_identity_advisory_locks,
+        apply_post_transparency_policy_effects,
+        google_upsert_identity_keys_for_lock,
+    )
+
+    lock_keys = google_upsert_identity_keys_for_lock(
+        row=row,
+        new_calendar_id=subscription.external_calendar_id,
+        new_series_id=new_series,
+        old_calendar_id=old_cal,
+        old_series_id=old_series,
+        owner_id=account.owner_id,
+    )
+    if lock_keys:
+        acquire_identity_advisory_locks(db, lock_keys)
+        row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
+
     if row is None:
         row = ExternalCalendarEvent(
             owner_id=account.owner_id,
@@ -692,9 +716,10 @@ def _upsert_external_event(
             end_time=times.end,
         )
         db.add(row)
+        db.flush()
 
-    old_cal = row.calendar_id
-    old_series = row.provider_series_id
+    old_cal = old_cal if old_cal is not None else row.calendar_id
+    old_series = old_series if old_series is not None else row.provider_series_id
     row.calendar_account_id = account.id
     row.title = (event.get("summary") or "Busy")[:500]
     row.start_time = times.start
@@ -711,8 +736,6 @@ def _upsert_external_event(
     apply_transparency_update(
         row, stored=stored, provenance=provenance, sync_run_id=sync_run_id
     )
-    recurring = event.get("recurringEventId")
-    new_series = str(recurring) if recurring else None
     # Calendar move, series id change, or series identity loss → pending (§3.4).
     if old_series and (
         old_series != new_series or old_cal != subscription.external_calendar_id
@@ -720,6 +743,14 @@ def _upsert_external_event(
         row.free_busy_pending_exception = True
     row.provider_series_id = new_series
     row.is_provider_cancelled = False
+    apply_post_transparency_policy_effects(
+        db,
+        row,
+        identity_keys=lock_keys,
+        old_calendar_id=old_cal,
+        old_series_id=old_series,
+    )
+    db.flush()
     return True
 
 

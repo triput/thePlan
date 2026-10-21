@@ -7,6 +7,11 @@ from app.models.calendar import (
     CalendarSubscriptionRefreshFailure,
     ExternalCalendarEvent,
 )
+from app.models.free_busy_policy import (
+    FreeBusyOccurrenceBaseline,
+    FreeBusySeriesPolicy,
+    FreeBusySeriesPolicyDecision,
+)
 from app.models.enums import (
     AvailabilityPolicySlug,
     CalendarProvider,
@@ -59,6 +64,9 @@ __all__ = [
     "CalendarSubscriptionRole",
     "Epic",
     "ExternalCalendarEvent",
+    "FreeBusyOccurrenceBaseline",
+    "FreeBusySeriesPolicy",
+    "FreeBusySeriesPolicyDecision",
     "FocusWindow",
     "HandoffReceipt",
     "Label",

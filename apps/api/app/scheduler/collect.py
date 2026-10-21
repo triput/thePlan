@@ -118,17 +118,32 @@ def collect_inputs(
 
     # One capture of immovable busy/pins for calculation + fingerprints.
     pinned_blocks, external_events = load_immovable_busy_sources(db, owner_id)
-    immovable_busy = busy_from_sources(pinned_blocks, external_events)
+    from app.services.free_busy_series_policy import (
+        load_series_policies_for_owner,
+        policy_diagnostic_enrichment,
+    )
+
+    policy_map = load_series_policies_for_owner(db, owner_id)
+    immovable_busy = busy_from_sources(pinned_blocks, external_events, policy_map=policy_map)
     busy = busy_from_sources(
         pinned_blocks,
         external_events,
         range_start=horizon_start,
         range_end=horizon_end,
+        policy_map=policy_map,
     )
+    enrichments = {
+        e.external_event_id: policy_diagnostic_enrichment(db, e, policy_map=policy_map)
+        for e in external_events
+        if e.free_busy_pending_exception
+    }
+    enrichments = {k: v for k, v in enrichments.items() if v}
     busy_input_trust = evaluate_busy_input_trust(
         external_events,
         horizon_start=horizon_start,
         horizon_end=horizon_end,
+        policy_map=policy_map,
+        policy_enrichment_by_event_id=enrichments,
     )
     calendar_freshness_trust = evaluate_calendar_freshness(
         db,

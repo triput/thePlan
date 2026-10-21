@@ -145,8 +145,8 @@ def test_exception_policy_scoped_to_calendar_not_title() -> None:
     try:
         assert (
             effective_free_busy_kind(
-                transparency=None,
-                provenance="unknown_legacy",
+                transparency="transparent",
+                provenance="provider_explicit",
                 identity=ident,
             )
             == "free"

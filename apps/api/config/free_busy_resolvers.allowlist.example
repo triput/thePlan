@@ -1,0 +1,5 @@
+# free_busy_resolvers.allowlist — one canonical user id (UUID) per line
+# Lines starting with # and blank lines are ignored.
+# NO emails, display names, or owner calendar ids — UUID only.
+
+00000000-0000-0000-0000-000000000099

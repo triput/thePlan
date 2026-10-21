@@ -184,3 +184,14 @@ class CalendarConflictsResult(BaseModel):
     items: list[CalendarConflictOut]
     count: int
 
+
+class FreeBusyConflictAcknowledgment(BaseModel):
+    external_event_id: str
+    conflict_revision: str
+
+
+class ResolveFreeBusySeriesPolicyBody(BaseModel):
+    external_event_id: str
+    conflict_acknowledgments: list[FreeBusyConflictAcknowledgment]
+    reason: str
+

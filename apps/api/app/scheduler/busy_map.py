@@ -105,6 +105,7 @@ def busy_from_sources(
     *,
     range_start: datetime | None = None,
     range_end: datetime | None = None,
+    policy_map: dict | None = None,
 ) -> list[BusyInterval]:
     """Build merged busy from already-loaded pins/events.
 
@@ -119,7 +120,7 @@ def busy_from_sources(
         intervals.append(
             BusyInterval(block.start_time, block.end_time, source="pinned")
         )
-    for event in events_for_busy_merge(events):
+    for event in events_for_busy_merge(events, policy_map=policy_map):
         if range_start is not None and range_end is not None:
             if not (event.start_time < range_end and event.end_time > range_start):
                 continue
@@ -136,9 +137,16 @@ def build_busy_map(
     range_end: datetime,
 ) -> list[BusyInterval]:
     """External events (non-mirror) + all pinned blocks overlapping the range."""
+    from app.services.free_busy_series_policy import load_series_policies_for_owner
+
     pinned, events = load_immovable_busy_sources(db, owner_id)
+    policy_map = load_series_policies_for_owner(db, owner_id)
     return busy_from_sources(
-        pinned, events, range_start=range_start, range_end=range_end
+        pinned,
+        events,
+        range_start=range_start,
+        range_end=range_end,
+        policy_map=policy_map,
     )
 
 

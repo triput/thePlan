@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     google_client_secret: str | None = None
     google_redirect_uri: str | None = None
     google_client_secrets_file: str | None = None
+    # T1-4a: path to UTF-8 resolver allowlist (one UUID per line); unset ⇒ deny resolve.
+    free_busy_resolver_allowlist_path: str | None = None
     token_encryption_key: str | None = None
     frontend_origin: str = "http://localhost:8080"
     google_oauth_scopes: str = (

@@ -25,6 +25,7 @@ from app.schemas import (
     CalendarSubscriptionsPut,
     CalendarSyncResult,
     ExternalCalendarEventOut,
+    ResolveFreeBusySeriesPolicyBody,
     GoogleCalendarListItem,
     PaginatedResponse,
 )
@@ -544,6 +545,10 @@ def get_busy_input_trust(
 ) -> dict:
     """T1-A read-only: BusyInputTrust + grouped diagnostics for a horizon."""
     from app.scheduler.free_busy import evaluate_busy_input_trust, format_cli_listing
+    from app.services.free_busy_series_policy import (
+        load_series_policies_for_owner,
+        policy_diagnostic_enrichment,
+    )
 
     if end <= start:
         raise ApiError(422, "end must be after start", "INVALID_TIME_RANGE")
@@ -561,13 +566,57 @@ def get_busy_input_trust(
         .filter(CalendarSubscription.owner_id == user.id)
         .all()
     }
+    policy_map = load_series_policies_for_owner(db, user.id)
+    enrichments = {
+        e.external_event_id: policy_diagnostic_enrichment(db, e, policy_map=policy_map)
+        for e in events
+        if e.free_busy_pending_exception
+    }
+    enrichments = {k: v for k, v in enrichments.items() if v}
     trust = evaluate_busy_input_trust(
         events,
         horizon_start=start,
         horizon_end=end,
         calendar_name_by_id=names,
+        policy_map=policy_map,
+        policy_enrichment_by_event_id=enrichments,
     )
     return {
         "trust": trust.to_dict(),
         "cli_listing": format_cli_listing(trust),
     }
+
+
+@router.post("/resolve-series-policy")
+def post_resolve_series_policy(
+    body: ResolveFreeBusySeriesPolicyBody,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """T1-4a: explicit resolve with state-bound conflict acknowledgments."""
+    from app.services.free_busy_series_policy import (
+        ConflictAcknowledgment,
+        ResolveSeriesPolicyRequest,
+        resolve_series_policy,
+    )
+
+    settings = get_settings()
+    request = ResolveSeriesPolicyRequest(
+        external_event_id=body.external_event_id,
+        conflict_acknowledgments=tuple(
+            ConflictAcknowledgment(
+                external_event_id=item.external_event_id,
+                conflict_revision=item.conflict_revision,
+            )
+            for item in body.conflict_acknowledgments
+        ),
+        reason=body.reason,
+    )
+    result = resolve_series_policy(
+        db,
+        user=user,
+        body=request,
+        allowlist_path=settings.free_busy_resolver_allowlist_path,
+    )
+    db.commit()
+    return result
