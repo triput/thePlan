@@ -177,14 +177,14 @@ def _trust_signature_utc_iso(value: datetime | None) -> str:
     return value.astimezone(timezone.utc).isoformat()
 
 
-def _scoped_external_event_identity(event: object) -> str:
-    """Option A scoped composite — not bare ``external_event_id``."""
-    return (
-        f"{getattr(event, 'owner_id')}:"
-        f"{getattr(event, 'calendar_account_id')}:"
-        f"{getattr(event, 'calendar_id')}:"
-        f"{getattr(event, 'external_event_id')}"
-    )
+def _trust_signature_row_identity(event: object) -> str:
+    """Stable signature identity: ExternalCalendarEvent row UUID (injective).
+
+    Colon-joined owner/account/calendar/event strings are not injective when any
+    component may embed ``:``. Bare ``external_event_id`` collides across
+    providers (schema unique is ``(provider, external_event_id)``).
+    """
+    return str(getattr(event, "id"))
 
 
 def trust_blocking_signature(
@@ -197,12 +197,13 @@ def trust_blocking_signature(
     """Deterministic trust-blocking signature under a fixed ``compute_horizon`` window.
 
     Reuses ``evaluate_busy_input_trust`` (no forked trust rules). Signature identity
-    is the scoped composite (owner/account/calendar/event), not bare provider id.
+    is the event row UUID — not bare provider id and not a colon-joined composite.
 
-    Enrichment is keyed by bare ``external_event_id`` today (same as ``collect_inputs``).
-    This helper **verifies** that mapping is unambiguous for the owner's event
-    universe and stops with a concrete finding rather than silently last-wins or
-    broadening the exception-policy resolver.
+    Enrichment lookup inside the evaluator still keys by bare ``external_event_id``
+    (same as ``collect_inputs``). Boundary B alignment invokes the evaluator
+    **per row** with that row's enrichment only, so the bare-id map is unambiguous
+    without broadening the resolver and without raising a sync outage when two
+    schema-legal rows share a provider id string across providers.
     """
     from app.scheduler.busy_map import load_immovable_busy_sources
     from app.scheduler.free_busy import evaluate_busy_input_trust
@@ -214,57 +215,37 @@ def trust_blocking_signature(
     _pinned, events = load_immovable_busy_sources(db, owner_id)
     policy_map = load_series_policies_for_owner(db, owner_id)
 
-    enrichments: dict[str, dict] = {}
+    elements: list[tuple[str, str, str, str]] = []
     for event in events:
-        if not bool(getattr(event, "free_busy_pending_exception", False)):
-            continue
-        eid = str(getattr(event, "external_event_id", "") or "")
-        if eid in enrichments:
-            raise RuntimeError(
-                "Boundary B stop-finding: policy_enrichment_by_event_id keys by bare "
-                f"external_event_id={eid!r} but multiple pending events share that id "
-                f"under owner={owner_id}; cannot align enrichment to scoped signature "
-                "identity without broadening the resolver (out of Boundary B)."
-            )
-        enrichment = policy_diagnostic_enrichment(db, event, policy_map=policy_map)
-        if enrichment:
-            enrichments[eid] = enrichment
-
-    by_diagnostic_event_id: dict[str, object] = {}
-    for event in events:
-        diag_id = str(
+        eid = str(
             getattr(event, "external_event_id", None) or getattr(event, "id", "")
         )
-        prior = by_diagnostic_event_id.get(diag_id)
-        if prior is not None:
-            raise RuntimeError(
-                "Boundary B stop-finding: evaluate_busy_input_trust diagnostic "
-                f"event_id={diag_id!r} maps to multiple ExternalCalendarEvent rows "
-                f"({getattr(prior, 'id')} and {getattr(event, 'id')}) under "
-                f"owner={owner_id}; scoped signature identity cannot be recovered "
-                "from bare provider id without broadening lookup."
-            )
-        by_diagnostic_event_id[diag_id] = event
+        enrichments: dict[str, dict] = {}
+        if bool(getattr(event, "free_busy_pending_exception", False)):
+            enrichment = policy_diagnostic_enrichment(db, event, policy_map=policy_map)
+            if enrichment:
+                enrichments[eid] = enrichment
 
-    trust = evaluate_busy_input_trust(
-        events,
-        horizon_start=horizon_start,
-        horizon_end=horizon_end,
-        policy_map=policy_map,
-        policy_enrichment_by_event_id=enrichments,
-    )
-
-    elements: list[tuple[str, str, str, str]] = []
-    for diagnostic in trust.blocking_diagnostics:
-        event = by_diagnostic_event_id[str(diagnostic.event_id)]
-        elements.append(
-            (
-                _scoped_external_event_identity(event),
-                str(diagnostic.cause),
-                _trust_signature_utc_iso(diagnostic.start),
-                _trust_signature_utc_iso(diagnostic.end),
-            )
+        # Per-row invocation: evaluator rules unchanged; bare-id enrichment key
+        # is unique within this single-event call. Cross-event state in the
+        # evaluator is only diagnostic accumulation — equivalent for signature
+        # membership (cause + bounds) to a batch call over the same rows.
+        trust = evaluate_busy_input_trust(
+            [event],
+            horizon_start=horizon_start,
+            horizon_end=horizon_end,
+            policy_map=policy_map,
+            policy_enrichment_by_event_id=enrichments,
         )
+        for diagnostic in trust.blocking_diagnostics:
+            elements.append(
+                (
+                    _trust_signature_row_identity(event),
+                    str(diagnostic.cause),
+                    _trust_signature_utc_iso(diagnostic.start),
+                    _trust_signature_utc_iso(diagnostic.end),
+                )
+            )
     return tuple(sorted(elements))
 
 
