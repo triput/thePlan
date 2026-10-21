@@ -36,9 +36,14 @@ from app.scheduler.preview import run_preview
 from app.scheduler.replan import run_replan
 from app.services import microsoft_calendar as ms_cal
 from app.scheduler.preview_planning import PREVIEW_PLANNING_LEAD_SECONDS, preview_collection_time
+from app.scheduler.preview_inputs import live_owner_fingerprint
 from app.services.schedule_previews import summarize_diff
 from app.services.schedule_preview_apply import apply_schedule_preview
-from app.services.scheduling_revision import bump_scheduling_revision, owner_scheduling_lock_key
+from app.services.scheduling_revision import (
+    bump_scheduling_revision,
+    immovable_busy_signature,
+    owner_scheduling_lock_key,
+)
 
 UTC = timezone.utc
 FIXED_NOW = datetime(2026, 10, 9, 12, 0, tzinfo=UTC)
@@ -778,8 +783,11 @@ def test_f6_c_busy_ingest_bumps_only_when_intervals_change(
     )
     db_session.flush()
 
+    # type=singleInstance required post–T1-4: omitted type → incomplete identity
+    # is excluded from events_for_busy_merge, so the busy-interval bump would not fire.
     event = {
         "id": f"evt-{_uid()}",
+        "type": "singleInstance",
         "subject": "Dentist",
         "showAs": "busy",
         "start": {"dateTime": "2026-10-09T18:00:00", "timeZone": "UTC"},
@@ -832,6 +840,129 @@ def test_f6_c_busy_ingest_bumps_only_when_intervals_change(
     )
     assert again == 1
     assert _revision(db_session, owner_id) == rev_after_busy
+
+
+def test_t1_stale_preview_ms_sync_unknown_trust_flat_revision_blocks_apply(
+    client: TestClient,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """§5.1 evidence: MS sync of in-horizon showAs=unknown stays ready + flat revision.
+
+    Production ``sync_account_events`` with a genuine Graph shape (``type=singleInstance``,
+    ``showAs=unknown``) — not direct ORM insert, not malformed-payload rollback.
+    Busy signature / scheduling_revision / owner fingerprint stay flat; Apply fails
+    closed via ``BUSY_INPUT_TRUST`` with zero domain writes; preview status stays
+    ``ready`` (no proactive PREVIEW_STALE). Contrasts with busy-interval bump +
+    title-only flat controls in ``test_f6_c_busy_ingest_bumps_only_when_intervals_change``.
+    """
+    _patch_schedule_clock(monkeypatch)
+    _prepare_settings(client)
+    _create_task(client, estimated_duration_minutes=60, schedule_style="standalone")
+    preview = _ready_preview(client, db_session, monkeypatch)
+    assert preview["proposal"]["proposed_blocks"], "need a non-empty trusted-ready proposal"
+    assert preview["status"] == "ready"
+    owner_id = _owner_id(client)
+    before_blocks = _block_set(db_session, owner_id)
+    runs_before = _run_count(db_session, owner_id)
+    rev_before = _revision(db_session, owner_id)
+    fp_before = preview["input_fingerprint"]
+    assert fp_before
+    before_busy = immovable_busy_signature(db_session, owner_id)
+
+    calendar_id = f"cal-{_uid()}"
+    account = CalendarAccount(
+        owner_id=owner_id,
+        provider=CalendarProvider.microsoft,
+        account_email=f"t1-stale-unk-{_uid()}@contoso.test",
+        is_enabled=True,
+        mirror_blocks=False,
+    )
+    db_session.add(account)
+    db_session.flush()
+    db_session.add(
+        CalendarSubscription(
+            owner_id=owner_id,
+            calendar_account_id=account.id,
+            external_calendar_id=calendar_id,
+            summary="Calendar",
+            role=CalendarSubscriptionRole.primary,
+            is_enabled=True,
+        )
+    )
+    db_session.flush()
+
+    # Valid Graph calendarView item: intentional unknown free/busy, complete identity.
+    external_id = f"evt-unk-{_uid()}"
+    event = {
+        "id": external_id,
+        "type": "singleInstance",
+        "subject": "Ambiguous free/busy",
+        "showAs": "unknown",
+        "start": {"dateTime": "2026-10-09T18:00:00", "timeZone": "UTC"},
+        "end": {"dateTime": "2026-10-09T19:00:00", "timeZone": "UTC"},
+    }
+
+    monkeypatch.setattr(
+        ms_cal,
+        "get_valid_access_token",
+        lambda db, *, settings, account: "tok",
+    )
+    monkeypatch.setattr(ms_cal, "list_calendar_view", lambda *a, **k: [event])
+
+    window_start = FIXED_NOW - timedelta(days=1)
+    window_end = FIXED_NOW + timedelta(days=7)
+    upserted = ms_cal.sync_account_events(
+        db_session,
+        settings=get_settings(),
+        account=account,
+        time_min=window_start,
+        time_max=window_end,
+    )
+    assert upserted == 1
+    db_session.flush()
+
+    # Fresh session on the fixture connection (savepoint-durable; not a second TCP txn).
+    fresh = Session(bind=db_session.connection(), join_transaction_mode="create_savepoint")
+    try:
+        row = (
+            fresh.query(ExternalCalendarEvent)
+            .filter(
+                ExternalCalendarEvent.owner_id == owner_id,
+                ExternalCalendarEvent.external_event_id == external_id,
+            )
+            .one()
+        )
+        assert row.transparency is None
+        assert row.free_busy_provenance == "provider_explicit"
+        assert row.series_identity_state == "verified_non_recurring"
+        assert immovable_busy_signature(fresh, owner_id) == before_busy
+        assert _revision(fresh, owner_id) == rev_before
+        stored = fresh.get(SchedulePreview, uuid.UUID(preview["id"]))
+        assert stored is not None
+        assert stored.status == "ready"
+        assert stored.input_fingerprint == fp_before
+        assert int(stored.scheduling_revision) == rev_before
+        _, live_fp = live_owner_fingerprint(fresh, owner_id, FIXED_NOW)
+        assert live_fp == fp_before
+    finally:
+        fresh.close()
+
+    rejected = client.post(f"/api/v1/schedule/previews/{preview['id']}/apply")
+    assert rejected.status_code == 409, rejected.text
+    body = rejected.json()
+    assert body["code"] == "BUSY_INPUT_TRUST"
+    trust = body["busy_input_trust"]
+    assert trust["ok"] is False
+    assert trust["blocking_diagnostics"]
+
+    assert _block_set(db_session, owner_id) == before_blocks
+    assert _run_count(db_session, owner_id) == runs_before
+    assert _revision(db_session, owner_id) == rev_before
+
+    still = client.get(f"/api/v1/schedule/previews/{preview['id']}")
+    assert still.status_code == 200, still.text
+    assert still.json()["status"] == "ready"
 
 
 def test_f6_d_provider_failure_does_not_replay_local_apply(
