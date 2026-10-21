@@ -301,8 +301,8 @@ export function TaskDetailScheduling({
                 </p>
               </div>
               <p className="field-hint muted small">
-                Leave held keeps this task held (revision + note only — does not target a named
-                episode). Edit dates above, then Release. Skip does not schedule and keeps history.
+                Leave held = keep waiting. Release = retry scheduling after you review dates. Skip =
+                do not schedule this occurrence; history and blocks stay.
               </p>
               {actionError && (
                 <p className="form-error" role="alert">

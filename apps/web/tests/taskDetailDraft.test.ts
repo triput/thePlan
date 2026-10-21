@@ -2,11 +2,14 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Task } from "../src/api.ts";
 import {
+  buildDatesOnlyUpdateFromDraft,
   buildTaskUpdateFromDraft,
+  isOccurrenceDatesDirty,
   isTaskDraftDirty,
   shouldResetTaskDetailDraft,
   TASK_TITLE_MAX_LENGTH,
   taskToDraft,
+  validateOccurrenceDatesForSave,
   validateTaskDraftForSave,
 } from "../src/taskDetailDraft.ts";
 
@@ -64,6 +67,13 @@ describe("taskDetailDraft", () => {
     assert.match(validateTaskDraftForSave(draft) ?? "", /500/);
   });
 
+  it("rejects invalid datetime-local values instead of silent null", () => {
+    const draft = taskToDraft(baseTask);
+    draft.deadlineAtLocal = "not-a-datetime";
+    assert.match(validateTaskDraftForSave(draft) ?? "", /Deadline is invalid/);
+    assert.equal(buildTaskUpdateFromDraft(baseTask, draft), null);
+  });
+
   it("omits unchanged occurrence bounds from PATCH", () => {
     const withBounds = {
       ...baseTask,
@@ -75,6 +85,31 @@ describe("taskDetailDraft", () => {
     assert.ok(body);
     assert.equal("start_no_earlier_at" in body!, false);
     assert.equal("start_no_later_at" in body!, false);
+  });
+
+  it("preserves deadline second precision on unrelated saves (omit unchanged)", () => {
+    const withDeadline = {
+      ...baseTask,
+      deadline_at: "2026-10-21T15:00:45.123Z",
+    } as Task;
+    const draft = taskToDraft(withDeadline);
+    draft.title = "Title only edit";
+    const body = buildTaskUpdateFromDraft(withDeadline, draft);
+    assert.ok(body);
+    assert.equal(body!.title, "Title only edit");
+    assert.equal("deadline_at" in body!, false);
+  });
+
+  it("sends null when deadline is cleared", () => {
+    const withDeadline = {
+      ...baseTask,
+      deadline_at: "2026-10-21T15:00:45.123Z",
+    } as Task;
+    const draft = taskToDraft(withDeadline);
+    draft.deadlineAtLocal = "";
+    const body = buildTaskUpdateFromDraft(withDeadline, draft);
+    assert.ok(body);
+    assert.equal(body!.deadline_at, null);
   });
 
   it("sends null when occurrence bound is cleared", () => {
@@ -93,5 +128,43 @@ describe("taskDetailDraft", () => {
     const draft = taskToDraft(baseTask);
     draft.startNoLaterAtLocal = "2026-10-22T12:00";
     assert.equal(isTaskDraftDirty(baseTask, draft), true);
+    assert.equal(isOccurrenceDatesDirty(baseTask, draft), true);
+  });
+
+  it("isOccurrenceDatesDirty ignores title/priority/project edits", () => {
+    const draft = taskToDraft(baseTask);
+    draft.title = "Other edit";
+    draft.priority = "p1";
+    draft.projectId = "proj-1";
+    assert.equal(isTaskDraftDirty(baseTask, draft), true);
+    assert.equal(isOccurrenceDatesDirty(baseTask, draft), false);
+  });
+
+  it("buildDatesOnlyUpdateFromDraft sends only date fields", () => {
+    const withDates = {
+      ...baseTask,
+      deadline_at: "2026-10-21T15:00:45.123Z",
+      start_no_earlier_at: "2026-10-21T14:00:00.000Z",
+    } as Task;
+    const draft = taskToDraft(withDates);
+    draft.title = "Should not PATCH";
+    draft.priority = "p1";
+    draft.deadlineAtLocal = "";
+    draft.startNoLaterAtLocal = "2026-10-22T12:00";
+    const body = buildDatesOnlyUpdateFromDraft(withDates, draft);
+    assert.ok(body);
+    assert.equal("title" in body!, false);
+    assert.equal("priority" in body!, false);
+    assert.equal("project_id" in body!, false);
+    assert.equal(body!.deadline_at, null);
+    assert.equal("start_no_earlier_at" in body!, false);
+    assert.ok(body!.start_no_later_at);
+  });
+
+  it("buildDatesOnlyUpdateFromDraft rejects invalid dates", () => {
+    const draft = taskToDraft(baseTask);
+    draft.startNoEarlierAtLocal = "bogus";
+    assert.match(validateOccurrenceDatesForSave(draft) ?? "", /Start no earlier is invalid/);
+    assert.equal(buildDatesOnlyUpdateFromDraft(baseTask, draft), null);
   });
 });

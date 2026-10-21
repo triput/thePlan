@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchHeldMisses, type HeldDispositionOut } from "../api";
 import { HELD_MISSES_QUERY_KEY } from "../heldMissesQuery";
@@ -38,6 +39,7 @@ export function CalendarSupportIdle({
   onSelectTask,
 }: CalendarSupportIdleProps) {
   const { unscheduledTotal, unscheduledSample, scheduleStaleHint, legend, tasksById } = snapshot;
+  const [heldExpanded, setHeldExpanded] = useState(false);
 
   const heldQuery = useQuery({
     queryKey: HELD_MISSES_QUERY_KEY,
@@ -48,7 +50,7 @@ export function CalendarSupportIdle({
   const heldRows = (heldQuery.data ?? []).filter(
     (row) => row.resolution === "unresolved_held",
   );
-  const heldSample = heldRows.slice(0, HELD_LIST_CAP);
+  const heldSample = heldExpanded ? heldRows : heldRows.slice(0, HELD_LIST_CAP);
 
   return (
     <div className="calendar-support-idle">
@@ -119,10 +121,16 @@ export function CalendarSupportIdle({
                 </li>
               ))}
             </ul>
-            {heldRows.length > heldSample.length && (
-              <p className="muted small">
-                {heldRows.length - heldSample.length} more — open a task for leave / skip / release.
-              </p>
+            {heldRows.length > HELD_LIST_CAP && (
+              <button
+                type="button"
+                className="btn link small"
+                onClick={() => setHeldExpanded((open) => !open)}
+              >
+                {heldExpanded
+                  ? "Show fewer"
+                  : `Show all ${heldRows.length} held misses`}
+              </button>
             )}
           </>
         )}

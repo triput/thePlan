@@ -54,11 +54,15 @@ import { TaskDetailRecurrence } from "./TaskDetailRecurrence";
 import { TaskDetailScheduling } from "./TaskDetailScheduling";
 import type { DetailSectionId } from "./TaskDetailSection";
 import {
+  browserTimeZoneLabel,
+  buildDatesOnlyUpdateFromDraft,
   buildTaskUpdateFromDraft,
   fromDatetimeLocal,
+  isOccurrenceDatesDirty,
   isTaskDraftDirty,
   shouldResetTaskDetailDraft,
   toDatetimeLocal,
+  validateOccurrenceDatesForSave,
   validateTaskDraftForSave,
   type TaskDetailDraft,
 } from "../taskDetailDraft";
@@ -393,7 +397,12 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
     queryClient.invalidateQueries({ queryKey: ["schedule-explanation", taskId] });
   };
 
-  type SaveVariables = { body: TaskUpdate; closeAfterSave: boolean };
+  type SaveVariables = {
+    body: TaskUpdate;
+    closeAfterSave: boolean;
+    /** Held release path: sync only deadline/bounds; keep unrelated draft edits. */
+    datesOnly?: boolean;
+  };
 
   const updateMutation = useMutation({
     mutationFn: ({ body }: SaveVariables) => updateTask(task!.id, body),
@@ -431,7 +440,13 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
       emitToast(`Couldn't save — ${describeApiError(err)}`);
     },
     onSuccess: (data, variables) => {
-      applyTaskToForm(data);
+      if (variables.datesOnly) {
+        setDeadlineAtLocal(toDatetimeLocal(data.deadline_at));
+        setStartNoEarlierAtLocal(toDatetimeLocal(data.start_no_earlier_at ?? null));
+        setStartNoLaterAtLocal(toDatetimeLocal(data.start_no_later_at ?? null));
+      } else {
+        applyTaskToForm(data);
+      }
       syncedTaskIdRef.current = data.id;
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["task", task!.id] });
@@ -487,20 +502,27 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
     queryFn: fetchSettings,
     staleTime: 30_000,
   });
-  const settingsTimezone = settingsQuery.data?.timezone ?? "UTC";
+  // datetime-local inputs are browser-local; display instants use settings zone when known.
+  const browserZone = browserTimeZoneLabel();
+  const displayTimezone = settingsQuery.data?.timezone || browserZone;
 
-  /** Date-first release: persist dirty draft without closing; keep form on failure. */
-  const saveDraftKeepingForm = async (): Promise<boolean> => {
+  /** Held release: PATCH deadline + bounds only; preserve unrelated draft edits in memory. */
+  const saveDatesForRelease = async (): Promise<boolean> => {
     if (!task) return false;
-    const validationError = validateTaskDraftForSave(readDraft());
+    const draft = readDraft();
+    const validationError = validateOccurrenceDatesForSave(draft);
     if (validationError) {
       emitToast(validationError);
       return false;
     }
-    const body = buildTaskUpdateFromDraft(task, readDraft());
+    const body = buildDatesOnlyUpdateFromDraft(task, draft);
     if (!body) return false;
     try {
-      await updateMutation.mutateAsync({ body, closeAfterSave: false });
+      await updateMutation.mutateAsync({
+        body,
+        closeAfterSave: false,
+        datesOnly: true,
+      });
       return true;
     } catch {
       return false;
@@ -931,7 +953,7 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
               onChange={(e) => setStartNoEarlierAtLocal(e.target.value)}
             />
             <span className="field-hint muted small">
-              Occurrence earliest start · zone {settingsTimezone}
+              Occurrence earliest start · browser local ({browserZone})
             </span>
           </label>
           <label className="field">
@@ -943,7 +965,7 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
               onChange={(e) => setStartNoLaterAtLocal(e.target.value)}
             />
             <span className="field-hint muted small">
-              Occurrence latest start · zone {settingsTimezone}
+              Occurrence latest start · browser local ({browserZone})
             </span>
           </label>
 
@@ -965,9 +987,9 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
             onScheduleStyleChange={setScheduleStyle}
             inheritScheduleStyleHint={inheritScheduleStyleHint}
             scheduleStatus={task.status}
-            timezone={settingsTimezone}
-            datesDirty={task ? isTaskDraftDirty(task, readDraft()) : false}
-            onSaveDatesForRelease={saveDraftKeepingForm}
+            timezone={displayTimezone}
+            datesDirty={task ? isOccurrenceDatesDirty(task, readDraft()) : false}
+            onSaveDatesForRelease={saveDatesForRelease}
             saveDatesPending={updateMutation.isPending}
           />
 
