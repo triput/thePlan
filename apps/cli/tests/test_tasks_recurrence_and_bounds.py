@@ -155,6 +155,15 @@ def test_frame_without_rule_rejected() -> None:
     assert "rrule or --recurrence-text" in exc.value.message
 
 
+def test_cli_rejects_naive_start_bounds() -> None:
+    with pytest.raises(CliError) as exc:
+        _optional_task_fields(
+            _create_ns(start_no_earlier_at="2026-08-12T09:00:00"),
+            for_create=True,
+        )
+    assert exc.value.code == "OCCURRENCE_BOUNDS_NAIVE_INSTANT"
+
+
 def test_patch_clear_bounds_sends_null() -> None:
     body = _optional_task_fields(
         _create_ns(

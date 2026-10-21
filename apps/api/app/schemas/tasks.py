@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.services.task_occurrence_bounds import assert_merged_bounds_not_inverted
+from app.services.task_occurrence_bounds import validate_occurrence_bounds_on_create
 from app.models.enums import (
     ReminderChannel,
     ScheduleStatus,
@@ -58,9 +58,9 @@ class TaskCreate(BaseModel):
 
     @model_validator(mode="after")
     def check_occurrence_bounds(self) -> "TaskCreate":
-        assert_merged_bounds_not_inverted(
-            earliest=self.start_no_earlier_at,
-            latest=self.start_no_later_at,
+        validate_occurrence_bounds_on_create(
+            start_no_earlier_at=self.start_no_earlier_at,
+            start_no_later_at=self.start_no_later_at,
         )
         return self
 

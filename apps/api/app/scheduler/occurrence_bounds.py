@@ -55,6 +55,11 @@ def earliest_start_bound(task: Task) -> datetime | None:
     return _utc(task.start_no_earlier_at)
 
 
+def explicit_latest_start_bound(task: Task) -> datetime | None:
+    """Configured start-no-later only (not deadline−effort placement cap)."""
+    return _utc(task.start_no_later_at)
+
+
 def geometry_infeasible(task: Task, *, effort_minutes: int) -> bool:
     earliest = earliest_start_bound(task)
     deadline = _utc(task.deadline_at)
@@ -80,16 +85,21 @@ def pin_bounds_conflict(
     pin_intervals: list[tuple[datetime, datetime]],
     effort_minutes: int,
 ) -> bool:
-    """Preserved pin intervals that violate explicit start bounds or finish-by."""
+    """Preserved pin intervals that violate explicit start bounds or finish-by.
+
+    Pin intervals are not re-validated as fresh full-effort placements; compare
+    pin start to explicit earliest/latest start bounds and pin end to finish-by.
+    """
+    del effort_minutes
     earliest = earliest_start_bound(task)
-    latest = effective_latest_start(task, effort_minutes=effort_minutes)
+    explicit_latest = explicit_latest_start_bound(task)
     deadline = _utc(task.deadline_at)
     if not pin_intervals:
         return False
     for pin_start, pin_end in pin_intervals:
         if earliest is not None and pin_start < earliest:
             return True
-        if latest is not None and pin_start > latest:
+        if explicit_latest is not None and pin_start > explicit_latest:
             return True
         if deadline is not None and pin_end > deadline:
             return True

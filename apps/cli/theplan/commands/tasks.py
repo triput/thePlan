@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import re
+from datetime import datetime
 from typing import Any
 
 from theplan.api_client import api_json, task_scheduling_effective_path
@@ -22,6 +23,25 @@ _EVERY_BANG = re.compile(r"(?i)\bevery!")
 _EVERY_WORD = re.compile(r"(?i)\bevery\b")
 
 _SCHEDULE_STYLE_CHOICES = ("standalone", "time_block", "bundle", "manual")
+
+
+def _require_bound_instant(raw: str, *, label: str) -> str:
+    text = raw.strip()
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise CliError(
+            code="INVALID_USAGE",
+            message=f"{label} must be a timezone-aware ISO-8601 instant",
+            exit_code=1,
+        ) from exc
+    if parsed.tzinfo is None or parsed.tzinfo.utcoffset(parsed) is None:
+        raise CliError(
+            code="OCCURRENCE_BOUNDS_NAIVE_INSTANT",
+            message=f"{label} must include a timezone offset (fixed instant)",
+            exit_code=1,
+        )
+    return text
 
 _RECURRENCE_HELP = (
     "Server recurrence: --rrule (FREQ=…) or --recurrence-text "
@@ -657,17 +677,26 @@ def _apply_scheduling_bounds(args: argparse.Namespace, body: dict[str, Any]) -> 
     if getattr(args, "clear_start_no_earlier_at", False):
         body["start_no_earlier_at"] = None
     elif getattr(args, "start_no_earlier_at", None) is not None:
-        body["start_no_earlier_at"] = args.start_no_earlier_at
+        body["start_no_earlier_at"] = _require_bound_instant(
+            args.start_no_earlier_at,
+            label="--start-no-earlier-at",
+        )
 
     if getattr(args, "clear_start_no_later_at", False):
         body["start_no_later_at"] = None
     elif getattr(args, "start_no_later_at", None) is not None:
-        body["start_no_later_at"] = args.start_no_later_at
+        body["start_no_later_at"] = _require_bound_instant(
+            args.start_no_later_at,
+            label="--start-no-later-at",
+        )
 
     if getattr(args, "clear_deadline_at", False):
         body["deadline_at"] = None
     elif getattr(args, "deadline_at", None) is not None:
-        body["deadline_at"] = args.deadline_at
+        body["deadline_at"] = _require_bound_instant(
+            args.deadline_at,
+            label="--deadline-at",
+        )
 
 
 def _optional_task_fields(args: argparse.Namespace, *, for_create: bool) -> dict[str, Any]:
