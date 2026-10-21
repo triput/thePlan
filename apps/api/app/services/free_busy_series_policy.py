@@ -138,13 +138,14 @@ def occupancy_kind_from_stored(
     )
 
 
-def _provider_evidence_dict(
-    transparency: str | None, provenance: str | None
-) -> dict[str, str | None]:
+def _provider_evidence_dict(row: ExternalCalendarEvent) -> dict[str, str | bool | None]:
     return {
-        "transparency": transparency,
-        "provenance": provenance,
-        "occupancy_kind": occupancy_kind_from_stored(transparency, provenance),
+        "transparency": row.transparency,
+        "provenance": row.free_busy_provenance,
+        "occupancy_kind": occupancy_kind_from_stored(
+            row.transparency, row.free_busy_provenance
+        ),
+        "source_zone_untrusted": source_zone_untrusted(row),
     }
 
 
@@ -208,6 +209,7 @@ def compute_conflict_revision(
     provenance: str | None,
     pending: bool,
     latch_generation: int,
+    source_zone_untrusted: bool,
 ) -> str:
     payload = "|".join(
         [
@@ -218,6 +220,7 @@ def compute_conflict_revision(
             external_event_id,
             str(transparency),
             str(provenance),
+            "1" if source_zone_untrusted else "0",
             "1" if pending else "0",
             str(latch_generation),
         ]
@@ -365,6 +368,7 @@ def occupancy_disagreement(
     *,
     transparency: str | None,
     provenance: str | None,
+    series_mapping: str | None = None,
 ) -> bool:
     if baseline is None:
         return False
@@ -376,15 +380,18 @@ def occupancy_disagreement(
         base_t, base_p
     )
     current_kind = occupancy_kind_from_stored(transparency, provenance)
-    if base_kind != current_kind:
-        return True
-    # Transparency flip with same occupancy (T3/T4/T5 family)
+    # Transparency flip before raw kind mismatch (T3/T4 / Q1 free alignment).
     if (base_t or "") != (transparency or ""):
         if base_t == "transparent" and transparency != "transparent":
             return True  # T3 transparent → opaque
         if base_t != "transparent" and transparency == "transparent":
-            # T4 opaque → transparent — occupancy may align with free; handled by caller
+            if current_kind == "free" and (
+                series_mapping == "free" or base_kind != "free"
+            ):
+                return False
             return base_kind != "free" and current_kind == "free"
+    if base_kind != current_kind:
+        return True
     return False
 
 
@@ -462,6 +469,7 @@ def apply_post_transparency_policy_effects(
         baseline,
         transparency=row.transparency,
         provenance=row.free_busy_provenance,
+        series_mapping=policy.mapping if policy is not None else None,
     ):
         row.free_busy_pending_exception = True
         policy.conflict_pending_latched = True
@@ -517,11 +525,14 @@ def resolve_series_policy(
     if key is None:
         raise ApiError(422, "Invalid series identity", "FREE_BUSY_RESOLVE_INVALID")
 
+    trigger_id = trigger.id
     acquire_identity_advisory_locks(db, [key])
 
     trigger = (
         db.query(ExternalCalendarEvent)
-        .filter(ExternalCalendarEvent.id == trigger.id)
+        .filter(ExternalCalendarEvent.id == trigger_id)
+        .with_for_update()
+        .populate_existing()
         .one()
     )
     if identity_key_from_row(trigger) != key:
@@ -538,7 +549,8 @@ def resolve_series_policy(
         calendar_id=key[2],
         provider_series_id=key[3],
     )
-    pending_by_ext = {e.external_event_id: e for e in pending_all}
+    locked_pending = lock_events_for_update(db, pending_all)
+    pending_by_ext = {e.external_event_id: e for e in locked_pending}
 
     policy = get_or_create_policy_for_identity(
         db,
@@ -565,6 +577,7 @@ def resolve_series_policy(
             provenance=row.free_busy_provenance,
             pending=True,
             latch_generation=int(policy.latch_generation),
+            source_zone_untrusted=source_zone_untrusted(row),
         )
         if not hmac.compare_digest(expected, ack.conflict_revision):
             raise ApiError(
@@ -572,7 +585,7 @@ def resolve_series_policy(
                 "Conflict revision stale; refresh diagnostics and retry",
                 "FREE_BUSY_CONFLICT_STALE",
             )
-        evidence = _provider_evidence_dict(row.transparency, row.free_busy_provenance)
+        evidence = _provider_evidence_dict(row)
         ack_payload.append(
             {
                 "external_event_id": row.external_event_id,
@@ -614,10 +627,9 @@ def resolve_series_policy(
     policy.acknowledged_provider_transparency = trigger.transparency
     policy.acknowledged_provider_provenance = trigger.free_busy_provenance
 
-    to_lock = [pending_by_ext[eid] for eid in ack_ids if eid in pending_by_ext]
-    locked_rows = lock_events_for_update(db, to_lock)
-    for row in locked_rows:
-        row.free_busy_pending_exception = False
+    for row in locked_pending:
+        if row.external_event_id in ack_ids:
+            row.free_busy_pending_exception = False
 
     if set(ack_ids) >= {e.external_event_id for e in pending_all}:
         policy.conflict_pending_latched = False
@@ -637,12 +649,10 @@ def policy_diagnostic_enrichment(
     db: Session,
     event: ExternalCalendarEvent,
     *,
-    policy_map: Mapping[IdentityKey, FreeBusyKind],
+    policy_map: Mapping[IdentityKey, FreeBusyKind] | None = None,
 ) -> dict[str, Any] | None:
     key = identity_key_from_row(event)
-    if key is None or key not in policy_map:
-        return None
-    if not event.free_busy_pending_exception:
+    if key is None or not event.free_busy_pending_exception:
         return None
     policy = (
         db.query(FreeBusySeriesPolicy)
@@ -662,6 +672,7 @@ def policy_diagnostic_enrichment(
         provenance=event.free_busy_provenance,
         pending=True,
         latch_generation=latch_gen,
+        source_zone_untrusted=source_zone_untrusted(event),
     )
     retained = "free (series policy)"
     if policy and policy.resolved_at:
@@ -676,9 +687,7 @@ def policy_diagnostic_enrichment(
         "external_event_id": event.external_event_id,
         "cause": cause,
         "retained_manual_choice": retained,
-        "current_provider_evidence": _provider_evidence_dict(
-            event.transparency, event.free_busy_provenance
-        ),
+        "current_provider_evidence": _provider_evidence_dict(event),
         "conflict_revision": revision,
         "recovery": "POST /api/v1/calendar/resolve-series-policy with conflict_acknowledgments",
     }

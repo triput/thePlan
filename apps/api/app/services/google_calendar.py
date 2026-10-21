@@ -645,16 +645,19 @@ def _find_external_event(
     *,
     owner_id,
     external_id: str,
+    for_update: bool = False,
 ) -> ExternalCalendarEvent | None:
-    return (
+    query = (
         db.query(ExternalCalendarEvent)
         .filter(
             ExternalCalendarEvent.provider == CalendarProvider.google,
             ExternalCalendarEvent.external_event_id == external_id,
             ExternalCalendarEvent.owner_id == owner_id,
         )
-        .one_or_none()
     )
+    if for_update:
+        query = query.with_for_update().populate_existing()
+    return query.one_or_none()
 
 
 def _upsert_external_event(
@@ -686,11 +689,15 @@ def _upsert_external_event(
     new_series = str(recurring) if recurring else None
     old_cal = row.calendar_id if row is not None else None
     old_series = row.provider_series_id if row is not None else None
-
     from app.services.free_busy_series_policy import (
         acquire_identity_advisory_locks,
         apply_post_transparency_policy_effects,
         google_upsert_identity_keys_for_lock,
+        identity_key_from_row,
+    )
+
+    identity_before_lock = (
+        identity_key_from_row(row) if row is not None else None
     )
 
     lock_keys = google_upsert_identity_keys_for_lock(
@@ -703,7 +710,18 @@ def _upsert_external_event(
     )
     if lock_keys:
         acquire_identity_advisory_locks(db, lock_keys)
-        row = _find_external_event(db, owner_id=account.owner_id, external_id=external_id)
+        row = _find_external_event(
+            db,
+            owner_id=account.owner_id,
+            external_id=external_id,
+            for_update=True,
+        )
+        if row is not None and identity_before_lock is not None:
+            identity_after_lock = identity_key_from_row(row)
+            if identity_after_lock != identity_before_lock:
+                row.free_busy_pending_exception = True
+                db.flush()
+                return True
 
     if row is None:
         row = ExternalCalendarEvent(

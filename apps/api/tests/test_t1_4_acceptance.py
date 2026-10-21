@@ -44,6 +44,7 @@ from app.scheduler.free_busy import (
     evaluate_busy_input_trust,
     events_for_busy_merge,
     require_busy_input_trust,
+    source_zone_untrusted,
 )
 from app.services.free_busy_resolver_allowlist import parse_resolver_allowlist_file
 from app.services.free_busy_series_policy import (
@@ -53,9 +54,11 @@ from app.services.free_busy_series_policy import (
     apply_post_transparency_policy_effects,
     authoritative_pending_events,
     compute_conflict_revision,
+    google_upsert_identity_keys_for_lock,
     load_series_policies_for_owner,
     policy_diagnostic_enrichment,
     resolve_series_policy,
+    sort_identity_keys,
 )
 from app.services.google_calendar import _upsert_external_event
 from support.t1a_pg import assert_disposable_database_url, assert_t1a_container_isolated
@@ -144,6 +147,7 @@ def _event(
     pending: bool = False,
     start: datetime | None = None,
     end: datetime | None = None,
+    source_zone_missing: bool = False,
 ) -> ExternalCalendarEvent:
     row = ExternalCalendarEvent(
         owner_id=owner.id,
@@ -158,6 +162,7 @@ def _event(
         transparency=transparency,
         free_busy_provenance=provenance,
         free_busy_pending_exception=pending,
+        source_zone_missing=source_zone_missing,
     )
     db.add(row)
     db.flush()
@@ -192,6 +197,7 @@ def _revision(
         provenance=row.free_busy_provenance,
         pending=True,
         latch_generation=latch,
+        source_zone_untrusted=source_zone_untrusted(row),
     )
 
 
@@ -464,12 +470,7 @@ def test_google_ingest_future_baseline_then_latch(
     )
     assert baseline.source == "automatic_first_trustworthy_observation"
     assert row.free_busy_pending_exception is False
-    assert (
-        db_session.query(FreeBusySeriesPolicyDecision)
-        .filter(FreeBusySeriesPolicyDecision.decided_by_user_id.isnot(None))
-        .count()
-        == 0
-    )
+    assert _decision_count(db_session, owner.id) == 0
 
     ok2 = _upsert_external_event(
         db_session,
@@ -656,7 +657,276 @@ def test_diagnostics_enrichment_fields(db_session: Session) -> None:
     assert enrich is not None
     assert enrich["conflict_revision"]
     assert enrich["current_provider_evidence"]["transparency"] == "opaque"
+    assert "source_zone_untrusted" in enrich["current_provider_evidence"]
     assert "retained_manual_choice" in enrich
+
+
+def test_first_pending_resolve_via_busy_input_trust_http(
+    db_session: Session, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No policy row yet: GET diagnostics supplies conflict_revision; POST resolve."""
+    me = client.get("/api/v1/auth/me").json()
+    user = db_session.get(User, UUID(me["id"]))
+    assert user is not None
+    path = _allowlist_file(user.id)
+    monkeypatch.setenv("FREE_BUSY_RESOLVER_ALLOWLIST_PATH", path)
+    get_settings.cache_clear()
+    try:
+        acct = _account(db_session, user)
+        sub = _sub(db_session, acct)
+        series = f"first-{uuid.uuid4().hex[:8]}"
+        row = _event(
+            db_session,
+            owner=user,
+            account=acct,
+            sub=sub,
+            external_id=f"first-{uuid.uuid4().hex[:6]}",
+            series_id=series,
+            transparency="opaque",
+            pending=True,
+        )
+        assert (
+            db_session.query(FreeBusySeriesPolicy)
+            .filter(FreeBusySeriesPolicy.owner_id == user.id)
+            .count()
+            == 0
+        )
+        trust_resp = client.get(
+            "/api/v1/calendar/busy-input-trust",
+            params={"start": H0.isoformat(), "end": (H1 + timedelta(hours=1)).isoformat()},
+        )
+        assert trust_resp.status_code == 200, trust_resp.text
+        blocking = trust_resp.json()["trust"]["blocking_diagnostics"]
+        diag = next(d for d in blocking if d["event_id"] == row.external_event_id)
+        enrich = diag["policy_conflict"]
+        assert enrich is not None
+        rev = enrich["conflict_revision"]
+        assert rev
+        resp = client.post(
+            "/api/v1/calendar/resolve-series-policy",
+            json={
+                "external_event_id": row.external_event_id,
+                "conflict_acknowledgments": [
+                    {"external_event_id": row.external_event_id, "conflict_revision": rev}
+                ],
+                "reason": "first policy via diagnostics",
+            },
+        )
+        assert resp.status_code == 200, resp.text
+        db_session.refresh(row)
+        assert row.free_busy_pending_exception is False
+        assert (
+            db_session.query(FreeBusySeriesPolicy)
+            .filter(FreeBusySeriesPolicy.owner_id == user.id)
+            .count()
+            == 1
+        )
+    finally:
+        Path(path).unlink(missing_ok=True)
+        get_settings.cache_clear()
+
+
+def test_q1_google_ingest_opaque_to_transparent_stays_unlatched(
+    db_session: Session,
+) -> None:
+    """Q1: free series policy — opaque baseline then transparent ingest must not latch."""
+    owner, _ = _owner(db_session)
+    acct = _account(db_session, owner)
+    sub = _sub(db_session, acct)
+    series = f"q1-{uuid.uuid4().hex[:8]}"
+    policy = FreeBusySeriesPolicy(
+        owner_id=owner.id,
+        provider=CalendarProvider.google,
+        calendar_id=sub.external_calendar_id,
+        provider_series_id=series,
+        mapping="free",
+        acknowledged_calendar_id=sub.external_calendar_id,
+        acknowledged_series_id=series,
+    )
+    db_session.add(policy)
+    db_session.flush()
+    ext_id = f"q1-{uuid.uuid4().hex[:8]}"
+    now = datetime.now(UTC)
+    assert _upsert_external_event(
+        db_session,
+        account=acct,
+        subscription=sub,
+        event=_google_event(
+            ext_id,
+            series,
+            "opaque",
+            datetime(2026, 11, 3, 10, 0, tzinfo=UTC),
+            datetime(2026, 11, 3, 11, 0, tzinfo=UTC),
+        ),
+        now=now,
+        sync_run_id="q1-opaque",
+    )
+    row = _event_by_external_id(db_session, ext_id)
+    db_session.refresh(policy)
+    assert row.free_busy_pending_exception is False
+    assert policy.conflict_pending_latched is False
+
+    assert _upsert_external_event(
+        db_session,
+        account=acct,
+        subscription=sub,
+        event=_google_event(
+            ext_id,
+            series,
+            "transparent",
+            datetime(2026, 11, 3, 10, 0, tzinfo=UTC),
+            datetime(2026, 11, 3, 11, 0, tzinfo=UTC),
+        ),
+        now=now,
+        sync_run_id="q1-transparent",
+    )
+    db_session.refresh(row)
+    db_session.refresh(policy)
+    assert row.transparency == "transparent"
+    assert row.free_busy_pending_exception is False
+    assert policy.conflict_pending_latched is False
+
+
+def test_ingest_wins_stale_conflict_revision(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ingest commits provider change before resolve; old diagnostic revision is stale."""
+    owner, _ = _owner(db_session)
+    path = _allowlist_file(owner.id)
+    monkeypatch.setenv("FREE_BUSY_RESOLVER_ALLOWLIST_PATH", path)
+    get_settings.cache_clear()
+    try:
+        acct = _account(db_session, owner)
+        sub = _sub(db_session, acct)
+        series = f"stale-{uuid.uuid4().hex[:8]}"
+        ext_id = f"stale-{uuid.uuid4().hex[:6]}"
+        row = _event(
+            db_session,
+            owner=owner,
+            account=acct,
+            sub=sub,
+            external_id=ext_id,
+            series_id=series,
+            transparency="opaque",
+            pending=True,
+        )
+        enrich = policy_diagnostic_enrichment(
+            db_session, row, policy_map=load_series_policies_for_owner(db_session, owner.id)
+        )
+        assert enrich is not None
+        stale_rev = enrich["conflict_revision"]
+        now = datetime.now(UTC)
+        assert _upsert_external_event(
+            db_session,
+            account=acct,
+            subscription=sub,
+            event=_google_event(
+                ext_id,
+                series,
+                "transparent",
+                H0,
+                H1,
+            ),
+            now=now,
+            sync_run_id="stale-ingest-wins",
+        )
+        db_session.refresh(row)
+        assert row.transparency == "transparent"
+        with pytest.raises(ApiError) as exc:
+            resolve_series_policy(
+                db_session,
+                user=owner,
+                body=ResolveSeriesPolicyRequest(
+                    external_event_id=ext_id,
+                    conflict_acknowledgments=(
+                        ConflictAcknowledgment(ext_id, stale_rev),
+                    ),
+                    reason="should be stale",
+                ),
+                allowlist_path=path,
+            )
+        assert exc.value.content["code"] == "FREE_BUSY_CONFLICT_STALE"
+    finally:
+        Path(path).unlink(missing_ok=True)
+        get_settings.cache_clear()
+
+
+def test_google_identity_drift_advisory_lock_keys_sorted(
+    db_session: Session,
+) -> None:
+    owner, _ = _owner(db_session)
+    acct = _account(db_session, owner)
+    sub = _sub(db_session, acct)
+    row = _event(
+        db_session,
+        owner=owner,
+        account=acct,
+        sub=sub,
+        external_id="drift-lock",
+        series_id="series-old",
+    )
+    keys = google_upsert_identity_keys_for_lock(
+        row=row,
+        new_calendar_id="cal-new",
+        new_series_id="series-new",
+        old_calendar_id=sub.external_calendar_id,
+        old_series_id="series-old",
+        owner_id=owner.id,
+    )
+    expected = sort_identity_keys(
+        [
+            (str(owner.id), "google", sub.external_calendar_id, "series-old"),
+            (str(owner.id), "google", "cal-new", "series-new"),
+        ]
+    )
+    assert keys == expected
+
+
+def test_source_zone_trust_change_invalidates_conflict_revision(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    owner, _ = _owner(db_session)
+    path = _allowlist_file(owner.id)
+    monkeypatch.setenv("FREE_BUSY_RESOLVER_ALLOWLIST_PATH", path)
+    get_settings.cache_clear()
+    try:
+        acct = _account(db_session, owner)
+        sub = _sub(db_session, acct)
+        series = f"trust-{uuid.uuid4().hex[:8]}"
+        row = _event(
+            db_session,
+            owner=owner,
+            account=acct,
+            sub=sub,
+            external_id=f"trust-{uuid.uuid4().hex[:6]}",
+            series_id=series,
+            pending=True,
+            source_zone_missing=False,
+        )
+        enrich = policy_diagnostic_enrichment(
+            db_session, row, policy_map=load_series_policies_for_owner(db_session, owner.id)
+        )
+        assert enrich is not None
+        stale_rev = enrich["conflict_revision"]
+        row.source_zone_missing = True
+        db_session.flush()
+        with pytest.raises(ApiError) as exc:
+            resolve_series_policy(
+                db_session,
+                user=owner,
+                body=ResolveSeriesPolicyRequest(
+                    external_event_id=row.external_event_id,
+                    conflict_acknowledgments=(
+                        ConflictAcknowledgment(row.external_event_id, stale_rev),
+                    ),
+                    reason="trust drift",
+                ),
+                allowlist_path=path,
+            )
+        assert exc.value.content["code"] == "FREE_BUSY_CONFLICT_STALE"
+    finally:
+        Path(path).unlink(missing_ok=True)
+        get_settings.cache_clear()
 
 
 def _gdt(value: datetime) -> str:
