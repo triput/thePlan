@@ -1868,8 +1868,14 @@ def test_t1c_incremental_cancellation_keeps_row(
     now = datetime.now(UTC)
     window_start, window_end = _wide_bounds(_settings_row, now)
     account = _account(db_session, owner)
+    _sub(db_session, account, calendar_id="cal-remote-gone", summary="Primary")
     start = window_start + timedelta(hours=4)
     phase = {"n": 0}
+    monkeypatch.setattr(
+        gcal,
+        "get_valid_access_token",
+        lambda *_a, **_k: "t1c-access-token",
+    )
 
     def _full(*_a: Any, **_k: Any):
         return ([_g_event("remote-gone", start, start + timedelta(hours=1), summary="There")], "c1", 1)

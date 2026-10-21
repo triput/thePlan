@@ -4,7 +4,7 @@
 #  Component: Scheduler / calendar ingest
 #  Version: 1.0
 #  Created: 2026-10-20
-#  Last Update: 2026-10-20 (Dex bounce — collision, role, snapshots)
+#  Last Update: 2026-10-20 (Dex third bounce — sync bootstrap gate)
 # ==============================================================================
 """Canonical calendar identity per account (T1-10 / T1-F).
 
@@ -49,6 +49,7 @@ T1F_KNOWN_TIP_SHAS = frozenset(
     {
         T1F_BASELINE_SHA,
         "dfe93fbdb3fb05df89f22965027b194f0a1fb09f",
+        "cd233cac9da3dfb5350253a15d7e20e15f527bf0",
     }
 )
 
@@ -836,6 +837,28 @@ def subscription_blocked_for_identity(subscription: CalendarSubscription) -> boo
         IDENTITY_AMBIGUOUS_CAUSE,
         IDENTITY_DISABLED_TARGET_COLLISION_CAUSE,
     }
+
+
+def account_should_bootstrap_primary_on_sync(
+    db: Session,
+    account_id: UUID,
+    *,
+    eligible: Sequence[CalendarSubscription],
+) -> bool:
+    """True only when the account has no subscription rows yet.
+
+    Distinguishes first-connect bootstrap from "enabled but not eligible"
+    (identity-blocked or user-disabled calendars). Sync must not call
+    ``ensure_primary_subscription`` when rows exist but ``eligible`` is empty.
+    """
+    if eligible:
+        return False
+    total = (
+        db.query(CalendarSubscription)
+        .filter(CalendarSubscription.calendar_account_id == account_id)
+        .count()
+    )
+    return total == 0
 
 
 def prepare_subscriptions_for_sync(

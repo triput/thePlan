@@ -964,6 +964,132 @@ def test_f16a_pre_sync_disabled_target_collision_blocks_without_mutation(
     assert enabled[0].coverage_last_failure_cause is None
 
 
+def test_f16b_google_sync_entry_collision_no_bootstrap_then_put_pulls(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Full Google sync entry must not ``ensure_primary`` over collision; PUT then pull."""
+    owner, _ = _owner(db_session)
+    account = _account(db_session, owner)
+    primary_id = "user@gmail.com"
+    alias = _sub(db_session, account, calendar_id="primary", summary="Primary")
+    disabled_stable = _sub(
+        db_session,
+        account,
+        calendar_id=primary_id,
+        summary="Primary",
+        enabled=False,
+        role=CalendarSubscriptionRole.informational,
+    )
+    _patch_google_list(monkeypatch, _google_list(primary_id))
+    _patch_google_token(monkeypatch)
+    pulls: list[str] = []
+
+    def _pull(*_a, subscription: CalendarSubscription, **_k):
+        pulls.append(subscription.external_calendar_id)
+        return [], None, True, 1
+
+    monkeypatch.setattr(gcal, "_pull_subscription_changes", _pull)
+    gcal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=_NOW - timedelta(days=1),
+        time_max=_NOW + timedelta(days=1),
+    )
+    db_session.flush()
+    db_session.refresh(disabled_stable)
+    db_session.refresh(alias)
+    assert disabled_stable.is_enabled is False
+    assert alias.is_enabled is True
+    assert alias.coverage_last_failure_cause == IDENTITY_DISABLED_TARGET_COLLISION_CAUSE
+    assert pulls == []
+
+    body = CalendarSubscriptionsPut(
+        items=[
+            CalendarSubscriptionPutItem(
+                external_calendar_id=primary_id,
+                summary="Primary",
+                role=CalendarSubscriptionRole.primary,
+                is_enabled=True,
+            )
+        ]
+    )
+    put_calendar_subscriptions(account.id, body, db_session, owner)
+    pulls.clear()
+    gcal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=_NOW - timedelta(days=1),
+        time_max=_NOW + timedelta(days=1),
+    )
+    assert pulls == [primary_id]
+
+
+def test_f16c_ms_sync_entry_collision_no_bootstrap_then_put_pulls(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Full Microsoft sync entry must not ``ensure_primary`` over collision; PUT then pull."""
+    owner, _ = _owner(db_session)
+    account = _account(db_session, owner, provider=CalendarProvider.microsoft)
+    cal_id = str(uuid.uuid4())
+    alias = _sub(db_session, account, calendar_id="primary", summary="Primary")
+    disabled_stable = _sub(
+        db_session,
+        account,
+        calendar_id=cal_id,
+        summary="Calendar",
+        enabled=False,
+        role=CalendarSubscriptionRole.informational,
+    )
+    _patch_ms_default_and_list(monkeypatch, cal_id)
+    _patch_ms_token(monkeypatch)
+    pulls: list[str] = []
+
+    def _pull(*_a, subscription: CalendarSubscription, **_k):
+        pulls.append(subscription.external_calendar_id)
+        from app.services.microsoft_calendar import MsViewPull
+
+        return MsViewPull(events=[], mode="ms_view", page_count=1, pagination_complete=True)
+
+    monkeypatch.setattr(ms_cal, "_pull_subscription_changes", _pull)
+    ms_cal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=_NOW - timedelta(days=1),
+        time_max=_NOW + timedelta(days=1),
+    )
+    db_session.flush()
+    db_session.refresh(disabled_stable)
+    db_session.refresh(alias)
+    assert disabled_stable.is_enabled is False
+    assert alias.is_enabled is True
+    assert alias.coverage_last_failure_cause == IDENTITY_DISABLED_TARGET_COLLISION_CAUSE
+    assert pulls == []
+
+    body = CalendarSubscriptionsPut(
+        items=[
+            CalendarSubscriptionPutItem(
+                external_calendar_id=cal_id,
+                summary="Calendar",
+                role=CalendarSubscriptionRole.primary,
+                is_enabled=True,
+            )
+        ]
+    )
+    put_calendar_subscriptions(account.id, body, db_session, owner)
+    pulls.clear()
+    ms_cal.sync_account_events(
+        db_session,
+        settings=_settings(),
+        account=account,
+        time_min=_NOW - timedelta(days=1),
+        time_max=_NOW + timedelta(days=1),
+    )
+    assert pulls == [cal_id]
+
+
 def test_f16_disabled_row_same_canonical(
     db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:

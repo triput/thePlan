@@ -1655,7 +1655,10 @@ def sync_account_events(
         _mark_failure_committed(exc)
         raise
 
-    from app.services.calendar_alias_canonicalize import prepare_subscriptions_for_sync
+    from app.services.calendar_alias_canonicalize import (
+        account_should_bootstrap_primary_on_sync,
+        prepare_subscriptions_for_sync,
+    )
 
     subscriptions = prepare_subscriptions_for_sync(
         db,
@@ -1664,7 +1667,9 @@ def sync_account_events(
         access_token=access,
         now=now,
     )
-    if not subscriptions:
+    if account_should_bootstrap_primary_on_sync(
+        db, account.id, eligible=subscriptions
+    ):
         ensure_primary_subscription(db, account, settings=settings, access_token=access)
         subscriptions = prepare_subscriptions_for_sync(
             db,
