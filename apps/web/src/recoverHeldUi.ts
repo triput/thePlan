@@ -441,6 +441,17 @@ export function canOfferRecoverAffordance(taskHasRecurrence: boolean): boolean {
 }
 
 /**
+ * Open catch-up from the post-recover success CTA (R9c).
+ * Does not clear durable CTA state — retain until dismiss or task selection changes.
+ */
+export function openRecoverCatchUpViaSelect(
+  catchUpId: string,
+  onSelectTask: (taskId: string) => void,
+): void {
+  onSelectTask(catchUpId);
+}
+
+/**
  * Generation / stale gate for review↔authorize.
  * Authorize may enable only when fresh, binding present, review_ok, and generation matches.
  */

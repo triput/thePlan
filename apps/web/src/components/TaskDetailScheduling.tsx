@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
@@ -17,7 +17,7 @@ import {
   type Task,
 } from "../api";
 import { HELD_MISSES_QUERY_KEY, invalidateAfterHeldMutation } from "../heldMissesQuery";
-import { canOfferRecoverAffordance } from "../recoverHeldUi";
+import { canOfferRecoverAffordance, openRecoverCatchUpViaSelect } from "../recoverHeldUi";
 import { formatScheduleReasonFact } from "../scheduleReasonFacts";
 import { formatInstantInZone } from "../taskDetailDraft";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -125,6 +125,9 @@ export function TaskDetailScheduling({
   const [recoverTarget, setRecoverTarget] = useState<HeldDispositionOut | null>(null);
   /** U-R10: catch-up link lives on Scheduling after held row unmounts. */
   const [recoverSuccessCatchUpId, setRecoverSuccessCatchUpId] = useState<string | null>(null);
+  useEffect(() => {
+    setRecoverSuccessCatchUpId(null);
+  }, [taskId]);
   // Soft affordance from TaskOut.recurrence only — eligibility still comes from review.
   const offerRecover = canOfferRecoverAffordance(Boolean(task.recurrence));
 
@@ -300,9 +303,9 @@ export function TaskDetailScheduling({
                 type="button"
                 className="btn primary small"
                 onClick={() => {
-                  const id = recoverSuccessCatchUpId;
-                  setRecoverSuccessCatchUpId(null);
-                  onSelectTask(id);
+                  if (recoverSuccessCatchUpId) {
+                    openRecoverCatchUpViaSelect(recoverSuccessCatchUpId, onSelectTask);
+                  }
                 }}
               >
                 Open catch-up task

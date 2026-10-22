@@ -12,6 +12,7 @@ import {
   isRecoverAuthorizeEnabled,
   parseBrowserLocalWall,
   parseWallInTimeZone,
+  openRecoverCatchUpViaSelect,
   recoverZoneLabels,
   shouldApplyReviewResponse,
   type RecoverFormIntent,
@@ -465,6 +466,57 @@ describe("recoverHeldUi parseWallInTimeZone gap/fold (Lord Howe 30min)", () => {
     if (parsed.ok) {
       assert.equal(formatWallInTimeZone(Date.parse(parsed.iso), LH), "2026-06-15T14:30");
     }
+  });
+});
+
+describe("recoverHeldUi R9c durable catch-up CTA", () => {
+  /** Mirrors App.runWithDirtyGuard cancel vs proceed for switch_task. */
+  function runWithDirtyGuard(
+    isDirty: boolean,
+    userCancelled: boolean,
+    proceed: () => void,
+  ): void {
+    if (isDirty && userCancelled) return;
+    proceed();
+  }
+
+  it("retains success catch-up id when dirty guard cancel blocks navigation", () => {
+    let recoverSuccessCatchUpId: string | null = "ea307cff-a3f8-453a-9054-dd092b665168";
+    openRecoverCatchUpViaSelect(recoverSuccessCatchUpId, () => {
+      runWithDirtyGuard(true, true, () => {
+        recoverSuccessCatchUpId = null;
+      });
+    });
+    assert.equal(recoverSuccessCatchUpId, "ea307cff-a3f8-453a-9054-dd092b665168");
+  });
+
+  it("allows second Open after cancel when dirty guard proceeds", () => {
+    let recoverSuccessCatchUpId: string | null = "ea307cff-a3f8-453a-9054-dd092b665168";
+    let navigatedTo: string | null = null;
+
+    const clickOpenCatchUp = () => {
+      const id = recoverSuccessCatchUpId;
+      if (!id) return;
+      openRecoverCatchUpViaSelect(id, (target) => {
+        runWithDirtyGuard(true, true, () => {
+          navigatedTo = target;
+          recoverSuccessCatchUpId = null;
+        });
+      });
+    };
+
+    clickOpenCatchUp();
+    assert.equal(navigatedTo, null);
+    assert.equal(recoverSuccessCatchUpId, "ea307cff-a3f8-453a-9054-dd092b665168");
+
+    openRecoverCatchUpViaSelect(recoverSuccessCatchUpId!, (target) => {
+      runWithDirtyGuard(true, false, () => {
+        navigatedTo = target;
+        recoverSuccessCatchUpId = null;
+      });
+    });
+    assert.equal(navigatedTo, "ea307cff-a3f8-453a-9054-dd092b665168");
+    assert.equal(recoverSuccessCatchUpId, null);
   });
 });
 
