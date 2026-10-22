@@ -1,19 +1,29 @@
 """T2-REC reviewed recovery — disposable acceptance (theplan_s1_test @ :5433).
 
-Matrix A1–A22 plus A2b/A2c/A5b/A6b/A7b/A8b/A10b (29 rows).
-No synthetic HTTP server. A6b uses real SessionLocal connections.
+Matrix A1–A22 plus clarifiers. No synthetic HTTP server.
+A6b: separate SessionLocal sessions and a start-barrier race. Not an
+exhaustive interleaving proof. The recover-then-rollback branch is session
+rollback, not late-injected failure.
+A11: early catch-up usable-dates gate, before series/event/revision writes.
+A11b: failure after those writes, at the nested-savepoint final flush.
+042→043 execution uses a separate database (theplan_s1_mig_test), never a
+downgrade of theplan_s1_test.
 A3 historical-block isolation is EXCEEDS_SLICE and is not claimed here.
 """
 
 from __future__ import annotations
 
+import os
+import subprocess
 import threading
 import uuid
 from datetime import datetime, time as time_of_day, timedelta, timezone
+from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from app.bootstrap import BOOTSTRAP_USER_ID
@@ -169,10 +179,13 @@ def _series(
     latest: datetime | None = None,
     deadline: datetime | None = None,
     tz: str = "UTC",
+    starts_on: str | None = None,
     ends_on: str | None = None,
     estimate: int = 60,
 ) -> dict:
     recurrence: dict = {"rrule": rrule, "is_fixed": is_fixed, "timezone": tz}
+    if starts_on is not None:
+        recurrence["starts_on"] = starts_on
     if ends_on is not None:
         recurrence["ends_on"] = ends_on
     payload: dict = {
@@ -369,6 +382,302 @@ def test_migration_043_recovery_epoch_objects(db_session: Session) -> None:
         )
     ).scalar()
     assert trigger == "disposition_correction_audits_append_only"
+
+
+_MIG_DB = "theplan_s1_mig_test"
+_MIG_DSN = "postgresql+psycopg://t1a@127.0.0.1:5433/theplan_s1_mig_test"
+_FORBIDDEN_MIG_DBS = frozenset({"theplan", "theplan_s1_test", "theplan_t1a_test"})
+
+
+def _assert_isolated_mig_dsn(dsn: str) -> None:
+    parsed = urlparse(dsn)
+    name = (parsed.path or "").lstrip("/").split("?", 1)[0]
+    assert parsed.hostname in {"127.0.0.1", "localhost"}
+    assert parsed.port == 5433
+    assert name == _MIG_DB
+    assert name not in _FORBIDDEN_MIG_DBS
+    assert name != _REQUIRED_DB
+
+
+def _mig_admin_connect():
+    import psycopg
+
+    _assert_isolated_mig_dsn(_MIG_DSN)
+    conn = psycopg.connect("postgresql://t1a@127.0.0.1:5433/postgres")
+    conn.autocommit = True
+    return conn
+
+
+def _drop_mig_db() -> None:
+    _assert_isolated_mig_dsn(_MIG_DSN)
+    admin = _mig_admin_connect()
+    try:
+        with admin.cursor() as cur:
+            cur.execute(f'DROP DATABASE IF EXISTS "{_MIG_DB}" WITH (FORCE)')
+    finally:
+        admin.close()
+
+
+def _alembic_upgrade_mig(revision: str) -> None:
+    """Forward upgrade only. Never downgrades theplan_s1_test."""
+    _assert_isolated_mig_dsn(_MIG_DSN)
+    if revision.startswith("-") or "downgrade" in revision:
+        raise AssertionError(f"refusing non-upgrade revision {revision!r}")
+    env = os.environ.copy()
+    env["DATABASE_URL"] = _MIG_DSN
+    env["SEED_DEMO_USER"] = "false"
+    api_root = Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [str(api_root / ".venv" / "Scripts" / "python.exe"), "-m", "alembic", "upgrade", revision],
+        cwd=str(api_root),
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise AssertionError(
+            f"alembic upgrade {revision} on {_MIG_DB} failed ({proc.returncode}):\n"
+            f"{proc.stdout}\n{proc.stderr}"
+        )
+
+
+def test_migration_042_to_043_executes_and_retains_held_progress(db_session: Session) -> None:
+    """Actual 042→043 upgrade on theplan_s1_mig_test. Shared theplan_s1_test stays 043.
+
+    SHOW port inside the container is often 5432; the host DSN port is 5433.
+    """
+    _assert_isolated_mig_dsn(_MIG_DSN)
+    shared_name = db_session.execute(text("SELECT current_database()")).scalar()
+    shared_version = db_session.execute(text("SELECT version_num FROM alembic_version")).scalar()
+    assert shared_name == _REQUIRED_DB
+    assert shared_version == "043_recovery_epoch"
+
+    _drop_mig_db()
+    admin = _mig_admin_connect()
+    try:
+        with admin.cursor() as cur:
+            cur.execute(f'CREATE DATABASE "{_MIG_DB}"')
+    finally:
+        admin.close()
+
+    owner_id = uuid.uuid4()
+    task_id = uuid.uuid4()
+    disp_id = uuid.uuid4()
+    entry_id = uuid.uuid4()
+    event_id = uuid.uuid4()
+    idem = uuid.uuid4()
+    try:
+        _alembic_upgrade_mig("042_task_occurrence_dispositions")
+        eng = create_engine(_MIG_DSN, pool_pre_ping=True)
+        try:
+            with eng.begin() as conn:
+                got_db = conn.execute(text("SELECT current_database()")).scalar()
+                got_ver = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
+                assert got_db == _MIG_DB
+                assert got_db != "theplan"
+                assert got_db != "theplan_s1_test"
+                assert got_ver == "042_task_occurrence_dispositions"
+                cols = set(
+                    conn.execute(
+                        text(
+                            "SELECT column_name FROM information_schema.columns "
+                            "WHERE table_name = 'task_occurrence_dispositions'"
+                        )
+                    ).scalars()
+                )
+                assert "catch_up_task_id" not in cols
+                conn.execute(
+                    text(
+                        "INSERT INTO users (id, email, username, display_name) "
+                        "VALUES (:id, :email, :username, :display)"
+                    ),
+                    {
+                        "id": owner_id,
+                        "email": "renee-mig-042@example.com",
+                        "username": "renee-mig-042",
+                        "display": "Renee mig 042",
+                    },
+                )
+                conn.execute(
+                    text(
+                        "INSERT INTO tasks ("
+                        "id, owner_id, title, estimated_duration_minutes, "
+                        "worked_minutes, remaining_minutes"
+                        ") VALUES ("
+                        ":id, :owner, :title, 45, 40, 5"
+                        ")"
+                    ),
+                    {
+                        "id": task_id,
+                        "owner": owner_id,
+                        "title": "mig held series",
+                    },
+                )
+                conn.execute(
+                    text(
+                        "INSERT INTO task_occurrence_dispositions ("
+                        "id, owner_id, task_id, episode_key, resolution, "
+                        "bounds_snapshot, miss_reason_code"
+                        ") VALUES ("
+                        ":id, :owner, :task, :episode, 'unresolved_held', "
+                        "CAST(:snap AS jsonb), 'occurrence_bounds_miss'"
+                        ")"
+                    ),
+                    {
+                        "id": disp_id,
+                        "owner": owner_id,
+                        "task": task_id,
+                        "episode": "mig-episode-1",
+                        "snap": '{"kept":"held"}',
+                    },
+                )
+                conn.execute(
+                    text(
+                        "INSERT INTO disposition_events ("
+                        "id, disposition_id, event_type, payload"
+                        ") VALUES ("
+                        ":id, :disp, 'miss_detected', CAST(:payload AS jsonb)"
+                        ")"
+                    ),
+                    {
+                        "id": event_id,
+                        "disp": disp_id,
+                        "payload": '{"kept":true}',
+                    },
+                )
+                conn.execute(
+                    text(
+                        "INSERT INTO task_progress_entries ("
+                        "id, owner_id, task_id, idempotency_key, intent_hash, "
+                        "minutes_worked, remaining_minutes"
+                        ") VALUES ("
+                        ":id, :owner, :task, :idem, :intent, 40, 5"
+                        ")"
+                    ),
+                    {
+                        "id": entry_id,
+                        "owner": owner_id,
+                        "task": task_id,
+                        "idem": idem,
+                        "intent": "d" * 64,
+                    },
+                )
+        finally:
+            eng.dispose()
+
+        _alembic_upgrade_mig("043_recovery_epoch")
+        eng = create_engine(_MIG_DSN, pool_pre_ping=True)
+        try:
+            with eng.connect() as conn:
+                assert conn.execute(text("SELECT current_database()")).scalar() == _MIG_DB
+                assert (
+                    conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
+                    == "043_recovery_epoch"
+                )
+                task = conn.execute(
+                    text(
+                        "SELECT title, estimated_duration_minutes, worked_minutes, "
+                        "remaining_minutes FROM tasks WHERE id = :id"
+                    ),
+                    {"id": task_id},
+                ).one()
+                assert task.title == "mig held series"
+                assert task.estimated_duration_minutes == 45
+                assert task.worked_minutes == 40
+                assert task.remaining_minutes == 5
+                disp = conn.execute(
+                    text(
+                        "SELECT resolution, episode_key, bounds_snapshot, "
+                        "miss_reason_code, catch_up_task_id, miss_era_worked_minutes, "
+                        "miss_era_remaining_minutes, miss_era_estimated_minutes, "
+                        "miss_era_entry_ids, authorize_instant "
+                        "FROM task_occurrence_dispositions WHERE id = :id"
+                    ),
+                    {"id": disp_id},
+                ).one()
+                assert disp.resolution == "unresolved_held"
+                assert disp.episode_key == "mig-episode-1"
+                assert disp.bounds_snapshot == {"kept": "held"}
+                assert disp.miss_reason_code == "occurrence_bounds_miss"
+                assert disp.catch_up_task_id is None
+                assert disp.miss_era_worked_minutes is None
+                assert disp.miss_era_remaining_minutes is None
+                assert disp.miss_era_estimated_minutes is None
+                assert disp.miss_era_entry_ids is None
+                assert disp.authorize_instant is None
+                event = conn.execute(
+                    text(
+                        "SELECT event_type, payload FROM disposition_events "
+                        "WHERE id = :id"
+                    ),
+                    {"id": event_id},
+                ).one()
+                assert event.event_type == "miss_detected"
+                assert event.payload == {"kept": True}
+                entry = conn.execute(
+                    text(
+                        "SELECT minutes_worked, remaining_minutes, task_id, owner_id "
+                        "FROM task_progress_entries WHERE id = :id"
+                    ),
+                    {"id": entry_id},
+                ).one()
+                assert entry.minutes_worked == 40
+                assert entry.remaining_minutes == 5
+                assert entry.task_id == task_id
+                assert entry.owner_id == owner_id
+                membership = conn.execute(
+                    text(
+                        "SELECT count(*) FROM progress_epoch_membership "
+                        "WHERE progress_entry_id = :id"
+                    ),
+                    {"id": entry_id},
+                ).scalar()
+                assert membership == 0
+                tables = set(
+                    conn.execute(
+                        text(
+                            "SELECT table_name FROM information_schema.tables "
+                            "WHERE table_schema = 'public' AND table_name IN "
+                            "('progress_epoch_membership', 'disposition_correction_audits')"
+                        )
+                    ).scalars()
+                )
+                assert tables == {
+                    "progress_epoch_membership",
+                    "disposition_correction_audits",
+                }
+                checks = set(
+                    conn.execute(
+                        text(
+                            "SELECT conname FROM pg_constraint WHERE conname IN ("
+                            "'task_occurrence_dispositions_recovered_implies_snapshot', "
+                            "'task_occurrence_dispositions_catch_up_ne_task')"
+                        )
+                    ).scalars()
+                )
+                assert checks == {
+                    "task_occurrence_dispositions_recovered_implies_snapshot",
+                    "task_occurrence_dispositions_catch_up_ne_task",
+                }
+                trigger = conn.execute(
+                    text(
+                        "SELECT tgname FROM pg_trigger "
+                        "WHERE tgname = 'disposition_correction_audits_append_only'"
+                    )
+                ).scalar()
+                assert trigger == "disposition_correction_audits_append_only"
+        finally:
+            eng.dispose()
+    finally:
+        _drop_mig_db()
+
+    db_session.expire_all()
+    assert db_session.execute(text("SELECT current_database()")).scalar() == _REQUIRED_DB
+    assert (
+        db_session.execute(text("SELECT version_num FROM alembic_version")).scalar()
+        == "043_recovery_epoch"
+    )
 
 
 def test_a1_miss_era_ledger_snapshot_and_live_reset(
@@ -790,6 +1099,95 @@ def test_a5b_successor_due_gap_and_fold_fail_closed(
     assert _catch_up_named(db_session, fold["title"]) == []
 
 
+def _catch_after(now: datetime) -> dict:
+    due = now + timedelta(days=3)
+    return {
+        "catch_up_due_at": _iso(due),
+        "catch_up_start_no_earlier_at": _iso(due - timedelta(hours=1)),
+        "catch_up_start_no_later_at": _iso(due + timedelta(hours=3)),
+        "catch_up_deadline_at": _iso(due + timedelta(hours=4)),
+    }
+
+
+def test_a5c_explicit_byhour_dst_gap_and_fold_fail_closed(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """RRULE wall is the indeterminate time; previous due is a real clock.
+
+    Replacing BYHOUR/BYMINUTE with the previous due's clock would land on a
+    valid civil time and hide the gap or fold. Recovery must reject.
+    """
+    _prepare(client, db_session)
+
+    gap_now = datetime(2026, 3, 7, 18, 0, tzinfo=UTC)
+    _set_now(monkeypatch, gap_now)
+    # 09:00 EST exists. BYHOUR=2;BYMINUTE=30 on 2026-03-08 does not.
+    gap_due = datetime(2026, 3, 7, 14, 0, tzinfo=UTC)
+    gap = _series(
+        client,
+        title=f"Explicit gap {_uid()}",
+        due=gap_due,
+        rrule="FREQ=DAILY;BYHOUR=2;BYMINUTE=30",
+        is_fixed=False,
+        tz="America/New_York",
+    )
+    gap_row = _hold(db_session, gap["id"])
+    gap_rev = _revision(client)
+    gap_due_before = _task(db_session, gap["id"]).due_at
+    gap_resp = _recover(
+        client,
+        gap["id"],
+        gap_row.id,
+        authorize_instant=_iso(gap_now),
+        **_catch_after(gap_now),
+    )
+    assert gap_resp.status_code == 422, gap_resp.text
+    gap_body = gap_resp.json()
+    assert gap_body["code"] == "BOUNDS_ROLL_INDETERMINATE_LOCAL"
+    assert gap_body["field"] == "due_at"
+    assert gap_body["kind"] == "gap"
+    assert _task(db_session, gap["id"]).due_at == gap_due_before
+    assert _revision(client) == gap_rev
+    assert _catch_up_named(db_session, gap["title"]) == []
+    assert db_session.get(TaskOccurrenceDisposition, gap_row.id).resolution == (
+        RESOLUTION_UNRESOLVED_HELD
+    )
+
+    fold_now = datetime(2026, 10, 31, 20, 0, tzinfo=UTC)
+    _set_now(monkeypatch, fold_now)
+    # 12:00 EDT exists. BYHOUR=1;BYMINUTE=30 on 2026-11-01 is the fold.
+    fold_due = datetime(2026, 10, 31, 16, 0, tzinfo=UTC)
+    fold = _series(
+        client,
+        title=f"Explicit fold {_uid()}",
+        due=fold_due,
+        rrule="FREQ=DAILY;BYHOUR=1;BYMINUTE=30",
+        is_fixed=False,
+        tz="America/New_York",
+    )
+    fold_row = _hold(db_session, fold["id"])
+    fold_rev = _revision(client)
+    fold_due_before = _task(db_session, fold["id"]).due_at
+    fold_resp = _recover(
+        client,
+        fold["id"],
+        fold_row.id,
+        authorize_instant=_iso(fold_now),
+        **_catch_after(fold_now),
+    )
+    assert fold_resp.status_code == 422, fold_resp.text
+    fold_body = fold_resp.json()
+    assert fold_body["code"] == "BOUNDS_ROLL_INDETERMINATE_LOCAL"
+    assert fold_body["field"] == "due_at"
+    assert fold_body["kind"] == "fold"
+    assert _task(db_session, fold["id"]).due_at == fold_due_before
+    assert _revision(client) == fold_rev
+    assert _catch_up_named(db_session, fold["title"]) == []
+    assert db_session.get(TaskOccurrenceDisposition, fold_row.id).resolution == (
+        RESOLUTION_UNRESOLVED_HELD
+    )
+
+
 def test_a6_fall_fold_bound_fail_closed(
     client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -853,7 +1251,12 @@ def _purge_probe_users() -> None:
         db.close()
 
 
-def _commit_recurring_probe() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, int, str]:
+def _commit_recurring_probe(
+    *,
+    worked_minutes: int = 0,
+    remaining_minutes: int = 60,
+    with_progress: bool = False,
+) -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, int, str]:
     token = uuid.uuid4().hex[:12]
     db = SessionLocal()
     try:
@@ -888,8 +1291,8 @@ def _commit_recurring_probe() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, int, str
             project_id=project.id,
             title=title,
             estimated_duration_minutes=60,
-            worked_minutes=0,
-            remaining_minutes=60,
+            worked_minutes=worked_minutes,
+            remaining_minutes=remaining_minutes,
             schedule_style=ScheduleStyle.standalone,
             due_at=_BOOKS_DUE,
             start_no_earlier_at=_BOOKS_EARLIEST,
@@ -918,6 +1321,19 @@ def _commit_recurring_probe() -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, int, str
             miss_reason_code="occurrence_bounds_miss",
         )
         db.add(disp)
+        if with_progress:
+            if worked_minutes <= 0:
+                raise RuntimeError("progress seed requires positive worked_minutes")
+            db.add(
+                TaskProgressEntry(
+                    owner_id=user.id,
+                    task_id=task.id,
+                    idempotency_key=uuid.uuid4(),
+                    intent_hash="c" * 64,
+                    minutes_worked=worked_minutes,
+                    remaining_minutes=remaining_minutes,
+                )
+            )
         db.commit()
         return user.id, task.id, disp.id, 3, title
     except Exception:
@@ -942,7 +1358,16 @@ def _probe_recover_kwargs(owner_id, task_id, disp_id, rev):
 
 
 def test_a6b_separate_session_concurrency(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Real SessionLocal connections. Threads for races; sequential sessions for stale/rollback."""
+    """Separate SessionLocal sessions, plus a two-thread start-barrier race.
+
+    The barrier releases both workers together. That is one race shape, not
+    an exhaustive interleaving proof.
+
+    The recover-then-explicit-``rollback()`` branch shows an uncommitted
+    recover does not survive ``session.rollback()``. It is not evidence of a
+    failure injected after series reset, terminal disposition, event, and
+    revision writes. That case is ``test_a11b_late_flush_failure_rolls_back``.
+    """
     _patch_schedule_clock(monkeypatch)
     monkeypatch.setattr("app.services.occurrence_disposition.utc_now", lambda: FIXED_NOW)
     _purge_probe_users()
@@ -1343,9 +1768,86 @@ def test_a10b_authorize_instant_not_shifted_by_later_now(
     assert stored.authorize_instant == reviewed
 
 
+def _assert_byhour_17_landing(
+    client: TestClient, db_session: Session, task: dict, row_id: uuid.UUID
+) -> None:
+    expected = datetime(2026, 8, 11, 17, 0, tzinfo=UTC)
+    resp = _recover(
+        client,
+        task["id"],
+        row_id,
+        authorize_instant=_iso(datetime(2026, 8, 11, 12, 0, tzinfo=UTC)),
+    )
+    assert resp.status_code == 200, resp.text
+    series = _task(db_session, task["id"])
+    assert series.due_at == expected
+    stored = db_session.get(TaskOccurrenceDisposition, row_id)
+    assert stored is not None
+    recovered = [event for event in stored.events if event.event_type == EVENT_RECOVERED]
+    assert len(recovered) == 1
+    assert recovered[0].payload["accept_past"] is False
+    assert len(_catch_up_named(db_session, task["title"])) == 1
+
+
+def test_a10c_dex_byhour_boundless_keeps_rule_time(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dex probe: FREQ=DAILY;BYHOUR=17, no ends_on, completion-anchored UTC.
+
+    Previous due Aug 10 09:00, authorize/now Aug 11 12:00. Next-normal due is
+    Aug 11 17:00. No accept_past_ack.
+    """
+    _prepare(client, db_session)
+    _set_now(monkeypatch, datetime(2026, 8, 11, 12, 0, tzinfo=UTC))
+    due = datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
+    earliest, latest, deadline = _window_on(due)
+    task = _series(
+        client,
+        title=f"BYHOUR boundless {_uid()}",
+        due=due,
+        earliest=earliest,
+        latest=latest,
+        deadline=deadline,
+        rrule="FREQ=DAILY;BYHOUR=17",
+        is_fixed=False,
+    )
+    row = _hold(db_session, task["id"])
+    _assert_byhour_17_landing(client, db_session, task, row.id)
+
+
+def test_a10d_byhour_open_frame_no_ends_on(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Open frame: starts_on set, ends_on omitted. Same BYHOUR=17 landing."""
+    _prepare(client, db_session)
+    _set_now(monkeypatch, datetime(2026, 8, 11, 12, 0, tzinfo=UTC))
+    due = datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
+    earliest, latest, deadline = _window_on(due)
+    task = _series(
+        client,
+        title=f"BYHOUR open frame {_uid()}",
+        due=due,
+        earliest=earliest,
+        latest=latest,
+        deadline=deadline,
+        rrule="FREQ=DAILY;BYHOUR=17",
+        is_fixed=False,
+        starts_on="2026-08-01",
+    )
+    row = _hold(db_session, task["id"])
+    _assert_byhour_17_landing(client, db_session, task, row.id)
+
+
 def test_a11_gate_failure_rolls_back_nested_savepoint(
     client: TestClient, db_session: Session
 ) -> None:
+    """Early catch-up usable-dates gate (BOUNDS_STILL_MISSED).
+
+    The past catch-up window fails before series reset, terminal disposition,
+    RECOVERED event, and revision bump. A clean task/ledger afterward shows
+    that earlier snapshot/catch-up work did not commit. It does not prove
+    rollback of those later writes. See test_a11b_late_flush_failure_rolls_back.
+    """
     _prepare(client, db_session)
     task = _books(client)
     _log(client, task["id"], 25, 35)
@@ -1387,6 +1889,112 @@ def test_a11_gate_failure_rolls_back_nested_savepoint(
     assert _revision(client) == rev
     assert len(_memberships(db_session, series.id)) == members_before
     assert _catch_up_named(db_session, task["title"]) == []
+
+
+def test_a11b_late_flush_failure_rolls_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Inject failure after series reset, terminal disposition, event, and revision.
+
+    Monkeypatch ``_recover_held_final_flush`` (the nested-savepoint boundary
+    after those writes). The same session observes the writes; a fresh
+    SessionLocal does not.
+    """
+    from app.services.occurrence_disposition import _recover_held_final_flush
+
+    _patch_schedule_clock(monkeypatch)
+    monkeypatch.setattr("app.services.occurrence_disposition.utc_now", lambda: FIXED_NOW)
+    _purge_probe_users()
+    seen = {"after_writes": False}
+    try:
+        owner_id, task_id, disp_id, rev, title = _commit_recurring_probe(
+            worked_minutes=25,
+            remaining_minutes=35,
+            with_progress=True,
+        )
+
+        def _boom(db: Session) -> None:
+            _recover_held_final_flush(db)
+            row = db.get(TaskOccurrenceDisposition, disp_id)
+            assert row is not None
+            assert row.resolution == RESOLUTION_RECOVERED
+            assert row.catch_up_task_id is not None
+            settings = db.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+            assert int(settings.scheduling_revision) == rev + 1
+            recovered = (
+                db.query(DispositionEvent)
+                .filter(
+                    DispositionEvent.disposition_id == disp_id,
+                    DispositionEvent.event_type == EVENT_RECOVERED,
+                )
+                .count()
+            )
+            assert recovered == 1
+            series = db.get(Task, task_id)
+            assert series is not None
+            assert series.worked_minutes == 0
+            assert series.remaining_minutes == 60
+            assert series.due_at == _AUG18
+            seen["after_writes"] = True
+            raise RuntimeError("RENEE_LATE_INJECT")
+
+        monkeypatch.setattr(
+            "app.services.occurrence_disposition._recover_held_final_flush",
+            _boom,
+        )
+        db = SessionLocal()
+        try:
+            with pytest.raises(RuntimeError, match="RENEE_LATE_INJECT"):
+                recover_held(db, **_probe_recover_kwargs(owner_id, task_id, disp_id, rev))
+            assert seen["after_writes"] is True
+            db.rollback()
+        finally:
+            db.close()
+
+        fresh = SessionLocal()
+        try:
+            series = fresh.get(Task, task_id)
+            assert series is not None
+            assert series.id == task_id
+            assert series.owner_id == owner_id
+            assert series.title == title
+            assert series.estimated_duration_minutes == 60
+            assert series.worked_minutes == 25
+            assert series.remaining_minutes == 35
+            assert series.due_at == _BOOKS_DUE
+            assert series.start_no_earlier_at == _BOOKS_EARLIEST
+            assert series.start_no_later_at == _BOOKS_LATEST
+            assert series.deadline_at == _BOOKS_DEADLINE
+            row = fresh.get(TaskOccurrenceDisposition, disp_id)
+            assert row is not None
+            assert row.resolution == RESOLUTION_UNRESOLVED_HELD
+            assert row.catch_up_task_id is None
+            assert row.authorize_instant is None
+            assert row.miss_era_worked_minutes is None
+            assert row.miss_era_entry_ids is None
+            recovered = (
+                fresh.query(DispositionEvent)
+                .filter(
+                    DispositionEvent.disposition_id == disp_id,
+                    DispositionEvent.event_type == EVENT_RECOVERED,
+                )
+                .count()
+            )
+            assert recovered == 0
+            settings = fresh.query(UserSettings).filter(UserSettings.owner_id == owner_id).one()
+            assert int(settings.scheduling_revision) == rev
+            assert fresh.query(Task).filter(Task.title == f"{title} (catch-up)").count() == 0
+            entries = fresh.query(TaskProgressEntry).filter(TaskProgressEntry.task_id == task_id).all()
+            assert len(entries) == 1
+            assert entries[0].minutes_worked == 25
+            assert (
+                fresh.query(ProgressEpochMembership)
+                .filter(ProgressEpochMembership.task_id == task_id)
+                .count()
+                == 0
+            )
+        finally:
+            fresh.close()
+    finally:
+        _purge_probe_users()
 
 
 def test_a12_happy_path_atomic_one_rev_bump(

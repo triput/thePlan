@@ -48,7 +48,8 @@ from test_schedule_replan import FIXED_NOW, _create_task, _patch_schedule_clock,
 
 UTC = timezone.utc
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "042_task_occurrence_dispositions"
+# Current disposable head. Do not downgrade theplan_s1_test to rerun this file.
+_REQUIRED_HEAD = "043_recovery_epoch"
 _PROBE_EMAIL_LIKE = "justin-t2s2-bauto-%@example.com"
 
 cli_root = Path(__file__).resolve().parents[2] / "cli"
@@ -60,6 +61,7 @@ if str(cli_root) not in sys.path:
 def _disposable_db(db_session: Session) -> None:
     name = db_session.execute(text("SELECT current_database()")).scalar()
     assert name == _REQUIRED_DB
+    assert name != "theplan"
     version = db_session.execute(text("SELECT version_num FROM alembic_version")).scalar()
     assert version == _REQUIRED_HEAD
 
@@ -109,6 +111,19 @@ def _ready_preview(client: TestClient, db: Session, monkeypatch: pytest.MonkeyPa
 
 def _revision(client: TestClient) -> int:
     return int(client.get("/api/v1/settings").json()["scheduling_revision"])
+
+
+def _held_count_for(db: Session, task_id: str | uuid.UUID) -> int:
+    """Dispositions for this task only.
+
+    theplan_s1_test also holds committed UI-held seed rows for another owner.
+    A table-wide count is not this preview's rollback evidence.
+    """
+    return (
+        db.query(TaskOccurrenceDisposition)
+        .filter(TaskOccurrenceDisposition.task_id == uuid.UUID(str(task_id)))
+        .count()
+    )
 
 
 def _fresh_session_on(connection) -> Session:
@@ -412,11 +427,13 @@ def test_a1_external_revision_drift_aborts(
         if not edited["done"]:
             edited["done"] = True
             rev = _revision(client)
+            # Original estimate is immutable after progress shipped. Priority
+            # still bumps scheduling revision, which is the drift this row needs.
             patched = client.patch(
                 f"/api/v1/tasks/{task['id']}",
                 json={
                     "expected_revision": rev,
-                    "estimated_duration_minutes": 90,
+                    "priority": "p1",
                 },
             )
             assert patched.status_code == 200, patched.text
@@ -431,7 +448,7 @@ def test_a1_external_revision_drift_aborts(
     got = client.get(f"/api/v1/schedule/previews/{preview_id}")
     assert got.json()["status"] in {"stale", "failed"}
     assert got.json()["status"] != "ready"
-    assert db_session.query(TaskOccurrenceDisposition).count() == 0
+    assert _held_count_for(db_session, task["id"]) == 0
 
 
 def test_a2_two_previews_same_owner_serialized(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -486,7 +503,7 @@ def test_a3_rollback_removes_flushed_dispositions(
 ) -> None:
     """DB publication failure at ready commit — not a proposal-builder boom."""
     _prepare(client, db_session)
-    _miss_task(client, db_session)
+    task = _miss_task(client, db_session)
     monkeypatch.setattr(
         "app.api.routes.schedule.dispatch_preview",
         lambda preview_id, sync=False: None,
@@ -504,7 +521,7 @@ def test_a3_rollback_removes_flushed_dispositions(
     monkeypatch.setattr(Session, "commit", flaky_commit)
     run_preview(preview_id, db=db_session)
     db_session.expire_all()
-    assert db_session.query(TaskOccurrenceDisposition).count() == 0
+    assert _held_count_for(db_session, task["id"]) == 0
     got = client.get(f"/api/v1/schedule/previews/{preview_id}")
     assert got.json()["status"] == "failed"
 
@@ -614,7 +631,7 @@ def test_a8_max_iter_exhaustion_not_ready(
 ) -> None:
     """Exhaustion after real staging — uncovered miss persists across bounded loop."""
     _prepare(client, db_session)
-    _miss_task(client, db_session)
+    task = _miss_task(client, db_session)
     monkeypatch.setattr(
         "app.api.routes.schedule.dispatch_preview",
         lambda preview_id, sync=False: None,
@@ -649,7 +666,7 @@ def test_a8_max_iter_exhaustion_not_ready(
     db_session.expire_all()
     got = client.get(f"/api/v1/schedule/previews/{preview_id}")
     assert got.json()["status"] == "failed"
-    assert db_session.query(TaskOccurrenceDisposition).count() == 0
+    assert _held_count_for(db_session, task["id"]) == 0
 
 
 def test_a9_second_pass_miss_recorded_or_exhaust(
@@ -703,7 +720,7 @@ def test_a10_trust_fail_rollback(
 ) -> None:
     """Trust fail after staging — rolled back; not a pre-stage fail."""
     _prepare(client, db_session)
-    _miss_task(client, db_session)
+    task = _miss_task(client, db_session)
     monkeypatch.setattr(
         "app.api.routes.schedule.dispatch_preview",
         lambda preview_id, sync=False: None,
@@ -736,10 +753,7 @@ def test_a10_trust_fail_rollback(
         if validate_n["n"] >= 3 and staged_seen["n"] >= 1:
             from app.scheduler.free_busy import BusyInputTrust, BusyInputTrustError
 
-            raise BusyInputTrustError(
-                "blocked_after_stage",
-                BusyInputTrust(ok=False, blocking_diagnostics=[]),
-            )
+            raise BusyInputTrustError(BusyInputTrust(ok=False, blocking_diagnostics=[]))
         return real_validate(inputs)
 
     monkeypatch.setattr(
@@ -749,7 +763,7 @@ def test_a10_trust_fail_rollback(
     run_preview(preview_id, db=db_session)
     db_session.expire_all()
     assert staged_seen["n"] >= 1
-    assert db_session.query(TaskOccurrenceDisposition).count() == 0
+    assert _held_count_for(db_session, task["id"]) == 0
     got = client.get(f"/api/v1/schedule/previews/{preview_id}")
     assert got.json()["status"] == "failed"
 

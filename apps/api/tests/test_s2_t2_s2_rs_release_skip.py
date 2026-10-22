@@ -54,7 +54,8 @@ from test_schedule_replan import FIXED_NOW, _create_task, _patch_schedule_clock,
 
 UTC = timezone.utc
 _REQUIRED_DB = "theplan_s1_test"
-_REQUIRED_HEAD = "042_task_occurrence_dispositions"
+# Current disposable head. Do not downgrade theplan_s1_test to rerun this file.
+_REQUIRED_HEAD = "043_recovery_epoch"
 _PROBE_EMAIL_LIKE = "justin-t2s2-rs-%@example.com"
 
 cli_root = Path(__file__).resolve().parents[2] / "cli"
@@ -66,6 +67,7 @@ if str(cli_root) not in sys.path:
 def _disposable_db(db_session: Session) -> None:
     name = db_session.execute(text("SELECT current_database()")).scalar()
     assert name == _REQUIRED_DB
+    assert name != "theplan"
     version = db_session.execute(text("SELECT version_num FROM alembic_version")).scalar()
     assert version == _REQUIRED_HEAD
 

@@ -2,7 +2,7 @@
 #  File: apps/api/app/services/occurrence_disposition.py
 #  Description: T2-S2 B-auto durable miss dispositions + R/S + T2-REC recovery.
 #  Component: Occurrence disposition
-#  Version: 1.3
+#  Version: 1.4
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -711,29 +711,95 @@ def _attach_wall_or_reject(
         ) from exc
 
 
+def _rrule_by_ints(rrule: str, name: str) -> list[int] | None:
+    """Parse ``BYHOUR`` / ``BYMINUTE`` / ``BYSECOND`` values from an RRULE string.
+
+    Returns ``None`` when the part is absent. Multi-value parts return every int
+    in declaration order (e.g. ``BYHOUR=9,17`` → ``[9, 17]``).
+    """
+    needle = f"{name.upper()}="
+    for part in rrule.upper().replace("RRULE:", "").split(";"):
+        if part.startswith(needle):
+            raw = part.split("=", 1)[1]
+            if not raw:
+                return None
+            return [int(token) for token in raw.split(",") if token != ""]
+    return None
+
+
+def _intended_clock_component(
+    by_values: list[int] | None,
+    *,
+    previous: int,
+    candidate: int,
+) -> int:
+    """Resolve one civil clock component for successor wall re-attach.
+
+    - Part absent → previous_due's component (DST clock-of-day preservation).
+    - Single BY* value → that value (do not overwrite with previous_due).
+    - Multi BY* → candidate when it satisfies the rule (preserves which
+      occurrence ``next_due_at`` selected); otherwise the first listed value
+      for fail-closed DST re-check.
+    """
+    if by_values is None:
+        return previous
+    if len(by_values) == 1:
+        return by_values[0]
+    if candidate in by_values:
+        return candidate
+    return by_values[0]
+
+
 def _verify_due_wall_clock(
     due_utc: datetime,
     *,
     tz_name: str,
     previous_due: datetime,
+    rrule: str,
 ) -> datetime:
     """Fail-closed re-attach of the successor's intended civil time (§C4 / A5b).
 
-    ``next_due_at`` keeps the previous clock-of-day. A DST gap can make the
-    returned UTC land on a different clock (silent snap). Re-attach the
-    intended wall — previous clock on the successor civil date — so a gap or
-    fold rejects instead of committing the snapped instant.
+    Rebuild the intended wall on the successor civil date and re-attach via
+    ``_attach_wall_or_reject`` so a DST gap/fold rejects instead of committing a
+    snapped instant. Intended clock components:
+
+    - ``BYHOUR`` / ``BYMINUTE`` / ``BYSECOND`` when present in ``rrule``
+      (preserve the RRULE candidate's civil clock — do not replace with
+      ``previous_due``'s clock).
+    - Otherwise fall back to ``previous_due``'s H/M/S (clock-of-day
+      preservation when the rule has no explicit BY* time parts).
+
+    Never silently substitute ``previous_due``'s clock over a legitimate
+    BYHOUR/BYMINUTE/BYSECOND landing.
     """
     prev_local = _as_rule_local(previous_due, tz_name)
     cand_local = _as_rule_local(due_utc, tz_name)
+    by_hour = _rrule_by_ints(rrule, "BYHOUR")
+    by_minute = _rrule_by_ints(rrule, "BYMINUTE")
+    by_second = _rrule_by_ints(rrule, "BYSECOND")
+    hour = _intended_clock_component(
+        by_hour, previous=prev_local.hour, candidate=cand_local.hour
+    )
+    minute = _intended_clock_component(
+        by_minute, previous=prev_local.minute, candidate=cand_local.minute
+    )
+    second = _intended_clock_component(
+        by_second, previous=prev_local.second, candidate=cand_local.second
+    )
+    # Microseconds only travel with the previous_due fallback path (no BY*).
+    microsecond = (
+        prev_local.microsecond
+        if by_hour is None and by_minute is None and by_second is None
+        else 0
+    )
     intended = datetime(
         cand_local.year,
         cand_local.month,
         cand_local.day,
-        prev_local.hour,
-        prev_local.minute,
-        prev_local.second,
-        prev_local.microsecond,
+        hour,
+        minute,
+        second,
+        microsecond,
     )
     return _attach_wall_or_reject(intended, tz_name=tz_name, field="due_at")
 
@@ -835,8 +901,21 @@ def _advance_series_due_without_complete(
         else candidate.replace(tzinfo=timezone.utc)
     ).astimezone(timezone.utc)
 
+    # Wall verify first: may rewrite civil clock (BY* vs previous_due fallback)
+    # or reject DST gap/fold. Past-choice MUST run on the final due so verify
+    # cannot smuggle a past landing past the gate.
+    verified = _verify_due_wall_clock(
+        candidate_utc,
+        tz_name=rule.timezone,
+        previous_due=missed_due,
+        rrule=rule.rrule,
+    )
+    verified_utc = (
+        verified if verified.tzinfo else verified.replace(tzinfo=timezone.utc)
+    ).astimezone(timezone.utc)
+
     accept_past_applied = False
-    if candidate_utc < now:
+    if verified_utc < now:
         if not spec.is_fixed:
             # Completion-anchored should be future by construction; fail closed.
             raise ApiError(
@@ -854,12 +933,7 @@ def _advance_series_due_without_complete(
                 "FIXED_PAST_REQUIRES_CHOICE",
             )
 
-    verified = _verify_due_wall_clock(
-        candidate_utc,
-        tz_name=rule.timezone,
-        previous_due=missed_due,
-    )
-    return verified, accept_past_applied
+    return verified_utc, accept_past_applied
 
 
 def _apply_series_bounds_roll(
@@ -1023,6 +1097,15 @@ class RecoverHeldResult:
     disposition: TaskOccurrenceDisposition
     catch_up_task_id: UUID
     replayed: bool = False
+
+
+def _recover_held_final_flush(db: Session) -> None:
+    """Final flush inside ``recover_held``'s nested savepoint.
+
+    Boundary after series reset + terminal disposition/event/rev writes.
+    Tests may monkeypatch this to inject late failure after those writes.
+    """
+    db.flush()
 
 
 def recover_held(
@@ -1220,7 +1303,7 @@ def recover_held(
             )
         )
         increment_scheduling_revision(db, settings)
-        db.flush()
+        _recover_held_final_flush(db)
         if dict(row.bounds_snapshot) != snapshot_before:
             raise ApiError(
                 500,
