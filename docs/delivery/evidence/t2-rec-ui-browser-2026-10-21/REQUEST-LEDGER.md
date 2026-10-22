@@ -42,3 +42,37 @@ Resource URLs under `/api/v1` included reads (`auth/me`, tasks, settings, `sched
 | Catch-up `e2cf82d9-…` | title `REC-UI-happy weekly (catch-up)`, remaining 60 |
 | Series due | `2026-10-27 02:00:00+00:00` |
 | C2 disposition `db7df4be-…` | `unresolved_held` |
+
+## Bounce re-run at `56dde72` (browser, not the seed probe)
+
+**Runner:** Renee. Vite `:5174` → API `:18081`. In-page `fetch` wrapper. Bindings recorded as lengths only. Browser zone `America/Los_Angeles`.
+
+Seed script also POSTed review once per new row before the browser opened. Those calls are **not** in this table. Browser calls only.
+
+Happy task `1ec53c0e-7a53-4036-985c-1b0f20e87011`, disposition `b48129a8-46c1-4f57-8c73-8a9b82ec73fc`.
+
+| t (UTC) | Method | Path tail | Request (keys / values, no binding secret) | Status | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 03:18:43 | POST | `…/recover/review` | `disposition_id`, `expected_revision` 65 | **200** ×2 | Open. StrictMode pair. `review_ok` true. No catch-up fields. |
+| 03:19:22 | POST | same review | due `2026-10-28T22:30:00.000Z`, deadline `2026-10-29T23:00:00.000Z`, remaining **45**, rev 65 | **200** | First refresh after editing due + deadline + remaining. |
+| 03:19:38 | POST | same review | same due + deadline (server `Z` form) + remaining **45** | **200** | Second refresh, no further edits. Intent retained. |
+| 03:19:59 | POST | same review | same due + deadline, remaining **50** | **200** | Only remaining changed. Dates retained. |
+| 03:20:14 | POST | same review | same dates, remaining **50**, wrapper hold **3500ms** | **200** | **Applied.** Edit arrived after the hold. Not the discard. |
+| 03:20:40 | POST | same review | same dates, remaining **77** | **200** | Rebound after that late edit. |
+| 03:20:48 | POST | same review | same dates, remaining **77**, wrapper hold **1200ms** | **200** | **Discarded.** UI remaining stayed **88**. Review time stayed 03:20. Authorize stayed disabled. |
+| — | — | — | catch-up due `2026-11-01T01:30` then `2026-03-08T02:30` | **no POST** | Client LA fold, then client LA gap. Alert only. Ledger length unchanged until the next row. |
+| 03:22:06 | POST | same review | due + deadline as above, remaining **45** | **200** | Restored unambiguous due, refreshed. |
+| 03:22:06 | POST | `…/recover` | due, deadline, remaining **45**, `authorize_instant` `2026-10-22T03:22:06.639543Z`, `review_binding` len **1393**, rev 65 | **200** | `catch_up_task_id` `9566f9a5-812a-4c3b-81b2-dc5c51a1fbd9`. |
+| 03:22:52 | POST | fixed `936bb971-…/recover/review` | disposition `2304f320-…`, rev **66** | **200** ×2 | `successor` `FIXED_PAST_REQUIRES_CHOICE`. `review_ok` false. No authorize. |
+| 03:23:12 | POST | fold `2dcc9ca1-…/recover/review` | disposition `39dd7674-…`, rev 66 | **422** ×2 | `BOUNDS_ROLL_INDETERMINATE_LOCAL`, `field=due_at`, `kind=fold`, wall `2026-11-01T01:30:00` LA. |
+| 03:23:25 | POST | gap `c362b01a-…/recover/review` | disposition `49aa7806-…`, rev 66 | **422** ×2 | same code, `kind=gap`, wall `2026-03-08T02:30:00` LA. |
+
+API access log on `:18081` for this browser session: **no** `PATCH`. No replan / preview / apply.
+
+### DB read-back (`theplan_s1_test`, after the 200)
+
+| Row | Result |
+| --- | --- |
+| Happy disposition | `recovered`; series due `2026-10-27 03:00:00+00` |
+| Catch-up `9566f9a5-…` | title `REC-UI-happy weekly (catch-up)`; due `2026-10-28 22:30:00+00`; remaining **45** |
+| Fixed / LA fold / LA gap / C2 | still `unresolved_held` |

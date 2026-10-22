@@ -22,3 +22,29 @@
 Request detail: `REQUEST-LEDGER.md`.
 
 **Also observed:** each Recover open issued **two** identical `recover/review` POSTs (Vite dev). Both 200 and read-only. Closing the happy task after success raised an unsaved-changes dialog; Discard was chosen. Resource log has no task PATCH and no replan/apply/preview POST.
+
+## Bounce re-run (Renee) — HEAD `56dde72`
+
+**Not** an independent Dex pass. **Not** acceptance of tip `bf5b298`. Prior R1–R5 above stay attributed to `ab04fad` / `15ef355`. This pass is the post-bounce web (`56dde72`) on API `ce4dc08`, same ports: Vite `http://127.0.0.1:5174` → API `http://127.0.0.1:18081` → Postgres `theplan_s1_test` `:5433`. **Not** `:8000`. Browser zone `America/Los_Angeles` (`Intl`). No push.
+
+| Shot | Claim | Result |
+| --- | --- | --- |
+| `R6-zone-labels-la-vs-utc.png` | Happy series rule zone UTC ≠ browser LA | **GREEN** — copy: `Editing in America/Los_Angeles (browser local) · targets above use Rule zone UTC` |
+| (ledger, no separate shot) | Two refreshes keep due + deadline + remaining; edit remaining only keeps the dates | **GREEN** — review bodies below |
+| `R7-ooo-review-discarded.png` | Late review 200 discarded when generation moved | **GREEN** on the second hold (see honesty). Remaining stayed **88**; Authorize stayed disabled; review time did not advance |
+| `R8-la-fold-client-reject.png` | Catch-up due `2026-11-01T01:30` (LA fold) rejected in the editor | **GREEN** — diagnostic shown; **no** `recover/review` POST |
+| `R8b-la-gap-client-reject.png` | Catch-up due `2026-03-08T02:30` (LA gap) same fail-closed | **GREEN** — same diagnostic; **no** review POST |
+| `R9-durable-catchup-cta.png` | After authorize 200, catch-up link stays on Scheduling once the held row is gone | **GREEN** — `Create catch-up` visible; held banner gone. Click opened `REC-UI-happy weekly (catch-up)` after Discard on the unsaved-series dialog |
+| `R10-fixed-past-choice.png` | Fixed series whose one-step landing is still past | **GREEN** — `FIXED_PAST_REQUIRES_CHOICE`; Authorize disabled; no authorize POST |
+| `R11-la-fold-server-422.png` | Rule-zone LA daily whose next wall is the fall fold | **GREEN** — browser `recover/review` **422** `BOUNDS_ROLL_INDETERMINATE_LOCAL` `kind=fold` `field=due_at` |
+| `R11b-la-gap-server-422.png` | Rule-zone LA daily whose next wall is the spring gap | **GREEN** — browser `recover/review` **422** `kind=gap` |
+
+**Honesty (this pass):**
+
+- Client fold/gap is local validation. Refresh showed “Reviewing…” while settings loaded, then the alert, and the in-page ledger did **not** gain a review POST. Server fold/gap are separate seeded tasks and **did** POST.
+- Out-of-order: a first 3500ms hold (remaining 50) **was applied** — the edit landed after the hold expired. The counted discard is the later 1200ms hold: real POST **200** with remaining **77**, response withheld in-page, remaining edited to **88** before the response was delivered. Review time stayed `03:20` UTC. Authorize stayed disabled.
+- That edit was a DOM `input` event on the remaining field while the real response was held, not a unit-test mock of `shouldApplyReviewResponse`.
+- Vite StrictMode still doubled the open `recover/review` (happy, fixed, fold, gap). Explicit refreshes were single.
+- Opening the catch-up from the CTA raised **Unsaved task changes** because the series draft still showed the pre-advance dates. **Discard** was chosen. API log on `:18081` has **no** `PATCH` in this session.
+- C2 was not re-clicked. `REC-UI-c2 blocks` stayed `unresolved_held`.
+- DB read-back on `theplan_s1_test`: happy disposition `recovered`, series due `2026-10-27 03:00:00+00`, catch-up `9566f9a5-812a-4c3b-81b2-dc5c51a1fbd9` due `2026-10-28 22:30:00+00` remaining **45**. Fixed, fold, and gap dispositions stayed `unresolved_held`.
