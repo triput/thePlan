@@ -1,11 +1,14 @@
 /**
  * T2-REC-UI helpers — Option A zone honesty, edit-generation stale gates,
  * and omit-vs-null catch-up wire (no client RRULE).
+ *
+ * Review is STATELESS: omitted catch-up fields mean None/default, not "keep
+ * prior review." Successive refreshes must re-send effective reviewed intent
+ * (raw ISO precision); explicit clear remains null.
  */
 
 import {
   browserTimeZoneLabel,
-  fromDatetimeLocal,
   toDatetimeLocal,
 } from "./taskDetailDraft.ts";
 
@@ -39,6 +42,18 @@ export interface RecoverCatchUpBaseline {
   remainingDefault: number;
 }
 
+/**
+ * Effective catch-up wire from the last applied review (raw ISO / remaining).
+ * Re-sent on successive refreshes when editors are unchanged — omit must not clear.
+ */
+export type RecoverCatchUpWireFields = {
+  catch_up_due_at?: string | null;
+  catch_up_start_no_earlier_at?: string | null;
+  catch_up_start_no_later_at?: string | null;
+  catch_up_deadline_at?: string | null;
+  catch_up_remaining_minutes?: number;
+};
+
 export interface RecoverFormIntent {
   successor: RecoverSuccessorMode;
   stepCount: string;
@@ -46,6 +61,11 @@ export interface RecoverFormIntent {
   baseline: RecoverCatchUpBaseline | null;
   /** True once the operator changed remaining away from the reviewed value. */
   remainingTouched: boolean;
+  /**
+   * Last reviewed catch-up wire. Carried across refreshes so unchanged fields
+   * re-send raw ISO / remaining instead of omitting (stateless review).
+   */
+  priorCatchUpFields: RecoverCatchUpWireFields;
 }
 
 export interface RecoverZoneLabels {
@@ -69,32 +89,110 @@ export function recoverZoneLabels(ruleTimezone: string | null | undefined): Reco
   };
 }
 
+const WALL_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/** Offset of `timeZone` at `utcMs` (local-as-UTC − utcMs), same idea as timeMapOverrides. */
+function getTimeZoneOffsetMs(utcMs: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(utcMs));
+  const map: Record<string, number> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") map[part.type] = Number(part.value);
+  }
+  const asUtc = Date.UTC(
+    map.year!,
+    map.month! - 1,
+    map.day!,
+    map.hour!,
+    map.minute!,
+    map.second ?? 0,
+  );
+  return asUtc - utcMs;
+}
+
+/** Wall clock in IANA zone → one UTC candidate (converges; fold twin probed separately). */
+function zonedWallToUtcMs(ymd: string, hour: number, minute: number, timeZone: string): number {
+  const [y, mo, d] = ymd.split("-").map(Number);
+  let ms = Date.UTC(y!, mo! - 1, d!, hour, minute);
+  for (let i = 0; i < 4; i++) {
+    ms = Date.UTC(y!, mo! - 1, d!, hour, minute) - getTimeZoneOffsetMs(ms, timeZone);
+  }
+  return ms;
+}
+
+/** Format an instant as datetime-local wall (minute) in an IANA zone. */
+export function formatWallInTimeZone(ms: number, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).formatToParts(new Date(ms));
+  const map: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") map[part.type] = part.value;
+  }
+  return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
+}
+
 /**
- * Parse a datetime-local wall in browser local zone.
- * Rejects empty→null caller decision; rejects NaN; rejects gap snaps via round-trip
- * (input wall ≠ re-formatted local wall after Date parse).
+ * Resolve a datetime-local wall in an IANA zone.
+ * Fail-closed on gap (no instant) and fold (two valid instants).
  */
-export function parseBrowserLocalWall(
+export function parseWallInTimeZone(
   value: string,
+  timeZone: string,
 ): { ok: true; iso: string } | { ok: false; reason: string } {
   const trimmed = value.trim();
   if (!trimmed) {
     return { ok: false, reason: "empty" };
   }
-  const d = new Date(trimmed);
-  if (Number.isNaN(d.getTime())) {
+  const m = WALL_RE.exec(trimmed);
+  if (!m) {
     return { ok: false, reason: "invalid" };
   }
-  // Gap / silent snap: browser Date moved the wall; refuse before wire.
-  const roundTrip = toDatetimeLocal(d.toISOString());
-  if (roundTrip !== trimmed) {
+  const h = Number(m[4]);
+  const mi = Number(m[5]);
+  const ymd = `${m[1]}-${m[2]}-${m[3]}`;
+  // Converges to one candidate; probe ±1h for fold twin.
+  const primary = zonedWallToUtcMs(ymd, h, mi, timeZone);
+  if (Number.isNaN(primary)) {
+    return { ok: false, reason: "invalid" };
+  }
+  const matches: number[] = [];
+  for (const ms of [primary - 3_600_000, primary, primary + 3_600_000]) {
+    if (formatWallInTimeZone(ms, timeZone) === trimmed && !matches.includes(ms)) {
+      matches.push(ms);
+    }
+  }
+  if (matches.length === 0) {
     return { ok: false, reason: "ambiguous_or_nonexistent" };
   }
-  const iso = fromDatetimeLocal(trimmed);
-  if (!iso) {
-    return { ok: false, reason: "invalid" };
+  if (matches.length > 1) {
+    return { ok: false, reason: "ambiguous_or_nonexistent" };
   }
-  return { ok: true, iso };
+  return { ok: true, iso: new Date(matches[0]!).toISOString() };
+}
+
+/**
+ * Parse a datetime-local wall in browser local zone.
+ * Rejects empty; rejects invalid shape; fail-closed on DST gap and fold.
+ */
+export function parseBrowserLocalWall(
+  value: string,
+): { ok: true; iso: string } | { ok: false; reason: string } {
+  return parseWallInTimeZone(value, browserTimeZoneLabel());
 }
 
 export function validateCatchUpEditors(editors: RecoverCatchUpEditors): string | null {
@@ -155,17 +253,42 @@ function baselineLocalForKey(
   }
 }
 
+function catchUpIsoFromReview(
+  catchUp: {
+    due_at: string | null;
+    start_no_earlier_at: string | null;
+    start_no_later_at: string | null;
+    deadline_at: string | null;
+  },
+  key: CatchUpDateKey,
+): string | null {
+  switch (key) {
+    case "catch_up_due_at":
+      return catchUp.due_at;
+    case "catch_up_start_no_earlier_at":
+      return catchUp.start_no_earlier_at;
+    case "catch_up_start_no_later_at":
+      return catchUp.start_no_later_at;
+    case "catch_up_deadline_at":
+      return catchUp.deadline_at;
+  }
+}
+
 /**
  * Build catch-up date/remaining fields for review or authorize.
- * Unchanged vs baseline → omit. Cleared → null. Edited → UTC ISO of browser wall.
+ *
+ * - Edited → UTC ISO of browser wall.
+ * - Explicit clear → null.
+ * - Unchanged vs baseline → re-send prior raw ISO / remaining when present
+ *   (stateless review: omit would clear). First review with no prior → omit.
  */
 export function buildCatchUpWireFields(
   intent: RecoverFormIntent,
-): { ok: true; fields: Record<string, string | number | null> } | { ok: false; error: string } {
+): { ok: true; fields: RecoverCatchUpWireFields } | { ok: false; error: string } {
   const validation = validateCatchUpEditors(intent.editors);
   if (validation) return { ok: false, error: validation };
 
-  const fields: Record<string, string | number | null> = {};
+  const fields: RecoverCatchUpWireFields = { ...intent.priorCatchUpFields };
   const keys: CatchUpDateKey[] = [
     "catch_up_due_at",
     "catch_up_start_no_earlier_at",
@@ -177,11 +300,10 @@ export function buildCatchUpWireFields(
     const local = editorLocalForKey(intent.editors, key).trim();
     const baseLocal = intent.baseline ? baselineLocalForKey(intent.baseline, key) : "";
     if (local === baseLocal) {
-      // Unchanged (incl. both empty) → omit so seconds/ms survive server-side.
+      // Unchanged: keep prior raw ISO (or prior null). Do not delete — omit clears on review.
       continue;
     }
     if (!local) {
-      // Explicit clear.
       fields[key] = null;
       continue;
     }
@@ -195,14 +317,62 @@ export function buildCatchUpWireFields(
   if (intent.remainingTouched) {
     const raw = intent.editors.remainingMinutes.trim();
     if (raw === "") {
-      // Cleared override → omit (server default). Distinct from sending 0.
-      // If they touched then cleared, treat as omit.
+      // Cleared override → drop prior so omit reaches server default.
+      delete fields.catch_up_remaining_minutes;
     } else {
       fields.catch_up_remaining_minutes = Number.parseInt(raw, 10);
     }
   }
+  // remainingTouched false: keep prior remaining (if any) across refresh.
 
   return { ok: true, fields };
+}
+
+/**
+ * After a successful review, merge sent wire + response into effective intent
+ * so the next refresh re-sends raw ISO precision (not minute-truncated editors).
+ */
+export function effectiveCatchUpFieldsAfterReview(
+  sent: RecoverCatchUpWireFields,
+  catchUp: {
+    due_at: string | null;
+    start_no_earlier_at: string | null;
+    start_no_later_at: string | null;
+    deadline_at: string | null;
+    remaining_minutes: number;
+    remaining_minutes_default: number;
+  },
+): RecoverCatchUpWireFields {
+  const keys: CatchUpDateKey[] = [
+    "catch_up_due_at",
+    "catch_up_start_no_earlier_at",
+    "catch_up_start_no_later_at",
+    "catch_up_deadline_at",
+  ];
+  const out: RecoverCatchUpWireFields = {};
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(sent, key)) {
+      const sentVal = sent[key];
+      if (sentVal === null) {
+        out[key] = null;
+      } else if (typeof sentVal === "string") {
+        // Prefer server-normalized ISO when present; else keep sent.
+        out[key] = catchUpIsoFromReview(catchUp, key) ?? sentVal;
+      }
+    } else {
+      const fromServer = catchUpIsoFromReview(catchUp, key);
+      if (fromServer) {
+        out[key] = fromServer;
+      }
+    }
+  }
+  if (Object.prototype.hasOwnProperty.call(sent, "catch_up_remaining_minutes")) {
+    out.catch_up_remaining_minutes = sent.catch_up_remaining_minutes;
+  } else if (catchUp.remaining_minutes !== catchUp.remaining_minutes_default) {
+    // Server absorbed a prior override into catch_up; carry it for next refresh.
+    out.catch_up_remaining_minutes = catchUp.remaining_minutes;
+  }
+  return out;
 }
 
 export function buildSuccessorWireFields(intent: RecoverFormIntent): {
@@ -220,21 +390,23 @@ export function buildSuccessorWireFields(intent: RecoverFormIntent): {
 }
 
 export type RecoverSuccessorWireFields = ReturnType<typeof buildSuccessorWireFields>;
-export type RecoverCatchUpWireFields = Record<string, string | number | null>;
+
+/** Authorize body fields: catch-up wire + successor flags (booleans allowed). */
+export type RecoverAuthorizeIntentFields = RecoverCatchUpWireFields & RecoverSuccessorWireFields;
 
 /**
  * Authorize must echo the same catch-up + successor intent that was HMAC-bound
  * on review. After a successful review, editors/baseline are remapped from the
- * response and remainingTouched is cleared — rebuild-from-editors would omit
- * overrides (e.g. catch_up_remaining_minutes: 45) and trip REVIEW_BINDING_MISMATCH.
+ * response and remainingTouched is cleared — rebuild-from-editors alone would
+ * omit overrides; carry bound fields instead.
  */
 export function buildRecoverAuthorizeIntentFields(args: {
   boundCatchUpFields: RecoverCatchUpWireFields;
   boundSuccessorFields: RecoverSuccessorWireFields;
-}): RecoverCatchUpWireFields & RecoverSuccessorWireFields {
+}): RecoverAuthorizeIntentFields {
   return {
-    ...args.boundSuccessorFields,
     ...args.boundCatchUpFields,
+    ...args.boundSuccessorFields,
   };
 }
 

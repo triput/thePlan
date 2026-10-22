@@ -16,6 +16,7 @@ import {
   buildSuccessorWireFields,
   c2LimitationCopy,
   editorsFromReviewCatchUp,
+  effectiveCatchUpFieldsAfterReview,
   isRecoverAuthorizeEnabled,
   recoverZoneLabels,
   shouldApplyReviewResponse,
@@ -34,7 +35,8 @@ interface HeldRecoverPaneProps {
   held: HeldDispositionOut;
   mutationPending: boolean;
   onClose: () => void;
-  onSelectTask?: (taskId: string) => void;
+  /** Lift success off the held row — parent keeps CTA after held unmounts. */
+  onRecovered: (catchUpTaskId: string) => void;
 }
 
 function formatRuleInstant(iso: string | null | undefined, ruleZone: string): string {
@@ -46,7 +48,7 @@ export function HeldRecoverPane({
   held,
   mutationPending,
   onClose,
-  onSelectTask,
+  onRecovered,
 }: HeldRecoverPaneProps) {
   const queryClient = useQueryClient();
 
@@ -67,13 +69,12 @@ export function HeldRecoverPane({
   const [remainingTouched, setRemainingTouched] = useState(false);
   const [successor, setSuccessor] = useState<RecoverSuccessorMode>("none");
   const [stepCount, setStepCount] = useState("1");
-  /** Exact catch-up + successor wire from the last applied review (authorize round-trip). */
+  /** Exact catch-up + successor wire from the last applied review (authorize + next refresh). */
   const [boundCatchUpFields, setBoundCatchUpFields] = useState<RecoverCatchUpWireFields>({});
   const [boundSuccessorFields, setBoundSuccessorFields] = useState<RecoverSuccessorWireFields>({});
   const [paneError, setPaneError] = useState<string | null>(null);
   const [reviewPending, setReviewPending] = useState(false);
   const [authorizePending, setAuthorizePending] = useState(false);
-  const [successCatchUpId, setSuccessCatchUpId] = useState<string | null>(null);
   const authorizeFlightRef = useRef(false);
   const formRef = useRef({
     successor,
@@ -81,8 +82,16 @@ export function HeldRecoverPane({
     editors,
     baseline,
     remainingTouched,
+    priorCatchUpFields: boundCatchUpFields,
   });
-  formRef.current = { successor, stepCount, editors, baseline, remainingTouched };
+  formRef.current = {
+    successor,
+    stepCount,
+    editors,
+    baseline,
+    remainingTouched,
+    priorCatchUpFields: boundCatchUpFields,
+  };
 
   const bumpStale = useCallback(() => {
     generationRef.current += 1;
@@ -126,8 +135,9 @@ export function HeldRecoverPane({
         setEditors(mapped.editors);
         setBaseline(mapped.baseline);
         setRemainingTouched(false);
-        // Snapshot the reviewed wire — authorize must echo this, not rebuild vs remapped baseline.
-        setBoundCatchUpFields(wire.fields);
+        // Effective reviewed intent (raw ISO) — next refresh re-sends; omit must not clear.
+        const effective = effectiveCatchUpFieldsAfterReview(wire.fields, result.catch_up);
+        setBoundCatchUpFields(effective);
         setBoundSuccessorFields(successorFields);
         setAppliedGeneration(requestGeneration);
         setStale(false);
@@ -225,8 +235,8 @@ export function HeldRecoverPane({
         authorize_instant: review.authorize_instant,
         ...intentFields,
       });
-      setSuccessCatchUpId(result.catch_up_task_id);
       emitToast("Recovered held occurrence — catch-up task created");
+      onRecovered(result.catch_up_task_id);
       invalidateAfterHeldMutation(queryClient);
       void queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       void queryClient.invalidateQueries({ queryKey: ["task", result.catch_up_task_id] });
@@ -252,35 +262,6 @@ export function HeldRecoverPane({
   const showFixedPast =
     review?.next_normal.accept_past_required === true ||
     review?.successor_choice.status === "FIXED_PAST_REQUIRES_CHOICE";
-
-  if (successCatchUpId) {
-    return (
-      <div className="held-recover-pane" role="region" aria-label="Recover success">
-        <p className="held-recover-title">
-          <strong>Recovered</strong>
-        </p>
-        <p className="muted small">Catch-up task is ready. Series advanced to next-normal.</p>
-        <div className="form-actions held-miss-actions">
-          {onSelectTask ? (
-            <button
-              type="button"
-              className="btn primary small"
-              onClick={() => onSelectTask(successCatchUpId)}
-            >
-              Open catch-up task
-            </button>
-          ) : (
-            <p className="muted small">
-              Catch-up task id: <code>{successCatchUpId}</code>
-            </p>
-          )}
-          <button type="button" className="btn secondary small" onClick={onClose}>
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="held-recover-pane" role="region" aria-label="Recover held miss">
@@ -317,14 +298,13 @@ export function HeldRecoverPane({
               {review.cadence.rrule_summary ? `; ${review.cadence.rrule_summary}` : ""}
             </p>
             <p>
-              <strong>Authorize instant</strong> (server-issued, not browser clock):{" "}
-              {formatRuleInstant(review.authorize_instant, ruleZone)}
+              <strong>Review time</strong>: {formatRuleInstant(review.authorize_instant, ruleZone)}
             </p>
           </div>
 
           <div className="held-recover-block muted small">
             <p>
-              <strong>Next-normal target</strong> ({zones.ruleZoneLabel}): due{" "}
+              <strong>Next regular occurrence</strong> ({zones.ruleZoneLabel}): due{" "}
               {formatRuleInstant(review.next_normal.due_at, ruleZone)}; earliest{" "}
               {formatRuleInstant(review.next_normal.start_no_earlier_at, ruleZone)}; latest{" "}
               {formatRuleInstant(review.next_normal.start_no_later_at, ruleZone)}; deadline{" "}
@@ -332,7 +312,8 @@ export function HeldRecoverPane({
               {review.next_normal.landing_is_past ? " · landing is past" : ""}
             </p>
             <p>
-              <strong>Next-normal effort</strong> — worked {review.next_normal_effort.worked_minutes}
+              <strong>Next-occurrence effort</strong> — worked{" "}
+              {review.next_normal_effort.worked_minutes}
               min; remaining {review.next_normal_effort.remaining_minutes}min (full restart)
             </p>
           </div>

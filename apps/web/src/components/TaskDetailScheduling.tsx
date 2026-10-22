@@ -120,6 +120,8 @@ export function TaskDetailScheduling({
   const [actionError, setActionError] = useState<string | null>(null);
   const [skipTarget, setSkipTarget] = useState<HeldDispositionOut | null>(null);
   const [recoverTarget, setRecoverTarget] = useState<HeldDispositionOut | null>(null);
+  /** U-R10: catch-up link lives on Scheduling after held row unmounts. */
+  const [recoverSuccessCatchUpId, setRecoverSuccessCatchUpId] = useState<string | null>(null);
   // Soft affordance from TaskOut.recurrence only — eligibility still comes from review.
   const offerRecover = canOfferRecoverAffordance(Boolean(task.recurrence));
 
@@ -277,6 +279,47 @@ export function TaskDetailScheduling({
           </button>
         </p>
       )}
+      {recoverSuccessCatchUpId && (
+        <div
+          className="held-recover-pane held-recover-success"
+          role="region"
+          aria-label="Recover success"
+        >
+          <p className="held-recover-title">
+            <strong>Recovered</strong>
+          </p>
+          <p className="muted small">
+            Catch-up task is ready. Series advanced to the next regular occurrence.
+          </p>
+          <div className="form-actions held-miss-actions">
+            {onSelectTask ? (
+              <button
+                type="button"
+                className="btn primary small"
+                onClick={() => {
+                  const id = recoverSuccessCatchUpId;
+                  setRecoverSuccessCatchUpId(null);
+                  onSelectTask(id);
+                }}
+              >
+                Create catch-up
+              </button>
+            ) : (
+              <p className="muted small">
+                Catch-up task id: <code>{recoverSuccessCatchUpId}</code>
+              </p>
+            )}
+            <button
+              type="button"
+              className="btn secondary small"
+              onClick={() => setRecoverSuccessCatchUpId(null)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       {heldQuery.isSuccess &&
         heldForTask.map((held) => {
           const snap = held.bounds_snapshot ?? {};
@@ -311,7 +354,7 @@ export function TaskDetailScheduling({
                 Leave held = keep waiting. Release = retry scheduling after you review dates. Skip =
                 do not schedule this occurrence; history and blocks stay.
                 {offerRecover
-                  ? " Recover = reviewed catch-up + next-normal for recurring series."
+                  ? " Recover = reviewed catch-up + next regular occurrence for recurring series."
                   : " One-off held uses Release (not Recover)."}
               </p>
               {actionError && (
@@ -326,7 +369,10 @@ export function TaskDetailScheduling({
                   held={held}
                   mutationPending={mutationPending}
                   onClose={() => setRecoverTarget(null)}
-                  onSelectTask={onSelectTask}
+                  onRecovered={(catchUpTaskId) => {
+                    setRecoverTarget(null);
+                    setRecoverSuccessCatchUpId(catchUpTaskId);
+                  }}
                 />
               ) : (
                 <div className="form-actions held-miss-actions">
@@ -353,6 +399,7 @@ export function TaskDetailScheduling({
                       disabled={mutationPending}
                       onClick={() => {
                         setActionError(null);
+                        setRecoverSuccessCatchUpId(null);
                         setRecoverTarget(held);
                       }}
                     >
