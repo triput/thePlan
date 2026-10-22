@@ -28,7 +28,13 @@ from app.schemas import (
     TaskPromoteToProjectOut,
     TaskUpdate,
 )
-from app.schemas.progress import TaskProgressApplyResult, TaskProgressEntryCreate, TaskProgressEntryOut
+from app.schemas.progress import (
+    ProgressCorrectionCreate,
+    ProgressCorrectionResult,
+    TaskProgressApplyResult,
+    TaskProgressEntryCreate,
+    TaskProgressEntryOut,
+)
 from app.services.auth_users import get_or_provision_user_settings
 from app.services.bundle_blocks import shrink_bundle_blocks_for_completed_members
 from app.services.hierarchy_promote import promote_task_to_project
@@ -57,7 +63,10 @@ from app.services.task_helpers import (
 )
 from app.services.duration_fields import resolve_minutes_field
 from app.services.task_effort_init import initialize_task_effort_on_create
-from app.services.task_progress import append_progress_entry
+from app.services.task_progress import (
+    append_historical_progress_correction,
+    append_progress_entry,
+)
 from app.services.task_workflow import board_column_for_task, transition_task_workflow
 from app.services.scheduling_revision import increment_scheduling_revision, lock_owner_scheduling
 from app.services.task_chunking_guard import (
@@ -558,6 +567,39 @@ def create_task_progress_entry(
         original_estimate_minutes=task.estimated_duration_minutes,
         time_worked_minutes=task.worked_minutes,
         remaining_estimate_minutes=remaining,
+        scheduling_revision=scheduling_revision,
+        replayed=replayed,
+    )
+
+
+@router.post(
+    "/{task_id}/progress-corrections",
+    response_model=ProgressCorrectionResult,
+)
+def create_task_progress_correction(
+    task_id: UUID,
+    body: ProgressCorrectionCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ProgressCorrectionResult:
+    """Ledger-only historical correction for a closed miss-era epoch (T2-REC)."""
+    task = _get_owned_task(db, task_id, user)
+    settings = get_or_provision_user_settings(db, user)
+    entry, scheduling_revision, replayed = append_historical_progress_correction(
+        db,
+        user,
+        task,
+        corrects_entry_id=body.corrects_entry_id,
+        idempotency_key=body.idempotency_key,
+        minutes_worked_raw=body.minutes_worked,
+        remaining_minutes_raw=body.remaining_minutes,
+        expected_revision=body.expected_revision,
+        note=body.note,
+        nominal_workday_minutes=settings.nominal_workday_minutes,
+    )
+    db.commit()
+    return ProgressCorrectionResult(
+        entry=TaskProgressEntryOut.model_validate(entry),
         scheduling_revision=scheduling_revision,
         replayed=replayed,
     )

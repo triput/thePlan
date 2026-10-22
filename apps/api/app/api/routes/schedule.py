@@ -24,6 +24,8 @@ from app.services.schedule_previews import preview_to_dict, refresh_preview_stal
 from app.schemas.occurrence_disposition import (
     HeldDispositionOut,
     LeaveHeldIn,
+    RecoverHeldIn,
+    RecoverHeldOut,
     ReleaseHeldIn,
     SkipHeldIn,
 )
@@ -31,6 +33,7 @@ from app.schemas.task_scheduling import TaskSchedulingEffectiveOut
 from app.services.occurrence_disposition import (
     leave_held_acknowledgment,
     list_held_dispositions,
+    recover_held,
     release_held,
     skip_held,
 )
@@ -234,6 +237,7 @@ def _held_to_out(row) -> HeldDispositionOut:
         miss_reason_params=row.miss_reason_params,
         updated_at=row.updated_at,
         events=events,
+        catch_up_task_id=getattr(row, "catch_up_task_id", None),
     )
 
 
@@ -317,3 +321,38 @@ def skip_held_miss(
     db.commit()
     db.refresh(row)
     return _held_to_out(row)
+
+
+@router.post("/held-misses/{task_id}/recover", response_model=RecoverHeldOut)
+def recover_held_miss(
+    task_id: UUID,
+    body: RecoverHeldIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RecoverHeldOut:
+    task = db.get(Task, task_id)
+    if task is None or task.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    result = recover_held(
+        db,
+        owner_id=user.id,
+        task_id=task_id,
+        disposition_id=body.disposition_id,
+        expected_revision=body.expected_revision,
+        authorize_instant=body.authorize_instant,
+        accept_past_ack=body.accept_past_ack,
+        step_count=body.step_count,
+        abort=body.abort,
+        catch_up_due_at=body.catch_up_due_at,
+        catch_up_start_no_earlier_at=body.catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=body.catch_up_start_no_later_at,
+        catch_up_deadline_at=body.catch_up_deadline_at,
+        catch_up_remaining_minutes=body.catch_up_remaining_minutes,
+        note=body.note,
+    )
+    db.commit()
+    db.refresh(result.disposition)
+    out = _held_to_out(result.disposition)
+    payload = out.model_dump()
+    payload["catch_up_task_id"] = result.catch_up_task_id
+    return RecoverHeldOut(**payload)

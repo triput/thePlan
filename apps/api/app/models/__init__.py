@@ -51,7 +51,9 @@ from app.models.task import (
     TaskProgressEntry,
 )
 from app.models.task_occurrence_disposition import (
+    DispositionCorrectionAudit,
     DispositionEvent,
+    ProgressEpochMembership,
     TaskOccurrenceDisposition,
 )
 from app.models.time_map_override import TimeMapOverride, TimeMapOverrideBand
@@ -104,6 +106,8 @@ __all__ = [
     "TaskDependency",
     "TaskOccurrenceDisposition",
     "DispositionEvent",
+    "DispositionCorrectionAudit",
+    "ProgressEpochMembership",
     "TaskLabel",
     "TaskProgressEntry",
     "TaskPriority",

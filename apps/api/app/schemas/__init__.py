@@ -124,6 +124,8 @@ from app.schemas.availability import (
     AvailabilityWindowOut,
 )
 from app.schemas.progress import (
+    ProgressCorrectionCreate,
+    ProgressCorrectionResult,
     TaskProgressApplyResult,
     TaskProgressEntryCreate,
     TaskProgressEntryOut,
@@ -270,6 +272,8 @@ __all__ = [
     "TaskCreate",
     "TaskOut",
     "TaskProgressApplyResult",
+    "ProgressCorrectionCreate",
+    "ProgressCorrectionResult",
     "TaskProgressEntryCreate",
     "TaskProgressEntryOut",
     "TaskSchedulingEffectiveOut",

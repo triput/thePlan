@@ -12,6 +12,17 @@ class TaskProgressEntryCreate(BaseModel):
     note: str | None = Field(default=None, max_length=2000)
 
 
+class ProgressCorrectionCreate(BaseModel):
+    """Ledger-only historical correction (T2-REC §C1.3) — no live mutation."""
+
+    corrects_entry_id: UUID
+    idempotency_key: UUID
+    minutes_worked: int | str
+    remaining_minutes: int | str
+    expected_revision: int = Field(ge=0)
+    note: str | None = Field(default=None, max_length=2000)
+
+
 class TaskProgressEntryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -22,6 +33,7 @@ class TaskProgressEntryOut(BaseModel):
     remaining_minutes: int
     note: str | None
     created_at: datetime
+    corrects_entry_id: UUID | None = None
 
 
 class TaskProgressApplyResult(BaseModel):
@@ -29,5 +41,11 @@ class TaskProgressApplyResult(BaseModel):
     original_estimate_minutes: int
     time_worked_minutes: int
     remaining_estimate_minutes: int
+    scheduling_revision: int
+    replayed: bool = False
+
+
+class ProgressCorrectionResult(BaseModel):
+    entry: TaskProgressEntryOut
     scheduling_revision: int
     replayed: bool = False

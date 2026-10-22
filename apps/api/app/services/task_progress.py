@@ -2,9 +2,9 @@
 #  File: apps/api/app/services/task_progress.py
 #  Description: Atomic progress log with submitted-intent idempotency.
 #  Component: Scheduling / Progress
-#  Version: 1.1
+#  Version: 1.2
 #  Created: 2026-10-12
-#  Last Update: 2026-10-12
+#  Last Update: 2026-10-21
 # ==============================================================================
 
 """Atomic progress log (§1.2) — worked entry + confirmed remaining in one transaction."""
@@ -22,6 +22,10 @@ from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.models import Task, TaskProgressEntry, User, UserSettings
+from app.models.task_occurrence_disposition import (
+    DispositionCorrectionAudit,
+    ProgressEpochMembership,
+)
 from app.services.duration_fields import resolve_minutes_field
 from app.services.scheduling_revision import (
     assert_scheduling_revision,
@@ -59,14 +63,17 @@ def progress_intent_hash(
     minutes_worked: int | str,
     remaining_minutes: int | str,
     note: str | None,
+    corrects_entry_id: uuid.UUID | None = None,
 ) -> str:
     """Hash submitted (pre-resolution) progress intent — independent of nominal."""
-    payload = {
+    payload: dict[str, object] = {
         "task_id": str(task_id),
         "minutes_worked": _canonical_duration_token(minutes_worked),
         "remaining_minutes": _canonical_duration_token(remaining_minutes),
         "note": note,
     }
+    if corrects_entry_id is not None:
+        payload["corrects_entry_id"] = str(corrects_entry_id)
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
@@ -284,3 +291,184 @@ def append_progress_entry(
     db.refresh(locked_task)
     revision = increment_scheduling_revision(db, settings)
     return entry, revision, False
+
+
+def _resolve_correction_durations(
+    *,
+    minutes_worked_raw: int | str,
+    remaining_minutes_raw: int | str,
+    nominal_workday_minutes: int,
+) -> tuple[int, int]:
+    worked = resolve_minutes_field(
+        minutes_worked_raw,
+        field_label="minutes_worked",
+        nominal_workday_minutes=nominal_workday_minutes,
+        allow_workdays=False,
+        allow_zero=True,
+        required=True,
+    )
+    remaining = resolve_minutes_field(
+        remaining_minutes_raw,
+        field_label="remaining_minutes",
+        nominal_workday_minutes=nominal_workday_minutes,
+        allow_workdays=True,
+        allow_zero=True,
+        required=True,
+    )
+    assert worked is not None and remaining is not None
+    return worked.minutes, remaining.minutes
+
+
+def append_historical_progress_correction(
+    db: Session,
+    user: User,
+    task: Task,
+    *,
+    corrects_entry_id: uuid.UUID,
+    idempotency_key: uuid.UUID,
+    minutes_worked_raw: int | str,
+    remaining_minutes_raw: int | str,
+    expected_revision: int,
+    note: str | None,
+    nominal_workday_minutes: int,
+) -> tuple[TaskProgressEntry, int, bool]:
+    """Ledger-only historical correction (§C1.3) — no live mutation, no rev bump.
+
+    Target entry must belong to a closed miss-era epoch (progress_epoch_membership).
+    Correction row inherits that epoch; authorize snapshot totals stay immutable.
+    """
+    intent_hash = progress_intent_hash(
+        task_id=task.id,
+        minutes_worked=minutes_worked_raw,
+        remaining_minutes=remaining_minutes_raw,
+        note=note,
+        corrects_entry_id=corrects_entry_id,
+    )
+
+    existing = _lookup_idempotency_entry(db, user.id, idempotency_key)
+    if existing is not None:
+        if existing.corrects_entry_id != corrects_entry_id:
+            raise ApiError(
+                409,
+                "Idempotency key already used with a different payload",
+                "IDEMPOTENCY_KEY_REUSE",
+            )
+        _assert_idempotency_intent(
+            existing,
+            intent_hash=intent_hash,
+            resolved=ProgressIntent(
+                task_id=task.id,
+                minutes_worked=existing.minutes_worked,
+                remaining_minutes=existing.remaining_minutes,
+                note=note,
+            ),
+        )
+        settings = lock_owner_scheduling(db, user.id)
+        return existing, int(settings.scheduling_revision), True
+
+    minutes_worked, remaining_minutes = _resolve_correction_durations(
+        minutes_worked_raw=minutes_worked_raw,
+        remaining_minutes_raw=remaining_minutes_raw,
+        nominal_workday_minutes=nominal_workday_minutes,
+    )
+    if minutes_worked < 0:
+        raise ApiError(422, "minutes_worked must be non-negative", "INVALID_PROGRESS_MINUTES")
+    if remaining_minutes < 0:
+        raise ApiError(422, "remaining_minutes must be non-negative", "INVALID_REMAINING_MINUTES")
+
+    resolved = ProgressIntent(
+        task_id=task.id,
+        minutes_worked=minutes_worked,
+        remaining_minutes=remaining_minutes,
+        note=note,
+    )
+
+    settings = lock_owner_scheduling(db, user.id)
+    existing = _lookup_idempotency_entry(db, user.id, idempotency_key)
+    if existing is not None:
+        if existing.corrects_entry_id != corrects_entry_id:
+            raise ApiError(
+                409,
+                "Idempotency key already used with a different payload",
+                "IDEMPOTENCY_KEY_REUSE",
+            )
+        _assert_idempotency_intent(existing, intent_hash=intent_hash, resolved=resolved)
+        return existing, int(settings.scheduling_revision), True
+
+    assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+
+    target = (
+        db.query(TaskProgressEntry)
+        .filter(
+            TaskProgressEntry.id == corrects_entry_id,
+            TaskProgressEntry.task_id == task.id,
+            TaskProgressEntry.owner_id == user.id,
+        )
+        .one_or_none()
+    )
+    if target is None:
+        raise ApiError(
+            422,
+            "Historical correction target not found on this task",
+            "HISTORICAL_CORRECTION_UNSUPPORTED",
+        )
+
+    membership = (
+        db.query(ProgressEpochMembership)
+        .filter(
+            ProgressEpochMembership.progress_entry_id == corrects_entry_id,
+            ProgressEpochMembership.task_id == task.id,
+            ProgressEpochMembership.owner_id == user.id,
+        )
+        .one_or_none()
+    )
+    if membership is None:
+        raise ApiError(
+            422,
+            "Historical correction requires a closed miss-era epoch membership; "
+            "use ordinary progress for the open live epoch",
+            "HISTORICAL_CORRECTION_UNSUPPORTED",
+        )
+
+    entry = TaskProgressEntry(
+        owner_id=user.id,
+        task_id=task.id,
+        idempotency_key=idempotency_key,
+        intent_hash=intent_hash,
+        minutes_worked=minutes_worked,
+        remaining_minutes=remaining_minutes,
+        note=note,
+        corrects_entry_id=corrects_entry_id,
+    )
+    db.add(entry)
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        settings = lock_owner_scheduling(db, user.id)
+        raced = _lookup_idempotency_entry(db, user.id, idempotency_key)
+        if raced is None:
+            raise
+        _assert_idempotency_intent(raced, intent_hash=intent_hash, resolved=resolved)
+        return raced, int(settings.scheduling_revision), True
+
+    # Correction-chain ownership stays in the target's closed epoch.
+    db.add(
+        ProgressEpochMembership(
+            progress_entry_id=entry.id,
+            disposition_id=membership.disposition_id,
+            owner_id=user.id,
+            task_id=task.id,
+        )
+    )
+    db.add(
+        DispositionCorrectionAudit(
+            disposition_id=membership.disposition_id,
+            owner_id=user.id,
+            target_entry_id=corrects_entry_id,
+            new_entry_id=entry.id,
+        )
+    )
+    db.flush()
+    # No live Task mutation. No scheduling_revision bump.
+    return entry, int(settings.scheduling_revision), False

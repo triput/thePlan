@@ -301,7 +301,8 @@ class TaskProgressEntry(Base):
             initially="DEFERRED",
         ),
         CheckConstraint(
-            "minutes_worked > 0",
+            "(corrects_entry_id IS NULL AND minutes_worked > 0) OR "
+            "(corrects_entry_id IS NOT NULL AND minutes_worked >= 0)",
             name="task_progress_entries_minutes_positive",
         ),
         CheckConstraint(

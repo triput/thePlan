@@ -1,8 +1,8 @@
 # ==============================================================================
 #  File: apps/api/app/services/occurrence_disposition.py
-#  Description: T2-S2 B-auto durable miss dispositions + R/S release/skip writers.
+#  Description: T2-S2 B-auto durable miss dispositions + R/S + T2-REC recovery.
 #  Component: Occurrence disposition
-#  Version: 1.2
+#  Version: 1.3
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -13,23 +13,28 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.errors import ApiError
-from app.models import Task, TaskOccurrenceDisposition
+from app.models import ScheduledBlock, Task, TaskOccurrenceDisposition, TaskProgressEntry
 from app.models.task_occurrence_disposition import (
     EVENT_DUPLICATE_MISS,
     EVENT_LEAVE_HELD,
     EVENT_MISS_DETECTED,
+    EVENT_RECOVERED,
     EVENT_RELEASED,
     EVENT_SKIPPED,
+    RESOLUTION_RECOVERED,
     RESOLUTION_RELEASED,
     RESOLUTION_SKIPPED,
     RESOLUTION_UNRESOLVED_HELD,
     DispositionEvent,
+    ProgressEpochMembership,
 )
 from app.scheduler.input_fingerprint import normalize_occurrence_bounds
 from app.scheduler.occurrence_bounds import (
@@ -37,19 +42,27 @@ from app.scheduler.occurrence_bounds import (
     effective_latest_start,
     geometry_infeasible,
     has_occurrence_bounds,
+    in_flight_hold_trigger,
     unsupported_shape,
 )
+from app.scheduler.pin_reservation import reserved_minutes_from_blocks
 from app.scheduler.reasons import REASON_OCCURRENCE_BOUNDS_MISS, ReasonFact
 from app.scheduler.task_effort import placement_effort_minutes
+from app.services.recurrence import RecurrenceSpec, next_due_at
 from app.services.scheduling_revision import (
     assert_scheduling_revision,
     increment_scheduling_revision,
     lock_owner_scheduling,
 )
+from app.services.source_timezone import IndeterminateLocalTime, attach_naive_wall_clock
+from app.services.task_chunking_guard import chunking_bounds_kwargs_for_create
+from app.services.task_effort_init import initialize_task_effort_on_create
 from app.services.task_occurrence_bounds import (
+    assert_merged_bounds_not_inverted,
     require_timezone_aware_instant,
     validate_occurrence_bounds_patch,
 )
+from app.services.task_workflow import next_board_rank
 
 _BOUNDS_PATCH_FIELDS = frozenset(
     {"start_no_earlier_at", "start_no_later_at", "deadline_at"}
@@ -58,6 +71,13 @@ _TERMINAL_COVERED = (
     RESOLUTION_UNRESOLVED_HELD,
     RESOLUTION_RELEASED,
     RESOLUTION_SKIPPED,
+    RESOLUTION_RECOVERED,
+)
+_ROLL_BOUND_FIELDS = (
+    "start_no_earlier_at",
+    "start_no_later_at",
+    "deadline_at",
+    "soft_target_at",
 )
 
 
@@ -365,12 +385,12 @@ def _assert_usable_dates_for_release(
     settings: Any,
     *,
     now_utc: datetime,
+    skip_temporal: bool = False,
 ) -> None:
-    """Temporal miss/invalid only — not free-slot / horizon placement promise.
+    """Usable-dates gate — not free-slot / horizon placement promise.
 
-    Reuses established geometry helpers: unsupported shape, ``geometry_infeasible``
-    (earliest + remaining effort vs finish-by), and earliest vs
-    ``effective_latest_start`` (including ``max(now, earliest) > latest``).
+    Structural/geometry always. Temporal (``latest < now``, start_floor >
+    latest) skipped only for series accept-past (§C-gate).
     """
     effort = placement_effort_minutes(task)
     if unsupported_shape(task, settings, effort_minutes=effort):
@@ -385,6 +405,8 @@ def _assert_usable_dates_for_release(
             "Occurrence bounds still missed or invalid for remaining work",
             "BOUNDS_STILL_MISSED",
         )
+    if skip_temporal:
+        return
     latest = effective_latest_start(task, effort_minutes=effort)
     earliest = earliest_start_bound(task)
     now = now_utc
@@ -637,3 +659,578 @@ def orchestration_input_drift(
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _as_rule_local(dt: datetime, tz_name: str) -> datetime:
+    tz = ZoneInfo(tz_name)
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc).astimezone(tz)
+    return dt.astimezone(tz)
+
+
+def _rule_to_spec(rule: Any) -> RecurrenceSpec:
+    return RecurrenceSpec(
+        rrule=rule.rrule,
+        is_fixed=bool(rule.is_fixed),
+        timezone=rule.timezone,
+        starts_on=rule.starts_on,
+        ends_on=rule.ends_on,
+    )
+
+
+def _local_time_kind(naive: datetime, tz_name: str) -> str:
+    """Gap (wall does not exist) vs fold (wall exists twice).
+
+    ZoneInfo reports different offsets for both, and the shared exception text
+    says "ambiguous or nonexistent". Round-trip of fold=0 is the distinction:
+    a gap does not come back as the same civil time; a fold does.
+    """
+    tz = ZoneInfo(tz_name)
+    fold0 = naive.replace(tzinfo=tz, fold=0)
+    back = fold0.astimezone(timezone.utc).astimezone(tz).replace(tzinfo=None)
+    if back != naive:
+        return "gap"
+    return "fold"
+
+
+def _attach_wall_or_reject(
+    naive: datetime,
+    *,
+    tz_name: str,
+    field: str,
+) -> datetime:
+    try:
+        return attach_naive_wall_clock(naive, tz_name)
+    except IndeterminateLocalTime as exc:
+        raise ApiError(
+            422,
+            f"Bounds roll indeterminate local time for {field}: {exc}",
+            "BOUNDS_ROLL_INDETERMINATE_LOCAL",
+            field=field,
+            kind=_local_time_kind(naive, tz_name),
+        ) from exc
+
+
+def _verify_due_wall_clock(
+    due_utc: datetime,
+    *,
+    tz_name: str,
+    previous_due: datetime,
+) -> datetime:
+    """Fail-closed re-attach of the successor's intended civil time (§C4 / A5b).
+
+    ``next_due_at`` keeps the previous clock-of-day. A DST gap can make the
+    returned UTC land on a different clock (silent snap). Re-attach the
+    intended wall — previous clock on the successor civil date — so a gap or
+    fold rejects instead of committing the snapped instant.
+    """
+    prev_local = _as_rule_local(previous_due, tz_name)
+    cand_local = _as_rule_local(due_utc, tz_name)
+    intended = datetime(
+        cand_local.year,
+        cand_local.month,
+        cand_local.day,
+        prev_local.hour,
+        prev_local.minute,
+        prev_local.second,
+        prev_local.microsecond,
+    )
+    return _attach_wall_or_reject(intended, tz_name=tz_name, field="due_at")
+
+
+def _roll_instant_by_due_delta(
+    value: datetime | None,
+    *,
+    old_due: datetime,
+    new_due: datetime,
+    tz_name: str,
+    field: str,
+) -> datetime | None:
+    if value is None:
+        return None
+    old_local = _as_rule_local(old_due, tz_name)
+    new_local = _as_rule_local(new_due, tz_name)
+    value_local = _as_rule_local(value, tz_name)
+    offset = value_local - old_local
+    rolled_naive = (new_local + offset).replace(tzinfo=None)
+    return _attach_wall_or_reject(rolled_naive, tz_name=tz_name, field=field)
+
+
+def _advance_series_due_without_complete(
+    task: Task,
+    *,
+    authorize_instant: datetime,
+    accept_past_ack: bool,
+    step_count: int | None,
+    abort: bool,
+    now_utc: datetime,
+) -> tuple[datetime, bool]:
+    """Compute next-normal due without calling ``complete_task``.
+
+    Returns ``(new_due_utc, accept_past_applied)``.
+    """
+    rule = task.recurrence_rule
+    if rule is None:
+        raise ApiError(
+            422,
+            "Reviewed recovery requires a recurring task; use release for one-offs",
+            "RECOVERY_REQUIRES_RECURRING",
+        )
+    spec = _rule_to_spec(rule)
+    missed_due = task.due_at
+    if missed_due is None:
+        raise ApiError(
+            422,
+            "Recurring task has no due_at to advance from",
+            "RECURRENCE_NO_SUCCESSOR",
+        )
+
+    if abort:
+        raise ApiError(422, "Recovery aborted by operator", "RECOVERY_ABORTED")
+
+    if spec.is_fixed:
+        # Fixed: first instant strictly after missed due (completion instant unused).
+        candidate = next_due_at(
+            spec,
+            previous_due=missed_due,
+            completed_at=authorize_instant,
+        )
+    else:
+        # Completion-anchored: first instant strictly after bound authorize instant.
+        candidate = next_due_at(
+            spec,
+            previous_due=missed_due,
+            completed_at=authorize_instant,
+        )
+
+    if candidate is None:
+        raise ApiError(
+            422,
+            "Recurrence has no successor occurrence",
+            "RECURRENCE_NO_SUCCESSOR",
+        )
+
+    extra = int(step_count or 0)
+    if extra > 0:
+        walker = candidate
+        for _ in range(extra):
+            walker = next_due_at(
+                spec,
+                previous_due=walker,
+                completed_at=authorize_instant,
+            )
+            if walker is None:
+                raise ApiError(
+                    422,
+                    "Recurrence has no successor occurrence",
+                    "RECURRENCE_NO_SUCCESSOR",
+                )
+        candidate = walker
+
+    now = now_utc if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    candidate_utc = (
+        candidate
+        if candidate.tzinfo
+        else candidate.replace(tzinfo=timezone.utc)
+    ).astimezone(timezone.utc)
+
+    accept_past_applied = False
+    if candidate_utc < now:
+        if not spec.is_fixed:
+            # Completion-anchored should be future by construction; fail closed.
+            raise ApiError(
+                422,
+                "Completion-anchored successor landing is still past",
+                "BOUNDS_STILL_MISSED",
+            )
+        if accept_past_ack:
+            accept_past_applied = True
+        else:
+            raise ApiError(
+                422,
+                "Fixed next-normal landing is still past; "
+                "accept_past_ack, step_count, or abort required",
+                "FIXED_PAST_REQUIRES_CHOICE",
+            )
+
+    verified = _verify_due_wall_clock(
+        candidate_utc,
+        tz_name=rule.timezone,
+        previous_due=missed_due,
+    )
+    return verified, accept_past_applied
+
+
+def _apply_series_bounds_roll(
+    task: Task,
+    *,
+    old_due: datetime,
+    new_due: datetime,
+    tz_name: str,
+) -> None:
+    for field in _ROLL_BOUND_FIELDS:
+        current = getattr(task, field)
+        rolled = _roll_instant_by_due_delta(
+            current,
+            old_due=old_due,
+            new_due=new_due,
+            tz_name=tz_name,
+            field=field,
+        )
+        setattr(task, field, rolled)
+    # Due itself already verified; assign after bound rolls so failure rolls back.
+    task.due_at = new_due
+
+
+def _assert_blocks_allow_next_normal(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    now_utc: datetime,
+) -> None:
+    """C2 fail-closed: same-task blocks/pins poison next-normal (no delete/unpin)."""
+    blocks = (
+        db.query(ScheduledBlock)
+        .filter(
+            ScheduledBlock.owner_id == owner_id,
+            ScheduledBlock.task_id == task_id,
+        )
+        .all()
+    )
+    pins = [block for block in blocks if block.is_pinned]
+    now = now_utc if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    reserved = reserved_minutes_from_blocks(pins, now)
+    pin_intervals = [(block.start_time, block.end_time) for block in pins]
+    scheduled_intervals = [(block.start_time, block.end_time) for block in blocks]
+    # Stand-in: after recovery live worked will be 0 / estimate.
+    stand_in = SimpleNamespace(worked_minutes=0)
+    if (
+        in_flight_hold_trigger(
+            stand_in,  # type: ignore[arg-type]
+            reserved_minutes=reserved,
+            pin_intervals=pin_intervals,
+            scheduled_intervals=scheduled_intervals,
+            now_utc=now,
+        )
+        or reserved > 0
+    ):
+        raise ApiError(
+            422,
+            "Existing same-task blocks or pins prevent next-normal placement",
+            "BLOCKS_PREVENT_NEXT_NORMAL",
+        )
+
+
+def _snapshot_miss_era_progress(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task: Task,
+    disposition: TaskOccurrenceDisposition,
+) -> list[str]:
+    """Snapshot open-epoch progress ids onto disposition; insert membership rows."""
+    entries = (
+        db.query(TaskProgressEntry)
+        .filter(
+            TaskProgressEntry.owner_id == owner_id,
+            TaskProgressEntry.task_id == task.id,
+        )
+        .all()
+    )
+    already = {
+        row.progress_entry_id
+        for row in db.query(ProgressEpochMembership.progress_entry_id)
+        .filter(
+            ProgressEpochMembership.owner_id == owner_id,
+            ProgressEpochMembership.task_id == task.id,
+        )
+        .all()
+    }
+    open_ids = [entry.id for entry in entries if entry.id not in already]
+    sorted_ids = sorted(str(entry_id) for entry_id in open_ids)
+    disposition.miss_era_worked_minutes = int(task.worked_minutes or 0)
+    disposition.miss_era_remaining_minutes = task.remaining_minutes
+    disposition.miss_era_estimated_minutes = int(task.estimated_duration_minutes)
+    disposition.miss_era_entry_ids = sorted_ids
+    for entry_id in open_ids:
+        db.add(
+            ProgressEpochMembership(
+                progress_entry_id=entry_id,
+                disposition_id=disposition.id,
+                owner_id=owner_id,
+                task_id=task.id,
+            )
+        )
+    return sorted_ids
+
+
+def _catch_up_remaining_default(
+    task: Task,
+    *,
+    override: int | None,
+) -> int:
+    if override is not None:
+        return int(override)
+    live = task.remaining_minutes
+    if live is None:
+        return int(task.estimated_duration_minutes)
+    return int(live)
+
+
+def _create_catch_up_task(
+    db: Session,
+    *,
+    series: Task,
+    remaining_minutes: int,
+    due_at: datetime | None,
+    start_no_earlier_at: datetime | None,
+    start_no_later_at: datetime | None,
+    deadline_at: datetime | None,
+) -> Task:
+    chunking = chunking_bounds_kwargs_for_create(explicit_fields={})
+    catch_up = Task(
+        owner_id=series.owner_id,
+        title=f"{series.title} (catch-up)",
+        description=series.description,
+        project_id=series.project_id,
+        section_id=series.section_id,
+        parent_task_id=None,
+        nesting_level=0,
+        priority=series.priority,
+        due_at=due_at,
+        deadline_at=deadline_at,
+        start_no_earlier_at=start_no_earlier_at,
+        start_no_later_at=start_no_later_at,
+        preferred_time_window_id=series.preferred_time_window_id,
+        plan_id=series.plan_id,
+        schedule_style=series.schedule_style,
+        board_rank=next_board_rank(db, series.owner_id),
+        **chunking,
+    )
+    initialize_task_effort_on_create(catch_up, int(series.estimated_duration_minutes))
+    catch_up.worked_minutes = 0
+    catch_up.remaining_minutes = remaining_minutes
+    db.add(catch_up)
+    db.flush()
+    return catch_up
+
+
+@dataclass(frozen=True)
+class RecoverHeldResult:
+    disposition: TaskOccurrenceDisposition
+    catch_up_task_id: UUID
+    replayed: bool = False
+
+
+def recover_held(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+    expected_revision: int,
+    authorize_instant: datetime,
+    accept_past_ack: bool = False,
+    step_count: int | None = None,
+    abort: bool = False,
+    catch_up_due_at: datetime | None = None,
+    catch_up_start_no_earlier_at: datetime | None = None,
+    catch_up_start_no_later_at: datetime | None = None,
+    catch_up_deadline_at: datetime | None = None,
+    catch_up_remaining_minutes: int | None = None,
+    note: str | None = None,
+) -> RecoverHeldResult:
+    """Reviewed recovery: catch-up one-off + series advance without ``complete_task``."""
+    settings = lock_owner_scheduling(db, owner_id)
+    # Stale revision precedes terminal no-op / idempotent recover (§C8).
+    assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+    row = _load_named_disposition(
+        db,
+        owner_id=owner_id,
+        task_id=task_id,
+        disposition_id=disposition_id,
+    )
+    if row is None:
+        raise ApiError(
+            404,
+            "Held disposition not found for this task",
+            "DISPOSITION_NOT_FOUND",
+        )
+    if row.resolution == RESOLUTION_RECOVERED:
+        if row.catch_up_task_id is None:
+            raise ApiError(
+                500,
+                "Recovered disposition missing catch_up_task_id",
+                "DISPOSITION_SNAPSHOT_CORRUPT",
+            )
+        return RecoverHeldResult(
+            disposition=row,
+            catch_up_task_id=row.catch_up_task_id,
+            replayed=True,
+        )
+    if row.resolution in (RESOLUTION_RELEASED, RESOLUTION_SKIPPED):
+        raise ApiError(
+            409,
+            "Disposition already terminal with a different resolution",
+            "CONFLICT_TERMINAL",
+        )
+    if row.resolution != RESOLUTION_UNRESOLVED_HELD:
+        raise ApiError(
+            409,
+            "Disposition already terminal with a different resolution",
+            "CONFLICT_TERMINAL",
+        )
+
+    task = (
+        db.query(Task)
+        .options(joinedload(Task.recurrence_rule))
+        .filter(Task.id == task_id, Task.owner_id == owner_id)
+        .populate_existing()
+        .one_or_none()
+    )
+    if task is None:
+        raise ApiError(404, "Task not found", "TASK_NOT_FOUND")
+    if task.recurrence_rule is None:
+        raise ApiError(
+            422,
+            "Reviewed recovery requires a recurring task; use release for one-offs",
+            "RECOVERY_REQUIRES_RECURRING",
+        )
+
+    authorize = require_timezone_aware_instant(
+        authorize_instant, field="authorize_instant"
+    )
+    now_utc = utc_now()
+    snapshot_before = dict(row.bounds_snapshot)
+    old_due = task.due_at
+    if old_due is None:
+        raise ApiError(
+            422,
+            "Recurring task has no due_at to advance from",
+            "RECURRENCE_NO_SUCCESSOR",
+        )
+
+    # Successor choice / abort before any mutation (A7 / C5 abort = no writes).
+    new_due, accept_past_applied = _advance_series_due_without_complete(
+        task,
+        authorize_instant=authorize,
+        accept_past_ack=accept_past_ack,
+        step_count=step_count,
+        abort=abort,
+        now_utc=now_utc,
+    )
+    catch_up_remaining = _catch_up_remaining_default(
+        task, override=catch_up_remaining_minutes
+    )
+    catch_due = (
+        require_timezone_aware_instant(catch_up_due_at, field="catch_up_due_at")
+        if catch_up_due_at is not None
+        else None
+    )
+    catch_earliest = (
+        require_timezone_aware_instant(
+            catch_up_start_no_earlier_at, field="catch_up_start_no_earlier_at"
+        )
+        if catch_up_start_no_earlier_at is not None
+        else None
+    )
+    catch_latest = (
+        require_timezone_aware_instant(
+            catch_up_start_no_later_at, field="catch_up_start_no_later_at"
+        )
+        if catch_up_start_no_later_at is not None
+        else None
+    )
+    catch_deadline = (
+        require_timezone_aware_instant(
+            catch_up_deadline_at, field="catch_up_deadline_at"
+        )
+        if catch_up_deadline_at is not None
+        else None
+    )
+    assert_merged_bounds_not_inverted(earliest=catch_earliest, latest=catch_latest)
+
+    catch_up_task_id: UUID
+    # Nested savepoint: catch-up + series + disposition + rev roll back together.
+    with db.begin_nested():
+        # C2 before any identity mutation.
+        _assert_blocks_allow_next_normal(
+            db, owner_id=owner_id, task_id=task_id, now_utc=now_utc
+        )
+
+        miss_ids = _snapshot_miss_era_progress(
+            db, owner_id=owner_id, task=task, disposition=row
+        )
+
+        catch_up = _create_catch_up_task(
+            db,
+            series=task,
+            remaining_minutes=catch_up_remaining,
+            due_at=catch_due,
+            start_no_earlier_at=catch_earliest,
+            start_no_later_at=catch_latest,
+            deadline_at=catch_deadline,
+        )
+        catch_up_task_id = catch_up.id
+        # Catch-up gate: always full temporal usable-dates (never accept-past).
+        _assert_usable_dates_for_release(catch_up, settings, now_utc=now_utc)
+
+        _apply_series_bounds_roll(
+            task,
+            old_due=old_due,
+            new_due=new_due,
+            tz_name=task.recurrence_rule.timezone,
+        )
+        # Reset live effort before series gate so next-normal is gated on
+        # estimate (not miss-era remaining). Snapshot already captured above.
+        estimate = int(task.estimated_duration_minutes)
+        task.worked_minutes = 0
+        task.remaining_minutes = estimate
+        # Series gate: structural always; temporal unless accept-past.
+        _assert_usable_dates_for_release(
+            task,
+            settings,
+            now_utc=now_utc,
+            skip_temporal=accept_past_applied,
+        )
+
+        row.catch_up_task_id = catch_up_task_id
+        row.authorize_instant = authorize
+        row.resolution = RESOLUTION_RECOVERED
+        payload: dict[str, Any] = {
+            "catch_up_task_id": str(catch_up_task_id),
+            "authorize_instant": authorize.isoformat(),
+            "series_due_before": old_due.isoformat(),
+            "series_due_after": new_due.isoformat(),
+            "accept_past": accept_past_applied,
+            "step_count": step_count,
+            "miss_era_entry_ids": miss_ids,
+            "catch_up_remaining_minutes": catch_up_remaining,
+        }
+        if note:
+            payload["note"] = note
+        db.add(
+            DispositionEvent(
+                disposition_id=row.id,
+                event_type=EVENT_RECOVERED,
+                payload=payload,
+            )
+        )
+        increment_scheduling_revision(db, settings)
+        db.flush()
+        if dict(row.bounds_snapshot) != snapshot_before:
+            raise ApiError(
+                500,
+                "bounds_snapshot mutated during recover",
+                "DISPOSITION_SNAPSHOT_CORRUPT",
+            )
+
+    db.refresh(row)
+    return RecoverHeldResult(
+        disposition=row,
+        catch_up_task_id=catch_up_task_id,
+        replayed=False,
+    )
