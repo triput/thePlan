@@ -101,3 +101,27 @@ Session methods: **GET** and **POST** only. API log on `:18081`: **no** `PATCH`.
 | Happy `4478c5a0-…` | `recovered`; due `2026-10-27 03:00:00+00`; catch-up `5a6a42ca-…` |
 | Dirty `23767d68-…` | `recovered`; title still `REC-UI-dirty weekly`; description still `seed notes`; due `2026-10-27 03:00:00+00`; catch-up `ea307cff-…` |
 | C2 / fixed / LA fold / LA gap | still `unresolved_held` |
+
+## R9d at `da5a535` (browser, not the seed probe)
+
+**Runner:** Renee. Vite `:5174` → API `:18081`. In-page `fetch` wrapper installed after an existing Nebula session cookie, before search. Bindings as lengths only. Browser zone `America/Los_Angeles`.
+
+Seed script POSTed one review per new row before the browser. Those calls are **not** in this table. C2 / fixed / fold / gap were not opened in the browser.
+
+Happy task `57cad740-2ee6-4f80-9fd2-4072647e122b`, disposition `8c8a3ffb-e9f2-47e2-8419-bdf403d2f772`.
+
+| t (UTC) | Method | Path tail | Request | Status | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 04:07:43 | POST | happy `57cad740-…/recover/review` | `disposition_id`, rev **85** | **200** ×2 | Open Recover. StrictMode pair. Keys only those two. |
+| 04:07:58 | POST | happy `…/recover` | `disposition_id`, rev **85**, `review_binding` len **1188**, `authorize_instant` | **200** | `catch_up_task_id` `48100264-324f-4065-b915-d96a8b95edb2`. One POST. |
+| — | — | Open catch-up → Unsaved → **Cancel** | **no further POST** | — | Edits and **Open catch-up task** stayed. |
+| — | — | Open catch-up again → **Discard** | GET catch-up `48100264-…` | **200** | Panel title `REC-UI-happy weekly (catch-up)`. No second authorize. |
+
+Session mutating methods after the wrapper: **POST** only (the review pair and the one authorize). API access log for the whole `:18081` process: **no** `PATCH`, **no** `PUT`, **no** `DELETE`, exactly **one** `POST …/recover`.
+
+### DB read-back (`theplan_s1_test` @ `043`, after R9d)
+
+| Row | Result |
+| --- | --- |
+| Happy `57cad740-…` | `recovered`; title still `REC-UI-happy weekly`; description still null; due `2026-10-27 04:00:00+00` |
+| Catch-up `48100264-…` | title `REC-UI-happy weekly (catch-up)`; due null (no catch-up due override) |

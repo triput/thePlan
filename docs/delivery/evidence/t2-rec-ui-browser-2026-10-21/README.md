@@ -64,7 +64,7 @@ Request detail: `REQUEST-LEDGER.md`.
 | Shot | Claim | Result |
 | --- | --- | --- |
 | `R9b-clean-open-catchup.png` | Clean series draft, authorize, then **Open catch-up task** with no Unsaved Discard and no task PATCH | **GREEN** |
-| `R9c-dirty-title-notes-protected.png` | Dirty title + notes still block the catch-up switch; server title/notes not written | **GREEN** |
+| `R9c-dirty-title-notes-protected.png` | Dirty title + notes still block the catch-up switch; server title/notes not written | **GREEN** for that block and the missing PATCH. **Fail** on Cancel: **Open catch-up task** did not come back. That CTA loss is what R9d re-runs |
 | `R8c-lord-howe-fold-client-reject.png` | Lord Howe 30min fall fold rejected in the catch-up editor | **GREEN** for the fold. Spring gap was **not** re-clicked here; the node suite covers it |
 
 **R9b (browser zone `America/Los_Angeles`).** Task `REC-UI-happy weekly` `4478c5a0-a85e-45d4-ada6-461ef7d4b05d`. Open review **200** ×2 (StrictMode), rev **78**, no catch-up fields. Authorize **200** once, rev 78, `catch_up_task_id` `5a6a42ca-5a5c-40ba-ae4d-5264915b0e15`. Due field moved `2026-10-18T20:00` → `2026-10-26T20:00` (LA) before the click. Title stayed `REC-UI-happy weekly`. **Open catch-up task** opened `REC-UI-happy weekly (catch-up)` with **no** dialog. In-page ledger methods for the whole session: **GET and POST only**.
@@ -76,7 +76,35 @@ Request detail: `REQUEST-LEDGER.md`.
 **Honesty (this pass):**
 
 - R6–R11b are **not** re-verified at `2b290eb`.
-- R9c Cancel does **not** bring **Open catch-up task** back. The button clears the success id before the dirty guard runs. The edits stayed; the CTA did not. Catch-up row was already in the inbox.
+- R9c Cancel does **not** bring **Open catch-up task** back. The button clears the success id before the dirty guard runs. The edits stayed; the CTA did not. Catch-up row was already in the inbox. **That CTA loss is the failure mode R9d re-runs at `da5a535`.** The dirty-block / no-PATCH part of R9c stays as recorded; the CTA is not retroactively green.
 - After the R9c shot, Discard was used only to leave that series for the Lord Howe probe. DB description on the dirty series is still `seed notes`, title still `REC-UI-dirty weekly` (the operator edit was never saved).
 - A mis-click opened the subtask composer on `REC-UI-la gap` and was cancelled. No subtask was created.
 - DB read-back (`theplan_s1_test` @ `043`): happy and dirty series `recovered`, both due `2026-10-27 03:00:00+00`. Catch-ups `5a6a42ca-…` and `ea307cff-…` exist. C2, fixed, LA fold, and LA gap stayed `unresolved_held`. API access log on `:18081`: **no** `PATCH`.
+
+## R9d re-run (Renee) — HEAD `da5a535`
+
+**Not** an independent Dex pass. **Not** a Dex tip. Prior R1–R5 stay on `ab04fad` / `15ef355`. Prior R6–R11b stay on web `56dde72` / API `ce4dc08` and were **not** re-clicked. Prior R9b / R8c stay on `2b290eb` and were **not** re-clicked. R9c above is the failure this pass fixes: Cancel cleared the catch-up CTA before the dirty guard.
+
+**This pass:** web `da5a535` (API ancestor `2b290eb`, unchanged). Vite `http://127.0.0.1:5174` → API `http://127.0.0.1:18081` → Postgres `theplan_s1_test` `:5433`, Alembic `043_recovery_epoch`. `SEED_DEMO_USER=false`. **Not** `:8000`. No push. No household migrate. Browser zone `America/Los_Angeles` (`Intl` read-back).
+
+**Tests at this pin (not the browser):**
+
+- `apps/web` `npm test` (**node:test**): **96 passed**, 0 failed.
+- `apps/web` `npm run build` (`tsc -b && vite build`): **exit 0**.
+- `apps/api` `test_s2_t2_rec_ui_binding.py` + `test_s2_t2_rec_recovery.py`: **54 passed** in 36.53s. Disposable DSN `postgresql+psycopg://t1a@127.0.0.1:5433/theplan_s1_test`. API code did not change at `da5a535`; this is a spot check.
+
+| Shot | Claim | Result |
+| --- | --- | --- |
+| `R9d-cancel-keeps-cta.png` | Dirty title + notes after recover; Open catch-up → Unsaved → **Cancel**; edits stay and **Open catch-up task** stays | **GREEN** |
+| `R9d-discard-opens-catchup.png` | Second Open → **Discard**; catch-up opens. One authorize POST. No series PATCH on the Cancel path | **GREEN** |
+
+**R9d.** Task `REC-UI-happy weekly` `57cad740-2ee6-4f80-9fd2-4072647e122b`, disposition `8c8a3ffb-e9f2-47e2-8419-bdf403d2f772`. Title set to `REC-UI-happy weekly R9d edit`, description to `R9d notes stay dirty`, not saved. Open review **200** ×2 (StrictMode), rev **85**, keys `disposition_id` + `expected_revision` only. Authorize **200** once, rev 85, `review_binding` len **1188**, `catch_up_task_id` `48100264-324f-4065-b915-d96a8b95edb2`. After authorize the form due moved `2026-10-18T21:00` → `2026-10-26T21:00` (LA); title and notes stayed the edits. **Open catch-up task** raised **Unsaved task changes** / “Save your edits before opening the other task?” (Cancel, Discard, Save and open). **Cancel** was chosen. Title, notes, and rolled dates stayed. **Open catch-up task** was still on the Recovered pane. No PATCH. A second **Open catch-up task** raised the same dialog; **Discard** was chosen. The panel loaded `REC-UI-happy weekly (catch-up)` (`48100264-…`) by GET. Still one authorize POST. No PATCH.
+
+**Honesty (this pass):**
+
+- R6–R11b, R9b, and R8c are **not** re-verified at `da5a535`.
+- The browser was already signed in as Nebula (existing `5174` cookie). The in-page `fetch` wrapper was installed after that initial load and before search, so the login POST is not in the wrapper ledger. The API access log on `:18081` still shows the seed login and the browser calls below.
+- Seed script POSTed one review per new row before the browser. Those calls are **not** the R9d browser rows. C2, fixed, LA fold, and LA gap were seeded and **not** clicked. Seed fold/gap reviews were **422** (seed probe only).
+- Vite StrictMode doubled the open `recover/review`. Explicit authorize was a single POST.
+- Inbox list kept the server title `REC-UI-happy weekly` while the form held the unsaved edit. After Discard the form showed the catch-up title and an empty description.
+- DB read-back (`theplan_s1_test` @ `043`): series title still `REC-UI-happy weekly`, description still null, due `2026-10-27 04:00:00+00`, disposition `recovered`. Catch-up `48100264-…` title `REC-UI-happy weekly (catch-up)`, due null (no catch-up due override). API access log for this `:18081` process: **no** `PATCH`, **no** `PUT`, **no** `DELETE`, and exactly **one** `POST …/recover` (the authorize **200**).
