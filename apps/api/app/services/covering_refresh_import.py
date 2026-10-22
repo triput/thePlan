@@ -63,6 +63,7 @@ from app.services.covering_refresh_locks import (
     CoveringUnitLockReceipt,
     commit_covering_revision_if_required,
     covering_identity_fingerprint,
+    covering_unit_locks,
     require_covering_receipt,
     snapshot_covering_attempt,
 )
@@ -834,7 +835,7 @@ def import_covering_subscription_cache(
     if sub_row.owner_id != account_row.owner_id or sub_row.calendar_account_id != account_row.id:
         raise CoveringLockOrderError("reloaded subscription does not match the locked account")
 
-    # Before prepare and before begin_subscription_refresh. This is the token
+    # Before prepare and before the generation bump. This is the token
     # the failure unit compares after rollback.
     attempt = snapshot_covering_attempt(account=account_row, subscription=sub_row)
 

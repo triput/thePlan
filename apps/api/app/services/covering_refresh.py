@@ -9,6 +9,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.api.errors import ApiError
 from app.config import Settings
 from app.models import CalendarAccount, CalendarSubscription, ExternalCalendarEvent
 from app.scheduler.calendar_freshness import (
@@ -33,11 +34,15 @@ from app.services.covering_refresh_import import (
     OUTCOME_FAILED,
     OUTCOME_OK,
     OUTCOME_PREFLIGHT,
+    PREFLIGHT_ACCOUNT_DISCONNECTED,
     ImportCoveringCacheResult,
     import_covering_subscription_cache,
     read_covering_access_token,
 )
-from app.services.covering_refresh_locks import covering_unit_locks
+from app.services.covering_refresh_locks import (
+    covering_unit_locks,
+    snapshot_covering_attempt,
+)
 from app.services.covering_refresh_window import (
     COVERING_WINDOW_WIDEN_REASON,
     COVERING_WINDOW_WIDENED,
@@ -272,6 +277,91 @@ def _assemble_scheduling_readiness(
     )
 
 
+def _token_unit_failure_result(
+    db: Session,
+    *,
+    owner_id: UUID,
+    account: CalendarAccount,
+    subscription: CalendarSubscription,
+    window: CoveringPullWindow,
+    now_utc: datetime,
+    exc: ApiError,
+) -> ImportCoveringCacheResult:
+    """Map OAuth/token ApiError to a per-sub row (never whole-request 500).
+
+    Missing/reauth tokens are preflight (disconnected). Other token faults run
+    the failure durable unit when a durable attempt snapshot can be taken.
+    """
+    code = str(exc.content.get("code") or "")
+    disconnected = code in {
+        "GOOGLE_ACCOUNT_NO_TOKEN",
+        "GOOGLE_REAUTH_REQUIRED",
+        "MICROSOFT_ACCOUNT_NO_TOKEN",
+        "MICROSOFT_REAUTH_REQUIRED",
+    }
+    attempt = None
+    try:
+        with covering_unit_locks(
+            db,
+            owner_id=owner_id,
+            account_id=account.id,
+            subscription_id=subscription.id,
+        ):
+            attempt = snapshot_covering_attempt(account=account, subscription=subscription)
+            db.rollback()
+    except Exception:
+        db.rollback()
+        attempt = None
+
+    if disconnected or attempt is None:
+        return ImportCoveringCacheResult(
+            subscription_id=subscription.id,
+            outcome=OUTCOME_PREFLIGHT,
+            preflight_code=PREFLIGHT_ACCOUNT_DISCONNECTED,
+            preflight_effects=(),
+            cause=None,
+            upserted=0,
+            rollback_required=False,
+            commit_unit=False,
+            needs_failure_unit=False,
+            attempt=attempt,
+            window_effective_start=window.effective_start,
+            window_effective_end=window.effective_end,
+            window_widened=window.widened,
+            window_widen_reason=window.reason,
+            coverage_generation_minted=None,
+            scheduling_revision_bumped=False,
+            scheduling_revision=None,
+            provider_identity_list_called=False,
+            provider_event_read_attempted=False,
+        )
+
+    cause = f"covering_token_failed:{code or 'unknown'}"[:128]
+    result = ImportCoveringCacheResult(
+        subscription_id=subscription.id,
+        outcome=OUTCOME_FAILED,
+        preflight_code=None,
+        preflight_effects=(),
+        cause=cause,
+        upserted=0,
+        rollback_required=True,
+        commit_unit=False,
+        needs_failure_unit=True,
+        attempt=attempt,
+        window_effective_start=window.effective_start,
+        window_effective_end=window.effective_end,
+        window_widened=window.widened,
+        window_widen_reason=window.reason,
+        coverage_generation_minted=None,
+        scheduling_revision_bumped=False,
+        scheduling_revision=None,
+        provider_identity_list_called=False,
+        provider_event_read_attempted=False,
+    )
+    persist_covering_refresh_failure(attempt=attempt, now=now_utc, cause=cause)
+    return result
+
+
 def _process_one_target(
     db: Session,
     *,
@@ -282,12 +372,23 @@ def _process_one_target(
     window: CoveringPullWindow,
     now_utc: datetime,
 ) -> ImportCoveringCacheResult:
-    token = read_covering_access_token(
-        settings=settings,
-        owner_id=owner_id,
-        account_id=account.id,
-        subscription_id=subscription.id,
-    )
+    try:
+        token = read_covering_access_token(
+            settings=settings,
+            owner_id=owner_id,
+            account_id=account.id,
+            subscription_id=subscription.id,
+        )
+    except ApiError as exc:
+        return _token_unit_failure_result(
+            db,
+            owner_id=owner_id,
+            account=account,
+            subscription=subscription,
+            window=window,
+            now_utc=now_utc,
+            exc=exc,
+        )
     with covering_unit_locks(
         db,
         owner_id=owner_id,
