@@ -199,6 +199,9 @@ def _recovery_for(cause: str) -> str:
         "calendar_refresh_failed": (
             "Retry an explicit sync for this calendar; last refresh failed before minting coverage."
         ),
+        "calendar_requested_subscription_missing": (
+            "A requested calendar subscription is no longer present; re-select calendars or reconnect the account."
+        ),
     }
     return hints.get(cause, "Retry an explicit sync for this calendar before collect or Apply.")
 

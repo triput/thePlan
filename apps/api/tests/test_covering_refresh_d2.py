@@ -2620,3 +2620,255 @@ def test_v46_assessment_clock_moves_horizon_boundary(monkeypatch: pytest.MonkeyP
     assert fresh.get("required_window_start") == late_horizon[0].isoformat()
     assert fresh.get("required_window_end") == late_horizon[1].isoformat()
     assert fresh.get("required_window_end") != early_horizon[1].isoformat()
+
+
+def test_v47_account_gone_between_token_and_import(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V47: account deleted after the token unit returns and before the import unit reacquires locks.
+
+    The import boundary maps ``CoveringAccountMissing`` to preflight disconnected, not a 500.
+    Cascade removes the subscription, so requested freshness must fail closed on membership
+    instead of treating the vanished id as covering-ok. Provider event read never starts.
+    """
+    start, end = _window()
+    real = covering_refresh_mod.read_covering_access_token
+
+    def _wrapped(**kwargs: Any):
+        token = real(**kwargs)
+        db = SessionLocal()
+        try:
+            row = db.get(CalendarAccount, kwargs["account_id"])
+            assert row is not None
+            db.delete(row)
+            db.commit()
+        finally:
+            db.close()
+        return token
+
+    monkeypatch.setattr(covering_refresh_mod, "read_covering_access_token", _wrapped)
+    with world() as w:
+        account = _account(w.db, w.user)
+        sub = _sub(w.db, account, calendar_id="cal-v47", summary="Vanish import")
+        w.db.commit()
+        account_id = account.id
+        sub_id = sub.id
+        response = _run(w.owner_id, [sub_id], start, end)
+        probe = SessionLocal()
+        try:
+            assert probe.get(CalendarAccount, account_id) is None
+            assert probe.get(CalendarSubscription, sub_id) is None
+        finally:
+            probe.close()
+    row = _row(response, sub_id)
+    assert response.overall_outcome == "no_op"
+    assert row.phase == "preflight"
+    assert row.status == "preflight_rejected"
+    assert row.preflight_code == import_mod.PREFLIGHT_ACCOUNT_DISCONNECTED
+    assert response.action_summary.preflight_rejected == 1
+    assert response.action_summary.import_attempted == 0
+    assert response.action_summary.import_ok == 0
+    assert provider_spies["list"] == []
+    assert provider_spies["identity_lists"] == []
+    assert provider_spies["http"] == []
+    assert response.scheduling_readiness is not None
+    assert response.scheduling_readiness.assessment_error is None
+    assert response.coverage_action.all_requested_covering_ok is False
+    requested = response.coverage_action.freshness_requested
+    assert requested["ok"] is False
+    blocking = requested["blocking_diagnostics"]
+    assert len(blocking) == 1
+    assert blocking[0]["event_id"] == str(sub_id)
+    assert blocking[0]["cause"] == "calendar_requested_subscription_missing"
+    assert blocking[0]["calendar_name"] == "(missing)"
+    assert blocking[0]["blocking_current_proposal"] is True
+    assert blocking[0]["recovery"] == (
+        "A requested calendar subscription is no longer present; "
+        "re-select calendars or reconnect the account."
+    )
+
+
+def test_v48_partial_success_when_peer_account_deleted_after_token(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V48: sub A commits ok; B's account vanishes between token return and import lock → partial.
+
+    A's busy row and coverage mint stay. B never reaches provider event read, and the
+    missing requested id keeps ``all_requested_covering_ok`` false.
+    """
+    start, end = _window()
+    a_id, b_id = _sorted_pair()
+    real = covering_refresh_mod.read_covering_access_token
+
+    def _wrapped(**kwargs: Any):
+        token = real(**kwargs)
+        if kwargs["subscription_id"] != b_id:
+            return token
+        db = SessionLocal()
+        try:
+            row = db.get(CalendarAccount, kwargs["account_id"])
+            assert row is not None
+            db.delete(row)
+            db.commit()
+        finally:
+            db.close()
+        return token
+
+    monkeypatch.setattr(covering_refresh_mod, "read_covering_access_token", _wrapped)
+    with world() as w:
+        account_a = _account(w.db, w.user)
+        account_b = _account(w.db, w.user)
+        _sub(w.db, account_a, calendar_id="cal-v48a", summary="A", sub_id=a_id)
+        _sub(w.db, account_b, calendar_id="cal-v48b", summary="B", sub_id=b_id)
+        w.db.commit()
+        account_a_id = account_a.id
+        account_b_id = account_b.id
+        provider_spies["events"]["cal-v48a"] = [
+            _g_event(f"evt-{uuid.uuid4().hex}", NOW + timedelta(hours=1), NOW + timedelta(hours=2))
+        ]
+        provider_spies["events"]["cal-v48b"] = [
+            _g_event(f"evt-{uuid.uuid4().hex}", NOW + timedelta(hours=3), NOW + timedelta(hours=4))
+        ]
+        response = _run(w.owner_id, [a_id, b_id], start, end)
+        snap_a = _snap(a_id)
+        events = _events(w.owner_id)
+        probe = SessionLocal()
+        try:
+            assert probe.get(CalendarAccount, account_b_id) is None
+            assert probe.get(CalendarSubscription, b_id) is None
+            assert probe.get(CalendarAccount, account_a_id) is not None
+        finally:
+            probe.close()
+    assert response.overall_outcome == "partial"
+    assert response.action_summary.import_ok == 1
+    assert response.action_summary.preflight_rejected == 1
+    assert response.action_summary.import_attempted == 1
+    assert _row(response, a_id).status == "ok"
+    assert _row(response, b_id).phase == "preflight"
+    assert _row(response, b_id).status == "preflight_rejected"
+    assert _row(response, b_id).preflight_code == import_mod.PREFLIGHT_ACCOUNT_DISCONNECTED
+    assert snap_a["coverage_success_at"] is not None
+    assert snap_a["success_generation"] is not None
+    assert [row["calendar_id"] for row in events] == ["cal-v48a"]
+    assert provider_spies["list"] == ["cal-v48a"]
+    assert "cal-v48b" not in provider_spies["list"]
+    assert response.scheduling_readiness is not None
+    assert response.scheduling_readiness.assessment_error is None
+    assert response.scheduling_revision_at_end == snap_a["revision"]
+    assert response.coverage_action.all_requested_covering_ok is False
+    requested = response.coverage_action.freshness_requested
+    assert requested["ok"] is False
+    causes = {item["event_id"]: item["cause"] for item in requested["blocking_diagnostics"]}
+    assert causes[str(b_id)] == "calendar_requested_subscription_missing"
+    assert str(a_id) not in causes
+    assert len(requested["blocking_diagnostics"]) == 1
+
+
+def test_v49_evaluate_requested_freshness_missing_membership() -> None:
+    """V49: requested subscription ids absent from DB fail closed even when siblings look fresh."""
+    start, end = _window()
+    phantom_id = uuid.uuid4()
+    with world() as w:
+        account = _account(w.db, w.user)
+        fresh = _sub(w.db, account, calendar_id="cal-v49-fresh", summary="Fresh")
+        doomed = _sub(w.db, account, calendar_id="cal-v49-doom", summary="Doom")
+        w.db.commit()
+        minted = _run(w.owner_id, [fresh.id, doomed.id], start, end)
+        assert minted.overall_outcome == "success"
+        db = SessionLocal()
+        try:
+            never_loaded = covering_refresh_mod._evaluate_requested_freshness(
+                db,
+                owner_id=w.owner_id,
+                subscription_ids=[fresh.id, phantom_id],
+                now_utc=NOW,
+                required_start=start,
+                required_end=end,
+            )
+            row = db.get(CalendarSubscription, doomed.id)
+            assert row is not None
+            db.delete(row)
+            db.commit()
+            after_delete = covering_refresh_mod._evaluate_requested_freshness(
+                db,
+                owner_id=w.owner_id,
+                subscription_ids=[fresh.id, doomed.id],
+                now_utc=NOW,
+                required_start=start,
+                required_end=end,
+            )
+        finally:
+            db.close()
+    recovery = (
+        "A requested calendar subscription is no longer present; "
+        "re-select calendars or reconnect the account."
+    )
+    assert never_loaded.ok is False
+    assert len(never_loaded.blocking_diagnostics) == 1
+    phantom = never_loaded.blocking_diagnostics[0]
+    assert phantom.event_id == str(phantom_id)
+    assert phantom.cause == "calendar_requested_subscription_missing"
+    assert phantom.calendar_name == "(missing)"
+    assert phantom.blocking_current_proposal is True
+    assert phantom.recovery == recovery
+    assert never_loaded.affected_horizon == {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+    }
+    assert after_delete.ok is False
+    assert len(after_delete.blocking_diagnostics) == 1
+    deleted = after_delete.blocking_diagnostics[0]
+    assert deleted.event_id == str(doomed.id)
+    assert deleted.cause == "calendar_requested_subscription_missing"
+    assert deleted.recovery == recovery
+    assert deleted.blocking_current_proposal is True
+
+
+def test_v50_import_programming_fault_propagates(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V50: a programming fault inside the import lock is not an eligibility success.
+
+    Sub A commits first. Sub B's import raises ``RuntimeError`` after the token unit.
+    The new disconnect/lock handlers must not swallow that into a preflight row.
+    A's coverage and busy row remain; B gets neither a mint nor a failure sidecar.
+    """
+    start, end = _window()
+    a_id, b_id = _sorted_pair()
+    real = covering_refresh_mod.import_covering_subscription_cache
+
+    def _boom(db: Session, **kwargs: Any):
+        subscription = kwargs["subscription"]
+        if subscription.id == b_id:
+            raise RuntimeError("covering import programming fault")
+        return real(db, **kwargs)
+
+    monkeypatch.setattr(covering_refresh_mod, "import_covering_subscription_cache", _boom)
+    with world() as w:
+        account_a = _account(w.db, w.user)
+        account_b = _account(w.db, w.user)
+        _sub(w.db, account_a, calendar_id="cal-v50a", summary="A", sub_id=a_id)
+        _sub(w.db, account_b, calendar_id="cal-v50b", summary="B", sub_id=b_id)
+        w.db.commit()
+        provider_spies["events"]["cal-v50a"] = [
+            _g_event(f"evt-{uuid.uuid4().hex}", NOW + timedelta(hours=1), NOW + timedelta(hours=2))
+        ]
+        provider_spies["events"]["cal-v50b"] = [
+            _g_event(f"evt-{uuid.uuid4().hex}", NOW + timedelta(hours=3), NOW + timedelta(hours=4))
+        ]
+        with pytest.raises(RuntimeError, match="covering import programming fault"):
+            _run(w.owner_id, [a_id, b_id], start, end)
+        snap_a = _snap(a_id)
+        snap_b = _snap(b_id)
+        events = _events(w.owner_id)
+    assert snap_a["coverage_success_at"] is not None
+    assert snap_a["success_generation"] is not None
+    assert snap_b["coverage_success_at"] is None
+    assert snap_b["sidecar"] is None
+    assert snap_b["failure_cause"] is None
+    assert [row["calendar_id"] for row in events] == ["cal-v50a"]
+    assert provider_spies["list"] == ["cal-v50a"]
+    assert "cal-v50b" not in provider_spies["list"]

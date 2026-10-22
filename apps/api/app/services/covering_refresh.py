@@ -9,7 +9,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import ObjectDeletedError
 
 from app.api.errors import ApiError
 from app.config import Settings
@@ -25,9 +27,11 @@ from app.scheduler.calendar_freshness import (
     CalendarFreshnessTrust,
     _evaluate_one_subscription,
     _load_sidecar_failures,
+    _recovery_for,
     evaluate_calendar_freshness,
     required_coverage_window,
 )
+from app.scheduler.free_busy import FreeBusyDiagnostic
 from app.scheduler.free_busy import evaluate_busy_input_trust
 from app.schemas.calendar import (
     CoveringActionOut,
@@ -169,19 +173,39 @@ def _evaluate_requested_freshness(
     required_start: datetime,
     required_end: datetime,
 ) -> CalendarFreshnessTrust:
+    requested_ids = list(subscription_ids)
     rows = (
         db.query(CalendarSubscription, CalendarAccount)
         .join(CalendarAccount, CalendarSubscription.calendar_account_id == CalendarAccount.id)
         .filter(
             CalendarSubscription.owner_id == owner_id,
-            CalendarSubscription.id.in_(subscription_ids),
+            CalendarSubscription.id.in_(requested_ids),
         )
         .populate_existing()
         .all()
     )
+    rows_by_id = {subscription.id: (subscription, account) for subscription, account in rows}
+    horizon_label = f"{required_start.isoformat()} – {required_end.isoformat()}"
     sidecar_by_sub = _load_sidecar_failures(db, [subscription.id for subscription, _ in rows])
-    blocking = []
-    for subscription, account in rows:
+    blocking: list[FreeBusyDiagnostic] = []
+    for sub_id in requested_ids:
+        pair = rows_by_id.get(sub_id)
+        if pair is None:
+            blocking.append(
+                FreeBusyDiagnostic(
+                    cause="calendar_requested_subscription_missing",
+                    calendar_name="(missing)",
+                    event_title="(subscription)",
+                    event_id=str(sub_id),
+                    start=None,
+                    end=None,
+                    blocking_current_proposal=True,
+                    affected_horizon=horizon_label,
+                    recovery=_recovery_for("calendar_requested_subscription_missing"),
+                )
+            )
+            continue
+        subscription, account = pair
         diag = _evaluate_one_subscription(
             subscription,
             account,
@@ -224,29 +248,57 @@ def _blocking_summary(
     return lines
 
 
+def _expire_owner_row(db: Session, instance: object, *, owner_id: UUID) -> bool:
+    """Expire one live row. Expunge it when a concurrent delete already removed it.
+
+    ``rollback`` expires every attribute, including ones this session loaded
+    before the other session cascade-deleted the account. Reading ``owner_id``
+    then refreshes a missing row and raises ``ObjectDeletedError``. That must
+    not abort final assessment: the requested-membership check still has to run.
+    """
+    try:
+        row_owner = instance.owner_id  # type: ignore[attr-defined]
+    except ObjectDeletedError:
+        db.expunge(instance)
+        return False
+    if row_owner != owner_id:
+        return False
+    db.expire(instance)
+    return True
+
+
 def _expire_covering_assessment_identity_map(db: Session, *, owner_id: UUID) -> None:
     """Drop stale ORM rows before the post-import assessment reads (Fix 1)."""
     subscription_ids: set[UUID] = set()
     for instance in list(db.identity_map.values()):
         if isinstance(instance, CalendarSubscription):
-            if instance.owner_id == owner_id:
-                db.expire(instance)
-                subscription_ids.add(instance.id)
-        elif isinstance(instance, CalendarAccount):
-            if instance.owner_id == owner_id:
-                db.expire(instance)
-        elif isinstance(instance, ExternalCalendarEvent):
-            if instance.owner_id == owner_id:
-                db.expire(instance)
-        elif isinstance(instance, FreeBusySeriesPolicy):
-            if instance.owner_id == owner_id:
-                db.expire(instance)
+            if _expire_owner_row(db, instance, owner_id=owner_id):
+                identity = sa_inspect(instance).identity
+                if identity is None or not isinstance(identity[0], UUID):
+                    raise RuntimeError("covering assessment subscription is missing its id")
+                subscription_ids.add(identity[0])
+        elif isinstance(
+            instance,
+            (CalendarAccount, ExternalCalendarEvent, FreeBusySeriesPolicy),
+        ):
+            _expire_owner_row(db, instance, owner_id=owner_id)
         elif isinstance(instance, CalendarSubscriptionRefreshFailure):
-            if instance.subscription_id in subscription_ids:
+            try:
+                sub_id = instance.subscription_id
+            except ObjectDeletedError:
+                db.expunge(instance)
+                continue
+            if sub_id in subscription_ids:
                 db.expire(instance)
     for instance in list(db.identity_map.values()):
-        if isinstance(instance, CalendarSubscriptionRefreshFailure):
-            db.expire(instance)
+        if not isinstance(instance, CalendarSubscriptionRefreshFailure):
+            continue
+        try:
+            instance.subscription_id
+        except ObjectDeletedError:
+            db.expunge(instance)
+            continue
+        db.expire(instance)
 
 
 def _scheduling_readiness_from_locked_owner(
@@ -516,6 +568,8 @@ def _process_one_target(
     window: CoveringPullWindow,
     stamp_clock: Callable[[], datetime],
 ) -> ImportCoveringCacheResult:
+    account_id = account.id
+    subscription_id = subscription.id
     preflight_code = covering_import_eligibility_code(
         account,
         subscription,
@@ -523,7 +577,7 @@ def _process_one_target(
     )
     if preflight_code is not None:
         return _static_preflight_result(
-            subscription_id=subscription.id,
+            subscription_id=subscription_id,
             window=window,
             preflight_code=preflight_code,
         )
@@ -531,24 +585,24 @@ def _process_one_target(
         token = read_covering_access_token(
             settings=settings,
             owner_id=owner_id,
-            account_id=account.id,
-            subscription_id=subscription.id,
+            account_id=account_id,
+            subscription_id=subscription_id,
         )
     except CoveringTargetIneligible as exc:
         return _static_preflight_result(
-            subscription_id=subscription.id,
+            subscription_id=subscription_id,
             window=window,
             preflight_code=exc.preflight_code,
         )
     except CoveringAccountMissing:
         return _static_preflight_result(
-            subscription_id=subscription.id,
+            subscription_id=subscription_id,
             window=window,
             preflight_code=PREFLIGHT_ACCOUNT_DISCONNECTED,
         )
     except CoveringLockOrderError:
         return _static_preflight_result(
-            subscription_id=subscription.id,
+            subscription_id=subscription_id,
             window=window,
             preflight_code=PREFLIGHT_SUBSCRIPTION_NOT_FOUND,
         )
@@ -564,27 +618,49 @@ def _process_one_target(
             exc=exc,
         )
     now_utc = _ensure_utc(stamp_clock())
-    with covering_unit_locks(
-        db,
-        owner_id=owner_id,
-        account_id=account.id,
-        subscription_id=subscription.id,
-    ) as receipt:
-        result = import_covering_subscription_cache(
+    try:
+        with covering_unit_locks(
             db,
-            settings=settings,
-            account=account,
-            subscription=subscription,
-            access_token=token.access_token,
-            window_start=window.effective_start,
-            window_end=window.effective_end,
-            lock_receipt=receipt,
-            now=now_utc,
+            owner_id=owner_id,
+            account_id=account_id,
+            subscription_id=subscription_id,
+        ) as receipt:
+            result = import_covering_subscription_cache(
+                db,
+                settings=settings,
+                account=account,
+                subscription=subscription,
+                access_token=token.access_token,
+                window_start=window.effective_start,
+                window_end=window.effective_end,
+                lock_receipt=receipt,
+                now=now_utc,
+            )
+            if result.commit_unit and not result.rollback_required:
+                db.commit()
+            else:
+                db.rollback()
+    except CoveringTargetIneligible as exc:
+        db.rollback()
+        return _static_preflight_result(
+            subscription_id=subscription_id,
+            window=window,
+            preflight_code=exc.preflight_code,
         )
-        if result.commit_unit and not result.rollback_required:
-            db.commit()
-        else:
-            db.rollback()
+    except CoveringAccountMissing:
+        db.rollback()
+        return _static_preflight_result(
+            subscription_id=subscription_id,
+            window=window,
+            preflight_code=PREFLIGHT_ACCOUNT_DISCONNECTED,
+        )
+    except CoveringLockOrderError:
+        db.rollback()
+        return _static_preflight_result(
+            subscription_id=subscription_id,
+            window=window,
+            preflight_code=PREFLIGHT_SUBSCRIPTION_NOT_FOUND,
+        )
     if result.needs_failure_unit and result.attempt is not None and result.cause:
         persist_covering_refresh_failure(
             attempt=result.attempt,
