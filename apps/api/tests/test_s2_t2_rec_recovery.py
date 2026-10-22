@@ -9,6 +9,10 @@ A11b: failure after those writes, at the nested-savepoint final flush.
 042→043 execution uses a separate database (theplan_s1_mig_test), never a
 downgrade of theplan_s1_test.
 A3 historical-block isolation is EXCEEDS_SLICE and is not claimed here.
+Dex second bounce: A10e/A10f keep the selected civil occurrence for
+FREQ=HOURLY and FREQ=MINUTELY;INTERVAL=30 (no previous_due H/M/S rewrite).
+A5d/A5e: multi-valued BYHOUR gap and fold stay fail-closed, and a
+legitimate selected hour is not replaced by another listed hour.
 """
 
 from __future__ import annotations
@@ -1188,6 +1192,201 @@ def test_a5c_explicit_byhour_dst_gap_and_fold_fail_closed(
     )
 
 
+def test_a5d_multi_byhour_gap_and_fold_fail_closed(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Multi-valued BYHOUR: the selected occurrence is the indeterminate wall.
+
+    The other hour is listed first and is a real civil time. Rewriting to that
+    first value would hide the gap or fold. Recovery must reject the selected
+    occurrence, and the series due must stay on the miss.
+    """
+    _prepare(client, db_session)
+
+    gap_now = datetime(2026, 3, 7, 23, 0, tzinfo=UTC)  # 18:00 EST, after 17:30
+    _set_now(monkeypatch, gap_now)
+    # 09:00 EST exists. Next selected wall is 02:30 on 2026-03-08 (the gap),
+    # not 17:30. BYHOUR lists 17 first so a first-value rewrite would succeed.
+    gap_due = datetime(2026, 3, 7, 14, 0, tzinfo=UTC)
+    gap = _series(
+        client,
+        title=f"Multi gap {_uid()}",
+        due=gap_due,
+        rrule="FREQ=DAILY;BYHOUR=17,2;BYMINUTE=30",
+        is_fixed=False,
+        tz="America/New_York",
+    )
+    gap_row = _hold(db_session, gap["id"])
+    gap_rev = _revision(client)
+    gap_due_before = _task(db_session, gap["id"]).due_at
+    gap_resp = _recover(
+        client,
+        gap["id"],
+        gap_row.id,
+        authorize_instant=_iso(gap_now),
+        **_catch_after(gap_now),
+    )
+    assert gap_resp.status_code == 422, gap_resp.text
+    gap_body = gap_resp.json()
+    assert gap_body["code"] == "BOUNDS_ROLL_INDETERMINATE_LOCAL"
+    assert gap_body["field"] == "due_at"
+    assert gap_body["kind"] == "gap"
+    assert _task(db_session, gap["id"]).due_at == gap_due_before
+    assert _revision(client) == gap_rev
+    assert _catch_up_named(db_session, gap["title"]) == []
+    assert db_session.get(TaskOccurrenceDisposition, gap_row.id).resolution == (
+        RESOLUTION_UNRESOLVED_HELD
+    )
+
+    fold_now = datetime(2026, 10, 31, 22, 0, tzinfo=UTC)  # 18:00 EDT, after 17:30
+    _set_now(monkeypatch, fold_now)
+    # 12:00 EDT exists. Next selected wall is 01:30 on 2026-11-01 (the fold),
+    # not 17:30. BYHOUR lists 17 first.
+    fold_due = datetime(2026, 10, 31, 16, 0, tzinfo=UTC)
+    fold = _series(
+        client,
+        title=f"Multi fold {_uid()}",
+        due=fold_due,
+        rrule="FREQ=DAILY;BYHOUR=17,1;BYMINUTE=30",
+        is_fixed=False,
+        tz="America/New_York",
+    )
+    fold_row = _hold(db_session, fold["id"])
+    fold_rev = _revision(client)
+    fold_due_before = _task(db_session, fold["id"]).due_at
+    fold_resp = _recover(
+        client,
+        fold["id"],
+        fold_row.id,
+        authorize_instant=_iso(fold_now),
+        **_catch_after(fold_now),
+    )
+    assert fold_resp.status_code == 422, fold_resp.text
+    fold_body = fold_resp.json()
+    assert fold_body["code"] == "BOUNDS_ROLL_INDETERMINATE_LOCAL"
+    assert fold_body["field"] == "due_at"
+    assert fold_body["kind"] == "fold"
+    assert _task(db_session, fold["id"]).due_at == fold_due_before
+    assert _revision(client) == fold_rev
+    assert _catch_up_named(db_session, fold["title"]) == []
+    assert db_session.get(TaskOccurrenceDisposition, fold_row.id).resolution == (
+        RESOLUTION_UNRESOLVED_HELD
+    )
+
+
+def test_a5e_multi_byhour_keeps_legitimate_selected_occurrence(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Do not replace the occurrence next_due_at selected with another BYHOUR.
+
+    9 listed first still lands 17:00 after noon. 17 listed first still lands
+    09:00 when that is the successor. On a spring-gap day and a fall-fold day,
+    a selected 17:00 stays 17:00 — the other listed hour is not substituted
+    and the day is not rejected.
+    """
+    _prepare(client, db_session)
+    _set_now(monkeypatch, datetime(2026, 8, 11, 12, 0, tzinfo=UTC))
+    due = datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
+    earliest, latest, deadline = _window_on(due)
+    later = _series(
+        client,
+        title=f"BYHOUR 9,17 {_uid()}",
+        due=due,
+        earliest=earliest,
+        latest=latest,
+        deadline=deadline,
+        rrule="FREQ=DAILY;BYHOUR=9,17",
+        is_fixed=False,
+    )
+    later_row = _hold(db_session, later["id"])
+    _assert_byhour_17_landing(client, db_session, later, later_row.id)
+
+    early_now = datetime(2026, 8, 11, 8, 0, tzinfo=UTC)
+    _set_now(monkeypatch, early_now)
+    early = _series(
+        client,
+        title=f"BYHOUR 17,9 {_uid()}",
+        due=due,
+        earliest=earliest,
+        latest=latest,
+        deadline=deadline,
+        rrule="FREQ=DAILY;BYHOUR=17,9",
+        is_fixed=False,
+    )
+    early_row = _hold(db_session, early["id"])
+    early_resp = _recover(
+        client,
+        early["id"],
+        early_row.id,
+        authorize_instant=_iso(early_now),
+    )
+    assert early_resp.status_code == 200, early_resp.text
+    assert _task(db_session, early["id"]).due_at == datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
+    early_stored = db_session.get(TaskOccurrenceDisposition, early_row.id)
+    assert early_stored is not None
+    early_recovered = [
+        event for event in early_stored.events if event.event_type == EVENT_RECOVERED
+    ]
+    assert len(early_recovered) == 1
+    assert early_recovered[0].payload["accept_past"] is False
+
+    gap_now = datetime(2026, 3, 8, 14, 0, tzinfo=UTC)  # 10:00 EDT, after the gap
+    _set_now(monkeypatch, gap_now)
+    gap_due = datetime(2026, 3, 7, 22, 0, tzinfo=UTC)  # 17:00 EST
+    gap_earliest, gap_latest, gap_deadline = _window_on(gap_due)
+    gap_legit = _series(
+        client,
+        title=f"Gap day 17 {_uid()}",
+        due=gap_due,
+        earliest=gap_earliest,
+        latest=gap_latest,
+        deadline=gap_deadline,
+        rrule="FREQ=DAILY;BYHOUR=2,17",
+        is_fixed=False,
+        tz="America/New_York",
+    )
+    gap_legit_row = _hold(db_session, gap_legit["id"])
+    gap_legit_resp = _recover(
+        client,
+        gap_legit["id"],
+        gap_legit_row.id,
+        authorize_instant=_iso(gap_now),
+        **_catch_after(gap_now),
+    )
+    assert gap_legit_resp.status_code == 200, gap_legit_resp.text
+    assert _task(db_session, gap_legit["id"]).due_at == datetime(
+        2026, 3, 8, 21, 0, tzinfo=UTC
+    )
+
+    fold_now = datetime(2026, 11, 1, 15, 0, tzinfo=UTC)  # 10:00 EST, after the fold
+    _set_now(monkeypatch, fold_now)
+    fold_due = datetime(2026, 10, 31, 21, 0, tzinfo=UTC)  # 17:00 EDT
+    fold_earliest, fold_latest, fold_deadline = _window_on(fold_due)
+    fold_legit = _series(
+        client,
+        title=f"Fold day 17 {_uid()}",
+        due=fold_due,
+        earliest=fold_earliest,
+        latest=fold_latest,
+        deadline=fold_deadline,
+        rrule="FREQ=DAILY;BYHOUR=1,17",
+        is_fixed=False,
+        tz="America/New_York",
+    )
+    fold_legit_row = _hold(db_session, fold_legit["id"])
+    fold_legit_resp = _recover(
+        client,
+        fold_legit["id"],
+        fold_legit_row.id,
+        authorize_instant=_iso(fold_now),
+        **_catch_after(fold_now),
+    )
+    assert fold_legit_resp.status_code == 200, fold_legit_resp.text
+    assert _task(db_session, fold_legit["id"]).due_at == datetime(
+        2026, 11, 1, 22, 0, tzinfo=UTC
+    )
+
+
 def test_a6_fall_fold_bound_fail_closed(
     client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1836,6 +2035,101 @@ def test_a10d_byhour_open_frame_no_ends_on(
     )
     row = _hold(db_session, task["id"])
     _assert_byhour_17_landing(client, db_session, task, row.id)
+
+
+def _assert_selected_civil_landing(
+    client: TestClient,
+    db_session: Session,
+    task: dict,
+    row_id: uuid.UUID,
+    *,
+    authorize: datetime,
+    expected: datetime,
+) -> None:
+    resp = _recover(
+        client,
+        task["id"],
+        row_id,
+        authorize_instant=_iso(authorize),
+    )
+    assert resp.status_code == 200, resp.text
+    series = _task(db_session, task["id"])
+    assert series.due_at == expected
+    stored = db_session.get(TaskOccurrenceDisposition, row_id)
+    assert stored is not None
+    recovered = [event for event in stored.events if event.event_type == EVENT_RECOVERED]
+    assert len(recovered) == 1
+    assert recovered[0].payload["accept_past"] is False
+    assert len(_catch_up_named(db_session, task["title"])) == 1
+
+
+def test_a10e_dex_hourly_keeps_selected_occurrence(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dex probe: FREQ=HOURLY, no BY*, completion-anchored UTC.
+
+    Previous due Aug 10 09:00, authorize/now Aug 11 12:00. Next-normal is
+    Aug 11 13:00. A previous_due H/M/S rewrite would land 09:00 and then
+    BOUNDS_STILL_MISSED. No accept_past_ack.
+    """
+    _prepare(client, db_session)
+    now = datetime(2026, 8, 11, 12, 0, tzinfo=UTC)
+    _set_now(monkeypatch, now)
+    due = datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
+    earliest, latest, deadline = _window_on(due)
+    task = _series(
+        client,
+        title=f"Hourly {_uid()}",
+        due=due,
+        earliest=earliest,
+        latest=latest,
+        deadline=deadline,
+        rrule="FREQ=HOURLY",
+        is_fixed=False,
+    )
+    row = _hold(db_session, task["id"])
+    _assert_selected_civil_landing(
+        client,
+        db_session,
+        task,
+        row.id,
+        authorize=now,
+        expected=datetime(2026, 8, 11, 13, 0, tzinfo=UTC),
+    )
+
+
+def test_a10f_dex_minutely_interval_30_keeps_selected_occurrence(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dex probe: FREQ=MINUTELY;INTERVAL=30, no BY*, completion-anchored UTC.
+
+    Previous due Aug 10 09:00, authorize/now Aug 11 12:00. Next-normal is
+    Aug 11 12:30, not 09:00 and not BOUNDS_STILL_MISSED from a clock rewrite.
+    """
+    _prepare(client, db_session)
+    now = datetime(2026, 8, 11, 12, 0, tzinfo=UTC)
+    _set_now(monkeypatch, now)
+    due = datetime(2026, 8, 10, 9, 0, tzinfo=UTC)
+    earliest, latest, deadline = _window_on(due)
+    task = _series(
+        client,
+        title=f"Minutely {_uid()}",
+        due=due,
+        earliest=earliest,
+        latest=latest,
+        deadline=deadline,
+        rrule="FREQ=MINUTELY;INTERVAL=30",
+        is_fixed=False,
+    )
+    row = _hold(db_session, task["id"])
+    _assert_selected_civil_landing(
+        client,
+        db_session,
+        task,
+        row.id,
+        authorize=now,
+        expected=datetime(2026, 8, 11, 12, 30, tzinfo=UTC),
+    )
 
 
 def test_a11_gate_failure_rolls_back_nested_savepoint(

@@ -2,7 +2,7 @@
 #  File: apps/api/app/services/occurrence_disposition.py
 #  Description: T2-S2 B-auto durable miss dispositions + R/S + T2-REC recovery.
 #  Component: Occurrence disposition
-#  Version: 1.4
+#  Version: 1.5
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -12,12 +12,13 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 from types import SimpleNamespace
 from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+from dateutil.rrule import rrulestr
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.errors import ApiError
@@ -48,7 +49,7 @@ from app.scheduler.occurrence_bounds import (
 from app.scheduler.pin_reservation import reserved_minutes_from_blocks
 from app.scheduler.reasons import REASON_OCCURRENCE_BOUNDS_MISS, ReasonFact
 from app.scheduler.task_effort import placement_effort_minutes
-from app.services.recurrence import RecurrenceSpec, next_due_at
+from app.services.recurrence import RecurrenceSpec
 from app.services.scheduling_revision import (
     assert_scheduling_revision,
     increment_scheduling_revision,
@@ -711,97 +712,82 @@ def _attach_wall_or_reject(
         ) from exc
 
 
-def _rrule_by_ints(rrule: str, name: str) -> list[int] | None:
-    """Parse ``BYHOUR`` / ``BYMINUTE`` / ``BYSECOND`` values from an RRULE string.
+def _select_next_due_occurrence_local(
+    spec: RecurrenceSpec,
+    *,
+    previous_due: datetime | None,
+    completed_at: datetime,
+) -> datetime | None:
+    """Recovery-path only: next RRULE occurrence with civil wall intact.
 
-    Returns ``None`` when the part is absent. Multi-value parts return every int
-    in declaration order (e.g. ``BYHOUR=9,17`` → ``[9, 17]``).
+    Selection mirrors ``recurrence.next_due_at`` (fixed vs completion anchor,
+    dtstart clock from previous_due, starts_on/ends_on frame). Returns the
+    dateutil occurrence **before** UTC normalization so DST gap/fold civil
+    H:M:S remain available for fail-closed re-attach.
+
+    Does not modify ``recurrence.next_due_at`` / generic engine behavior.
     """
-    needle = f"{name.upper()}="
-    for part in rrule.upper().replace("RRULE:", "").split(";"):
-        if part.startswith(needle):
-            raw = part.split("=", 1)[1]
-            if not raw:
-                return None
-            return [int(token) for token in raw.split(",") if token != ""]
+    tz = ZoneInfo(spec.timezone)
+    completed_local = _as_rule_local(completed_at, spec.timezone)
+    prev_local = (
+        _as_rule_local(previous_due, spec.timezone) if previous_due is not None else None
+    )
+    if prev_local is not None:
+        clock = time(prev_local.hour, prev_local.minute, prev_local.second)
+    else:
+        clock = time(9, 0)
+    if spec.is_fixed:
+        after = prev_local if prev_local is not None else completed_local
+    else:
+        after = completed_local
+    frame_start = spec.starts_on or after.date()
+    dtstart = datetime.combine(frame_start, clock, tzinfo=tz)
+    rule = rrulestr(spec.rrule, dtstart=dtstart)
+    for occ in rule:
+        # Absolute compare matches next_due_at; civil wall stays on ``occ``.
+        occ_abs = _as_rule_local(occ, spec.timezone)
+        if occ_abs <= after:
+            continue
+        day = occ_abs.date()
+        if spec.starts_on is not None and day < spec.starts_on:
+            continue
+        if spec.ends_on is not None and day > spec.ends_on:
+            break
+        return occ
     return None
 
 
-def _intended_clock_component(
-    by_values: list[int] | None,
-    *,
-    previous: int,
-    candidate: int,
-) -> int:
-    """Resolve one civil clock component for successor wall re-attach.
-
-    - Part absent → previous_due's component (DST clock-of-day preservation).
-    - Single BY* value → that value (do not overwrite with previous_due).
-    - Multi BY* → candidate when it satisfies the rule (preserves which
-      occurrence ``next_due_at`` selected); otherwise the first listed value
-      for fail-closed DST re-check.
-    """
-    if by_values is None:
-        return previous
-    if len(by_values) == 1:
-        return by_values[0]
-    if candidate in by_values:
-        return candidate
-    return by_values[0]
-
-
 def _verify_due_wall_clock(
-    due_utc: datetime,
+    occurrence_local: datetime,
     *,
     tz_name: str,
-    previous_due: datetime,
-    rrule: str,
 ) -> datetime:
-    """Fail-closed re-attach of the successor's intended civil time (§C4 / A5b).
+    """Fail-closed re-attach of the selected RRULE civil occurrence (§C4 / A5).
 
-    Rebuild the intended wall on the successor civil date and re-attach via
-    ``_attach_wall_or_reject`` so a DST gap/fold rejects instead of committing a
-    snapped instant. Intended clock components:
+    Intended naive wall = the selected occurrence's civil Y-M-D + H:M:S:u
+    (``occurrence_local`` with tzinfo stripped). This is the wall dateutil
+    selected — including FREQ=HOURLY / MINUTELY advances and BYHOUR landings —
+    **before** any UTC round-trip can snap a DST gap/fold.
 
-    - ``BYHOUR`` / ``BYMINUTE`` / ``BYSECOND`` when present in ``rrule``
-      (preserve the RRULE candidate's civil clock — do not replace with
-      ``previous_due``'s clock).
-    - Otherwise fall back to ``previous_due``'s H/M/S (clock-of-day
-      preservation when the rule has no explicit BY* time parts).
-
-    Never silently substitute ``previous_due``'s clock over a legitimate
-    BYHOUR/BYMINUTE/BYSECOND landing.
+    Re-attach via ``_attach_wall_or_reject`` so gap/fold rejects instead of
+    committing a snapped instant. No ``previous_due`` clock fallback and no
+    per-BY* reconstruction.
     """
-    prev_local = _as_rule_local(previous_due, tz_name)
-    cand_local = _as_rule_local(due_utc, tz_name)
-    by_hour = _rrule_by_ints(rrule, "BYHOUR")
-    by_minute = _rrule_by_ints(rrule, "BYMINUTE")
-    by_second = _rrule_by_ints(rrule, "BYSECOND")
-    hour = _intended_clock_component(
-        by_hour, previous=prev_local.hour, candidate=cand_local.hour
-    )
-    minute = _intended_clock_component(
-        by_minute, previous=prev_local.minute, candidate=cand_local.minute
-    )
-    second = _intended_clock_component(
-        by_second, previous=prev_local.second, candidate=cand_local.second
-    )
-    # Microseconds only travel with the previous_due fallback path (no BY*).
-    microsecond = (
-        prev_local.microsecond
-        if by_hour is None and by_minute is None and by_second is None
-        else 0
-    )
-    intended = datetime(
-        cand_local.year,
-        cand_local.month,
-        cand_local.day,
-        hour,
-        minute,
-        second,
-        microsecond,
-    )
-    return _attach_wall_or_reject(intended, tz_name=tz_name, field="due_at")
+    intended = occurrence_local.replace(tzinfo=None)
+    verified = _attach_wall_or_reject(intended, tz_name=tz_name, field="due_at")
+    # Civil identity: attach must not rewrite the selected wall (snap would).
+    verified_civil = _as_rule_local(verified, tz_name).replace(tzinfo=None)
+    if verified_civil.replace(microsecond=0) != intended.replace(microsecond=0):
+        raise ApiError(
+            422,
+            f"Bounds roll indeterminate local time for due_at: "
+            f"verified civil {verified_civil.isoformat()} != "
+            f"selected {intended.isoformat()}",
+            "BOUNDS_ROLL_INDETERMINATE_LOCAL",
+            field="due_at",
+            kind=_local_time_kind(intended, tz_name),
+        )
+    return verified
 
 
 def _roll_instant_by_due_delta(
@@ -854,20 +840,14 @@ def _advance_series_due_without_complete(
     if abort:
         raise ApiError(422, "Recovery aborted by operator", "RECOVERY_ABORTED")
 
-    if spec.is_fixed:
-        # Fixed: first instant strictly after missed due (completion instant unused).
-        candidate = next_due_at(
-            spec,
-            previous_due=missed_due,
-            completed_at=authorize_instant,
-        )
-    else:
-        # Completion-anchored: first instant strictly after bound authorize instant.
-        candidate = next_due_at(
-            spec,
-            previous_due=missed_due,
-            completed_at=authorize_instant,
-        )
+    # Fixed: first occurrence strictly after missed due.
+    # Completion-anchored: first occurrence strictly after authorize instant.
+    # Recovery-local select preserves civil wall before UTC snap (DST A5 / FREQ).
+    candidate = _select_next_due_occurrence_local(
+        spec,
+        previous_due=missed_due,
+        completed_at=authorize_instant,
+    )
 
     if candidate is None:
         raise ApiError(
@@ -880,7 +860,7 @@ def _advance_series_due_without_complete(
     if extra > 0:
         walker = candidate
         for _ in range(extra):
-            walker = next_due_at(
+            walker = _select_next_due_occurrence_local(
                 spec,
                 previous_due=walker,
                 completed_at=authorize_instant,
@@ -895,20 +875,13 @@ def _advance_series_due_without_complete(
 
     now = now_utc if now_utc.tzinfo else now_utc.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
-    candidate_utc = (
-        candidate
-        if candidate.tzinfo
-        else candidate.replace(tzinfo=timezone.utc)
-    ).astimezone(timezone.utc)
 
-    # Wall verify first: may rewrite civil clock (BY* vs previous_due fallback)
-    # or reject DST gap/fold. Past-choice MUST run on the final due so verify
-    # cannot smuggle a past landing past the gate.
+    # Wall verify first: re-attach selected civil wall (fail-closed gap/fold).
+    # Past-choice MUST run on the final due so verify cannot smuggle a past
+    # landing past the gate.
     verified = _verify_due_wall_clock(
-        candidate_utc,
+        candidate,
         tz_name=rule.timezone,
-        previous_due=missed_due,
-        rrule=rule.rrule,
     )
     verified_utc = (
         verified if verified.tzinfo else verified.replace(tzinfo=timezone.utc)
