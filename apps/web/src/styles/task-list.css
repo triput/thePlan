@@ -616,6 +616,53 @@
   margin-top: 0.45rem;
 }
 
+.held-recover-pane {
+  margin-top: 0.5rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid color-mix(in srgb, #b45309 25%, var(--border));
+}
+
+.held-recover-title {
+  margin: 0 0 0.35rem;
+}
+
+.held-recover-block {
+  margin: 0.4rem 0;
+}
+
+.held-recover-block p {
+  margin: 0.2rem 0;
+}
+
+.held-recover-edit-zone {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.held-recover-zone-rule {
+  font-weight: 600;
+}
+
+.held-recover-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.held-recover-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.held-recover-step {
+  width: 4.5rem;
+  margin-left: 0.25rem;
+}
+
 .calendar-support-held-reason {
   display: inline;
 }

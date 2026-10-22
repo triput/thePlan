@@ -17,9 +17,11 @@ import {
   type Task,
 } from "../api";
 import { HELD_MISSES_QUERY_KEY, invalidateAfterHeldMutation } from "../heldMissesQuery";
+import { canOfferRecoverAffordance } from "../recoverHeldUi";
 import { formatScheduleReasonFact } from "../scheduleReasonFacts";
 import { formatInstantInZone } from "../taskDetailDraft";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { HeldRecoverPane } from "./HeldRecoverPane";
 import { emitToast } from "./ToastHost";
 import { TaskDetailSection, type DetailSectionId } from "./TaskDetailSection";
 
@@ -45,6 +47,7 @@ interface TaskDetailSchedulingProps {
   datesDirty: boolean;
   onSaveDatesForRelease: () => Promise<boolean>;
   saveDatesPending: boolean;
+  onSelectTask?: (taskId: string) => void;
 }
 
 const STALE_LABELS: Record<StaleCategory, string> = {
@@ -110,11 +113,15 @@ export function TaskDetailScheduling({
   datesDirty,
   onSaveDatesForRelease,
   saveDatesPending,
+  onSelectTask,
 }: TaskDetailSchedulingProps) {
   const isOverbooked = scheduleStatus === "overbooked";
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
   const [skipTarget, setSkipTarget] = useState<HeldDispositionOut | null>(null);
+  const [recoverTarget, setRecoverTarget] = useState<HeldDispositionOut | null>(null);
+  // Soft affordance from TaskOut.recurrence only — eligibility still comes from review.
+  const offerRecover = canOfferRecoverAffordance(Boolean(task.recurrence));
 
   const explanationQuery = useQuery({
     queryKey: ["schedule-explanation", taskId],
@@ -303,47 +310,74 @@ export function TaskDetailScheduling({
               <p className="field-hint muted small">
                 Leave held = keep waiting. Release = retry scheduling after you review dates. Skip =
                 do not schedule this occurrence; history and blocks stay.
+                {offerRecover
+                  ? " Recover = reviewed catch-up + next-normal for recurring series."
+                  : " One-off held uses Release (not Recover)."}
               </p>
               {actionError && (
                 <p className="form-error" role="alert">
                   {actionError}
                 </p>
               )}
-              <div className="form-actions held-miss-actions">
-                <button
-                  type="button"
-                  className="btn secondary small"
-                  disabled={mutationPending}
-                  onClick={() => leaveMutation.mutate()}
-                >
-                  {leaveMutation.isPending ? "Leaving…" : "Leave held"}
-                </button>
-                <button
-                  type="button"
-                  className="btn secondary small"
-                  disabled={mutationPending}
-                  onClick={() => setSkipTarget(held)}
-                >
-                  Skip…
-                </button>
-                <button
-                  type="button"
-                  className="btn primary small"
-                  disabled={mutationPending}
-                  onClick={() => releaseMutation.mutate(held)}
-                  title={
-                    datesDirty
-                      ? "Saves your date edits, then releases this held episode"
-                      : "Release this held episode using current task dates"
-                  }
-                >
-                  {releaseMutation.isPending
-                    ? "Releasing…"
-                    : datesDirty
-                      ? "Save dates & release"
-                      : "Release"}
-                </button>
-              </div>
+              {recoverTarget?.id === held.id ? (
+                <HeldRecoverPane
+                  key={held.id}
+                  taskId={taskId}
+                  held={held}
+                  mutationPending={mutationPending}
+                  onClose={() => setRecoverTarget(null)}
+                  onSelectTask={onSelectTask}
+                />
+              ) : (
+                <div className="form-actions held-miss-actions">
+                  <button
+                    type="button"
+                    className="btn secondary small"
+                    disabled={mutationPending}
+                    onClick={() => leaveMutation.mutate()}
+                  >
+                    {leaveMutation.isPending ? "Leaving…" : "Leave held"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn secondary small"
+                    disabled={mutationPending}
+                    onClick={() => setSkipTarget(held)}
+                  >
+                    Skip…
+                  </button>
+                  {offerRecover && (
+                    <button
+                      type="button"
+                      className="btn secondary small"
+                      disabled={mutationPending}
+                      onClick={() => {
+                        setActionError(null);
+                        setRecoverTarget(held);
+                      }}
+                    >
+                      Recover…
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn primary small"
+                    disabled={mutationPending}
+                    onClick={() => releaseMutation.mutate(held)}
+                    title={
+                      datesDirty
+                        ? "Saves your date edits, then releases this held episode"
+                        : "Release this held episode using current task dates"
+                    }
+                  >
+                    {releaseMutation.isPending
+                      ? "Releasing…"
+                      : datesDirty
+                        ? "Save dates & release"
+                        : "Release"}
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

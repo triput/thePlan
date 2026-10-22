@@ -1926,14 +1926,19 @@ export function fetchTaskScheduleExplanation(taskId: string) {
   return apiFetch<TaskScheduleExplanationOut>(`/api/v1/tasks/${taskId}/schedule-explanation`);
 }
 
-export type DispositionResolution = "unresolved_held" | "released" | "skipped";
+export type DispositionResolution =
+  | "unresolved_held"
+  | "released"
+  | "skipped"
+  | "recovered";
 
 export type DispositionEventType =
   | "miss_detected"
   | "leave_held"
   | "duplicate_miss"
   | "released"
-  | "skipped";
+  | "skipped"
+  | "recovered";
 
 export interface DispositionEventOut {
   id: string;
@@ -1953,6 +1958,7 @@ export interface HeldDispositionOut {
   miss_reason_params: Record<string, unknown> | null;
   updated_at: string;
   events: DispositionEventOut[];
+  catch_up_task_id?: string | null;
 }
 
 export interface LeaveHeldIn {
@@ -1975,6 +1981,110 @@ export interface SkipHeldIn {
   note?: string | null;
 }
 
+/** Shared successor + catch-up intent (review and authorize). Omit-vs-null for catch-up dates. */
+export interface RecoverHeldIntentFields {
+  accept_past_ack?: boolean;
+  step_count?: number | null;
+  abort?: boolean;
+  catch_up_due_at?: string | null;
+  catch_up_start_no_earlier_at?: string | null;
+  catch_up_start_no_later_at?: string | null;
+  catch_up_deadline_at?: string | null;
+  catch_up_remaining_minutes?: number | null;
+}
+
+export interface RecoverHeldReviewIn extends RecoverHeldIntentFields {
+  disposition_id: string;
+  expected_revision: number;
+}
+
+export interface RecoverHeldIn extends RecoverHeldIntentFields {
+  disposition_id: string;
+  expected_revision: number;
+  review_binding: string;
+  /** Optional echo of server-issued review instant; must match binding when set. */
+  authorize_instant?: string | null;
+  note?: string | null;
+}
+
+export interface RecoverHeldCadenceOut {
+  is_fixed: boolean;
+  timezone: string;
+  rrule_summary?: string | null;
+}
+
+export interface RecoverHeldEligibilityOut {
+  recurring: boolean;
+  one_off_use_release: boolean;
+}
+
+export interface RecoverHeldNextNormalOut {
+  due_at: string | null;
+  start_no_earlier_at: string | null;
+  start_no_later_at: string | null;
+  deadline_at: string | null;
+  landing_is_past: boolean;
+  accept_past_required: boolean;
+}
+
+export interface RecoverHeldEffortOut {
+  worked_minutes: number;
+  remaining_minutes: number;
+}
+
+export interface RecoverHeldCatchUpOut {
+  remaining_minutes_default: number;
+  remaining_minutes: number;
+  due_at: string | null;
+  start_no_earlier_at: string | null;
+  start_no_later_at: string | null;
+  deadline_at: string | null;
+  usable_dates_ok: boolean;
+  reject_code: string | null;
+}
+
+export interface RecoverHeldHistoricalWorkOut {
+  worked_minutes: number;
+  remaining_minutes: number | null;
+  estimated_duration_minutes: number;
+  ledger_retained_on_series: boolean;
+  progress_entry_count: number;
+}
+
+export interface RecoverHeldC2Out {
+  blocks_prevent_next_normal: boolean;
+  code: "BLOCKS_PREVENT_NEXT_NORMAL" | null;
+  detail: string | null;
+}
+
+export interface RecoverHeldSuccessorChoiceOut {
+  status: string;
+  accept_past_applied_if_authorized: boolean;
+}
+
+export interface RecoverHeldReviewOut {
+  disposition_id: string;
+  task_id: string;
+  episode_key: string;
+  expected_revision: number;
+  authorize_instant: string;
+  review_binding: string;
+  contract_version: string;
+  cadence: RecoverHeldCadenceOut;
+  eligibility: RecoverHeldEligibilityOut;
+  next_normal: RecoverHeldNextNormalOut;
+  next_normal_effort: RecoverHeldEffortOut;
+  catch_up: RecoverHeldCatchUpOut;
+  historical_work: RecoverHeldHistoricalWorkOut;
+  c2: RecoverHeldC2Out;
+  successor_choice: RecoverHeldSuccessorChoiceOut;
+  review_ok_for_authorize: boolean;
+}
+
+export interface RecoverHeldOut extends HeldDispositionOut {
+  catch_up_task_id: string;
+}
+
 export function fetchHeldMisses() {
   return apiFetch<HeldDispositionOut[]>("/api/v1/schedule/held-misses");
 }
@@ -1995,6 +2105,25 @@ export function postReleaseHeld(taskId: string, body: ReleaseHeldIn) {
 
 export function postSkipHeld(taskId: string, body: SkipHeldIn) {
   return apiFetch<HeldDispositionOut>(`/api/v1/schedule/held-misses/${taskId}/skip`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+/** True read-only recovery review — server issues authorize_instant + review_binding. */
+export function postRecoverHeldReview(taskId: string, body: RecoverHeldReviewIn) {
+  return apiFetch<RecoverHeldReviewOut>(
+    `/api/v1/schedule/held-misses/${taskId}/recover/review`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+/** Authorize reviewed recovery — requires review_binding; no 409 auto-retry. */
+export function postRecoverHeld(taskId: string, body: RecoverHeldIn) {
+  return apiFetch<RecoverHeldOut>(`/api/v1/schedule/held-misses/${taskId}/recover`, {
     method: "POST",
     body: JSON.stringify(body),
   });

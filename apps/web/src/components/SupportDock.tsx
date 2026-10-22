@@ -120,6 +120,7 @@ export function SupportDock({
         onClose={onCloseTask}
         showDockCollapse={isCalendarView && !isNarrow}
         onCollapseDock={onToggleCollapse}
+        onSelectTask={onSelectTask}
       />
     );
   }

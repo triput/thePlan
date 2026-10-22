@@ -79,6 +79,7 @@ interface TaskDetailPanelProps {
   onClose: () => void;
   showDockCollapse?: boolean;
   onCollapseDock?: () => void;
+  onSelectTask?: (taskId: string) => void;
 }
 
 const PRIORITIES: TaskPriority[] = ["p1", "p2", "p3", "p4"];
@@ -196,7 +197,7 @@ function applyTaskUpdate(task: Task, body: TaskUpdate): Task {
 
 export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanelProps>(
   function TaskDetailPanel(
-    { task, allTasks, onClose, showDockCollapse = false, onCollapseDock },
+    { task, allTasks, onClose, showDockCollapse = false, onCollapseDock, onSelectTask },
     ref,
   ) {
   const [title, setTitle] = useState("");
@@ -991,6 +992,7 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
             datesDirty={task ? isOccurrenceDatesDirty(task, readDraft()) : false}
             onSaveDatesForRelease={saveDatesForRelease}
             saveDatesPending={updateMutation.isPending}
+            onSelectTask={onSelectTask}
           />
 
           <TaskDetailRecurrence
