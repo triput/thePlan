@@ -24,6 +24,8 @@ from app.schemas import (
     CalendarSubscriptionOut,
     CalendarSubscriptionsPut,
     CalendarSyncResult,
+    CoveringRefreshRequest,
+    CoveringRefreshResponse,
     ExternalCalendarEventOut,
     ResolveFreeBusySeriesPolicyBody,
     GoogleCalendarListItem,
@@ -491,6 +493,33 @@ def sync_calendar_account(
         raise ApiError(400, "Unsupported calendar provider", "CALENDAR_PROVIDER_UNSUPPORTED")
     db.commit()
     return CalendarSyncResult(account_id=account.id, upserted=upserted)
+
+
+@router.post("/covering-refresh", response_model=CoveringRefreshResponse)
+def post_covering_refresh(
+    body: CoveringRefreshRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> CoveringRefreshResponse:
+    """Covering import for explicitly selected subscriptions over an explicit window."""
+    from app.services.covering_refresh import (
+        CoveringSubscriptionNotEligible,
+        run_covering_refresh,
+    )
+    from app.services.covering_refresh_window import CoveringWindowError
+
+    settings = get_settings()
+    try:
+        return run_covering_refresh(
+            db,
+            settings=settings,
+            owner_id=user.id,
+            body=body,
+        )
+    except CoveringWindowError as exc:
+        raise ApiError(422, exc.detail, exc.code) from exc
+    except CoveringSubscriptionNotEligible as exc:
+        raise ApiError(422, exc.detail, exc.code) from exc
 
 
 @router.get("/conflicts", response_model=CalendarConflictsResult)

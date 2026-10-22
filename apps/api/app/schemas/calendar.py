@@ -195,3 +195,78 @@ class ResolveFreeBusySeriesPolicyBody(BaseModel):
     conflict_acknowledgments: list[FreeBusyConflictAcknowledgment]
     reason: str
 
+
+class CoveringRefreshRequest(BaseModel):
+    """POST /calendar/covering-refresh body (Decision 2 §2)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    subscription_ids: list[UUID] = Field(min_length=1, max_length=20)
+    window_start: datetime
+    window_end: datetime
+    scheduling_horizon_label: str | None = Field(default=None, max_length=512)
+
+    @model_validator(mode="after")
+    def _unique_subscription_ids(self) -> "CoveringRefreshRequest":
+        if len(self.subscription_ids) != len(set(self.subscription_ids)):
+            raise ValueError("subscription_ids must not contain duplicates")
+        return self
+
+
+class CoveringWindowOut(BaseModel):
+    start: datetime
+    end: datetime
+
+
+class CoveringActionSummaryOut(BaseModel):
+    requested: int
+    preflight_rejected: int
+    import_attempted: int
+    import_ok: int
+    import_failed: int
+
+
+class CoveringRefreshResultRow(BaseModel):
+    subscription_id: UUID
+    phase: Literal["preflight", "import"]
+    status: Literal["preflight_rejected", "ok", "failed"]
+    preflight_code: str | None = None
+    preflight_effects: list[str] = Field(default_factory=list)
+    cause: str | None = None
+    upserted: int = 0
+
+
+class CoveringActionOut(BaseModel):
+    """Subset coverage feedback for requested IDs over window_effective (§5)."""
+
+    window: CoveringWindowOut
+    all_requested_covering_ok: bool
+    freshness_requested: dict[str, Any]
+
+
+class SchedulingReadinessOut(BaseModel):
+    evaluated_at: datetime | None = None
+    scheduling_revision: int | None = None
+    horizon: CoveringWindowOut | None = None
+    horizon_label: str | None = None
+    freshness_all_enabled: dict[str, Any] | None = None
+    busy_input_trust: dict[str, Any] | None = None
+    scheduling_ready: bool | None = None
+    blocking_summary: list[str] = Field(default_factory=list)
+    assessment_error: str | None = None
+
+
+class CoveringRefreshResponse(BaseModel):
+    window_requested: CoveringWindowOut
+    window_effective: CoveringWindowOut
+    window_widened: bool
+    window_widen_reason: str
+    overall_outcome: Literal["success", "partial", "failed", "no_op"]
+    action_summary: CoveringActionSummaryOut
+    results: list[CoveringRefreshResultRow]
+    coverage_action: CoveringActionOut
+    scheduling_readiness: SchedulingReadinessOut | None = None
+    scheduling_revision_at_start: int
+    scheduling_revision_at_end: int | None = None
+    scheduling_revision_bumped: bool
+
