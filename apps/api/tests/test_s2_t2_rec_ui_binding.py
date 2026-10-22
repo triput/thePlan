@@ -666,3 +666,65 @@ def test_a_bind_idempotent_recover_rejects_bad_binding_accepts_genuine_replay(
         .count()
         == 1
     )
+
+
+def test_a_bind_idempotent_rejects_alternate_valid_review_after_commit(
+    client: TestClient, db_session: Session
+) -> None:
+    """Commit review A; replay review B (same episode) must not return A's catch-up."""
+    _prepare(client, db_session)
+    task = _books(client)
+    row = _hold(db_session, task["id"])
+    rev_a = _review(client, task["id"], row.id)
+    assert rev_a.status_code == 200, rev_a.text
+    rev_b = _review(client, task["id"], row.id, catch_up_remaining_minutes=45)
+    assert rev_b.status_code == 200, rev_b.text
+    body_a = rev_a.json()
+    body_b = rev_b.json()
+    assert body_a["review_binding"] != body_b["review_binding"]
+    assert body_a["catch_up"]["remaining_minutes"] != body_b["catch_up"]["remaining_minutes"]
+
+    first = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=body_a["review_binding"],
+        authorize_instant=body_a["authorize_instant"],
+    )
+    assert first.status_code == 200, first.text
+    catch_id_a = first.json()["catch_up_task_id"]
+    current_rev = _revision(client)
+
+    replay_b = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/recover",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": current_rev,
+            "review_binding": body_b["review_binding"],
+            "authorize_instant": body_b["authorize_instant"],
+            **_catch_up_body(),
+            "catch_up_remaining_minutes": 45,
+        },
+    )
+    assert replay_b.status_code == 422, replay_b.text
+    assert replay_b.json()["code"] == "REVIEW_BINDING_MISMATCH"
+    assert replay_b.json().get("catch_up_task_id") is None
+
+    replay_a = client.post(
+        f"/api/v1/schedule/held-misses/{task['id']}/recover",
+        json={
+            "disposition_id": str(row.id),
+            "expected_revision": current_rev,
+            "review_binding": body_a["review_binding"],
+            "authorize_instant": body_a["authorize_instant"],
+            **_catch_up_body(),
+        },
+    )
+    assert replay_a.status_code == 200, replay_a.text
+    assert replay_a.json()["catch_up_task_id"] == catch_id_a
+    assert (
+        db_session.query(Task)
+        .filter(Task.title == f"{task['title']} (catch-up)")
+        .count()
+        == 1
+    )

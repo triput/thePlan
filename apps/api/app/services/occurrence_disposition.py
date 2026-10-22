@@ -2,7 +2,7 @@
 #  File: apps/api/app/services/occurrence_disposition.py
 #  Description: T2-S2 B-auto durable miss dispositions + R/S + T2-REC recovery.
 #  Component: Occurrence disposition
-#  Version: 1.7
+#  Version: 1.8
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -1167,6 +1167,50 @@ def _canonical_recover_intent(
     }
 
 
+def _committed_recover_binding_fingerprint(
+    intent: Mapping[str, Any],
+    projection: Mapping[str, Any],
+) -> str:
+    """Stable SHA-256 of canonical intent + projection claim (no token/MAC material)."""
+    material = _canonical(
+        {"intent": dict(intent), "projection": dict(projection)}
+    ).encode("utf-8")
+    return hashlib.sha256(material).hexdigest()
+
+
+def _load_recovered_binding_fingerprint(db: Session, *, disposition_id: UUID) -> str:
+    """Fingerprint persisted on first recover commit (EVENT_RECOVERED payload)."""
+    event = (
+        db.query(DispositionEvent)
+        .filter(
+            DispositionEvent.disposition_id == disposition_id,
+            DispositionEvent.event_type == EVENT_RECOVERED,
+        )
+        .order_by(DispositionEvent.created_at.asc())
+        .limit(1)
+        .one_or_none()
+    )
+    if event is None or not isinstance(event.payload, dict):
+        raise ApiError(
+            500,
+            "Recovered disposition missing recovered event receipt",
+            "DISPOSITION_SNAPSHOT_CORRUPT",
+        )
+    payload = event.payload
+    stored = payload.get("committed_binding_fingerprint")
+    if isinstance(stored, str) and stored:
+        return stored
+    intent = payload.get("committed_intent")
+    projection = payload.get("committed_projection")
+    if isinstance(intent, dict) and isinstance(projection, dict):
+        return _committed_recover_binding_fingerprint(intent, projection)
+    raise ApiError(
+        500,
+        "Recovered disposition missing committed binding receipt",
+        "DISPOSITION_SNAPSHOT_CORRUPT",
+    )
+
+
 def _review_binding_key() -> bytes:
     secret = get_settings().session_secret.encode("utf-8")
     return hmac.new(secret, _REVIEW_BINDING_DOMAIN, hashlib.sha256).digest()
@@ -1767,14 +1811,16 @@ def verify_recover_review_binding_replay(
     episode_key: str,
     review_binding: str,
     intent_canonical: Mapping[str, Any],
+    committed_binding_fingerprint: str,
     authorize_instant_echo: datetime | None = None,
 ) -> datetime:
-    """Idempotent recovered replay: authenticate + identity + intent only.
+    """Idempotent recovered replay: authenticate + identity + intent + receipt.
 
     Does **not** recompute or compare projection against post-recovery state.
     Does **not** require ``expected_revision`` in the binding to equal the
     request revision (authorize bumped revision; lost-response retries send
-    current rev with the original binding).
+    current rev with the original binding). Compares the presented binding's
+    intent and projection claim to the fingerprint stored on first commit.
     """
     claims = _parse_recover_review_binding(review_binding)
     try:
@@ -1785,6 +1831,7 @@ def verify_recover_review_binding_replay(
         bound_version = str(claims["contract_version"])
         bound_instant = _parse_iso_utc(str(claims["authorize_instant"]))
         bound_intent = claims["intent"]
+        bound_projection = claims["projection"]
     except (KeyError, TypeError, ValueError) as exc:
         raise ApiError(
             422,
@@ -1814,6 +1861,21 @@ def verify_recover_review_binding_replay(
         raise ApiError(
             422,
             "Recovery review binding intent mismatch",
+            "REVIEW_BINDING_MISMATCH",
+        )
+    if not isinstance(bound_projection, dict):
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        )
+    presented_fp = _committed_recover_binding_fingerprint(
+        bound_intent, bound_projection
+    )
+    if not hmac.compare_digest(presented_fp, committed_binding_fingerprint):
+        raise ApiError(
+            422,
+            "Recovery review binding does not match committed authorize receipt",
             "REVIEW_BINDING_MISMATCH",
         )
     if authorize_instant_echo is not None:
@@ -2015,6 +2077,9 @@ def recover_held(
     if row.resolution == RESOLUTION_RECOVERED:
         # Authenticate + identity + original intent before any 200 catch-up.
         # No projection recompute against mutated post-recovery state.
+        committed_fp = _load_recovered_binding_fingerprint(
+            db, disposition_id=disposition_id
+        )
         verify_recover_review_binding_replay(
             owner_id=owner_id,
             task_id=task_id,
@@ -2022,6 +2087,7 @@ def recover_held(
             episode_key=row.episode_key,
             review_binding=review_binding,
             intent_canonical=intent_canonical,
+            committed_binding_fingerprint=committed_fp,
             authorize_instant_echo=authorize_instant,
         )
         if row.catch_up_task_id is None:
@@ -2252,6 +2318,11 @@ def recover_held(
         row.catch_up_task_id = catch_up_task_id
         row.authorize_instant = authorize
         row.resolution = RESOLUTION_RECOVERED
+        committed_intent = dict(projection.intent_canonical)
+        committed_projection = projection.projection_claim()
+        committed_fp = _committed_recover_binding_fingerprint(
+            committed_intent, committed_projection
+        )
         payload: dict[str, Any] = {
             "catch_up_task_id": str(catch_up_task_id),
             "authorize_instant": authorize.isoformat(),
@@ -2262,6 +2333,9 @@ def recover_held(
             "miss_era_entry_ids": miss_ids,
             "catch_up_remaining_minutes": catch_up_remaining,
             "contract_version": RECOVER_REVIEW_CONTRACT_VERSION,
+            "committed_intent": committed_intent,
+            "committed_projection": committed_projection,
+            "committed_binding_fingerprint": committed_fp,
         }
         if note:
             payload["note"] = note
