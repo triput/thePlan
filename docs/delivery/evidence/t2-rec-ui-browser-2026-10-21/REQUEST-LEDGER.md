@@ -76,3 +76,28 @@ API access log on `:18081` for this browser session: **no** `PATCH`. No replan /
 | Happy disposition | `recovered`; series due `2026-10-27 03:00:00+00` |
 | Catch-up `9566f9a5-…` | title `REC-UI-happy weekly (catch-up)`; due `2026-10-28 22:30:00+00`; remaining **45** |
 | Fixed / LA fold / LA gap / C2 | still `unresolved_held` |
+
+## Bounce2 at `2b290eb` (browser, not the seed probe)
+
+**Runner:** Renee. Vite `:5174` → API `:18081`. In-page `fetch` wrapper. Bindings as lengths only. R9b/R9c browser zone `America/Los_Angeles`. R8c zone forced to `Australia/Lord_Howe` via CDP after those two shots.
+
+Seed script POSTed one review per new row before the browser. Those calls are **not** in this table.
+
+| t (UTC) | Method | Path tail | Request | Status | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 03:46:16 | POST | happy `4478c5a0-…/recover/review` | `disposition_id`, rev **78** | **200** ×2 | Open. StrictMode pair. `review_ok` true. No catch-up fields. |
+| 03:46:28 | POST | happy `…/recover` | `disposition_id`, rev **78**, `review_binding` len recorded, `authorize_instant` | **200** | `catch_up_task_id` `5a6a42ca-5a5c-40ba-ae4d-5264915b0e15`. One POST. |
+| 03:48:40 | POST | dirty `23767d68-…/recover/review` | `disposition_id`, rev **79** | **200** ×2 | Open after unsaved title + notes. `review_ok` true. |
+| 03:48:48 | POST | dirty `…/recover` | `disposition_id`, rev **79**, binding, `authorize_instant` | **200** | `catch_up_task_id` `ea307cff-a3f8-453a-9054-dd092b665168`. |
+| 03:50:30 | POST | c2 `02a87d26-…/recover/review` | `disposition_id`, rev **80** | **200** ×2 | `review_ok` false. Lord Howe zone already applied. |
+| — | — | c2 catch-up due `2026-04-05T01:45` then Refresh | **no further POST** | — | Client fold alert. Ledger did not grow. |
+
+Session methods: **GET** and **POST** only. API log on `:18081`: **no** `PATCH`.
+
+### DB read-back (`theplan_s1_test`, after bounce2)
+
+| Row | Result |
+| --- | --- |
+| Happy `4478c5a0-…` | `recovered`; due `2026-10-27 03:00:00+00`; catch-up `5a6a42ca-…` |
+| Dirty `23767d68-…` | `recovered`; title still `REC-UI-dirty weekly`; description still `seed notes`; due `2026-10-27 03:00:00+00`; catch-up `ea307cff-…` |
+| C2 / fixed / LA fold / LA gap | still `unresolved_held` |
