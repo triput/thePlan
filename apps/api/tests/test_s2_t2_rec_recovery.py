@@ -355,14 +355,9 @@ def _recover(client: TestClient, task_id: str, disp_id: uuid.UUID, **extra: obje
             review_json = rev_resp.json()
             review_binding = review_json["review_binding"]
             authorize_instant = review_json["authorize_instant"]
-        elif (
-            rev_resp.status_code == 409
-            and rev_resp.json().get("code") == "CONFLICT_TERMINAL"
-        ):
-            # Already recovered / other terminal — authorize short-circuits
-            # before binding verify on recovered; other terminals re-409.
-            review_binding = "t2-rec-ui-v1.idempotent-replay.deadbeef"
         else:
+            # Terminal / stale / reject — caller must supply review_binding
+            # for recovered lost-response replay (no fabricated bypass token).
             return rev_resp
 
     body: dict = {
@@ -2447,7 +2442,17 @@ def test_a13_idempotent_rerecover(client: TestClient, db_session: Session) -> No
     _prepare(client, db_session)
     task = _books(client)
     row = _hold(db_session, task["id"])
-    first = _recover(client, task["id"], row.id)
+    reviewed = _review(client, task["id"], row.id)
+    assert reviewed.status_code == 200, reviewed.text
+    binding = reviewed.json()["review_binding"]
+    auth_instant = reviewed.json()["authorize_instant"]
+    first = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+    )
     assert first.status_code == 200, first.text
     catch_id = first.json()["catch_up_task_id"]
     rev = _revision(client)
@@ -2456,7 +2461,14 @@ def test_a13_idempotent_rerecover(client: TestClient, db_session: Session) -> No
         for event in db_session.get(TaskOccurrenceDisposition, row.id).events
         if event.event_type == EVENT_RECOVERED
     )
-    second = _recover(client, task["id"], row.id)
+    # Lost-response replay: original binding + current revision + same intent.
+    second = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+    )
     assert second.status_code == 200, second.text
     assert second.json()["catch_up_task_id"] == catch_id
     assert second.json()["resolution"] == RESOLUTION_RECOVERED
@@ -2486,10 +2498,28 @@ def test_a14_stale_revision_precedes_noop(
     assert db_session.get(TaskOccurrenceDisposition, row.id).resolution == (
         RESOLUTION_UNRESOLVED_HELD
     )
-    ok = _recover(client, task["id"], row.id)
+    reviewed = _review(client, task["id"], row.id)
+    assert reviewed.status_code == 200, reviewed.text
+    binding = reviewed.json()["review_binding"]
+    auth_instant = reviewed.json()["authorize_instant"]
+    ok = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+    )
     assert ok.status_code == 200, ok.text
     current = _revision(client)
-    replay = _recover(client, task["id"], row.id, expected_revision=rev)
+    # Stale revision assert precedes recovered binding verify / catch-up noop.
+    replay = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+        expected_revision=rev,
+    )
     assert replay.status_code == 409, replay.text
     assert replay.json()["code"] == "SCHEDULING_REVISION_CONFLICT"
     assert _revision(client) == current
@@ -2549,7 +2579,17 @@ def test_a16_fingerprint_stale_once_calculate_write_free(
         .one()
     )
     rev = _revision(client)
-    recovered = _recover(client, task["id"], row.id)
+    reviewed = _review(client, task["id"], row.id)
+    assert reviewed.status_code == 200, reviewed.text
+    binding = reviewed.json()["review_binding"]
+    auth_instant = reviewed.json()["authorize_instant"]
+    recovered = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+    )
     assert recovered.status_code == 200, recovered.text
     assert _revision(client) == rev + 1
     rejected = client.post(f"/api/v1/schedule/previews/{preview['id']}/apply")
@@ -2560,7 +2600,13 @@ def test_a16_fingerprint_stale_once_calculate_write_free(
     owner = _owner_id(client)
     _, fp_after = fingerprint_collected_inputs(collect_inputs(db_session, owner, FIXED_NOW))
     rev_after = _revision(client)
-    replay = _recover(client, task["id"], row.id)
+    replay = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+    )
     assert replay.status_code == 200, replay.text
     assert _revision(client) == rev_after
     _, fp_replay = fingerprint_collected_inputs(collect_inputs(db_session, owner, FIXED_NOW))

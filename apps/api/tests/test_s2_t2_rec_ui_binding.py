@@ -585,30 +585,81 @@ def test_a_z2_gap_fold_on_review_no_writes(
     assert observe_session_writes(db_session).empty
 
 
-def test_a_bind_idempotent_recover(
+def test_a_bind_idempotent_recover_rejects_bad_binding_accepts_genuine_replay(
     client: TestClient, db_session: Session
 ) -> None:
+    """Recovered replay authenticates binding; fabricated/wrong/changed reject."""
+    import hashlib
+    import hmac
+
+    from app.schemas.occurrence_disposition import RECOVER_REVIEW_CONTRACT_VERSION
+    from app.services.occurrence_disposition import (
+        _b64url,
+        _canonical,
+        _parse_recover_review_binding,
+        _review_binding_key,
+    )
+
     _prepare(client, db_session)
     task = _books(client)
     row = _hold(db_session, task["id"])
-    first = _recover(client, task["id"], row.id)
+    reviewed = _review(client, task["id"], row.id)
+    assert reviewed.status_code == 200, reviewed.text
+    binding = reviewed.json()["review_binding"]
+    auth_instant = reviewed.json()["authorize_instant"]
+    first = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=binding,
+        authorize_instant=auth_instant,
+    )
     assert first.status_code == 200, first.text
     catch_id = first.json()["catch_up_task_id"]
-    # Review of terminal episode → 409; authorize short-circuits before binding.
-    rev = _review(client, task["id"], row.id)
-    assert rev.status_code == 409, rev.text
-    assert rev.json()["code"] == "CONFLICT_TERMINAL"
-    replay = client.post(
-        f"/api/v1/schedule/held-misses/{task['id']}/recover",
-        json={
+    current_rev = _revision(client)
+
+    # Review of terminal episode still 409 (no new binding issued).
+    terminal_rev = _review(client, task["id"], row.id)
+    assert terminal_rev.status_code == 409, terminal_rev.text
+    assert terminal_rev.json()["code"] == "CONFLICT_TERMINAL"
+
+    def _authorize(review_binding: str, **extra: object):
+        body = {
             "disposition_id": str(row.id),
-            "expected_revision": _revision(client),
-            "review_binding": "t2-rec-ui-v1.not-used.deadbeef",
+            "expected_revision": current_rev,
+            "review_binding": review_binding,
+            "authorize_instant": auth_instant,
             **_catch_up_body(),
-        },
-    )
-    assert replay.status_code == 200, replay.text
-    assert replay.json()["catch_up_task_id"] == catch_id
+            **extra,
+        }
+        return client.post(
+            f"/api/v1/schedule/held-misses/{task['id']}/recover",
+            json=body,
+        )
+
+    malformed = _authorize("t2-rec-ui-v1.not-used.deadbeef")
+    assert malformed.status_code == 422, malformed.text
+    assert malformed.json()["code"] == "REVIEW_BINDING_INVALID"
+
+    claims = _parse_recover_review_binding(binding)
+    claims["owner_id"] = str(uuid.uuid4())
+    payload = _canonical(claims).encode("utf-8")
+    digest = hmac.new(_review_binding_key(), payload, hashlib.sha256).hexdigest()
+    wrong_owner = f"{RECOVER_REVIEW_CONTRACT_VERSION}.{_b64url(payload)}.{digest}"
+    alien = _authorize(wrong_owner)
+    assert alien.status_code == 422, alien.text
+    assert alien.json()["code"] == "REVIEW_BINDING_MISMATCH"
+
+    changed = _authorize(binding, catch_up_remaining_minutes=7)
+    assert changed.status_code == 422, changed.text
+    assert changed.json()["code"] == "REVIEW_BINDING_MISMATCH"
+
+    # Genuine lost-response: original binding + same intent + current rev.
+    genuine = _authorize(binding)
+    assert genuine.status_code == 200, genuine.text
+    assert genuine.json()["catch_up_task_id"] == catch_id
+    assert genuine.json()["resolution"] == RESOLUTION_RECOVERED
+    assert _revision(client) == current_rev
     assert (
         db_session.query(Task)
         .filter(Task.title == f"{task['title']} (catch-up)")

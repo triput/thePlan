@@ -2,7 +2,7 @@
 #  File: apps/api/app/services/occurrence_disposition.py
 #  Description: T2-S2 B-auto durable miss dispositions + R/S + T2-REC recovery.
 #  Component: Occurrence disposition
-#  Version: 1.6
+#  Version: 1.7
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
@@ -1759,6 +1759,76 @@ def verify_recover_review_binding(
     return bound_instant.astimezone(timezone.utc)
 
 
+def verify_recover_review_binding_replay(
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+    episode_key: str,
+    review_binding: str,
+    intent_canonical: Mapping[str, Any],
+    authorize_instant_echo: datetime | None = None,
+) -> datetime:
+    """Idempotent recovered replay: authenticate + identity + intent only.
+
+    Does **not** recompute or compare projection against post-recovery state.
+    Does **not** require ``expected_revision`` in the binding to equal the
+    request revision (authorize bumped revision; lost-response retries send
+    current rev with the original binding).
+    """
+    claims = _parse_recover_review_binding(review_binding)
+    try:
+        bound_owner = UUID(str(claims["owner_id"]))
+        bound_task = UUID(str(claims["task_id"]))
+        bound_disp = UUID(str(claims["disposition_id"]))
+        bound_episode = str(claims["episode_key"])
+        bound_version = str(claims["contract_version"])
+        bound_instant = _parse_iso_utc(str(claims["authorize_instant"]))
+        bound_intent = claims["intent"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        ) from exc
+
+    if bound_instant is None:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        )
+    if (
+        bound_owner != owner_id
+        or bound_task != task_id
+        or bound_disp != disposition_id
+        or bound_episode != episode_key
+        or bound_version != RECOVER_REVIEW_CONTRACT_VERSION
+    ):
+        raise ApiError(
+            422,
+            "Recovery review binding does not match authorize request",
+            "REVIEW_BINDING_MISMATCH",
+        )
+    if _canonical(bound_intent) != _canonical(dict(intent_canonical)):
+        raise ApiError(
+            422,
+            "Recovery review binding intent mismatch",
+            "REVIEW_BINDING_MISMATCH",
+        )
+    if authorize_instant_echo is not None:
+        echo = require_timezone_aware_instant(
+            authorize_instant_echo, field="authorize_instant"
+        )
+        if echo.astimezone(timezone.utc) != bound_instant.astimezone(timezone.utc):
+            raise ApiError(
+                422,
+                "authorize_instant does not match review binding",
+                "REVIEW_BINDING_MISMATCH",
+            )
+    return bound_instant.astimezone(timezone.utc)
+
+
 @dataclass(frozen=True)
 class RecoverHeldReviewResult:
     projection: RecoverHeldProjection
@@ -1930,7 +2000,30 @@ def recover_held(
             "Held disposition not found for this task",
             "DISPOSITION_NOT_FOUND",
         )
+    intent_canonical = _canonical_recover_intent(
+        accept_past_ack=accept_past_ack,
+        step_count=step_count,
+        abort=abort,
+        catch_up_due_at=catch_up_due_at,
+        catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=catch_up_start_no_later_at,
+        catch_up_deadline_at=catch_up_deadline_at,
+        catch_up_remaining_minutes=catch_up_remaining_minutes,
+        intent_fields_set=intent_fields_set,
+    )
+
     if row.resolution == RESOLUTION_RECOVERED:
+        # Authenticate + identity + original intent before any 200 catch-up.
+        # No projection recompute against mutated post-recovery state.
+        verify_recover_review_binding_replay(
+            owner_id=owner_id,
+            task_id=task_id,
+            disposition_id=disposition_id,
+            episode_key=row.episode_key,
+            review_binding=review_binding,
+            intent_canonical=intent_canonical,
+            authorize_instant_echo=authorize_instant,
+        )
         if row.catch_up_task_id is None:
             raise ApiError(
                 500,
@@ -1981,17 +2074,6 @@ def recover_held(
             "RECURRENCE_NO_SUCCESSOR",
         )
 
-    intent_canonical = _canonical_recover_intent(
-        accept_past_ack=accept_past_ack,
-        step_count=step_count,
-        abort=abort,
-        catch_up_due_at=catch_up_due_at,
-        catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
-        catch_up_start_no_later_at=catch_up_start_no_later_at,
-        catch_up_deadline_at=catch_up_deadline_at,
-        catch_up_remaining_minutes=catch_up_remaining_minutes,
-        intent_fields_set=intent_fields_set,
-    )
     # Bound instant from claims first (fail closed before projection work if
     # MAC/identity is wrong). Then recompute projection with that instant.
     claims = _parse_recover_review_binding(review_binding)
