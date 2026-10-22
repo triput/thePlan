@@ -219,6 +219,25 @@ export function buildSuccessorWireFields(intent: RecoverFormIntent): {
   return {};
 }
 
+export type RecoverSuccessorWireFields = ReturnType<typeof buildSuccessorWireFields>;
+export type RecoverCatchUpWireFields = Record<string, string | number | null>;
+
+/**
+ * Authorize must echo the same catch-up + successor intent that was HMAC-bound
+ * on review. After a successful review, editors/baseline are remapped from the
+ * response and remainingTouched is cleared — rebuild-from-editors would omit
+ * overrides (e.g. catch_up_remaining_minutes: 45) and trip REVIEW_BINDING_MISMATCH.
+ */
+export function buildRecoverAuthorizeIntentFields(args: {
+  boundCatchUpFields: RecoverCatchUpWireFields;
+  boundSuccessorFields: RecoverSuccessorWireFields;
+}): RecoverCatchUpWireFields & RecoverSuccessorWireFields {
+  return {
+    ...args.boundSuccessorFields,
+    ...args.boundCatchUpFields,
+  };
+}
+
 /** Soft affordance gate from TaskOut.recurrence only — not held-list / settings. */
 export function canOfferRecoverAffordance(taskHasRecurrence: boolean): boolean {
   return taskHasRecurrence;

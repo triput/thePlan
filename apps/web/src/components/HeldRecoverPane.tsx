@@ -12,15 +12,19 @@ import {
 import { HELD_MISSES_QUERY_KEY, invalidateAfterHeldMutation } from "../heldMissesQuery";
 import {
   buildCatchUpWireFields,
+  buildRecoverAuthorizeIntentFields,
   buildSuccessorWireFields,
   c2LimitationCopy,
   editorsFromReviewCatchUp,
   isRecoverAuthorizeEnabled,
   recoverZoneLabels,
   shouldApplyReviewResponse,
+  validateCatchUpEditors,
   type RecoverCatchUpBaseline,
   type RecoverCatchUpEditors,
+  type RecoverCatchUpWireFields,
   type RecoverSuccessorMode,
+  type RecoverSuccessorWireFields,
 } from "../recoverHeldUi";
 import { formatInstantInZone } from "../taskDetailDraft";
 import { emitToast } from "./ToastHost";
@@ -63,6 +67,9 @@ export function HeldRecoverPane({
   const [remainingTouched, setRemainingTouched] = useState(false);
   const [successor, setSuccessor] = useState<RecoverSuccessorMode>("none");
   const [stepCount, setStepCount] = useState("1");
+  /** Exact catch-up + successor wire from the last applied review (authorize round-trip). */
+  const [boundCatchUpFields, setBoundCatchUpFields] = useState<RecoverCatchUpWireFields>({});
+  const [boundSuccessorFields, setBoundSuccessorFields] = useState<RecoverSuccessorWireFields>({});
   const [paneError, setPaneError] = useState<string | null>(null);
   const [reviewPending, setReviewPending] = useState(false);
   const [authorizePending, setAuthorizePending] = useState(false);
@@ -119,6 +126,9 @@ export function HeldRecoverPane({
         setEditors(mapped.editors);
         setBaseline(mapped.baseline);
         setRemainingTouched(false);
+        // Snapshot the reviewed wire — authorize must echo this, not rebuild vs remapped baseline.
+        setBoundCatchUpFields(wire.fields);
+        setBoundSuccessorFields(successorFields);
         setAppliedGeneration(requestGeneration);
         setStale(false);
         setPaneError(null);
@@ -196,21 +206,24 @@ export function HeldRecoverPane({
         queryFn: fetchSettings,
       });
       const intent = formRef.current;
-      const wire = buildCatchUpWireFields(intent);
-      if (!wire.ok) {
-        setPaneError(wire.error);
+      const editorError = validateCatchUpEditors(intent.editors);
+      if (editorError) {
+        setPaneError(editorError);
         setStale(true);
         return;
       }
-      const successorFields = buildSuccessorWireFields(intent);
-      // Recover authorize: intent + binding only — never unrelated dirty task fields.
+      // Recover authorize: echo bound review intent + binding — never rebuild omit-vs-null
+      // from remapped editors (would drop catch_up_remaining_minutes after refresh).
+      const intentFields = buildRecoverAuthorizeIntentFields({
+        boundCatchUpFields,
+        boundSuccessorFields,
+      });
       const result = await postRecoverHeld(taskId, {
         disposition_id: held.id,
         expected_revision: settings.scheduling_revision,
         review_binding: review.review_binding,
         authorize_instant: review.authorize_instant,
-        ...successorFields,
-        ...wire.fields,
+        ...intentFields,
       });
       setSuccessCatchUpId(result.catch_up_task_id);
       emitToast("Recovered held occurrence — catch-up task created");

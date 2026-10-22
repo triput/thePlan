@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   buildCatchUpWireFields,
+  buildRecoverAuthorizeIntentFields,
+  buildSuccessorWireFields,
   canOfferRecoverAffordance,
   c2LimitationCopy,
   editorsFromReviewCatchUp,
@@ -147,6 +149,62 @@ describe("recoverHeldUi catch-up wire omit-vs-null", () => {
     if (wire.ok) {
       assert.equal(wire.fields.catch_up_remaining_minutes, 0);
     }
+  });
+
+  it("authorize payload includes remaining after stale→refresh with override", () => {
+    // Open / true-read-only review: default remaining 60, no override on wire.
+    const initial = editorsFromReviewCatchUp({
+      due_at: null,
+      start_no_earlier_at: null,
+      start_no_later_at: null,
+      deadline_at: null,
+      remaining_minutes: 60,
+      remaining_minutes_default: 60,
+    });
+    const editIntent: RecoverFormIntent = {
+      successor: "none",
+      stepCount: "1",
+      editors: { ...initial.editors, remainingMinutes: "45" },
+      baseline: initial.baseline,
+      remainingTouched: true,
+    };
+    const reviewWire = buildCatchUpWireFields(editIntent);
+    assert.equal(reviewWire.ok, true);
+    if (!reviewWire.ok) return;
+    assert.equal(reviewWire.fields.catch_up_remaining_minutes, 45);
+
+    // After refresh review: response absorbs 45 into catch_up; pane clears remainingTouched
+    // and remaps editors/baseline — rebuild would omit remaining (the R3 bug).
+    const afterRefresh = editorsFromReviewCatchUp({
+      due_at: null,
+      start_no_earlier_at: null,
+      start_no_later_at: null,
+      deadline_at: null,
+      remaining_minutes: 45,
+      remaining_minutes_default: 60,
+    });
+    const rebuildAfterRefresh = buildCatchUpWireFields({
+      successor: "none",
+      stepCount: "1",
+      editors: afterRefresh.editors,
+      baseline: afterRefresh.baseline,
+      remainingTouched: false,
+    });
+    assert.equal(rebuildAfterRefresh.ok, true);
+    if (rebuildAfterRefresh.ok) {
+      assert.equal(
+        "catch_up_remaining_minutes" in rebuildAfterRefresh.fields,
+        false,
+        "rebuild-from-editors must omit after remapped baseline (do not use for authorize)",
+      );
+    }
+
+    // Authorize echoes the bound review wire (and successor).
+    const authorizeFields = buildRecoverAuthorizeIntentFields({
+      boundCatchUpFields: reviewWire.fields,
+      boundSuccessorFields: buildSuccessorWireFields(editIntent),
+    });
+    assert.equal(authorizeFields.catch_up_remaining_minutes, 45);
   });
 });
 
