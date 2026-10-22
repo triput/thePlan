@@ -1,4 +1,4 @@
-"""Decision 2 covering-refresh validation V1–V39 on disposable Postgres.
+"""Decision 2 covering-refresh validation V1–V39 plus Dex Phase-1 regressions on disposable Postgres.
 
 Contract: ``docs/delivery/0.7-S2-D2-Covering-Refresh-Contract-2026-10-21.md`` §9.
 Provider HTTP is mocked. Seeds are committed so token and failure units, which
@@ -20,6 +20,7 @@ from uuid import UUID
 import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -33,12 +34,17 @@ from app.models import (
     CalendarSubscription,
     CalendarSubscriptionRefreshFailure,
     ExternalCalendarEvent,
+    FreeBusySeriesPolicy,
     SchedulePreview,
     User,
     UserSettings,
 )
 from app.models.enums import CalendarProvider, CalendarSubscriptionRole, ScheduleStyle
-from app.scheduler.calendar_freshness import required_coverage_window
+from app.scheduler.calendar_freshness import (
+    FRESHNESS_AGE_CEILING,
+    evaluate_calendar_freshness,
+    required_coverage_window,
+)
 from app.schemas.calendar import CoveringRefreshRequest
 from app.services import covering_refresh as covering_refresh_mod
 from app.services import covering_refresh_failure as failure_mod
@@ -57,6 +63,8 @@ from app.services import scheduling_revision as scheduling_revision_mod
 from app.services.scheduling_revision import (
     _OWNER_LOCK_NAMESPACE,
     assert_scheduling_revision,
+    increment_scheduling_revision,
+    lock_owner_scheduling,
     owner_scheduling_lock_key,
 )
 from app.services.token_crypto import encrypt_token
@@ -327,6 +335,7 @@ def _run(
     *,
     label: str | None = None,
     now: datetime = NOW,
+    clock: Any = None,
 ):
     db = SessionLocal()
     try:
@@ -336,12 +345,13 @@ def _run(
             window_end=end,
             scheduling_horizon_label=label,
         )
+        stamped: dict[str, Any] = {"clock": clock} if clock is not None else {"now": now}
         return run_covering_refresh(
             db,
             settings=_settings(),
             owner_id=owner_id,
             body=body,
-            now=now,
+            **stamped,
         )
     finally:
         db.close()
@@ -1632,7 +1642,7 @@ def test_v34_readiness_fault_does_not_claim_rollback(monkeypatch: pytest.MonkeyP
     def _boom(*_a: object, **_k: object) -> None:
         raise RuntimeError("readiness assessment failed")
 
-    monkeypatch.setattr(covering_refresh_mod, "_assemble_scheduling_readiness", _boom)
+    monkeypatch.setattr(covering_refresh_mod, "_assemble_final_assessment", _boom)
     start, end = _window()
     with world() as w:
         account = _account(w.db, w.user)
@@ -2059,3 +2069,554 @@ def test_legacy_account_sync_route_still_imports(
     assert response.json()["upserted"] == 1
     assert provider_spies["retry"] == 1
     assert provider_spies["list"] == ["cal-legacy-sync"]
+
+
+def _seed_covering_fresh(
+    sub: CalendarSubscription,
+    start: datetime,
+    end: datetime,
+    *,
+    at: datetime,
+) -> None:
+    """Enabled row that passes the freshness gate at ``at`` for ``[start, end]``."""
+    sub.coverage_window_start = start
+    sub.coverage_window_end = end
+    sub.coverage_mode = "full"
+    sub.coverage_success_at = at
+    sub.coverage_fetched_at = at
+    sub.coverage_pagination_complete = True
+    sub.coverage_active_generation = 1
+    sub.coverage_success_generation = 1
+    sub.coverage_show_deleted = True
+    sub.coverage_single_events = True
+    sub.coverage_page_count = 1
+    sub.coverage_item_count = 0
+
+
+def _token_columns(account_id: UUID) -> tuple[Any, ...]:
+    db = SessionLocal()
+    try:
+        row = db.get(CalendarAccount, account_id)
+        if row is None:
+            return ("<missing>",)
+        return (row.access_token_enc, row.refresh_token_enc, row.token_expires_at)
+    finally:
+        db.close()
+
+
+def _expire_token(account: CalendarAccount) -> None:
+    account.token_expires_at = datetime.now(UTC) - timedelta(minutes=5)
+
+
+def _forbid_provider_token_refresh(monkeypatch: pytest.MonkeyPatch) -> list[int]:
+    """Count get_valid_access_token. A call is a failure: expired tokens would HTTP."""
+    hits = [0]
+
+    def _no(*_a: object, **_k: object) -> str:
+        hits[0] += 1
+        raise AssertionError("provider token refresh ran")
+
+    monkeypatch.setattr(gcal, "get_valid_access_token", _no)
+    monkeypatch.setattr(ms_cal, "get_valid_access_token", _no)
+    return hits
+
+
+def _plant_stale_assessment_identity(
+    db: Session,
+    *,
+    owner_id: UUID,
+    sibling_id: UUID,
+) -> CalendarSubscription:
+    """Load owner rows so the request identity map holds unexpired pre-mutation state."""
+    subs = db.query(CalendarSubscription).filter(CalendarSubscription.owner_id == owner_id).all()
+    accounts = db.query(CalendarAccount).filter(CalendarAccount.owner_id == owner_id).all()
+    sub_ids = [row.id for row in subs]
+    failures = (
+        db.query(CalendarSubscriptionRefreshFailure)
+        .filter(CalendarSubscriptionRefreshFailure.subscription_id.in_(sub_ids))
+        .all()
+    )
+    events = db.query(ExternalCalendarEvent).filter(ExternalCalendarEvent.owner_id == owner_id).all()
+    policies = db.query(FreeBusySeriesPolicy).filter(FreeBusySeriesPolicy.owner_id == owner_id).all()
+    loaded = [*subs, *accounts, *failures, *events, *policies]
+    assert subs and accounts and failures and events and policies
+    for row in loaded:
+        assert sa_inspect(row).expired is False
+        assert row.id is not None
+    sibling = next(row for row in subs if row.id == sibling_id)
+    assert sibling.coverage_success_at is not None
+    assert not (db.new or db.dirty or db.deleted)
+    return sibling
+
+
+def _blocking_by_name(freshness: dict[str, Any] | None) -> dict[str, str]:
+    rows = (freshness or {}).get("blocking_diagnostics") or []
+    named: dict[str, str] = {}
+    for item in rows:
+        if isinstance(item, dict):
+            named[str(item.get("calendar_name"))] = str(item.get("cause"))
+    return named
+
+
+def test_v40_coherent_snapshot_ignores_stale_identity_map(monkeypatch: pytest.MonkeyPatch) -> None:
+    """V40: assessment after the owner lock sees the mutator's sibling clear, not the planted map.
+
+    Three SessionLocals. The request pauses inside ``_assemble_final_assessment``
+    before ``lock_owner_scheduling`` and touches subscription, account, failure,
+    event, and series-policy rows so they are unexpired. A second session then
+    locks, clears only the non-requested sibling's ``coverage_success_at``, bumps
+    revision, and commits while the request is still paused. A third session
+    re-reads freshness and revision. The response must match that read.
+    """
+    paused = threading.Event()
+    release = threading.Event()
+    errors: list[BaseException] = []
+    receipt: dict[str, Any] = {}
+    real = covering_refresh_mod._assemble_final_assessment
+    sibling_box: dict[str, UUID] = {}
+
+    def _wrapped(db: Session, **kwargs: Any):
+        try:
+            sibling = _plant_stale_assessment_identity(
+                db,
+                owner_id=kwargs["owner_id"],
+                sibling_id=sibling_box["id"],
+            )
+            receipt["planted_unexpired"] = sa_inspect(sibling).expired is False
+            receipt["planted_success"] = sibling.coverage_success_at is not None
+            paused.set()
+        except BaseException:
+            release.set()
+            raise
+        if not release.wait(60):
+            raise TimeoutError(
+                "V40 mutator did not commit while assessment was paused before the owner lock"
+            )
+        assert sa_inspect(sibling).expired is False
+        assert sibling.coverage_success_at is not None
+        receipt["stale_after_mutator_commit"] = True
+        return real(db, **kwargs)
+
+    monkeypatch.setattr(covering_refresh_mod, "_assemble_final_assessment", _wrapped)
+    with world() as w:
+        account = _account(w.db, w.user)
+        w.db.commit()
+        w.db.refresh(w.settings)
+        start, end = required_coverage_window(w.settings, NOW)
+        requested = _sub(w.db, account, calendar_id="cal-v40-req", summary="Requested mint")
+        sibling = _sub(w.db, account, calendar_id="cal-v40-sib", summary="Sibling fresh")
+        _seed_covering_fresh(sibling, start, end, at=NOW - timedelta(minutes=1))
+        decoy = _sub(w.db, account, calendar_id="cal-v40-off", summary="Decoy", enabled=False)
+        w.db.add(
+            CalendarSubscriptionRefreshFailure(
+                subscription_id=decoy.id,
+                failure_at=NOW - timedelta(days=3),
+                cause="calendar_refresh_failed",
+            )
+        )
+        w.db.add(
+            ExternalCalendarEvent(
+                owner_id=w.owner_id,
+                calendar_account_id=account.id,
+                provider=account.provider,
+                external_event_id=f"v40-{uuid.uuid4().hex}",
+                calendar_id="cal-v40-sib",
+                title="tombstone",
+                start_time=NOW + timedelta(hours=1),
+                end_time=NOW + timedelta(hours=2),
+                is_all_day=False,
+                pending_deletion=True,
+                last_synced_at=NOW,
+                transparency="opaque",
+                free_busy_provenance="google_transparency",
+                source_timezone="UTC",
+                source_zone_missing=False,
+                series_identity_state="verified_non_recurring",
+                is_provider_cancelled=False,
+            )
+        )
+        w.db.add(
+            FreeBusySeriesPolicy(
+                owner_id=w.owner_id,
+                provider=account.provider,
+                calendar_id="cal-v40-sib",
+                provider_series_id=f"series-{uuid.uuid4().hex[:8]}",
+                mapping="free",
+            )
+        )
+        w.db.commit()
+        sibling_box["id"] = sibling.id
+        owner_id = w.owner_id
+        sib_id = sibling.id
+        start_rev = _snap(requested.id)["revision"]
+
+        def _mutate() -> None:
+            db = SessionLocal()
+            try:
+                if not paused.wait(60):
+                    raise TimeoutError("V40 request never paused before the assessment lock")
+                db.execute(text("SET lock_timeout = '8s'"))
+                settings = lock_owner_scheduling(db, owner_id)
+                row = db.get(CalendarSubscription, sib_id)
+                assert row is not None and row.coverage_success_at is not None
+                row.coverage_success_at = None
+                assert not release.is_set()
+                revision = increment_scheduling_revision(db, settings)
+                db.commit()
+                assert not release.is_set()
+                receipt["mutator_revision"] = revision
+                receipt["committed_while_paused"] = True
+            except BaseException as exc:  # noqa: BLE001 — barrier thread
+                errors.append(exc)
+            finally:
+                db.close()
+                release.set()
+
+        worker = threading.Thread(target=_mutate)
+        worker.start()
+        try:
+            response = _run(w.owner_id, [requested.id], start, end)
+        finally:
+            release.set()
+            worker.join(30)
+        third = SessionLocal()
+        try:
+            settings = third.query(UserSettings).filter(UserSettings.owner_id == w.owner_id).one()
+            third_revision = int(settings.scheduling_revision)
+            third_requested = covering_refresh_mod._evaluate_requested_freshness(
+                third,
+                owner_id=w.owner_id,
+                subscription_ids=[requested.id],
+                now_utc=NOW,
+                required_start=start,
+                required_end=end,
+            )
+            third_fresh = evaluate_calendar_freshness(
+                third,
+                w.owner_id,
+                settings,
+                NOW,
+                required_start=start,
+                required_end=end,
+            )
+            immovable = (
+                third.query(ExternalCalendarEvent)
+                .filter(
+                    ExternalCalendarEvent.owner_id == w.owner_id,
+                    *ExternalCalendarEvent.immovable_busy_clause(),
+                )
+                .count()
+            )
+        finally:
+            third.close()
+        snap_requested = _snap(requested.id)
+        snap_sibling = _snap(sibling.id)
+    assert errors == []
+    assert receipt["planted_unexpired"] is True
+    assert receipt["planted_success"] is True
+    assert receipt["committed_while_paused"] is True
+    assert receipt["stale_after_mutator_commit"] is True
+    assert receipt["mutator_revision"] == third_revision
+    assert third_revision > start_rev
+    readiness = response.scheduling_readiness
+    assert readiness is not None
+    assert response.scheduling_revision_at_end == third_revision
+    assert readiness.scheduling_revision == third_revision
+    assert response.coverage_action.all_requested_covering_ok is True
+    assert response.coverage_action.all_requested_covering_ok == third_requested.ok
+    fresh = readiness.freshness_all_enabled or {}
+    assert fresh.get("ok") is False
+    assert fresh.get("ok") == third_fresh.ok
+    third_causes = {diag.calendar_name: diag.cause for diag in third_fresh.blocking_diagnostics}
+    assert _blocking_by_name(fresh) == third_causes
+    assert third_causes.get("Sibling fresh") == "calendar_coverage_missing"
+    assert "Requested mint" not in third_causes
+    third_ready = bool(third_fresh.ok) and immovable == 0
+    assert readiness.scheduling_ready is False
+    assert readiness.scheduling_ready == third_ready
+    assert snap_sibling["coverage_success_at"] is None
+    assert snap_requested["coverage_success_at"] is not None
+
+
+def test_v41_disabled_expired_token_skips_oauth(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V41: a disabled subscription with an expired token never reaches OAuth refresh."""
+    hits = _forbid_provider_token_refresh(monkeypatch)
+    start, end = _window()
+    with world() as w:
+        account = _account(w.db, w.user)
+        _expire_token(account)
+        sub = _sub(w.db, account, calendar_id="cal-v41", summary="Off", enabled=False)
+        w.db.commit()
+        before = _token_columns(account.id)
+        response = _run(w.owner_id, [sub.id], start, end)
+        after = _token_columns(account.id)
+        with pytest.raises(import_mod.CoveringTargetIneligible) as caught:
+            import_mod.read_covering_access_token(
+                settings=_settings(),
+                owner_id=w.owner_id,
+                account_id=account.id,
+                subscription_id=sub.id,
+            )
+        after_direct = _token_columns(account.id)
+    row = _row(response, sub.id)
+    assert response.overall_outcome == "no_op"
+    assert row.phase == "preflight"
+    assert row.preflight_code == import_mod.PREFLIGHT_SUBSCRIPTION_DISABLED
+    assert caught.value.preflight_code == import_mod.PREFLIGHT_SUBSCRIPTION_DISABLED
+    assert hits[0] == 0
+    assert provider_spies["http"] == []
+    assert provider_spies["list"] == []
+    assert before == after == after_direct
+
+
+def test_v41b_account_disabled_expired_token_skips_oauth(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V41b: a disabled account with an expired token is the account-disabled preflight, not OAuth."""
+    hits = _forbid_provider_token_refresh(monkeypatch)
+    start, end = _window()
+    with world() as w:
+        account = _account(w.db, w.user)
+        _expire_token(account)
+        account.is_enabled = False
+        sub = _sub(w.db, account, calendar_id="cal-v41b", summary="Account off")
+        w.db.commit()
+        before = _token_columns(account.id)
+        response = _run(w.owner_id, [sub.id], start, end)
+        after = _token_columns(account.id)
+        with pytest.raises(import_mod.CoveringTargetIneligible) as caught:
+            import_mod.read_covering_access_token(
+                settings=_settings(),
+                owner_id=w.owner_id,
+                account_id=account.id,
+                subscription_id=sub.id,
+            )
+        after_direct = _token_columns(account.id)
+    row = _row(response, sub.id)
+    assert row.phase == "preflight"
+    assert row.preflight_code == import_mod.PREFLIGHT_ACCOUNT_DISABLED
+    assert caught.value.preflight_code == import_mod.PREFLIGHT_ACCOUNT_DISABLED
+    assert hits[0] == 0
+    assert provider_spies["http"] == []
+    assert provider_spies["list"] == []
+    assert before == after == after_direct
+
+
+def test_v42_identity_blocked_expired_token_skips_oauth(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V42: identity-blocked plus an expired token stays preflight. No token HTTP and no column writes."""
+    hits = _forbid_provider_token_refresh(monkeypatch)
+    start, end = _window()
+    with world() as w:
+        account = _account(w.db, w.user)
+        _expire_token(account)
+        sub = _sub(w.db, account, calendar_id="cal-v42", summary="Blocked")
+        sub.coverage_last_failure_cause = IDENTITY_UNRESOLVED_CAUSE
+        w.db.commit()
+        before = _token_columns(account.id)
+        response = _run(w.owner_id, [sub.id], start, end)
+        after = _token_columns(account.id)
+        with pytest.raises(import_mod.CoveringTargetIneligible) as caught:
+            import_mod.read_covering_access_token(
+                settings=_settings(),
+                owner_id=w.owner_id,
+                account_id=account.id,
+                subscription_id=sub.id,
+            )
+        after_direct = _token_columns(account.id)
+    row = _row(response, sub.id)
+    assert response.overall_outcome == "no_op"
+    assert row.phase == "preflight"
+    assert row.preflight_code == import_mod.PREFLIGHT_IDENTITY_BLOCKED
+    assert caught.value.preflight_code == import_mod.PREFLIGHT_IDENTITY_BLOCKED
+    assert hits[0] == 0
+    assert provider_spies["http"] == []
+    assert provider_spies["list"] == []
+    assert provider_spies["identity_lists"] == []
+    assert before == after == after_direct
+
+
+def _drop_between_preflight_and_token(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    drop: Any,
+) -> None:
+    """After the orchestrator eligibility check passes, mutate durable rows before the token unit."""
+    real = covering_refresh_mod.covering_import_eligibility_code
+    armed = {"done": False}
+
+    def _wrapped(account: CalendarAccount, subscription: CalendarSubscription, **kwargs: Any) -> str | None:
+        code = real(account, subscription, **kwargs)
+        if kwargs.get("check_missing_credentials") and code is None and not armed["done"]:
+            armed["done"] = True
+            drop()
+        return code
+
+    monkeypatch.setattr(covering_refresh_mod, "covering_import_eligibility_code", _wrapped)
+
+
+def test_v43_account_gone_between_preflight_and_token(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V43: account deleted after in-memory eligibility is preflight disconnected, not a 500.
+
+    The token unit re-reads under the §7 locks. A missing account becomes
+    ``CALENDAR_ACCOUNT_DISCONNECTED`` and does not call provider token HTTP.
+    """
+    hits = _forbid_provider_token_refresh(monkeypatch)
+    start, end = _window()
+    with world() as w:
+        account = _account(w.db, w.user)
+        _expire_token(account)
+        sub = _sub(w.db, account, calendar_id="cal-v43", summary="Vanish account")
+        w.db.commit()
+        account_id = account.id
+
+        def _drop() -> None:
+            db = SessionLocal()
+            try:
+                row = db.get(CalendarAccount, account_id)
+                assert row is not None
+                db.delete(row)
+                db.commit()
+            finally:
+                db.close()
+
+        _drop_between_preflight_and_token(monkeypatch, drop=_drop)
+        response = _run(w.owner_id, [sub.id], start, end)
+        remaining = _token_columns(account_id)
+    row = _row(response, sub.id)
+    assert response.overall_outcome == "no_op"
+    assert row.phase == "preflight"
+    assert row.preflight_code == import_mod.PREFLIGHT_ACCOUNT_DISCONNECTED
+    assert hits[0] == 0
+    assert provider_spies["http"] == []
+    assert provider_spies["list"] == []
+    assert remaining == ("<missing>",)
+
+
+def test_v44_subscription_gone_between_preflight_and_token(
+    provider_spies: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V44: subscription deleted after in-memory eligibility is preflight not-found, not a 500."""
+    hits = _forbid_provider_token_refresh(monkeypatch)
+    start, end = _window()
+    with world() as w:
+        account = _account(w.db, w.user)
+        _expire_token(account)
+        sub = _sub(w.db, account, calendar_id="cal-v44", summary="Vanish sub")
+        w.db.commit()
+        before = _token_columns(account.id)
+        sub_id = sub.id
+
+        def _drop() -> None:
+            db = SessionLocal()
+            try:
+                row = db.get(CalendarSubscription, sub_id)
+                assert row is not None
+                db.delete(row)
+                db.commit()
+            finally:
+                db.close()
+
+        _drop_between_preflight_and_token(monkeypatch, drop=_drop)
+        response = _run(w.owner_id, [sub.id], start, end)
+        after = _token_columns(account.id)
+    row = _row(response, sub.id)
+    assert response.overall_outcome == "no_op"
+    assert row.phase == "preflight"
+    assert row.preflight_code == import_mod.PREFLIGHT_SUBSCRIPTION_NOT_FOUND
+    assert hits[0] == 0
+    assert provider_spies["http"] == []
+    assert provider_spies["list"] == []
+    assert before == after
+
+
+def _advance_clock_at_assessment(monkeypatch: pytest.MonkeyPatch, clock: dict[str, datetime], late: datetime) -> None:
+    real = covering_refresh_mod._assemble_final_assessment
+
+    def _wrapped(db: Session, **kwargs: Any):
+        clock["now"] = late
+        return real(db, **kwargs)
+
+    monkeypatch.setattr(covering_refresh_mod, "_assemble_final_assessment", _wrapped)
+
+
+def test_v45_assessment_clock_past_freshness_ceiling(monkeypatch: pytest.MonkeyPatch) -> None:
+    """V45: mint on the early clock; assessment past the freshness ceiling uses the later sample.
+
+    No sleep. ``clock`` advances only once the request enters final assessment.
+    ``coverage_success_at`` stays the import stamp. ``evaluated_at``, horizon, and
+    freshness age use the advanced sample, so the mint is ``calendar_coverage_stale``.
+    """
+    early = NOW
+    late = early + FRESHNESS_AGE_CEILING + timedelta(minutes=1)
+    clock = {"now": early}
+    _advance_clock_at_assessment(monkeypatch, clock, late)
+    with world() as w:
+        account = _account(w.db, w.user)
+        sub = _sub(w.db, account, calendar_id="cal-v45", summary="Ceiling")
+        w.db.commit()
+        w.db.refresh(w.settings)
+        start, end = required_coverage_window(w.settings, early)
+        early_horizon = required_coverage_window(w.settings, early)
+        late_horizon = required_coverage_window(w.settings, late)
+        response = _run(w.owner_id, [sub.id], start, end, clock=lambda: clock["now"])
+        snap = _snap(sub.id)
+    assert late_horizon[1] != early_horizon[1]
+    assert snap["coverage_success_at"] == early
+    readiness = response.scheduling_readiness
+    assert readiness is not None and readiness.horizon is not None
+    assert readiness.evaluated_at == late
+    assert readiness.evaluated_at != early
+    assert readiness.horizon.end == late_horizon[1]
+    assert readiness.horizon.end != early_horizon[1]
+    fresh = readiness.freshness_all_enabled or {}
+    assert fresh.get("ok") is False
+    assert "calendar_coverage_stale" in {item.get("cause") for item in fresh.get("blocking_diagnostics") or []}
+    assert fresh.get("required_window_end") == late_horizon[1].isoformat()
+    assert readiness.scheduling_ready is False
+    assert response.coverage_action.all_requested_covering_ok is False
+
+
+def test_v46_assessment_clock_moves_horizon_boundary(monkeypatch: pytest.MonkeyPatch) -> None:
+    """V46: a later assessment sample moves ``required_coverage_window``, not the import-start stamp.
+
+    Intra-request only. The import still mints at the early clock. ``evaluated_at``
+    and the readiness horizon end are the advanced sample.
+    """
+    early = NOW
+    late = early + timedelta(days=3)
+    clock = {"now": early}
+    _advance_clock_at_assessment(monkeypatch, clock, late)
+    with world() as w:
+        account = _account(w.db, w.user)
+        sub = _sub(w.db, account, calendar_id="cal-v46", summary="Horizon slide")
+        w.db.commit()
+        w.db.refresh(w.settings)
+        start, end = required_coverage_window(w.settings, early)
+        early_horizon = (start, end)
+        late_horizon = required_coverage_window(w.settings, late)
+        response = _run(w.owner_id, [sub.id], start, end, clock=lambda: clock["now"])
+        snap = _snap(sub.id)
+    assert late_horizon != early_horizon
+    assert snap["coverage_success_at"] == early
+    readiness = response.scheduling_readiness
+    assert readiness is not None and readiness.horizon is not None
+    assert readiness.evaluated_at == late
+    assert readiness.evaluated_at != early
+    assert readiness.horizon.start == late_horizon[0]
+    assert readiness.horizon.end == late_horizon[1]
+    assert readiness.horizon.end != early_horizon[1]
+    fresh = readiness.freshness_all_enabled or {}
+    assert fresh.get("required_window_start") == late_horizon[0].isoformat()
+    assert fresh.get("required_window_end") == late_horizon[1].isoformat()
+    assert fresh.get("required_window_end") != early_horizon[1].isoformat()

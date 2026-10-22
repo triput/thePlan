@@ -94,6 +94,38 @@ PREFLIGHT_SUBSET_UNSAFE = "CALENDAR_PREPARE_SUBSET_UNSAFE"
 PREFLIGHT_ROLE_CHANGE = "CALENDAR_PREPARE_ROLE_CHANGE"
 EFFECT_CANONICALIZE_IDENTITY = "canonicalize_identity"
 
+
+class CoveringTargetIneligible(Exception):
+    """Import/token unit refused before provider OAuth (§7 eligibility)."""
+
+    def __init__(self, preflight_code: str) -> None:
+        self.preflight_code = preflight_code
+        super().__init__(preflight_code)
+
+
+def covering_import_eligibility_code(
+    account: CalendarAccount | None,
+    subscription: CalendarSubscription | None,
+    *,
+    check_missing_credentials: bool = False,
+) -> str | None:
+    """Return a preflight code when the target must not reach provider HTTP."""
+    if subscription is None:
+        return PREFLIGHT_SUBSCRIPTION_NOT_FOUND
+    if account is None:
+        return PREFLIGHT_ACCOUNT_DISCONNECTED
+    if subscription.calendar_account_id != account.id or subscription.owner_id != account.owner_id:
+        return PREFLIGHT_SUBSCRIPTION_NOT_FOUND
+    if not bool(account.is_enabled):
+        return PREFLIGHT_ACCOUNT_DISABLED
+    if not bool(subscription.is_enabled):
+        return PREFLIGHT_SUBSCRIPTION_DISABLED
+    if subscription_blocked_for_identity(subscription):
+        return PREFLIGHT_IDENTITY_BLOCKED
+    if check_missing_credentials and not account.access_token_enc:
+        return PREFLIGHT_ACCOUNT_DISCONNECTED
+    return None
+
 CAUSE_POST_FETCH_DISABLED = "covering_post_fetch_disabled"
 CAUSE_POST_FETCH_DISCONNECTED = "covering_post_fetch_disconnected"
 CAUSE_POST_FETCH_IDENTITY = "covering_post_fetch_identity"
@@ -517,17 +549,19 @@ def read_covering_access_token(
             subscription = (
                 db.query(CalendarSubscription)
                 .filter(CalendarSubscription.id == subscription_id)
+                .populate_existing()
                 .one_or_none()
             )
-            if subscription is None:
-                raise CoveringLockOrderError("token unit subscription row is missing")
-            if subscription.calendar_account_id != account.id:
-                raise CoveringLockOrderError(
-                    "token unit subscription does not belong to the account"
-                )
+            ineligible = covering_import_eligibility_code(account, subscription)
+            if ineligible is not None:
+                raise CoveringTargetIneligible(ineligible)
+            assert subscription is not None
             before_access = account.access_token_enc
             before_refresh = account.refresh_token_enc
             before_expires = account.token_expires_at
+            ineligible = covering_import_eligibility_code(account, subscription)
+            if ineligible is not None:
+                raise CoveringTargetIneligible(ineligible)
             access = _refresh_provider_access_token(db, settings=settings, account=account)
             changed = (
                 account.access_token_enc != before_access

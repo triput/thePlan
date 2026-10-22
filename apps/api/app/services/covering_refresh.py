@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -11,7 +13,14 @@ from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import Settings
-from app.models import CalendarAccount, CalendarSubscription, ExternalCalendarEvent
+from app.models import (
+    CalendarAccount,
+    CalendarSubscription,
+    CalendarSubscriptionRefreshFailure,
+    ExternalCalendarEvent,
+    FreeBusySeriesPolicy,
+    UserSettings,
+)
 from app.scheduler.calendar_freshness import (
     CalendarFreshnessTrust,
     _evaluate_one_subscription,
@@ -35,11 +44,16 @@ from app.services.covering_refresh_import import (
     OUTCOME_OK,
     OUTCOME_PREFLIGHT,
     PREFLIGHT_ACCOUNT_DISCONNECTED,
+    PREFLIGHT_SUBSCRIPTION_NOT_FOUND,
+    CoveringTargetIneligible,
     ImportCoveringCacheResult,
+    covering_import_eligibility_code,
     import_covering_subscription_cache,
     read_covering_access_token,
 )
 from app.services.covering_refresh_locks import (
+    CoveringAccountMissing,
+    CoveringLockOrderError,
     covering_unit_locks,
     snapshot_covering_attempt,
 )
@@ -162,6 +176,7 @@ def _evaluate_requested_freshness(
             CalendarSubscription.owner_id == owner_id,
             CalendarSubscription.id.in_(subscription_ids),
         )
+        .populate_existing()
         .all()
     )
     sidecar_by_sub = _load_sidecar_failures(db, [subscription.id for subscription, _ in rows])
@@ -209,21 +224,46 @@ def _blocking_summary(
     return lines
 
 
-def _assemble_scheduling_readiness(
+def _expire_covering_assessment_identity_map(db: Session, *, owner_id: UUID) -> None:
+    """Drop stale ORM rows before the post-import assessment reads (Fix 1)."""
+    subscription_ids: set[UUID] = set()
+    for instance in list(db.identity_map.values()):
+        if isinstance(instance, CalendarSubscription):
+            if instance.owner_id == owner_id:
+                db.expire(instance)
+                subscription_ids.add(instance.id)
+        elif isinstance(instance, CalendarAccount):
+            if instance.owner_id == owner_id:
+                db.expire(instance)
+        elif isinstance(instance, ExternalCalendarEvent):
+            if instance.owner_id == owner_id:
+                db.expire(instance)
+        elif isinstance(instance, FreeBusySeriesPolicy):
+            if instance.owner_id == owner_id:
+                db.expire(instance)
+        elif isinstance(instance, CalendarSubscriptionRefreshFailure):
+            if instance.subscription_id in subscription_ids:
+                db.expire(instance)
+    for instance in list(db.identity_map.values()):
+        if isinstance(instance, CalendarSubscriptionRefreshFailure):
+            db.expire(instance)
+
+
+def _scheduling_readiness_from_locked_owner(
     db: Session,
     *,
     owner_id: UUID,
-    now_utc: datetime,
+    settings: UserSettings,
+    revision: int,
+    assessment_now: datetime,
     horizon_label: str | None,
 ) -> SchedulingReadinessOut:
-    settings = lock_owner_scheduling(db, owner_id)
-    revision = int(settings.scheduling_revision)
-    horizon_start, horizon_end = required_coverage_window(settings, now_utc)
+    horizon_start, horizon_end = required_coverage_window(settings, assessment_now)
     freshness = evaluate_calendar_freshness(
         db,
         owner_id,
         settings,
-        now_utc,
+        assessment_now,
         required_start=horizon_start,
         required_end=horizon_end,
     )
@@ -266,7 +306,7 @@ def _assemble_scheduling_readiness(
     if not scheduling_ready and not blocking:
         blocking = ["scheduling_not_ready"]
     return SchedulingReadinessOut(
-        evaluated_at=now_utc,
+        evaluated_at=assessment_now,
         scheduling_revision=revision,
         horizon=_window_out(horizon_start, horizon_end),
         horizon_label=horizon_label,
@@ -274,6 +314,110 @@ def _assemble_scheduling_readiness(
         busy_input_trust=busy_dict,
         scheduling_ready=scheduling_ready,
         blocking_summary=blocking,
+    )
+
+
+@dataclass(frozen=True)
+class FinalCoveringAssessment:
+    requested: CalendarFreshnessTrust
+    readiness: SchedulingReadinessOut
+
+
+def _assemble_final_assessment(
+    db: Session,
+    *,
+    owner_id: UUID,
+    subscription_ids: list[UUID],
+    window: CoveringPullWindow,
+    horizon_label: str | None,
+    assessment_clock: Callable[[], datetime],
+) -> FinalCoveringAssessment:
+    if db.new or db.dirty or db.deleted:
+        raise RuntimeError("covering final assessment requires a clean SQLAlchemy session")
+    settings = lock_owner_scheduling(db, owner_id)
+    assessment_now = _ensure_utc(assessment_clock())
+    revision = int(settings.scheduling_revision)
+    _expire_covering_assessment_identity_map(db, owner_id=owner_id)
+    requested = _evaluate_requested_freshness(
+        db,
+        owner_id=owner_id,
+        subscription_ids=subscription_ids,
+        now_utc=assessment_now,
+        required_start=window.effective_start,
+        required_end=window.effective_end,
+    )
+    readiness = _scheduling_readiness_from_locked_owner(
+        db,
+        owner_id=owner_id,
+        settings=settings,
+        revision=revision,
+        assessment_now=assessment_now,
+        horizon_label=horizon_label,
+    )
+    return FinalCoveringAssessment(requested=requested, readiness=readiness)
+
+
+def _assemble_scheduling_readiness(
+    db: Session,
+    *,
+    owner_id: UUID,
+    now_utc: datetime,
+    horizon_label: str | None,
+) -> SchedulingReadinessOut:
+    """Standalone readiness (single owner lock). Prefer ``_assemble_final_assessment`` in orchestration."""
+    settings = lock_owner_scheduling(db, owner_id)
+    revision = int(settings.scheduling_revision)
+    return _scheduling_readiness_from_locked_owner(
+        db,
+        owner_id=owner_id,
+        settings=settings,
+        revision=revision,
+        assessment_now=now_utc,
+        horizon_label=horizon_label,
+    )
+
+
+def _static_preflight_result(
+    *,
+    subscription_id: UUID,
+    window: CoveringPullWindow,
+    preflight_code: str,
+) -> ImportCoveringCacheResult:
+    return ImportCoveringCacheResult(
+        subscription_id=subscription_id,
+        outcome=OUTCOME_PREFLIGHT,
+        preflight_code=preflight_code,
+        preflight_effects=(),
+        cause=None,
+        upserted=0,
+        rollback_required=False,
+        commit_unit=False,
+        needs_failure_unit=False,
+        attempt=None,
+        window_effective_start=window.effective_start,
+        window_effective_end=window.effective_end,
+        window_widened=window.widened,
+        window_widen_reason=window.reason,
+        coverage_generation_minted=None,
+        scheduling_revision_bumped=False,
+        scheduling_revision=None,
+        provider_identity_list_called=False,
+        provider_event_read_attempted=False,
+    )
+
+
+def _fail_closed_coverage_action(window: CoveringPullWindow) -> CoveringActionOut:
+    trust = CalendarFreshnessTrust(
+        ok=False,
+        blocking_diagnostics=[],
+        affected_horizon=None,
+        required_window_start=window.effective_start,
+        required_window_end=window.effective_end,
+    )
+    return CoveringActionOut(
+        window=_window_out(window.effective_start, window.effective_end),
+        all_requested_covering_ok=False,
+        freshness_requested=trust.to_dict(),
     )
 
 
@@ -370,8 +514,19 @@ def _process_one_target(
     account: CalendarAccount,
     subscription: CalendarSubscription,
     window: CoveringPullWindow,
-    now_utc: datetime,
+    stamp_clock: Callable[[], datetime],
 ) -> ImportCoveringCacheResult:
+    preflight_code = covering_import_eligibility_code(
+        account,
+        subscription,
+        check_missing_credentials=True,
+    )
+    if preflight_code is not None:
+        return _static_preflight_result(
+            subscription_id=subscription.id,
+            window=window,
+            preflight_code=preflight_code,
+        )
     try:
         token = read_covering_access_token(
             settings=settings,
@@ -379,7 +534,26 @@ def _process_one_target(
             account_id=account.id,
             subscription_id=subscription.id,
         )
+    except CoveringTargetIneligible as exc:
+        return _static_preflight_result(
+            subscription_id=subscription.id,
+            window=window,
+            preflight_code=exc.preflight_code,
+        )
+    except CoveringAccountMissing:
+        return _static_preflight_result(
+            subscription_id=subscription.id,
+            window=window,
+            preflight_code=PREFLIGHT_ACCOUNT_DISCONNECTED,
+        )
+    except CoveringLockOrderError:
+        return _static_preflight_result(
+            subscription_id=subscription.id,
+            window=window,
+            preflight_code=PREFLIGHT_SUBSCRIPTION_NOT_FOUND,
+        )
     except ApiError as exc:
+        now_utc = _ensure_utc(stamp_clock())
         return _token_unit_failure_result(
             db,
             owner_id=owner_id,
@@ -389,6 +563,7 @@ def _process_one_target(
             now_utc=now_utc,
             exc=exc,
         )
+    now_utc = _ensure_utc(stamp_clock())
     with covering_unit_locks(
         db,
         owner_id=owner_id,
@@ -426,9 +601,26 @@ def run_covering_refresh(
     owner_id: UUID,
     body: CoveringRefreshRequest,
     now: datetime | None = None,
+    clock: Callable[[], datetime] | None = None,
 ) -> CoveringRefreshResponse:
     """Orchestrate POST covering-refresh. Caller owns session lifecycle after return."""
-    now_utc = _ensure_utc(now or datetime.now(timezone.utc))
+    if clock is not None:
+        stamp_clock = lambda: _ensure_utc(clock())
+        assessment_clock = stamp_clock
+    elif now is not None:
+        fixed_now = _ensure_utc(now)
+
+        def stamp_clock() -> datetime:
+            return fixed_now
+
+        assessment_clock = stamp_clock
+    else:
+
+        def stamp_clock() -> datetime:
+            return _ensure_utc(datetime.now(timezone.utc))
+
+        assessment_clock = stamp_clock
+
     window = effective_covering_pull_window(body.window_start, body.window_end)
     targets = _preflight_load_targets(db, owner_id=owner_id, subscription_ids=body.subscription_ids)
 
@@ -446,7 +638,7 @@ def run_covering_refresh(
                 account=account,
                 subscription=subscription,
                 window=window,
-                now_utc=now_utc,
+                stamp_clock=stamp_clock,
             )
         )
 
@@ -470,37 +662,33 @@ def run_covering_refresh(
         import_failed=import_failed,
     )
 
-    requested_freshness = _evaluate_requested_freshness(
-        db,
-        owner_id=owner_id,
-        subscription_ids=body.subscription_ids,
-        now_utc=now_utc,
-        required_start=window.effective_start,
-        required_end=window.effective_end,
-    )
-    coverage_action = CoveringActionOut(
-        window=_window_out(window.effective_start, window.effective_end),
-        all_requested_covering_ok=requested_freshness.ok,
-        freshness_requested=requested_freshness.to_dict(),
-    )
-
     scheduling_readiness: SchedulingReadinessOut | None = None
     scheduling_revision_at_end: int | None = None
+    coverage_action: CoveringActionOut
     try:
-        scheduling_readiness = _assemble_scheduling_readiness(
+        final = _assemble_final_assessment(
             db,
             owner_id=owner_id,
-            now_utc=now_utc,
+            subscription_ids=body.subscription_ids,
+            window=window,
             horizon_label=body.scheduling_horizon_label,
+            assessment_clock=assessment_clock,
         )
+        scheduling_readiness = final.readiness
         scheduling_revision_at_end = scheduling_readiness.scheduling_revision
+        coverage_action = CoveringActionOut(
+            window=_window_out(window.effective_start, window.effective_end),
+            all_requested_covering_ok=final.requested.ok,
+            freshness_requested=final.requested.to_dict(),
+        )
         db.rollback()
     except Exception as exc:
-        logger.exception("covering refresh readiness assessment failed owner=%s", owner_id)
+        logger.exception("covering refresh final assessment failed owner=%s", owner_id)
         db.rollback()
         scheduling_readiness = SchedulingReadinessOut(
             assessment_error=str(exc)[:512],
         )
+        coverage_action = _fail_closed_coverage_action(window)
 
     bumped = (
         scheduling_revision_at_end is not None
