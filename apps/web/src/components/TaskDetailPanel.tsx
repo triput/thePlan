@@ -60,6 +60,7 @@ import {
   fromDatetimeLocal,
   isOccurrenceDatesDirty,
   isTaskDraftDirty,
+  rebaseRecoveryOwnedDraftFields,
   shouldResetTaskDetailDraft,
   toDatetimeLocal,
   validateOccurrenceDatesForSave,
@@ -506,6 +507,21 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
   // datetime-local inputs are browser-local; display instants use settings zone when known.
   const browserZone = browserTimeZoneLabel();
   const displayTimezone = settingsQuery.data?.timezone || browserZone;
+
+  /** After recover authorize: align occurrence scheduling fields with rolled series (keep title/notes edits). */
+  const handleRecoveryAuthorized = async () => {
+    if (!task) return;
+    await queryClient.refetchQueries({ queryKey: ["task", task.id] });
+    const fresh = queryClient.getQueryData<Task>(["task", task.id]);
+    if (!fresh) return;
+    const rebased = rebaseRecoveryOwnedDraftFields(fresh, readDraft());
+    setDueAtLocal(rebased.dueAtLocal);
+    setSoftTargetAtLocal(rebased.softTargetAtLocal);
+    setDeadlineAtLocal(rebased.deadlineAtLocal);
+    setStartNoEarlierAtLocal(rebased.startNoEarlierAtLocal);
+    setStartNoLaterAtLocal(rebased.startNoLaterAtLocal);
+    setDuration(rebased.duration);
+  };
 
   /** Held release: PATCH deadline + bounds only; preserve unrelated draft edits in memory. */
   const saveDatesForRelease = async (): Promise<boolean> => {
@@ -993,6 +1009,7 @@ export const TaskDetailPanel = forwardRef<TaskDetailPanelHandle, TaskDetailPanel
             onSaveDatesForRelease={saveDatesForRelease}
             saveDatesPending={updateMutation.isPending}
             onSelectTask={onSelectTask}
+            onRecoveryAuthorized={handleRecoveryAuthorized}
           />
 
           <TaskDetailRecurrence

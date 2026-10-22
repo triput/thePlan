@@ -128,6 +128,35 @@ function zonedWallToUtcMs(ymd: string, hour: number, minute: number, timeZone: s
   return ms;
 }
 
+/** Distinct zone offsets (ms) sampled across the local civil day — captures 30min DST steps. */
+function offsetMsValuesAcrossLocalDay(ymd: string, timeZone: string): number[] {
+  const [y, mo, d] = ymd.split("-").map(Number);
+  const start = Date.UTC(y!, mo! - 1, d!, 0, 0) - 14 * 3_600_000;
+  const end = Date.UTC(y!, mo! - 1, d!, 23, 59) + 14 * 3_600_000;
+  const seen = new Set<number>();
+  for (let t = start; t <= end; t += 900_000) {
+    seen.add(getTimeZoneOffsetMs(t, timeZone));
+  }
+  return [...seen];
+}
+
+/** UTC instants to verify for a wall clock — one per offset side of transitions, plus converged primary. */
+function utcCandidatesForWallInZone(
+  ymd: string,
+  hour: number,
+  minute: number,
+  timeZone: string,
+): number[] {
+  const [y, mo, d] = ymd.split("-").map(Number);
+  const wallAsUtc = Date.UTC(y!, mo! - 1, d!, hour, minute);
+  const candidates = new Set<number>();
+  candidates.add(zonedWallToUtcMs(ymd, hour, minute, timeZone));
+  for (const off of offsetMsValuesAcrossLocalDay(ymd, timeZone)) {
+    candidates.add(wallAsUtc - off);
+  }
+  return [...candidates];
+}
+
 /** Format an instant as datetime-local wall (minute) in an IANA zone. */
 export function formatWallInTimeZone(ms: number, timeZone: string): string {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -165,13 +194,9 @@ export function parseWallInTimeZone(
   const h = Number(m[4]);
   const mi = Number(m[5]);
   const ymd = `${m[1]}-${m[2]}-${m[3]}`;
-  // Converges to one candidate; probe ±1h for fold twin.
-  const primary = zonedWallToUtcMs(ymd, h, mi, timeZone);
-  if (Number.isNaN(primary)) {
-    return { ok: false, reason: "invalid" };
-  }
   const matches: number[] = [];
-  for (const ms of [primary - 3_600_000, primary, primary + 3_600_000]) {
+  for (const ms of utcCandidatesForWallInZone(ymd, h, mi, timeZone)) {
+    if (Number.isNaN(ms)) continue;
     if (formatWallInTimeZone(ms, timeZone) === trimmed && !matches.includes(ms)) {
       matches.push(ms);
     }

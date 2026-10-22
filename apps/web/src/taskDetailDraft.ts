@@ -69,6 +69,26 @@ export function isTaskDraftDirty(task: Task, draft: TaskDetailDraft): boolean {
   return false;
 }
 
+/**
+ * After held recover authorize, the series roll advances scheduling fields on the server.
+ * Rebase those from fresh task data while preserving unrelated in-flight draft edits.
+ */
+export function rebaseRecoveryOwnedDraftFields(
+  serverTask: Task,
+  draft: TaskDetailDraft,
+): TaskDetailDraft {
+  const fromServer = taskToDraft(serverTask);
+  return {
+    ...draft,
+    dueAtLocal: fromServer.dueAtLocal,
+    softTargetAtLocal: fromServer.softTargetAtLocal,
+    deadlineAtLocal: fromServer.deadlineAtLocal,
+    startNoEarlierAtLocal: fromServer.startNoEarlierAtLocal,
+    startNoLaterAtLocal: fromServer.startNoLaterAtLocal,
+    duration: fromServer.duration,
+  };
+}
+
 /** Dirty check for held release date fields only (deadline + occurrence bounds). */
 export function isOccurrenceDatesDirty(task: Task, draft: TaskDetailDraft): boolean {
   const baseline = taskToDraft(task);

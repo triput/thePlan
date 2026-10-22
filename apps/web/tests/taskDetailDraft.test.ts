@@ -4,8 +4,10 @@ import type { Task } from "../src/api.ts";
 import {
   buildDatesOnlyUpdateFromDraft,
   buildTaskUpdateFromDraft,
+  fromDatetimeLocal,
   isOccurrenceDatesDirty,
   isTaskDraftDirty,
+  rebaseRecoveryOwnedDraftFields,
   shouldResetTaskDetailDraft,
   TASK_TITLE_MAX_LENGTH,
   taskToDraft,
@@ -166,5 +168,54 @@ describe("taskDetailDraft", () => {
     draft.startNoEarlierAtLocal = "bogus";
     assert.match(validateOccurrenceDatesForSave(draft) ?? "", /Start no earlier is invalid/);
     assert.equal(buildDatesOnlyUpdateFromDraft(baseTask, draft), null);
+  });
+
+  it("rebaseRecoveryOwnedDraftFields clears false dirty after series roll", () => {
+    const beforeRoll = {
+      ...baseTask,
+      due_at: "2026-10-01T15:00:00.000Z",
+      deadline_at: "2026-10-01T18:00:00.000Z",
+      start_no_earlier_at: "2026-10-01T14:00:00.000Z",
+      estimated_duration_minutes: 45,
+    } as Task;
+    const afterRoll = {
+      ...beforeRoll,
+      due_at: "2026-10-08T15:00:00.000Z",
+      deadline_at: "2026-10-08T18:00:00.000Z",
+      start_no_earlier_at: "2026-10-08T14:00:00.000Z",
+      estimated_duration_minutes: 60,
+    } as Task;
+    const staleDraft = taskToDraft(beforeRoll);
+    const rebased = rebaseRecoveryOwnedDraftFields(afterRoll, staleDraft);
+    assert.equal(isTaskDraftDirty(afterRoll, rebased), false);
+    assert.equal(isOccurrenceDatesDirty(afterRoll, rebased), false);
+    const body = buildTaskUpdateFromDraft(afterRoll, rebased);
+    assert.ok(body);
+    assert.notEqual(body!.due_at, fromDatetimeLocal(staleDraft.dueAtLocal));
+    assert.equal(body!.due_at, fromDatetimeLocal(rebased.dueAtLocal));
+    assert.equal("deadline_at" in body!, false);
+    assert.equal("start_no_earlier_at" in body!, false);
+    assert.equal(body!.estimated_duration_minutes, 60);
+  });
+
+  it("rebaseRecoveryOwnedDraftFields preserves genuine title edits", () => {
+    const beforeRoll = {
+      ...baseTask,
+      due_at: "2026-10-01T15:00:00.000Z",
+    } as Task;
+    const afterRoll = {
+      ...beforeRoll,
+      due_at: "2026-10-08T15:00:00.000Z",
+    } as Task;
+    const staleDraft = taskToDraft(beforeRoll);
+    staleDraft.title = "Operator edit";
+    const rebased = rebaseRecoveryOwnedDraftFields(afterRoll, staleDraft);
+    assert.equal(rebased.title, "Operator edit");
+    assert.equal(isTaskDraftDirty(afterRoll, rebased), true);
+    const body = buildTaskUpdateFromDraft(afterRoll, rebased);
+    assert.ok(body);
+    assert.equal(body!.title, "Operator edit");
+    assert.notEqual(body!.due_at, fromDatetimeLocal(staleDraft.dueAtLocal));
+    assert.equal(body!.due_at, fromDatetimeLocal(rebased.dueAtLocal));
   });
 });

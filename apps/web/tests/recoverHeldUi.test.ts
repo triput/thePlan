@@ -438,6 +438,36 @@ describe("recoverHeldUi parseWallInTimeZone gap/fold (LA)", () => {
   });
 });
 
+describe("recoverHeldUi parseWallInTimeZone gap/fold (Lord Howe 30min)", () => {
+  const LH = "Australia/Lord_Howe";
+
+  it("rejects Lord Howe fall fold (30min repeated local hour)", () => {
+    // 2026-04-05: LH ends DST; 01:45 local occurs twice.
+    const fold = parseWallInTimeZone("2026-04-05T01:45", LH);
+    assert.equal(fold.ok, false);
+    if (!fold.ok) {
+      assert.equal(fold.reason, "ambiguous_or_nonexistent");
+    }
+  });
+
+  it("rejects Lord Howe spring gap (30min skipped local times)", () => {
+    // 2026-10-04: LH starts DST; 02:00–02:29 standard do not exist.
+    const gap = parseWallInTimeZone("2026-10-04T02:15", LH);
+    assert.equal(gap.ok, false);
+    if (!gap.ok) {
+      assert.equal(gap.reason, "ambiguous_or_nonexistent");
+    }
+  });
+
+  it("accepts unambiguous summer wall in Lord Howe", () => {
+    const parsed = parseWallInTimeZone("2026-06-15T14:30", LH);
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) {
+      assert.equal(formatWallInTimeZone(Date.parse(parsed.iso), LH), "2026-06-15T14:30");
+    }
+  });
+});
+
 describe("recoverHeldUi affordance / C2 copy", () => {
   it("offers Recover only when task has recurrence", () => {
     assert.equal(canOfferRecoverAffordance(true), true);

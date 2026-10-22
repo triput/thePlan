@@ -48,6 +48,8 @@ interface TaskDetailSchedulingProps {
   onSaveDatesForRelease: () => Promise<boolean>;
   saveDatesPending: boolean;
   onSelectTask?: (taskId: string) => void;
+  /** After authorize: parent refetches task and rebases recovery-owned draft fields. */
+  onRecoveryAuthorized?: (catchUpTaskId: string) => void | Promise<void>;
 }
 
 const STALE_LABELS: Record<StaleCategory, string> = {
@@ -114,6 +116,7 @@ export function TaskDetailScheduling({
   onSaveDatesForRelease,
   saveDatesPending,
   onSelectTask,
+  onRecoveryAuthorized,
 }: TaskDetailSchedulingProps) {
   const isOverbooked = scheduleStatus === "overbooked";
   const queryClient = useQueryClient();
@@ -302,7 +305,7 @@ export function TaskDetailScheduling({
                   onSelectTask(id);
                 }}
               >
-                Create catch-up
+                Open catch-up task
               </button>
             ) : (
               <p className="muted small">
@@ -372,6 +375,7 @@ export function TaskDetailScheduling({
                   onRecovered={(catchUpTaskId) => {
                     setRecoverTarget(null);
                     setRecoverSuccessCatchUpId(catchUpTaskId);
+                    void onRecoveryAuthorized?.(catchUpTaskId);
                   }}
                 />
               ) : (
