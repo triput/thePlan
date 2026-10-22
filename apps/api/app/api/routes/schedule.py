@@ -24,8 +24,18 @@ from app.services.schedule_previews import preview_to_dict, refresh_preview_stal
 from app.schemas.occurrence_disposition import (
     HeldDispositionOut,
     LeaveHeldIn,
+    RecoverHeldCatchUpOut,
+    RecoverHeldCadenceOut,
+    RecoverHeldC2Out,
+    RecoverHeldEffortOut,
+    RecoverHeldEligibilityOut,
+    RecoverHeldHistoricalWorkOut,
     RecoverHeldIn,
+    RecoverHeldNextNormalOut,
     RecoverHeldOut,
+    RecoverHeldReviewIn,
+    RecoverHeldReviewOut,
+    RecoverHeldSuccessorChoiceOut,
     ReleaseHeldIn,
     SkipHeldIn,
 )
@@ -34,6 +44,7 @@ from app.services.occurrence_disposition import (
     leave_held_acknowledgment,
     list_held_dispositions,
     recover_held,
+    review_recover_held,
     release_held,
     skip_held,
 )
@@ -323,6 +334,97 @@ def skip_held_miss(
     return _held_to_out(row)
 
 
+@router.post(
+    "/held-misses/{task_id}/recover/review",
+    response_model=RecoverHeldReviewOut,
+)
+def review_recover_held_miss(
+    task_id: UUID,
+    body: RecoverHeldReviewIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RecoverHeldReviewOut:
+    """True read-only recovery review — no commit; no ORM writes."""
+    task = db.get(Task, task_id)
+    if task is None or task.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    result = review_recover_held(
+        db,
+        owner_id=user.id,
+        task_id=task_id,
+        disposition_id=body.disposition_id,
+        expected_revision=body.expected_revision,
+        accept_past_ack=body.accept_past_ack,
+        step_count=body.step_count,
+        abort=body.abort,
+        catch_up_due_at=body.catch_up_due_at,
+        catch_up_start_no_earlier_at=body.catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=body.catch_up_start_no_later_at,
+        catch_up_deadline_at=body.catch_up_deadline_at,
+        catch_up_remaining_minutes=body.catch_up_remaining_minutes,
+        intent_fields_set=body.model_fields_set,
+    )
+    # Explicitly do not commit — review is read-only.
+    proj = result.projection
+    return RecoverHeldReviewOut(
+        disposition_id=proj.disposition_id,
+        task_id=proj.task_id,
+        episode_key=proj.episode_key,
+        expected_revision=result.expected_revision,
+        authorize_instant=proj.authorize_instant,
+        review_binding=result.review_binding,
+        contract_version=proj.contract_version,
+        cadence=RecoverHeldCadenceOut(
+            is_fixed=proj.cadence_is_fixed,
+            timezone=proj.cadence_timezone,
+            rrule_summary=proj.rrule_summary,
+        ),
+        eligibility=RecoverHeldEligibilityOut(
+            recurring=proj.eligibility_recurring,
+            one_off_use_release=proj.eligibility_one_off_use_release,
+        ),
+        next_normal=RecoverHeldNextNormalOut(
+            due_at=proj.next_normal_due_at,
+            start_no_earlier_at=proj.next_normal_start_no_earlier_at,
+            start_no_later_at=proj.next_normal_start_no_later_at,
+            deadline_at=proj.next_normal_deadline_at,
+            landing_is_past=proj.next_normal_landing_is_past,
+            accept_past_required=proj.next_normal_accept_past_required,
+        ),
+        next_normal_effort=RecoverHeldEffortOut(
+            worked_minutes=proj.next_normal_worked_minutes,
+            remaining_minutes=proj.next_normal_remaining_minutes,
+        ),
+        catch_up=RecoverHeldCatchUpOut(
+            remaining_minutes_default=proj.catch_up_remaining_default,
+            remaining_minutes=proj.catch_up_remaining_minutes,
+            due_at=proj.catch_up_due_at,
+            start_no_earlier_at=proj.catch_up_start_no_earlier_at,
+            start_no_later_at=proj.catch_up_start_no_later_at,
+            deadline_at=proj.catch_up_deadline_at,
+            usable_dates_ok=proj.catch_up_usable_dates_ok,
+            reject_code=proj.catch_up_reject_code,
+        ),
+        historical_work=RecoverHeldHistoricalWorkOut(
+            worked_minutes=proj.historical_worked_minutes,
+            remaining_minutes=proj.historical_remaining_minutes,
+            estimated_duration_minutes=proj.historical_estimated_duration_minutes,
+            ledger_retained_on_series=True,
+            progress_entry_count=proj.historical_progress_entry_count,
+        ),
+        c2=RecoverHeldC2Out(
+            blocks_prevent_next_normal=proj.c2_blocks_prevent,
+            code="BLOCKS_PREVENT_NEXT_NORMAL" if proj.c2_blocks_prevent else None,
+            detail=proj.c2_detail,
+        ),
+        successor_choice=RecoverHeldSuccessorChoiceOut(
+            status=proj.successor_status,
+            accept_past_applied_if_authorized=proj.accept_past_applied_if_authorized,
+        ),
+        review_ok_for_authorize=proj.review_ok_for_authorize,
+    )
+
+
 @router.post("/held-misses/{task_id}/recover", response_model=RecoverHeldOut)
 def recover_held_miss(
     task_id: UUID,
@@ -339,6 +441,7 @@ def recover_held_miss(
         task_id=task_id,
         disposition_id=body.disposition_id,
         expected_revision=body.expected_revision,
+        review_binding=body.review_binding,
         authorize_instant=body.authorize_instant,
         accept_past_ack=body.accept_past_ack,
         step_count=body.step_count,
@@ -348,6 +451,7 @@ def recover_held_miss(
         catch_up_start_no_later_at=body.catch_up_start_no_later_at,
         catch_up_deadline_at=body.catch_up_deadline_at,
         catch_up_remaining_minutes=body.catch_up_remaining_minutes,
+        intent_fields_set=body.model_fields_set,
         note=body.note,
     )
     db.commit()

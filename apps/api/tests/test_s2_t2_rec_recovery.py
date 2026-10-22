@@ -60,7 +60,13 @@ from app.scheduler.preview import run_preview
 from app.scheduler.preview_inputs import fingerprint_collected_inputs
 from app.scheduler.task_effort import placement_effort_minutes
 from app.services.availability_seed import ensure_default_availability_policies
-from app.services.occurrence_disposition import episode_key_for_task, recover_held, release_held, skip_held
+from app.services.occurrence_disposition import (
+    episode_key_for_task,
+    recover_held,
+    release_held,
+    review_recover_held,
+    skip_held,
+)
 from app.services.scheduling_revision import (
     increment_scheduling_revision,
     lock_owner_scheduling,
@@ -301,14 +307,73 @@ def _catch_up_body() -> dict:
     }
 
 
-def _recover(client: TestClient, task_id: str, disp_id: uuid.UUID, **extra: object):
-    body = {
+_CATCH_UP_FIELD_SET = frozenset(
+    {
+        "catch_up_due_at",
+        "catch_up_start_no_earlier_at",
+        "catch_up_start_no_later_at",
+        "catch_up_deadline_at",
+    }
+)
+
+
+def _review(client: TestClient, task_id: str, disp_id: uuid.UUID, **extra: object):
+    body: dict = {
         "disposition_id": str(disp_id),
         "expected_revision": _revision(client),
-        "authorize_instant": _iso(FIXED_NOW),
         **_catch_up_body(),
     }
     body.update(extra)
+    body.pop("authorize_instant", None)
+    body.pop("review_binding", None)
+    return client.post(
+        f"/api/v1/schedule/held-misses/{task_id}/recover/review", json=body
+    )
+
+
+def _recover(client: TestClient, task_id: str, disp_id: uuid.UUID, **extra: object):
+    """Review then authorize. Pass review_binding to skip auto-review (clock-skew cases)."""
+    review_binding = extra.pop("review_binding", None)
+    authorize_instant = extra.pop("authorize_instant", None)
+    expected_revision = extra.pop("expected_revision", _revision(client))
+    intent_extra = dict(extra)
+
+    if review_binding is None:
+        # Historical authorize_instant kwargs mean "set clock before review";
+        # callers that need a specific instant must _set_now first.
+        rev_body = {
+            "disposition_id": str(disp_id),
+            "expected_revision": expected_revision,
+            **_catch_up_body(),
+            **intent_extra,
+        }
+        rev_resp = client.post(
+            f"/api/v1/schedule/held-misses/{task_id}/recover/review",
+            json=rev_body,
+        )
+        if rev_resp.status_code == 200:
+            review_json = rev_resp.json()
+            review_binding = review_json["review_binding"]
+            authorize_instant = review_json["authorize_instant"]
+        elif (
+            rev_resp.status_code == 409
+            and rev_resp.json().get("code") == "CONFLICT_TERMINAL"
+        ):
+            # Already recovered / other terminal — authorize short-circuits
+            # before binding verify on recovered; other terminals re-409.
+            review_binding = "t2-rec-ui-v1.idempotent-replay.deadbeef"
+        else:
+            return rev_resp
+
+    body: dict = {
+        "disposition_id": str(disp_id),
+        "expected_revision": expected_revision,
+        "review_binding": review_binding,
+        **_catch_up_body(),
+        **intent_extra,
+    }
+    if authorize_instant is not None:
+        body["authorize_instant"] = authorize_instant
     return client.post(f"/api/v1/schedule/held-misses/{task_id}/recover", json=body)
 
 
@@ -1299,7 +1364,7 @@ def test_a5e_multi_byhour_keeps_legitimate_selected_occurrence(
         is_fixed=False,
     )
     later_row = _hold(db_session, later["id"])
-    _assert_byhour_17_landing(client, db_session, later, later_row.id)
+    _assert_byhour_17_landing(client, db_session, later, later_row.id, monkeypatch)
 
     early_now = datetime(2026, 8, 11, 8, 0, tzinfo=UTC)
     _set_now(monkeypatch, early_now)
@@ -1542,17 +1607,34 @@ def _commit_recurring_probe(
         db.close()
 
 
-def _probe_recover_kwargs(owner_id, task_id, disp_id, rev):
+def _probe_issue_binding(db: Session, owner_id, task_id, disp_id, rev) -> str:
+    result = review_recover_held(
+        db,
+        owner_id=owner_id,
+        task_id=task_id,
+        disposition_id=disp_id,
+        expected_revision=rev,
+        catch_up_due_at=_CATCH_DUE,
+        catch_up_start_no_earlier_at=_CATCH_EARLIEST,
+        catch_up_start_no_later_at=_CATCH_LATEST,
+        catch_up_deadline_at=_CATCH_DEADLINE,
+        intent_fields_set=_CATCH_UP_FIELD_SET,
+    )
+    return result.review_binding
+
+
+def _probe_recover_kwargs(owner_id, task_id, disp_id, rev, review_binding: str):
     return dict(
         owner_id=owner_id,
         task_id=task_id,
         disposition_id=disp_id,
         expected_revision=rev,
-        authorize_instant=FIXED_NOW,
+        review_binding=review_binding,
         catch_up_due_at=_CATCH_DUE,
         catch_up_start_no_earlier_at=_CATCH_EARLIEST,
         catch_up_start_no_later_at=_CATCH_LATEST,
         catch_up_deadline_at=_CATCH_DEADLINE,
+        intent_fields_set=_CATCH_UP_FIELD_SET,
     )
 
 
@@ -1572,6 +1654,12 @@ def test_a6b_separate_session_concurrency(monkeypatch: pytest.MonkeyPatch) -> No
     _purge_probe_users()
     try:
         owner_id, task_id, disp_id, rev, title = _commit_recurring_probe()
+        # Issue binding before bumping revision so recover sees stale rev.
+        binder = SessionLocal()
+        try:
+            binding = _probe_issue_binding(binder, owner_id, task_id, disp_id, rev)
+        finally:
+            binder.close()
         stale = SessionLocal()
         try:
             settings = lock_owner_scheduling(stale, owner_id)
@@ -1584,7 +1672,10 @@ def test_a6b_separate_session_concurrency(monkeypatch: pytest.MonkeyPatch) -> No
             from app.api.errors import ApiError
 
             with pytest.raises(ApiError) as caught:
-                recover_held(denied, **_probe_recover_kwargs(owner_id, task_id, disp_id, rev))
+                recover_held(
+                    denied,
+                    **_probe_recover_kwargs(owner_id, task_id, disp_id, rev, binding),
+                )
                 denied.commit()
             assert caught.value.content["code"] == "SCHEDULING_REVISION_CONFLICT"
             denied.rollback()
@@ -1604,7 +1695,11 @@ def test_a6b_separate_session_concurrency(monkeypatch: pytest.MonkeyPatch) -> No
         owner_id, task_id, disp_id, rev, title = _commit_recurring_probe()
         rolled = SessionLocal()
         try:
-            recover_held(rolled, **_probe_recover_kwargs(owner_id, task_id, disp_id, rev))
+            binding = _probe_issue_binding(rolled, owner_id, task_id, disp_id, rev)
+            recover_held(
+                rolled,
+                **_probe_recover_kwargs(owner_id, task_id, disp_id, rev, binding),
+            )
             rolled.rollback()
         finally:
             rolled.close()
@@ -1618,8 +1713,10 @@ def test_a6b_separate_session_concurrency(monkeypatch: pytest.MonkeyPatch) -> No
             read.close()
         committed = SessionLocal()
         try:
+            binding = _probe_issue_binding(committed, owner_id, task_id, disp_id, rev)
             result = recover_held(
-                committed, **_probe_recover_kwargs(owner_id, task_id, disp_id, rev)
+                committed,
+                **_probe_recover_kwargs(owner_id, task_id, disp_id, rev, binding),
             )
             committed.commit()
             assert result.replayed is False
@@ -1633,13 +1730,21 @@ def test_a6b_separate_session_concurrency(monkeypatch: pytest.MonkeyPatch) -> No
             o, t, d, r, name = _commit_recurring_probe()
             barrier = threading.Barrier(2)
             results: list[tuple[str, str]] = []
+            binder = SessionLocal()
+            try:
+                shared_binding = _probe_issue_binding(binder, o, t, d, r)
+            finally:
+                binder.close()
 
             def worker(action: str) -> None:
                 db = SessionLocal()
                 try:
                     barrier.wait(timeout=15)
                     if action == "recover":
-                        recover_held(db, **_probe_recover_kwargs(o, t, d, r))
+                        recover_held(
+                            db,
+                            **_probe_recover_kwargs(o, t, d, r, shared_binding),
+                        )
                     elif action == "release":
                         release_held(
                             db,
@@ -1936,10 +2041,21 @@ def test_a10b_authorize_instant_not_shifted_by_later_now(
         is_fixed=False,
     )
     row = _hold(db_session, task["id"])
-    # Wall clock moved past the reviewed Tuesday target. Recomputing from now
+    # Review at bound instant, then move wall clock past the landing.
+    _set_now(monkeypatch, reviewed)
+    rev_resp = _review(client, task["id"], row.id)
+    assert rev_resp.status_code == 200, rev_resp.text
+    review_json = rev_resp.json()
+    # Wall clock moved past the reviewed target. Recomputing from now
     # would land Wednesday Aug 12; commit must not take that later slot.
     _set_now(monkeypatch, datetime(2026, 8, 11, 12, 0, tzinfo=UTC))
-    shifted = _recover(client, task["id"], row.id, authorize_instant=_iso(reviewed))
+    shifted = _recover(
+        client,
+        task["id"],
+        row.id,
+        review_binding=review_json["review_binding"],
+        authorize_instant=review_json["authorize_instant"],
+    )
     assert shifted.status_code == 422, shifted.text
     assert shifted.json()["code"] == "BOUNDS_STILL_MISSED"
     assert _task(db_session, task["id"]).due_at == due
@@ -1956,9 +2072,19 @@ def test_a10b_authorize_instant_not_shifted_by_later_now(
         is_fixed=False,
     )
     kept_row = _hold(db_session, kept["id"])
+    _set_now(monkeypatch, reviewed)
+    kept_rev = _review(client, kept["id"], kept_row.id)
+    assert kept_rev.status_code == 200, kept_rev.text
+    kept_json = kept_rev.json()
     delayed_now = datetime(2026, 8, 10, 18, 0, tzinfo=UTC)
     _set_now(monkeypatch, delayed_now)
-    ok = _recover(client, kept["id"], kept_row.id, authorize_instant=_iso(reviewed))
+    ok = _recover(
+        client,
+        kept["id"],
+        kept_row.id,
+        review_binding=kept_json["review_binding"],
+        authorize_instant=kept_json["authorize_instant"],
+    )
     assert ok.status_code == 200, ok.text
     series = _task(db_session, kept["id"])
     assert series.due_at == datetime(2026, 8, 11, 9, 0, tzinfo=UTC)
@@ -1968,15 +2094,15 @@ def test_a10b_authorize_instant_not_shifted_by_later_now(
 
 
 def _assert_byhour_17_landing(
-    client: TestClient, db_session: Session, task: dict, row_id: uuid.UUID
+    client: TestClient,
+    db_session: Session,
+    task: dict,
+    row_id: uuid.UUID,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     expected = datetime(2026, 8, 11, 17, 0, tzinfo=UTC)
-    resp = _recover(
-        client,
-        task["id"],
-        row_id,
-        authorize_instant=_iso(datetime(2026, 8, 11, 12, 0, tzinfo=UTC)),
-    )
+    _set_now(monkeypatch, datetime(2026, 8, 11, 12, 0, tzinfo=UTC))
+    resp = _recover(client, task["id"], row_id)
     assert resp.status_code == 200, resp.text
     series = _task(db_session, task["id"])
     assert series.due_at == expected
@@ -2011,7 +2137,7 @@ def test_a10c_dex_byhour_boundless_keeps_rule_time(
         is_fixed=False,
     )
     row = _hold(db_session, task["id"])
-    _assert_byhour_17_landing(client, db_session, task, row.id)
+    _assert_byhour_17_landing(client, db_session, task, row.id, monkeypatch)
 
 
 def test_a10d_byhour_open_frame_no_ends_on(
@@ -2034,7 +2160,7 @@ def test_a10d_byhour_open_frame_no_ends_on(
         starts_on="2026-08-01",
     )
     row = _hold(db_session, task["id"])
-    _assert_byhour_17_landing(client, db_session, task, row.id)
+    _assert_byhour_17_landing(client, db_session, task, row.id, monkeypatch)
 
 
 def _assert_selected_civil_landing(
@@ -2236,8 +2362,12 @@ def test_a11b_late_flush_failure_rolls_back(monkeypatch: pytest.MonkeyPatch) -> 
         )
         db = SessionLocal()
         try:
+            binding = _probe_issue_binding(db, owner_id, task_id, disp_id, rev)
             with pytest.raises(RuntimeError, match="RENEE_LATE_INJECT"):
-                recover_held(db, **_probe_recover_kwargs(owner_id, task_id, disp_id, rev))
+                recover_held(
+                    db,
+                    **_probe_recover_kwargs(owner_id, task_id, disp_id, rev, binding),
+                )
             assert seen["after_writes"] is True
             db.rollback()
         finally:

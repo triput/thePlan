@@ -2,19 +2,21 @@
 #  File: apps/api/app/services/occurrence_disposition.py
 #  Description: T2-S2 B-auto durable miss dispositions + R/S + T2-REC recovery.
 #  Component: Occurrence disposition
-#  Version: 1.5
+#  Version: 1.6
 #  Created: 2026-10-21
 #  Last Update: 2026-10-21
 # ==============================================================================
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import hmac
 import json
 from dataclasses import dataclass
 from datetime import datetime, time, timezone
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Collection, Mapping
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -22,7 +24,8 @@ from dateutil.rrule import rrulestr
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.errors import ApiError
-from app.models import ScheduledBlock, Task, TaskOccurrenceDisposition, TaskProgressEntry
+from app.config import get_settings
+from app.models import ScheduledBlock, Task, TaskOccurrenceDisposition, TaskProgressEntry, UserSettings
 from app.models.task_occurrence_disposition import (
     EVENT_DUPLICATE_MISS,
     EVENT_LEAVE_HELD,
@@ -49,6 +52,7 @@ from app.scheduler.occurrence_bounds import (
 from app.scheduler.pin_reservation import reserved_minutes_from_blocks
 from app.scheduler.reasons import REASON_OCCURRENCE_BOUNDS_MISS, ReasonFact
 from app.scheduler.task_effort import placement_effort_minutes
+from app.schemas.occurrence_disposition import RECOVER_REVIEW_CONTRACT_VERSION
 from app.services.recurrence import RecurrenceSpec
 from app.services.scheduling_revision import (
     assert_scheduling_revision,
@@ -64,6 +68,15 @@ from app.services.task_occurrence_bounds import (
     validate_occurrence_bounds_patch,
 )
 from app.services.task_workflow import next_board_rank
+
+_REVIEW_BINDING_DOMAIN = b"theplan-t2-rec-ui-review-binding-v1"
+_CATCH_UP_INTENT_FIELDS = (
+    "catch_up_due_at",
+    "catch_up_start_no_earlier_at",
+    "catch_up_start_no_later_at",
+    "catch_up_deadline_at",
+    "catch_up_remaining_minutes",
+)
 
 _BOUNDS_PATCH_FIELDS = frozenset(
     {"start_no_earlier_at", "start_no_later_at", "deadline_at"}
@@ -909,6 +922,26 @@ def _advance_series_due_without_complete(
     return verified_utc, accept_past_applied
 
 
+def _project_series_bounds_roll(
+    task: Task,
+    *,
+    old_due: datetime,
+    new_due: datetime,
+    tz_name: str,
+) -> dict[str, datetime | None]:
+    """Pure bounds-roll math — no ORM attribute assignment."""
+    rolled: dict[str, datetime | None] = {"due_at": new_due}
+    for field in _ROLL_BOUND_FIELDS:
+        rolled[field] = _roll_instant_by_due_delta(
+            getattr(task, field),
+            old_due=old_due,
+            new_due=new_due,
+            tz_name=tz_name,
+            field=field,
+        )
+    return rolled
+
+
 def _apply_series_bounds_roll(
     task: Task,
     *,
@@ -916,28 +949,23 @@ def _apply_series_bounds_roll(
     new_due: datetime,
     tz_name: str,
 ) -> None:
+    rolled = _project_series_bounds_roll(
+        task, old_due=old_due, new_due=new_due, tz_name=tz_name
+    )
     for field in _ROLL_BOUND_FIELDS:
-        current = getattr(task, field)
-        rolled = _roll_instant_by_due_delta(
-            current,
-            old_due=old_due,
-            new_due=new_due,
-            tz_name=tz_name,
-            field=field,
-        )
-        setattr(task, field, rolled)
+        setattr(task, field, rolled[field])
     # Due itself already verified; assign after bound rolls so failure rolls back.
-    task.due_at = new_due
+    task.due_at = rolled["due_at"]
 
 
-def _assert_blocks_allow_next_normal(
+def _blocks_prevent_next_normal(
     db: Session,
     *,
     owner_id: UUID,
     task_id: UUID,
     now_utc: datetime,
-) -> None:
-    """C2 fail-closed: same-task blocks/pins poison next-normal (no delete/unpin)."""
+) -> bool:
+    """C2 predicate: same-task blocks/pins poison next-normal (read-only)."""
     blocks = (
         db.query(ScheduledBlock)
         .filter(
@@ -954,7 +982,7 @@ def _assert_blocks_allow_next_normal(
     scheduled_intervals = [(block.start_time, block.end_time) for block in blocks]
     # Stand-in: after recovery live worked will be 0 / estimate.
     stand_in = SimpleNamespace(worked_minutes=0)
-    if (
+    return bool(
         in_flight_hold_trigger(
             stand_in,  # type: ignore[arg-type]
             reserved_minutes=reserved,
@@ -963,6 +991,19 @@ def _assert_blocks_allow_next_normal(
             now_utc=now,
         )
         or reserved > 0
+    )
+
+
+def _assert_blocks_allow_next_normal(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    now_utc: datetime,
+) -> None:
+    """C2 fail-closed: same-task blocks/pins poison next-normal (no delete/unpin)."""
+    if _blocks_prevent_next_normal(
+        db, owner_id=owner_id, task_id=task_id, now_utc=now_utc
     ):
         raise ApiError(
             422,
@@ -1065,6 +1106,767 @@ def _create_catch_up_task(
     return catch_up
 
 
+def _iso_utc(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    aware = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    return aware.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _parse_iso_utc(value: str | None) -> datetime | None:
+    if value is None:
+        return None
+    raw = value.replace("Z", "+00:00")
+    parsed = datetime.fromisoformat(raw)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _normalize_intent_fields_set(fields_set: Collection[str] | None) -> frozenset[str]:
+    if not fields_set:
+        return frozenset()
+    return frozenset(str(name) for name in fields_set if name in _CATCH_UP_INTENT_FIELDS)
+
+
+def _canonical_recover_intent(
+    *,
+    accept_past_ack: bool,
+    step_count: int | None,
+    abort: bool,
+    catch_up_due_at: datetime | None,
+    catch_up_start_no_earlier_at: datetime | None,
+    catch_up_start_no_later_at: datetime | None,
+    catch_up_deadline_at: datetime | None,
+    catch_up_remaining_minutes: int | None,
+    intent_fields_set: Collection[str] | None,
+) -> dict[str, Any]:
+    """Omit vs null preserved for catch-up fields (Option A wire honesty)."""
+    present = _normalize_intent_fields_set(intent_fields_set)
+    values: dict[str, Any] = {
+        "catch_up_due_at": catch_up_due_at,
+        "catch_up_start_no_earlier_at": catch_up_start_no_earlier_at,
+        "catch_up_start_no_later_at": catch_up_start_no_later_at,
+        "catch_up_deadline_at": catch_up_deadline_at,
+        "catch_up_remaining_minutes": catch_up_remaining_minutes,
+    }
+    catch_up: dict[str, Any] = {}
+    for key in _CATCH_UP_INTENT_FIELDS:
+        if key not in present:
+            continue
+        value = values[key]
+        if key == "catch_up_remaining_minutes":
+            catch_up[key] = None if value is None else int(value)
+        else:
+            catch_up[key] = _iso_utc(value) if isinstance(value, datetime) else value
+    return {
+        "accept_past_ack": bool(accept_past_ack),
+        "step_count": None if step_count is None else int(step_count),
+        "abort": bool(abort),
+        "catch_up": catch_up,
+    }
+
+
+def _review_binding_key() -> bytes:
+    secret = get_settings().session_secret.encode("utf-8")
+    return hmac.new(secret, _REVIEW_BINDING_DOMAIN, hashlib.sha256).digest()
+
+
+def _b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def _b64url_decode(data: str) -> bytes:
+    pad = "=" * (-len(data) % 4)
+    return base64.urlsafe_b64decode(data + pad)
+
+
+@dataclass(frozen=True)
+class SessionWriteObservation:
+    """Write-observation proof hook for Renee (fresh Session before/after review)."""
+
+    new: tuple[str, ...]
+    dirty: tuple[str, ...]
+    deleted: tuple[str, ...]
+
+    @property
+    def empty(self) -> bool:
+        return not self.new and not self.dirty and not self.deleted
+
+
+def observe_session_writes(db: Session) -> SessionWriteObservation:
+    """Snapshot identity-map write sets without logging secrets or bindings."""
+    return SessionWriteObservation(
+        new=tuple(sorted(type(obj).__name__ for obj in db.new)),
+        dirty=tuple(sorted(type(obj).__name__ for obj in db.dirty)),
+        deleted=tuple(sorted(type(obj).__name__ for obj in db.deleted)),
+    )
+
+
+def _effort_stand_in(
+    *,
+    series: Task,
+    remaining_minutes: int,
+    due_at: datetime | None,
+    start_no_earlier_at: datetime | None,
+    start_no_later_at: datetime | None,
+    deadline_at: datetime | None,
+    soft_target_at: datetime | None = None,
+    worked_minutes: int = 0,
+) -> SimpleNamespace:
+    return SimpleNamespace(
+        estimated_duration_minutes=int(series.estimated_duration_minutes),
+        remaining_minutes=int(remaining_minutes),
+        worked_minutes=int(worked_minutes),
+        due_at=due_at,
+        start_no_earlier_at=start_no_earlier_at,
+        start_no_later_at=start_no_later_at,
+        deadline_at=deadline_at,
+        soft_target_at=soft_target_at,
+        min_block_duration_minutes=series.min_block_duration_minutes,
+        max_block_duration_minutes=series.max_block_duration_minutes,
+        max_block_unbounded=bool(series.max_block_unbounded),
+        keep_in_one_block=bool(series.keep_in_one_block),
+    )
+
+
+def _usable_dates_ok(
+    stand_in: SimpleNamespace,
+    settings: UserSettings,
+    *,
+    now_utc: datetime,
+    skip_temporal: bool = False,
+) -> tuple[bool, str | None]:
+    try:
+        _assert_usable_dates_for_release(
+            stand_in,  # type: ignore[arg-type]
+            settings,
+            now_utc=now_utc,
+            skip_temporal=skip_temporal,
+        )
+    except ApiError as exc:
+        code = str(exc.content.get("code") or "BOUNDS_STILL_MISSED")
+        return False, code
+    return True, None
+
+
+def _open_miss_era_progress_count(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task: Task,
+) -> int:
+    entries = (
+        db.query(TaskProgressEntry.id)
+        .filter(
+            TaskProgressEntry.owner_id == owner_id,
+            TaskProgressEntry.task_id == task.id,
+        )
+        .all()
+    )
+    already = {
+        row.progress_entry_id
+        for row in db.query(ProgressEpochMembership.progress_entry_id)
+        .filter(
+            ProgressEpochMembership.owner_id == owner_id,
+            ProgressEpochMembership.task_id == task.id,
+        )
+        .all()
+    }
+    return sum(1 for (entry_id,) in entries if entry_id not in already)
+
+
+def _load_owner_settings_readonly(db: Session, owner_id: UUID) -> UserSettings:
+    settings = (
+        db.query(UserSettings)
+        .filter(UserSettings.owner_id == owner_id)
+        .one_or_none()
+    )
+    if settings is None:
+        raise ApiError(404, "Settings not found", "SETTINGS_NOT_FOUND")
+    return settings
+
+
+@dataclass(frozen=True)
+class RecoverHeldProjection:
+    """Pure recovery review DTO shared by review and authorize pre-write."""
+
+    disposition_id: UUID
+    task_id: UUID
+    episode_key: str
+    expected_revision: int
+    authorize_instant: datetime
+    contract_version: str
+    cadence_is_fixed: bool
+    cadence_timezone: str
+    rrule_summary: str | None
+    eligibility_recurring: bool
+    eligibility_one_off_use_release: bool
+    next_normal_due_at: datetime | None
+    next_normal_start_no_earlier_at: datetime | None
+    next_normal_start_no_later_at: datetime | None
+    next_normal_deadline_at: datetime | None
+    next_normal_landing_is_past: bool
+    next_normal_accept_past_required: bool
+    next_normal_worked_minutes: int
+    next_normal_remaining_minutes: int
+    catch_up_remaining_default: int
+    catch_up_remaining_minutes: int
+    catch_up_due_at: datetime | None
+    catch_up_start_no_earlier_at: datetime | None
+    catch_up_start_no_later_at: datetime | None
+    catch_up_deadline_at: datetime | None
+    catch_up_usable_dates_ok: bool
+    catch_up_reject_code: str | None
+    series_usable_dates_ok: bool
+    series_reject_code: str | None
+    historical_worked_minutes: int
+    historical_remaining_minutes: int | None
+    historical_estimated_duration_minutes: int
+    historical_progress_entry_count: int
+    c2_blocks_prevent: bool
+    c2_detail: str | None
+    successor_status: str
+    accept_past_applied_if_authorized: bool
+    review_ok_for_authorize: bool
+    intent_canonical: dict[str, Any]
+    series_new_due: datetime | None
+    series_accept_past_applied: bool
+
+    def projection_claim(self) -> dict[str, Any]:
+        """Exact reviewed targets for binding (§2.4) — cadence-stable fields only.
+
+        Temporal gate booleans (landing_is_past / usable_dates_ok / review_ok)
+        are rechecked under lock against CURRENT gate time and are not part of
+        the MAC material, so clock skew between review and authorize cannot
+        silently shift successor/dates while still failing closed on gates.
+        """
+        return {
+            "next_normal": {
+                "due_at": _iso_utc(self.next_normal_due_at),
+                "start_no_earlier_at": _iso_utc(self.next_normal_start_no_earlier_at),
+                "start_no_later_at": _iso_utc(self.next_normal_start_no_later_at),
+                "deadline_at": _iso_utc(self.next_normal_deadline_at),
+            },
+            "next_normal_effort": {
+                "worked_minutes": self.next_normal_worked_minutes,
+                "remaining_minutes": self.next_normal_remaining_minutes,
+            },
+            "catch_up": {
+                "remaining_minutes_default": self.catch_up_remaining_default,
+                "remaining_minutes": self.catch_up_remaining_minutes,
+                "due_at": _iso_utc(self.catch_up_due_at),
+                "start_no_earlier_at": _iso_utc(self.catch_up_start_no_earlier_at),
+                "start_no_later_at": _iso_utc(self.catch_up_start_no_later_at),
+                "deadline_at": _iso_utc(self.catch_up_deadline_at),
+            },
+            "contract_version": self.contract_version,
+        }
+
+
+def project_recover_held_review(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task: Task,
+    disposition: TaskOccurrenceDisposition,
+    settings: UserSettings,
+    expected_revision: int,
+    authorize_instant: datetime,
+    accept_past_ack: bool = False,
+    step_count: int | None = None,
+    abort: bool = False,
+    catch_up_due_at: datetime | None = None,
+    catch_up_start_no_earlier_at: datetime | None = None,
+    catch_up_start_no_later_at: datetime | None = None,
+    catch_up_deadline_at: datetime | None = None,
+    catch_up_remaining_minutes: int | None = None,
+    intent_fields_set: Collection[str] | None = None,
+    now_utc: datetime | None = None,
+) -> RecoverHeldProjection:
+    """Pure recovery projection — no Session writes / flush / provider side effects."""
+    authorize = require_timezone_aware_instant(
+        authorize_instant, field="authorize_instant"
+    )
+    gate_now = now_utc or utc_now()
+    if gate_now.tzinfo is None:
+        gate_now = gate_now.replace(tzinfo=timezone.utc)
+    else:
+        gate_now = gate_now.astimezone(timezone.utc)
+
+    intent_canonical = _canonical_recover_intent(
+        accept_past_ack=accept_past_ack,
+        step_count=step_count,
+        abort=abort,
+        catch_up_due_at=catch_up_due_at,
+        catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=catch_up_start_no_later_at,
+        catch_up_deadline_at=catch_up_deadline_at,
+        catch_up_remaining_minutes=catch_up_remaining_minutes,
+        intent_fields_set=intent_fields_set,
+    )
+
+    rule = task.recurrence_rule
+    recurring = rule is not None
+    historical_count = _open_miss_era_progress_count(
+        db, owner_id=owner_id, task=task
+    )
+    catch_remaining_default = _catch_up_remaining_default(task, override=None)
+    catch_remaining = _catch_up_remaining_default(
+        task, override=catch_up_remaining_minutes
+    )
+    # Gate values: aware UTC or None. Omit vs null is binding-canonical only.
+    catch_due = (
+        require_timezone_aware_instant(catch_up_due_at, field="catch_up_due_at")
+        if catch_up_due_at is not None
+        else None
+    )
+    catch_earliest = (
+        require_timezone_aware_instant(
+            catch_up_start_no_earlier_at, field="catch_up_start_no_earlier_at"
+        )
+        if catch_up_start_no_earlier_at is not None
+        else None
+    )
+    catch_latest = (
+        require_timezone_aware_instant(
+            catch_up_start_no_later_at, field="catch_up_start_no_later_at"
+        )
+        if catch_up_start_no_later_at is not None
+        else None
+    )
+    catch_deadline = (
+        require_timezone_aware_instant(
+            catch_up_deadline_at, field="catch_up_deadline_at"
+        )
+        if catch_up_deadline_at is not None
+        else None
+    )
+    assert_merged_bounds_not_inverted(earliest=catch_earliest, latest=catch_latest)
+
+    c2_blocks = _blocks_prevent_next_normal(
+        db, owner_id=owner_id, task_id=task.id, now_utc=gate_now
+    )
+    c2_detail = (
+        "Existing same-task blocks or pins prevent next-normal placement"
+        if c2_blocks
+        else None
+    )
+
+    estimate = int(task.estimated_duration_minutes)
+    successor_status = "ok"
+    accept_past_applied = False
+    landing_is_past = False
+    accept_past_required = False
+    new_due: datetime | None = None
+    next_earliest: datetime | None = None
+    next_latest: datetime | None = None
+    next_deadline: datetime | None = None
+    series_gate_ok = True
+    series_gate_code: str | None = None
+
+    if not recurring:
+        successor_status = "RECOVERY_REQUIRES_RECURRING"
+    elif abort:
+        successor_status = "RECOVERY_ABORTED"
+    elif task.due_at is None:
+        successor_status = "RECURRENCE_NO_SUCCESSOR"
+    else:
+        try:
+            new_due, accept_past_applied = _advance_series_due_without_complete(
+                task,
+                authorize_instant=authorize,
+                accept_past_ack=accept_past_ack,
+                step_count=step_count,
+                abort=False,
+                now_utc=gate_now,
+            )
+            rolled = _project_series_bounds_roll(
+                task,
+                old_due=task.due_at,
+                new_due=new_due,
+                tz_name=rule.timezone,  # type: ignore[union-attr]
+            )
+            next_earliest = rolled["start_no_earlier_at"]
+            next_latest = rolled["start_no_later_at"]
+            next_deadline = rolled["deadline_at"]
+            landing_is_past = new_due < gate_now
+            accept_past_required = bool(rule.is_fixed) and landing_is_past and not accept_past_ack
+            series_stand_in = _effort_stand_in(
+                series=task,
+                remaining_minutes=estimate,
+                due_at=new_due,
+                start_no_earlier_at=next_earliest,
+                start_no_later_at=next_latest,
+                deadline_at=next_deadline,
+                soft_target_at=rolled.get("soft_target_at"),
+                worked_minutes=0,
+            )
+            series_gate_ok, series_gate_code = _usable_dates_ok(
+                series_stand_in,
+                settings,
+                now_utc=gate_now,
+                skip_temporal=accept_past_applied,
+            )
+        except ApiError as exc:
+            code = str(exc.content.get("code") or "RECOVERY_REJECTED")
+            if code == "FIXED_PAST_REQUIRES_CHOICE":
+                successor_status = "FIXED_PAST_REQUIRES_CHOICE"
+                accept_past_required = True
+                landing_is_past = True
+                accept_past_applied = False
+                # Soft recompute with accept-past only to surface display targets.
+                try:
+                    candidate_due, _ = _advance_series_due_without_complete(
+                        task,
+                        authorize_instant=authorize,
+                        accept_past_ack=True,
+                        step_count=None,
+                        abort=False,
+                        now_utc=gate_now,
+                    )
+                    new_due = candidate_due
+                    rolled = _project_series_bounds_roll(
+                        task,
+                        old_due=task.due_at,
+                        new_due=candidate_due,
+                        tz_name=rule.timezone,  # type: ignore[union-attr]
+                    )
+                    next_earliest = rolled["start_no_earlier_at"]
+                    next_latest = rolled["start_no_later_at"]
+                    next_deadline = rolled["deadline_at"]
+                except ApiError:
+                    new_due = None
+            else:
+                successor_status = code
+                if code in {
+                    "BOUNDS_ROLL_INDETERMINATE_LOCAL",
+                    "RECURRENCE_NO_SUCCESSOR",
+                    "BOUNDS_STILL_MISSED",
+                    "RECOVERY_REQUIRES_RECURRING",
+                }:
+                    raise
+
+    catch_stand_in = _effort_stand_in(
+        series=task,
+        remaining_minutes=catch_remaining,
+        due_at=catch_due,
+        start_no_earlier_at=catch_earliest,
+        start_no_later_at=catch_latest,
+        deadline_at=catch_deadline,
+        worked_minutes=0,
+    )
+    catch_ok, catch_code = _usable_dates_ok(
+        catch_stand_in, settings, now_utc=gate_now, skip_temporal=False
+    )
+
+    review_ok = (
+        recurring
+        and successor_status == "ok"
+        and not c2_blocks
+        and catch_ok
+        and series_gate_ok
+        and not abort
+    )
+
+    return RecoverHeldProjection(
+        disposition_id=disposition.id,
+        task_id=task.id,
+        episode_key=disposition.episode_key,
+        expected_revision=int(expected_revision),
+        authorize_instant=authorize,
+        contract_version=RECOVER_REVIEW_CONTRACT_VERSION,
+        cadence_is_fixed=bool(rule.is_fixed) if rule is not None else False,
+        cadence_timezone=rule.timezone if rule is not None else "UTC",
+        rrule_summary=rule.rrule if rule is not None else None,
+        eligibility_recurring=recurring,
+        eligibility_one_off_use_release=not recurring,
+        next_normal_due_at=new_due,
+        next_normal_start_no_earlier_at=next_earliest,
+        next_normal_start_no_later_at=next_latest,
+        next_normal_deadline_at=next_deadline,
+        next_normal_landing_is_past=landing_is_past,
+        next_normal_accept_past_required=accept_past_required,
+        next_normal_worked_minutes=0,
+        next_normal_remaining_minutes=estimate,
+        catch_up_remaining_default=catch_remaining_default,
+        catch_up_remaining_minutes=catch_remaining,
+        catch_up_due_at=catch_due,
+        catch_up_start_no_earlier_at=catch_earliest,
+        catch_up_start_no_later_at=catch_latest,
+        catch_up_deadline_at=catch_deadline,
+        catch_up_usable_dates_ok=catch_ok,
+        catch_up_reject_code=catch_code,
+        series_usable_dates_ok=series_gate_ok,
+        series_reject_code=series_gate_code,
+        historical_worked_minutes=int(task.worked_minutes or 0),
+        historical_remaining_minutes=task.remaining_minutes,
+        historical_estimated_duration_minutes=estimate,
+        historical_progress_entry_count=historical_count,
+        c2_blocks_prevent=c2_blocks,
+        c2_detail=c2_detail,
+        successor_status=successor_status,
+        accept_past_applied_if_authorized=accept_past_applied,
+        review_ok_for_authorize=review_ok,
+        intent_canonical=intent_canonical,
+        series_new_due=new_due,
+        series_accept_past_applied=accept_past_applied,
+    )
+
+
+def issue_recover_review_binding(
+    *,
+    owner_id: UUID,
+    projection: RecoverHeldProjection,
+    expected_revision: int,
+) -> str:
+    """Authenticated domain-separated review binding (stateless HMAC token)."""
+    claims = {
+        "contract_version": projection.contract_version,
+        "owner_id": str(owner_id),
+        "task_id": str(projection.task_id),
+        "disposition_id": str(projection.disposition_id),
+        "episode_key": projection.episode_key,
+        "expected_revision": int(expected_revision),
+        "authorize_instant": _iso_utc(projection.authorize_instant),
+        "intent": projection.intent_canonical,
+        "projection": projection.projection_claim(),
+    }
+    payload = _canonical(claims).encode("utf-8")
+    digest = hmac.new(_review_binding_key(), payload, hashlib.sha256).hexdigest()
+    return f"{RECOVER_REVIEW_CONTRACT_VERSION}.{_b64url(payload)}.{digest}"
+
+
+def _parse_recover_review_binding(token: str) -> dict[str, Any]:
+    parts = token.split(".")
+    if len(parts) != 3:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding",
+            "REVIEW_BINDING_INVALID",
+        )
+    version, payload_b64, digest = parts
+    if version != RECOVER_REVIEW_CONTRACT_VERSION:
+        raise ApiError(
+            422,
+            "Recovery review binding contract version mismatch",
+            "REVIEW_BINDING_INVALID",
+        )
+    try:
+        payload = _b64url_decode(payload_b64)
+    except (ValueError, TypeError) as exc:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding",
+            "REVIEW_BINDING_INVALID",
+        ) from exc
+    expected = hmac.new(_review_binding_key(), payload, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, digest):
+        raise ApiError(
+            422,
+            "Recovery review binding failed verification",
+            "REVIEW_BINDING_INVALID",
+        )
+    try:
+        claims = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding",
+            "REVIEW_BINDING_INVALID",
+        ) from exc
+    if not isinstance(claims, dict):
+        raise ApiError(
+            422,
+            "Invalid recovery review binding",
+            "REVIEW_BINDING_INVALID",
+        )
+    return claims
+
+
+def verify_recover_review_binding(
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+    episode_key: str,
+    expected_revision: int,
+    review_binding: str,
+    intent_canonical: Mapping[str, Any],
+    projection: RecoverHeldProjection,
+    authorize_instant_echo: datetime | None = None,
+) -> datetime:
+    """Recompute-verified binding check. Returns the bound authorize_instant."""
+    claims = _parse_recover_review_binding(review_binding)
+    try:
+        bound_owner = UUID(str(claims["owner_id"]))
+        bound_task = UUID(str(claims["task_id"]))
+        bound_disp = UUID(str(claims["disposition_id"]))
+        bound_rev = int(claims["expected_revision"])
+        bound_episode = str(claims["episode_key"])
+        bound_version = str(claims["contract_version"])
+        bound_instant = _parse_iso_utc(str(claims["authorize_instant"]))
+        bound_intent = claims["intent"]
+        bound_projection = claims["projection"]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        ) from exc
+
+    if bound_instant is None:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        )
+    if (
+        bound_owner != owner_id
+        or bound_task != task_id
+        or bound_disp != disposition_id
+        or bound_episode != episode_key
+        or bound_rev != int(expected_revision)
+        or bound_version != RECOVER_REVIEW_CONTRACT_VERSION
+    ):
+        raise ApiError(
+            422,
+            "Recovery review binding does not match authorize request",
+            "REVIEW_BINDING_MISMATCH",
+        )
+    if _canonical(bound_intent) != _canonical(dict(intent_canonical)):
+        raise ApiError(
+            422,
+            "Recovery review binding intent mismatch",
+            "REVIEW_BINDING_MISMATCH",
+        )
+    if _canonical(bound_projection) != _canonical(projection.projection_claim()):
+        raise ApiError(
+            422,
+            "Recovery review binding projection mismatch",
+            "REVIEW_BINDING_MISMATCH",
+        )
+    if authorize_instant_echo is not None:
+        echo = require_timezone_aware_instant(
+            authorize_instant_echo, field="authorize_instant"
+        )
+        if echo.astimezone(timezone.utc) != bound_instant.astimezone(timezone.utc):
+            raise ApiError(
+                422,
+                "authorize_instant does not match review binding",
+                "REVIEW_BINDING_MISMATCH",
+            )
+    return bound_instant.astimezone(timezone.utc)
+
+
+@dataclass(frozen=True)
+class RecoverHeldReviewResult:
+    projection: RecoverHeldProjection
+    review_binding: str
+    expected_revision: int
+
+
+def review_recover_held(
+    db: Session,
+    *,
+    owner_id: UUID,
+    task_id: UUID,
+    disposition_id: UUID,
+    expected_revision: int,
+    accept_past_ack: bool = False,
+    step_count: int | None = None,
+    abort: bool = False,
+    catch_up_due_at: datetime | None = None,
+    catch_up_start_no_earlier_at: datetime | None = None,
+    catch_up_start_no_later_at: datetime | None = None,
+    catch_up_deadline_at: datetime | None = None,
+    catch_up_remaining_minutes: int | None = None,
+    intent_fields_set: Collection[str] | None = None,
+) -> RecoverHeldReviewResult:
+    """True read-only recovery review: server-issued instant + binding, no writes."""
+    # Prefer expire + no-autoflush so identity map cannot flush dirty attrs.
+    with db.no_autoflush:
+        db.expire_all()
+        settings = _load_owner_settings_readonly(db, owner_id)
+        assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
+        row = _load_named_disposition(
+            db,
+            owner_id=owner_id,
+            task_id=task_id,
+            disposition_id=disposition_id,
+        )
+        if row is None:
+            raise ApiError(
+                404,
+                "Held disposition not found for this task",
+                "DISPOSITION_NOT_FOUND",
+            )
+        if row.resolution == RESOLUTION_RECOVERED:
+            raise ApiError(
+                409,
+                "Disposition already terminal with a different resolution",
+                "CONFLICT_TERMINAL",
+            )
+        if row.resolution in (RESOLUTION_RELEASED, RESOLUTION_SKIPPED):
+            raise ApiError(
+                409,
+                "Disposition already terminal with a different resolution",
+                "CONFLICT_TERMINAL",
+            )
+        if row.resolution != RESOLUTION_UNRESOLVED_HELD:
+            raise ApiError(
+                409,
+                "Disposition already terminal with a different resolution",
+                "CONFLICT_TERMINAL",
+            )
+        task = (
+            db.query(Task)
+            .options(joinedload(Task.recurrence_rule))
+            .filter(Task.id == task_id, Task.owner_id == owner_id)
+            .populate_existing()
+            .one_or_none()
+        )
+        if task is None:
+            raise ApiError(404, "Task not found", "TASK_NOT_FOUND")
+        if task.recurrence_rule is None:
+            raise ApiError(
+                422,
+                "Reviewed recovery requires a recurring task; use release for one-offs",
+                "RECOVERY_REQUIRES_RECURRING",
+            )
+
+        authorize_instant = utc_now()
+        projection = project_recover_held_review(
+            db,
+            owner_id=owner_id,
+            task=task,
+            disposition=row,
+            settings=settings,
+            expected_revision=expected_revision,
+            authorize_instant=authorize_instant,
+            accept_past_ack=accept_past_ack,
+            step_count=step_count,
+            abort=abort,
+            catch_up_due_at=catch_up_due_at,
+            catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
+            catch_up_start_no_later_at=catch_up_start_no_later_at,
+            catch_up_deadline_at=catch_up_deadline_at,
+            catch_up_remaining_minutes=catch_up_remaining_minutes,
+            intent_fields_set=intent_fields_set,
+            now_utc=authorize_instant,
+        )
+        binding = issue_recover_review_binding(
+            owner_id=owner_id,
+            projection=projection,
+            expected_revision=expected_revision,
+        )
+        return RecoverHeldReviewResult(
+            projection=projection,
+            review_binding=binding,
+            expected_revision=expected_revision,
+        )
+
+
 @dataclass(frozen=True)
 class RecoverHeldResult:
     disposition: TaskOccurrenceDisposition
@@ -1088,7 +1890,7 @@ def recover_held(
     task_id: UUID,
     disposition_id: UUID,
     expected_revision: int,
-    authorize_instant: datetime,
+    review_binding: str,
     accept_past_ack: bool = False,
     step_count: int | None = None,
     abort: bool = False,
@@ -1097,9 +1899,22 @@ def recover_held(
     catch_up_start_no_later_at: datetime | None = None,
     catch_up_deadline_at: datetime | None = None,
     catch_up_remaining_minutes: int | None = None,
+    intent_fields_set: Collection[str] | None = None,
+    authorize_instant: datetime | None = None,
     note: str | None = None,
 ) -> RecoverHeldResult:
-    """Reviewed recovery: catch-up one-off + series advance without ``complete_task``."""
+    """Reviewed recovery: verify binding under lock, then mutate.
+
+    Uses the **bound** authorize_instant from ``review_binding`` (not fresh now).
+    No silent unbound authorize path.
+    """
+    if not review_binding or not str(review_binding).strip():
+        raise ApiError(
+            422,
+            "review_binding is required",
+            "REVIEW_BINDING_REQUIRED",
+        )
+
     settings = lock_owner_scheduling(db, owner_id)
     # Stale revision precedes terminal no-op / idempotent recover (§C8).
     assert_scheduling_revision(int(settings.scheduling_revision), expected_revision)
@@ -1156,9 +1971,6 @@ def recover_held(
             "RECOVERY_REQUIRES_RECURRING",
         )
 
-    authorize = require_timezone_aware_instant(
-        authorize_instant, field="authorize_instant"
-    )
     now_utc = utc_now()
     snapshot_before = dict(row.bounds_snapshot)
     old_due = task.due_at
@@ -1169,45 +1981,147 @@ def recover_held(
             "RECURRENCE_NO_SUCCESSOR",
         )
 
-    # Successor choice / abort before any mutation (A7 / C5 abort = no writes).
-    new_due, accept_past_applied = _advance_series_due_without_complete(
-        task,
-        authorize_instant=authorize,
+    intent_canonical = _canonical_recover_intent(
         accept_past_ack=accept_past_ack,
         step_count=step_count,
         abort=abort,
+        catch_up_due_at=catch_up_due_at,
+        catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=catch_up_start_no_later_at,
+        catch_up_deadline_at=catch_up_deadline_at,
+        catch_up_remaining_minutes=catch_up_remaining_minutes,
+        intent_fields_set=intent_fields_set,
+    )
+    # Bound instant from claims first (fail closed before projection work if
+    # MAC/identity is wrong). Then recompute projection with that instant.
+    claims = _parse_recover_review_binding(review_binding)
+    try:
+        bound_instant = _parse_iso_utc(str(claims["authorize_instant"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        ) from exc
+    if bound_instant is None:
+        raise ApiError(
+            422,
+            "Invalid recovery review binding claims",
+            "REVIEW_BINDING_INVALID",
+        )
+
+    # Binding verify uses bound-instant gate time (matches review issuance).
+    projection_bound = project_recover_held_review(
+        db,
+        owner_id=owner_id,
+        task=task,
+        disposition=row,
+        settings=settings,
+        expected_revision=expected_revision,
+        authorize_instant=bound_instant,
+        accept_past_ack=accept_past_ack,
+        step_count=step_count,
+        abort=abort,
+        catch_up_due_at=catch_up_due_at,
+        catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=catch_up_start_no_later_at,
+        catch_up_deadline_at=catch_up_deadline_at,
+        catch_up_remaining_minutes=catch_up_remaining_minutes,
+        intent_fields_set=intent_fields_set,
+        now_utc=bound_instant,
+    )
+    authorize = verify_recover_review_binding(
+        owner_id=owner_id,
+        task_id=task_id,
+        disposition_id=disposition_id,
+        episode_key=row.episode_key,
+        expected_revision=expected_revision,
+        review_binding=review_binding,
+        intent_canonical=intent_canonical,
+        projection=projection_bound,
+        authorize_instant_echo=authorize_instant,
+    )
+    # CURRENT gate time — fail closed on drift; no silent target shift.
+    projection = project_recover_held_review(
+        db,
+        owner_id=owner_id,
+        task=task,
+        disposition=row,
+        settings=settings,
+        expected_revision=expected_revision,
+        authorize_instant=bound_instant,
+        accept_past_ack=accept_past_ack,
+        step_count=step_count,
+        abort=abort,
+        catch_up_due_at=catch_up_due_at,
+        catch_up_start_no_earlier_at=catch_up_start_no_earlier_at,
+        catch_up_start_no_later_at=catch_up_start_no_later_at,
+        catch_up_deadline_at=catch_up_deadline_at,
+        catch_up_remaining_minutes=catch_up_remaining_minutes,
+        intent_fields_set=intent_fields_set,
         now_utc=now_utc,
     )
-    catch_up_remaining = _catch_up_remaining_default(
-        task, override=catch_up_remaining_minutes
-    )
-    catch_due = (
-        require_timezone_aware_instant(catch_up_due_at, field="catch_up_due_at")
-        if catch_up_due_at is not None
-        else None
-    )
-    catch_earliest = (
-        require_timezone_aware_instant(
-            catch_up_start_no_earlier_at, field="catch_up_start_no_earlier_at"
+    if _canonical(projection.projection_claim()) != _canonical(
+        projection_bound.projection_claim()
+    ):
+        raise ApiError(
+            422,
+            "Recovery projection drifted under lock",
+            "REVIEW_BINDING_MISMATCH",
         )
-        if catch_up_start_no_earlier_at is not None
-        else None
-    )
-    catch_latest = (
-        require_timezone_aware_instant(
-            catch_up_start_no_later_at, field="catch_up_start_no_later_at"
+    if not projection.review_ok_for_authorize:
+        if projection.c2_blocks_prevent:
+            raise ApiError(
+                422,
+                projection.c2_detail
+                or "Existing same-task blocks or pins prevent next-normal placement",
+                "BLOCKS_PREVENT_NEXT_NORMAL",
+            )
+        if projection.successor_status == "FIXED_PAST_REQUIRES_CHOICE":
+            raise ApiError(
+                422,
+                "Fixed next-normal landing is still past; "
+                "accept_past_ack, step_count, or abort required",
+                "FIXED_PAST_REQUIRES_CHOICE",
+            )
+        if projection.successor_status == "RECOVERY_ABORTED":
+            raise ApiError(422, "Recovery aborted by operator", "RECOVERY_ABORTED")
+        if not projection.catch_up_usable_dates_ok:
+            raise ApiError(
+                422,
+                "Occurrence bounds still missed or invalid for remaining work",
+                projection.catch_up_reject_code or "BOUNDS_STILL_MISSED",
+            )
+        if not projection.series_usable_dates_ok:
+            raise ApiError(
+                422,
+                "Occurrence bounds still missed or invalid for remaining work",
+                projection.series_reject_code or "BOUNDS_STILL_MISSED",
+            )
+        raise ApiError(
+            422,
+            "Recovery review is not authorizable",
+            (
+                projection.successor_status
+                if projection.successor_status != "ok"
+                else "RECOVERY_REJECTED"
+            ),
         )
-        if catch_up_start_no_later_at is not None
-        else None
-    )
-    catch_deadline = (
-        require_timezone_aware_instant(
-            catch_up_deadline_at, field="catch_up_deadline_at"
+
+    new_due = projection.series_new_due
+    accept_past_applied = projection.series_accept_past_applied
+    if new_due is None:
+        raise ApiError(
+            422,
+            "Recurrence has no successor occurrence",
+            "RECURRENCE_NO_SUCCESSOR",
         )
-        if catch_up_deadline_at is not None
-        else None
-    )
-    assert_merged_bounds_not_inverted(earliest=catch_earliest, latest=catch_latest)
+
+    catch_up_remaining = projection.catch_up_remaining_minutes
+    catch_due = projection.catch_up_due_at
+    catch_earliest = projection.catch_up_start_no_earlier_at
+    catch_latest = projection.catch_up_start_no_later_at
+    catch_deadline = projection.catch_up_deadline_at
 
     catch_up_task_id: UUID
     # Nested savepoint: catch-up + series + disposition + rev roll back together.
@@ -1265,6 +2179,7 @@ def recover_held(
             "step_count": step_count,
             "miss_era_entry_ids": miss_ids,
             "catch_up_remaining_minutes": catch_up_remaining,
+            "contract_version": RECOVER_REVIEW_CONTRACT_VERSION,
         }
         if note:
             payload["note"] = note
