@@ -40,7 +40,15 @@ docker compose -f infra/compose/compose.yaml --profile tunnel up -d
 
 `cloudflared` joins the Compose network, reads `TUNNEL_TOKEN`, and proxies the public hostname to `web:80`. Session cookies stay same-origin on that hostname (same pattern as localhost:8080).
 
-Compose pins **`cloudflare/cloudflared:2026.7.3`** (see [HYGIENE-W3.md](./HYGIENE-W3.md)). Bump that tag deliberately when upgrading.
+Compose pins **`cloudflare/cloudflared:2026.10.3`**, updated for the October 2026 eMudhra certificate compromise. Bump that tag deliberately when upgrading. Docker updates require pulling the new image and recreating the connector; restarting the old container does not update it:
+
+```powershell
+docker compose -f infra/compose/compose.yaml --profile tunnel pull cloudflared
+docker compose -f infra/compose/compose.yaml --profile tunnel up -d --no-deps cloudflared
+docker compose -f infra/compose/compose.yaml exec cloudflared cloudflared --version
+```
+
+For continuous availability, connect an updated replica on the same Docker network before recreating the original, verify its connections, then remove the temporary replica after the original reconnects. Existing long-lived connections on the replaced connector may need to reconnect. See [Cloudflare's update guidance](https://developers.cloudflare.com/tunnel/guides/update-cloudflared/).
 
 Check:
 
