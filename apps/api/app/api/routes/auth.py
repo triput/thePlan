@@ -74,16 +74,8 @@ def auth_logout(request: Request) -> None:
 
 @router.get("/me", response_model=UserOut)
 def auth_me(
-    request: Request,
-    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> UserOut:
-    if is_setup_required(db):
-        raise ApiError(401, "Initial setup required", "SETUP_REQUIRED")
-    from app.api.deps import get_current_user_optional
-
-    user = get_current_user_optional(request, db)
-    if user is None:
-        raise ApiError(401, "Not authenticated", "UNAUTHENTICATED")
     return UserOut.model_validate(user)
 
 

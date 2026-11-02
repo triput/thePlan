@@ -514,3 +514,83 @@
   }
 }
 
+/* Agent / CLI credentials (Settings) */
+.agent-credentials-manager {
+  margin-top: 0.75rem;
+}
+
+.agent-credential-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.agent-credential-row {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.agent-credential-row.revoked {
+  opacity: 0.65;
+}
+
+.agent-credential-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.agent-credential-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.agent-credential-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.agent-credential-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-credential-secret-panel {
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.agent-credential-secret-warning {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.agent-credential-secret-value {
+  display: block;
+  margin: 0 0 0.65rem;
+  padding: 0.45rem 0.5rem;
+  font-size: 0.82rem;
+  word-break: break-all;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.agent-credential-create-form {
+  margin-top: 0.35rem;
+}
+

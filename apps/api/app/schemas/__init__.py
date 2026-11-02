@@ -11,6 +11,11 @@ from app.schemas.assist import (
     AssistProposeResponse,
     AssistStatusOut,
 )
+from app.schemas.agent_credentials import (
+    AgentCredentialCreate,
+    AgentCredentialCreatedOut,
+    AgentCredentialOut,
+)
 from app.schemas.auth import (
     AuthLoginBody,
     AuthMeUpdate,
@@ -172,6 +177,9 @@ __all__ = [
     "AssistProposeRequest",
     "AssistProposeResponse",
     "AssistStatusOut",
+    "AgentCredentialCreate",
+    "AgentCredentialCreatedOut",
+    "AgentCredentialOut",
     "AuthLoginBody",
     "AuthMeUpdate",
     "AuthRegisterBody",

@@ -1,8 +1,8 @@
 import uuid
-from datetime import time
+from datetime import datetime, time
 from typing import Any
 
-from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Index, Integer, String, Time, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Index, Integer, String, Time, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,6 +34,9 @@ class User(Base, TimestampMixin):
     availability_policies: Mapped[list["AvailabilityPolicy"]] = relationship(
         back_populates="owner",
         order_by="AvailabilityPolicy.sort_order",
+    )
+    agent_credentials: Mapped[list["AgentCredential"]] = relationship(
+        back_populates="owner",
     )
 
 
@@ -89,8 +92,33 @@ class UserSettings(Base, TimestampMixin):
     scheduling_revision: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default="0"
     )
+    # Agent/CLI Bearer channel (Phase 1). New accounts default off; migration grandfathers existing.
+    allow_agent_cli_access: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false", default=False
+    )
+    allow_agent_cli_access_grandfathered: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false", default=False
+    )
 
     owner: Mapped["User"] = relationship(back_populates="settings")
+
+
+class AgentCredential(Base, TimestampMixin):
+    """Revocable agent/CLI Bearer credential. Store secret_hash only — never plaintext."""
+
+    __tablename__ = "agent_credentials"
+    __table_args__ = (Index("idx_agent_credentials_owner", "owner_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    label: Mapped[str] = mapped_column(String(100), nullable=False)
+    secret_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    owner: Mapped["User"] = relationship(back_populates="agent_credentials")
 
 
 class SavedFilter(Base, TimestampMixin):

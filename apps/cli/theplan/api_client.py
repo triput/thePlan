@@ -1,10 +1,10 @@
 # ==============================================================================
 #  File: apps/cli/theplan/api_client.py
-#  Description: HTTP helpers for thePlan CLI — base URL, session cookies, and JSON API calls.
+#  Description: HTTP helpers for thePlan CLI — Bearer-only agent auth (no cookie fallback).
 #  Component: CLI
-#  Version: 1.0
+#  Version: 1.1
 #  Created: 2026-10-09
-#  Last Update: 2026-10-10
+#  Last Update: 2026-10-27
 # ==============================================================================
 
 from __future__ import annotations
@@ -15,13 +15,23 @@ from typing import Any
 import httpx
 
 from theplan.errors import CliError, exit_code_for_api_status
-from theplan.session_file import clear_session_file, load_cookies, save_cookies
+from theplan.session_file import (
+    api_base_url_raw,
+    clear_session_file,
+    load_bearer_token,
+    normalize_api_origin,
+)
 
 
 def api_base_url() -> str:
-    import os
+    return api_base_url_raw()
 
-    return os.environ.get("THEPLAN_API_URL", "http://127.0.0.1:8000").rstrip("/")
+
+_BEARER_REQUIRED_MSG = (
+    "Supported CLI auth requires an agent credential. "
+    "Run: theplan auth login --token <secret> "
+    "(Allow agent and CLI access in Settings; legacy session cookies are not used)."
+)
 
 
 def api_error_from_response(response: httpx.Response) -> CliError:
@@ -70,21 +80,42 @@ def api_request(
     *,
     json_body: dict | list | None = None,
     params: dict[str, Any] | None = None,
-    cookies: httpx.Cookies | None = None,
+    bearer: str | None = None,
     persist_session: bool = False,
 ) -> httpx.Response:
+    """Bearer-only HTTP. Never attaches session cookies (legacy jar is ignored).
+
+    ``bearer``: ephemeral secret (e.g. login probe) — skips session file.
+    Otherwise loads origin-bound token from the session file; missing → fail closed
+    before network I/O.
+    """
+    del persist_session  # cookies no longer persisted on the supported path
+    if bearer is not None:
+        token = bearer.strip()
+        if not token:
+            raise CliError(
+                code="CLI_BEARER_REQUIRED",
+                message=_BEARER_REQUIRED_MSG,
+                exit_code=2,
+            )
+    else:
+        token = load_bearer_token()
+        if not token:
+            raise CliError(
+                code="CLI_BEARER_REQUIRED",
+                message=_BEARER_REQUIRED_MSG,
+                exit_code=2,
+            )
+
     url = f"{api_base_url()}{path}"
-    jar = cookies if cookies is not None else load_cookies()
+    headers = {"Authorization": f"Bearer {token}"}
     try:
-        with httpx.Client(timeout=30.0, cookies=jar) as client:
-            response = client.request(method, url, json=json_body, params=params)
-            if persist_session:
-                save_cookies(client.cookies)
-            return response
+        with httpx.Client(timeout=30.0, cookies=httpx.Cookies()) as client:
+            return client.request(method, url, json=json_body, params=params, headers=headers)
     except httpx.RequestError as exc:
         raise CliError(
             code="API_UNAVAILABLE",
-            message=f"Could not reach API at {api_base_url()}: {exc}",
+            message=f"Could not reach API at {api_base_url()} (origin {normalize_api_origin()}): {exc}",
             exit_code=4,
         ) from exc
 
@@ -95,7 +126,7 @@ def api_json(
     *,
     json_body: dict | list | None = None,
     params: dict[str, Any] | None = None,
-    cookies: httpx.Cookies | None = None,
+    bearer: str | None = None,
     persist_session: bool = False,
     allowed_status: frozenset[int] | None = None,
 ) -> dict[str, Any] | None:
@@ -104,7 +135,7 @@ def api_json(
         path,
         json_body=json_body,
         params=params,
-        cookies=cookies,
+        bearer=bearer,
         persist_session=persist_session,
     )
     allowed = allowed_status or frozenset()
@@ -133,9 +164,7 @@ def api_json_authed(
 
 
 def api_logout() -> None:
-    response = api_request("POST", "/api/v1/auth/logout")
-    if response.status_code >= 400:
-        raise api_error_from_response(response)
+    """Clear local Bearer session. No cookie logout round-trip."""
     clear_session_file()
 
 

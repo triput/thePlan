@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import argparse
-
-import httpx
+import getpass
+import sys
 
 from theplan.api_client import api_json, api_logout
 from theplan.db_session import api_db_session
-from theplan.input_helpers import resolve_password
+from theplan.errors import CliError
 from theplan.output import emit_ok
 from theplan.recovery import run_reset_password
+from theplan.session_file import normalize_api_origin, save_bearer_token
 
 
 def register_auth(sub: argparse._SubParsersAction) -> None:
@@ -37,30 +38,80 @@ def register_auth(sub: argparse._SubParsersAction) -> None:
         help="Read new password from a pipe/redirect (or --interactive prompt)",
     )
 
-    login = auth_sub.add_parser("login", help="Log in via API (session cookie file)")
-    login.add_argument("--identifier", required=True, help="Username or email")
-    login_mode = login.add_mutually_exclusive_group(required=True)
-    login_mode.add_argument("--password", metavar="Y", help="Account password")
-    login_mode.add_argument(
-        "--password-stdin",
-        action="store_true",
-        help="Read password from a pipe/redirect (or --interactive prompt)",
+    login = auth_sub.add_parser(
+        "login",
+        help="Log in with an agent/CLI credential (Bearer token)",
     )
+    login.add_argument(
+        "--token",
+        metavar="SECRET",
+        help="Agent credential secret (tp_agent_…); never logged",
+    )
+    login.add_argument(
+        "--token-stdin",
+        action="store_true",
+        help="Read agent credential secret from stdin (or --interactive getpass)",
+    )
+    # Retired password login — fail closed with a stable code (do not call /auth/login).
+    login.add_argument("--identifier", help=argparse.SUPPRESS)
+    login.add_argument("--password", metavar="Y", help=argparse.SUPPRESS)
+    login.add_argument("--password-stdin", action="store_true", help=argparse.SUPPRESS)
 
-    auth_sub.add_parser("logout", help="Log out via API and clear session file")
+    auth_sub.add_parser("logout", help="Clear local agent/CLI session file")
     auth_sub.add_parser("me", help="Current session user via API")
 
 
+def _resolve_token(args: argparse.Namespace) -> str:
+    if getattr(args, "password", None) or getattr(args, "password_stdin", False) or getattr(
+        args, "identifier", None
+    ):
+        raise CliError(
+            code="CLI_PASSWORD_LOGIN_RETIRED",
+            message=(
+                "CLI password login is retired. Create an agent credential in the web app "
+                "(Allow agent and CLI access) and run: theplan auth login --token <secret>"
+            ),
+            exit_code=2,
+        )
+    if args.token and args.token_stdin:
+        raise CliError(
+            code="TOKEN_REQUIRED",
+            message="Pass only one of --token or --token-stdin",
+            exit_code=1,
+        )
+    if args.token_stdin:
+        if sys.stdin.isatty():
+            if not getattr(args, "interactive", False):
+                raise CliError(
+                    code="TOKEN_REQUIRED",
+                    message="Pass --token, pipe secret to --token-stdin, or use --interactive",
+                    exit_code=1,
+                )
+            secret = getpass.getpass("Agent credential secret: ").strip()
+        else:
+            secret = sys.stdin.readline().strip()
+    else:
+        secret = (args.token or "").strip()
+    if not secret:
+        raise CliError(
+            code="TOKEN_REQUIRED",
+            message="Agent credential secret required: --token or --token-stdin",
+            exit_code=1,
+        )
+    return secret
+
+
 def _run_login(args: argparse.Namespace) -> None:
-    secret = resolve_password(password=args.password, password_stdin=args.password_stdin)
+    secret = _resolve_token(args)
+    # Validate candidate **before** persist — previous session file stays intact on failure.
     body = api_json(
-        "POST",
-        "/api/v1/auth/login",
-        json_body={"identifier": args.identifier.strip(), "password": secret},
-        cookies=httpx.Cookies(),
-        persist_session=True,
+        "GET",
+        "/api/v1/auth/me",
+        bearer=secret,
+        persist_session=False,
     )
-    emit_ok(body or {})
+    save_bearer_token(secret, api_origin=normalize_api_origin())
+    emit_ok(body or {"authenticated": True, "api_origin": normalize_api_origin()})
 
 
 def _run_logout() -> None:
@@ -69,7 +120,7 @@ def _run_logout() -> None:
 
 
 def _run_me() -> None:
-    body = api_json("GET", "/api/v1/auth/me", persist_session=True)
+    body = api_json("GET", "/api/v1/auth/me", persist_session=False)
     emit_ok(body or {})
 
 

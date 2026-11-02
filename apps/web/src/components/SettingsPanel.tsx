@@ -22,6 +22,7 @@ import { HouseholdPanel } from "./HouseholdPanel";
 import { Modal } from "./Modal";
 import { emitToast } from "./ToastHost";
 import { AccountSection } from "./settings/AccountSection";
+import { AgentAccessSection } from "./settings/AgentAccessSection";
 import { AssistStatusSection } from "./settings/AssistStatusSection";
 import { CalendarAccountsSections } from "./settings/CalendarAccountsSections";
 import { CalendarDisplaySection } from "./settings/CalendarDisplaySection";
@@ -131,6 +132,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   return (
     <Modal open={open} title="Settings" onClose={onClose} className="settings-modal">
       <AccountSection enabled={open} />
+
+      <AgentAccessSection enabled={open} />
 
       <ThemePresetSection themeId={themeId} onThemeChange={handleThemeChange} />
 

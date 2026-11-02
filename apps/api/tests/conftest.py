@@ -163,6 +163,8 @@ def auth_client(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> TestCli
     app = create_app()
 
     def _override_get_db():
+        # Do not clear agent ContextVar here — AgentBoundaryAMiddleware owns
+        # request-lifetime propagation; clearing would drop the guard mid-request.
         try:
             yield db_session
         finally:

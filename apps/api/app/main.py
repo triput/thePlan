@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import (
+    agent_credentials,
     auth,
     assist,
     availability_policies,
@@ -36,6 +37,7 @@ from app.api.routes import (
 )
 from app.api.errors import register_exception_handlers
 from app.api.middleware import PasswordChangeGateMiddleware
+from app.api.middleware.agent_boundary_a import AgentBoundaryAMiddleware
 from app.bootstrap import ensure_bootstrap_user
 from app.config import get_settings
 from app.db import SessionLocal
@@ -89,6 +91,10 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     app.add_middleware(PasswordChangeGateMiddleware)
+    # Innermost relative to SessionMiddleware add order: added before Session so it
+    # runs outside session cookie parsing... Starlette stacks LIFO — add Boundary A
+    # after Session so it wraps the app closer and still sees Authorization.
+    app.add_middleware(AgentBoundaryAMiddleware)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,
@@ -110,6 +116,7 @@ def create_app() -> FastAPI:
 
     api_router = APIRouter(prefix="/api/v1")
     api_router.include_router(auth.router)
+    api_router.include_router(agent_credentials.router)
     api_router.include_router(epics.router)
     api_router.include_router(projects.router)
     api_router.include_router(tasks.router)

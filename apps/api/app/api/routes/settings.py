@@ -9,10 +9,11 @@
 
 """User settings GET/PATCH."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, request_has_bearer
+from app.api.errors import ApiError
 from app.db import get_db
 from app.models import User
 from app.schemas import UserSettingsOut, UserSettingsUpdate
@@ -47,10 +48,18 @@ def get_settings(
 @router.patch("", response_model=UserSettingsOut)
 def update_settings(
     body: UserSettingsUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> UserSettingsOut:
     updates = body.model_dump(exclude_unset=True)
+    # Allow-setting toggle is credential-admin: browser only; Bearer → cannot-admin.
+    if "allow_agent_cli_access" in updates and request_has_bearer(request):
+        raise ApiError(
+            403,
+            "Agent credentials cannot administer agent access",
+            "AGENT_CREDENTIAL_CANNOT_ADMIN",
+        )
     reject_legacy_workweek_settings_writes(updates)
     reject_chunking_cutover_writes(updates)
     duration_conversion_note: str | None = None

@@ -381,6 +381,10 @@ export interface UserSettings {
   max_auto_schedule_minutes_per_project_per_day: number | null;
   /** Owner-scoped SoT for disposition expected_revision (not board_revision). */
   scheduling_revision: number;
+  /** Dedicated agent/CLI Bearer channel (not Assist, not browser sessions). */
+  allow_agent_cli_access: boolean;
+  /** True when migration grandfathered this account on; owner may turn off anytime. */
+  allow_agent_cli_access_grandfathered: boolean;
   ups_weights?: Record<string, unknown>;
   id?: string;
   owner_id?: string;
@@ -403,6 +407,7 @@ export type UserSettingsUpdate = Partial<
     | "default_schedule_style"
     | "auto_defer_enabled"
     | "max_auto_schedule_minutes_per_project_per_day"
+    | "allow_agent_cli_access"
   >
 >;
 
@@ -1527,6 +1532,37 @@ export function updateSettings(patch: UserSettingsUpdate) {
   return apiFetch<UserSettings>("/api/v1/settings", {
     method: "PATCH",
     body: JSON.stringify(patch),
+  });
+}
+
+/** Owner agent/CLI credential (secret never returned on list). */
+export interface AgentCredential {
+  id: string;
+  label: string;
+  created_at: string | null;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
+
+/** Create response — plaintext secret returned once only. */
+export interface AgentCredentialCreated extends AgentCredential {
+  secret: string;
+}
+
+export function listAgentCredentials() {
+  return apiFetch<AgentCredential[]>("/api/v1/agent-credentials");
+}
+
+export function createAgentCredential(body: { label: string }) {
+  return apiFetch<AgentCredentialCreated>("/api/v1/agent-credentials", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function revokeAgentCredential(id: string) {
+  return apiFetch<AgentCredential>(`/api/v1/agent-credentials/${id}/revoke`, {
+    method: "POST",
   });
 }
 

@@ -28,6 +28,8 @@ class UserSettingsOut(BaseModel):
     max_auto_schedule_minutes_per_project_per_day: int | None = None
     # Owner-scoped SoT for progress / remaining-only expected_revision (not board_revision).
     scheduling_revision: int
+    allow_agent_cli_access: bool = False
+    allow_agent_cli_access_grandfathered: bool = False
     duration_conversion_note: str | None = None
 
     @field_serializer("workday_start_local")
@@ -67,3 +69,4 @@ class UserSettingsUpdate(BaseModel):
     default_schedule_style: ScheduleStyle | None = None
     auto_defer_enabled: bool | None = None
     max_auto_schedule_minutes_per_project_per_day: int | None = Field(default=None, gt=0)
+    allow_agent_cli_access: bool | None = None

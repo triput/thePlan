@@ -57,9 +57,10 @@ from app.models.task_occurrence_disposition import (
     TaskOccurrenceDisposition,
 )
 from app.models.time_map_override import TimeMapOverride, TimeMapOverrideBand
-from app.models.user import SavedFilter, User, UserSettings
+from app.models.user import AgentCredential, SavedFilter, User, UserSettings
 
 __all__ = [
+    "AgentCredential",
     "CalendarAccount",
     "CalendarProvider",
     "CalendarSubscription",
