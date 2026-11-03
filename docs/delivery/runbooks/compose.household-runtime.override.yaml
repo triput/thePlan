@@ -1,0 +1,33 @@
+# Household runtime pin for Phase 1 RELEASE_SHA launches.
+# Use with: docker compose -p compose
+#   --project-directory <ReleaseRoot>\infra\compose
+#   --env-file <OperatorEnvFile>
+#   -f <ReleaseRoot compose.yaml> -f THIS_FILE …
+# Planning artifact — does not authorize execute.
+#
+# Absolute build contexts → ReleaseRoot (never dirty operator tree).
+# Absolute secrets → operator .secrets-backup. SEED/ASSIST household parity.
+services:
+  api:
+    build:
+      context: F:/DropFolder/scratch/theplan-release-agent-cli-phase1-g0b/apps/api
+      dockerfile: Dockerfile
+    environment:
+      SEED_DEMO_USER: "true"
+      ASSIST_ENABLED: "true"
+    volumes:
+      - "F:/Code Repo/ThePlan/.secrets-backup:/secrets:ro"
+  web:
+    build:
+      context: F:/DropFolder/scratch/theplan-release-agent-cli-phase1-g0b/apps/web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+  scheduler:
+    build:
+      context: F:/DropFolder/scratch/theplan-release-agent-cli-phase1-g0b/apps/api
+      dockerfile: Dockerfile
+    environment:
+      SEED_DEMO_USER: "false"
+    volumes:
+      - "F:/Code Repo/ThePlan/.secrets-backup:/secrets:ro"

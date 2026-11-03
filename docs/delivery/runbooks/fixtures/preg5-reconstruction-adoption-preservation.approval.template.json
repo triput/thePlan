@@ -1,0 +1,13 @@
+{
+  "approved": true,
+  "operation": "reconstruction_adoption_preservation",
+  "stamp": "20261102T055454Z-b349fb02",
+  "api_image_id": "sha256:e4221a0e30c0f882cb95002cac3f7b3ef1704f7ff81d42032c7391f597a3a77b",
+  "web_image_id": "sha256:636901afe16e8ffda36601af75f029e2b076287a2c5ca868ecedd42029351969",
+  "dest_dir": "F:\\DropFolder\\backups\\theplan-household-rollback-images",
+  "api_tar_basename": "theplan-rollback-api-e4221a0e-20261102T055454Z-b349fb02.tar",
+  "web_tar_basename": "theplan-rollback-web-636901af-20261102T055454Z-b349fb02.tar",
+  "compose_pins_path": "F:\\Code Repo\\ThePlan\\docs\\delivery\\runbooks\\Household-ComposePins.ps1",
+  "decision_sheet_path": "F:\\Code Repo\\ThePlan\\docs\\delivery\\0.7-AGENT-CLI-ACCESS-Phase1-RELEASE-DEPLOYMENT-DECISION-SHEET-2026-11-01.md",
+  "apply_optional_adopted_tags": false
+}

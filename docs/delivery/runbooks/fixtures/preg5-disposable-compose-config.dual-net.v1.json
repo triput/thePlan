@@ -1,0 +1,127 @@
+{
+  "name": "preg5cfgdualcapture",
+  "networks": {
+    "preg5_net": {
+      "name": "preg5cfgdualcapture_preg5_net",
+      "driver": "bridge",
+      "ipam": {},
+      "internal": true
+    },
+    "preg5_publish": {
+      "name": "preg5cfgdualcapture_preg5_publish",
+      "driver": "bridge",
+      "ipam": {}
+    }
+  },
+  "services": {
+    "api": {
+      "command": [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "ASSIST_ENABLED": "false",
+        "DATABASE_URL": "postgresql+psycopg://preg5:preg5_disposable_only@postgres:5432/theplan_preg5",
+        "PATH": "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONUNBUFFERED": "1",
+        "SCHEDULE_DISPATCH": "external",
+        "SEED_DEMO_USER": "false",
+        "SESSION_HTTPS_ONLY": "false",
+        "SESSION_SECRET": "0123456789abcdef0123456789abcdef0123456789abcdef",
+        "TOKEN_ENCRYPTION_KEY": "0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "image": "sha256:e4221a0e30c0f882cb95002cac3f7b3ef1704f7ff81d42032c7391f597a3a77b",
+      "networks": {
+        "preg5_net": null,
+        "preg5_publish": null
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 8000,
+          "published": "18000",
+          "protocol": "tcp"
+        }
+      ],
+      "pull_policy": "never"
+    },
+    "postgres": {
+      "command": null,
+      "entrypoint": null,
+      "environment": {
+        "POSTGRES_DB": "theplan_preg5",
+        "POSTGRES_PASSWORD": "preg5_disposable_only",
+        "POSTGRES_USER": "preg5"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U preg5 -d theplan_preg5"
+        ],
+        "timeout": "5s",
+        "interval": "5s",
+        "retries": 10
+      },
+      "image": "sha256:93d55776e04376e19adb2733e3ccebb4392ee7dd86d8ff238503b30fe719c84f",
+      "networks": {
+        "preg5_net": null
+      },
+      "pull_policy": "never",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "preg5_pgdata",
+          "target": "/var/lib/postgresql/data",
+          "volume": {}
+        }
+      ]
+    },
+    "web": {
+      "command": [
+        "nginx",
+        "-g",
+        "daemon off;"
+      ],
+      "depends_on": {
+        "api": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "entrypoint": null,
+      "image": "sha256:636901afe16e8ffda36601af75f029e2b076287a2c5ca868ecedd42029351969",
+      "networks": {
+        "preg5_net": null,
+        "preg5_publish": null
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 80,
+          "published": "18080",
+          "protocol": "tcp"
+        }
+      ],
+      "pull_policy": "never"
+    }
+  },
+  "volumes": {
+    "preg5_pgdata": {
+      "name": "preg5cfgdualcapture_preg5_pgdata"
+    }
+  }
+}

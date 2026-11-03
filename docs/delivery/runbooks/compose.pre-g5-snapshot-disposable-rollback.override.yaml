@@ -1,0 +1,3 @@
+# SUPERSEDED for isolation review.
+# Use standalone: compose.pre-g5-snapshot-disposable.yaml
+# (override-only cannot strip inherited household env/mounts/ports/scheduler from a base file.)

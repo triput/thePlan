@@ -1,0 +1,73 @@
+# STANDALONE disposable compose for validating reconstructed pre-G5 snapshots.
+# Pin SNAPSHOT_* and POSTGRES_IMAGE to full local sha256 IDs — pull_policy never; no builds.
+#
+# EXECUTE requirements (separate authorize + runner):
+#   1. Fresh unique project: docker compose -p theplanpreg5snap… --project-directory <disp-dir>
+#   2. Explicit disposable .env only (no household env).
+#   3. Collision preflight: nets/vols/project-labeled containers/host ports.
+#   4. One-shot alembic upgrade 042 on empty DB = fresh schema creation (NOT backup restore).
+#   5. Network internal: true — host-published checks do not need container egress.
+#
+# Does NOT include scheduler. Does NOT bind household secrets.
+
+name: theplan-pre-g5-disposable-template
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:?set POSTGRES_IMAGE to local immutable sha256 id}
+    pull_policy: never
+    environment:
+      POSTGRES_USER: preg5
+      POSTGRES_PASSWORD: preg5_disposable_only
+      POSTGRES_DB: theplan_preg5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U preg5 -d theplan_preg5"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [preg5_net]
+    volumes:
+      - preg5_pgdata:/var/lib/postgresql/data
+
+  api:
+    image: ${SNAPSHOT_API_IMAGE:?set SNAPSHOT_API_IMAGE to reconstructed sha256 id}
+    pull_policy: never
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      PATH: /usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      DATABASE_URL: postgresql+psycopg://preg5:preg5_disposable_only@postgres:5432/theplan_preg5
+      SCHEDULE_DISPATCH: external
+      SEED_DEMO_USER: "false"
+      ASSIST_ENABLED: "false"
+      SESSION_HTTPS_ONLY: "false"
+      SESSION_SECRET: ${PREG5_SESSION_SECRET:?set disposable PREG5_SESSION_SECRET}
+      TOKEN_ENCRYPTION_KEY: ${PREG5_TOKEN_ENCRYPTION_KEY:?set disposable PREG5_TOKEN_ENCRYPTION_KEY}
+    ports:
+      - "127.0.0.1:18000:8000"
+    networks: [preg5_net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    image: ${SNAPSHOT_WEB_IMAGE:?set SNAPSHOT_WEB_IMAGE to reconstructed sha256 id}
+    pull_policy: never
+    command: ["nginx", "-g", "daemon off;"]
+    ports:
+      - "127.0.0.1:18080:80"
+    networks: [preg5_net]
+    depends_on:
+      - api
+
+networks:
+  preg5_net:
+    driver: bridge
+    internal: true
+    # no explicit name: — project scope yields {project}_preg5_net
+    # Host port publishes still serve V4/V5; containers have no egress.
+
+volumes:
+  preg5_pgdata:
+    # no explicit name: — project scope yields {project}_preg5_pgdata
