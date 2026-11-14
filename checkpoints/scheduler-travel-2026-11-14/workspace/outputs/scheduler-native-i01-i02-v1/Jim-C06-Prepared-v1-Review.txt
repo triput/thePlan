@@ -1,0 +1,11 @@
+Jim — C06 prepared v1 independently reviewed: TIP046D670A…;17 artifact+268 payload entries match, delta is exactly four approved fixture targets+manifest; production/host/original/fake PASS preserved. Disposition REVISE, no execution card yet. Full consolidated findings in outputs/scheduler-native-i01-i02-v1/C06-Prepared-v1-Static-Review.md.
+
+Within SAME approved prep scope, make a fresh follow-on copy and close:
+1. Group custody: retirement currently checks shell poll only and skips group when leader already exited. Prove exact group retirement separately; fake leader-exited/descendant-alive and SIGTERM-ignored states must be independent.
+2. New helper primary/cleanup: preserve generation primary; attach secondary retirement evidence. Track started readers/owned pipes; partial start/join/close errors cannot skip other retirement or replace primary. Current primary control tests unrelated unchanged suite helper.
+3. Shared30s generation/admission deadline; monitor capture failure while collecting, preserve5+5+5 retirement accounting and600/900 budgets. Distinguish observed versus retained byte counts.
+4. Behavioral negatives: trust/root/port/ordering controls currently use strings/path inequality. Exercise actual extracted changed branches with fakes; hook-order must inspect real main call, not first def text. Label static checks honestly.
+5. Held verification currently ambient python without bounded pinned admission. Author enforcing input/source pins, bounded launch/capture/result/retirement receipt, truthful executed metadata. Synthetic module must be registered and exec use its same __dict__; required symbols enforced. Keep old22 packet immutable.
+
+Source changes and separate harness/manifest authoring are already authorized; no new user permission needed for this bounded fresh-copy revision. No fifth source/production/host file, execution/import/test/shell syntax run, PKI, socket or Docker. Return exact diff/hashes/held commands. Endpoint unbound; all execution holds stay.
+— Dex

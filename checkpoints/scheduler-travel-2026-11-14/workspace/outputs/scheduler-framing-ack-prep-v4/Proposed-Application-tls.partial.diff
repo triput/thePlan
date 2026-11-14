@@ -1,0 +1,13 @@
+diff --git a/packet/original/app/services/covering_joined_https.py b/packet/candidate/app/services/covering_joined_https.py
+index 94c3196..8590b6a 100644
+--- a/packet/original/app/services/covering_joined_https.py
++++ b/packet/candidate/app/services/covering_joined_https.py
+@@ -59,7 +59,7 @@ class JoinedTLS:
+             context.check_hostname=True
+             context.verify_mode=ssl.CERT_REQUIRED
+             self.sock=context.wrap_socket(self.sock,server_hostname=self.peer.hostname,
+-                                          do_handshake_on_connect=False)
++                                          do_handshake_on_connect=False, suppress_ragged_eofs=False)
+             while True:
+                 self.check()
+                 try:

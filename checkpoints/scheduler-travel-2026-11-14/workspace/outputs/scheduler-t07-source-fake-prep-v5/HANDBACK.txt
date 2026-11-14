@@ -1,0 +1,20 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v5-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_V5_HTTP_IDENTITY_COMPLETE_NOT_EXECUTED
+Supersedes v4 TIP DA6BCB39A5FB48F9D6449D6992BCBCC3A2EA57F5298E0C015D798642FA348B3D (immutable).
+v1–v3 also immutable. Closes Dex p1794429171.
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v5-2026-11-11/
+Mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v5/
+
+CHECK SUCCESSOR:
+- apply port → CoveringHTTP event; token port → CoveringHTTP oauth
+- HTTP cleanup Unknown propagates; exchange≡terminal object identity
+- targets SUB-1/SUB-2/SUB-3: prior complete, fault, later-not-admitted
+- O-CALLER-EVENT original negative witness; M-ALLOW-LATER same domain oracle
+- named controls: 41 (was 40); +O-CALLER-EVENT
+
+SOURCE pins unchanged: E942BB43… / 2E6A4ABB… / 84F50367…
+payload/SHA256SUMS carried (31743D610D254D5F…)
+launch_ready=false; executed_in_preparation=false; no check run.
+TIP-FREEZE SHA256 0EF2EFD5AC028D5CCBDADB974C6632F090DF526788467079483D79799B834685

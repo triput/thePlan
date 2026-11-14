@@ -1,0 +1,13 @@
+{
+  "kind": "unexecuted_one_checker_role_contribution_v2",
+  "source_sha256": "9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48",
+  "candidate_sha256": "686D06C5A6C9DE16E2EEC8578FF1C9DA8CD8AFF0A03435F6C6BA11C835FC8E07",
+  "diff_sha256": "308837867E2B0CE68CCE52284AAB7D770673ADCF49ADC96034CFF4190E3D00CD",
+  "supersedes_candidate": "E511B69A556F744ADD8618D967B613681B7B3CE663C1CBCFACDEC03A7F77066F",
+  "scope": "Same F1 AST guard/four controls plus explicit memory-only bootstrap/PKI fakes for report extraction",
+  "imports_run": false,
+  "ast_run": false,
+  "compiled": false,
+  "executed": false,
+  "launch_authorized": false
+}

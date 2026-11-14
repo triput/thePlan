@@ -1,0 +1,195 @@
+import uuid
+from datetime import datetime
+
+from typing import Any
+
+from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Index, String, Text, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db import Base
+from app.models.enums import CalendarProvider, CalendarSubscriptionRole
+from app.models.mixins import TimestampMixin, _uuid
+
+
+class CalendarAccount(Base, TimestampMixin):
+    __tablename__ = "calendar_accounts"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "provider", "account_email", name="calendar_accounts_owner_provider_unique"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[CalendarProvider] = mapped_column(
+        SAEnum(CalendarProvider, name="calendar_provider", native_enum=True), nullable=False
+    )
+    account_email: Mapped[str | None] = mapped_column(String(255))
+    access_token_enc: Mapped[str | None] = mapped_column(Text)
+    refresh_token_enc: Mapped[str | None] = mapped_column(Text)
+    token_expires_at: Mapped[datetime | None] = mapped_column()
+    sync_cursor: Mapped[str | None] = mapped_column(Text)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    mirror_blocks: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    last_synced_at: Mapped[datetime | None] = mapped_column()
+
+    subscriptions: Mapped[list["CalendarSubscription"]] = relationship(
+        back_populates="calendar_account",
+        cascade="all, delete-orphan",
+    )
+
+
+class CalendarSubscription(Base, TimestampMixin):
+    __tablename__ = "calendar_subscriptions"
+    __table_args__ = (
+        UniqueConstraint(
+            "calendar_account_id",
+            "external_calendar_id",
+            name="calendar_subscriptions_account_calendar_unique",
+        ),
+        Index("idx_calendar_subscriptions_account", "calendar_account_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    calendar_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("calendar_accounts.id", ondelete="CASCADE"), nullable=False
+    )
+    external_calendar_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    summary: Mapped[str | None] = mapped_column(String(255))
+    role: Mapped[CalendarSubscriptionRole] = mapped_column(
+        SAEnum(CalendarSubscriptionRole, name="calendar_subscription_role", native_enum=True),
+        nullable=False,
+    )
+    is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    sync_cursor: Mapped[str | None] = mapped_column(Text)
+    # Provider calendar default zone (IANA or Windows id); never owner settings TZ.
+    provider_timezone: Mapped[str | None] = mapped_column(String(64))
+    # T1-C: complete-window coverage evidence (Google success minting only in this slice).
+    coverage_window_start: Mapped[datetime | None] = mapped_column()
+    coverage_window_end: Mapped[datetime | None] = mapped_column()
+    coverage_mode: Mapped[str | None] = mapped_column(String(16))
+    coverage_success_at: Mapped[datetime | None] = mapped_column()
+    coverage_fetched_at: Mapped[datetime | None] = mapped_column()
+    coverage_pagination_complete: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
+    coverage_active_generation: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    coverage_success_generation: Mapped[int | None] = mapped_column()
+    coverage_show_deleted: Mapped[bool | None] = mapped_column(Boolean)
+    coverage_single_events: Mapped[bool | None] = mapped_column(Boolean)
+    coverage_page_count: Mapped[int | None] = mapped_column()
+    coverage_item_count: Mapped[int | None] = mapped_column()
+    coverage_token_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    coverage_last_failure_at: Mapped[datetime | None] = mapped_column()
+    coverage_last_failure_cause: Mapped[str | None] = mapped_column(String(128))
+
+    calendar_account: Mapped["CalendarAccount"] = relationship(back_populates="subscriptions")
+
+
+class CalendarSubscriptionRefreshFailure(Base):
+    """Durable refresh-failure sidecar (one open row per subscription).
+
+    INSERT takes FOR KEY SHARE on ``calendar_subscriptions``, which coexists
+    with a caller's flushed FOR NO KEY UPDATE. The freshness gate treats this
+    row like ``coverage_last_failure_*`` so a lock timeout on the subscription
+    UPDATE cannot fail open after the caller rolls back.
+    """
+
+    __tablename__ = "calendar_subscription_refresh_failures"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    subscription_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("calendar_subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    failure_at: Mapped[datetime] = mapped_column(nullable=False)
+    cause: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class ExternalCalendarEvent(Base):
+    __tablename__ = "external_calendar_events"
+    __table_args__ = (
+        UniqueConstraint("provider", "external_event_id", name="unique_external_event"),
+        Index("idx_external_events_account", "calendar_account_id"),
+        Index("idx_external_events_time", "start_time", "end_time"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    calendar_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("calendar_accounts.id", ondelete="CASCADE"), nullable=False
+    )
+    task_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="SET NULL")
+    )
+    scheduled_block_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("scheduled_blocks.id", ondelete="SET NULL")
+    )
+    provider: Mapped[CalendarProvider] = mapped_column(
+        SAEnum(CalendarProvider, name="calendar_provider", native_enum=True), nullable=False
+    )
+    external_event_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    calendar_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str | None] = mapped_column(String(500))
+    start_time: Mapped[datetime] = mapped_column(nullable=False)
+    end_time: Mapped[datetime] = mapped_column(nullable=False)
+    is_all_day: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
+    pending_deletion: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    sync_hash: Mapped[str | None] = mapped_column(String(64))
+    last_synced_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # Track 1 T1-A: Google transparency + provenance (nullable = unknown_legacy).
+    transparency: Mapped[str | None] = mapped_column(String(32))
+    free_busy_provenance: Mapped[str | None] = mapped_column(String(64))
+    provider_series_id: Mapped[str | None] = mapped_column(String(255))
+    # T1-4-MS: verified_series | verified_non_recurring | incomplete
+    series_identity_state: Mapped[str] = mapped_column(
+        String(32), nullable=False, server_default="incomplete"
+    )
+    series_identity_incomplete_reason: Mapped[str | None] = mapped_column(String(64))
+    free_busy_prior_transparency: Mapped[str | None] = mapped_column(String(32))
+    free_busy_prior_provenance: Mapped[str | None] = mapped_column(String(64))
+    free_busy_sync_run_id: Mapped[str | None] = mapped_column(String(64))
+    free_busy_changed_at: Mapped[datetime | None] = mapped_column()
+    free_busy_change_history: Mapped[list[dict[str, Any]] | None] = mapped_column(
+        JSONB, nullable=True
+    )
+    source_zone_missing: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    # T1-B: resolved IANA source zone used for date-only / all-day bounds (nullable).
+    source_timezone: Mapped[str | None] = mapped_column(String(64))
+    free_busy_pending_exception: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    # T1-C: provider-reported cancellation (distinct from Track 3 pending_deletion).
+    is_provider_cancelled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    # T1-11: export-only comparison baseline (successful mirror push); ingest must not write.
+    export_baseline_at: Mapped[datetime | None] = mapped_column()
+    export_baseline_source: Mapped[str | None] = mapped_column(String(64))
+    export_calendar_id: Mapped[str | None] = mapped_column(String(255))
+    export_baseline_etag: Mapped[str | None] = mapped_column(String(512))
+    export_baseline_change_key: Mapped[str | None] = mapped_column(String(512))
+    export_baseline_updated: Mapped[datetime | None] = mapped_column()
+    export_baseline_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    export_baseline_schema_version: Mapped[int | None] = mapped_column()
+
+    @classmethod
+    def immovable_busy_clause(cls) -> tuple:
+        """External busy: not our mirror, tombstone, or provider-cancelled cache row."""
+        return (
+            cls.scheduled_block_id.is_(None),
+            cls.pending_deletion.is_(False),
+            cls.is_provider_cancelled.is_(False),
+        )

@@ -1,0 +1,7 @@
+No new blocking product questions from me. Your answers give us enough to write the repair spec.
+
+One distinction I'll preserve in that write-up: “many routines can be skipped” is not blanket permission to silently discard every overdue task. We'll specify how a missed occurrence is shown and resolved, while keeping your no-stacking rule and case-by-case one-off recovery intact.
+
+The remaining details belong in the proposed design: exact template hours, calendar timezone/freshness rules, and the reconciliation flow. We can bring you concrete choices if those expose a real tradeoff, rather than inventing another questionnaire now. :)
+
+Dex

@@ -1,0 +1,41 @@
+{
+  "api_file_count": 234,
+  "author": "Justin",
+  "byte_semantics": "utf-8 lf",
+  "changed_existing_api_files": 3,
+  "date": "2026-11-11",
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "disposition": "fresh_copy_three_file_t07_implementation_and_held_fake_verification_authoring_not_executed",
+  "docker_or_live_checks": 0,
+  "endpoint": "unbound",
+  "executed": false,
+  "execution_authorized": false,
+  "fake_packet": {
+    "check_sha256": "E6C55113DE49D83183BCA14F4113CB0B38566D85839AB5B39BAF63C986007E7F",
+    "dir": "fake-only-t07-retirement-verification",
+    "executed_in_preparation": false,
+    "expected_sha256": "56F576375D1F96907FE9127040AB258FA2B6D0D61FB719579732CB94BAEE9FF8",
+    "functional_control_rows": 31,
+    "named_controls_total": 39,
+    "c_out_ve_present": true,
+    "c_out_unk_present": true,
+    "launch_ready": false,
+    "outer_admission_sha256": "7559C27C361FE8A50A89C98DC412D2741342786C5AE1880D22531A17885B369D",
+    "manifest_sha256": "538888433F9D0BA3CFE302D10891D52360EE5577B88E353EA29256C0CD74D0A1"
+  },
+  "implementation_applied_in_fresh_copy_only": true,
+  "imports_of_app": 0,
+  "d2_one_shot_launched": false,
+  "outputs_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-source-fake-prep-v1",
+  "packet": "post-native-t07-source-fake-prep-jim-v1-2026-11-11",
+  "design_tip_sha256": "94362F46EE6912A9A6F2A7CB64A673E51A2037D145A1FB70721F373FE2B7AA91",
+  "resulting_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "role": "Jim T07 source+fake preparation (Justin implementation)",
+  "scope_sha256": "B1481463CA6993C6C4C884485237E5DD2C308B7578A796DE5DE89565BDD46C83",
+  "status": "T07_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED",
+  "tests_run": 0
+}

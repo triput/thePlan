@@ -1,0 +1,14 @@
+{
+  "question": "call_9fe24ed97d1a4017b5d4fd7eb44b318a",
+  "T03PreparationQueuedBehind": "F465A4E2 BODY-STALL preparation",
+  "atUtc": "2026-11-14T02:34:26.6399420Z",
+  "approved": [
+    "ONE T05 fake10/38",
+    "ONE MS-refresh retirement fake10/41",
+    "T03D1 design/bounded preparation only"
+  ],
+  "remainingOneShotPerFake": 1,
+  "nativeExecution": false,
+  "sequence": "T05 first, reconcile before MS-refresh; stop before second if first fails",
+  "endpoint": "unbound"
+}

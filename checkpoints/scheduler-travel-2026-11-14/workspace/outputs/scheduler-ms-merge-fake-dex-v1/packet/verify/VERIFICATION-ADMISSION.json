@@ -1,0 +1,57 @@
+{
+    "kind":  "scheduler-native-provider-one-shot-fake-admission",
+    "launch_authorized":  true,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-ms-merge-fake-prep-matt-v1",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "packet_file_pin_count":  21,
+    "packet_files":  [
+                         {"sha256":  "62C6FE99E33F62B85D13FFBDF99085D60B3710A6F8AA1A74758FA94449571600", "relative_path":  "verify/check_native_provider.py"},
+                         {"sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07", "relative_path":  "verify/launch_check.py"},
+                         {"sha256":  "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB", "relative_path":  "verify/verify_admission.py"},
+                         {"sha256":  "81ADB08981E71E4C8E2BB6D9FA252C4AA018FE66670849364339D12BF99BEC13", "relative_path":  "verify/EXPECTED-FAKE-STRUCTURAL.json"},
+                         {"sha256":  "E315184D2B50C9B3084F2664C2DAB558B6B0BC1C106ED553D63D011421087801", "relative_path":  "verify/OUTER-ADMISSION.json"},
+                         {"sha256":  "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7", "relative_path":  "Invoke-Fake.ps1"},
+                         {"sha256":  "263CF5DDB8E2127C3F830DFABCB6EAE7F0D3FBF43CC87CF40ACF077C13249270", "relative_path":  "subjects/config/nonexpired-launch-config.json"},
+                         {"sha256":  "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929", "relative_path":  "subjects/config/nonexpired-runner-config.json"},
+                         {"sha256":  "197F4C7DE61A9B50930D97A374468330B7E243407A2BF35528A02AA66C8FE713", "relative_path":  "subjects/config/refresh-launch-config.json"},
+                         {"sha256":  "108D8D1E5FEE4F1DBAB3FC6023AD018D7A5442C79C5012BD4D43A4DBAC6EE11A", "relative_path":  "subjects/config/refresh-runner-config.json"},
+                         {"sha256":  "A805B9B0332B3619D33DBB712BD695BDF67AD3A41B2A925A0C8759745B8D6DD8", "relative_path":  "subjects/diff/msrefresh.diff"},
+                         {"sha256":  "2023F97B5695BF690F50186C56B4DD3FCFF1A2BAFB3CA637B1051F400F3F2468", "relative_path":  "subjects/diff/observer.diff"},
+                         {"sha256":  "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90", "relative_path":  "subjects/manifest/base.txt"},
+                         {"sha256":  "BD48E400924E8D6DD17597F7845E20FC01F1889AFEEAD743880CB3BF2623472D", "relative_path":  "subjects/manifest/ms.txt"},
+                         {"sha256":  "14FA30AD16E719150CA81F07274FF6AC8D3A2D80A065296D9FDB2830E2B00B46", "relative_path":  "subjects/manifest/nonexpired.txt"},
+                         {"sha256":  "74B637D46586E1C8FD94EBEE8E3BB29581131C592B881D695D88BA1D509CCE45", "relative_path":  "subjects/manifest/peerclose.txt"},
+                         {"sha256":  "845182697A8BFA0142A15E4AC2261F33AD797D30440A110A308E3BC2FB4C2348", "relative_path":  "subjects/manifest/refresh.txt"},
+                         {"sha256":  "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F", "relative_path":  "subjects/runner/base.py"},
+                         {"sha256":  "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C", "relative_path":  "subjects/runner/merged.py"},
+                         {"sha256":  "CC4D49E758F22E5E34C0D6093946CA390BC95A4C320C3D92B24AD723FA8634FF", "relative_path":  "subjects/runner/ms.py"},
+                         {"sha256":  "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645", "relative_path":  "subjects/runner/observer.py"}
+                     ],
+    "runtime_file_pin_count":  1,
+    "runtime_files":  [
+                          {
+                              "absolute_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+                              "sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                              "note":  "partial runtime scope: reviewed interpreter executable only; not a standard-library/DLL/environment lock"
+                          }
+                      ],
+    "result_byte_cap":  262144,
+    "capture_byte_cap":  65536,
+    "reader_join_seconds":  5,
+    "post_kill_wait_seconds":  5,
+    "check_seconds_budget":  120,
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_root":  "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+    "exclusive_evidence":  ["verify/FAKE-NATIVE-PROVIDER-RESULT.json", "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"],
+    "successor_reference":  {
+        "nonexpired_workspace":  "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-merge-nonexpired-prep-matt-v1",
+        "refresh_workspace":  "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-merge-refresh-prep-matt-v1",
+        "merged_runner_sha256":  "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C",
+        "peer_sha256":  "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039"
+    },
+    "note":  "Dex staged MS-refresh merge fake v1. Machine gates are true only for review. No human launch authorization exists. Require exact reviewed hashes and explicit one-shot approval including bounded owned-child termination."
+}

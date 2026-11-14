@@ -1,0 +1,305 @@
+{
+  "packet": "post-native-I01-I02-fake-only-behavioral-harness-v1-revise2-corrected7",
+  "class": "FAKE-BEHAVIORAL",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "permitted_dependencies": [
+    "ast",
+    "dataclasses",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re",
+    "sys",
+    "threading",
+    "time",
+    "types",
+    "typing",
+    "uuid",
+    "datetime",
+    "copy",
+    "tempfile",
+    "subprocess",
+    "os",
+    "asyncio"
+  ],
+  "forbidden": [
+    "app.* imports",
+    "vendor imports",
+    "Docker",
+    "provider/DNS/proxy/app network sockets",
+    "database",
+    "native runner",
+    "live providers",
+    "pytest auto-discovery"
+  ],
+  "forbidden_clarification": "forbidden network/sockets means provider/DNS/proxy/app/production sockets — NOT a claim of literally zero OS sockets from stdlib asyncio event-loop internals",
+  "windows_asyncio_internal_socket_scope": {
+    "choice": "B",
+    "dex_finding": "p1794366344",
+    "consolidated_in": "p1794366450",
+    "mechanism": "disclose_standard_event_loop_internal_wakeup_sockets",
+    "not_chosen": "A_socket_free_fake_scheduling_seam",
+    "choice_rationale": "N11 actual-asyncio controls (asyncio.Queue/wait/CancelledError/late-peer) retain real asyncio.run; rewriting to a fake scheduling seam would risk regressing corrected4/5 ASGI closures. Disclose honestly for future execution card.",
+    "policy": "WindowsProactorEventLoopPolicy (default under asyncio.run on Windows; Python311 Lib/asyncio/windows_events.py)",
+    "creation": "BaseProactorEventLoop.__init__ → _make_self_pipe → socket.socketpair (proactor_events.py); fallback Lib/socket.py loopback bind/listen/connect/accept",
+    "scope": "loopback-only (AF_INET 127.0.0.1/localhost pair endpoints; fallback listener transient on loopback)",
+    "concurrent_bound_sockets": 2,
+    "concurrent_bound_note": "ssock+csock per live event loop; fallback may briefly hold a third listening socket during pair construction only",
+    "sequential_asyncio_run_cycles_in_N11": 3,
+    "retirement": "loop.close retires self-pipe sockets at end of each asyncio.run",
+    "production_endpoint": "unbound",
+    "excludes": [
+      "provider calls",
+      "DNS",
+      "proxy",
+      "app network",
+      "database"
+    ],
+    "socket_authority_added": false,
+    "inventory_executed": false,
+    "future_execution_card": "explicit disclosure of Choice B bounds/scope; no silent no-sockets claim"
+  },
+  "source_extraction": {
+    "algorithm": "AST module parse of frozen UTF-8 LF fixture bytes; required names FAIL CLOSED if missing from AST (preexisting globals do not satisfy); Lock and dataclass deps supplied BEFORE SharedTransportScript compile; synthetic name registered as real ModuleType in sys.modules; exec against that exact module.__dict__ (dataclass _is_type via sys.modules.get(cls.__module__).__dict__); per-module coherent __globals__; patches apply to that namespace; missing-symbol refusal preserved; exact source/name/sha256 provenance recorded",
+    "sources": {
+      "fixture/i01_auth_seed.py": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+      "fixture/i01_byte_transport.py": "E532D3163712729DAA98FF16D50EB2682A7B44D8A7570D5CA2CE970B5D1CF5BA",
+      "fixture/i01_i02_suite.py": "EA776814DBD6924A689BAAC00C36E9AEE50B01F635AFB25B733D40796E4BC229",
+      "fixture/i02_owner_lock_contention.py": "A8E38CD2B79AC5F0E19FCC724313F5608C5011B313D5EBB456FE9ED4A4C000E2",
+      "fixture/i01_asgi_app.py": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B",
+      "fixture/i01_i02_receipts.py": "796F12ECB068E8BE7B01EE3CA390CDBF58FFE2BA981BB59B2293DD22409311BF",
+      "fixture/i01_c06_dual_peer.py": "79EDDA9719577A805EA4CA4C2534B62EA3B21B55AF36EDA8D243C38E90A74331",
+      "runner-config.json": "F43F283AE0385248D6A32F8D2CD1DAE4DCF1440890548F6CC4367CAE08EF73E2",
+      "fixture/supervisor.py": "A72721BD1E092863B89C77F1FE4C98243759AF9764F9CB8BB31B6402FEBC40DB"
+    },
+    "extracted_symbols": {
+      "fixture/i01_auth_seed.py": [
+        "_token_hex_prefix",
+        "inverted_subscription_ids",
+        "production_ordered_calendar_ids",
+        "ATTEMPT_VALIDITY_SECONDS",
+        "PULL_WINDOW_MAX",
+        "PlanValidityExpired",
+        "REQUEST_END_HEADROOM",
+        "TOKEN_HORIZON"
+      ],
+      "fixture/i01_byte_transport.py": [
+        "ScriptedExchange",
+        "SharedTransportScript",
+        "google_event_empty_script"
+      ],
+      "fixture/i01_i02_receipts.py": [
+        "build_receipt",
+        "sanitize_cleanup_failure",
+        "RECEIPT_VERSION"
+      ],
+      "fixture/i01_c06_dual_peer.py": [
+        "load_c06_gate_receipt",
+        "C06GateError",
+        "C06_GATE_ARTIFACT_STEM"
+      ],
+      "fixture/i01_asgi_app.py": [
+        "DisconnectInjectControl",
+        "BoundedASGIResponse",
+        "MONITOR_OBSERVE_JOIN_SECONDS",
+        "_next_receive_message"
+      ],
+      "fixture/i01_i02_suite.py": [
+        "AttemptCleanup",
+        "assert_subscription_ids_count_error",
+        "assert_ordering_request_ids",
+        "attach_cleanup_failures_to_primary",
+        "resolve_attempt_outcome",
+        "assert_c09_disconnect_evidence",
+        "assert_i02_lock_observations",
+        "assert_budget_identity_observations",
+        "assert_transport_coverage_observations",
+        "_validation_items",
+        "I01_CASE_IDS",
+        "JOIN_LIMIT_SECONDS",
+        "SuiteStop"
+      ],
+      "fixture/i02_owner_lock_contention.py": [
+        "I02Barriers",
+        "I02Evidence",
+        "GENERATION_MISMATCH_CAUSE",
+        "await_mutation_admission",
+        "assert_intended_subscription_diagnostic",
+        "record_observer_close_failure",
+        "select_i02_primary",
+        "close_preserving_primary",
+        "run_verification_query_with_close",
+        "JOIN_LIMIT_SECONDS"
+      ]
+    }
+  },
+  "controls": {
+    "negatives": [
+      "N1",
+      "N2",
+      "N3",
+      "N4",
+      "N5",
+      "N6",
+      "N7",
+      "N8",
+      "N9",
+      "N10",
+      "N11",
+      "N12",
+      "N13",
+      "N14"
+    ],
+    "positives": [
+      "P_UUID_actual_tokens",
+      "P_script_production_order",
+      "P_C07_uppercase_ids",
+      "P_C03_count_types",
+      "P_gate_idempotent_second_stop",
+      "P_admit_mutation_commits",
+      "P_C09_hold_snapshot_shape",
+      "P_synthetic_module_registration"
+    ],
+    "ordered_contract": "EXPECTED.controls key order == EXPECTED.control_ids_in_order == result.control_ids_in_order == result.controls key order"
+  },
+  "invocation": {
+    "exact_enforcing_invocation": "admit_outer.py",
+    "outer_admission_file": "OUTER-ADMISSION.json",
+    "launcher": "invoke_fake_behavioral.py",
+    "check_script": "check_i01_i02_fake_behavioral.py",
+    "workdir": "fake-only-behavioral-harness/",
+    "timeout_seconds": 30,
+    "timeout_enforced_by": "invoke_fake_behavioral._collect_bounded.poll_wait_interrupt_on_overflow",
+    "timeout_retirement_limits": {
+      "child_wait_seconds": 30,
+      "post_kill_wait_seconds": 5.0,
+      "reader_join_seconds_each": 5.0,
+      "wait_poll_seconds": 0.05,
+      "total_disclosed_seconds": 45.0,
+      "total_formula": "TIMEOUT_SECONDS + POST_KILL_WAIT_SECONDS + 2*READER_JOIN_SECONDS = 30 + 5 + 10 = 45",
+      "distinct_from_outer_admission_deadline": true,
+      "no_retry": true,
+      "overflow_interrupt": true
+    },
+    "capture_during_collection": true,
+    "reader_retirement_accounting": true,
+    "collection_interrupt_requires_exit_confirmation": true,
+    "isolation_flags": ["-I", "-S", "-B"],
+    "isolation_enforced_on": ["outer_admit", "parent_launcher", "child_argv"],
+    "retained_byte_limits": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "result": 262144
+    },
+    "capture_byte_limits": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "result": 262144
+    },
+    "output": "FAKE-BEHAVIORAL-RESULT.json",
+    "launch_receipt": "FAKE-BEHAVIORAL-LAUNCH-RECEIPT.json",
+    "termination": "launcher kills child on timeout, observed capture overflow, or other collection interrupt/error (incl. proc_wait_error even when capture_stop is None); kill/wait exceptions retained as secondary termination evidence; any interrupt/error requires explicit non-None child-exit confirmation before result validation or child_exited_normally; pe preserved as primary; any primary collection/wait error or unexpected collection interrupt prevents result admission/PASS even when child exit later proves 0 (retaining primary_error on PASS is not stop-on-failure); receipt pins child_pid at Popen success plus executable/argv/start timestamp for read-only custody (no enumeration/retry/cleanup authority); over-limit during collection → STOP; still-live/incomplete/error reader → UNKNOWN (blocks PASS + result validation; process exit alone does not imply reader EOF); exit 0 PASS / 1 FAIL / 124 timeout / 125 STOP|UNKNOWN; no retries; exit0 alone cannot PASS without fresh well-formed result",
+    "primary_collection_failure_blocks_pass": true,
+    "child_pid_custody_at_popen": true,
+    "pin_layers": {
+      "1_outer_reviewed_file": "OUTER-ADMISSION.json (operator-compared hash in PROPOSED-VERIFICATION-COMMANDS)",
+      "2_outer_admit": "admit_outer.py verifies interpreter+subjects then spawns launcher",
+      "3_launcher": "interpreter hardcoded pin; check/EXPECTED/INPUT-MANIFEST vs PACKET-SHA256SUMS (NOT launcher self); isolation; bounded capture-during-collection with reader retirement accounting; ordered result gate",
+      "4_check": "fixture source SHA vs INPUT-MANIFEST; exact EXPECTED inventory; N14 method __globals__ patch visibility"
+    },
+    "pinned_interpreter_prep": {
+      "path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+      "version": "3.11.9",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+    }
+  },
+  "dex_handback_closures": [
+    "N4_N5_call_assert_intended_subscription_diagnostic",
+    "N10_gate_plus_lock_budget_transport_observation_guards",
+    "N11_call_DisconnectInjectControl_and_assert_c09_disconnect_evidence",
+    "N13_call_assert_ordering_request_ids",
+    "N1_via_extracted_attach_resolve",
+    "N2_actual_i02_select_observer_verify_close_dual_faults",
+    "N3_via_extracted_await_mutation_admission",
+    "extraction_fail_closed_lock_before_class_coherent_globals",
+    "expected_output_exact_inventory_enforced",
+    "launcher_isolation_flags_timeout_termination_byte_limits_result_gate",
+    "c09_monitor_observe_thread_join_and_receive_child_accounting",
+    "i02_operational_vs_cleanup_select_precedence",
+    "launcher_no_site_for_S_capture_admission_pin_compare_result_inventory_gate",
+    "asgi_late_peer_success_refusal_and_peer_error_secondary_under_primary",
+    "synthetic_moduletype_sys_modules_registration_and_dataclass_is_type",
+    "noncircular_outer_admission_no_launcher_self_hash",
+    "bounded_capture_during_collection_not_post_hoc_only",
+    "ordered_control_contract_expected_result_launcher",
+    "asgi_cancellation_before_selection_peer_secondary",
+    "launcher_reader_retirement_alive_incomplete_error_unknown",
+    "launcher_overflow_interrupt_not_drain_wait",
+    "launcher_timeout_kill_wait_secondary_evidence",
+    "n14_shared_transport_script_take_globals_patch_visibility",
+    "windows_asyncio_internal_socket_scope_choice_B_disclosed",
+    "launcher_collection_interrupt_requires_exit_confirmation_incl_proc_wait_error",
+    "timeout_retirement_total_45s_reconciled",
+    "launcher_primary_collection_failure_blocks_pass_even_after_exit0",
+    "launcher_child_pid_custody_at_popen_receipt_only"
+  ],
+  "dex_tip_message_ids_reconciled": [
+    {
+      "id": "p1794366621",
+      "ts": "1794366621.337969",
+      "status": "closed_corrected6_retained",
+      "summary": "any collection interrupt/error (incl. proc_wait_error with capture_stop=None) requires explicit exit confirmation before result validation"
+    },
+    {
+      "id": "p1794366344",
+      "ts": "1794366344.728349",
+      "status": "closed_corrected6_choice_B_retained",
+      "summary": "disclose Windows ProactorEventLoop internal wakeup sockets; not literally no sockets"
+    },
+    {
+      "id": "p1794366450",
+      "ts": "1794366450.439149",
+      "status": "closed_corrected6_retained",
+      "summary": "consolidated REVISE of 6074/6127/6344; items 1-2 closed corrected5; item 3 closed corrected6 Choice B"
+    },
+    {
+      "id": "p1794366987",
+      "ts": "1794366987.193389",
+      "status": "closed_corrected6_arithmetic_retained",
+      "summary": "timeout_retirement total is 45s (30+5+2*5), not 40s; distinct from outer-admission deadline"
+    },
+    {
+      "id": "p1794367441",
+      "ts": "1794367441",
+      "status": "closed_corrected7",
+      "summary": "primary collection/wait error or unexpected interrupt blocks result admission/PASS even after confirmed exit 0; pe retained; no retry"
+    },
+    {
+      "id": "p1794367500",
+      "ts": "1794367500",
+      "status": "closed_corrected7",
+      "summary": "retain child_pid at Popen success plus executable/argv/start timestamp for read-only custody; no enumeration/retry/cleanup authority"
+    }
+  ],
+  "dex_provisional_notes_incorporated": [
+    "disconnect_delivery_common_path",
+    "hooked_receive_task_retirement",
+    "c09_no_busy_loop_monitor_backup",
+    "c09_poster_join_all_paths",
+    "c01_observed_revision_coherence",
+    "bounded_direct_asgi_driver",
+    "c09_api_error_handler_observation",
+    "c09_reject_asgi_result_error",
+    "starlette_0_41_3_testclient_no_response_source",
+    "i02_worker_primary_over_cleanup_generics",
+    "i02_verify_close_primary_preservation",
+    "i02_worker_close_is_cleanup_not_operational",
+    "corrected2_absorbed_dual_fault_monitor_join_n2_n10_launcher_ISB_basics",
+    "corrected3_absorbed_revise_abc_operational_cleanup_asgi_late_peer_launcher_no_site_capture_pins_inventory",
+    "corrected4_absorbed_moduletype_outer_admission_capture_during_collection_ordered_controls_cancel_before_selection",
+    "corrected5_absorbed_reader_retirement_overflow_interrupt_kill_wait_secondary_n14_take_globals",
+    "corrected6_absorbed_choice_B_exit_confirm_45s",
+    "corrected7_absorbed_primary_collection_failure_blocks_pass_child_pid_custody"
+  ]
+}

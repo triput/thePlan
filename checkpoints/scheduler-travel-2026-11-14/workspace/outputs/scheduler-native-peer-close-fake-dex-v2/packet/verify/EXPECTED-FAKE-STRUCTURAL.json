@@ -1,0 +1,43 @@
+{
+  "kind": "peer-close-fake-structural-expected",
+  "packet": "scheduler-native-peer-close-fake-prep-matt-v1",
+  "source_peer_sha256": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+  "candidate_peer_sha256": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+  "diff_sha256": "023303AC81AC8F3F3460CBDE9E2AFAFFB4A3EA85D97FE547AD5C78E60B54B30D",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "CLOSE-UNWRAP-SUCCESS",
+    "CLOSE-OSERROR-RESET-PIPE-TIMEOUT",
+    "CLOSE-SSL-ALREADY-TOLERATED",
+    "CLOSE-NON-OSERROR-PROPAGATES",
+    "CLOSE-CLEANUP-GUARD",
+    "OTHER-CLOSE-MODES-UNCHANGED",
+    "COMPOSITION-INVENTORY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "PRESERVED-OUTSIDE-CHANGE": ["top_level_nodes_identical", "class_methods_identical_except_close", "close_connection_single_handler_change"],
+    "CLOSE-UNWRAP-SUCCESS": ["source", "candidate"],
+    "CLOSE-OSERROR-RESET-PIPE-TIMEOUT": ["source_reset", "source_broken_pipe", "source_timeout", "candidate_reset", "candidate_broken_pipe", "candidate_timeout"],
+    "CLOSE-SSL-ALREADY-TOLERATED": ["source_ssl_eof", "source_ssl_error", "candidate_ssl_eof", "candidate_ssl_error"],
+    "CLOSE-NON-OSERROR-PROPAGATES": ["source_value_error", "candidate_value_error"],
+    "CLOSE-CLEANUP-GUARD": ["source_close_oserror", "source_close_value_error", "candidate_close_oserror", "candidate_close_value_error"],
+    "OTHER-CLOSE-MODES-UNCHANGED": ["abrupt_source", "normal_source", "abrupt_candidate", "normal_candidate", "branches_text_identical"],
+    "COMPOSITION-INVENTORY": ["source_reset_stops_inventory", "candidate_reset_serves_all", "clean_states_identical"],
+    "ACTUAL-SOURCE-MUTANTS": ["tolerance_reverted", "selectivity_broadened", "cleanup_removed", "keep_listener_dropped"]
+  },
+  "expected_nested_predicates": 35,
+  "oracle_semantics": {
+    "source_propagating_unwrap_oserror": "exact object propagates after one close; neither caught nor orderly_close_notify_attempted note",
+    "candidate_unwrap_oserror": "tolerated after one close; caught note then attempted note",
+    "attempted_note_meaning": "attempted, not proof of a clean TLS closure",
+    "non_oserror": "both propagate the exact object after one close; no notes"
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

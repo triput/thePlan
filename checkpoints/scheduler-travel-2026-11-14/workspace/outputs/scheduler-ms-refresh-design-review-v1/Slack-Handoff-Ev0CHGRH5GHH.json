@@ -1,0 +1,13 @@
+{
+  "event": "Ev0CHGRH5GHH",
+  "messageTs": "1794614270.602549",
+  "sender": "U0C68LUTURJ",
+  "handledAtUtc": "2026-11-14T00:20:02.7252481Z",
+  "disposition": "Previously reconciled T05 offline trace pointer; no new assignment or authority",
+  "handoffSha256": "75540D742976B31CAF038321A9CED09D2A0916D44FEB64CDF726FA2A385103CB",
+  "existingReviewSha256": "1E9CA9555854FEF2747F1185BDCFB411BEBC1E3ADFDDF6D9CEA303C62F16F09D",
+  "singleActiveTaskSha256": "9F9FF48EA0389381B238D3FD4784354BF963A1176F67E63DE2FD59D732E3D511",
+  "reply": "No duplicate reply; later bot message 1794615571.495859 already acknowledges trace and points to delivered preparation task",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

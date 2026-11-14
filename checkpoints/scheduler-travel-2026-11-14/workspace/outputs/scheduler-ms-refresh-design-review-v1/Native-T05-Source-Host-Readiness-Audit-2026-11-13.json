@@ -1,0 +1,52 @@
+{
+  "kind": "Native T05 source host readiness audit, no invocation",
+  "atUtc": "2026-11-13T19:52:58.5685636Z",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3",
+  "manifestCounts": {
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1\\Input-Manifest.sha256": 269,
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt": 257,
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\Input-Manifest.sha256": 292
+  },
+  "sourceConfigSha256": "FB7968294F521E6155C70CF7EB2588FCF28791E58F3DCDA88C2D07CD616DCD43",
+  "dockerConfigSha256": "E90A4512AED3A198AB6BA2D2F95842F96B1B7652D224D99CF528A21BE343CCA8",
+  "hostGate": false,
+  "runnerGate": false,
+  "inheritedDockerGate": true,
+  "inheritedDockerGateIsNotHumanAuthority": true,
+  "paths": {
+    "runnerPublicCaBind": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "hostEvidence": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+    "operatorEvidence": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+    "publicCaOutput": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "payload": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+    "defaultReceipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl"
+  },
+  "evidenceAbsent": true,
+  "cases": [
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION"
+  ],
+  "expectedUnknown": [],
+  "staticSuccessDockerCalls": 22,
+  "hardDockerCallCap": 32,
+  "suiteSeconds": 900,
+  "runnerAttachSeconds": 600,
+  "peerSeconds": 120,
+  "peerJoinSeconds": 5.0,
+  "sequentialPeers": 4,
+  "pkiNominalSeconds": 45,
+  "peerNominalSeconds": 500,
+  "nominalSumIsNotStrictWallBound": true,
+  "cleanup": "success only; runner exact identity exited0/remove/absence; DB exact running identity/SIGINT/wait0/exited identity/remove/absence",
+  "failureCleanup": "none, separately gated",
+  "cliQualification": "Inherited CLI kill does not wait and does not prove daemon cancellation",
+  "proofScope": "Direct production Counter/CoveringHTTP/default JoinedTLS with synthetic peer; not HTTP ingress/dispatch/connector integration",
+  "noCodeChanges": true,
+  "humanExecutionAuthority": "NONE",
+  "notReadyReasons": [
+    "Peer-close corrected fake has not run",
+    "Native-T05 fixture fake has not run",
+    "Future native staging, peer review and exact launch card remain held"
+  ],
+  "endpoint": "unbound"
+}

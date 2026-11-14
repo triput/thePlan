@@ -1,0 +1,52 @@
+{
+  "at_utc": "2026-11-12T20:04:39.3234682Z",
+  "frozen_artifacts": [
+    {
+      "name": "Case-Registry.md",
+      "sha256": "BBFEF33312A4E532BCC0FD49BACAA40641C26F955F5862FD3192641621F15F05",
+      "drop_matches": true
+    },
+    {
+      "name": "Decisions-and-Open-Questions.md",
+      "sha256": "F921D5B3B1AF0A5C275958427799322B405FD2A9AF441A695AAD1FD8EAC44C48",
+      "drop_matches": true
+    },
+    {
+      "name": "HANDBACK.txt",
+      "sha256": "7ADA3C839317D09A59C86DA10B2812E37A6AB92DB9E90CE7AD78B86AD3E5F52F",
+      "drop_matches": true
+    },
+    {
+      "name": "Implementation-Scope-Proposal.md",
+      "sha256": "F89B990CA1EA4FB89DD58756136F8972EF9AFAE00AE6150C9FD54EF936C9784B",
+      "drop_matches": true
+    },
+    {
+      "name": "Proposal.md",
+      "sha256": "E303BC15CC320FAA729A356B8252D685D9635C4162B5D9C2D2EFCD132BC3DBF2",
+      "drop_matches": true
+    },
+    {
+      "name": "R1-R8-Disposition-Matrix.md",
+      "sha256": "3B7188D0176941D32E60F8BF07131688FA1147F732CC341F6705819EDE9ADE30",
+      "drop_matches": true
+    },
+    {
+      "name": "TIP-FREEZE.json",
+      "sha256": "1D88A97FCD60BF65B95414044CEA3D90FCD110848C05B67E54DAC0BDA8C575F4",
+      "drop_matches": true
+    },
+    {
+      "name": "Trish-source-preparation-card-wording.md",
+      "sha256": "4DE77AB787851A34E5AAF7A30CD3C721EAB838C8607BCA1FFA3DC095F6BEF1AC",
+      "drop_matches": true
+    }
+  ],
+  "tip_preimage_verified": true,
+  "accepted_planning_ids_present": 76,
+  "mapped_unique_ids": 76,
+  "scope": "Eight frozen artifact hashes in workspace/drop plus TIP preimage and exact ID presence; external cited inputs not all rehashed",
+  "source_authorized": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

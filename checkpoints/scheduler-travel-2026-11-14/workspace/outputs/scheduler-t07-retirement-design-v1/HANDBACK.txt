@@ -1,0 +1,27 @@
+T07 retirement / caller-classification — frozen documents-only handback
+Jim under Dex assignment 2026-11-11. Justin implementation design only.
+
+documents_only=true
+applied=false
+executed=false
+d2_one_shot_untouched=true
+
+Assignment SHA256: 28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719
+
+Answer: NO — current covering provider path cannot truthfully stop with UNKNOWN when retirement is uncertain, preserve the primary failure, and attempt independently owned retirement operations without retries.
+
+Primary defects (static source observation, not executed failure):
+1) CoveringHTTP.request finally: response.close then transport.close; response-close exception skips transport-close; either cleanup exception replaces pending primary/return (covering_http_transport.py:125-128).
+2) OAuth CoveringRootOutcomeUnknown mapping surrounds exchange only, not finally (covering_http_transport.py:118-124 vs 125-128).
+3) import_covering_subscription_cache wraps _pull_provider in except Exception and returns OUTCOME_FAILED (covering_refresh_import.py:968-994), swallowing CoveringRootOutcomeUnknown (Exception subclass defined at covering_target_transaction.py:30-34).
+4) Identity prepare maps OSError (including a finally-replaced cleanup OSError) to PREFLIGHT_EVIDENCE_UNAVAILABLE (covering_refresh_import.py:442-458), which is an ordinary preflight row, not a stop.
+5) run_bounded_domain continues later targets and assessment after ordinary failed/preflight ImportCoveringCacheResult; only CoveringRootOutcomeUnknown stops (covering_domain_dispatch.py:233-267; http mapping covering_http_dispatch.py:71-73).
+
+DB rollback acknowledgment (CoveringTargetTransaction.finish_root / RootOutcome.ROLLBACK_ACKNOWLEDGED) is not provider socket retirement.
+
+Proposed unapplied diff: YES — Proposed-Changes.diff (CoveringHTTP.finally dual-attempt + UNKNOWN on cleanup uncertainty; importer deferred re-raise of CoveringRootOutcomeUnknown). JoinedTLS.open primary-preservation on inner close failure included as tightly coupled R08 support in the same unapplied diff. No top-level reverse import of CoveringRootOutcomeUnknown into covering_refresh_import.
+
+Existing common exception CoveringRootOutcomeUnknown suffices; dependency-neutral new type not required if importer uses deferred local import inside the except handler.
+
+Actual decisions for Trish/Dex: listed in Decisions-vs-Routine.md.
+\n

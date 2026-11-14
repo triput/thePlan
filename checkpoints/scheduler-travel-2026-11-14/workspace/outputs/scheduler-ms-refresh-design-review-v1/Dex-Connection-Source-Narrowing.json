@@ -1,0 +1,23 @@
+{
+  "at_utc": "2026-11-13T07:26:13.4642751Z",
+  "kind": "Read-only source-derived narrowing,not root-cause proof",
+  "source_manifest": "BCF86CA7E187A4D84CE6713F315A3E0103B94967B472762B2CC6B28F614E205F",
+  "retained_frame": "calendar_alias_canonicalize.py198 invokes list_microsoft_calendars;line197 default fetch immediately precedes it",
+  "source_inference": "Control reached calendar list invocation,so preceding default fetch returned normally;not evidence that the first listener bind itself failed. Exact peer progress/worker error not retained.",
+  "address_agreement": "np_provider_routes.microsoft_graph_route uses127.0.0.1:443;SyntheticProviderPeer defaults bind_host/bind_port to route dial values;runner _ms_provider_routes builds production HTTPSPeer from the same route",
+  "listener_setup": "np_runner_entry.py837 calls start_background beforePOST;np_provider_peer.py507 binds/listens synchronously,then worker ready is signalled before execute_script",
+  "listener_lifetime": "Finite four scripts:defaultidentity,listidentity,two views. Multi-connection listener retained except lastaccept;execute_script finally and worker finally close listener on errors",
+  "remaining_hypotheses": [
+    "Earlier peer worker fault during first-connection service/cleanup,closing listener",
+    "Other source/runtime routing/lifetime fault requiring retained evidence or separately reviewed diagnostic"
+  ],
+  "not_established": [
+    "Exact socket errno",
+    "Actual peer worker exception",
+    "Certificate defect",
+    "Native TLS proof",
+    "Production fix"
+  ],
+  "no_execution": true,
+  "endpoint": "unbound"
+}

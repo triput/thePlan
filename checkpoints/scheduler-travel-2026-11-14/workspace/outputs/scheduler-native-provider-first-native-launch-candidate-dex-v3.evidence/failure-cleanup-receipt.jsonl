@@ -1,0 +1,22 @@
+{"data": {"database": "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7", "runner": "375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56"}, "event": "authorized_exact_ids"}
+{"data": ["container", "inspect", "375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56"], "event": "docker_command"}
+{"data": {"bytes": 8365, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3d4bc912ea61886521f0951e1c46c088d2893f3cf32b681521999fe153749a1", "workers_joined": true}, "event": "docker_output"}
+{"data": ["container", "rm", "375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "44b44c9b1f164565462ee2aec140c8e2934d1f61b7a1e1fdfc0dc518d8feb139", "workers_joined": true}, "event": "docker_output"}
+{"data": ["ps", "-a", "--no-trunc", "--filter", "id=375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56", "--format", "{{.ID}}"], "event": "docker_command"}
+{"data": {"bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "workers_joined": true}, "event": "docker_output"}
+{"data": {"id": "375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56", "role": "runner"}, "event": "removed_absence_verified"}
+{"data": ["container", "inspect", "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7"], "event": "docker_command"}
+{"data": {"bytes": 8699, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e34f80a6bf239a27c4cb3f8545987270a1763ca52133a94e1469934fde070793", "workers_joined": true}, "event": "docker_output"}
+{"data": ["kill", "--signal=SIGINT", "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "d7c0d68cae3f237504e6051a8f7d8b42324c62e5ba5f590f6bc530d26e88b289", "workers_joined": true}, "event": "docker_output"}
+{"data": ["wait", "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7"], "event": "docker_command"}
+{"data": {"bytes": 2, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa", "workers_joined": true}, "event": "docker_output"}
+{"data": ["container", "inspect", "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7"], "event": "docker_command"}
+{"data": {"bytes": 8543, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "f405365f3b712ba61be2259990dc12ed87d333c3532412753a0b5ec0b45e7dc9", "workers_joined": true}, "event": "docker_output"}
+{"data": ["container", "rm", "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "d7c0d68cae3f237504e6051a8f7d8b42324c62e5ba5f590f6bc530d26e88b289", "workers_joined": true}, "event": "docker_output"}
+{"data": ["ps", "-a", "--no-trunc", "--filter", "id=b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7", "--format", "{{.ID}}"], "event": "docker_command"}
+{"data": {"bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "workers_joined": true}, "event": "docker_output"}
+{"data": {"id": "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7", "role": "database", "shutdown_exit_code": 0}, "event": "removed_absence_verified"}
+{"data": {"docker_commands": 9, "force": false, "retry": false, "success": true}, "event": "complete"}

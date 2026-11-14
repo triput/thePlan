@@ -1,0 +1,26 @@
+{
+  "disposition": "QUALIFIED_ACCEPT_RECONCILED_FOR_ONE_SHOT_LAUNCH_REVIEW",
+  "peer_author": "Justin under Jim",
+  "peer_tip_sha256": "FFCC8BF88CAC8E4317FF88DFD53F05F12BD91625DE118893DE62B36869BCBC65",
+  "peer_review_sha256": "9BFE7A07FF1B764B00D4C3EE35B1D0EBBF102FF7AF72C53BADBF7BFBA1BEB6AC",
+  "blocking_findings": 0,
+  "peer_reviewed_subjects_verified": 13,
+  "packet_pins_verified": 537,
+  "runtime_partial_pins_verified": 21,
+  "command_sha256": "C2D8D18660B734EB3A6FAC9BDFACC1847C86A007C11BC81ECBEFFD1EE11FC66C",
+  "admission_sha256": "4BE04F87B1AD858C05DCA789DEF05B602E80DF33274E7D19A9BB4E985B865D85",
+  "expected_73_control_oracles_sha256": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+  "expected_application_UNKNOWNs": 12,
+  "expected_UNKNOWN_index_sha256": "EF164CDB7D2BF24920101BB39662FCC9112A9D29495F3AD43A7FF5A3B548E7DF",
+  "qualifications": [
+    "Prep/review is not PASS or execution authority",
+    "21 runtime pins are partial provenance, not complete stdlib/DLL closure",
+    "Native orderly-versus-abrupt TLS and candidate owning-caller behavior remain unproved",
+    "Port not merged; final assembly and source lineage remain required",
+    "45s nominal collection/retirement excludes outer wait, hash/file/receipt I/O and OS latency; no separate outer timeout"
+  ],
+  "full_goal_obligations": "Items listed as optional expansions in peer review mean outside THIS fake packet; required native/TLS/owning/final assembly obligations remain mandatory for the full goal. Launch-card preparation itself is authorized routine work; actual execution remains gated.",
+  "execution_performed": false,
+  "launch_authorized": false,
+  "endpoint": "unbound"
+}

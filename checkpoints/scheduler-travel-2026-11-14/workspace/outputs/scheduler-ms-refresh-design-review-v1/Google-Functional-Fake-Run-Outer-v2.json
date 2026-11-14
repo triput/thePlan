@@ -1,0 +1,10 @@
+{
+  "status": "RETURNED_WITHOUT_WRAPPER_EXCEPTION",
+  "outer_output_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "remaining_authority": 0,
+  "startedAtUtc": "2026-11-14T05:37:49.2980945+00:00",
+  "outer_output_bytes": 0,
+  "outer_exception_class": null,
+  "invocations": 1,
+  "endedAtUtc": "2026-11-14T05:37:57.8029802+00:00"
+}

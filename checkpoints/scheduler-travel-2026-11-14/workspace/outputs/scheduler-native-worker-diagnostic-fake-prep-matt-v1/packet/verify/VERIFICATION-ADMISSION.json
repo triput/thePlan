@@ -1,0 +1,48 @@
+{
+    "kind":  "scheduler-native-provider-one-shot-fake-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-native-worker-diagnostic-fake-prep-matt-v1",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "packet_file_pin_count":  12,
+    "packet_files":  [
+                         {"sha256":  "38BE55DF092E9382FC13655BB6A0226026668C822D5BAC3A90B402EB2D59C4E4", "relative_path":  "verify/check_native_provider.py"},
+                         {"sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07", "relative_path":  "verify/launch_check.py"},
+                         {"sha256":  "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB", "relative_path":  "verify/verify_admission.py"},
+                         {"sha256":  "AEC7B0DB1909C1C269840EA44F72336A7EDA1DE13B5EEF567218BBD498B95FA9", "relative_path":  "verify/EXPECTED-FAKE-STRUCTURAL.json"},
+                         {"sha256":  "D0A24437F521E37940911B75E1AC2CCC20E73F2433717E15AAA15C7FAA2B6452", "relative_path":  "verify/OUTER-ADMISSION.json"},
+                         {"sha256":  "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7", "relative_path":  "Invoke-Fake.ps1"},
+                         {"sha256":  "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645", "relative_path":  "subjects/candidate/np_runner_entry.py"},
+                         {"sha256":  "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F", "relative_path":  "subjects/source/np_runner_entry.py"},
+                         {"sha256":  "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53", "relative_path":  "subjects/host/docker_transport.py"},
+                         {"sha256":  "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF", "relative_path":  "subjects/production/covering_http_dispatch.py"},
+                         {"sha256":  "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288", "relative_path":  "subjects/production/covering_role_connector.py"},
+                         {"sha256":  "2023F97B5695BF690F50186C56B4DD3FCFF1A2BAFB3CA637B1051F400F3F2468", "relative_path":  "subjects/diff/Worker-Observer.diff"}
+                     ],
+    "runtime_file_pin_count":  1,
+    "runtime_files":  [
+                          {
+                              "absolute_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+                              "sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                              "note":  "partial runtime scope: reviewed interpreter executable only; not a standard-library/DLL/environment lock"
+                          }
+                      ],
+    "result_byte_cap":  262144,
+    "capture_byte_cap":  65536,
+    "reader_join_seconds":  5,
+    "post_kill_wait_seconds":  5,
+    "check_seconds_budget":  120,
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_root":  "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+    "exclusive_evidence":  ["verify/FAKE-NATIVE-PROVIDER-RESULT.json", "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"],
+    "successor_reference":  {
+        "workspace":  "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1",
+        "runner_sha256":  "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+        "host_validator_sha256":  "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+        "launch_config_sha256":  "EBE26FB58EE7ADE11AD90E16B7FE8E1C4A8D96BEDCF233701090F0719C0FBE1C"
+    },
+    "note":  "Matt worker-exception observer diagnostic fake prep v1. Complete concrete pins; launch_authorized=false. Do not invoke under preparation. A later run needs the reviewed hashes, Trish's explicit one-shot approval (including authority to terminate the one owned check child on error/timeout/overflow), and flipping both launch_authorized booleans as a reviewed staging change."
+}

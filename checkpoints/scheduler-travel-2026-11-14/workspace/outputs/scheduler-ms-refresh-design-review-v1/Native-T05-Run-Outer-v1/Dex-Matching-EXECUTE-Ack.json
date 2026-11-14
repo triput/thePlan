@@ -1,0 +1,8 @@
+{
+  "signed": "Dex",
+  "acknowledgment": "EXECUTE exactly one reviewed native T05 invocation under Trish authorization",
+  "manifestSha256": "417BEA58FD10956DF9B33778672CD2197E548BD5E2ABD9F53C6B1EF0BAF1596F",
+  "commandSha256": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3",
+  "atUtc": "2026-11-13T23:31:08.7662085Z",
+  "otherRuns": "HELD"
+}

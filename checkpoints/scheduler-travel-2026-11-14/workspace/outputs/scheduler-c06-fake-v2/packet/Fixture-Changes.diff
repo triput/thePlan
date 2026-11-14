@@ -1,0 +1,42 @@
+# Fixture-Changes.diff vs tipped corrected5 post-native-c06-runner-tls-prep-jim-v1-corrected5-2026-11-10
+# Parent corrected5 TIP 5F8D87526F9D2C114C2B81A0D06D3ED2A5CEBC7E2DC97A562225C9C2FB23C602 (UNCHANGED)
+# Parent corrected4 TIP 914268E0C980FEAB4DC93752D733AB4AF1133F5C1869BB99032FB71CE8EE7192 (UNCHANGED)
+# Parent corrected3 TIP D6260E99FFC203733DB84B4D7E8970AFE92E511B1DC3467949792D88A258EACC (UNCHANGED)
+# Parent corrected2 TIP 91E699ED7A490D0A070A4D44EB33F3B62CD5D1C9D83F55A0D77634B9D62DC74A (UNCHANGED)
+# Parent corrected1 TIP 2F9D3EDA861F67A0881C46953B92248A1A6D996DF3BB41C87C1EA55A7E449676 (UNCHANGED)
+# Parent v1 TIP 046D670AC261A3E72920264C44DC16F3DB39B8D5E386CA4D4CAA726ED97108BA (UNCHANGED)
+# Fresh-Preparation-Approval call_32f9e623299f4b0e8bc3eed4532b8278
+# Proposed-Fix.diff SHA256 2F798B6F1F4B0C968A198746F36FF55D9776935B678A6DA6F08962D563D23F47
+# Old check SHA256 99C3049C69C5837C728236D6ED8332A286A0E22FF6A35A8C47157165CF78D51E
+# New check SHA256 C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8
+# One-line check fix only: first preexisting-directory control assignment
+#   fake_os.lexists → fake_os.path.lexists
+# Four fixture sources UNCHANGED vs corrected5 (exact hashes retained).
+# Assertions / 39-control inventory / T02 review packet / EXPECTED-OUTPUT UNCHANGED.
+# launch_ready remains false; executed=false; endpoint unbound.
+
+# unchanged four fixtures vs corrected5:
+#   payload/fixture/prepare-c06-runner-tls.sh  F1868F913BFBA3841331B397242566938DAF7C2047CACDD5031611B62D60E6DA
+#   payload/fixture/runner_entry.py           2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E
+#   payload/fixture/i01_c06_dual_peer.py      A636DE72ACB709AAD01EE036DD5EF070CE74F77A0DEC06865EBDCAE3D91B8C52
+#   payload/fixture/i01_i02_suite.py          B3986FB351493C85DD4BE53137D3A1C93978A4567C0E02692819CCEEC54ACFA8
+#   payload/launch-config.json                B94DEFE32C2C25B22D0AFBCBA0CC5E2365CBB5AD8FEE291C83667DC51145B4A9
+
+# changed (check only; not a four-target fixture):
+#   fake-only-c06-verification/check_c06_runner_tls_fake.py
+# regenerated labels/pins (outside check source):
+#   OUTER-ADMISSION.json, PACKET-SHA256SUMS.txt, INPUT-MANIFEST.json (fake + root),
+#   REVIEW.md, Expected-Outputs.md, Verification-Commands-Held.md,
+#   TIP-FREEZE.json, HANDBACK.txt, ARTIFACT-HASHES.txt, Fixture-Changes.diff
+# admit_outer.py / invoke_c06_fake.py unchanged (no embedded check-hash literals)
+
+--- a/fake-only-c06-verification/check_c06_runner_tls_fake.py
++++ b/fake-only-c06-verification/check_c06_runner_tls_fake.py
+@@ -780,7 +780,7 @@
+         results.append(ControlResult(control_id, result, detail, kind))
+ 
+     mod, fake_os, fs = make_runtime("success")
+-    fake_os.lexists = lambda path: True
++    fake_os.path.lexists = lambda path: True
+     err = expect_raise(mod.exclusive_create_c06_gate_tls_dir, "pre-exists")
+     rec("C06_N_PREEXIST", "REFUSE", type(err).__name__)

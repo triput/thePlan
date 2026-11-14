@@ -1,0 +1,21 @@
+{
+  "atUtc": "2026-11-14T00:20:55.4531520Z",
+  "status": "PROVISIONAL_SOURCE_ONLY_NOT_FROZEN_ACCEPTANCE",
+  "assignment": "9F9FF48EA0389381B238D3FD4784354BF963A1176F67E63DE2FD59D732E3D511",
+  "observedSource": "outputs/scheduler-native-provider-t05-client-cause-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py",
+  "sourceSha256": "1AEDEE93B1076D104E05700833548AE11B9AB4751E232E591FB615AAD72961BB",
+  "diffReview": [
+    "One pure helper with local SuiteStop import",
+    "Same admitted label returned",
+    "Same SuiteStop chained from same caught client exception; None bare rethrow",
+    "Client exception retained beside unchanged outcome tuple",
+    "Classification remains after joined/error-free retirement and inventory checks",
+    "No classifier, constants, assertions, stop producer or application changes in runner diff"
+  ],
+  "signedHandback": "Not yet present in inventoried inbox",
+  "execution": "NONE",
+  "nativeT05Cause": "UNKNOWN",
+  "processLiveness": "Not established by files or intent; no terminal claim",
+  "nextAction": "Review complete signed packet and sidecar when delivered; no duplicate assignment",
+  "endpoint": "unbound"
+}

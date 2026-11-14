@@ -1,0 +1,909 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -1916,22 +1916,29 @@
+ # else fails closed as a STOP; nothing is assumed from host-only fake behavior.
+ T05_SHORT_CL_REFUSAL_CLASS = ("IncompleteRead", "http.client")
+ T05_ABRUPT_CLIENT_CLASSES = frozenset({("SSLEOFError", "ssl"), ("ConnectionResetError", "builtins")})
++# Finite classification of the exact scripted response wire (never the rebuilt API headers).
++T05_SCRIPTED_WIRE_FRAMINGS = ("close_delimited", "exact_content_length", "other")
+ 
+ 
+ def _t05_classify_client_outcome(expectation: str, outcome: Any) -> str:
+     """Finite T05 classification of one observed native client outcome.
+ 
+-    outcome is ("response", status, body_exact, scripted_wire_framing_headers_absent) or
+-    ("exception", class_name, class_module). Only the exact expected shape maps to
+-    an oracle label; every other outcome raises SuiteStop (fail closed).
++    outcome is ("response", status, body_exact, scripted_wire_framing) or
++    ("exception", class_name, class_module), where scripted_wire_framing is one of
++    T05_SCRIPTED_WIRE_FRAMINGS. Only the exact expected shape maps to an oracle
++    label; every other outcome raises SuiteStop (fail closed).
+     """
+     from np_suite import SuiteStop
+ 
+     kind = outcome[0] if isinstance(outcome, tuple) and outcome else None
+     if expectation == "complete_accept":
+-        if kind == "response" and outcome[1:] == (200, True, True):
++        if kind == "response" and outcome[1:] == (200, True, "close_delimited"):
+             return "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
+         raise SuiteStop("t05 close-delimited positive not accepted exactly")
++    if expectation == "fixed_length_accept":
++        if kind == "response" and outcome[1:] == (200, True, "exact_content_length"):
++            return "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
++        raise SuiteStop("t05 exact fixed-length positive not accepted exactly")
+     if expectation == "short_cl_refuse":
+         if kind == "exception" and tuple(outcome[1:]) == T05_SHORT_CL_REFUSAL_CLASS:
+             return "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"
+@@ -1943,22 +1950,51 @@
+     raise SuiteStop("t05 unknown expectation")
+ 
+ 
++def _t05_scripted_wire_framing(scripted_wire: bytes, expected_body: bytes) -> str:
++    """Finite framing class of the exact scripted response wire.
++
++    "close_delimited": no Content-Length and no Transfer-Encoding header line.
++    "exact_content_length": exactly one Content-Length line whose ASCII-digit value
++    equals len(expected_body), no Transfer-Encoding, and the wire body after the
++    header terminator is exactly expected_body. Anything else is "other".
++    """
++    head, sep, wire_body = scripted_wire.partition(b"\r\n\r\n")
++    if not sep:
++        return "other"
++    lines = head.split(b"\r\n")[1:]
++    names = [line.partition(b":")[0].strip().lower() for line in lines]
++    if b"transfer-encoding" in names:
++        return "other"
++    lengths = [
++        line.partition(b":")[2].strip()
++        for line, name in zip(lines, names)
++        if name == b"content-length"
++    ]
++    if not lengths:
++        return "close_delimited"
++    if (
++        len(lengths) == 1
++        and lengths[0].isdigit()
++        and int(lengths[0]) == len(expected_body)
++        and wire_body == expected_body
++    ):
++        return "exact_content_length"
++    return "other"
++
++
+ def _t05_response_outcome(
+     status: int, content: bytes, expected_body: bytes, scripted_wire: bytes
+ ) -> tuple[Any, ...]:
+-    """Client-observed status/body plus framing of the exact scripted wire.
++    """Client-observed status/body plus framing class of the exact scripted wire.
+ 
+     The httpx.Response that CoveringHTTP returns is rebuilt by production code and
+     httpx 0.28.1 supplies Content-Length for non-empty bytes content, so its headers
+-    are NOT the wire headers. Framing absence is judged on the exact scripted bytes
+-    (the peer's sent byte count is separately required to equal their length); the
++    are NOT the wire headers. Framing is judged on the exact scripted bytes (the
++    peer's sent byte count is separately required to equal their length); the
+     client side contributes only its status and exact body.
+     """
+-    head = scripted_wire.partition(b"\r\n\r\n")[0].lower()
+-    scripted_wire_framing_headers_absent = (
+-        b"\r\ncontent-length:" not in head and b"\r\ntransfer-encoding:" not in head
+-    )
+-    return ("response", status, content == expected_body, scripted_wire_framing_headers_absent)
++    scripted_wire_framing = _t05_scripted_wire_framing(scripted_wire, expected_body)
++    return ("response", status, content == expected_body, scripted_wire_framing)
+ 
+ 
+ def _t05_observe(case_id: str, script: Any, expectation: str) -> dict[str, Any]:
+@@ -2059,7 +2095,7 @@
+         "client_outcome_class": outcome[1] if outcome[0] == "exception" else None,
+         "response_status": outcome[1] if outcome[0] == "response" else None,
+         "body_exact": outcome[2] if outcome[0] == "response" else None,
+-        "scripted_wire_framing_headers_absent": outcome[3] if outcome[0] == "response" else None,
++        "scripted_wire_framing": outcome[3] if outcome[0] == "response" else None,
+         "peer_side_wire_bytes_sent_exact": True,
+         "peer_close_mode": state["close_mode_observed"],
+         "default_joined_tls": True,
+@@ -2073,16 +2109,21 @@
+ 
+ 
+ def _run_np_t05_orderly_close() -> dict[str, Any]:
+-    """NP-T05-ORDERLY-CLOSE: two separate observations after orderly close_notify.
++    """NP-T05-ORDERLY-CLOSE: three separate observations after orderly close_notify.
+ 
+-    (a) complete close-delimited response accepted (exact body, no CL/TE);
+-    (b) valid-JSON prefix shorter than Content-Length refused by the framing
++    (a) supplementary complete close-delimited response accepted (exact body; the
++    scripted wire has no CL/TE);
++    (b) complete exact fixed-length response accepted (exact body; the scripted
++    wire has one Content-Length equal to the body, no TE);
++    (c) valid-JSON prefix shorter than Content-Length refused by the framing
+     completeness path (IncompleteRead) before JSON decoding.
++    Each observation owns, retires and joins its own peer, sequentially.
+     """
+     from np_suite import check_oracles_immediate, registry_by_id
+     from np_auth_seed import assert_plan_still_valid, fresh_attempt_plan
+     from np_provider_transcript import (
+         orderly_close_delimited_complete_script,
++        orderly_fixed_length_complete_script,
+         orderly_short_cl_valid_json_refuse_script,
+     )
+     from np_receipts import case_result_receipt
+@@ -2092,9 +2133,11 @@
+     plan = fresh_attempt_plan(case_id)
+     assert_plan_still_valid(plan.t_plan)
+     complete = _t05_observe(case_id, orderly_close_delimited_complete_script(), "complete_accept")
++    fixed = _t05_observe(case_id, orderly_fixed_length_complete_script(), "fixed_length_accept")
+     short = _t05_observe(case_id, orderly_short_cl_valid_json_refuse_script(), "short_cl_refuse")
+     observations = {
+         "orderly_close_delimited_complete_accepted": complete["label"],
++        "orderly_fixed_length_complete_accepted": fixed["label"],
+         "orderly_short_cl_valid_json_prefix_refused": short["label"],
+     }
+     check_oracles_immediate(decl, observations)
+@@ -2108,9 +2151,15 @@
+         observations=observations,
+         t_plan_iso=plan.t_plan.isoformat(),
+         t_check_iso=t_check_iso,
+-        measured={"close_delimited_complete": complete["measured"], "short_cl_valid_json": short["measured"]},
+-        peer_exchange_inventory=complete["inventory"] + short["inventory"],
+-        resource_disposition={"peer_retirements": [complete["retirement"], short["retirement"]]},
++        measured={
++            "close_delimited_complete": complete["measured"],
++            "fixed_length_complete": fixed["measured"],
++            "short_cl_valid_json": short["measured"],
++        },
++        peer_exchange_inventory=complete["inventory"] + fixed["inventory"] + short["inventory"],
++        resource_disposition={
++            "peer_retirements": [complete["retirement"], fixed["retirement"], short["retirement"]]
++        },
+     )
+ 
+ 
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -183,6 +183,29 @@
+     )
+ 
+ 
++def orderly_fixed_length_complete_script() -> ExchangeScript:
++    """Observation (c): complete exact fixed-length accepted after orderly close_notify.
++
++    Content-Length equals the exact body length (2 for "{}") and no Transfer-Encoding;
++    the complete body precedes the peer's orderly TLS close (close_notify).
++    """
++    return ExchangeScript(
++        script_id="T05-ORDERLY-FIXED-LENGTH-COMPLETE",
++        purpose="orderly_fixed_length_complete_accepted",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path="/calendar/v3/calendars/primary/events"),
++            ExchangeStep(
++                "send_response",
++                status=200,
++                headers=(("Content-Type", "application/json"), ("Content-Length", "2")),
++                body_template="{}",
++                note="Exact fixed length: Content-Length 2 equals the complete body; no Transfer-Encoding",
++            ),
++            ExchangeStep("close", close_mode="orderly_close_notify"),
++        ),
++    )
++
++
+ def orderly_short_cl_valid_json_refuse_script() -> ExchangeScript:
+     """Observation (b): valid-JSON prefix shorter than Content-Length refused after orderly close_notify."""
+     return ExchangeScript(
+@@ -436,6 +459,7 @@
+         google_token_invalid_grant_script(),
+         ms_graph_events_empty_script(),
+         orderly_close_delimited_complete_script(),
++        orderly_fixed_length_complete_script(),
+         orderly_short_cl_valid_json_refuse_script(),
+         abrupt_truncation_script(),
+         *stall_scripts(),
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -222,12 +222,17 @@
+     ),
+     CaseDecl(
+         "NP-T05-ORDERLY-CLOSE",
+-        ("T05-SHORT-LENGTH-VALID-JSON",),
++        ("T05-VALID-COMPLETE-CONTENT-LENGTH", "T05-SHORT-LENGTH-VALID-JSON"),
+         "B5",
+-        "Orderly close_notify with close-delimited and short-CL completeness requal",
++        "Orderly close_notify with close-delimited, exact fixed-length and short-CL completeness requal",
+         (
+             Oracle(
+                 name="orderly_close_delimited_complete_accepted",
++                planning_ids=(),
++                expected="ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
++            ),
++            Oracle(
++                name="orderly_fixed_length_complete_accepted",
+                 planning_ids=("T05-VALID-COMPLETE-CONTENT-LENGTH",),
+                 expected="ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
+             ),
+@@ -238,9 +243,11 @@
+             ),
+         ),
+         notes=(
+-            "Separate named observations required: (a) complete close-delimited "
+-            "accepted after orderly close_notify AND (b) valid-JSON prefix shorter "
+-            "than Content-Length refused after orderly close_notify. Abrupt TLS distinct."
++            "Separate named observations required: (a) supplementary complete "
++            "close-delimited accepted after orderly close_notify (no planning ID), "
++            "(b) complete exact fixed-length (Content-Length equals body) accepted after "
++            "orderly close_notify (T05-VALID-COMPLETE-CONTENT-LENGTH only) AND (c) valid-JSON "
++            "prefix shorter than Content-Length refused after orderly close_notify. Abrupt TLS distinct."
+         ),
+     ),
+     CaseDecl(
+@@ -454,10 +461,12 @@
+         "required; no native PASS until an authorized run"
+     ),
+     "NP-T05-ORDERLY-CLOSE": (
+-        "IMPLEMENTED_SOURCE — production Counter/CoveringHTTP/default JoinedTLS; two separate "
+-        "observations after orderly close_notify: close-delimited complete accepted (exact body, "
+-        "no CL/TE) and short-CL valid-JSON prefix refused (IncompleteRead); peer retired/joined "
+-        "before classification; no native PASS until an authorized run"
++        "IMPLEMENTED_SOURCE — production Counter/CoveringHTTP/default JoinedTLS; three separate "
++        "sequential owned-peer observations after orderly close_notify: supplementary close-delimited "
++        "complete accepted (exact body; scripted wire has no CL/TE), exact fixed-length complete "
++        "accepted (exact body; scripted wire Content-Length equals body, no TE) and short-CL "
++        "valid-JSON prefix refused (IncompleteRead); peer retired/joined before classification; "
++        "no native PASS until an authorized run"
+     ),
+     "NP-T05-ABRUPT-TRUNCATION": (
+         "IMPLEMENTED_SOURCE — abrupt TLS drop without close_notify mid-body; observed client class "
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -10,23 +10,32 @@
+ (verify_admission.py, 7DCA32E2...) can be reused unchanged.
+ 
+ Subjects (raw-pinned): source = frozen MS-merge NONEXPIRED root roles, candidate =
+-scheduler-native-provider-t05-prep-matt-v1 roles (runner 4, suite 5, peer 7,
++scheduler-native-provider-t05-prep-matt-v3 roles (runner 4, suite 5, peer 7,
+ transcript 8), their unified diffs, role 10 np_auth_seed (unchanged; needed to load
+ the transcript module), runner/launch configs, both payload manifests, and the
+ unchanged application subjects covering_http_transport/policy/joined_https.
+ 
+-Execution surfaces (all fake): whole stdlib-only fixture modules np_auth_seed and
+-np_provider_transcript in an exact sys.modules sandbox; extracted peer serializer
+-_http_response_bytes (source and candidate); extracted runner classifier; the whole
+-actual covering policy/transport modules in a sandbox with fake app/httpx imports
+-and an injected byte-buffer transport, through the ACTUAL host http.client parser and
+-ACTUAL json.loads behind a delegating spy. Importing http.client transitively loads
+-socket and ssl; no socket, SSL context or TLS connection is constructed.
+-
+-Proof scope: fixture serializer/transcript/classifier/wiring source behavior and the
+-host-parser completeness-versus-decoding distinction on the exact serializer bytes.
+-NOT proved: native TLS close_notify/EOF behavior, the native client exception classes,
+-peer retirement natively, or any T05 requirement beyond these finite fixture properties.
++Execution surfaces (all fake): whole stdlib-only fixture modules np_auth_seed,
++np_provider_transcript and np_suite in an exact sys.modules sandbox; extracted peer
++serializer _http_response_bytes (source and candidate); extracted runner classifier
++and scripted-wire framing helpers; the whole actual covering policy/transport modules
++in a sandbox with fake app/httpx imports and an injected byte-buffer transport,
++through the ACTUAL host http.client parser and ACTUAL json.loads behind a delegating
++spy. Importing http.client transitively loads socket and ssl; no socket, SSL context
++or TLS connection is constructed.
++
++Client model (v3, Dex B1): by default the fake httpx.Response is
++AutoLengthHttpxResponse, which represents the one relevant httpx 0.28.1 adaptation:
++when production rebuilds the API response with non-empty bytes content and no
++Content-Length header, Content-Length: len(content) is supplied. Finite scope: it does
++not model httpx header case-insensitivity, multi-valued headers, decoding, streaming
++or any other httpx behavior.
++
++Proof scope: fixture serializer/transcript/suite-mapping/classifier/wiring source
++behavior and the host-parser completeness-versus-decoding distinction on the exact
++serializer bytes. NOT proved: native TLS close_notify/EOF behavior, the native client
++exception classes, peer retirement natively, or any T05 requirement beyond these
++finite fixture properties.
+ """
+ from __future__ import annotations
+ 
+@@ -53,28 +62,28 @@
+ EXPECTED = HERE / "EXPECTED-FAKE-STRUCTURAL.json"
+ RESULT = HERE / "FAKE-NATIVE-PROVIDER-RESULT.json"
+ MAX_RESULT = 262144
+-PACKET_NAME = "scheduler-native-t05-fake-prep-matt-v2"
++PACKET_NAME = "scheduler-native-t05-fake-prep-matt-v3"
+ 
+ SUBJECT_PINS = {
+     "peer/source.py": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+     "peer/candidate.py": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+     "transcript/source.py": "0AA3BC093711B7EEBADD1F23A80BF86F2B5AEAB4C1224014537BB051FDDCE52E",
+-    "transcript/candidate.py": "46455CD603355E30819FBF944ADAC141DDE04D78E28C4F25783681A67A0212D8",
++    "transcript/candidate.py": "562F61CDB9DEF3F35A1693E3C9CC13EB63D9F0535F9A0D3C190BF275E78751BF",
+     "runner/source.py": "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C",
+-    "runner/candidate.py": "EB76303F175E1CDCFA859069CAB9DA3FA2BA245C1275AD2CE72157701B0C100B",
++    "runner/candidate.py": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E",
+     "suite/source.py": "46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D",
+-    "suite/candidate.py": "E5C63D9CE7AA3E66784216B0E88D14434F7016E67E6D22931C58504D87209189",
++    "suite/candidate.py": "9AED74EE4F00C5F88518A1B246D7B03D5E82C05DDF3596958D5483730C376792",
+     "fixture/np_auth_seed.py": "2ADFA3ADCFDA8DB4D9D32EDFC9950AF354CE29ADFA1B5A8162FD5182DC22ED05",
+-    "diff/np_runner_entry.py.diff": "AAC99686D2B58F0D494856045AD6F3B71DB79063411707B81B9A16C7EB63F0E7",
++    "diff/np_runner_entry.py.diff": "F646720F0D2A7271A8699FB5E44A22BE1F3B712F1AC648EDE5C78EB1F34CCC92",
+     "diff/np_provider_peer.py.diff": "12A40E631007C3E8435D1BBB9741243A2CD8ABA841D84C79722FEF1B2D4A16A4",
+-    "diff/np_provider_transcript.py.diff": "E9C6886C3AE04CCD15EA92A77DF7D04A7D2BBA24190211E2E029AFB9036882AF",
+-    "diff/np_suite.py.diff": "FF2F85AF0D5EDEF6F0FF085010FAE58B03BB81D09A6FD875FB33ADA1470A6EEB",
++    "diff/np_provider_transcript.py.diff": "97DF0CD7E57FFB65949BEFA44D962C70D4E7C3CC5F35C6538D9BE862ABBFD088",
++    "diff/np_suite.py.diff": "A1CD13789A8EDFA4647088060E59BF9E7A6480B8D0DA35F49D4FF625B069C9A6",
+     "diff/runner-config.json.diff": "AA0586060552193ED29DA1647F194B68DC985017F228D41F80402B28792CE72D",
+     "config/source-runner-config.json": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929",
+     "config/candidate-runner-config.json": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+-    "config/candidate-launch-config.json": "3B98C20F383C15AC0D6B17B23C8DB2FFF19D5FC2B218CC3CF6611C76F38E319B",
++    "config/candidate-launch-config.json": "FB7968294F521E6155C70CF7EB2588FCF28791E58F3DCDA88C2D07CD616DCD43",
+     "manifest/source.txt": "14FA30AD16E719150CA81F07274FF6AC8D3A2D80A065296D9FDB2830E2B00B46",
+-    "manifest/candidate.txt": "98BE4F8E216410AEF536CC450E96E6EA505C5E0EDB40C6DD1C14495C7266776E",
++    "manifest/candidate.txt": "D03EA0D671DF61AB3E66B2E3B96D34B72AC9BDAF6282676A8A1328DEF853B0C5",
+     "app/covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+     "app/covering_transport_policy.py": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+     "app/covering_joined_https.py": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+@@ -94,10 +103,11 @@
+     "DIFF-REDERIVATION",
+     "PRESERVED-OUTSIDE-CHANGE",
+     "SERIALIZER-DEFAULT-REGRESSION",
+-    "CLOSE-DELIMITED-SERIALIZATION",
++    "ORDERLY-POSITIVE-SERIALIZATION",
+     "INVALID-MODE-REFUSALS",
+     "CLIENT-COMPLETENESS-VS-DECODE",
+     "OUTCOME-CLASSIFIER",
++    "SUITE-ORDERLY-MAPPING",
+     "RUNNER-WIRING",
+     "BATCH-CONFIG",
+     "PRIOR-FAKE-APPLICABILITY",
+@@ -105,17 +115,37 @@
+ )
+ 
+ T05_IDS = ["NP-T05-ORDERLY-CLOSE", "NP-T05-ABRUPT-TRUNCATION"]
++ORDERLY_ID = "NP-T05-ORDERLY-CLOSE"
+ CHANGED_SCRIPT = "T05-ORDERLY-CLOSE-DELIMITED-COMPLETE"
++FIXED_SCRIPT = "T05-ORDERLY-FIXED-LENGTH-COMPLETE"
+ SHORT_SCRIPT = "T05-ORDERLY-SHORT-CL-VALID-JSON"
+ ABRUPT_SCRIPT = "T05-ABRUPT-TRUNCATION"
+ EXPECTED_CLOSE_DELIMITED_WIRE = (b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                                  b"Connection: close\r\n\r\n{}")
++EXPECTED_FIXED_LENGTH_WIRE = (b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\n"
++                              b"Connection: close\r\n\r\n{}")
++VALID_COMPLETE_CL = "T05-VALID-COMPLETE-CONTENT-LENGTH"
++SHORT_VALID_JSON = "T05-SHORT-LENGTH-VALID-JSON"
++ACCEPTED = "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
++REFUSED = "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"
++# (oracle name, planning_ids, expected, stop_on_mismatch), in declaration order.
++EXPECTED_ORDERLY_ORACLES = (
++    ("orderly_close_delimited_complete_accepted", (), ACCEPTED, True),
++    ("orderly_fixed_length_complete_accepted", (VALID_COMPLETE_CL,), ACCEPTED, True),
++    ("orderly_short_cl_valid_json_prefix_refused", (SHORT_VALID_JSON,), REFUSED, True),
++)
++# (script factory, expectation) for the three sequential ORDERLY observations, in order.
++EXPECTED_ORDERLY_OBSERVATIONS = (
++    ("orderly_close_delimited_complete_script", "complete_accept"),
++    ("orderly_fixed_length_complete_script", "fixed_length_accept"),
++    ("orderly_short_cl_valid_json_refuse_script", "short_cl_refuse"),
++)
+ INVENTORY_IDS = ("cal-ms-default", "cal-np-other")
+ STEP_FIELDS = ("direction", "method", "path", "status", "headers", "body_template", "close_mode", "note")
+-OWN_ROOT = "scheduler-native-provider-t05-prep-matt-v2"
++OWN_ROOT = "scheduler-native-provider-t05-prep-matt-v3"
+ FOREIGN_ROOTS = ("ms-merge-nonexpired-prep-matt-v1", "ms-merge-refresh-prep-matt-v1",
+                  "peer-close-prep-matt-v1", "peer-close-launch-dex-v1", "scheduler-ms-refresh-prep-matt-v1",
+-                 "t05-prep-matt-v1")
++                 "t05-prep-matt-v1", "t05-prep-matt-v2")
+ CHANGED_PAYLOAD_ROWS = {
+     "fixture/np_runner_entry.py": "runner/candidate.py",
+     "fixture/np_provider_peer.py": "peer/candidate.py",
+@@ -138,10 +168,23 @@
+              "    http = CoveringHTTP(counter=counter, routes=routes, transport_factory=JoinedTLS)\n")
+ M_RETIRE = ("        retirement = peer.retire_owned(join_seconds=5.0)\n",
+             '        retirement = {"joined": True, "worker_error_kind": None}\n')
+-# Applied to the extracted _t05_response_outcome segment (source text contains the
+-# literal backslash escapes, matched here verbatim).
+-M_WIRE_PREDICATE = ('        b"\\r\\ncontent-length:" not in head and b"\\r\\ntransfer-encoding:" not in head\n',
+-                    "        True\n")
++# Scripted-wire framing bypassed: every response is called close-delimited.
++M_WIRE_PREDICATE = ("    scripted_wire_framing = _t05_scripted_wire_framing(scripted_wire, expected_body)\n",
++                    '    scripted_wire_framing = "close_delimited"\n')
++# Framing conflation: an exact fixed-length wire is reported as close-delimited.
++M_FRAMING_CONFLATION = ('        return "exact_content_length"\n', '        return "close_delimited"\n')
++# Mapping swap (two anchors applied in sequence to the suite candidate).
++M_MAP_SWAP_A = ('                name="orderly_close_delimited_complete_accepted",\n'
++                "                planning_ids=(),\n",
++                '                name="orderly_close_delimited_complete_accepted",\n'
++                '                planning_ids=("T05-VALID-COMPLETE-CONTENT-LENGTH",),\n')
++M_MAP_SWAP_B = ('                name="orderly_fixed_length_complete_accepted",\n'
++                '                planning_ids=("T05-VALID-COMPLETE-CONTENT-LENGTH",),\n',
++                '                name="orderly_fixed_length_complete_accepted",\n'
++                "                planning_ids=(),\n")
++# Fixed-length observation run under the close-delimited expectation.
++M_FIXED_EXPECTATION = ('orderly_fixed_length_complete_script(), "fixed_length_accept")',
++                       'orderly_fixed_length_complete_script(), "complete_accept")')
+ 
+ 
+ class WitnessFailure(Exception):
+@@ -260,8 +303,8 @@
+         "peer": ("peer/source.py", "peer/candidate.py", "diff/np_provider_peer.py.diff",
+                  "payload/fixture/np_provider_peer.py", 1),
+         "transcript": ("transcript/source.py", "transcript/candidate.py", "diff/np_provider_transcript.py.diff",
+-                       "payload/fixture/np_provider_transcript.py", 4),
+-        "suite": ("suite/source.py", "suite/candidate.py", "diff/np_suite.py.diff", "payload/fixture/np_suite.py", 1),
++                       "payload/fixture/np_provider_transcript.py", 5),
++        "suite": ("suite/source.py", "suite/candidate.py", "diff/np_suite.py.diff", "payload/fixture/np_suite.py", 3),
+         "runner_config": ("config/source-runner-config.json", "config/candidate-runner-config.json",
+                           "diff/runner-config.json.diff", "payload/runner-config.json", 1),
+     }.items():
+@@ -321,13 +364,15 @@
+ def check_preserved_outside_change() -> dict[str, Any]:
+     expected = {
+         "runner": ({"IMPLEMENTED_CASE_IDS", "T05_SHORT_CL_REFUSAL_CLASS", "T05_ABRUPT_CLIENT_CLASSES",
+-                    "_t05_classify_client_outcome", "_t05_response_outcome", "_t05_observe", "_run_np_t05_orderly_close",
++                    "T05_SCRIPTED_WIRE_FRAMINGS", "_t05_classify_client_outcome", "_t05_scripted_wire_framing",
++                    "_t05_response_outcome", "_t05_observe", "_run_np_t05_orderly_close",
+                     "_run_np_t05_abrupt_truncation", "_make_implemented_case"},
+                    {"IMPLEMENTED_CASE_IDS", "_make_implemented_case"}),
+         "peer": ({"RESPONSE_FRAMING_MODES", "_http_response_bytes"}, {"_http_response_bytes"}),
+-        "transcript": ({"ResponseFraming", "ExchangeStep", "orderly_close_delimited_complete_script"},
+-                       {"ExchangeStep", "orderly_close_delimited_complete_script"}),
+-        "suite": ({"CASE_IMPLEMENTATION_NOTES"}, {"CASE_IMPLEMENTATION_NOTES"}),
++        "transcript": ({"ResponseFraming", "ExchangeStep", "orderly_close_delimited_complete_script",
++                        "orderly_fixed_length_complete_script", "finite_script_catalog"},
++                       {"ExchangeStep", "orderly_close_delimited_complete_script", "finite_script_catalog"}),
++        "suite": ({"NATIVE_CASES", "CASE_IMPLEMENTATION_NOTES"}, {"NATIVE_CASES", "CASE_IMPLEMENTATION_NOTES"}),
+     }
+     cases = {}
+     for role, (cand_only, src_only) in expected.items():
+@@ -436,9 +481,15 @@
+     cases = {}
+     for name in ("catalog_scripts", "ms_nonexpired_inventory", "ms_refresh_inventory"):
+         src_scripts, cand_scripts = inventories("source")[name], inventories("candidate")[name]
+-        require([s.script_id for s in src_scripts] == [s.script_id for s in cand_scripts],
+-                f"default regression:{name}:script ids")
+-        for src, cand in zip(src_scripts, cand_scripts):
++        src_ids = [s.script_id for s in src_scripts]
++        expected_ids = list(src_ids)
++        if name == "catalog_scripts":
++            require(src_ids.count(CHANGED_SCRIPT) == 1 and FIXED_SCRIPT not in src_ids,
++                    f"default regression:{name}:script ids")
++            expected_ids.insert(src_ids.index(CHANGED_SCRIPT) + 1, FIXED_SCRIPT)
++        require([s.script_id for s in cand_scripts] == expected_ids, f"default regression:{name}:script ids")
++        common = [c for c in cand_scripts if c.script_id != FIXED_SCRIPT]
++        for src, cand in zip(src_scripts, common):
+             if cand.script_id == CHANGED_SCRIPT:
+                 continue
+             require(src.purpose == cand.purpose and len(src.steps) == len(cand.steps),
+@@ -449,12 +500,15 @@
+                 if c_step.direction == "send_response":
+                     require(src_ser(s_step) == cand_ser(c_step), f"default regression:{name}:wire {cand.script_id}")
+         cases[name] = "PASS"
+-    differing = [c.script_id for s, c in zip(inventories("source")["catalog_scripts"],
+-                                             inventories("candidate")["catalog_scripts"])
+-                 if [step_fields(x) for x in s.steps] != [step_fields(y) for y in c.steps]
+-                 or any(y.framing != "auto" for y in c.steps)]
+-    require(differing == [CHANGED_SCRIPT], "default regression:changed script set")
+-    cases["changed_script_is_only_delta"] = "PASS"
++    src_catalog = inventories("source")["catalog_scripts"]
++    cand_catalog = inventories("candidate")["catalog_scripts"]
++    src_ids = {s.script_id for s in src_catalog}
++    changed = [c.script_id for s, c in zip(src_catalog, [c for c in cand_catalog if c.script_id != FIXED_SCRIPT])
++               if [step_fields(x) for x in s.steps] != [step_fields(y) for y in c.steps]
++               or any(y.framing != "auto" for y in c.steps)]
++    added = [c.script_id for c in cand_catalog if c.script_id not in src_ids]
++    require(changed == [CHANGED_SCRIPT] and added == [FIXED_SCRIPT], "default regression:catalog delta")
++    cases["catalog_delta_changed_plus_added"] = "PASS"
+     return cases
+ 
+ 
+@@ -470,6 +524,14 @@
+     cases["no_framing_headers"] = "PASS"
+     require(b"\r\nContent-Length: 2\r\n" in serializer("source")(step), "close delimited:source appends length")
+     cases["source_serializer_would_append_length"] = "PASS"
++    fixed_script = script_by_id("candidate", FIXED_SCRIPT)
++    fixed = send_step(fixed_script)
++    fixed_wire = cand_ser(fixed)
++    require(fixed.framing == "auto" and all(s.framing == "auto" for s in fixed_script.steps)
++            and fixed_wire == EXPECTED_FIXED_LENGTH_WIRE, "fixed length:exact bytes")
++    cases["fixed_length_exact_bytes"] = "PASS"
++    require(serializer("source")(fixed) == fixed_wire, "fixed length:source serializer identical")
++    cases["fixed_length_source_serializer_identical"] = "PASS"
+     return cases
+ 
+ 
+@@ -542,8 +604,11 @@
+ 
+ 
+ class AutoLengthHttpxResponse(FakeHttpxResponse):
+-    """Models the httpx 0.28.1 adaptation trap: a missing Content-Length is supplied
+-    for non-empty bytes content when the API response object is rebuilt."""
++    """DEFAULT client model (v3). Represents the one relevant httpx 0.28.1 adaptation:
++    httpx.Response(status, content=<non-empty bytes>, headers=...) supplies
++    Content-Length: len(content) when the given headers carry none (an explicit one is
++    kept). Finite scope: nothing else of httpx is modelled (no case-insensitive header
++    mapping, multi-valued headers, decoding or streaming)."""
+ 
+     def __init__(self, status: int, *, content: bytes, headers: dict[str, str], request: Any) -> None:
+         rebuilt = dict(headers)
+@@ -601,7 +666,7 @@
+ 
+ 
+ def run_scenario(response: bytes, after: BaseException | None = None,
+-                 response_cls: type = FakeHttpxResponse) -> dict[str, Any]:
++                 response_cls: type = AutoLengthHttpxResponse) -> dict[str, Any]:
+     log: list[str] = []
+     with Sandbox(APP_NAMES) as box:
+         for name in ("app", "app.services"):
+@@ -658,13 +723,19 @@
+ def check_client_completeness() -> dict[str, Any]:
+     cand_ser = serializer("candidate")
+     cases = {}
+-    run = run_scenario(cand_ser(send_step(script_by_id("candidate", CHANGED_SCRIPT))))
++    cd_wire = cand_ser(send_step(script_by_id("candidate", CHANGED_SCRIPT)))
++    cd_head = cd_wire.partition(b"\r\n\r\n")[0].lower()
++    run = run_scenario(cd_wire)
+     result = run["result"]
+-    require(run["escaped"] is None and type(result) is FakeHttpxResponse and result.status_code == 200
+-            and result.content == b"{}"
+-            and not ({k.lower() for k in result.headers} & {"content-length", "transfer-encoding"})
++    # B1: the rebuilt API response carries the httpx-supplied Content-Length: 2 while
++    # the scripted wire itself is close-delimited (no Content-Length, no Transfer-Encoding).
++    require(run["escaped"] is None and type(result) is AutoLengthHttpxResponse and result.status_code == 200
++            and result.content == b"{}" and result.headers.get("Content-Length") == "2"
++            and not any(str(k).lower() == "transfer-encoding" for k in result.headers)
++            and b"content-length" not in cd_head and b"transfer-encoding" not in cd_head
+             and run["log"] == ["gate", "json", "transport_close"], "client:close delimited accepted")
+     cases["close_delimited_accepted"] = "PASS"
++    cases["fixed_length_accepted"] = oracle_fixed_length_client(subject_text("runner/candidate.py"))
+     short_step = send_step(script_by_id("candidate", SHORT_SCRIPT))
+     run = run_scenario(cand_ser(short_step))
+     exc = run["escaped"]
+@@ -687,35 +758,57 @@
+     cases["transport_error_propagates_unchanged"] = "PASS"
+     cases["rebuilt_content_length_trap"] = oracle_rebuilt_trap(subject_text("runner/candidate.py"))
+     return {"cases": cases, "eof_model": "fake b'' after bytes models a client-observed orderly EOF; not native TLS proof",
++            "client_model": "AutoLengthHttpxResponse by default: httpx 0.28.1 supplies Content-Length for "
++                            "non-empty rebuilt bytes content; nothing else of httpx modelled",
+             "control_kind": "actual_source_host_parser", "observed": "PASS"}
+ 
+ 
+ def response_outcome_fn(runner_text: str) -> Callable[..., tuple[Any, ...]]:
+     namespace: dict[str, Any] = {"Any": Any}
+-    exec(compile(unit_text(runner_text, "_t05_response_outcome"), "<extracted:runner:_t05_response_outcome>", "exec"),
+-         namespace)
++    for name in ("_t05_scripted_wire_framing", "_t05_response_outcome"):
++        exec(compile(unit_text(runner_text, name), f"<extracted:runner:{name}>", "exec"), namespace)
+     return namespace["_t05_response_outcome"]
+ 
+ 
++def oracle_fixed_length_client(runner_text: str) -> str:
++    """The exact fixed-length {} (Content-Length: 2) goes through the actual transport and
++    host parser, classifies as exact_content_length from the scripted wire, and is
++    accepted only under fixed_length_accept (it STOPs under complete_accept)."""
++    outcome_fn = response_outcome_fn(runner_text)
++    call = classifier(runner_text)
++    wire = serializer("candidate")(send_step(script_by_id("candidate", FIXED_SCRIPT)))
++    run = run_scenario(wire)
++    result = run["result"]
++    require(run["escaped"] is None and type(result) is AutoLengthHttpxResponse and result.status_code == 200
++            and result.content == b"{}" and result.headers.get("Content-Length") == "2"
++            and run["log"] == ["gate", "json", "transport_close"], "client:fixed length transport")
++    outcome = outcome_fn(result.status_code, result.content, b"{}", wire)
++    require(outcome == ("response", 200, True, "exact_content_length")
++            and call("fixed_length_accept", outcome) == ACCEPTED
++            and _stops(call, "complete_accept", outcome), "client:fixed length accepted")
++    return "PASS"
++
++
+ def oracle_rebuilt_trap(runner_text: str) -> str:
+     """A correct close-delimited result whose rebuilt API response gained Content-Length
+-    must still be accepted; a really CL-framed wire must still be refused as framing."""
++    must still be accepted; a wire that really adds framing must still be refused."""
+     outcome_fn = response_outcome_fn(runner_text)
+     call = classifier(runner_text)
+     cand_ser = serializer("candidate")
+     wire = cand_ser(send_step(script_by_id("candidate", CHANGED_SCRIPT)))
+-    run = run_scenario(wire, response_cls=AutoLengthHttpxResponse)
++    run = run_scenario(wire)
+     result = run["result"]
+     require(run["escaped"] is None and type(result) is AutoLengthHttpxResponse
+             and result.headers.get("Content-Length") == "2", "client:rebuilt trap reproduced")
+     outcome = outcome_fn(result.status_code, result.content, b"{}", wire)
+-    require(outcome == ("response", 200, True, True)
+-            and call("complete_accept", outcome) == "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY", "client:rebuilt trap positive")
++    require(outcome == ("response", 200, True, "close_delimited")
++            and call("complete_accept", outcome) == ACCEPTED
++            and _stops(call, "fixed_length_accept", outcome), "client:rebuilt trap positive")
+     cl_step = types.SimpleNamespace(direction="send_response", status=200,
+                                     headers=(("Content-Type", "application/json"),), body_template="{}", framing="auto")
+     cl_wire = cand_ser(cl_step)
+     negative = outcome_fn(200, b"{}", b"{}", cl_wire)
+-    require(b"\r\nContent-Length: 2\r\n" in cl_wire and negative == ("response", 200, True, False)
++    require(b"\r\nContent-Length: 2\r\n" in cl_wire and negative == ("response", 200, True, "exact_content_length")
+             and _stops(call, "complete_accept", negative), "client:rebuilt trap negative")
+     return "PASS"
+ 
+@@ -753,20 +846,32 @@
+ def oracle_classifier(runner_text: str) -> dict[str, str]:
+     call = classifier(runner_text)
+     cases = {}
+-    require(call("complete_accept", ("response", 200, True, True)) == "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
++    require(call("complete_accept", ("response", 200, True, "close_delimited")) == ACCEPTED,
+             "classifier:complete_accept_exact")
+     cases["complete_accept_exact"] = "PASS"
+     require(all(_stops(call, "complete_accept", o) for o in (
+-        ("response", 200, False, True), ("response", 200, True, False), ("response", 201, True, True),
+-        ("exception", "IncompleteRead", "http.client"))), "classifier:complete_accept_mismatch_stops")
++        ("response", 200, False, "close_delimited"), ("response", 200, True, "exact_content_length"),
++        ("response", 200, True, "other"), ("response", 201, True, "close_delimited"),
++        ("response", 200, True, True), ("exception", "IncompleteRead", "http.client"))),
++        "classifier:complete_accept_mismatch_stops")
+     cases["complete_accept_mismatch_stops"] = "PASS"
+-    require(call("short_cl_refuse", ("exception", "IncompleteRead", "http.client"))
+-            == "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY", "classifier:short_refuse_exact")
++    require(call("fixed_length_accept", ("response", 200, True, "exact_content_length")) == ACCEPTED,
++            "classifier:fixed_accept_exact")
++    cases["fixed_accept_exact"] = "PASS"
++    require(all(_stops(call, "fixed_length_accept", o) for o in (
++        ("response", 200, True, "close_delimited"), ("response", 200, True, "other"),
++        ("response", 200, False, "exact_content_length"), ("response", 201, True, "exact_content_length"),
++        ("response", 200, True, True), ("exception", "IncompleteRead", "http.client"))),
++        "classifier:fixed_accept_mismatch_stops")
++    cases["fixed_accept_mismatch_stops"] = "PASS"
++    require(call("short_cl_refuse", ("exception", "IncompleteRead", "http.client")) == REFUSED,
++            "classifier:short_refuse_exact")
+     cases["short_refuse_exact"] = "PASS"
+     require(all(_stops(call, "short_cl_refuse", o) for o in (
+         ("exception", "JSONDecodeError", "json.decoder"), ("exception", "CoveringTransportRefused",
+                                                            "app.services.covering_transport_policy"),
+-        ("exception", "IncompleteRead", "other.module"), ("response", 200, True, True))),
++        ("exception", "IncompleteRead", "other.module"), ("response", 200, True, "close_delimited"),
++        ("response", 200, True, "exact_content_length"))),
+         "classifier:short_refuse_other_stops")
+     cases["short_refuse_other_stops"] = "PASS"
+     require(call("abrupt_distinct", ("exception", "SSLEOFError", "ssl")) == "OBSERVED"
+@@ -776,13 +881,67 @@
+     require(all(_stops(call, "abrupt_distinct", o) for o in (
+         ("exception", "IncompleteRead", "http.client"), ("exception", "JSONDecodeError", "json.decoder"),
+         ("exception", "CoveringRootOutcomeUnknown", "app.services.covering_target_transaction"),
+-        ("response", 200, True, True))), "classifier:abrupt_other_stops")
++        ("response", 200, True, "close_delimited"), ("response", 200, True, "exact_content_length"))),
++        "classifier:abrupt_other_stops")
+     cases["abrupt_other_stops"] = "PASS"
+-    require(_stops(call, "something_else", ("response", 200, True, True)), "classifier:unknown_expectation_stops")
++    require(_stops(call, "something_else", ("response", 200, True, "close_delimited")),
++            "classifier:unknown_expectation_stops")
+     cases["unknown_expectation_stops"] = "PASS"
+     return cases
+ 
+ 
++# ---------------------------------------------------------------------------
++# Suite ORDERLY mapping (whole stdlib-only np_suite module, source and candidate)
++# ---------------------------------------------------------------------------
++
++def load_suite(text: str, label: str) -> dict[str, Any]:
++    with Sandbox(FIXTURE_NAMES) as box:
++        suite = box.load("np_suite", text, f"<subject:suite:{label}>")
++        result = {
++            "counts": suite.validate_inventory_counts(),
++            "decls": [decl_tuple(d) for d in tuple(suite.NATIVE_CASES) + tuple(suite.CF_WITNESS_CASES)],
++            "registry_ids": list(suite.registry_by_id(include_cf=True)),
++        }
++    require(all(name not in sys.modules for name in FIXTURE_NAMES), "suite sandbox restored")
++    return result
++
++
++def decl_tuple(decl: Any) -> tuple[Any, ...]:
++    return (decl.case_id, tuple(decl.planning_ids), decl.batch, decl.stimulus,
++            tuple((o.name, tuple(o.planning_ids), o.expected, o.stop_on_mismatch) for o in decl.oracles),
++            decl.expected_unknown, decl.native_tls_claim, decl.notes)
++
++
++def planning_union(decls: list[tuple[Any, ...]]) -> set[str]:
++    return {pid for d in decls for pid in d[1]} | {pid for d in decls for o in d[4] for pid in o[1]}
++
++
++def oracle_suite_mapping(cand_text: str) -> dict[str, str]:
++    cases = {}
++    src, cand = load_suite(subject_text("suite/source.py"), "source"), load_suite(cand_text, "candidate")
++    require(cand["counts"] == {"native": 27, "cf_witnesses": 4, "total_if_cf_included": 31}
++            and len(cand["decls"]) == 31 and len(cand["registry_ids"]) == 31
++            and [d[0] for d in cand["decls"]] == [d[0] for d in src["decls"]], "mapping:inventory_counts")
++    cases["inventory_counts"] = "PASS"
++    require(planning_union(cand["decls"]) == planning_union(src["decls"]), "mapping:planning_union_unchanged")
++    cases["planning_union_unchanged"] = "PASS"
++    orderly = _single([d for d in cand["decls"] if d[0] == ORDERLY_ID], "candidate ORDERLY declaration")
++    oracles = {o[0]: o for o in orderly[4]}
++    require(oracles.get(EXPECTED_ORDERLY_ORACLES[0][0]) == EXPECTED_ORDERLY_ORACLES[0],
++            "mapping:close_delimited_oracle_unmapped")
++    cases["close_delimited_oracle_unmapped"] = "PASS"
++    holders = [(d[0], o[0]) for d in cand["decls"] for o in d[4] if VALID_COMPLETE_CL in o[1]]
++    require(oracles.get(EXPECTED_ORDERLY_ORACLES[1][0]) == EXPECTED_ORDERLY_ORACLES[1]
++            and holders == [(ORDERLY_ID, EXPECTED_ORDERLY_ORACLES[1][0])],
++            "mapping:fixed_length_maps_valid_complete_cl")
++    cases["fixed_length_maps_valid_complete_cl"] = "PASS"
++    require(orderly[4] == EXPECTED_ORDERLY_ORACLES and orderly[1] == (VALID_COMPLETE_CL, SHORT_VALID_JSON)
++            and all(d == s for d, s in zip(cand["decls"], src["decls"]) if d[0] != ORDERLY_ID),
++            "mapping:orderly_declaration_exact")
++    cases["orderly_declaration_exact"] = "PASS"
++    return cases
++
++
+ def dump_expr(snippet: str) -> str:
+     return ast.dump(ast.parse(snippet, mode="eval").body)
+ 
+@@ -837,6 +996,21 @@
+                         for k, v in (("passed", True), ("workers_joined", True), ("expected_unknown", False))),
+                 f"wiring:bodies_oracle_then_receipt:{name}")
+     cases["bodies_oracle_then_receipt"] = "PASS"
++    orderly = unit_node(runner_text, "_run_np_t05_orderly_close")
++    observe_calls = sorted((n for n in ast.walk(orderly) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
++                            and n.func.id == "_t05_observe"), key=lambda n: (n.lineno, n.col_offset))
++    shapes = [(a[1].func.id if len(a) == 3 and isinstance(a[1], ast.Call) and isinstance(a[1].func, ast.Name)
++               and not a[1].args and not a[1].keywords else None,
++               a[2].value if len(a) == 3 and isinstance(a[2], ast.Constant) else None)
++              for a in (c.args for c in observe_calls)]
++    obs_dicts = [n for n in ast.walk(orderly) if isinstance(n, ast.Assign) and len(n.targets) == 1
++                 and isinstance(n.targets[0], ast.Name) and n.targets[0].id == "observations"]
++    obs_dict = _single(obs_dicts, "ORDERLY observations").value
++    require(shapes == list(EXPECTED_ORDERLY_OBSERVATIONS) and all(not c.keywords for c in observe_calls)
++            and isinstance(obs_dict, ast.Dict)
++            and [k.value for k in obs_dict.keys if isinstance(k, ast.Constant)] == [o[0] for o in EXPECTED_ORDERLY_ORACLES]
++            and len(obs_dict.keys) == 3, "wiring:orderly_three_observations")
++    cases["orderly_three_observations"] = "PASS"
+     ids = unit_text(runner_text, "IMPLEMENTED_CASE_IDS")
+     mapper = unit_text(runner_text, "_make_implemented_case")
+     require(all(f'"{cid}"' in ids for cid in T05_IDS + ["NP-V-MS-NONEXPIRED", "NP-V-MS-REFRESH"])
+@@ -880,6 +1054,11 @@
+             "observed": "PASS"}
+ 
+ 
++def check_suite_mapping() -> dict[str, Any]:
++    return {"cases": oracle_suite_mapping(subject_text("suite/candidate.py")), "control_kind": "whole_module_fake",
++            "observed": "PASS"}
++
++
+ def check_wiring() -> dict[str, Any]:
+     runner = subject_text("runner/candidate.py")
+     return {"cases": oracle_wiring(unit_text(runner, "_t05_observe"), runner), "control_kind": "structural_source",
+@@ -950,7 +1129,10 @@
+         "Current prerequisite: SERIALIZER-DEFAULT-REGRESSION wire equality for every MS script.",
+         "ms-refresh fake v2 transcript-derived controls: ExchangeStep gained a defaulted field. Current prerequisite: "
+         "SERIALIZER-DEFAULT-REGRESSION step-field equality plus transcript_functions_identical.",
+-        "merge fake ROLE-SELECTION peer row 17EA148E: does not describe this root (peer BFB271D7)."],
++        "merge fake ROLE-SELECTION peer row 17EA148E: does not describe this root (peer BFB271D7).",
++        "T05 fake v2 CLIENT close_delimited_accepted (FakeHttpxResponse without the httpx 0.28.1 Content-Length "
++        "supplement) and changed_script_is_only_delta: superseded. Current prerequisites: the v3 default "
++        "AutoLengthHttpxResponse cases and catalog_delta_changed_plus_added."],
+         "control_kind": "applicability_map", "observed": "PASS"}
+ 
+ 
+@@ -989,6 +1171,13 @@
+                                "wiring:retirement_in_finally_before_classification"),
+         "wire_framing_predicate_dropped": (lambda: oracle_rebuilt_trap(_mutate(runner, M_WIRE_PREDICATE)),
+                                            "client:rebuilt trap negative"),
++        "framing_conflation": (lambda: oracle_fixed_length_client(_mutate(runner, M_FRAMING_CONFLATION)),
++                               "client:fixed length accepted"),
++        "orderly_mapping_swapped": (lambda: oracle_suite_mapping(
++            _mutate(_mutate(subject_text("suite/candidate.py"), M_MAP_SWAP_A), M_MAP_SWAP_B)),
++            "mapping:close_delimited_oracle_unmapped"),
++        "fixed_expectation_swapped": (lambda: oracle_wiring(observe, _mutate(runner, M_FIXED_EXPECTATION)),
++                                      "wiring:orderly_three_observations"),
+     }
+     results = {name: _expect_detected(name, action, prefix) for name, (action, prefix) in mutants.items()}
+     return {"mutants": results, "control_kind": "actual_source_mutant", "observed": "PASS"}
+@@ -1033,10 +1222,11 @@
+         "DIFF-REDERIVATION": check_diff_rederivation,
+         "PRESERVED-OUTSIDE-CHANGE": check_preserved_outside_change,
+         "SERIALIZER-DEFAULT-REGRESSION": check_regression,
+-        "CLOSE-DELIMITED-SERIALIZATION": check_close_delimited,
++        "ORDERLY-POSITIVE-SERIALIZATION": check_close_delimited,
+         "INVALID-MODE-REFUSALS": check_invalid,
+         "CLIENT-COMPLETENESS-VS-DECODE": check_client_completeness,
+         "OUTCOME-CLASSIFIER": check_classifier,
++        "SUITE-ORDERLY-MAPPING": check_suite_mapping,
+         "RUNNER-WIRING": check_wiring,
+         "BATCH-CONFIG": check_batch_config,
+         "PRIOR-FAKE-APPLICABILITY": check_prior_applicability,
+--- a/packet/verify/EXPECTED-FAKE-STRUCTURAL.json
++++ b/packet/verify/EXPECTED-FAKE-STRUCTURAL.json
+@@ -1,17 +1,18 @@
+ {
+   "kind": "native-t05-fake-structural-expected",
+-  "packet": "scheduler-native-t05-fake-prep-matt-v2",
+-  "candidate_root": "scheduler-native-provider-t05-prep-matt-v2",
++  "packet": "scheduler-native-t05-fake-prep-matt-v3",
++  "candidate_root": "scheduler-native-provider-t05-prep-matt-v3",
+   "control_ids_in_order": [
+     "SUBJECT-PINS",
+     "RUNTIME-PROVENANCE",
+     "DIFF-REDERIVATION",
+     "PRESERVED-OUTSIDE-CHANGE",
+     "SERIALIZER-DEFAULT-REGRESSION",
+-    "CLOSE-DELIMITED-SERIALIZATION",
++    "ORDERLY-POSITIVE-SERIALIZATION",
+     "INVALID-MODE-REFUSALS",
+     "CLIENT-COMPLETENESS-VS-DECODE",
+     "OUTCOME-CLASSIFIER",
++    "SUITE-ORDERLY-MAPPING",
+     "RUNNER-WIRING",
+     "BATCH-CONFIG",
+     "PRIOR-FAKE-APPLICABILITY",
+@@ -21,34 +22,57 @@
+     "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+     "DIFF-REDERIVATION": ["runner", "peer", "transcript", "suite", "runner_config"],
+     "PRESERVED-OUTSIDE-CHANGE": ["runner", "peer", "transcript", "suite"],
+-    "SERIALIZER-DEFAULT-REGRESSION": ["catalog_scripts", "ms_nonexpired_inventory", "ms_refresh_inventory", "changed_script_is_only_delta"],
+-    "CLOSE-DELIMITED-SERIALIZATION": ["exact_bytes", "no_framing_headers", "source_serializer_would_append_length"],
++    "SERIALIZER-DEFAULT-REGRESSION": ["catalog_scripts", "ms_nonexpired_inventory", "ms_refresh_inventory", "catalog_delta_changed_plus_added"],
++    "ORDERLY-POSITIVE-SERIALIZATION": ["exact_bytes", "no_framing_headers", "source_serializer_would_append_length", "fixed_length_exact_bytes", "fixed_length_source_serializer_identical"],
+     "INVALID-MODE-REFUSALS": ["unknown_mode", "close_delimited_with_content_length", "auto_with_transfer_encoding", "close_delimited_with_transfer_encoding", "refusal_precedes_send"],
+-    "CLIENT-COMPLETENESS-VS-DECODE": ["close_delimited_accepted", "short_cl_refused_before_decode", "complete_invalid_json_decoded", "transport_error_propagates_unchanged", "rebuilt_content_length_trap"],
+-    "OUTCOME-CLASSIFIER": ["complete_accept_exact", "complete_accept_mismatch_stops", "short_refuse_exact", "short_refuse_other_stops", "abrupt_eof_observed", "abrupt_other_stops", "unknown_expectation_stops"],
+-    "RUNNER-WIRING": ["default_joined_tls_construction", "framing_validated_before_peer_start", "retirement_in_finally_before_classification", "bodies_oracle_then_receipt", "mapper_and_implemented", "no_rebuilt_header_oracle"],
++    "CLIENT-COMPLETENESS-VS-DECODE": ["close_delimited_accepted", "fixed_length_accepted", "short_cl_refused_before_decode", "complete_invalid_json_decoded", "transport_error_propagates_unchanged", "rebuilt_content_length_trap"],
++    "OUTCOME-CLASSIFIER": ["complete_accept_exact", "complete_accept_mismatch_stops", "fixed_accept_exact", "fixed_accept_mismatch_stops", "short_refuse_exact", "short_refuse_other_stops", "abrupt_eof_observed", "abrupt_other_stops", "unknown_expectation_stops"],
++    "SUITE-ORDERLY-MAPPING": ["inventory_counts", "planning_union_unchanged", "close_delimited_oracle_unmapped", "fixed_length_maps_valid_complete_cl", "orderly_declaration_exact"],
++    "RUNNER-WIRING": ["default_joined_tls_construction", "framing_validated_before_peer_start", "retirement_in_finally_before_classification", "bodies_oracle_then_receipt", "orderly_three_observations", "mapper_and_implemented", "no_rebuilt_header_oracle"],
+     "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact"],
+     "PRIOR-FAKE-APPLICABILITY": ["peer_class_identical_serializer_changed", "merge_units_identical", "transcript_functions_identical"],
+-    "ACTUAL-SOURCE-MUTANTS": ["close_delimited_appends_length", "transfer_encoding_refusal_removed", "auto_path_altered", "abrupt_accepts_incomplete_read", "transport_factory_injected", "retirement_removed", "wire_framing_predicate_dropped"]
++    "ACTUAL-SOURCE-MUTANTS": ["close_delimited_appends_length", "transfer_encoding_refusal_removed", "auto_path_altered", "abrupt_accepts_incomplete_read", "transport_factory_injected", "retirement_removed", "wire_framing_predicate_dropped", "framing_conflation", "orderly_mapping_swapped", "fixed_expectation_swapped"]
+   },
+-  "expected_nested_predicates": 60,
++  "expected_nested_predicates": 74,
+   "expected_outcomes": {
+     "close_delimited_wire": "HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nConnection: close\\r\\n\\r\\n{}",
+-    "default_auto_wire": "byte-identical to the source serializer for every send step of finite_script_catalog (except the changed T05 close-delimited script), ms_nonexpired_connection_inventory and ms_refresh_connection_inventory",
++    "fixed_length_wire": "HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: 2\\r\\nConnection: close\\r\\n\\r\\n{}",
++    "default_auto_wire": "byte-identical to the source serializer for every send step of finite_script_catalog (except the changed T05 close-delimited script; the added fixed-length script is also source-serializer identical), ms_nonexpired_connection_inventory and ms_refresh_connection_inventory",
++    "catalog_delta": "changed [T05-ORDERLY-CLOSE-DELIMITED-COMPLETE]; added [T05-ORDERLY-FIXED-LENGTH-COMPLETE] immediately after it",
+     "invalid_modes": "unknown mode, close_delimited+Content-Length, any Transfer-Encoding -> PeerLifecycleError before _send_all",
++    "client_model": "default AutoLengthHttpxResponse: httpx 0.28.1 supplies Content-Length for non-empty rebuilt bytes content; nothing else of httpx modelled",
+     "host_client": {
+-      "close_delimited_complete": "200, content b'{}', no CL/TE header, gate then json once",
++      "close_delimited_complete": "200, content b'{}', rebuilt Content-Length 2 (httpx adaptation), no TE; scripted wire has no CL/TE; gate then json once",
++      "fixed_length_complete": "200, content b'{}', Content-Length 2; scripted-wire framing exact_content_length; ACCEPTED only under fixed_length_accept, STOP under complete_accept",
+       "short_cl_valid_json": "http.client.IncompleteRead(partial=b'', expected=18) at guarded read; json 0; gate 0",
+       "close_delimited_invalid_json": "json.JSONDecodeError from the real decoder; json 1; gate 1; not framing",
+       "transport_error": "injected transport error object propagates unchanged; json 0; gate 0",
+-      "rebuilt_content_length_trap": "httpx-0.28.1-style rebuilt response gains Content-Length 2 yet close-delimited result is ACCEPTED via scripted-wire framing; a truly CL-framed wire still STOPs"
++      "rebuilt_content_length_trap": "close-delimited result with rebuilt Content-Length 2 is ACCEPTED via scripted-wire framing close_delimited (and STOPs under fixed_length_accept); a wire that really adds Content-Length classifies exact_content_length and STOPs under complete_accept"
+     },
+     "classifier": {
+-      "complete_accept": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY only for (response, 200, True, True)",
++      "complete_accept": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY only for (response, 200, True, 'close_delimited')",
++      "fixed_length_accept": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY only for (response, 200, True, 'exact_content_length')",
+       "short_cl_refuse": "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY only for (exception, IncompleteRead, http.client)",
+       "abrupt_distinct": "OBSERVED only for (exception, SSLEOFError, ssl) or (exception, ConnectionResetError, builtins)",
+       "otherwise": "SuiteStop"
+-    }
++    },
++    "suite_mapping": {
++      "counts": "27 native + 4 CF = 31 declarations, same case_id order as source",
++      "planning_union": "union of case and oracle planning IDs identical to source",
++      "orderly_case_planning_ids": ["T05-VALID-COMPLETE-CONTENT-LENGTH", "T05-SHORT-LENGTH-VALID-JSON"],
++      "orderly_oracles": [
++        ["orderly_close_delimited_complete_accepted", [], "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"],
++        ["orderly_fixed_length_complete_accepted", ["T05-VALID-COMPLETE-CONTENT-LENGTH"], "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"],
++        ["orderly_short_cl_valid_json_prefix_refused", ["T05-SHORT-LENGTH-VALID-JSON"], "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"]
++      ],
++      "valid_complete_cl_holder": "only the ORDERLY fixed-length oracle",
++      "other_declarations": "field-for-field identical to source"
++    },
++    "orderly_observations": [
++      ["orderly_close_delimited_complete_script", "complete_accept"],
++      ["orderly_fixed_length_complete_script", "fixed_length_accept"],
++      ["orderly_short_cl_valid_json_refuse_script", "short_cl_refuse"]
++    ]
+   },
+   "mutant_oracles": {
+     "close_delimited_appends_length": "close delimited:exact bytes",
+@@ -57,7 +81,10 @@
+     "abrupt_accepts_incomplete_read": "classifier:abrupt_other_stops",
+     "transport_factory_injected": "wiring:default_joined_tls_construction",
+     "retirement_removed": "wiring:retirement_in_finally_before_classification",
+-    "wire_framing_predicate_dropped": "client:rebuilt trap negative"
++    "wire_framing_predicate_dropped": "client:rebuilt trap negative",
++    "framing_conflation": "client:fixed length accepted",
++    "orderly_mapping_swapped": "mapping:close_delimited_oracle_unmapped",
++    "fixed_expectation_swapped": "wiring:orderly_three_observations"
+   },
+   "executed": false,
+   "launch_authorized": false,

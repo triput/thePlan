@@ -1,0 +1,15 @@
+# Dex reconciliation: independent MS-INVALID native result review
+
+Matt handback269F77190821DC9DD18C65816B1259F02D97211831E7790B8268ECF10FDB397B and sidecar match. Independently rechecked301frozen inputs again: unchanged. Hostreceipt4BF457AA and reconciliationBA01CEF3 remain authoritative. No new native/fake invocation; original authorization consumed.
+
+Accept corroborated checkpointPASS and exact native TOKEN acknowledgment at executed-pinned-assertion scope. Real native product terminal returned to the observer, exact row equality/commitFalse/single observer assertions passed before casePASS. This is adequate proof of that predicate for T06-INVALID-GRANT-MICROSOFT, explicitly distinguished from a directly retained row. No automatic duplicate run to improve receipt presentation. HTTP200 and defaultTLS/budget-identity checks likewise have assertion-level provenance where recorded fields are literals after guards.
+
+Corrections/qualifications:
+-Query_verified false on the exact query-free tenant OAuth POST is not a missing acceptance requirement for this case. It supplies no query-byte proof for any different case.
+-Host cleanup row ordering comes from actual54-row receipt/frozen supervisor: runner identity checked before suite_pass and again after; remove then absence check then removed marker. Same DB identity/SIGINT/wait0/identity/remove/absence/removed before complete.success. Matt's prose ordering/count shorthand does not supersede the receipt.
+-Matt disclosed applying the one-line diff to a scratch copy with sed despite the read-only/no-code-edit assignment. That scratch modification was outside the task boundary and is not retrospectively authorized. Do not use it as acceptance evidence. Dex had already derived the prospective hash independently by in-memory text substitution; the launched workspace301pins are still unchanged. No Python import/AST/test/native behavior or additional execution authority is established by the scratch step. Future read-only reviews must leave scratch code unchanged too.
+-The future one-key proposalF5768AF9 is accepted at source-review scope only. Reuse already-allowlisted token_terminal_sequence; nested privacy filtering stays byte-identical. Case consumers must distinguish MS-refresh versus invalid-grant row shapes by case_id. The constant OBSERVED label may remain filtered; no new allowlisting is requested. Add a preservation control for the refresh body's existing emission. No source implementation or rerun in this review.
+
+Requirement judgment: the Microsoft complete-invalid-grant checkpoint requirements are satisfied at reviewed native assertion/direct-measurement scope with explicit receipt-retention qualification. Do not close Google, OAuth success/uncertainty, any T04/T05 variant or fullT06/all76. Preserve all predecessors and later release gates. F46CF47D is complete. Endpoint unbound.
+
+Signed: Dex

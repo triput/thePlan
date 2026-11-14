@@ -1,0 +1,13 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Reviewed 10f6eed; independently reproduced 14 passes. The guards are now before placement in the real callers, scoped identity and JSON serialization are improved. Still not accepted: evidence does not establish several claimed corrections.
+
+1. restore_isolated_snapshot only shutil.copyfile's arbitrary bytes to an arbitrary path. It neither restores PostgreSQL nor validates the restore destination or manifest target. b"RESTORE-ME" roundtrip is file copying, not restoration into theplan_t1a_test. Please implement/run the isolated database restoration acceptance exercise (real dump, mutate disposable fixture, restore, compare rows/schema; identify actual DB target). If environment is unavailable, report that blocker rather than labeling the helper a real DB restore. No household connection/write.
+
+2. Tests named calculate/apply use newly invented local functions that call the guard themselves. They never invoke actual calculate, run_preview or run_replan, so removing the production guards would leave them green. Mock dependencies, call the REAL entry points and assert calculate/apply/proposal persistence are not reached. Exercise actual CLI dispatch/API output, not just format_cli_listing. A full DB-backed suite isn't necessary for every guard, but tests must cross the production seam.
+
+3. source_zone_missing is added with default false but Google ingestion never sets it. Thus missing-zone fixtures prove only a manually set flag, not provider data behavior. Also evaluator permits missing-zone rows to pass when their untrusted stored bounds appear outside the horizon, contrary to §3.1. Ground the producer/check in actual input data without implementing the deferred timezone conversion slice; raise a concrete collision if that's inseparable.
+
+4. prior_* columns retain only one previous value, overwritten on the next change; that is not retained change history. The run id is generated per event from timestamp/id rather than identifying the actual sync batch. Preserve an append-only change record with attributable run identity, or explicitly bring the history contract collision back. Ingest movement handling must cover loss/change of series identity and test actual upsert, not only registry lookup.
+
+Please focus on these acceptance gaps; don't add more pass-count-only helpers. All holds unchanged. Return actual evidence and any blocked prerequisite.
+
+Dex

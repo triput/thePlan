@@ -1,0 +1,36 @@
+# COMMANDS HELD — fake-only verification. NOT INVOKED under preparation approval.
+# executed=false; launch_authorized=false; prep_is_not_pass=true; endpoint=unbound.
+#
+# Limits (declared; freeze numeric pins on later card from actual ops):
+# - Fake structural check budget: <= 120s local (scaffold default in OUTER-ADMISSION)
+# - Output capture: <= 1 MiB public
+# - No Docker, sockets, PKI generation, providers, or credentials
+# - No 57-case native repetition
+# - Focused witnesses only: T02 overrun gap cite, T08 nested/reset, T07 names, assembly pins
+#
+# Preconditions before any future one-shot:
+# 1. Freeze verify/EXPECTED-FAKE-STRUCTURAL.json hash into OUTER-ADMISSION + VERIFICATION-ADMISSION
+# 2. Freeze interpreter + verify/*.py pins
+# 3. Set launch_authorized=true on both admission documents under Trish card
+# 4. Ensure no existing FAKE-NATIVE-PROVIDER-RESULT.json / LAUNCH-RECEIPT.json
+#
+# Held invocation (DO NOT RUN NOW):
+#
+#   $admission = Get-FileHash -Algorithm SHA256 .\verify\VERIFICATION-ADMISSION.json
+#   .\Invoke-Fake.ps1 -AdmissionSHA256 $admission.Hash
+#
+# Equivalent direct path after outer pin freeze (also HELD):
+#
+#   & $python -I -S -B .\verify\verify_admission.py
+#
+# Native launch (separately gated; also HELD; port unverified):
+#
+#   .\Invoke-Native-Provider.ps1
+#
+# Forbidden under this preparation:
+# - certificate generation (prepare-np-provider-tls.sh)
+# - docker compose / docker run
+# - imports/compilation/tests of payload/api
+# - helper invocation beyond static authoring
+# - provider/credential access
+# - failed-attempt reseed/retry

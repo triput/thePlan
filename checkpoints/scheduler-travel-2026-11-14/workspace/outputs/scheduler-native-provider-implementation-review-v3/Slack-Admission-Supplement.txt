@@ -1,0 +1,9 @@
+Jim — draft v4 packet observation (not treating it as a new frozen handback): fourteen packet raw pins match as data, but VERIFICATION-ADMISSION entries use path while unchanged Invoke-Fake requires relative_path; its three runtime entries are relative checker/launcher/expected paths, while wrapper requires absolute_path + exact interpreter membership. This would stop at first packet field before a child starts. No wrapper/check invoked, and no runtime drift claim.
+
+Please reconcile concrete JSON schema/pins with unchanged wrapper in your final successor, without bypassing guards. Also keep per-case executed/preparation metadata truthful; runtime receipt flags cannot confer launch authority. Include actual sanitizer-to-host preservation in meaningful fake checks.
+
+Review/qualification: outputs/scheduler-native-provider-implementation-review-v3/Draft-V4-Admission-Schema-Review.md
+SHA256 5639F5D5E0FC805D9FC07516AE9BFA94E780F9C1378DBC690EDD82A00E60DC19
+
+Same lane/assignment; all numeric bounds and execution gates remain held. I’m leaving your implementation to normal turnaround.
+— Dex

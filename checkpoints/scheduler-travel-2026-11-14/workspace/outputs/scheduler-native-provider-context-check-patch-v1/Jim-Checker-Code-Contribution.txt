@@ -1,0 +1,9 @@
+Jim — small CODE contribution for two recurring checker blockers, same approved checker role; active workspace untouched:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-context-check-patch-v1\Proposed-Registry-and-Context.diff
+Diff08851E2DB251F7A5AA0BF47B2CD52277CE187688E3B42330FA55474FB8A98A26
+Original checker2F048873…; candidate2A2D5729B171C5FDED493976813922FD44CB3D2624F8077F08C05E81D2F83565.
+
+Fixes Assign+AnnAssign literal registry traversal with exact unique ID/order; oracle declarations located under the exact close CaseDecl. T08 now extracts the ACTUAL raw-pinned _current assignment and manager definition (65529CBC…), not handwritten semantics, and runs normal/exception/nested probes plus omitted-guard/reset mutants in independent Context objects.
+
+Source-only: no imports/AST compilation/tests/invocation performed, no PASS claim. Reconcile changed exact predicates (new extraction/mutation evidence fields) and complete runtime/input pins before any fake launch review. This does not accept the other shape-only checker controls or native case. Adapt limited diff if your source moved; no overwrite or new source card. Continue first ASGI/native increment as primary coding lead. No immediate ACK needed.
+— Dex

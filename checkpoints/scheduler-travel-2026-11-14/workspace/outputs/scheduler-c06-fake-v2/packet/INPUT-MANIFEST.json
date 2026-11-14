@@ -1,0 +1,145 @@
+{
+  "packet": "post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10",
+  "kind": "c06-runner-tls-corrected6-fresh-copy-check-preexist-path-lexists",
+  "byte_semantics": "utf-8 lf",
+  "execution_authorized": false,
+  "certificate_generation_authorized": false,
+  "launch_ready": false,
+  "manifest_self_of": "TIP-FREEZE.json",
+  "manifest_self_sha256": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+  "parent_corrected5": {
+    "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected5-2026-11-10",
+    "tip_freeze_sha256": "5F8D87526F9D2C114C2B81A0D06D3ED2A5CEBC7E2DC97A562225C9C2FB23C602",
+    "check_sha256": "99C3049C69C5837C728236D6ED8332A286A0E22FF6A35A8C47157165CF78D51E",
+    "mutated": false
+  },
+  "parent_corrected4": {
+    "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected4-2026-11-10",
+    "tip_freeze_sha256": "914268E0C980FEAB4DC93752D733AB4AF1133F5C1869BB99032FB71CE8EE7192",
+    "mutated": false
+  },
+  "parent_corrected3": {
+    "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected3-2026-11-10",
+    "tip_freeze_sha256": "D6260E99FFC203733DB84B4D7E8970AFE92E511B1DC3467949792D88A258EACC",
+    "mutated": false
+  },
+  "parent_corrected2": {
+    "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected2-2026-11-10",
+    "tip_freeze_sha256": "91E699ED7A490D0A070A4D44EB33F3B62CD5D1C9D83F55A0D77634B9D62DC74A",
+    "mutated": false
+  },
+  "parent_corrected1": {
+    "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected1-2026-11-10",
+    "tip_freeze_sha256": "2F9D3EDA861F67A0881C46953B92248A1A6D996DF3BB41C87C1EA55A7E449676",
+    "mutated": false
+  },
+  "parent_v1": {
+    "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-2026-11-10",
+    "tip_freeze_sha256": "046D670AC261A3E72920264C44DC16F3DB39B8D5E386CA4D4CAA726ED97108BA",
+    "mutated": false
+  },
+  "approved_scope": {
+    "file": "C06-Preparation-Scope-For-Approval.md",
+    "sha256": "B6D6ED1A059873ACD5A6239F754B7DBB06DF085EC23A631C64E0ADADC68EE5A9"
+  },
+  "approval": {
+    "file": "C06-Preparation-Approval.json",
+    "sha256": "4382DFBE239C58601FDB58D4C624A4981C68C89DE9F8E06D3C34CD0765037628"
+  },
+  "fresh_preparation_approval": {
+    "question_item": "call_32f9e623299f4b0e8bc3eed4532b8278",
+    "file": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-c06-fake-v1/Fresh-Preparation-Approval.json",
+    "sha256": "A00A42CEDD500333B6A3DFF4CB951609B37555ABD8166EFBF2237CF6730C7923",
+    "proposal_diff_sha256": "2F798B6F1F4B0C968A198746F36FF55D9776935B678A6DA6F08962D563D23F47",
+    "expected_check_sha256": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8"
+  },
+  "check_c06_runner_tls_fake_py_sha256": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8",
+  "four_targets": {
+    "payload/fixture/prepare-c06-runner-tls.sh": "F1868F913BFBA3841331B397242566938DAF7C2047CACDD5031611B62D60E6DA",
+    "payload/fixture/runner_entry.py": "2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E",
+    "payload/fixture/i01_c06_dual_peer.py": "A636DE72ACB709AAD01EE036DD5EF070CE74F77A0DEC06865EBDCAE3D91B8C52",
+    "payload/fixture/i01_i02_suite.py": "B3986FB351493C85DD4BE53137D3A1C93978A4567C0E02692819CCEEC54ACFA8"
+  },
+  "fresh_copy": {
+    "payload_root": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10\\payload",
+    "changed_files": [
+      "fake-only-c06-verification/check_c06_runner_tls_fake.py"
+    ],
+    "unchanged_vs_corrected5": [
+      "payload/fixture/prepare-c06-runner-tls.sh",
+      "payload/fixture/runner_entry.py",
+      "payload/fixture/i01_c06_dual_peer.py",
+      "payload/fixture/i01_i02_suite.py",
+      "payload/launch-config.json",
+      "payload/SHA256SUMS.txt",
+      "fake-only-c06-verification/EXPECTED-OUTPUT.json",
+      "fake-only-c06-verification/admit_outer.py",
+      "fake-only-c06-verification/invoke_c06_fake.py"
+    ],
+    "launch_config_sha256_unchanged": "B94DEFE32C2C25B22D0AFBCBA0CC5E2365CBB5AD8FEE291C83667DC51145B4A9",
+    "payload_sha256sums_sha256": "ED9BAA7934263C5D8B8DE3C441020B05FF9A9FBEDAA7195B1F59B33063A0377D"
+  },
+  "untouched_prior_packets": {
+    "tipped_corrected5": {
+      "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected5-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "5F8D87526F9D2C114C2B81A0D06D3ED2A5CEBC7E2DC97A562225C9C2FB23C602",
+      "mutated": false
+    },
+    "tipped_corrected4": {
+      "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected4-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "914268E0C980FEAB4DC93752D733AB4AF1133F5C1869BB99032FB71CE8EE7192",
+      "mutated": false
+    },
+    "tipped_corrected3": {
+      "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected3-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "D6260E99FFC203733DB84B4D7E8970AFE92E511B1DC3467949792D88A258EACC",
+      "mutated": false
+    },
+    "tipped_corrected2": {
+      "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected2-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "91E699ED7A490D0A070A4D44EB33F3B62CD5D1C9D83F55A0D77634B9D62DC74A",
+      "mutated": false
+    },
+    "tipped_corrected1": {
+      "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected1-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "2F9D3EDA861F67A0881C46953B92248A1A6D996DF3BB41C87C1EA55A7E449676",
+      "mutated": false
+    },
+    "tipped_v1": {
+      "path": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "046D670AC261A3E72920264C44DC16F3DB39B8D5E386CA4D4CAA726ED97108BA",
+      "mutated": false
+    },
+    "failed_workspace_scheduler_c06_fake_v1": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v1",
+      "preserved_as_evidence": true,
+      "mutated": false
+    },
+    "fake_22_pass": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "6D19C5963C3CF2F1FBADDAE64AE0BE039D32C2C419A4EDCAB940E6314EB5084E",
+      "mutated": false
+    },
+    "corrected7": {
+      "path": "F:\\DropFolder\\pending\\post-native-I01-I02-fixture-prep-jim-v1-REVISE2-corrected7-2026-11-10\\TIP-FREEZE.json",
+      "tip_freeze_sha256": "6D19C5963C3CF2F1FBADDAE64AE0BE039D32C2C419A4EDCAB940E6314EB5084E",
+      "mutated": false
+    },
+    "native_i01_i02_draft": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1",
+      "launch_config_sha256": "B94DEFE32C2C25B22D0AFBCBA0CC5E2365CBB5AD8FEE291C83667DC51145B4A9",
+      "launch_ready": false,
+      "mutated": false
+    }
+  },
+  "verification_packet": "fake-only-c06-verification/",
+  "verification_held": true,
+  "limitations": [
+    "Source/packet preparation only; recipe authored not executed",
+    "Fake-only harness authored not invoked",
+    "Sole change vs corrected5: check first preexisting-directory control fake_os.lexists → fake_os.path.lexists",
+    "Four fixture sources unchanged; assertions/39-control inventory/EXPECTED-OUTPUT/T02 unchanged",
+    "Launch-config pinned as separate static input (not a fifth fixture); bytes unchanged",
+    "Static blocker remains Open; launch_ready remains false; endpoint unbound"
+  ]
+}

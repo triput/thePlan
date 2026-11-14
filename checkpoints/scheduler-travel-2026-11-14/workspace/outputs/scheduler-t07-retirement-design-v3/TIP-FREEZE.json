@@ -1,0 +1,41 @@
+{
+  "tip_name": "post-native-t07-retirement-design-jim-v3-2026-11-11",
+  "frozen_at_pacific_date": "2026-11-11",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "d2_one_shot_untouched": true,
+  "supersedes_v2_tip_sha256": "9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB",
+  "prior_immutable_tips": [
+    "ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A",
+    "9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB"
+  ],
+  "assignment_sha256": "28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719",
+  "required_api_pins_match": true,
+  "design_verdict": "NO",
+  "proposed_diff_present": true,
+  "proposed_diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "hunk_counts_verified": true,
+  "prospective_resulting_sha256": {
+    "app/services/covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "app/services/covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "app/services/covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "handback_dirs": [
+    "F:/DropFolder/pending/post-native-t07-retirement-design-jim-v3-2026-11-11",
+    "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-retirement-design-v3"
+  ],
+  "one_sentence_recommendation": "No on current source; capture this invocation's primary in except locals (never sys.exc_info), raise a new UNKNOWN on cleanup with append-only provenance, keep JoinedTLS.open R08, deferred importer re-raise; hunk counts verified.",
+  "artifact_files": {
+    "Caller-Trace.md": "8D044E2CB54C707E02E9FA9C02FDD3D85DF5B470FD44525A1889FAFFEFFC2C58",
+    "Decisions-vs-Routine.md": "482D366DA0B84F1AE30C6981CDDCB4ED6B79CE9E315403C931FC425E89822064",
+    "Design-Recommendation.md": "645E1075499B462C1EC494A5ED940D0285A576822C3350C82910981A608D8845",
+    "HANDBACK.txt": "B5B46982CB2588C002B7AE42A5092582FF0DE71026E2DE574EB0BBC34354F041",
+    "INPUT-PINS.json": "5773151A6C6CBDE4C690D4673BECC550BEFFCE0F439C2A1AA3FB3905D4687D33",
+    "Proof-Inventory.md": "01B45A3B5986A632415C2AEE22A3F7DD5C69D1C7570EC0F142711457155D2DDD",
+    "Proposed-Changes.diff": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+    "README.md": "CEBCC8096306473D41F8D9DEB4B2CC71DF5B54AC3E207D61DD709E03333E5E57",
+    "Scope-and-Limits.md": "BC778D1C584371B5A7038CF27F5EA09F96EB110388BE4973246FFBB4E6BBB275",
+    "T07-R01-R12-Reconciliation.md": "709708C3DE82C80FC01C494B777D145E7B4E8E1C242F11B7304F92C1D21C1904"
+  }
+}

@@ -1,0 +1,44 @@
+T05 CLOSURE PREP HANDBACK — Jim / Justin — 2026-11-12
+packet: post-native-provider-t05-closure-prep-jim-v2-2026-11-12
+workspace: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-closure-prep-jim-v2
+TIP on-disk SHA256: 7CC58CDAF6C6570583D68E94CB842A2810E49AF70F94A9296CBB30237433A638
+tip_sha256 (preimage rule): D40FAA850097F42F38E06512141C16D3C46A7035D49B5B1FF6647DD3EB5C82AB
+tip base t05-closure-prep-jim-v1 TIP on-disk: C902F5296D2B76031254213A1A0812CB944062296BD6B5BA13373A29863483EB
+base native-ready TIP on-disk: A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57
+held candidate-v2 TIP: 34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440
+Dex reconciliation: BA194960F6B96B1D9DD95F4434EC8C94AB1F7C65E1238761DA7B4DF17DCDF0BB
+Native-Deadline-TLS §6: 1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069
+
+FLAGS: executed=false launch_authorized=false launch_ready=false prep_is_not_pass=true endpoint=unbound
+INVOKE: none. Slack tip: false. Held packets untouched. Not waiting on Trish.
+
+CASE BATCH: NP-V-MS-NONEXPIRED only; T05 bodies AUTHORED_NOT_IN_LAUNCH_BATCH; expected_unknown=[]; 76 retained.
+DOCKER COMMAND RECOUNT: static success path 22 (unchanged); hard cap 32.
+
+OBSERVATIONS FIXED:
+1 complete close-delimited accepted after orderly close_notify (+ production clean_eof; peer attempt alone insufficient)
+2 short-CL valid JSON refused after orderly close_notify (+ production clean_eof; UNKNOWN unwrap STOP)
+3 abrupt TLS truncation classified distinct from malformed body / ASGI disconnect (measured receive required)
+
+DEX R1–R5 FIXED:
+R1: CoveringRootOutcomeUnknown STOP before unwrap on event refusal (expected_unknown=false)
+R2: abrupt requires measured abrupt_ssl_error|abrupt_tcp_reset + stimulus; reject generic/deadline/malformed/UNKNOWN
+R3: helper one bounded retirement on start_background partial failure; no double cleanup
+R4: fresh validated plan per a/b/abrupt exchange; no now-fallback; expiry/failure STOP
+R5: report-producer fake deps admitted; 14 extracted actual-helper controls + mutations; structural scope honest
+
+DEX INTERRUPT: peer stimulus≠EOF proof; unwrap success not sole proof; JoinedTLS.close local-only; suppress_ragged_eofs=False preserved.
+
+KEY ROLE SHA256:
+np_runner_entry.py=A43092575F7DA6FD6892195DEA3356314C0AF8083D7B60968E42C1080276ABB4
+np_provider_peer.py=4EEAB1E7F789AB4918B36466A50F29E09F84E6FA48A87C0C942ECD599E097D17
+np_provider_transcript.py=46327DF0A848672FFBCA85772C0EA764D370BDF7B487EFAE36831F451A6915D4
+np_suite.py=617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562
+check_native_provider.py=49233E917CA41FECB1E42ECDCC7D8985DE31F7B749D7BCA65421695567B7AB9F
+launch_check.py=41F4EB8EE36715CBDE63AA3F8025FBBC073F319CDC397C830842D0C61B42FA49
+verify_admission.py=9B818F8E12AA2E654700AC44CBD2834C7640AB6D1EE2AEC49B8664DC76C5063C
+Invoke-Fake.ps1=2764F14ED01E70C39D1758E26EC7FDC8C025E28D42E4EFE14ABD7741BEF39721
+payload/runner-config.json=5A54F37CAD7A470CF2CCC2CC121818953E24848C19026C7EBC9D02114B10043D
+EXPECTED-FAKE-STRUCTURAL.json=CCC7824FEA9CA19C93148C20D079EE2011B850392E394F5B6A8177126DAC64FF
+
+DropFolder: F:/DropFolder/pending/post-native-provider-t05-closure-prep-jim-v2-2026-11-12

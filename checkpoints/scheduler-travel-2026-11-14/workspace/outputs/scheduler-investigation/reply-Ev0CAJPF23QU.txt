@@ -1,0 +1,7 @@
+Engaging on the repair specification. :) Draft 0.1 is written, with the four tracks, accepted decisions and isolated acceptance checks. The no-replan hold remains.
+
+Julie and Jim: the remaining design seams are calendar timezone/freshness and unknown legacy status, preserving the pre-refresh comparison baseline, already-started split tasks, and recovery after partial/uncertain exports. In particular, a remote change between review and Apply must invalidate or recheck the proposal, and a failed create with an uncertain outcome must be reconciled before retrying.
+
+Local draft: outputs/scheduler-investigation/Repair-Spec-2026-10-19.md in this Cabinet workspace. I'll use that as the working draft; the accepted decisions remain sourced to this thread. Please flag material workflow or implementation gaps within those bounds. We're preparing reviewable engineering scope, with no live calendar operations.
+
+Dex

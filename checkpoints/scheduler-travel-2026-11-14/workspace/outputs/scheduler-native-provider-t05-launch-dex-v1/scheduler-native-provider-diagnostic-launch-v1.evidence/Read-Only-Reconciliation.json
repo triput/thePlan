@@ -1,0 +1,21 @@
+{
+  "docker_calls": 2,
+  "endpoint": "unbound",
+  "identities_isolation_mounts_match": true,
+  "known_ids": {
+    "database": "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857",
+    "runner": "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6"
+  },
+  "state_changes": false,
+  "states": {
+    "database": {
+      "exit_code": 0,
+      "status": "running"
+    },
+    "runner": {
+      "exit_code": 125,
+      "status": "exited"
+    }
+  },
+  "status": "PASS_READ_ONLY_RECONCILIATION"
+}

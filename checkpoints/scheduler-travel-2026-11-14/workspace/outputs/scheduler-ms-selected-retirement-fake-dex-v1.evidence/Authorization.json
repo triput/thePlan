@@ -1,0 +1,14 @@
+{
+  "nativeAuthority": "NONE",
+  "answer": "Authorize one selected-retirement fake verification",
+  "atUtc": "2026-11-13T22:58:12.6260597Z",
+  "endpoint": "unbound",
+  "command": "913D9951C763DD8E81DEC696864BDD4EBC336CE8F1C46C292B21531A99CE4D23",
+  "runtimePins": 10,
+  "admission": "CDC8F7721BF250BEF7D48481219295EBB76C70F978C7D1F80D5538DEFDEB753A",
+  "packetPins": 41,
+  "allowedInvocations": 1,
+  "manifest": "923C8D04C56D33EE25D55F3F0B85B3C8389B5D205A6B198BFE10A94AB939A6FB",
+  "preflightInputs": 49,
+  "questionId": "call_4b4e3e73817e4859812af813875766f0"
+}

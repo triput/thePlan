@@ -1,0 +1,94 @@
+{
+  "source": "Exact Google native PASS snapshot; these candidate paths are not yet integrated into the repository application tree",
+  "files": [
+    {
+      "sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D",
+      "file": "app/api/middleware/covering_ingress.py",
+      "purpose": "Starts and carries the shared request budget into the Scheduler request",
+      "start": 34,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\api\\middleware\\covering_ingress.py",
+      "spotCheck": "Does provider work use this same budget, and does disconnect stop further work?"
+    },
+    {
+      "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "file": "app/services/covering_release_plan.py",
+      "purpose": "Connects each request to fresh native database factories and the bounded provider client",
+      "start": 13,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_release_plan.py",
+      "spotCheck": "Are resources constructed for this request and opened only after the correct role is reserved?"
+    },
+    {
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "file": "app/services/covering_domain_dispatch.py",
+      "purpose": "Orders token preparation, calendar imports and the final scheduling assessment",
+      "start": 165,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_dispatch.py",
+      "spotCheck": "Does a rejected token skip import, and does the response describe the saved final state?"
+    },
+    {
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "file": "app/services/covering_domain_adapters.py",
+      "purpose": "Bridges Google/Microsoft operations to native transaction commit or rollback acknowledgments",
+      "start": 30,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_adapters.py",
+      "spotCheck": "Can a result be reported as known without an acknowledged database terminal?"
+    },
+    {
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "file": "app/services/covering_refresh_import.py",
+      "purpose": "Fetches calendar changes and applies them to the cached events and coverage",
+      "start": 588,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh_import.py",
+      "spotCheck": "Which account/calendar rows can change, and what happens to partial imports?"
+    },
+    {
+      "sha256": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E",
+      "file": "app/services/covering_refresh.py",
+      "purpose": "Builds the final freshness and scheduling-readiness assessment from persisted state",
+      "start": 379,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh.py",
+      "spotCheck": "Is the owner locked and the ORM view refreshed before readiness/revision are reported?"
+    },
+    {
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "file": "app/services/covering_http_transport.py",
+      "purpose": "Makes the bounded HTTP exchange, checks framing/completeness and interprets OAuth acknowledgments",
+      "start": 276,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_transport.py",
+      "spotCheck": "After a possibly sent token request, can an incomplete response be mistaken for a known failure or retried?"
+    },
+    {
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "file": "app/services/covering_joined_https.py",
+      "purpose": "Owns the actual HTTPS socket, verifies TLS and enforces thread ownership and retirement",
+      "start": 16,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_joined_https.py",
+      "spotCheck": "Can another thread close it, can it be reused, and is abrupt closure distinguished from complete data?"
+    },
+    {
+      "sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "file": "app/services/covering_transport_policy.py",
+      "purpose": "Limits approved destinations, URL paths, requests, pages, bytes and items",
+      "start": 131,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_transport_policy.py",
+      "spotCheck": "Can pagination or encoded paths escape the approved route or evade request-wide limits?"
+    },
+    {
+      "sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "file": "app/services/covering_provider_context.py",
+      "purpose": "Selects the bounded client inside a covering refresh and resets that selection afterward",
+      "start": 13,
+      "absolutePath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_provider_context.py",
+      "spotCheck": "Can nested or leaked context send a covering request through the ordinary client?"
+    }
+  ],
+  "kind": "CONSEQUENTIAL_FILE_WALKTHROUGH_INDEX_FOR_TRISH",
+  "noExecution": true,
+  "firstThreeForSpotChecks": [
+    "covering_domain_dispatch.py",
+    "covering_domain_adapters.py",
+    "covering_refresh.py"
+  ],
+  "status": "Prepared reference for later walkthrough, not an urgent reading assignment",
+  "testVersusProduct": "np_runner_entry.py and check_native_provider.py are fixture/checker roles, not the application Scheduler. Walk through their assertions separately when reviewing evidence."
+}

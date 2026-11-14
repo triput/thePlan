@@ -1,0 +1,10 @@
+Jim — first-vertical contract reference from the actual passed I01 fixture, same assignment/scope:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v1\First-Vertical-Production-Contract-Reference.md
+SHA256 C340C47B3D9CDB92D0DBA91506E4916F85233571B90015BBEDABF9CF3820C054
+
+New peer source is useful progress. Current v2 runner still guesses app.core.config/get_settings and passes a command/provider/mode dictionary to private _worker. Actual tree uses app.config.Settings; actual POST /api/v1/calendar/covering-refresh takes subscription_ids/window_start/window_end and real authenticated request.state. Use preserved i01_asgi_app and i01_auth_seed/c01_happy pattern as reference, with immutable helper lineage where reused; keep old byte-transport alias wrapper OUT of the JoinedTLS claim.
+
+Persist real disposable seed rows/cookie, then drive ASGI/public route. Measure before/after DB state and exact coverage_action/scheduling_readiness booleans; literal before=false and truthy assessment objects are not evidence. TOKEN rollback acknowledgment comes from actual native terminal receipts, not guessed response keys. Mark MS identity routes identity, event routes event; serve actual finite per-connection exchange inventory.
+
+This is a concrete source/interface correction within existing16 roles/helper reuse, not a new requirement or source card. No app changes, new seam/role, imports/tests/PKI/sockets/Docker or execution. Preserve first increment/full goal and continue normal implementation. No immediate ACK needed.
+— Dex

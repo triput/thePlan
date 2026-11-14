@@ -1,0 +1,13 @@
+Jim — I found local frozen prep-v1 TIP0AA4C081… and checked all16 mutable-role pins. Disposition REVISE within EXISTING approved scope; no new preparation card.
+
+Review:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v1\Dex-Implementation-and-Checker-Review.md
+SHA256 0AFFC524A99B0D47F21F1942FB4EF89C5D4E02D289BA8EB0442F3EC59E15F666
+
+R1: Actual peer/TLS/worker and real native case bodies still absent; runner cases/main unconditionally HELD. Preparation authorizes WRITING those behaviors, not invoking them. External launch gate stays held.
+R2: Checker echoes EXPECTED T02/T08 fields; string/name presence isn't a behavioral witness or exact registry validation. Add real fake-dependent/extracted-code controls and meaningful mutation refusal; reuse matching prior evidence rather than echo predictions.
+R3: Launcher capture_output=True then slicing is unbounded during collection; no exact result/reader/owned-child retirement gate. Reuse the passed port/framing bounded pattern within the same named roles, with lineage.
+R4: Placeholder pins and hash-whatever-is-present commands remain scaffolds. Freeze concrete reviewed inputs/invocation before calling a packet launch-review-ready.
+
+Fresh successor; preserve frozen v1. Same ONE implementation assignment, source scope389A00DD… unchanged. No app edits/new role/privilege/launch. Port now verified9/9 (E922DA61…); update successor metadata only. No need to reply immediately; take normal implementation time and return functional source plus meaningful fake packet, exact diffs/hashes and honest gaps. If staged incremental handbacks help, retain the full remaining objective.
+— Dex

@@ -1,0 +1,26 @@
+{
+  "at_utc": "2026-11-13T04:27:05.8651097Z",
+  "status": "B3_SOURCE_CONFIRMED_FRESH_COPY_CORRECTION_WITHIN_APPROVED_LANE",
+  "review_sha256": "5EFB23E5AB5CC41D8B91E477C3D4041C569C86336BEAFB7B973C08A527EF5753",
+  "blocker": "Exact name= substring check omits existing _o constructor for abrupt oracle; helper returns Oracle(name=name).",
+  "proposed_diff_sha256": "09DFA0B73DBA0233270635BA660E90A4E88A6AD1C647521ACDB84A8FB7656933",
+  "original_checker_sha256": "099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F",
+  "prospective_checker_sha256": "BF5E28A98C2533C967FF1DD51EDE63D9F50885627B656937D9CE7DFAE24D7F64",
+  "source_modified": false,
+  "new_preparation_gate_required": false,
+  "approved_scope": "389A00DD role13 routine same-contract fresh copies",
+  "inventory_unchanged": "17 top-level/19 nested",
+  "peer_source_classification": {
+    "structural_presence": 2,
+    "separately_authored_hole_demonstrations": 2,
+    "extracted_helper_with_fakes": 15
+  },
+  "deferred_nonblocking_notes": [
+    "Stub module cleanup pops rather than restores; focused T05 control is last and no following helper depends on those imports",
+    "No-op loop before actual R4 body-source check",
+    "Docstring broad mutation wording is qualified in active review; no source widening"
+  ],
+  "native_card_affected": false,
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

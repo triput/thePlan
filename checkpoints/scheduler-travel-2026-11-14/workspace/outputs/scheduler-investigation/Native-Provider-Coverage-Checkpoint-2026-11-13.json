@@ -1,0 +1,146 @@
+{
+  "kind": "current-native-implementation-and-proof-checkpoint",
+  "atUtc": "2026-11-13T18:10:11.1926184Z",
+  "sourcePacket": "scheduler-native-provider-ms-merge-nonexpired-prep-matt-v1",
+  "sourcePins": {
+    "joinedTLS": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+    "runner": "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C",
+    "peer": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+    "suite": "46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D"
+  },
+  "declaredCaseIds": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-V-MS-REFRESH",
+    "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+    "NP-V-MS-INVALID",
+    "NP-V-GOOGLE-REFRESH",
+    "NP-V-GOOGLE-INVALID",
+    "NP-T06-BEFORE-SEND",
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME",
+    "NP-T03-HANDSHAKE-STALL",
+    "NP-T03-TCP-REFUSAL",
+    "NP-T04-HEADER-STALL",
+    "NP-T04-BODY-STALL",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DEADLINE",
+    "NP-T04-DISCONNECT",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION",
+    "NP-T07-OWNED-SOCKET",
+    "NP-T07-BOTH-AFTER-FAILURE",
+    "NP-T08-OWNERSHIP",
+    "NP-T01-USERINFO-CF",
+    "NP-T01-FRAGMENT-CF",
+    "NP-T01-CONTROL-CHAR-CF",
+    "NP-T01-PURPOSE-WRONG-CF"
+  ],
+  "declaredCount": 31,
+  "implementedSourceCaseIds": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-V-MS-REFRESH"
+  ],
+  "heldSourceCaseIds": [
+    "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+    "NP-V-MS-INVALID",
+    "NP-V-GOOGLE-REFRESH",
+    "NP-V-GOOGLE-INVALID",
+    "NP-T06-BEFORE-SEND",
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME",
+    "NP-T03-HANDSHAKE-STALL",
+    "NP-T03-TCP-REFUSAL",
+    "NP-T04-HEADER-STALL",
+    "NP-T04-BODY-STALL",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DEADLINE",
+    "NP-T04-DISCONNECT",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION",
+    "NP-T07-OWNED-SOCKET",
+    "NP-T07-BOTH-AFTER-FAILURE",
+    "NP-T08-OWNERSHIP",
+    "NP-T01-USERINFO-CF",
+    "NP-T01-FRAGMENT-CF",
+    "NP-T01-CONTROL-CHAR-CF",
+    "NP-T01-PURPOSE-WRONG-CF"
+  ],
+  "heldSourceCaseCount": 29,
+  "implementationObservation": "Text inspection of IMPLEMENTED_CASE_IDS, both mapper branches and HOLD fallback; no subject parsing/import/compilation/execution.",
+  "retainedEvidencePinsReverified": 21,
+  "planningRequirements": 76,
+  "familyCounts": [
+    {
+      "family": "T01",
+      "planning_ids": 18,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T02",
+      "planning_ids": 12,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T03",
+      "planning_ids": 5,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T04",
+      "planning_ids": 5,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T05",
+      "planning_ids": 13,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T06",
+      "planning_ids": 10,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T07",
+      "planning_ids": 8,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T08",
+      "planning_ids": 5,
+      "full_scope_status": "completion_unproven"
+    }
+  ],
+  "nativePASSOfMergedCases": false,
+  "latestNativeOutcome": "STOP retained; cleanup complete in existing receipts",
+  "sourceConstraints": [
+    {
+      "observation": "If no Content-Length header is supplied, serializer appends it. Current serializer cannot create a close-delimited response and would append Content-Length beside a requested Transfer-Encoding.",
+      "path": "fixture/np_provider_peer.py",
+      "line": 96,
+      "implication": "Before native close-delimited/chunk framing proof, prepare explicit fixture framing modes with exact wire assertions; retain default behavior for existing verticals."
+    },
+    {
+      "observation": "Orderly mode attempts unwrap, tolerates OSError and records attempted; JoinedTLS closes locally without reciprocal unwrap.",
+      "path": "fixture/np_provider_peer.py",
+      "line": 390,
+      "implication": "Do not require successful two-way shutdown or treat attempted unwrap as peer/client TLS EOF proof. Use distinct client native observations under suppress_ragged_eofs=False, exact response bytes and known peer retirement."
+    }
+  ],
+  "nextDesign": "Native T05 fixture framing/EOF design after current Matt static-review assignment; no assignment or source change triggered by this checkpoint.",
+  "executionPerformed": false,
+  "goalComplete": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,76 @@
+{
+  "status": "FAIL_INDEPENDENTLY_RECONCILED",
+  "at_utc": "2026-11-11T19:48:01.7433292Z",
+  "authorized_attempts": 1,
+  "executed_attempts": 1,
+  "retries": 0,
+  "repairs": 0,
+  "child_pid": 214132,
+  "child_exit": 1,
+  "termination_confirmed": true,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "stderr_bytes": 0,
+  "timed_out": false,
+  "controls_completed": 0,
+  "inventory_error": "ControlFailure:CR bytes forbidden in extraction source: C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-fake-v1\\packet\\payload\\workspace\\apps\\api\\app\\services\\google_calendar.py",
+  "result_sha256": "B9E06AEE93AD981D0AFD4FC7CB05E03FD40D9FFC259364982351804677896ED7",
+  "launch_receipt_sha256": "AC36E46D7A772E9D897673BBE05768BB619C3658F29CF475FA5295410E201D90",
+  "postrun_packet_pins_verified": 252,
+  "postrun_runtime_pins_verified": 12,
+  "extraction_source_formats": [
+    {
+      "path": "workspace/apps/api/app/services/covering_transport_policy.py",
+      "sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "crlf_pairs": 0,
+      "bare_cr": 0
+    },
+    {
+      "path": "workspace/apps/api/app/services/covering_http_transport.py",
+      "sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "crlf_pairs": 0,
+      "bare_cr": 0
+    },
+    {
+      "path": "workspace/apps/api/app/services/covering_provider_context.py",
+      "sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "crlf_pairs": 0,
+      "bare_cr": 0
+    },
+    {
+      "path": "workspace/apps/api/app/services/google_calendar.py",
+      "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+      "crlf_pairs": 1461,
+      "bare_cr": 0
+    },
+    {
+      "path": "workspace/apps/api/app/services/microsoft_calendar.py",
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+      "crlf_pairs": 2252,
+      "bare_cr": 0
+    },
+    {
+      "path": "bases/app/services/covering_transport_policy.py",
+      "sha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "crlf_pairs": 0,
+      "bare_cr": 0
+    },
+    {
+      "path": "bases/app/services/covering_http_transport.py",
+      "sha256": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "crlf_pairs": 0,
+      "bare_cr": 0
+    },
+    {
+      "path": "bases/app/services/covering_provider_context.py",
+      "sha256": "8A40B635467D3BB3CD12E57F96521ACF7AEEF7D4A7661DB9157AC7FED9802D9F",
+      "crlf_pairs": 0,
+      "bare_cr": 0
+    }
+  ],
+  "interpretation": "Check-script LF-only guard rejects unchanged hash-pinned CRLF source before controls; not evidence of application path failure",
+  "next_step": "Separate fresh-copy check-preparation approval; no retry/repair/rerun authorized",
+  "t07": "Separately approved workspace-only preparation remains valid; D2 packet must not be modified"
+}

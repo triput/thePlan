@@ -1,0 +1,22 @@
+{
+  "kind": "static-preparation-receipt",
+  "packet": "post-native-provider-t05-closure-prep-jim-v2-2026-11-12",
+  "tip_on_disk_sha256": "7CC58CDAF6C6570583D68E94CB842A2810E49AF70F94A9296CBB30237433A638",
+  "tip_sha256": "D40FAA850097F42F38E06512141C16D3C46A7035D49B5B1FF6647DD3EB5C82AB",
+  "tip_base_v1_on_disk_sha256": "C902F5296D2B76031254213A1A0812CB944062296BD6B5BA13373A29863483EB",
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": false,
+  "prep_is_not_pass": true,
+  "slack_tip": false,
+  "dex_r1_r5_fixed": true,
+  "observations_fixed": [
+    "obs1",
+    "obs2",
+    "obs3"
+  ],
+  "launch_batch_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "t05_extracted_control_count": 14
+}

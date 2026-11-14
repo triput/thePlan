@@ -1,0 +1,26 @@
+{
+  "sourceFindingsConfirmed": [
+    "HTTPSPeer.port is shared by URL origin check and JoinedTLS numeric dial; URL443/dial9 placeholder cannot express a real refusal through this client",
+    "Wrong CA swaps client trust only; wrong name swaps server leaf while vendor hostname/SNI remain",
+    "Peer accepted phase and broad SSL class alone cannot distinguish planned negative stimulus from fixture fault; exact same-attempt client certificate-verification failure is essential",
+    "Direct ProviderCounter work_remaining uses210s first guard;240s request guard is not independently proved by this direct path",
+    "Stall branch always produces PeerLifecycleError on stop/deadline; current positive no-worker-error helper must not be globally weakened"
+  ],
+  "executionAuthority": "NONE",
+  "sidecarPinsVerified": 16,
+  "endpoint": "unbound",
+  "handoff": "414CB97F12DE16097C332119989D252993B2F3FEBEAFE4A52B28399E50AFF48C",
+  "status": "Qualified design acceptance for retained backlog; implementation not assigned",
+  "kind": "Dex T03 source-only design reconciliation",
+  "qualifications": [
+    "D1 is a fixture-design hypothesis,not native evidence: exact client class plus pinned stimulus,joined retirement,finite per-case peer classes,phase and zero app-data checks must be conjunctive",
+    "Also require bytes_received==0,not only request_received false and bytes_sent0; existing sanitized_state already exposes it",
+    "Keep current STOP schema exception classes and owned locations only; phase may be checked in memory or existing case observations,not added to STOP fields",
+    "Original client exception identity applies only with clean client retirement; cleanup UNKNOWN remains fail closed and cannot count as an expected TLS refusal",
+    "D2 proposed240s peer needs its later exact limit/launch review; nominal620s allotment sum is planning,not measured wall time",
+    "D3 bound-not-listening reservation and Linux refusal remain unproved native behavior; new socket action must be disclosed in its future launch card",
+    "No implementation/source edit granted by accepting this design; current priority is stopped T05 offline trace"
+  ],
+  "atUtc": "2026-11-13T23:46:30.2906330Z",
+  "implementationApprovedNow": false
+}

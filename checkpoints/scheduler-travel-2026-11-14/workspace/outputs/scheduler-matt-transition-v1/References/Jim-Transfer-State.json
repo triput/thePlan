@@ -1,0 +1,41 @@
+{
+  "kind": "Jim_Matt_handoff_checkpoint_diagnostic_prep",
+  "ownership_transfer_ready": true,
+  "active_jim_writer": false,
+  "implementation_started": false,
+  "candidate_runner_authored": false,
+  "candidate_runner_sha256": null,
+  "stopped_runner_sha256": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+  "approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+  "exact_lf_candidate_expectation_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+  "prospective_temp_apply_matches_expectation": true,
+  "prospective_temp_apply_delivered_as_candidate": false,
+  "stopped_packet_diff_vs_base": "empty",
+  "host_validator_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+  "fake_packet_authored": false,
+  "fake_control_design_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-v3-runner-diagnostic-diff-jim-review-v1\\Fake-Control-Design.json",
+  "jim_suitestop_trace_tip_on_disk": "1AE5A5B379F74DE182CAB5BA822BB3050595E813548DBED60419F69093FBAE8F",
+  "jim_diagnostic_diff_review_tip_on_disk": "5A3E3B841F6C276CA4E34D5A70D6E3329C54D69C4CC050AF43BECCB47ACCB66D",
+  "approval_receipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-dex-review-v2\\Diagnostic-Preparation-Approval.json",
+  "execution_authorized": false,
+  "native_rerun_authorized": false,
+  "launch_authorized": false,
+  "executed": false,
+  "endpoint": "unbound",
+  "failed_packet_immutable": true,
+  "completed": [
+    "suitestop_offline_qualified_trace",
+    "diagnostic_diff_docs_qualified_accept",
+    "fake_control_design_docs_only",
+    "handoff_checkpoint_no_impl"
+  ],
+  "incomplete_for_matt": [
+    "fresh_copy_np_runner_entry_diff_apply",
+    "metadata_manifests",
+    "fake_only_verification_packet_authoring",
+    "dex_independent_review_handback_of_successor"
+  ],
+  "workspace_handoff": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-v3-diagnostic-prep-jim-matt-handoff-v1",
+  "matt_channel": "Matt-Drops_not_Slack",
+  "dex_role": "design_review_integration"
+}

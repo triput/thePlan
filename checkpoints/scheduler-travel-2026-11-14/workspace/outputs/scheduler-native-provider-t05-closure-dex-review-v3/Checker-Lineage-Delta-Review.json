@@ -1,0 +1,31 @@
+{
+  "at_utc": "2026-11-13T03:11:38.6108554Z",
+  "method": "Lexical top-level def spans, including trailing comments; no AST, compile or execution",
+  "passed_baseline_checker_sha256": "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+  "baseline_pin_confirmed_in": [
+    "scheduler-native-provider-fake-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-fake-v1/packet/verify/OUTER-ADMISSION.json"
+  ],
+  "t05_checker_sha256": "099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F",
+  "baseline_functions": 33,
+  "t05_functions": 36,
+  "added_functions": [
+    "_extract_t05_helper",
+    "_t05_extracted_predicate_controls",
+    "check_t05_closure_focused"
+  ],
+  "changed_existing_function_spans": [
+    "_report_producer_env",
+    "check_peer_and_runner_shape",
+    "run_checks"
+  ],
+  "removed_functions": [],
+  "static_observations": [
+    "Existing report producer environment adds bounded fake public-CA admission and typed-success-summary dependencies so actual report producer can be exercised without real filesystem/PKI.",
+    "Peer/runner shape control adds explicit T05 body inventory; shape checks remain shape-only.",
+    "run_checks retains prior16 ordered top-level controls and appends the focused T05 control; report discloses expected lineage and ordered inventories.",
+    "T05 focused predicates and actual selected helper branches were read; no terminal-comment mutation anchor analogous to the failed diagnostic checker was introduced in these added helpers."
+  ],
+  "qualification": "This does not grant whole-packet peer acceptance or runtime proof. Same function bytes may exercise changed subject inputs. Native real TLS closure and final diagnostic/T05 assembly remain held.",
+  "execution_performed": false
+}

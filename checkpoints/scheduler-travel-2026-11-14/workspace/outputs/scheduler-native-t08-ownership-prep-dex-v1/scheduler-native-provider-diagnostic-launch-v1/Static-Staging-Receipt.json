@@ -1,0 +1,20 @@
+{
+  "kind": "native-provider-v3-static-staging",
+  "at_utc": "2026-11-13T00:58:35.4276396Z",
+  "executed": false,
+  "human_launch_authorized": false,
+  "endpoint": "unbound",
+  "source_candidate_v2_tip": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
+  "delta": "Add missing Docker CLI configuration directory key and exact immutable empty config from passed I01/I02; fresh labels/paths and dependent pins; no runtime fixture/API/helper code changes",
+  "cli_config_sha256": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F",
+  "operator_sha256": "090A0FA89549D33A381A9DDFF64DFC6AEE59E22F6832AD36018F7ACF8D3AF612",
+  "host_config_sha256": "0F3B0DAD9BA91FC97A61E0633E3295F03201CD2C3DDE3E4B22777E639C369F20",
+  "docker_ops_config_sha256": "FB13F282F32905E98515D771BB4C66356E529DF48F7BB0145586A44B08D74B64",
+  "payload_manifest_sha256": "336576063E21ECB1718D2C89DF715E570B6A45FD7EA51ECBCA71EA533F24C06D",
+  "payload_entries": 257,
+  "reviewed_command_sha256": "3550CC2BE81894722E488F94750823D5C925CE86A5D8EA603A7A009314F8182B",
+  "fake_prerequisite": "verified 16/16",
+  "fake_reconciliation_sha256": "8D489C62069D5A7FD1873568C28B022F71BC042875DD866B550E325B8310F7B1",
+  "review_pending": "Jim independent static review at T05 natural handback",
+  "native_execution_authorized": false
+}

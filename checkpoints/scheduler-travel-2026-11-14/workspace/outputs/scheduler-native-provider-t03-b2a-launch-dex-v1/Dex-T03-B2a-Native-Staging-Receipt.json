@@ -1,0 +1,20 @@
+{
+  "atUtc": "2026-11-14T03:49:38.2292106Z",
+  "status": "STAGED_NOT_EXECUTED",
+  "source_manifest": "898FAF785D34D9C187E1253C155AAD4F26F689662B395DA381E23BE118CE99EE",
+  "host_sha256": "828372D9A708B6DFB0325741D10124B8A325BD656117F31C580EFA07737079AB",
+  "ops_sha256": "E3E8716EF4D0DB81D077761953815177AE1DA7600E1F93D9BAD0F1446407F222",
+  "payload_manifest": "2722DE125101739DCC44DCE33318C316AB94028CC38F2BA10D541E8ABA77303E",
+  "nested_manifest": "9468D2787FD531DDA980C1C2523C6AA90C518F4D00ABDE576CFE6E550D508C80",
+  "command_sha256": "FC28D13832FC583D4BD0158978192114F4E8AEC15CE29B4234A35DAE064BC1CB",
+  "fake_prerequisite": "PASS11/47 result167F78DCE0B09FBFF671A683CEB3142092C9973CC83CDAAD85719C0B82990216",
+  "source_changes": "Only machine gates, truthful notes, own-root paths and manifest repins; all executable and application bytes unchanged",
+  "cases": [
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME"
+  ],
+  "positive_case_rationale": "Google vendor endpoint positive control shares exact route/leaf/script with negatives; prior Microsoft positive cannot establish that exact Google endpoint",
+  "human_authority": "NONE",
+  "endpoint": "unbound"
+}

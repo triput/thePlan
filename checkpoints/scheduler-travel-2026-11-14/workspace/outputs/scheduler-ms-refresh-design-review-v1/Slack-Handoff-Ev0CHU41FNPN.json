@@ -1,0 +1,12 @@
+{
+  "disposition": "Correction review333AA4A6 already reconciled; optional nonblocking qualification retained; new corrected fake decision pending phone-text approval",
+  "current_assignment": "6A757D6C43AEF678D13DF7F66656314BB539D5975EC8050578240E2980C2F306",
+  "endpoint": "unbound",
+  "atUtc": "2026-11-14T05:36:35.6463525+00:00",
+  "human_authority": "NONE",
+  "thread_ts": "1794534925.412399",
+  "sender": "U0C68LUTURJ",
+  "event": "Ev0CHU41FNPN",
+  "message_ts": "1794634448.936989",
+  "slack_reply_sent": false
+}

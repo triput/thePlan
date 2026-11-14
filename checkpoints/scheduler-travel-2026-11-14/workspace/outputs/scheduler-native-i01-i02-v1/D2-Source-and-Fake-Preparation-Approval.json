@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-11T18:10:12.2428486Z",
+  "question_item_id": "[\"request_user_input_async\",\"call_4c1edf5f354e489da6ea06ef42832b78\",0]",
+  "answer": "Approve fresh-copy preparation (Recommended)",
+  "scope_sha256": "C3D7B8F130BEDBD23F4ACE579F5049D7EC8CE76B4E022631B3A5B0A8DEA55C2A",
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "source_preparation_authorized": true,
+  "fake_verification_packet_authoring_authorized": true,
+  "functional_control_rows": 41,
+  "exact_inventory_and_mutation_checks_to_be_returned": true,
+  "execution_authorized": false,
+  "original_sources_and_evidence_preserved": true,
+  "endpoint": "unbound",
+  "other_holds_retained": true
+}

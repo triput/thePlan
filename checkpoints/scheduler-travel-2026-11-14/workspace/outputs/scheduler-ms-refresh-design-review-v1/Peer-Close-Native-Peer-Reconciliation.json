@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-11-13T17:16:46.0535776Z",
+  "status": "QUALIFIED_ACCEPTANCE_RECONCILED_NO_STATIC_BLOCKERS",
+  "peer_sha256": "A76CFAC7BC669F62107DBDF63142F192A4559D6AC7AAA132081B866372650E9A",
+  "parent_manifest_sha256": "2913656ABBEF2232A707CE57DDEA4CAD0AE50703B75B37CBC78BFC1DB12B2FB3",
+  "post_review_inputs": 287,
+  "own_static_record": "Peer-Close-Native-Static-Staging-Reconciliation.json04F3F662",
+  "notes": [
+    "Review acceptance no execution authority",
+    "Exact original cause unproved;native closure and downstream assertions unproved",
+    "22command path remains source-derived,not measured",
+    "Current case_ids/expected_unknown agree;onlyselectedbatch no refresh/T05 merge,registry retains held cases",
+    "Potential peer errors before worker boundary and deeper diagnostic truncation remain"
+  ],
+  "new_evidence_absent": true,
+  "fake_prerequisite": "PENDING_TRISH_APPROVAL_NOT_RUN",
+  "native_card_presentable": false,
+  "native_execution_authorized": false,
+  "endpoint": "unbound"
+}

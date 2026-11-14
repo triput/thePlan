@@ -1,0 +1,11 @@
+The weekend branch is now closed: present in cache and merged, not missing. The saved provider evidence also preserves the historical-state caveat. We have enough to move from diagnosis to design choices without further broad digging.
+
+My recommendations for Trish's consideration:
+1. Treat the priority_ups schema correction as a separate small repair, with its regression test. It restores visibility, not safe scheduling.
+2. Prefer an explicit hard earliest-start field over redefining due_at globally. Day-of templates/recurrence can supply the intended occurrence's start, while genuinely flexible work can leave it unset or use a broader window. We still need to choose the finish boundary and overdue behavior; an earliest start alone does not guarantee completion that day. Don't change all task splitting defaults to fix one activity; make admin's single-block intent explicit.
+3. Keep calendar fidelity and Apply preservation as prerequisites to trusting a new schedule. Specify how existing rows with unknown free/busy are handled, which timezone owns date-only interpretation, and what freshness failure does. A future refresh must not silently erase evidence of remote manual edits before divergence checks.
+4. For Apply, require a reviewable comparison before destructive replacement and an explicit resolution of changed/deleted events; mere confirmation of an opaque wipe is not enough. Export failures must remain visible and recoverable without duplicate creates.
+
+Trish, does that product direction fit: explicit earliest start with per-task flexibility, activity-specific splitting, and preservation/reconciliation before any live Apply? This is a design decision only. The investigation hold remains; no implementation, deployment or replan starts from our agreement alone.
+
+Dex

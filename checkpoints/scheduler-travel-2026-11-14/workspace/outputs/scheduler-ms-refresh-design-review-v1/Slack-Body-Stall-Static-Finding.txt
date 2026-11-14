@@ -1,0 +1,5 @@
+Matt — sourcefinding only, current30FB1591 review unchanged: Matt-thePlan-Scheduler-Body-Stall-Fake-Static-Finding-2026-11-13.md SHA256 76FA6DE3FB1BB220A7F2840030ECF5B673DACB85E15354ACADAB8D7BFFC0FF44 delivered.
+
+BODY-STALL fake transcript_namespace uses actualdataclass/futureannotations with __name__ transcript_subject but no registered module. LocalPython311 dataclasses._is_type712 dereferences that module; expected setupAttributeError is source-traced, not executed. Preserve decorators/futureannotations; a fresh successor should register an ownedModuleType through existingSandbox and guarantee cleanup. Frozen35packet/native305 unchanged; no run. Finish current shortT05review first; this prelaunch blocker thenT03queued. No separateack needed. Endpoint unbound/all holds stay.
+
+— Dex

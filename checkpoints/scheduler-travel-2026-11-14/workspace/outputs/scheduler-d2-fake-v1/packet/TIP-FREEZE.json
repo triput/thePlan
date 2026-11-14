@@ -1,0 +1,54 @@
+{
+  "api_file_count": 234,
+  "author": "Justin",
+  "byte_semantics": "utf-8 lf",
+  "changed_existing_api_files": 3,
+  "date": "2026-11-11",
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "disposition": "fresh_successor_fake_only_check_only_ms_view_delta_via_context_client_source_pins_unchanged_held",
+  "docker_or_live_checks": 0,
+  "endpoint": "unbound",
+  "executed": false,
+  "execution_authorized": false,
+  "fake_packet": {
+    "check_sha256": "CAAECE741F12F632FFC97207D47BEA6340EBFD62CB20AE86EE84C389BD73C4CB",
+    "dir": "fake-only-d2-path-admission-verification",
+    "executed_in_preparation": false,
+    "expected_sha256": "381536B156A37EE5C3F7A1FABBC0F0C2942FE97BBC68B68F67550BF715C368FC",
+    "functional_control_rows": 44,
+    "approved_core_functional_control_rows": 41,
+    "launch_ready": false,
+    "named_controls_total": 52,
+    "outer_admission_sha256": "B8D14DAB5127362165E7D87B4BBFA32DC9EAC7175A621C97EB97B69F0457354D",
+    "oracle_gap_added_controls": [
+      "CTRL-NEG-CTX-ORD-SLASH",
+      "CTRL-NEG-CTX-ENC-SLASH",
+      "CTRL-NEG-CTX-MALFORM"
+    ],
+    "named_control_strengthenings": [
+      "CTRL-POS-MS-VIEW",
+      "CTRL-POS-MS-DELTA-COMPAT"
+    ],
+    "new_control_ids": [],
+    "check_only_composition": "run_client_get covering_provider_transport calendar_client _CoveringClient CoveringHTTP"
+  },
+  "implementation_applied_in_fresh_copy_only": true,
+  "imports_of_app": 0,
+  "original_t02_sources_mutated": false,
+  "outputs_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-source-prep-v4-ms-context",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "packet": "post-native-d2-source-fake-prep-jim-v4-ms-context-2026-11-11",
+  "predecessor_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "predecessor_frozen_v2_tip_sha256": "9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB",
+  "predecessor_frozen_v3_tip_sha256": "A9415BB75B5B46CF774ABC239813815D015E0EDE07D46E53268E94C15DFB4BE8",
+  "predecessor_packet": "post-native-d2-source-fake-prep-jim-v3-named-controls-2026-11-11",
+  "resulting_pins": {
+    "covering_http_transport.py": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+    "covering_provider_context.py": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+    "covering_transport_policy.py": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+  },
+  "role": "Jim D2 source+fake preparation successor (Dex MS context composition check-only)",
+  "scope_sha256": "C3D7B8F130BEDBD23F4ACE579F5049D7EC8CE76B4E022631B3A5B0A8DEA55C2A",
+  "status": "D2_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED",
+  "tests_run": 0
+}

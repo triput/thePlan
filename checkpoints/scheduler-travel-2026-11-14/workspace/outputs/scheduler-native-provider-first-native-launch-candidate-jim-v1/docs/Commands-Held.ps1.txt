@@ -1,0 +1,26 @@
+# COMMANDS HELD — first-native launch-candidate jim-v1. NOT INVOKED.
+# executed=false; human_launch_authorized=false; candidate_launch_ready_staged=true;
+# launch_authorized=false; prep_is_not_pass=true; endpoint=unbound; Slack tip=false.
+#
+# Absolute future native command (Reviewed-Command.ps1.txt; SHA256 C323012B66D52C754DF553E2A5F080494A65FB8E2749B5BC1540716E5CCDAB27):
+#
+#   & 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-first-native-launch-candidate-jim-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 '63B7BC36605A4EBEE71C29B550F178B6260E58E777DEE4D542D7467B5BD7BE48' -ExpectedDockerConfigSHA256 '471C7284A7425CD0FE6F164DD6886B906A7770F8FAFB4D41AC02B7FD471DC6F8' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-first-native-launch-candidate-jim-v1\host\docker-ops-config.json'
+#
+# Pins:
+#   Invoke-Native-Provider.ps1 = F44D14DC246A76CA2F7844AA67EFEFA93383B2DC4BAA8665B047B8B2879C35C2
+#   host/launch-config.json    = 63B7BC36605A4EBEE71C29B550F178B6260E58E777DEE4D542D7467B5BD7BE48   (candidate launch_ready=true; human_launch_authorized=false)
+#   host/docker-ops-config.json= 471C7284A7425CD0FE6F164DD6886B906A7770F8FAFB4D41AC02B7FD471DC6F8
+#   payload/SHA256SUMS.txt     = 4F3147BA6DAD068CE446AD0118FC5C5A1525D01D117F07AF2D13B1696DA98427
+#
+# Pending fake-v1 (DO NOT RUN; cite ONLY these absolute pending pins — NOT inherited B924153C):
+#   admission  1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285
+#   command    72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03
+#   wrapper    AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7
+#   absolute:  C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-fake-v1\packet\Invoke-Fake.ps1 -AdmissionSHA256 '1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285'
+#
+# Forbidden under this staging:
+# - invoking Reviewed-Command / Invoke-Native-Provider / Invoke-Fake
+# - helpers/tests/imports-to-execute / PKI / Docker / DB / sockets
+# - flipping human launch authority / treating staged launch_ready as Trish permission
+# - Slack tip from this seat
+# - mutating tipped native-ready-prep-v1 or fake-v1

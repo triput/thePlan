@@ -1,0 +1,15 @@
+{
+  "atUtc": "2026-11-14T02:01:01.5227927Z",
+  "readOnlyPathLookupCorrection": "An initial metadata read used a nonexistent host-config.json filename; no operator/test was invoked. Correct frozen path is host/launch-config.json.",
+  "case": "NP-V-MS-INVALID",
+  "maximumInvocations": 1,
+  "command": "CC02480C4BB104E03DC95D85EDF9C30BF7DDB1D302F475B2F87A365C08D2C1DA",
+  "question": "call_435f6409cd774c61aee8751339bbbbfa",
+  "answer": "Authorize one invalid-grant native checkpoint (Recommended)",
+  "endpoint": "unbound",
+  "successOnlyCleanup": true,
+  "exeHashesMatched": true,
+  "manifest": "C0BCB2E1563388391F7560F3B6D8AE5495690D3F527D019CE1EE62F8E43E8B47",
+  "failureCleanup": false,
+  "admissionInputsVerified": 301
+}

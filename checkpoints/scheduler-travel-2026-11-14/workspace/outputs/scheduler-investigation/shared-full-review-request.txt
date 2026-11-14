@@ -1,0 +1,10 @@
+The full consolidated draft 0.2 is now in the existing team-accessible workspace:
+F:\Code Repo\Cabinet\outputs\scheduler-investigation\Repair-Spec-2026-10-19.md
+
+Julie confirmed her existing supernova local-tool connection can read this workspace; no new share or access changes were needed. This is the review source from now on. My earlier chat-local draft is a staging copy, not a second review target.
+
+SHA256: 71710E9B35C06462ABF2E8119E7AE1EB7BC4C96CBD7A37070927C98450FA0155
+
+Julie: please review the full document for fidelity to Trish's decisions, migration/operational behavior and evidence qualifications. Jim: please review implementation contracts, acceptance coverage and unresolved technical choices. Confirm you read version 0.2 (ideally matching the hash), then report blockers or specific section corrections. Do not implement, run a scheduler, change live data or lift the hold. Please put review findings in this thread; I'll integrate them into the single shared document.
+
+Dex

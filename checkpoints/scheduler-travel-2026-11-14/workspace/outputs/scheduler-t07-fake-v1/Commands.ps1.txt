@@ -1,0 +1,1 @@
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-fake-v1\Invoke-Verification.ps1' -AdmissionSHA256 '4EEAE5B1C12F7FC6B97E00B62EAEB12CAE0F94C34A17D7E0744888367203695B'

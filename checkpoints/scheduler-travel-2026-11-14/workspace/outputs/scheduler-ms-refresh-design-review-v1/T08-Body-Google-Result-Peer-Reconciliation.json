@@ -1,0 +1,24 @@
+{
+  "bodyFake": {
+    "nativeProof": false,
+    "scope": "PASS13/64/9 originalfinitefake;newtokenobservercorrectionnotcovered",
+    "result": "2EFD098F02E05862D2987A8F6D355DB6CFE8260C49790FC3AEF1A7593EB510BA",
+    "receipt": "AF6399D8698AC46ECD453B6C2CB1495A4526184136F9F10ABF280F09FCE5EB3D"
+  },
+  "endpoint": "unbound",
+  "status": "ALL_THREE_QUALIFIED_ACCEPTANCE_RECONCILED",
+  "review": "5B10347936C40119426F76B4268E481CB2950F365A980EC160B2E95F49857944",
+  "googleInvalidNative": {
+    "status": "PASS_INDEPENDENT_RESULT_REVIEW_ACCEPTED",
+    "fullT06Closure": false,
+    "reconciliation": "10ADEEAC8B910CF7DB35B93D865A46C2BCC6AE1BD6EA80D95BB9576F7AA88F7B",
+    "receipt": "ED28319B513A53A1F4CC6D370E6504453C30DDBCE3768C8F2A863263426BAD62"
+  },
+  "t08Native": {
+    "humanAuthority": "NONE",
+    "noBlockers": true,
+    "inputs": 310,
+    "qualifications": "Directsocket/threadonly,peerclosecompatibilityruntimehypothesis,cleanupaggregationqualified",
+    "manifest": "4C9CAE799A4C431442782B34FDEEFE586199A8FD775AB59024C968D0667B443B"
+  }
+}

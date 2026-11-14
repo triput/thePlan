@@ -1,0 +1,33 @@
+{
+  "kind": "static-preparation-receipt",
+  "packet": "post-native-provider-prep-jim-v5-2026-11-12",
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": false,
+  "prep_is_not_pass": true,
+  "first_vertical_increment": true,
+  "endpoint": "unbound",
+  "tip_sha256": "D1C7F790AEE043C745170E807B702999C089828DDE084B702017780F04B224FB",
+  "tip_on_disk_sha256": "49F16773BE3730B55F161EC65E422098BEE60F3752A93B917B5F8301D84B2EA1",
+  "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "approval_sha256": "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4",
+  "formal_v3_revise_sha256": "D284CED5570252A726D551A627B09D2CF62CD373F9775209AE54D9F47665DD04",
+  "key_role_sha256": {
+    "np_provider_peer.py": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+    "np_runner_entry.py": "6E4BF3F3FD5D750E5925BAF3CA0EF8970933A470F8436E21587EB4A7FFFE4F75",
+    "np_suite.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+    "np_supervisor.py": "057E360A7AEFCF9D3D0246C11D77D8427820BFB7558C6DFF6006D7560BB7AC1D",
+    "check_native_provider.py": "9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48",
+    "Invoke-Native-Provider.ps1": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D"
+  },
+  "verification_admission_sha256": "B924153C1C53AE6ACD51338586C24ECEBC719628003E9F5F6113406372BCC265",
+  "mutable_role_hashes_sha256": "5E2530CDDA9BD2CDE6A5153CEB80B19D1128DE6CD5B96B4B0A2895967D831E0D",
+  "confirmations": {
+    "release_plan_installed": true,
+    "budget_same_as_ingress": true,
+    "primary_alias_planted": true,
+    "exact_transcript_path": true,
+    "admission_schema_wrapper_fields": true,
+    "mapped_coverage_fields": true
+  }
+}

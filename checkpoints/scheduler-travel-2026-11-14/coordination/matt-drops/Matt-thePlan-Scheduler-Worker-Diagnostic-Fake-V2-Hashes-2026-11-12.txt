@@ -1,0 +1,13 @@
+# Matt thePlan worker-diagnostic fake v2 handback - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-12
+F62D8D36414D40A4A541F57AD168EF7DF421E4142CC0DB5977016987573AE6FC  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Worker-Diagnostic-Fake-V2-Handoff-2026-11-12.md
+5EADCB9C853D849E4311554873DCC84C49DB4B492A9CB7F3CE16A305087F8221  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Worker-Diagnostic-Fake-V2-Checker-2026-11-12.diff
+B9B6A039B210FFD7A78A1AF44B03B2380DACB80CCF2EF5E4486DC0238777647B  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/Input-Manifest.sha256
+25CE729C849964F4428F300F51D97CCB89FB69652C17FC277BAE2ABE7A6BABCC  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/Launch-Decision.md
+FFEA575DDAFAF24660FFE65ABEBB0C17F253602D41CDFD70492CF838A83DDB8D  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/Future-Command-HELD.ps1.txt
+C283F512F15FEFDD3CCAD3F1525229C350035BEB564FB77DE542BCA2C73397ED  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/verify/check_native_provider.py
+AEC7B0DB1909C1C269840EA44F72336A7EDA1DE13B5EEF567218BBD498B95FA9  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/verify/EXPECTED-FAKE-STRUCTURAL.json
+AF10CFE7ABC61D0DB9DDAF6F0EE80E2CF664F9938EAC8AF5A2E85E99AAA44D43  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/verify/OUTER-ADMISSION.json
+AAA6C38692096AE373820D97F53BBE6EB65DE53B919DEC0FF7BD722374071175  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/verify/VERIFICATION-ADMISSION.json
+D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/verify/launch_check.py
+7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/verify/verify_admission.py
+AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-prep-matt-v2/packet/Invoke-Fake.ps1

@@ -1,0 +1,60 @@
+HANDBACK — post-native-framing-ack-source-fake-prep-jim-v4-2026-11-11
+Justin for Jim. Dex independent review next. NO Slack tip from this seat.
+
+Flags: executed=false; launch_authorized=false; endpoint=unbound; prep_is_not_PASS=true.
+
+Authority verified:
+  Trish-Increment-Workspace-Lane-Approval.json 75556514…
+  Jim-Framing-Increment-Implementation-Assignment.md 5B836550…
+  Framing-Increment-Implementation-Brief.md BB230A78…
+  Dex REVISE Framing-v2-Static-Admission-Audit.json AEF66204… (carried)
+  Header-Compatibility-Decision-For-Review.md AEAE5343… (APPROVED)
+  Trish-Header-Policy-Approval.json 1C932F1A…
+  Dex provisional source review-1 87E24D1A…
+  Dex provisional source review-2 4BA86BAB…
+  Dex provisional checker finding p1794461191 on v3 check 9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698 / TIP BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209
+
+Immutable predecessors (not rewritten):
+  v1 TIP-FREEZE FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4
+  v2 TIP-FREEZE 569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697
+  v3 TIP-FREEZE BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209
+  candidate HTTP 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368
+
+Prep root:
+  C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\
+
+Handback:
+  F:\DropFolder\pending\post-native-framing-ack-source-fake-prep-jim-v4-2026-11-11\
+
+Application (unchanged vs v1/v2/v3 candidates; no v4 application edit):
+  covering_http_transport.py  E2FC2226… → 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368
+  covering_joined_https.py    2E6A4ABB… → 760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427  (exact EOF option)
+  covering_provider_context.py 65529CBC… UNCHANGED
+  covering_transport_policy.py A265F81F… UNCHANGED (port-zero outside lane)
+
+Roles SHA256:
+  TIP-FREEZE.json              E7150DD829640A11C50542E64F1BA921B70A9DD3B0DCE62925F3FBD1796DAE40
+  admit_outer.py               26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF
+  check_framing_ack.py         44210460FB238B31B9D07A2015E21337C11504F985A83F9E7CEBE9775D9A1201
+  invoke_framing_ack_fake.py   7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F
+  Invoke-Verification.ps1      0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA
+  OUTER-ADMISSION.json         38A37E4C736BD40B05222170776CD057B74DCEE7B017D85B989FB43995117AE4
+  EXPECTED.json                08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2
+  PACKET-SHA256SUMS.txt        BF506033CAD23BD19F0B1AEE7210CCD9640CF0419CBB79B7FFE272A291840F12
+  VERIFICATION-ADMISSION.json  0994AD2F70EE910E2FE2B14753FDC563C70E789513421A3DEE7D09DFCA97FD39
+
+v4 disposition (p1794461191):
+  policy_pending excluded from assert_match flat runtime whitelist; retained as
+  frozen accepted-policy metadata on EXPECTED candidate rows; emit_wire_candidate
+  still stamps it into launcher exact_predicate.candidate (schema preserved).
+  Not asserted against run_http_catch cand (absent there). Strict witnesses retained.
+
+REVISE disposition (carried from v3):
+  1) Outer admission noncircular chain regenerated after final freeze (OUTER subjects match live EXPECTED/PACKET-SHA256SUMS/check/invoke/admit/manifest).
+  2) Exact result oracle: all 73 rows have predicted_outcome=PASS + nonempty top-level exact_predicate (EXPECTED hash unchanged).
+  3) CALLER labeling choice: direct_http_replay_plus_matched_immutable_original_caller_evidence.
+  4) Concrete Commands-Held.ps1.txt carries exact wrapper/admission/outer/role hashes (held; not invoked).
+
+Header policy: APPROVED (AEAE5343… / 1C932F1A…). H-TE-WS-LEAD PASS / H-TE-WS-TRAIL REFUSE retained. OAuth UNKNOWN/counter/retirement preserved.
+
+Controls: 73 ordered. Native TLS orderly-vs-abrupt unproved. Port-zero not merged. No execute/import/compile/helper invocation. No Slack tip.

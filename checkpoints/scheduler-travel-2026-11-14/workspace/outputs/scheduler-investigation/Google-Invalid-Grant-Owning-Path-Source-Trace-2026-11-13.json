@@ -1,0 +1,48 @@
+{
+  "atUtc": "2026-11-14T05:02:03.0290572+00:00",
+  "status": "SOURCE_TRACE_NOT_IMPLEMENTED_NOT_EXECUTED",
+  "baseline": "scheduler-native-google-refresh-prep-matt-v2",
+  "manifest": "EFC705425F839D4FCC7C04FCEA2840A22FA3262B40B9F270F8951B868E42F35D",
+  "case": "NP-V-GOOGLE-INVALID",
+  "requirement": "T06-INVALID-GRANT-GOOGLE",
+  "facts": [
+    {
+      "fact": "Google provider delegates to actual google_calendar.get_valid_access_token",
+      "source": "app/services/covering_refresh_import.py:588"
+    },
+    {
+      "fact": "Expired token with stored refresh token calls same-module refresh_access_token before writing access/refresh/expiry and flushing",
+      "source": "app/services/google_calendar.py:612"
+    },
+    {
+      "fact": "After complete fixed-length/read JSON object, oauth status400 with error invalid_grant raises exact CoveringReauthorizationRequired; other oauth errors map UNKNOWN. Response/transport retirement failures replace with new UNKNOWN.",
+      "source": "app/services/covering_http_transport.py:349"
+    },
+    {
+      "fact": "Owning TOKEN adapter catches exact reauthorization type, returns TokenRejected(PREFLIGHT_ACCOUNT_DISCONNECTED), changed=False, and requires acknowledged native rollback; no ordinary ORM fallback",
+      "source": "app/services/covering_domain_adapters.py:30"
+    },
+    {
+      "fact": "TokenRejected yields static preflight result and skips IMPORT for that target; final ASSESSMENT remains separately admitted if budget allows",
+      "source": "app/services/covering_domain_dispatch.py:196"
+    },
+    {
+      "fact": "Existing immutable google_token_invalid_grant_script supplies one POST /token and complete400 JSON invalid_grant with orderly close",
+      "source": "fixture/np_provider_transcript.py:93"
+    },
+    {
+      "fact": "Actual existing response serializer adds Content-Length when absent, so this existing error script is fixed-length on the wire rather than close-delimited",
+      "source": "fixture/np_provider_peer.py:88"
+    }
+  ],
+  "bounded_future_fixture": [
+    "One expired Google account and ONE requested subscription gives exactly one OAuth attempt; preserve unrelated owner/account",
+    "Use actual Google owning refresh through production ingress/connector/default JoinedTLS and shared budget, never direct legacy refresh or token accessor mock",
+    "Reuse unchanged Google invalid-grant script, serializer, routes, seed, peer and PKI where possible",
+    "Require exact typed reauthorization, acknowledged TOKEN rollback,zero IMPORT, public no_op/preflight-rejected CALENDAR_ACCOUNT_DISCONNECTED, semantic credential/expiry/coverage/subscription/revision unchanged",
+    "Require final native assessment at independently persisted unchanged revision; readiness/freshness may remain false and must not be called a successful refresh",
+    "Retire peer once, reject worker errors, then exact one-POST inventory; no expectedUNKNOWN, retries or repairs"
+  ],
+  "qualification": "These are source-derived next-fixture expectations, not a prepared packet or measured behavior. Google success checkpoint stays first; no new Matt assignment, source change or launch authority.",
+  "endpoint": "unbound"
+}

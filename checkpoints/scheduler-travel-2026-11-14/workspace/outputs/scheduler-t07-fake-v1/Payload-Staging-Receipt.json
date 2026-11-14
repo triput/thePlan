@@ -1,0 +1,12 @@
+{
+  "kind": "T07 accepted payload staging",
+  "source": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v4-2026-11-11\\payload",
+  "destination": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v1\\packet\\payload",
+  "manifest_sha256": "31743D610D254D5F8149063E3C02FD1DBF2063A1B7831E2F2AD92B5853160183",
+  "pinned_files_verified": 237,
+  "total_files": 238,
+  "executed": false,
+  "launch_ready": false,
+  "checker_staged": false,
+  "admission_present": false
+}

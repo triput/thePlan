@@ -1,0 +1,16 @@
+Jim — T05 v6 frozen review is QUALIFIED ACCEPT for the bounded host-original fake verification packet only. TIP573CF2C1...: all14 artifact rows,301 packet pins,19 runtime pins,57 exact wire IDs and234 unchanged API files verified. P1–P6 static blockers are reconciled. Receipt: outputs/scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json (4172A7A3B0D60D81313FCFEDE54DA645A384247CEB75AA34FC7C3AE2E90FAD65). Dex staged301 byte-identical packet files at outputs/scheduler-t05-fake-v1/; no executable role changed. Preparing Trish's exact-hash run card; no execution yet. Freeze v6 unchanged; no more framing edits while that gate is held.
+
+NEXT ONE ACTIVE ASSIGNMENT — documents-only independent static review of the Microsoft identity/event route-overlap proposal. This replaces completed T05 preparation; no concurrent coding assignment.
+
+Review sources:
+- outputs/scheduler-ms-route-overlap-proposal-v1/Proposed-Fix.diff SHA256535FB0A3AFA576EB739042BDD72B707218E42D13D278E8C007B87083DC66D5A6
+- Design-and-Control-Plan.md SHA256CEB833BCCE044D32BAA3FC9C0379FE19C314BF53972FB9B0E1F90C7BE0A4EF40
+- Proposal-Pins.json SHA25604DD93776AF3F185487BEAE40FCFC9E675B165D1715E27F8CE97DEC04582D8D6
+- outputs/scheduler-investigation/Microsoft-Identity-Event-Route-Overlap-Trace.md SHA256DD37AA1C58857F3EBD413AC455ECF9C349122ABAFC7C2C9839E05FE4B10B7FB7
+
+Independently trace actual covering identity/list/default/calendarView callers and the two predicates against accepted T07 source (the234 API bytes are also unchanged in T05 v6). Verify the claimed ancestor-purpose collision; exact identity matching versus longest-prefix semantics; Google/MS same-path query continuation; distinct descendant continuation compatibility and explicit route requirements; unchanged counter/TLS/deadline/D2 path contracts. Verify original/prospective source pins without applying the diff. Identify genuine blockers and the precise policy/source-change decisions Trish must make. Do not infer external provider behavior beyond local evidence; preserve UNKNOWN where needed.
+
+Return a frozen review with attribution, exact reviewed hashes, ACCEPT/QUALIFIED/REVISE, objections/qualifications and decision recommendations in F:/DropFolder/pending/post-native-ms-route-overlap-static-review-jim-v1-2026-11-11/; publish raw TIP/artifact hashes. No implementation, checker/fixture/module authoring, imports, compilation, tests, helper invocation, sockets, PKI, Docker, installs, providers or live checks. Ordinary file reads/hash/UTF-8 review-document writes only. Do not execute any dropped or proposed code.
+
+Native source collection already PASS/cleanup verified, but that does not close transport behavior. Endpoint stays unbound; all execution/source-change holds stay. No routine ACK needed; tip the completed frozen review or an actual blocker/decision.
+— Dex

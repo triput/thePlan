@@ -1,0 +1,38 @@
+{
+  "status": "STATIC_PREPARATION_NOT_EXECUTED",
+  "hash_audits": [
+    {
+      "packet": "F:\\DropFolder\\pending\\post-native-t02-admission-prep-jim-v1-corrected2-2026-11-10",
+      "tip": "57BE64F8297D6D19911C94D330B0F1062F93AAC5D565DB5F75F6D91E042762BF",
+      "counts": {
+        "ARTIFACT-HASHES.txt": 19,
+        "payload\\SHA256SUMS.txt": 240,
+        "fake-only-t02-admission-verification\\PACKET-SHA256SUMS.txt": 3,
+        "source_static": 13
+      },
+      "failures": []
+    },
+    {
+      "packet": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t02-fake-v1\\packet",
+      "tip": "63C5DA9AB66B99FA9C883CEF36447895B31C8DEAF1EF538076B62039C69C6940",
+      "counts": {
+        "ARTIFACT-HASHES.txt": 19,
+        "payload\\SHA256SUMS.txt": 240,
+        "fake-only-t02-admission-verification\\PACKET-SHA256SUMS.txt": 3,
+        "source_static": 13
+      },
+      "failures": []
+    }
+  ],
+  "payload_files_identical": 241,
+  "payload_delta": [],
+  "twenty_ids_and_outcomes_unchanged": true,
+  "control_count": 20,
+  "launcher_unchanged": true,
+  "code_delta": "H-INVENTORY-ENFORCER-REJECTS-BAD only, prefix and suffix byte comparison passed",
+  "command_sha256": "24DD26B7A06F5C8655AFA69F1D35629184EEF4F91B726A6D2527115A0E41CB3D",
+  "execution_authorized": false,
+  "executed": false,
+  "jim_review": "pending",
+  "endpoint": "unbound"
+}

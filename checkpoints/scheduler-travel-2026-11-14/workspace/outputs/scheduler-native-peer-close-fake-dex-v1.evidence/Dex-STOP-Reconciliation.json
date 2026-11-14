@@ -1,0 +1,40 @@
+{
+  "atUtc": "2026-11-13T19:07:09.3129182Z",
+  "resultFilePresent": false,
+  "launcherReceiptSha256": "6515D73A5C28174EE0F6CC72ECA3EF9DE2BC0471D4969B2EEDCF221AB82DEE47",
+  "authorizedInvocationsPerPacket": 1,
+  "checkerExitCode": 125,
+  "knownChildExit": true,
+  "readersJoinedCleanEOF": true,
+  "retirementUnknown": false,
+  "firstOneShotConsumed": true,
+  "timedOut": false,
+  "next": "Read-only offline trace allowed;no remaining invocation under the stopped sequence without new explicit decision",
+  "stderrBytes": 41,
+  "sequenceInvocations": 1,
+  "endpoint": "unbound",
+  "completedControlInventory": "Not available;no control-PASS count inferred from missing final result",
+  "repairs": 0,
+  "killed": false,
+  "postInputPinsVerified": 16,
+  "remaining": [
+    {
+      "packet": "scheduler-t05-combined-witness-fake-dex-v1",
+      "invocations": 0,
+      "status": "HELD_AFTER_SEQUENCE_STOP_NOT_EXECUTED"
+    },
+    {
+      "packet": "scheduler-ms-merge-fake-dex-v1",
+      "invocations": 0,
+      "status": "HELD_AFTER_SEQUENCE_STOP_NOT_EXECUTED"
+    }
+  ],
+  "firstPacket": "peer-close",
+  "stdoutBytes": 0,
+  "extraCleanup": 0,
+  "status": "STOP_INDEPENDENTLY_RECONCILED",
+  "retainedEvidence": "Frozen packet and failure receipt preserved;child streams hash/count only",
+  "retries": 0,
+  "stderrSha256": "3B378E39646189915B3572ED64FF967663F413C72D648D8169D2E84488AB403D",
+  "nativeInvocations": 0
+}

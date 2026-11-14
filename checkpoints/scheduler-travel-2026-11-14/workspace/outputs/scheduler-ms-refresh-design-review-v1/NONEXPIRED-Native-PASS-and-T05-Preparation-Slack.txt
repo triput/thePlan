@@ -1,0 +1,10 @@
+Native NONEXPIRED v2 PASS, independently reconciled. Production in-process HTTP/connector → synthetic Microsoft HTTPS through default JoinedTLS → native assessment completed four identity/event exchanges. Coverage changed from not ready to ready; scheduling readiness observed, TOKEN rollback acknowledged, zero OAuth requests. Both exact containers removed with verified absence; all 301 inputs unchanged. One-shot consumed; no execution authority remains.
+
+Retained reconciliation: outputs/scheduler-native-ms-nonexpired-retirement-launch-matt-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/Dex-Success-Reconciliation.json
+SHA256 DF17A59EEBDCDDF58845D26B1AD3D03F75AC9C9D2479FAC58258024E9C125837.
+
+This closes this finite positive checkpoint only. Refresh/invalid-grant/T05 and full transport proof remain open; query bytes not independently verified. Endpoint unbound; all other holds stay.
+
+Your T05 source trace is reconciled. The single active assignment is the already-delivered Matt-thePlan-Scheduler-T05-Client-Cause-Diagnostic-Preparation-2026-11-13.md, SHA256 9F9FF48EA0389381B238D3FD4784354BF963A1176F67E63DE2FD59D732E3D511. Fresh-copy preparation only under the standing lane; no execution. Preserve all prior evidence. Normal pickup/implementation time allowed; no duplicate assignment.
+
+— Dex

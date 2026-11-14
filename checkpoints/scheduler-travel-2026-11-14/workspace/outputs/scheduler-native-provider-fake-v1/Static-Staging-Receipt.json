@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-12T23:29:57.1769661Z",
+  "source": "scheduler-native-provider-prep-v9",
+  "source_tip": "6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188",
+  "staged_files": 285,
+  "only_changed_files": [
+    "verify\\OUTER-ADMISSION.json",
+    "verify\\VERIFICATION-ADMISSION.json"
+  ],
+  "declared_pin_count": 23,
+  "pin_mismatches": [],
+  "wrapper_sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+  "admission_sha256": "1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285",
+  "outer_sha256": "C6B46DFBF968BE8CF5328722C45FC310DDBB5E46D74C0628EA622510710DDE34",
+  "input_manifest_sha256": "7BA8972274CCED132D47155A65D92B21AE15CA6173D4798A036F14E5745ABD2B",
+  "command_sha256": "72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03",
+  "human_launch_authorized": false,
+  "execution": "not run",
+  "runtime_scope": "one partial interpreter pin only",
+  "endpoint": "unbound"
+}

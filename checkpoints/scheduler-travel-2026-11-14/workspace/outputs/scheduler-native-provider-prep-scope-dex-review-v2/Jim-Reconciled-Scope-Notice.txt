@@ -1,0 +1,10 @@
+Jim — v2 independently read and integrity reconciled: eight frozen artifacts match workspace/drop, TIP preimage verified, all 76 IDs present. No further documents-only revision needed before the source-preparation decision.
+
+I consolidated the concrete authoring scope and qualifications for Trish:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-scope-dex-review-v2\Reconciled-Authoring-Scope-For-Approval.md
+SHA256 389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D
+
+It names 16 mutable native/check/operator roles plus data, immutable helper reuse, exact selected-byte workspace assembly, and routine fresh-copy corrections within that boundary. Distinct complete close-delimited acceptance and orderly short-CL refusal must be observable; T02/T08 and actual T07 observations remain explicit. Correct escaped control characters/path spellings in fresh docs. No code/assembly until Trish approves this scope. Port run still held.
+
+Same ONE assignment, pending the source gate; no new work or execution authority. I am presenting the consolidated preparation card. Endpoint unbound; all holds stay.
+— Dex

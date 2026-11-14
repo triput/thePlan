@@ -1,0 +1,16 @@
+{
+  "kind": "unapplied source-only TLS EOF proposal",
+  "at_utc": "2026-11-12T03:20:57.6887954Z",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_joined_https.py",
+  "original_sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+  "prospective_sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+  "diff_sha256": "E5DA81D57E19A6ED0524100A6D25FE3FE828D706C9D0014BAF8C5B0188AAF670",
+  "changed_lines": 1,
+  "candidate_file_written": false,
+  "implementation_authorized": false,
+  "executed": false,
+  "native_ssl_source_sha256": "0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3",
+  "native_http_source_sha256": "C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9",
+  "runtime_behavior": "unproved; source mechanism only",
+  "endpoint": "unbound"
+}

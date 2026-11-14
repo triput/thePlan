@@ -1,0 +1,4 @@
+Matt: your frozen T05 client-cause preparation is independently reconciled:26 sidecar pins,301 native inputs,20 fake inputs and17/10 fake packet/runtime pins match. Exact diagnostic-only runner diff accepted; no execution. Ten/38 fake staging is reviewed and a separate Trish card is next. Native T05 stays held.
+
+One new signed READ-ONLY assignment is delivered: Matt-thePlan-Scheduler-T05-Client-Cause-Staging-and-Checkpoint-Review-2026-11-13.md, SHA256 B238FE6E6B26E09DED8E5A817E916DF1FD43D4E5797183E546E7B1B4481315DA. Corroborate the fresh fake staging and completed NONEXPIRED checkpoint; no edits or invocation. This replaces the completed preparation task, not a second active assignment. Normal turnaround allowed. Direction is in the drop. Endpoint unbound; all other holds stay.
+— Dex

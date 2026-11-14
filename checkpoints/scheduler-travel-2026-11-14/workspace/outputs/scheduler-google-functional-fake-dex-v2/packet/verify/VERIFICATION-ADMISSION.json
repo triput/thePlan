@@ -1,0 +1,221 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-native-google-refresh-fake-prep-dex-v3",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "packet_file_pin_count": 34,
+  "packet_files": [
+    {
+      "sha256": "7AAC1F30C8F9075F2A3A9311654020C2AE69F4990CC48A7B4AD0A7F5FAC0C8A4",
+      "relative_path": "verify/check_native_provider.py"
+    },
+    {
+      "sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+      "relative_path": "verify/launch_check.py"
+    },
+    {
+      "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "relative_path": "verify/verify_admission.py"
+    },
+    {
+      "sha256": "F08E96E7C2AB8397F42306BCC9E331B247735A732AF68CFB4A29EF16D2F6222C",
+      "relative_path": "verify/EXPECTED-FAKE-STRUCTURAL.json"
+    },
+    {
+      "sha256": "69E9BB044C0D880E5A221A63059D704A07E594449BFAB8BA1CEA512034BF6502",
+      "relative_path": "verify/OUTER-ADMISSION.json"
+    },
+    {
+      "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "relative_path": "Invoke-Fake.ps1"
+    },
+    {
+      "sha256": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F",
+      "relative_path": "subjects/app/calendar_alias_canonicalize.py"
+    },
+    {
+      "sha256": "7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0",
+      "relative_path": "subjects/app/covering_refresh_window.py"
+    },
+    {
+      "sha256": "39EB4E58DE2096F951383F70CDD814F82970FA65A640B9E26E5BA50DF94A2347",
+      "relative_path": "subjects/app/export_baseline.py"
+    },
+    {
+      "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+      "relative_path": "subjects/app/google_calendar.py"
+    },
+    {
+      "sha256": "4A3CBAA0F4A7CF386A37CC26FEEB0D36BE020A07A7C844D7BC70758BB2C831B6",
+      "relative_path": "subjects/app/scheduling_revision.py"
+    },
+    {
+      "sha256": "71CC87C42C2941001383D8126EAE48BA75B56EA18F4BA1A2791AF4D593FD2F8D",
+      "relative_path": "subjects/config/candidate-docker-ops-config.json"
+    },
+    {
+      "sha256": "AF09151FDBD7734CA3613CF627FFD2CF808F805A8B9F0F35E4A69BF6FF6B7977",
+      "relative_path": "subjects/config/candidate-launch-config.json"
+    },
+    {
+      "sha256": "95278DF6B3756F39B5D45CF24C96B3435B20394D3A951FAD95DE5FB76095E7ED",
+      "relative_path": "subjects/config/candidate-runner-config.json"
+    },
+    {
+      "sha256": "5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76",
+      "relative_path": "subjects/config/source-docker-ops-config.json"
+    },
+    {
+      "sha256": "03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9",
+      "relative_path": "subjects/config/source-launch-config.json"
+    },
+    {
+      "sha256": "8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029",
+      "relative_path": "subjects/config/source-runner-config.json"
+    },
+    {
+      "sha256": "58E8E04543595568C405B735C62722E0D3FA7C736472C7F9B0C600A837367DBE",
+      "relative_path": "subjects/diff/np_provider_transcript.py.diff"
+    },
+    {
+      "sha256": "83646AF6D934C820DB01A57972FBB5B885A51FDE92F5FABF7322317B4A847E4A",
+      "relative_path": "subjects/diff/np_runner_entry.py.diff"
+    },
+    {
+      "sha256": "147EC5A0B6F560D9B8DCB64A0DB856CE6C18C7A6940360E1F3F03970D7E1530B",
+      "relative_path": "subjects/diff/np_suite.py.diff"
+    },
+    {
+      "sha256": "7D48720399CFAE7274BB72911E335181CD6713061FA950CC75A2E1C087CC9AA3",
+      "relative_path": "subjects/diff/runner-config.json.diff"
+    },
+    {
+      "sha256": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+      "relative_path": "subjects/fixture/np_auth_seed.py"
+    },
+    {
+      "sha256": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+      "relative_path": "subjects/fixture/np_provider_peer.py"
+    },
+    {
+      "sha256": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+      "relative_path": "subjects/fixture/np_receipts.py"
+    },
+    {
+      "sha256": "FD3AB617FB33D6DDA89A9179929EA6A6FA743C0C115D2B76C104D40B7361B174",
+      "relative_path": "subjects/manifest/candidate-nested.txt"
+    },
+    {
+      "sha256": "001B0B8B9B4D71F23D0EDC61B652B2EED866B6B3F10381A9F139DFEDBD7DD1E4",
+      "relative_path": "subjects/manifest/candidate.txt"
+    },
+    {
+      "sha256": "DA1D9A157E8F6BCB6512923126D2E76104E9D48CE39E27F40B687B5388C08BB8",
+      "relative_path": "subjects/manifest/source-nested.txt"
+    },
+    {
+      "sha256": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A",
+      "relative_path": "subjects/manifest/source.txt"
+    },
+    {
+      "sha256": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+      "relative_path": "subjects/runner/candidate.py"
+    },
+    {
+      "sha256": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D",
+      "relative_path": "subjects/runner/source.py"
+    },
+    {
+      "sha256": "E028812B852C73A1183D609803A450AB41B42CCDE44B4DEE4441EEDB21EA7D1A",
+      "relative_path": "subjects/suite/candidate.py"
+    },
+    {
+      "sha256": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "relative_path": "subjects/suite/source.py"
+    },
+    {
+      "sha256": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513",
+      "relative_path": "subjects/transcript/candidate.py"
+    },
+    {
+      "sha256": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3",
+      "relative_path": "subjects/transcript/source.py"
+    }
+  ],
+  "runtime_file_pin_count": 10,
+  "runtime_files": [
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "note": "interpreter executable"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python311.dll",
+      "sha256": "0817A2A657A24C0D5FBB60DF56960F42FC66B3039D522EC952DAB83E2D869364",
+      "note": "interpreter core incl. built-in _json accelerator"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py",
+      "sha256": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7",
+      "note": "json.loads/dumps for transcript bodies, digests and configs"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\decoder.py",
+      "sha256": "B719FBCFCEBD2B174F076E71292E22B1A17D9E258DBE896C768325383BAD4F80",
+      "note": "JSONDecodeError and raw_decode"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\scanner.py",
+      "sha256": "9841566FB17315EBDD40A1CA9CB214F02CDE7171B187D4DC821C80120EA853C3",
+      "note": "scanner selection"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\urllib\\parse.py",
+      "sha256": "7BFE4ADF0944AA4AA57AAAA1111BCDBB4B40546ED9CDA319EDED770B87625644",
+      "note": "quote/urlencode used by the extracted transcript and query units"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\datetime.py",
+      "sha256": "B76C8980FC5AADE3455CC30AF7F655E8C8D7F42DD819335D9ECAD97773380F9E",
+      "note": "instants, isoformat and fromisoformat in the extracted units (C _datetime accelerator is in the DLL scope above)"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\dataclasses.py",
+      "sha256": "EABCB7B9EDB1073172915E871E7773FD44054E2A0AB33D1977C69E653946BA5C",
+      "note": "frozen ExchangeStep/ExchangeScript definitions"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ast.py",
+      "sha256": "60CA452CFAC189E51C7C2A582C1240C28FCCD12964221BC8D10462F2EE74DE18",
+      "note": "structural location and unparse"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\typing.py",
+      "sha256": "68EC2C25AF2E873C51E5075A81DF4D123B0CA00AE86E77271556DAE7B34065AC",
+      "note": "Literal and NamedTuple in extracted definitions"
+    }
+  ],
+  "runtime_scope_note": "partial runtime scope: these 10 files only; hashlib.py, enum.py, uuid.py and other stdlib/extension files are disclosed as unpinned; not a full standard-library/DLL/extension/environment lock",
+  "result_byte_cap": 262144,
+  "capture_byte_cap": 65536,
+  "reader_join_seconds": 5,
+  "post_kill_wait_seconds": 5,
+  "check_seconds_budget": 120,
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_root": "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+  "exclusive_evidence": [
+    "verify/FAKE-NATIVE-PROVIDER-RESULT.json",
+    "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"
+  ],
+  "successor_reference": {
+    "workspace": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-google-refresh-prep-dex-v3",
+    "runner_sha256": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+    "transcript_sha256": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513",
+    "peer_sha256": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039"
+  },
+  "note": "Dex corrected Google fake staging v2. Token observer restoration now included; fourteen controls,67reportedpredicates,11mutants. Machine flags are scaffolding; no human authority. Use only own-root Reviewed-Google-Functional-Fake-V2-Command.ps1.txt after independent review and exact user approval. Earlier copied decisions/commands are history."
+}

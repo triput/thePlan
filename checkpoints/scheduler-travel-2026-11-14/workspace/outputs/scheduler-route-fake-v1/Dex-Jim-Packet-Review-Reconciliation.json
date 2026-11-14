@@ -1,0 +1,92 @@
+{
+  "at_utc": "2026-11-12T03:23:22.7907007Z",
+  "event": "Ev0CGV7XSM2R",
+  "message": "1794453645.500029",
+  "author": "Justin under Jim",
+  "disposition": "QUALIFIED_ACCEPT",
+  "review_manifest_rows_verified": [
+    {
+      "name": "Jim-Route-Fake-Static-Review.md",
+      "path": "F:\\DropFolder\\pending\\post-native-scheduler-route-fake-v1-static-review-jim-v1-2026-11-11\\Jim-Route-Fake-Static-Review.md",
+      "sha256": "1B717B30DC2DD569A209E018C63014AC85956D066DE3096AAAA22FEF1F484458"
+    },
+    {
+      "name": "HANDBACK.txt",
+      "path": "F:\\DropFolder\\pending\\post-native-scheduler-route-fake-v1-static-review-jim-v1-2026-11-11\\HANDBACK.txt",
+      "sha256": "2E4E420E7F7808ED714D34F66665C7EA7144FE087F334BB8D562C572816F0577"
+    },
+    {
+      "name": "TIP-FREEZE.json",
+      "path": "F:\\DropFolder\\pending\\post-native-scheduler-route-fake-v1-static-review-jim-v1-2026-11-11\\TIP-FREEZE.json",
+      "sha256": "07FC585DA1CEA7FDF8E651F606C42D7615EC09811E917188A74AEFFAC7C41204"
+    },
+    {
+      "name": "Review-and-Commands.md",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Review-and-Commands.md",
+      "sha256": "A2F994D7A85FC538F2D5C472FBF72AF8EAEA3AFD46359FD774536767BED4C2EE"
+    },
+    {
+      "name": "Proposed-Application.diff",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Proposed-Application.diff",
+      "sha256": "535FB0A3AFA576EB739042BDD72B707218E42D13D278E8C007B87083DC66D5A6"
+    },
+    {
+      "name": "Proposed-Verification-Files.diff",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Proposed-Verification-Files.diff",
+      "sha256": "7108C445C7A844DE783C02D864079DAE6DBC95B724E9957B41AC159B528C1247"
+    },
+    {
+      "name": "Commands.ps1.txt",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Commands.ps1.txt",
+      "sha256": "9E6AC4B0C103707E786997CEB1C17F98852C6E36CFF0B5A5D6C89F72B69B334F"
+    },
+    {
+      "name": "VERIFICATION-ADMISSION.json",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\VERIFICATION-ADMISSION.json",
+      "sha256": "BE913D81E977F9F6C35D304DE1C9EF0F1DEA75C4812007A0038A530C052E36BB"
+    },
+    {
+      "name": "Invoke-Verification.ps1",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Invoke-Verification.ps1",
+      "sha256": "088F1BC065690FB7E33FBD91AF1388F1DD725FDA96D10CBE3747CA6908230619"
+    },
+    {
+      "name": "Scheduler-Private-Beta-Finish-Line-Working.md",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-investigation\\Scheduler-Private-Beta-Finish-Line-Working.md",
+      "sha256": "80FE8308B4D06B0D8F2D50067DBCDFB1336077E917510929946B33075A2D75EC"
+    }
+  ],
+  "packet_pins_verified": 475,
+  "partial_runtime_pins_verified": 19,
+  "original_application_files": 234,
+  "candidate_application_files": 234,
+  "unchanged_candidate_files": 232,
+  "changed": [
+    {
+      "path": "app\\services\\covering_http_transport.py",
+      "original": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "candidate": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F"
+    },
+    {
+      "path": "app\\services\\covering_provider_context.py",
+      "original": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "candidate": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    }
+  ],
+  "outer_subjects_verified": 6,
+  "control_count": 19,
+  "result_and_receipt_absent": true,
+  "source_execution": false,
+  "verification_execution": false,
+  "launch_authorized": false,
+  "launch_review_ready": true,
+  "qualifications": [
+    "19 route controls are not full transport/native closure",
+    "Byte-fake/host Python is not native TLS/socket/timing evidence",
+    "Runtime pins are partial provenance, not full transitive stdlib/DLL closure",
+    "45 seconds is nominal owned-child collection/retirement only; no separate outer timeout",
+    "HTTP framing, real TLS EOF and final assembled-source proof remain open",
+    "No permission inferred from review or held admission flags"
+  ],
+  "endpoint": "unbound"
+}

@@ -1,0 +1,14 @@
+{
+  "kind": "Trish one-shot native-v3 collection authorization",
+  "at_utc": "2026-11-12T01:57:56.1393165Z",
+  "source": "request_user_input_async call_bccef8d94f7a4bd18cf7eb6092647534 item0",
+  "answer": "Authorize one native-v3 collection (Recommended)",
+  "command_sha256": "501FAB56FC51F8C8B147EE0B7F29FED8B3F2D95AD7C793FE691953D407C83C55",
+  "manifest_sha256": "4F2BAECBEBA79A4E5BFF6D2A6A04CB658DF8775BCE91F368BE6152260BE1AC37",
+  "attempts": 1,
+  "outside_default_restrictions": true,
+  "success_only_exact_id_cleanup": true,
+  "stop": "failure/mismatch/timeout/UNKNOWN",
+  "retries_repairs_failure_cleanup": false,
+  "endpoint": "unbound"
+}

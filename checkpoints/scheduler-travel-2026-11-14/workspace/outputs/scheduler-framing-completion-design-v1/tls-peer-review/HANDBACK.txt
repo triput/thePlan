@@ -1,0 +1,37 @@
+HANDBACK -- post-native-tls-eof-proposal-static-review-jim-v1-2026-11-11
+
+Status: TLS_EOF_PROPOSAL_STATIC_REVIEW_COMPLETE_NOT_IMPLEMENTED (documents only)
+
+Packet:
+F:/DropFolder/pending/post-native-tls-eof-proposal-static-review-jim-v1-2026-11-11/
+
+Disposition: QUALIFIED ACCEPT
+implementation_authorized=false; executed=false; diff_applied=false; candidate_file_written=false; endpoint=unbound
+No Slack tip from this seat — Jim tips after verify.
+This review is not source-authoring authority; Dex transitions if Trish approves.
+
+Narrow change: YES — explicitly forward suppress_ragged_eofs=False at the existing covering-only wrap_socket call.
+Caveat: source mechanism only; native/OpenSSL teardown surface unproved; not a substitute for HTTP length/chunk gates.
+
+Input pins (match):
+- Trace F5E761F5E41C595D87F47C3F45A2724C740B534AA2487199F8A561EC751F3C48
+- Diff E5DA81D57E19A6ED0524100A6D25FE3FE828D706C9D0014BAF8C5B0188AAF670
+- Pins CE5AB23AEED325E37C1CB33BF3F49231A3D0E67FFF827A71BB35A6F74BB747FE
+- JoinedTLS original 2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B
+- Prospective (in-memory only) 760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427
+- CoveringHTTP E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD
+- ssl.py.source 0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3
+
+Concrete blockers to accepting the proposal text: none.
+Hold conditions (not proposal defects): Trish authoring approval; HTTP completion/framing gates co-required; separately authorized native orderly-vs-abrupt TLS proof.
+
+Review SHA256:
+D7EEEC73C676696C96CC3F12654118BCD288EC4161609AEA4E31C8AC7544885F
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+5818EC31AD12DCFA0494FE686169CDF5617E94435510BC274A5503C048893EB5
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+E52D9B01A956DF61C2818D4883763B25A6536683AE5F33B6C69811036F2946DB
+
+Confirmation: no implementation, no execution, no diff apply, no Slack tip from this seat.

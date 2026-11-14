@@ -1,0 +1,13 @@
+{
+  "command": "7B617AC019D5AD2D5AD5BD02DDC3258073F8897B80EE1AC4AD45DEE128D7BAC2",
+  "manifest": "157C6863BA157298E910439D9FF71B8E4F8124B665A7331AFF54918B13EF6CCF",
+  "maxInvocations": 1,
+  "T05Retry": false,
+  "nativeExecution": false,
+  "ack": "Dex EXECUTE ONCE",
+  "admission": "DE4C94308F1E44FD72E56086F6F9EF4E93FF938B5AD59DA8739D411F635E5F1A",
+  "answer": "Authorize the untouched refresh fake check (Recommended)",
+  "continuation": "call_360b53028bb94db8a955d5be16379bca",
+  "originalApproval": "call_9fe24ed97d1a4017b5d4fd7eb44b318a item1",
+  "atUtc": "2026-11-14T02:38:53.7915992Z"
+}

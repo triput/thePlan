@@ -1,0 +1,22 @@
+{
+  "preparedBooleansNotHumanPermission": true,
+  "endpoint": "unbound",
+  "admission": "CDC8F7721BF250BEF7D48481219295EBB76C70F978C7D1F80D5538DEFDEB753A",
+  "authoringIncident": "Initial joined-list comparison used incorrect PowerShell operator precedence; direct independently joined strings and every packet/runtime hash rechecked, only expected two metadata files differ. No checker or subject invocation.",
+  "expectedUnchanged": "ED7A7EC25879A43779F449E39CADBDAD52C9699CDD60DF7FFB1A42E2AB263A38",
+  "kind": "Dex fresh fake-only staging; no execution authority",
+  "checkerUnchanged": "0E8714EED6AC110ABDD430958FA05CBCED4EC457F2802E1A96B555929D40FEF0",
+  "atUtc": "2026-11-13T22:49:50.4180922Z",
+  "changedInputs": [
+    "packet/verify/OUTER-ADMISSION.json",
+    "packet/verify/VERIFICATION-ADMISSION.json"
+  ],
+  "sourcePacketPreserved": true,
+  "command": "913D9951C763DD8E81DEC696864BDD4EBC336CE8F1C46C292B21531A99CE4D23",
+  "unchangedSourceInputs": 43,
+  "partialRuntimePinsReverified": 10,
+  "humanExecutionAuthority": "NONE",
+  "sourceInputs": 45,
+  "packetPinsReverified": 41,
+  "sourceManifest": "A6AE21A9A373BB47593415AD4D193FDCBB9204585329D24B5662F1000429D9C0"
+}

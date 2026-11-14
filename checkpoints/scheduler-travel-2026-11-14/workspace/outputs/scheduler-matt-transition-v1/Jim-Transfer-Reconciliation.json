@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-13T01:56:58.1089610Z",
+  "jim_tip_on_disk": "D5371A81A96CFA4121E1D8CAF3FE8F14719A8185640C8450171862F67354CF1B",
+  "tip_preimage_valid": true,
+  "mirror_files_verified": 3,
+  "ownership_transfer_ready": true,
+  "active_jim_writer": false,
+  "implementation_started": false,
+  "candidate_authored": false,
+  "incoming_owner": "Matt",
+  "dex_role": "design independent review integration",
+  "source_preparation_authorized": true,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

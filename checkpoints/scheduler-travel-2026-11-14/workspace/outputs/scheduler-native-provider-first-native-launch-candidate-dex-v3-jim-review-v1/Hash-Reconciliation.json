@@ -1,0 +1,77 @@
+{
+  "kind": "jim-independent-hash-reconciliation-native-candidate-dex-v3",
+  "date": "2026-11-12",
+  "author": "Justin",
+  "role": "Jim independent static reviewer",
+  "documents_only": true,
+  "executed": false,
+  "human_launch_authorized": false,
+  "disposition": "QUALIFIED_ACCEPT",
+  "reviewed_packet_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3",
+  "baseline_jim_v2_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-jim-v2",
+  "baseline_jim_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
+  "dex_v3_tip_on_disk": "870596144AAAC3B2DE4894E27639F0D69C581AA621304921AA9E59A6AC3C96CF",
+  "dex_v3_tip_sha256_preimage": "07C895D68363CD8EF9D09064B543BAD2B7C0D3230F0A8F4783B7D7A1428B7F77",
+  "dex_v3_tip_preimage_verified": true,
+  "supplemental_audit": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-dex-review-v2\\V3-Execution-Path-Audit.md",
+  "t05_note": "T05 v3 QUALIFIED ACCEPT 0A63DEAE noted irrelevant; not mutated; not folded into native-v3",
+  "claims_vs_observed": {
+    "Reviewed-Command.ps1.txt": {"claimed": "3550CC2BE81894722E488F94750823D5C925CE86A5D8EA603A7A009314F8182B", "observed": "3550CC2BE81894722E488F94750823D5C925CE86A5D8EA603A7A009314F8182B", "match": true, "cr_count": 0},
+    "Invoke-Native-Provider.ps1": {"claimed": "090A0FA89549D33A381A9DDFF64DFC6AEE59E22F6832AD36018F7ACF8D3AF612", "observed": "090A0FA89549D33A381A9DDFF64DFC6AEE59E22F6832AD36018F7ACF8D3AF612", "match": true, "cr_count": 0},
+    "host/launch-config.json": {"claimed": "0F3B0DAD9BA91FC97A61E0633E3295F03201CD2C3DDE3E4B22777E639C369F20", "observed": "0F3B0DAD9BA91FC97A61E0633E3295F03201CD2C3DDE3E4B22777E639C369F20", "match": true, "cr_count": 0},
+    "host/docker-ops-config.json": {"claimed": "FB13F282F32905E98515D771BB4C66356E529DF48F7BB0145586A44B08D74B64", "observed": "FB13F282F32905E98515D771BB4C66356E529DF48F7BB0145586A44B08D74B64", "match": true, "cr_count": 0},
+    "payload/SHA256SUMS.txt": {"claimed": "336576063E21ECB1718D2C89DF715E570B6A45FD7EA51ECBCA71EA533F24C06D", "observed": "336576063E21ECB1718D2C89DF715E570B6A45FD7EA51ECBCA71EA533F24C06D", "match": true, "cr_count": 0},
+    "payload/docker-config/config.json": {"claimed": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F", "observed": "E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F", "match": true, "cr_count": 1, "size_bytes": 4, "note": "empty object CRLF matching I01/I02 pin"},
+    "Input-Manifest.sha256": {"claimed": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF", "observed": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF", "match": true, "entries": 265},
+    "payload/runner-config.json": {"claimed_unchanged_vs_jim_v2": true, "observed": "E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160", "match_jim_v2": true, "launch_ready": true}
+  },
+  "payload_delta_vs_jim_v2": {
+    "identical_original_payload_files": 256,
+    "added": ["docker-config/config.json"],
+    "changed": ["SHA256SUMS.txt"],
+    "removed": [],
+    "payload_manifest_pins": 257,
+    "payload_files_on_disk_including_manifest": 258,
+    "api_files": 234,
+    "silent_code_drift": false,
+    "operator_equal_after_packet_path_rename": true,
+    "docker_ops_only_new_key": "docker_config",
+    "docker_config_value_is_directory": true,
+    "docker_config_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\docker-config"
+  },
+  "immutable_helpers_unchanged_vs_jim_v2": {
+    "payload/fixture/np_runner_entry.py": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+    "payload/fixture/np_supervisor.py": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+    "payload/fixture/docker_transport.py": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+    "payload/fixture/np_suite.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+    "payload/fixture/np_provider_peer.py": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+    "payload/fixture/np_auth_seed.py": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150"
+  },
+  "authority_flags": {
+    "host_launch_ready": true,
+    "runner_launch_ready": true,
+    "host_human_launch_authorized": false,
+    "host_launch_authorized": false,
+    "receipt_human_launch_authorized": false,
+    "receipt_native_execution_authorized": false,
+    "executed": false,
+    "endpoint": "unbound",
+    "evidence_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence",
+    "evidence_exists": false
+  },
+  "fake_prerequisite": {
+    "status": "fulfilled_authority_consumed",
+    "result_sha256_prefix": "88805F6E",
+    "receipt_sha256_prefix": "8AA3F9E9",
+    "proves_native_entry_or_operator": false
+  },
+  "scope": {
+    "case_ids": ["NP-V-MS-NONEXPIRED"],
+    "expected_unknown_cases": [],
+    "static_success_docker_command_count": 22,
+    "command_count_cap": 32,
+    "t05_folded": false
+  },
+  "revise_blockers": [],
+  "all_claimed_role_hashes_match": true
+}

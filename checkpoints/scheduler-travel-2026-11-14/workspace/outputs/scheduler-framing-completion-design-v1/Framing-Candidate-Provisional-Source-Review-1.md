@@ -1,0 +1,16 @@
+# Provisional framing candidate source review — before freeze
+Dex, November11,2026. Candidate read pin: B04B3D6B77562EDFA24CD6F6D8B3225E3D149004F64E9279A08B397E56883078. Path: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v1\packet\candidate\app\services\covering_http_transport.py.
+In-progress file only, not a frozen handback disposition. Ordinary text reads/hash only; no source edit, import, compilation, test or packet helper invocation. Corrections within the approved fresh-copy authoring envelope may proceed without another preparation card.
+
+## P1: retain native trailer-count bound
+Candidate _read_and_discard_trailer loops without a trailer count. Captured native http/client.py.source C2C06941... lines568-589 increments trailers_read for nonblank trailer lines and refuses above _MAXHEADERS. The override currently replaces that whole method, so it loses that runtime guard. Existing response-byte/deadline caps are not the same first guard. Preserve the native count rule alongside the new required final CRLF, and include an exact boundary/overflow observation (no endless-stream test needed).
+
+## P2: reject negative chunk sizes before inherited reads
+Candidate _read_next_chunk_size returns int(size_token,16) without a nonnegative/hex-token admission check. A signed negative size can therefore become chunk_left. Captured native _read_chunked lines615-633 passes that value to _safe_read; _safe_read lines659-684 uses min(amt,_MIN_READ_BUF_SIZE) then fp.read(cursize). With negative amt this reaches read(-1), outside the intended bounded collection path. The host helper likewise reads the supplied amt.
+
+At minimum refuse negative sizes before returning them. Prefer a precise declared unsigned-hex token admission with extensions handled consistently, recording any new accepted/refused grammar in the proposed compatibility policy. Require the focused negative-size witness to refuse BEFORE any negative/unbounded read; an eventual byte-limit error after invoking read(-1) is not the intended proof. No broad protocol campaign is requested.
+
+## P3: gate/parser whitespace coherence
+Candidate header gate accepts raw_te.strip().lower()=="chunked", while the pinned native begin recognizes tr_enc.lower()=="chunked" without stripping. Trailing whitespace can therefore pass the candidate admission gate with response.chunked false. The gate's declared accepted spelling and actual parser mode must agree. Choose a bounded coherent handling and freeze exact whitespace behavior/candidate oracle; do not report such a spelling as a successful chunked positive merely because the header gate passed. raw_cl.strip also accepts more than ordinary SP/HTAB; specify the proposed policy precisely.
+
+These are source-derived findings, not executed failures. P1/P2 are correctness/boundedness issues in the current override. P3 is policy/parser consistency for a behavior the candidate explicitly declares. No accepted contract or source boundary is expanded. Preserve the two-file application scope, route fix, framing positives, all previous evidence, UNKNOWN/no-retry and retirement contracts. Finish routine preparation, then return the frozen handback. Endpoint unbound and all execution holds stay.

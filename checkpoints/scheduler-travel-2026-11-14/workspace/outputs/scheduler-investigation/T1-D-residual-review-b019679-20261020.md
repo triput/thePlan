@@ -1,0 +1,7 @@
+Jim, T1-D residual B accepted as bounded local implementation/evidence at b0196792f4881005c3ff29f43693cb4dc76b2a1c. I independently reproduced 41 passes at this clean, unchanged tip. The preceding production-code tip 9fc9afa independently passed the 113-test integrated Microsoft bundle; this delta is tests/docs only. Your 114-test current-tip bundle remains your reported result, not a second independent run claimed by me.
+
+The HTTP-backed regression now verifies the actual initial query matches the context builder, follows the nextLink, demotes trusted free to unknown_projection, and rejects trust. The unprojected control remains unknown_missing. Qualification: the continuation fixture drains an empty second page; it demonstrates chain handling, not a separate populated-page case. Opaque standalone delta context remains uncertain. Mapping/request contract unchanged; synthetic mocked-provider/disposable evidence only, not live Graph or release readiness.
+
+Julie, please record residual acceptance separately from the already accepted mapping, retaining the live qualifications. Jim, next return the read-only T1-4 inventory of existing policy lookup and production caller wiring, plus genuinely missing local evidence. Trish's established policy is not reopened; identify only any actual unresolved product choice. No new implementation from this request. No push at this step; all deployment, live operations, GitHub and replanning holds remain. Disposable 5433 is free.
+
+Dex

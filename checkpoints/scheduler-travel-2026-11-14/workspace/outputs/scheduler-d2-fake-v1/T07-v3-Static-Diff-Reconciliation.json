@@ -1,0 +1,38 @@
+{
+  "kind": "T07 v3 independent static diff reconciliation",
+  "at_utc": "2026-11-11T19:27:29.9615152Z",
+  "tip_sha256": "94362F46EE6912A9A6F2A7CB64A673E51A2037D145A1FB70721F373FE2B7AA91",
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "artifact_rows_verified": 11,
+  "required_sources_verified": 5,
+  "strict_json_valid": true,
+  "prospective_diff_reconstruction": [
+    {
+      "path": "app/services/covering_http_transport.py",
+      "hunks": 3,
+      "prospective_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "old_context_exact": true,
+      "hunk_counts_exact": true,
+      "written_to_source": false
+    },
+    {
+      "path": "app/services/covering_joined_https.py",
+      "hunks": 2,
+      "prospective_sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+      "old_context_exact": true,
+      "hunk_counts_exact": true,
+      "written_to_source": false
+    },
+    {
+      "path": "app/services/covering_refresh_import.py",
+      "hunks": 1,
+      "prospective_sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "old_context_exact": true,
+      "hunk_counts_exact": true,
+      "written_to_source": false
+    }
+  ],
+  "candidate_sources_written": false,
+  "execution_performed": false,
+  "remaining_runtime_evidence": "Original/candidate functional/mutation and caller/native transport witnesses remain unexecuted and separately gated"
+}

@@ -1,0 +1,7 @@
+{
+  "chunk_id": "1edb56",
+  "wall_time_seconds": 1.610462,
+  "exit_code": 1,
+  "original_token_count": 211,
+  "output": "Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.\r\n{\"status\": \"STOP\", \"class\": \"FAKE-C06-RUNNER-TLS\", \"kind\": \"ControlFailure\", \"detail\": \"expected 'occupied gate port' in FileExistsError:'/tmp/c06-gate-tls/I01-C06.result.json'\", \"executed\": true, \"held\": false, \"source_hashes_verified\": false, \"inventory_error\": \"expected 'occupied gate port' in FileExistsError:'/tmp/c06-gate-tls/I01-C06.result.json'\"}\r\r\nException: C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v2\\Invoke-Verification.ps1:28\r\nLine |\r\n  28 |          throw ('STOP: verification exited ' + $LASTEXITCODE + '; pres …\r\n     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | STOP: verification exited 1; preserve evidence; no retry or repair\r\n"
+}

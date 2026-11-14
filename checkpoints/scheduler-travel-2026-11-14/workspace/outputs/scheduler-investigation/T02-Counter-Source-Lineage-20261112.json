@@ -1,0 +1,35 @@
+{
+  "kind": "property_source_lineage",
+  "at_utc": "2026-11-12T21:26:55.7856158Z",
+  "executed": false,
+  "byte_rule": "Exact UTF8 source slices, no newline normalization; ProviderCounter through before approved_provider_limits, then approved_provider_limits through EOF",
+  "sources": [
+    {
+      "path": "outputs\\scheduler-t02-fake-v1\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_transport_policy.py",
+      "whole_sha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "counter_bytes": 1788,
+      "counter_sha256": "A02ED0EE2A2D92492E25BBE4EECF216C791A087FC6A0EC6C1314E9A56DDA0F49",
+      "approved_limits_bytes": 168,
+      "approved_limits_sha256": "70B0B48D7C622D9429A571D4FE656E1FD96C73BF5DA9138DE9568CF98F717085"
+    },
+    {
+      "path": "outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_transport_policy.py",
+      "whole_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "counter_bytes": 1788,
+      "counter_sha256": "A02ED0EE2A2D92492E25BBE4EECF216C791A087FC6A0EC6C1314E9A56DDA0F49",
+      "approved_limits_bytes": 168,
+      "approved_limits_sha256": "70B0B48D7C622D9429A571D4FE656E1FD96C73BF5DA9138DE9568CF98F717085"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\api\\app\\services\\covering_transport_policy.py",
+      "whole_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "counter_bytes": 1788,
+      "counter_sha256": "A02ED0EE2A2D92492E25BBE4EECF216C791A087FC6A0EC6C1314E9A56DDA0F49",
+      "approved_limits_bytes": 168,
+      "approved_limits_sha256": "70B0B48D7C622D9429A571D4FE656E1FD96C73BF5DA9138DE9568CF98F717085"
+    }
+  ],
+  "counter_raw_match": true,
+  "approved_limits_raw_match": true,
+  "boundary": "Reuses exact prior host-fake counter and approved-limit behavior where the recorded test control matches. Does not establish native sockets, clocks, role acknowledgment or final assembled runtime."
+}

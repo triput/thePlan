@@ -1,0 +1,29 @@
+{
+  "kind": "T05 original witness/design v1 independent review",
+  "date": "2026-11-11",
+  "tip_raw_sha256": "8C32BFECCF225C77BEE0E1C102C09D4F09CE20ECEF7881D3C87AEF8E6B7FDA29",
+  "brief_sha256": "B7A8A945FC0CEADC09A4A84056ED85E4D42DF635AE45C9C25CFBC80980DE97CB",
+  "artifact_rows_verified": 5,
+  "application_source_pins_verified": 3,
+  "accepted_for_carry_forward": [
+    "Witness-first framing/retirement distinction and full76-ID inventory",
+    "Fixed-length valid-JSON prefix twins for token success and invalid_grant",
+    "Distinct chunk data/separator/zero/trailer positive and negative variants",
+    "Native TLS close_notify versus abrupt EOF cannot be established by fake empty reads",
+    "Bounded reads, cumulative bytes/deadlines and T07 provenance preserved",
+    "No source implementation, execution or invented PASS"
+  ],
+  "disposition": "REVISE documents before implementation-preparation scope",
+  "required_revisions": [
+    "Separate predicted original behavior/contract-miss witness from desired corrected acceptance oracle; do not require original source to pass the intended fix",
+    "Correct Google helper route: calendar_client inside covering_provider_transport selects _CoveringClient and CoveringHTTP; ordinary outside-context httpx is a different path",
+    "Retain close-delimited support as current design baseline; do not treat rejecting all such responses as an equally adopted default",
+    "D4 TLS option and D5 provenance acquisition are technical/source/launch gates, not standalone product decisions; D1/D2 need concrete recommendations/evidence in later bounded proposal",
+    "Return exact documents-only proposed authoring scope before new checker/fixture source work",
+    "Correct markdown escape/control-character formatting in fresh successor; preserve original"
+  ],
+  "new_user_decision_ready": false,
+  "t07_launch_card_unchanged": true,
+  "execution_performed": false,
+  "source_changes_authorized": false
+}

@@ -1,0 +1,15 @@
+{
+  "question_item": "call_c0b7f4bc6b21430795922680fbe09b68/0",
+  "answer": "Authorize one native I01/I02 v4 launch (Recommended)",
+  "command_sha256": "308D1A816B2D198131E00CB9847EE4C1CD95F2B8E1390CE288602EC155154CC6",
+  "manifest_sha256": "642C489AA4FA3B21E5F7C23540267C550186FE771B5F69476A7B0298DF88E4F3",
+  "config_sha256": "4CC24980C83E71C0C43AB057B5802B54EF614AF9688C4783E381AAA298AA0A7B",
+  "approved_attempts": 1,
+  "outside_default_sandbox": true,
+  "success_only_exact_id_cleanup": true,
+  "failure_cleanup": false,
+  "retries": 0,
+  "repairs": 0,
+  "status": "HASH_ADMISSION_PASSED_NOT_YET_INVOKED",
+  "endpoint": "unbound"
+}

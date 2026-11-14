@@ -1,0 +1,26 @@
+{
+  "packet": "dex-c06-fake-v3-artifact-stem-preparation",
+  "status": "PREPARED_NOT_EXECUTED",
+  "author": "Dex",
+  "parent_source": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10",
+  "parent_tip_sha256": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+  "approval_question": "call_7f6a3bb524854a42babba949055e5a18/0",
+  "approved_diff_sha256": "488CBC110A225F7431AC8B7DA235AD2C1012AB5A274220958FFF98D312005A46",
+  "functional_change_lines": 1,
+  "check_sha256": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+  "root_input_manifest_sha256": "74EB68F1F3305862A850E1774B4C6DBAC00A8993810056155DE8CCDDD60A4705",
+  "verification_input_manifest_sha256": "80261CE0A8BA2302CBAC4F6FCDD3CDF2A53C1BA0A67D03A2AC56263D5344D96A",
+  "outer_admission_sha256": "586FFBCFF25170F19770F13C5680E14CCBF64707FCCDFCC2C7DD020A3F549AC4",
+  "payload_manifest_sha256": "ED9BAA7934263C5D8B8DE3C441020B05FF9A9FBEDAA7195B1F59B33063A0377D",
+  "fixture_sources": "unchanged",
+  "assertions": "unchanged",
+  "controls": 39,
+  "launch_ready": false,
+  "execution_authorized": false,
+  "tests_run": 0,
+  "endpoint": "unbound",
+  "failed_packets_preserved": [
+    "scheduler-c06-fake-v1",
+    "scheduler-c06-fake-v2"
+  ]
+}

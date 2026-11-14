@@ -1,0 +1,22 @@
+{
+  "atUtc": "2026-11-14T00:58:01.0828078Z",
+  "status": "PROVISIONAL_ONLY_NOT_FROZEN_ACCEPTANCE",
+  "candidateRunner": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+  "sourceRunner": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1",
+  "observedDelta": [
+    "One helper call replaces pre-join sanitized_state in MS-REFRESH",
+    "retirement_attempted latched before helper; retirement_done only after successful return",
+    "Old later direct retirement removed; no second positive-path join",
+    "Old later joined-only guard removed: exact same joined predicate is enforced earlier by unchanged selected helper, plus worker_error_kind=None. This is an assertion replacement in selected body, not byte-identical preservation; handback must disclose applicability.",
+    "No other runner text changed in inspected two-hunk diff"
+  ],
+  "nextReview": [
+    "Frozen source/sidecar/metadata/fake controls still pending",
+    "Verify unchanged helper and finally-attempt guard",
+    "Map displaced joined guard to stronger unchanged helper; no weakened or missing predicate",
+    "Verify token persistence/terminal/five-exchange assertions remain exactly preserved"
+  ],
+  "execution": "NONE",
+  "nativeRefreshProof": "NOT_ESTABLISHED",
+  "endpoint": "unbound"
+}

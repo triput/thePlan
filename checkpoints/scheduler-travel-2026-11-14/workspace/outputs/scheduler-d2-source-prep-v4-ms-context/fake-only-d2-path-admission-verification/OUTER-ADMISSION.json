@@ -1,0 +1,33 @@
+{
+  "packet": "fake-only-d2-path-admission-verification",
+  "class": "FAKE-D2-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_d2_fake.py do not embed their own final raw-byte hashes; operator verifies this file's published hash before invoke; empty pin literals refuse",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pin_layers": [
+    "1_operator_OUTER_ADMISSION_hash",
+    "2_admit_outer_subject_pins",
+    "3_launcher_interpreter_and_packet_pins_excluding_self",
+    "4_check_source_pins_and_inventory"
+  ],
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "D511AEE78936177004A37BB187A98B728185B7A7A95C2F22FBB1FA835039678B",
+      "invoke_d2_fake.py": "560E9037DA168E03845098000EA34FB17C35509EED9D283B48F265A7EBF002DC",
+      "check_d2_path_admission_fake.py": "CAAECE741F12F632FFC97207D47BEA6340EBFD62CB20AE86EE84C389BD73C4CB",
+      "EXPECTED-OUTPUT.json": "381536B156A37EE5C3F7A1FABBC0F0C2942FE97BBC68B68F67550BF715C368FC",
+      "INPUT-MANIFEST.json": "4E2AC286F3B9CA3DF888E4C6C2A2C40DBF092E38819F27A7EE1B0314E7F2E02D",
+      "PACKET-SHA256SUMS.txt": "089B0E36EED078AB1F126950AD9148F34A178D6F0AFA209F65C187700FA60902"
+    }
+  },
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "supersedes_frozen_v3_tip_sha256": "A9415BB75B5B46CF774ABC239813815D015E0EDE07D46E53268E94C15DFB4BE8",
+  "predecessor_frozen_v2_tip_sha256": "9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB",
+  "predecessor_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "launch_ready": false,
+  "parent_packet": "post-native-d2-source-fake-prep-jim-v4-ms-context-2026-11-11"
+}

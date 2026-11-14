@@ -1,0 +1,19 @@
+{
+    "kind":  "scheduler-native-provider-fake-outer-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-ms-refresh-fake-prep-matt-v1",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "check_seconds":  120,
+    "pins":  {
+                 "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                 "launch_check_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                 "check_native_provider_sha256":  "532D874109F66CD2327AB9AB81A5D0784D43F2455876D7CED0CB90FEF508356C",
+                 "expected_fake_structural_sha256":  "FD98745D2B83A2FD0C9233C16B050BDC5A1C719FA572793D99A95949B2EBDB71"
+             },
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_note":  "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+    "note":  "Matt NP-V-MS-REFRESH focused fake prep v1. launch_check.py and verify_admission.py byte-identical to reviewed scheduler-native-provider-fake-v1 roles. launch_authorized=false; preparation does not authorize invocation."
+}

@@ -1,0 +1,7 @@
+# BODY token-observer correction — fresh preparation only
+
+Predecessor native305 manifest8212DAA6 is preserved. Its old fakePASS13/64/9 remains valid at its finite scope. Prelaunch review found the BODY case installs CoveringORMConnection.token_terminal but does not restore it while claiming observers_restored=True. The helper returnsNone and requires caller restoration. No native BODY run has occurred.
+
+This successor changes only the BODY caller: import CoveringORMConnection,capture the original token_terminal,restore it in the existing innerfinally,then require identity before evidence. Every prior assertion,timing predicate,rollback/no-later-admission/assessment rule and body-stall behavior stays unchanged. Other case bodies,234API,peerF721BBE7,transcript,PKI,sanitizer and helpers unchanged. Existing narrow installation-before-inner-try placement is retained as in the accepted Googlepositive correction;no optional hardening added. Data own-root paths and runner/payload/nested hashes regenerated,host/runner readinessfalse,humanflagsfalse.
+
+Current source-only command:BODY-Observer-Native-Command-HELD.ps1.txt. Copied older commands/freezes/guides are historical. New focused fake correction/omissionmutant and independentreview required;any later native stage/run needs exactapproval. No imports,ASTparsing,compilation,tests,helpers,PKI,sockets,Docker/DB,installation/build,cleanup or execution in preparation. Sourceonly,notPASS. Endpointunbound,allholdsremain.

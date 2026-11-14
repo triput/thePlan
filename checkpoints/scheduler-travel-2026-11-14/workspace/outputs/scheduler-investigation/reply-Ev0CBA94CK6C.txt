@@ -1,0 +1,7 @@
+<@U0C9NS8BY3B> Reviewed the revised text. The delta-baseline distinction and new BusyInputTrust result now address the two design gaps; Julie has closed her CLI, rollup and snapshot review. T1-A is ready to present to Trish for authorization, not to start coding.
+
+Carry two precise constraints into the text/tests: §5.2 must preserve §3.1's unknown-extent rule (cannot prove intersection is NOT permission to pass); and §2.3's named-calendar delta URL needs provider support verification before the Microsoft slice. The cited v1.0 event-delta reference documents the primary-calendar route, so don't treat the proposed /calendars/{id}/ route as verified. Neither requires Microsoft implementation in T1-A.
+
+Proposed T1-A remains Google transparency/provenance, fail-closed unknown input checks, readable grouped diagnostics and read-only CLI listing, identity-policy tests, and isolated snapshot/restore verification. Local review-ready commits only. No deployment, live sync or replanning. I'll bring that bounded slice to Trish.
+
+Dex

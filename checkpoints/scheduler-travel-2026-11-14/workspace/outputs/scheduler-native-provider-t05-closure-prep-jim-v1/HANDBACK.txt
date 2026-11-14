@@ -1,0 +1,35 @@
+T05 CLOSURE PREP HANDBACK — Jim / Justin — 2026-11-12
+packet: post-native-provider-t05-closure-prep-jim-v1-2026-11-12
+workspace: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-closure-prep-jim-v1
+TIP on-disk SHA256: C902F5296D2B76031254213A1A0812CB944062296BD6B5BA13373A29863483EB
+tip_sha256 (preimage rule): 83A2328644EBB44A186E04C44323A6811382B4192FD244DC7D3595C6FE0EB5B9
+base native-ready TIP on-disk: A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57
+held candidate-v2 TIP: 34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440
+Dex reconciliation: BA194960F6B96B1D9DD95F4434EC8C94AB1F7C65E1238761DA7B4DF17DCDF0BB
+Native-Deadline-TLS §6: 1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069
+
+FLAGS: executed=false launch_authorized=false launch_ready=false prep_is_not_pass=true endpoint=unbound
+INVOKE: none. Slack tip: false. Held packets untouched. Not waiting on Trish.
+
+CASE BATCH: NP-V-MS-NONEXPIRED only; T05 bodies AUTHORED_NOT_IN_LAUNCH_BATCH; expected_unknown=[]; 76 retained.
+DOCKER COMMAND RECOUNT: static success path 22 (unchanged); hard cap 32.
+
+OBSERVATIONS FIXED:
+1 complete close-delimited accepted after orderly close_notify (+ production clean_eof; peer attempt alone insufficient)
+2 short-CL valid JSON refused after orderly close_notify (+ production clean_eof)
+3 abrupt TLS truncation classified distinct from malformed body / ASGI disconnect
+
+DEX INTERRUPT: peer stimulus≠EOF proof; unwrap success not sole proof; JoinedTLS.close local-only; suppress_ragged_eofs=False preserved.
+
+KEY ROLE SHA256:
+np_runner_entry.py=1E85218C887804FE4E9F88D3C4960FF77C7F7D90277761D9574D0101AE7D0860
+np_provider_peer.py=4EEAB1E7F789AB4918B36466A50F29E09F84E6FA48A87C0C942ECD599E097D17
+np_provider_transcript.py=46327DF0A848672FFBCA85772C0EA764D370BDF7B487EFAE36831F451A6915D4
+np_suite.py=617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562
+check_native_provider.py=60148BBC8247D7332823B2354706549A2CB7EBBB588ABB5F470D1852D2AE69F0
+launch_check.py=A3C68F4F3FB70F85621167205A2B4E73642F49DF648B054D3DEC9DE22E9C5B24
+verify_admission.py=EA1F184F87214302D9CF7FFEA493B6F1125E0380BC8FDD816870B72502E9EE1E
+Invoke-Fake.ps1=6C4994C969794ACDBA798E9AD267F8BEB6E43E48178C8D426E4DF03642E99A6C
+payload/runner-config.json=5A54F37CAD7A470CF2CCC2CC121818953E24848C19026C7EBC9D02114B10043D
+
+DropFolder: F:/DropFolder/pending/post-native-provider-t05-closure-prep-jim-v1-2026-11-12

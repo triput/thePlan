@@ -1,0 +1,32 @@
+{
+  "packet": "fake-only-t07-retirement-verification",
+  "class": "FAKE-T07-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_t07_fake.py do not embed their own final raw-byte hashes",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "EDF2684BAC273282E673FF4D71695B4BBA0B17DA2D317F0FC70B5965085FADE2",
+      "invoke_t07_fake.py": "23C68C53ACB35A648D6676025AAF5412E18F3BC42CD91C539FA5A755872E9116",
+      "check_t07_retirement_fake.py": "7B618658315D001119BF6BC9CFF6DAB714ED9267E8F67D84EA61FB69F04E1155",
+      "EXPECTED-OUTPUT.json": "173ADAD84BF3A335CD5B15F5B53B58C40FF8532AFF6FE0BE225A66D8377E584F",
+      "INPUT-MANIFEST.json": "45D7619E7F2C05738469184EF764EACC5DB44B0D87568F7B496AA90B6C57E734",
+      "PACKET-SHA256SUMS.txt": "F37B24D247A192777A10083745D7BBBF7395DDE850320AC258A4A6EB31E205F9"
+    }
+  },
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "design_tip_sha256": "94362F46EE6912A9A6F2A7CB64A673E51A2037D145A1FB70721F373FE2B7AA91",
+  "scope_sha256": "B1481463CA6993C6C4C884485237E5DD2C308B7578A796DE5DE89565BDD46C83",
+  "supersedes_v4_tip_sha256": "DA6BCB39A5FB48F9D6449D6992BCBCC3A2EA57F5298E0C015D798642FA348B3D",
+  "supersedes_v1_tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "launch_ready": false,
+  "parent_packet": "post-native-t07-source-fake-prep-jim-v5-2026-11-11",
+  "dex_blockers_closed": [
+    "p1794429171"
+  ],
+  "http_unknown_object_identity_asserted": true,
+  "later_target_beyond_fault": true
+}

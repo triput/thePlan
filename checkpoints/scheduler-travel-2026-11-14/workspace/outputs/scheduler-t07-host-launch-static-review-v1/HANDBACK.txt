@@ -1,0 +1,39 @@
+SLACK TIP — post-native-t07-host-launch-static-review-jim-v1-2026-11-11
+
+Status: T07_HOST_LAUNCH_STATIC_REVIEW_COMPLETE_NOT_EXECUTED (static review only; no execution)
+
+Packet:
+F:/DropFolder/pending/post-native-t07-host-launch-static-review-jim-v1-2026-11-11/
+
+Mirror:
+C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-host-launch-static-review-v1/
+
+Disposition: QUALIFIED ACCEPT — launch_authorized=false; executed=false; review_only=true
+
+Host: scheduler-t07-fake-v1
+Accepted v6 TIP: 671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599
+Check: 7CD8D26B5E402F4548E4E7DA3EFD64F6A7738D54731C6E7FEC67FE7CACB6C899
+Sources: E942 / 2E6A / 84F5 (workspace MATCH)
+
+Commands.ps1.txt: 52E73835D67C04D2A27B047F49499C779DB3CBBAB682E485528EDA2DD1ED538C
+VERIFICATION-ADMISSION.json: 4EEAE5B1C12F7FC6B97E00B62EAEB12CAE0F94C34A17D7E0744888367203695B
+Invoke-Verification.ps1: 1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B
+Admission kind: scheduler-t07-one-shot-fake-verification-admission
+
+Pins verified: packet 253/253; runtime 17/17; 0 mismatches; evidence FAKE-T07-RESULT/RECEIPT absent
+Controls: 41 ordered; 31 PASS + 10 PASS_WITNESS expected
+Nominal retirement/capture: 45s (30+5+5+5) consistent across Review-and-Commands / INPUT-MANIFEST / invoke
+
+Blockers: none
+Qualifications: host admission inventory-only for timeouts; runtime pins partial-by-design; older Host-Admission-Static-Review unstaged wording is residue; fake native/DB — not full T07/T01–T08
+
+Does NOT authorize: wrapper launch, Python child, imports/compile/tests, host edits, endpoint bind, Docker/sockets/providers/DB/native, verification PASS claim
+
+Review SHA256:
+EEEDFEC2A53491503527270F99E9D29F34DD3FB8B3324DA7C6A51EAF61FBCDB1
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+1B5886EDB6F4DF45F085F8343110BDE6047B91E655713D69AE79CCF387498E9C
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+7B3F7104A489EB5FB8C97B5BB0D3B48E9D13EF935035982128753B25A87F01BB

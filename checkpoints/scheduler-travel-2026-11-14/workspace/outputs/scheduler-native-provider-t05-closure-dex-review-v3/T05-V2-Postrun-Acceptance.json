@@ -1,0 +1,117 @@
+{
+  "kind": "independent_T05_postrun_acceptance_not_execution",
+  "prepared_at_utc": "2026-11-13T04:24:05.8843812Z",
+  "status": "READY_FOR_LATER_RECONCILIATION_EXECUTION_HELD",
+  "command_sha256": "831620CFB7B9300EED46D8E14A99EFC3B8685567DBE94D985CAEEC004E7EBFC6",
+  "admission_sha256": "1B6DC07ABC93DF2035BDD1CD82B62034C66C4CDA2B9410547D896E671C238467",
+  "launch_manifest_sha256": "1DDF3CD58436FE1E3310806C4E3388402EEE7119640E8EC4C0166CB25CC90D23",
+  "expected_inventory_sha256": "080268BCCCCB63EB47A96A59F5EB4454575D98AA73A1B796FEAF640F1F0B260A",
+  "ordered_top_level_ids": [
+    "ASSEMBLY-PINS",
+    "SUITE-INVENTORY",
+    "PEER-RUNNER-SHAPE",
+    "CANDIDATE-SOURCE-SYNTAX",
+    "T02-OVERRUN-GAP",
+    "T02-FOCUSED-CROSSING",
+    "PORT-DEPENDENCY-PASS",
+    "T08-NESTED-RESET-BEHAVIOR",
+    "T07-INDIVIDUAL-NAMES",
+    "HOST-VS-RUNNER-DOCKER",
+    "REPORT-PRODUCER-CONSUMER-SINK",
+    "HOST-ENTRY-RECEIPT-RELAY",
+    "PKI-LATE-DRAIN-OVERFLOW",
+    "MAPPED-COVERAGE-MEASUREMENT",
+    "VERTICAL-CONTRACT-SHAPE",
+    "ADMISSION-SCHEMA-WRAPPER-FIELDS",
+    "T05-CLOSURE-FOCUSED"
+  ],
+  "ordered_t05_nested_ids": [
+    "T05-R1-CLEAN-REFUSAL-ADMITTED",
+    "T05-R1-UNKNOWN-REFUSED",
+    "T05-R1-UNKNOWN-UNWRAP-MUTATION-HOLE",
+    "T05-R2-OBSERVER-EOF-ADMITTED",
+    "T05-R2-OBSERVER-RESET-ADMITTED",
+    "T05-R2-OBSERVER-GENERIC-SSL-REFUSED",
+    "T05-R2-OBSERVER-GENERIC-OSERROR-REFUSED",
+    "T05-R2-OBSERVER-TIMEOUT-REFUSED",
+    "T05-R2-OBSERVER-CLEAN-EOF-REFUSED",
+    "T05-R2-GENERIC-REFUSAL-REFUSED",
+    "T05-R2-DEADLINE-REFUSED",
+    "T05-R2-UNKNOWN-REFUSED",
+    "T05-R2-MEASURED-GUARD-MUTATION-HOLE",
+    "T05-R3-PARTIAL-START-ONE-RETIREMENT",
+    "T05-R3-UNCONFIRMED-RETIREMENT-STOP",
+    "T05-R3-DOUBLE-RETIRE-GUARD-PRESENT",
+    "T05-R4-PLAN-CAPTURE-FAILURE-STOP",
+    "T05-R4-PLAN-EXPIRY-STOP",
+    "T05-R4-NOW-FALLBACK-ABSENT"
+  ],
+  "other_nested_inventories": {
+    "byte_alias_reference_control_ids": [
+      "BYTE-ALIAS-DOCUMENTATION-ACCEPTED",
+      "BYTE-ALIAS-IMPORT-REFUSED",
+      "BYTE-ALIAS-CALL-REFUSED",
+      "BYTE-ALIAS-INSTALL-REFUSED"
+    ],
+    "host_entry_seam_control_ids": [
+      "HOST-ENTRY-UNBOUND-REFUSED",
+      "HOST-ENTRY-ONE-TIME-BIND",
+      "HOST-ENTRY-DOUBLE-BIND-REFUSED",
+      "HOST-ENTRY-SYNTHETIC-DOCKER-EVENTS"
+    ],
+    "pki_late_drain_control_ids": [
+      "PKI-IN-LOOP-OVERFLOW-REFUSED",
+      "PKI-LATE-DRAIN-OVERFLOW-REFUSED",
+      "PKI-LATE-DRAIN-PRESERVES-PRIMARY"
+    ]
+  },
+  "required_result": {
+    "kind": "fake-native-provider-structural-result",
+    "executed": true,
+    "prep_is_not_pass": true,
+    "endpoint": "unbound",
+    "passed": 17,
+    "failed": 0,
+    "failed_controls": [],
+    "exact_control_key_count": 17,
+    "every_control_observed": "PASS",
+    "top_level_t05_inventory_matches_expected": true,
+    "focused_t05_inventory_matches_expected": true,
+    "focused_t05_native_behavioral_proof": false,
+    "native_batch_ids": [
+      "NP-V-MS-NONEXPIRED"
+    ]
+  },
+  "required_receipt": {
+    "status": "PASS",
+    "check_exit_code": 0,
+    "stdout_observed_bytes": 0,
+    "stderr_observed_bytes": 0,
+    "stdout_retained_bytes": 0,
+    "stderr_retained_bytes": 0,
+    "readers_joined_eof": true,
+    "readers_clean_eof": true,
+    "stdout_reader_error": false,
+    "stderr_reader_error": false,
+    "retirement_unknown": false,
+    "result_raw_sha256_and_size_match": true,
+    "disposition_known": true
+  },
+  "acceptance_notes": [
+    "No extras/missing IDs, order/count/type mismatch, or bool-as-number substitution; launcher alone does not validate exact passed count or all nested inventories",
+    "Legacy result nested_predicates equals17 top-level controls; do not report this as total19 T05 predicates or as all nested predicates",
+    "A mutation-hole ID is an executed separately authored hole demonstration where source says so, not evidence of an actual source mutant",
+    "Runtime result launch_authorized=false is retained historical producer schema; explicit human permission is recorded separately, not inferred from machine flags",
+    "Postcheck all299 full staging inputs,289 source prep,289 baseline,23 admission subjects and1 interpreter unchanged; only the exclusive result/receipt may appear as new packet evidence",
+    "Native diagnostic staging, stopped packets, old public CAs and prior receipts remain untouched; record exact post-run hashes",
+    "Stop on failure/mismatch/timeout/unexpected output/framework or retirement UNKNOWN, preserve partial evidence, no retry/repair/rerun/extra cleanup"
+  ],
+  "proof_limits": [
+    "17 top-level and19 finite helper predicates do not prove actual TLS shutdown, native socket timing, PKI generation, real peer retirement or database behavior",
+    "Existing T05-SHORT-LENGTH-INVALID-JSON direct combined-witness gap remains; no full T05 or76-ID goal closure",
+    "Native diagnostic launch remains a separately gated batch; no T05 merge or activation"
+  ],
+  "human_execution_authorized": false,
+  "target_execution_performed": false,
+  "endpoint": "unbound"
+}

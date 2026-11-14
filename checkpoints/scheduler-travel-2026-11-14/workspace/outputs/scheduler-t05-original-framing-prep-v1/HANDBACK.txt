@@ -1,0 +1,30 @@
+SLACK TIP — post-native-t05-source-fake-prep-jim-v1-2026-11-11
+
+Status: T05_SOURCE_AND_FAKE_PREP_V1_HELD_NOT_EXECUTED
+Framing: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-original-framing-prep-v1/
+Native: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-native-provenance-prep-v1/
+DropFolder: F:/DropFolder/pending/post-native-t05-source-fake-prep-jim-v1-2026-11-11/
+
+Admission kind: scheduler-t05-one-shot-fake-framing-original-admission
+Commands.ps1.txt holds exact VERIFICATION-ADMISSION.json SHA (refreeze after any byte change).
+
+Helper copy table (source → dest → dest_sha256; adapted unless noted):
+| source | dest | dest_sha256 | note |
+| scheduler-t07-fake-v2/.../invoke_t07_fake.py | .../invoke_t05_fake.py | 82EDC456FFEF51F3A82701B0ED1C763F0CF2EDA8BF85F564254C379F6F289AE3 | adapted: T05 names, EXPECTED-ORIGINAL wire gate |
+| scheduler-t07-fake-v2/.../admit_outer.py | .../admit_outer.py | 124371FFAA2F717624BD493F11E2C826F821709D64E409F0BE01B672B0E7DD05 | adapted: T05 subject names |
+| scheduler-t07-fake-v2/Invoke-Verification.ps1 | .../Invoke-Verification.ps1 | C068661240FDF2D5AEF03AE66A1932B276FB3CA8EBB079E5EFD44273F3E4DBB2 | adapted: kind + verify dir + result names |
+| T07 payload/ (234-file snapshot) | packet/payload/ | per VERIFICATION-ADMISSION.json | immutable copy |
+
+New authorship (not T07 byte copies):
+- check_t05_framing_original.py BA8EDB370CD8D43E1842A872DEF6A6DEE9360507C3F9073083F140DB35474F58
+- collect-parser-sources.sh BFE5164A3007B529936E6369C7B1E1E0D37E502F752AF187BF34EC5220364A9D
+- verify_native_provenance.py B975AB5FC7C4BE8C41AC1D8E0F53A7DA6CD989CC4B23661712586F0C379B49C4
+
+Wire IDs frozen: 34. ORIGINAL predictions: 34. Packet pin count in admission: see VERIFICATION-ADMISSION.json.
+
+Scope questions (non-blocking for prep v1 freeze; Jim review):
+1. Per-purpose wire expansion beyond oauth-tagged rows (identity/event twins) deferred to launch inventory card.
+2. _CoveringClient / refresh_access_token caller-path rows listed in INPUT-MANIFEST but not yet separate wire-driven controls in check v1.
+3. check_t05 AST extraction may need T07-parity module wiring before launch (prep documents intent; no run performed).
+
+launch_ready=false; executed_in_preparation=false; endpoint unbound. Nothing executed from verification harness.

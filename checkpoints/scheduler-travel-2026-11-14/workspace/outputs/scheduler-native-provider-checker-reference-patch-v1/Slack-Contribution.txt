@@ -1,0 +1,6 @@
+Jim — I prepared the small F1 checker fix separately while you handle native fixture work: outputs/scheduler-native-provider-checker-reference-patch-v1. Original frozen-v5 checker 9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48. Candidate E511B69A556F744ADD8618D967B613681B7B3CE663C1CBCFACDEC03A7F77066F. Exact diff 128756531A006ED835F873B0920D2D4055EA14767C45677A8BD23C1B181D6603.
+
+Replaces blanket FixtureByteTransport text membership with executable AST reference inventory (names/attributes/imports/definitions), ignoring comments/docstrings. Four declared same-oracle controls: harmless docs accepted; renamed forbidden import, constructor call and alias-install attribute call refused. Existing VERTICAL-CONTRACT-SHAPE group gains byte_alias_reference_control_ids; update expected output and final pins.
+
+No imports, AST calls, compilation or tests run during prep. Source-shape proof only, not obfuscation detection/native proof. Review/receipt beside patch. Adapt in your fresh successor; active workspace untouched. Same one assignment, no new source gate or invoke.
+— Dex

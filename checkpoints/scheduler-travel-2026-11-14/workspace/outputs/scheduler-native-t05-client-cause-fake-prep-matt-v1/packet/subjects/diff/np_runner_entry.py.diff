@@ -1,0 +1,52 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -1950,6 +1950,26 @@
+     raise SuiteStop("t05 unknown expectation")
+ 
+ 
++def _t05_classify_or_chain(expectation: str, outcome: Any, client_exc: BaseException | None) -> str:
++    """Classify one T05 outcome; on a classifier STOP, chain the caught client exception.
++
++    Diagnostic only (Dex 9F9FF48E). The unchanged classifier decides. An admitted label is
++    returned unchanged. On SuiteStop with a caught client exception, the SAME guard object
++    is re-raised with __cause__ set to the SAME client exception object; with no client
++    exception, a bare re-raise keeps today's behavior. Any other exception propagates
++    unchanged. Nothing is formatted or recorded here; the existing bounded class/location
++    stop_payload remains the only export.
++    """
++    from np_suite import SuiteStop
++
++    try:
++        return _t05_classify_client_outcome(expectation, outcome)
++    except SuiteStop as stop:
++        if client_exc is None:
++            raise
++        raise stop from client_exc
++
++
+ def _t05_scripted_wire_framing(scripted_wire: bytes, expected_body: bytes) -> str:
+     """Finite framing class of the exact scripted response wire.
+ 
+@@ -2061,11 +2081,13 @@
+         material=PeerMaterial(),
+     )
+     outcome: Any = None
++    client_exc: BaseException | None = None
+     try:
+         peer.start_background(seconds=PEER_SECONDS_DEFAULT)
+         try:
+             response = http.request("GET", url, purpose="event")
+         except Exception as exc:
++            client_exc = exc
+             outcome = ("exception", type(exc).__name__, type(exc).__module__)
+         else:
+             # Never read response.headers here: production rebuilds the API object
+@@ -2087,7 +2109,7 @@
+         or state["bytes_sent"] != len(expected_wire)
+     ):
+         raise SuiteStop("t05 peer exchange inventory mismatch")
+-    label = _t05_classify_client_outcome(expectation, outcome)
++    label = _t05_classify_or_chain(expectation, outcome, client_exc)
+     measured = {
+         "script_id": script.script_id,
+         "expectation": expectation,

@@ -1,0 +1,14 @@
+{
+  "status": "PREPARED_UNREVIEWED_UNEXECUTED",
+  "source_manifest": "DF7C0DE38D159A2989F18345316ED52655B2ADDCCC5B8F37409818C3E0EB9F23",
+  "source_change": "Role13 adds only EXPECTED inventory admission and generic immutable launcher result envelope; actual property oracles,three mutants and two subject bytes unchanged",
+  "controls": 7,
+  "reported_predicates": 9,
+  "mutants": 3,
+  "packet_pins": 8,
+  "partial_runtime_pins": 6,
+  "checker": "9A8146CB83828326017D2081B820CF8EB250A2F45BE109D4D8F897656E39D179",
+  "admission": "0DEA64BD723ADE5A47B87D86CA5257282A4D6E90006D09ABF99FF527A3C6C01D",
+  "launch_authorized": false,
+  "endpoint": "unbound"
+}

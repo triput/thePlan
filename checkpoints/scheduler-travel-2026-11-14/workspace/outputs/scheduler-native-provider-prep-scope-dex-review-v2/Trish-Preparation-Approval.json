@@ -1,0 +1,14 @@
+{
+  "at_utc": "2026-11-12T20:07:11.3535786Z",
+  "question_call": "call_78fdee89d1d64043857b5abf7b1e2158",
+  "item": 0,
+  "answer": "Approve consolidated workspace preparation (Recommended)",
+  "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "mutable_roles": 16,
+  "workspace_selected_byte_assembly_authorized": true,
+  "fresh_copy_same_contract_corrections_authorized": true,
+  "execution_authorized": false,
+  "port_verification_authorized": false,
+  "endpoint": "unbound",
+  "all_other_holds_retained": true
+}

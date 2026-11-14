@@ -1,0 +1,35 @@
+{
+  "kind": "T05 original-behavior witness/design input pins",
+  "date": "2026-11-11",
+  "documents_only": true,
+  "executed": false,
+  "source_snapshot_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload",
+  "accepted_t07_source_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "host_stdlib_pins_not_native_provenance": {
+    "http/client.py": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+    "ssl.py": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E",
+    "note": "Host Python 3.11 library bytes inspected for design. Native runner parser/SSL/OpenSSL provenance is NOT established by these pins."
+  },
+  "transport_audit": {
+    "Transport-Completion-Audit.md": "F196FD766F617F84B9818CA3628ADB930AA69F7D1986F3133CD432E9FAF5DABA",
+    "Transport-Completion-Requirements-Audit.json": "76966E52C314601930A0C7335E88C270C15F07BE353661194BCC43E52CBDA1C9",
+    "candidate_count": 76,
+    "t05_count": 13
+  },
+  "dex_design_notes": {
+    "T05-Framing-Standard-Reconciliation.md": "341CFC8C7B542245F726692010EECE7A82AC58DC38D96354DD0A4F926E261F08",
+    "T05-Chunk-Termination-and-TLS-EOF-Review.md": "0FD0507C65BD44FA57139CE7A4EA8329E211D9D905D6B4B7B8534B509130CB81",
+    "T05-Framing-Branch-Review.md": "A27E9AB731575592C21FD7D4E5E5AF270F1DEBFA14BE2D578907C08F08C38E41",
+    "Synthetic-Provider-Topology-Review.md": "48A6369EECC6C5E3C793B516521C0786D7630738CA8284BD1534D92A24692C00"
+  },
+  "related_holds": {
+    "t07_host_v3_tip": "FDB40B1DB74E57855C6C5023D19FE1E53CEB9C33D696FA68C3CCBADC8DE843E1",
+    "t07_fake_v2_launch_authorized": false,
+    "endpoint": "unbound",
+    "full_t01_t08_scope_preserved": true
+  }
+}

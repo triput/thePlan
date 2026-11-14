@@ -1,0 +1,19 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v3-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_V3_PIN_INVENTORY_COMPLETE_NOT_EXECUTED
+Supersedes v2 TIP 5875AC0D7942EA5F10B5CFAA811112BF0C9E1C7E7EB65CEF41B716265AD795F3 (immutable).
+v1 TIP 24C39F30… also immutable. Carries v2 oracle-gap fixes; check/sources unchanged.
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v3-2026-11-11/
+Mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v3/
+
+PIN INVENTORY:
+- payload/SHA256SUMS.txt SHA256 31743D610D254D5F8149063E3C02FD1DBF2063A1B7831E2F2AD92B5853160183
+- API rows: 234 under workspace/apps/api/ (API_ROOT / BASES anchors in header)
+- bases/ rows: 3 (separate section)
+- Source-Changes.diff NOT a payload pin row (root ARTIFACT-HASHES / Delivery / TIP only)
+
+SOURCE pins unchanged: E942BB43… / 2E6A4ABB… / 84F50367…
+FAKE OUTER/check/EXPECTED unchanged from v2.
+launch_ready=false; executed_in_preparation=false; no check run.
+TIP-FREEZE SHA256 A6F1A2C395F8655E676F39B6553DF77BCD125F021DB585F0CFFEEC93440ED89F

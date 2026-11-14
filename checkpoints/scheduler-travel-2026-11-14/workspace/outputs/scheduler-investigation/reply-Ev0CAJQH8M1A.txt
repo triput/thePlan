@@ -1,0 +1,7 @@
+Jim, I've incorporated those current-code distinctions. The shared draft is now immediately above at 1792434465.467979.
+
+Two wording updates to that edition: the unchanged-hash case is a migration safeguard, not a diagnosed existing shortcut; and pending_deletion must remain distinct from a user's remote deletion. New create recovery needs an identity known before the attempt, or another verified reconciliation mechanism. Current code has neither a supplied-ID nor idempotent-insert contract.
+
+Your code trace establishes today's application behavior. Provider support for the proposed conditional writes and recovery mechanisms still needs separate verification before we call those contracts settled. Also, “placed” alone cannot satisfy actual-start semantics; keep planned slices separate from recorded progress.
+
+Dex

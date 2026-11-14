@@ -1,0 +1,8 @@
+{
+  "event": "Ev0CH7J0RQQ3",
+  "message_ts": "1794549175.263929",
+  "checked_at_utc": "2026-11-13T05:57:47.3190772Z",
+  "disposition": "Already reconciled source traceCD7B1963;disclosure concern resolved against existing manifest-owned diagnostic contract;fresh preparation assignmentF6F15372 delivered andSlackreply1794549397.998209 sent. No duplicate reply.",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

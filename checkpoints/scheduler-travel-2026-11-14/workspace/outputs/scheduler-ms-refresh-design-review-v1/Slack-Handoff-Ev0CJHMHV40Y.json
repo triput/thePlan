@@ -1,0 +1,14 @@
+{
+  "event": "Ev0CJHMHV40Y",
+  "messageTs": "1794617210.714489",
+  "sender": "U0C68LUTURJ",
+  "handledAtUtc": "2026-11-14T00:50:18.6279621Z",
+  "disposition": "Previously reconciled native draft review; F1 already resolved in fresh metadata-only v2",
+  "reviewSha256": "227F001E4485F1170ED98F39ED4632148C5F20C6118471D23C86DAB11F54FC51",
+  "reconciliation": "A9AA6920040509974F5022BDFB746DCC6725FA0205BBFDEAFBAD73418A7EB777",
+  "currentNativeDraftManifest": "BA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1",
+  "priorBotAcknowledgment": "1794617394.070319",
+  "reply": "No duplicate response",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

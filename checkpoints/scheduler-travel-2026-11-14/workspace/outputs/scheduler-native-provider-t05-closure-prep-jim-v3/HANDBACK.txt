@@ -1,0 +1,48 @@
+T05 CLOSURE PREP HANDBACK — Jim / Justin — 2026-11-12
+packet: post-native-provider-t05-closure-prep-jim-v3-2026-11-12
+workspace: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-closure-prep-jim-v3
+TIP on-disk SHA256: D080C6EBF7EBFB5C671A00A02EFFFCBC64764E39CD182DC1EF835D947B726512
+tip_sha256 (preimage rule): 1AE3F2540584D4F53DC4C670CAFFA2AD0E56C45A6CF87051542888C01B566979
+tip base t05-closure-prep-jim-v2 TIP on-disk: 7CC58CDAF6C6570583D68E94CB842A2810E49AF70F94A9296CBB30237433A638
+tip base t05-closure-prep-jim-v1 TIP on-disk: C902F5296D2B76031254213A1A0812CB944062296BD6B5BA13373A29863483EB
+base native-ready TIP on-disk: A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57
+held candidate-v2 TIP: 34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440
+Dex reconciliation: BA194960F6B96B1D9DD95F4434EC8C94AB1F7C65E1238761DA7B4DF17DCDF0BB
+Dex-Review-v2 (R2 REVISE): B5E561BAB6270F2BFA8DE6091F0F3694DE2AC4C39926C870388B82D7D6277B30
+Native-Deadline-TLS §6: 1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069
+
+FLAGS: executed=false launch_authorized=false launch_ready=false prep_is_not_pass=true endpoint=unbound
+INVOKE: none. Slack tip: false. Held packets untouched. Not waiting on Trish.
+
+CASE BATCH: NP-V-MS-NONEXPIRED only; T05 bodies AUTHORED_NOT_IN_LAUNCH_BATCH; expected_unknown=[]; 76 retained.
+DOCKER COMMAND RECOUNT: static success path 22 (unchanged); hard cap 32.
+
+OBSERVATIONS FIXED (preserved):
+1 complete close-delimited accepted after orderly close_notify (+ production clean_eof; peer attempt alone insufficient)
+2 short-CL valid JSON refused after orderly close_notify (+ production clean_eof; UNKNOWN unwrap STOP)
+3 abrupt TLS truncation classified distinct from malformed body / ASGI disconnect (finite measured receive required)
+
+DEX R2 FIXED (review-v2 remaining boundary):
+R2: observer taxonomy finite abrupt_ssl_eof(SSLEOFError)|abrupt_tcp_reset(ConnectionResetError|ConnectionAbortedError); generic SSL→ssl_error_non_eof; unrelated OSError/TimeoutError→os_error_non_reset; admission requires finite measured class + stimulus; fake extracted observer+admission controls (EOF/reset positive; generic SSL/OSError/timeout/cleanEOF/UNKNOWN negative)
+
+DEX R1/R3/R4/R5 PRESERVED:
+R1: CoveringRootOutcomeUnknown STOP before unwrap on event refusal (expected_unknown=false)
+R3: helper one bounded retirement on start_background partial failure; no double cleanup
+R4: fresh validated plan per a/b/abrupt exchange; no now-fallback; expiry/failure STOP
+R5: report-producer fake deps admitted; 19 extracted actual-helper controls + mutations; structural scope honest
+
+DEX INTERRUPT: peer stimulus≠EOF proof; unwrap success not sole proof; JoinedTLS.close local-only; suppress_ragged_eofs=False preserved; no production changes.
+
+KEY ROLE SHA256:
+np_runner_entry.py=9C0F85733287BDCF4F526AB52F5685E7BC10CB1C4CC349818D8B0AC001B07E70
+np_provider_peer.py=4EEAB1E7F789AB4918B36466A50F29E09F84E6FA48A87C0C942ECD599E097D17
+np_provider_transcript.py=46327DF0A848672FFBCA85772C0EA764D370BDF7B487EFAE36831F451A6915D4
+np_suite.py=617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562
+check_native_provider.py=099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F
+launch_check.py=ABCFC1383F8A99100A2850834A5177CF698253469326B4C501160128D1CEDC64
+verify_admission.py=08975D02774BEA7A794F6420F9FFC4DE0BB5E3F2DB53A41716A894C5F48C6B49
+Invoke-Fake.ps1=9AE55D26604174AB84B71C841E9DB3C777D41E014CF56E6FCC7E3037843F2653
+payload/runner-config.json=5A54F37CAD7A470CF2CCC2CC121818953E24848C19026C7EBC9D02114B10043D
+EXPECTED-FAKE-STRUCTURAL.json=080268BCCCCB63EB47A96A59F5EB4454575D98AA73A1B796FEAF640F1F0B260A
+
+DropFolder: F:/DropFolder/pending/post-native-provider-t05-closure-prep-jim-v3-2026-11-12

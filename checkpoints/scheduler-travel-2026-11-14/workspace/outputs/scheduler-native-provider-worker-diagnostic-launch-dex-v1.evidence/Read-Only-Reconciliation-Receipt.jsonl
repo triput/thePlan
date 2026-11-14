@@ -1,0 +1,5 @@
+{"data": ["container", "inspect", "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c"], "event": "docker_command"}
+{"data": {"bytes": 8764, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "9af69ab9872496664705f401e0935b0cac531f3184933f66709d3b62b1f92713", "workers_joined": true}, "event": "docker_output"}
+{"data": ["container", "inspect", "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818"], "event": "docker_command"}
+{"data": {"bytes": 8529, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "76d791c62b5041ed42f04d9a12e29a448d1ba053dbbab46e8c234f59bdfff9ec", "workers_joined": true}, "event": "docker_output"}
+{"data": {"calls": 2, "ids": {"database": "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c", "runner": "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818"}, "mutations": false, "states": {"database": {"exit_code": 0, "status": "running"}, "runner": {"exit_code": 125, "status": "exited"}}}, "event": "readonly_reconciliation_pass"}

@@ -1,0 +1,191 @@
+--- a/app/services/covering_transport_policy.py
++++ b/app/services/covering_transport_policy.py
+@@ -5,12 +5,148 @@
+ """
+ from dataclasses import dataclass
+ from ipaddress import ip_address
+-from urllib.parse import urlsplit
++from urllib.parse import unquote, urlsplit
+ from app.services.covering_request_budget import CoveringDeadlineExceeded
+ 
+ 
+ class CoveringTransportRefused(Exception):
+     pass
++
++
++
++def _one_unquote(segment: str) -> str:
++    # Inspection-only percent-decode. UTF-8 strict: invalid UTF-8 after a well-formed
++    # percent sequence refuses via UnicodeDecodeError at the caller. This is not
++    # urllib's default errors="replace" behavior. Never rewrites send targets.
++    return unquote(segment, encoding="utf-8", errors="strict")
++
++
++# Max successful decode transitions per opaque segment. Changing this number is a
++# disclosed compatibility parameter, not an identical-outcome tweak.
++_PATH_INSPECT_STEP_BUDGET = 8
++
++
++def _refuse_path_admission() -> None:
++    raise CoveringTransportRefused("path admission refused")
++
++
++def _is_dot_nav(segment: str) -> bool:
++    return segment in (".", "..")
++
++
++def _has_encoded_slash(segment: str) -> bool:
++    return "%2f" in segment.lower()
++
++
++def _original_wire_percent_malformed(segment: str) -> bool:
++    """True when original wire bytes contain a '%' not followed by two hex digits.
++
++    Applies to the original segment only. Intermediate literals such as the '%'
++    produced by decoding plain%25id are intentionally not re-tested here.
++    """
++    i = 0
++    while i < len(segment):
++        if segment[i] != "%":
++            i += 1
++            continue
++        if i + 2 >= len(segment):
++            return True
++        if not (segment[i + 1] in "0123456789abcdefABCDEF" and segment[i + 2] in "0123456789abcdefABCDEF"):
++            return True
++        i += 3
++    return False
++
++
++def _inspect_opaque_id_segment(segment: str) -> None:
++    """Bounded decode-inspect for calendar-ID opaque slots at skeleton positions.
++
++    Original wire: refuse malformed/truncated percent escapes.
++    Every intermediate: refuse empty, whole-segment dot-nav, literal '/', or
++    encoded-slash. Each successful decode transition counts toward
++    _PATH_INSPECT_STEP_BUDGET; exceeding the budget refuses (exhaustion).
++    Invalid UTF-8 after a well-formed percent sequence refuses (strict).
++
++    Preserves cal%2Bendar%40x.com, a%3Db%2Bc, plain%25id, a%2Eb, and valid
++    UTF-8 calendar IDs such as caf%C3%A9. Never rewrites send bytes.
++    """
++    if _original_wire_percent_malformed(segment):
++        _refuse_path_admission()
++    cur = segment
++    steps = 0
++    while True:
++        if cur == "" or _is_dot_nav(cur) or "/" in cur or _has_encoded_slash(cur):
++            _refuse_path_admission()
++        try:
++            nxt = _one_unquote(cur)
++        except UnicodeDecodeError:
++            _refuse_path_admission()
++        if nxt == cur:
++            return
++        steps += 1
++        if steps > _PATH_INSPECT_STEP_BUDGET:
++            _refuse_path_admission()
++        cur = nxt
++
++
++def _admit_structural_segment(segment: str) -> None:
++    """Structural path tokens under an already-matched covering route.
++
++    Refuse empty, whole-segment dot-nav, any '%', literal '/', or encoded-slash.
++    Internal non-navigation dots in literals such as v1.0 remain admitted.
++    """
++    if segment == "" or _is_dot_nav(segment) or "/" in segment or "%" in segment or _has_encoded_slash(segment):
++        _refuse_path_admission()
++
++
++def _opaque_calendar_id_indices(segments: list) -> set:
++    """Opaque calendar-ID indices from reviewed covering-refresh skeletons only.
++
++    Positions are fixed by structural prefix shape. Opaque values are never
++    scanned as grammar markers (a calendar ID equal to the literal 'calendars'
++    does not open a further opaque slot). Exact route/purpose matching remains
++    a separate prerequisite; this is not a live endpoint allowlist.
++    """
++    opaque = set()
++    # Google full events collection: /calendar/v3/calendars/{id}/events...
++    if (
++        len(segments) >= 5
++        and segments[0] == ""
++        and segments[1] == "calendar"
++        and segments[2] == "v3"
++        and segments[3] == "calendars"
++    ):
++        opaque.add(4)
++    # Microsoft ordinary calendarView (+ optional /delta): /v1.0/me/calendars/{id}/...
++    if (
++        len(segments) >= 5
++        and segments[0] == ""
++        and segments[1] == "v1.0"
++        and segments[2] == "me"
++        and segments[3] == "calendars"
++    ):
++        opaque.add(4)
++    return opaque
++
++
++def admit_covering_path(path: str) -> None:
++    """Refuse structural traversal / ambiguous encoded routing before send.
++
++    Splits on raw '/' only. Query/fragment must not appear in path (caller
++    passes urlsplit().path). Query tokens stay opaque data at the URL layer.
++    Does not normalize-and-forward. Target authorization remains separate.
++    """
++    raw = path if path else "/"
++    if "?" in raw or "#" in raw:
++        _refuse_path_admission()
++    segments = raw.split("/")
++    opaque = _opaque_calendar_id_indices(segments)
++    for i, seg in enumerate(segments):
++        if i == 0 and seg == "":
++            continue
++        if i in opaque:
++            _inspect_opaque_id_segment(seg)
++        else:
++            _admit_structural_segment(seg)
+ 
+ 
+ class CoveringReauthorizationRequired(Exception):
+--- a/app/services/covering_http_transport.py
++++ b/app/services/covering_http_transport.py
+@@ -6,7 +6,7 @@
+ import httpx
+ 
+ from app.services.covering_joined_https import JoinedTLS
+-from app.services.covering_transport_policy import CoveringTransportRefused, CoveringReauthorizationRequired
++from app.services.covering_transport_policy import CoveringTransportRefused, CoveringReauthorizationRequired, admit_covering_path
+ from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
+ 
+ 
+@@ -57,6 +57,7 @@
+         if matched is None:
+             raise CoveringTransportRefused("provider route refused")
+         peer,parsed=matched
++        admit_covering_path(parsed.path or "/")
+         if purpose!="oauth":
+             self.counter.page(purpose)
+         else:
+--- a/app/services/covering_provider_context.py
++++ b/app/services/covering_provider_context.py
+@@ -2,7 +2,8 @@
+ from contextlib import contextmanager
+ from contextvars import ContextVar
+ import httpx
+-from app.services.covering_transport_policy import CoveringTransportRefused
++from urllib.parse import urlsplit
++from app.services.covering_transport_policy import CoveringTransportRefused, admit_covering_path
+ 
+ _current=ContextVar("covering_provider_transport",default=None)
+ 
+@@ -36,6 +37,7 @@
+                 purposes.add(kind)
+         if len(purposes)!=1:
+             raise CoveringTransportRefused("ambiguous/unapproved provider route")
++        admit_covering_path(urlsplit(url).path or "/")
+         return self.transport.request(method,url,purpose=purposes.pop(),**kwargs)
+     def get(self,url,**kwargs):
+         return self._request("GET",url,**kwargs)

@@ -1,0 +1,33 @@
+{
+  "remainingAuthority": 0,
+  "cleanup": {
+    "complete": true,
+    "absenceChecks": 2,
+    "databaseExit": 0,
+    "commands": 22,
+    "containers": [
+      {
+        "id": "1bc707c578fcfec90af13c18bbf04c300ae7e96bcd1c1b43f19a234537341dd1",
+        "role": "database"
+      },
+      {
+        "id": "0b53280b35337fc554f65926732392531d803eb1f8eb547e78c17cd053cf07b1",
+        "role": "runner"
+      }
+    ]
+  },
+  "reuseRefused": true,
+  "ownerSocketRetired": true,
+  "ownerSocketUnchangedAfterForeign": true,
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+  "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+  "case": "NP-T08-OWNERSHIP",
+  "inputsUnchanged": 310,
+  "ownerExchangeBytes": 91,
+  "foreignJoinAttempts": 1,
+  "realForeignThreadUseAndCloseRefused": true,
+  "peerJoinedNoWorkerError": true,
+  "independentResultReview": "PENDING",
+  "scope": "Direct productionJoinedTLS realthread/socket ownership,exactfinitewire,retirement;no HTTPframing/OAuth/ingress/assessmentclaim",
+  "endpoint": "unbound"
+}

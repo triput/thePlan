@@ -1,0 +1,57 @@
+{
+  "kind": "native-google-invalid-fake-structural-expected",
+  "packet": "scheduler-native-google-invalid-fake-prep-matt-v2",
+  "candidate_root": "scheduler-native-google-invalid-prep-matt-v1",
+  "assignment": "Dex 5FA59395 (NP-V-GOOGLE-INVALID / T06-INVALID-GRANT-GOOGLE only; Google-first)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "TRANSCRIPT-INVALID-SCRIPT",
+    "PRODUCTION-CONTRACT",
+    "CASE-WIRING",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["json_init_pin", "json_decoder_pin", "json_scanner_pin", "unpinned_runtime_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "suite", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "existing_bodies_and_helpers_byte_identical", "transcript_unchanged_and_suite_note_only"],
+    "TRANSCRIPT-INVALID-SCRIPT": ["script_shape_exact", "fixed_length_wire_not_close_delimited"],
+    "PRODUCTION-CONTRACT": ["transport_exact_invalid_grant_only", "adapter_rejection_requires_rollback", "dispatch_skips_import_then_assesses", "preflight_code_literal_matches", "no_op_and_preflight_row_mapping", "typed_exception_module_and_name"],
+    "CASE-WIRING": ["case_mapping_exact", "oracle_name_equals_declaration", "production_ingress_default_tls_no_shortcut", "single_retirement_paths", "constants_literal", "seed_signature_and_primary_setup_only", "free_names_resolve", "observers_inside_try_restored_and_guarded", "public_and_native_guards_exact", "state_revision_and_unrelated_guards_exact", "peer_inventory_guard_exact"],
+    "RECEIPT-RETENTION": ["every_emitted_key_survives_oracle_drop_disclosed", "typed_evidence_survives_oracle_key_dropped"],
+    "CONFIG-AND-IMMUTABLES": ["runner_config", "launch_config", "docker_ops_root_rename_only", "payload_delta_exact", "nested_delta_exact", "api_transcript_peer_seed_sanitizer_immutable"],
+    "ACTUAL-SOURCE-MUTANTS": ["invalid_grant_body_changed", "covering_token_key_unallowlisted", "success_outcome_admitted", "revision_bump_tolerated", "parent_check_dropped", "client_outcome_loosened", "token_restore_dropped", "second_retirement", "unrelated_owner_check_dropped"]
+  },
+  "expected_nested_predicates": 47,
+  "nested_count_breakdown": "SUBJECT 1 + RUNTIME 4 + DIFF 3 + PRESERVED 3 + TRANSCRIPT 2 + CONTRACT 6 + WIRING 11 + RETENTION 2 + CONFIG 6 + MUTANTS 9 = 47",
+  "check_kinds": {
+    "behavioral_extracted": "TRANSCRIPT-INVALID-SCRIPT (actual unchanged google_token_invalid_grant_script inside a privately registered ModuleType, serialized by the actual peer serializer); RECEIPT-RETENTION b (actual redact_mapping/_forbidden_key)",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; PRODUCTION-CONTRACT (anchors in unchanged production source); CASE-WIRING (case body not executed); RECEIPT-RETENTION a; CONFIG-AND-IMMUTABLES",
+    "behavioral_mutants": ["invalid_grant_body_changed", "covering_token_key_unallowlisted"],
+    "structural_mutants": ["success_outcome_admitted", "revision_bump_tolerated", "parent_check_dropped", "client_outcome_loosened", "token_restore_dropped", "second_retirement", "unrelated_owner_check_dropped"]
+  },
+  "mutant_oracles": {
+    "invalid_grant_body_changed": "transcript:invalid grant script",
+    "covering_token_key_unallowlisted": "retention:no forbidden key",
+    "success_outcome_admitted": "wiring:public and native guards",
+    "revision_bump_tolerated": "wiring:state guards",
+    "parent_check_dropped": "wiring:public and native guards",
+    "client_outcome_loosened": "wiring:public and native guards",
+    "token_restore_dropped": "wiring:observers restored",
+    "second_retirement": "wiring:single retirement",
+    "unrelated_owner_check_dropped": "wiring:state guards"
+  },
+  "mutation_scope": "runner mutants apply only inside _run_np_v_google_invalid and the transcript mutant only inside google_token_invalid_grant_script; each anchor must be unique within that unit",
+  "module_registration": "np_provider_transcript is registered as an owned ModuleType BEFORE its decorated dataclasses execute; Sandbox refuses any pre-existing name and removes only its own entries on every exit path",
+  "limits": {"check_seconds": 120, "timeout_retirement_total_seconds": 135, "result_byte_cap": 262144, "capture_byte_cap_per_stream": 65536, "temporary_files": "none (result and launch receipt only)"},
+  "not_proved": "_run_np_v_google_invalid execution; production typed reauthorization, TOKEN rollback, skipped IMPORT/PARENT, the not-ready readiness values, unchanged persisted state, CoveringHTTP framing of the 400, native TLS and timing; any T06 requirement",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

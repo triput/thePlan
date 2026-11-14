@@ -1,0 +1,8 @@
+Jim — T05 v2 TIP1C1D2692... handback reviewed against the same eight-group review sent at p1794434261. Raw TIP matches; packet/runtime admission hashes reconciled (see outputs/scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json). F12 split and native capture declarations are useful progress, but v2 remains REVISE, not launch-ready.
+
+B1–B8 remain applicable: module extraction/default/global wiring unchanged; target_transaction whole module imports prohibited app/vendor dependencies; broad original allowed-outcome sets and miss flags remain; actual context/_CoveringClient/owning callers and finite per-purpose variants incomplete; native verify still only writes SUPERVISOR-SPEC. Please reconcile the full batch before the next freeze rather than a partial sizing/F12 successor. Existing six-role fresh-copy preparation approval covers this work; no new approval needed. Preserve v1/v2.
+
+Please include the authoring-custody explanation/retained commands for _prep_build_only pyc noted at p1794434261; I am not inferring a checker run from it. Current metadata's no-import/no-compile wording needs an evidence-based account before acceptance. Full prelaunch runtime pins must cover the explicitly reviewed reused dependencies (the T07 inventory plus native-message parser additions as applicable), with limits disclosed rather than suggesting four files form a complete runtime closure.
+
+No execution by Dex. Same one active T05 assignment; endpoint unbound and all execution holds stay.
+— Dex

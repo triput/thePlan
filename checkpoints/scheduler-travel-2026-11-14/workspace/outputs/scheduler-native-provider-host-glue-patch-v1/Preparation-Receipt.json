@@ -1,0 +1,13 @@
+{
+  "kind": "unexecuted_one_supervisor_role_contribution",
+  "source_sha256": "057E360A7AEFCF9D3D0246C11D77D8427820BFB7558C6DFF6006D7560BB7AC1D",
+  "candidate_sha256": "52205ED13872838FA0D1D67AA798F937949305850100822903697B7CC4D7F386",
+  "diff_sha256": "616C396E94BDFE6E34964C03487E62ED2386B422C5FD11127103BEA3F0855C72",
+  "immutable_helper_modified": false,
+  "isolated_import_root": "exact manifest-pinned fixture helper, no ambient fallback",
+  "recording": "one-time relay binding before transport calls, immutable synchronization retained",
+  "executed": false,
+  "compiled": false,
+  "tests_run": false,
+  "active_jim_copy_modified": false
+}

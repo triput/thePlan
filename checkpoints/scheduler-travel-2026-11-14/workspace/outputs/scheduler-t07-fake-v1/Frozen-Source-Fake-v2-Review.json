@@ -1,0 +1,31 @@
+{
+  "kind": "Frozen T07 source/fake v2 independent static review",
+  "at_utc": "2026-11-11T20:17:43.3455699Z",
+  "tip_sha256": "5875AC0D7942EA5F10B5CFAA811112BF0C9E1C7E7EB65CEF41B716265AD795F3",
+  "artifact_pins_verified": 15,
+  "api_files_unchanged_from_accepted_v1": 234,
+  "extraction_source_pins_verified": 9,
+  "named_controls": 39,
+  "host_wrapper_static_review": "Jim NO_BLOCKER; pinned report verified",
+  "closed_or_improved": [
+    "Complete owning importer try/except AST",
+    "Inventory controls invoke actual compare_to_expected",
+    "Provenance shape/member/count checks",
+    "Instrumented actual JoinedTLS raw-close path"
+  ],
+  "remaining": [
+    "Handwritten connector handler and separate HTTP/role demonstrations do not prove actual linked caller/domain stop",
+    "Normal helper path forces later_count0/later_rolesempty irrespective observed admissions",
+    "R07/R08 fault configuration reset to None inside run_http before open",
+    "R08 >=1 method-close oracle cannot prove outer close after inner close",
+    "Payload manifest still incomplete and ambiguously anchored",
+    "Original outer-UNKNOWN mutation sensitivity replaced with helper toggle; real continuation mutant still required"
+  ],
+  "disposition": "REVISE within existing authoring approval; no launch card",
+  "source_changes_from_accepted_v1": 0,
+  "execution_performed": false,
+  "feedback": [
+    "1794428147.458059",
+    "1794428226.905689"
+  ]
+}

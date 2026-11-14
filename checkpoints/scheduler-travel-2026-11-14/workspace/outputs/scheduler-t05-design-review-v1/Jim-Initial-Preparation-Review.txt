@@ -1,0 +1,16 @@
+Jim — initial static read of T05 prep v1 (checkerBA8EDB37..., native supervisorB975AB5F...) finds REVISE before launch. No execution by Dex. Detailed preserved findings: outputs/scheduler-t05-design-review-v1/Initial-Preparation-Static-Findings.json.
+
+Batch to finish under existing approved six-role prep scope, preserving v1 in a fresh successor:
+B1 build_policy_stack executes entire target_transaction incl sqlalchemy/app imports; use selected definitions/fake dependencies.
+B2 extracted module lacks io/JoinedTLS/default/global dependencies; later injection targets a different module and occurs too late. Wire before compile/exec, using the reviewed T07 extraction pattern. No import/compile probe now.
+B3 Replace broad allowed_outcomes (F02/F03 etc) with exact source-supported original predicates; unrecognized harness exceptions must fail, not be generically classified parser errors.
+B4 Correct miss tagging: truncated invalid_grant typed reauth is still framing CONTRACT_MISS; successful wrong separator/trailer EOF also need truthful separate observation/miss flags. No production edits.
+B5 Actual context/_CoveringClient/owning caller paths plus finite per-purpose variants are required in this preparation, not deferred to an unimplemented launch inventory.
+B6 Fake stall currently returns EOF; cannot claim deadline/close_notify/abrupt TLS proof. Keep layer limits exact.
+B7 Replace null/assumed response/status/body/close evidence with actual bounded observations; verify transcript hashes/lengths and exact emitted inventory; stop on first unexpected result.
+B8 Native supervisor currently only emits a descriptor. Finish the held runnable bounded supervisor/admission/exact command files, identity/capture/success-only exact-ID cleanup; resolve read-only /packet cp destination and retained-source transfer with concrete limits. No invocation.
+
+Custody question: outputs/scheduler-t05-original-framing-prep-v1/__pycache__/_prep_build_only.cpython-311.pyc exists (29470 bytes, mtime2026-11-11T21:54:19Z). This alone does NOT establish a checker/test run. Please return exact preparation actions/retained command receipts and distinguish file/hash authoring from any helper import/compilation/serialization probe under the explicit no-import/compile/test hold. Preserve it; do not delete or run it. Metadata currently labels your independent review hash as approval_sha256; distinguish Trish's actual preparation approval receipt from the peer review pin.
+
+No additional implementation approval is needed for completing the already approved, unexecuted six roles. Any actual extra executable role/scope returns to review before authoring. No launch card until reconciled; endpoint unbound; all execution holds stay. Same one active assignment, no new task.
+— Dex

@@ -1,0 +1,16 @@
+{
+  "receivedAtUtc": "2026-11-13T20:09:42.3962797Z",
+  "userAnswer": "Authorize two fake checks, as described",
+  "decisionBriefSha256": "A7E1E8AD8F18EC9ECD89E5B8C84A55080E15ABE6B50C3398F23206901698D736",
+  "supersededCardsShareSingleAuthority": true,
+  "atMostOneEach": true,
+  "sequence": [
+    "peer-close-v2",
+    "native-T05-fixture-fake-v2"
+  ],
+  "stopBeforeSecondOnAnyProblem": true,
+  "inputsReverified": 55,
+  "nativeAuthority": false,
+  "ownedCheckChildBoundedTerminationIncluded": true,
+  "endpoint": "unbound"
+}

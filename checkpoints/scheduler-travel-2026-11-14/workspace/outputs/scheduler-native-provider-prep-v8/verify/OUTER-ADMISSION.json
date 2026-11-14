@@ -1,0 +1,18 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "launch_check_sha256": "F096D9C24664FDA31514769303160DACFE770E214100857C35542B99DE988FEB",
+    "check_native_provider_sha256": "48E60C427BAF14170F869056BB1983E785AA397BC8621A3382EE14C5C7F51664",
+    "expected_fake_structural_sha256": "9CEBB6400B610DE28064C87247D68BA3A537ADAA8333AB46A13B42956905D5AB"
+  },
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_note": "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No verification_admission_sha256 back-reference (Dex F2).",
+  "note": "Concrete reviewed pins authored for later launch-card flip; preparation does not authorize invocation (launch_authorized=false). Dex R1/R2 D3B6FAD3 + launcher-retirement 30FEEDFF folded."
+}

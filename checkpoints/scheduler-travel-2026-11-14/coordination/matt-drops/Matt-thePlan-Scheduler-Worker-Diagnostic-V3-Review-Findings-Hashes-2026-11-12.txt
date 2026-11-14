@@ -1,0 +1,3 @@
+# Matt thePlan worker-diagnostic v3 review findings - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-12
+DEA6E36282BFABEADABB828FE80C75C07597CC4F5BC53C668BD790A541C05E5C  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Worker-Diagnostic-V3-Review-Findings-2026-11-12.md
+ED3C619A3249CFA3A4734798FE60DE594AC28922547FBEC8EB252942147FDDA0  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-worker-diagnostic-fake-dex-v3/Input-Manifest.sha256

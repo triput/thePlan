@@ -1,0 +1,214 @@
+{
+  "kind": "T01 path-helper exact-source evidence reuse",
+  "at_utc": "2026-11-12T22:12:27.9418314Z",
+  "new_execution": false,
+  "byte_rule": "Exact UTF8 slice from def _one_unquote through before class CoveringReauthorizationRequired; no newline normalization",
+  "source_lineage": [
+    {
+      "path": "outputs\\scheduler-d2-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_transport_policy.py",
+      "whole_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "helper_slice_bytes": 4856,
+      "helper_slice_sha256": "608CE72B660805FCCC212D6E9FA2AFEA68E5397B1C32919A1C44FC19EFAB1682"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v4\\payload\\api\\app\\services\\covering_transport_policy.py",
+      "whole_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "helper_slice_bytes": 4856,
+      "helper_slice_sha256": "608CE72B660805FCCC212D6E9FA2AFEA68E5397B1C32919A1C44FC19EFAB1682"
+    }
+  ],
+  "d2_result_sha256": "2FB80F2C50BBC1302EA71728EC899EAD665660D69B6CE970FF13D10791BF3CCD",
+  "requirements_mapped": 8,
+  "entries": [
+    {
+      "id": "T01-PATH-POSITIVE-EXACT",
+      "existing_controls": [
+        {
+          "id": "CTRL-POS-G-EXACT-PREFIX",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        },
+        {
+          "id": "CTRL-POS-MS-DEFAULT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-POSITIVE-CHILD",
+      "existing_controls": [
+        {
+          "id": "CTRL-POS-G-CHILD",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        },
+        {
+          "id": "CTRL-POS-MS-VIEW",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "builder _calendar_view_url(a=b+c) → context/client → CoveringHTTP; wire carries a%3Db%2Bc; native/provider proof boundary unchanged"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-PREFIX-BOUNDARY",
+      "existing_controls": [
+        {
+          "id": "CTRL-NEG-PREFIX-BOUNDARY",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "route refuse before helper"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-DOT-SEGMENT",
+      "existing_controls": [
+        {
+          "id": "CTRL-NEG-RAW-DOT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-ENCODED-DOT",
+      "existing_controls": [
+        {
+          "id": "CTRL-NEG-NEST-DOT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-ENCODED-SEP",
+      "existing_controls": [
+        {
+          "id": "CTRL-NEG-ENC-SLASH-PCT2F-UPPER",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+          }
+        },
+        {
+          "id": "CTRL-NEG-ENC-SLASH-PCT2F-LOWER",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+          }
+        },
+        {
+          "id": "CTRL-NEG-NEST-252F",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+          }
+        },
+        {
+          "id": "CTRL-NEG-NEST-25252F",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-GOOGLE",
+      "existing_controls": [
+        {
+          "id": "CTRL-POS-G-PLUS-AT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        },
+        {
+          "id": "CTRL-POS-G-PERCENT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        },
+        {
+          "id": "CTRL-POS-G-INTERNAL-DOT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        },
+        {
+          "id": "CTRL-POS-G-UNICODE",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-MICROSOFT",
+      "existing_controls": [
+        {
+          "id": "CTRL-POS-MS-VIEW",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "builder _calendar_view_url(a=b+c) → context/client → CoveringHTTP; wire carries a%3Db%2Bc; native/provider proof boundary unchanged"
+          }
+        },
+        {
+          "id": "CTRL-POS-MS-DELTA-COMPAT",
+          "recorded_observation": {
+            "result": "PASS",
+            "detail": "builder _calendar_view_delta_url(a=b+c) → context/client → CoveringHTTP; wire carries a%3Db%2Bc; not ordinary-refresh invoke claim; native/provider proof boundary unchanged"
+          }
+        }
+      ],
+      "reuse_scope": "Exact named D2 spellings/selected helper semantics; raw helper slice matches final selected v4 source. HTTP route predicates, context wrappers and owning calls have separately scoped lineage/results.",
+      "full_requirement_closed": false,
+      "native_repetition": "No new real socket exchange required solely to repeat a pure path spelling; actual final production binding and transport properties remain open."
+    }
+  ],
+  "limitations": [
+    "No full-family closure",
+    "No native urllib/parser behavior claim",
+    "Do not generalize event descendant acceptance to exact-only identity/OAuth routes",
+    "Original D2 route-model conflicts are not treated as corrected final routing proof",
+    "Current routing19 and port9 evidence retain their separate exact scopes"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "at_utc": "2026-11-12T23:43:59.7568656Z",
+  "kind": "Offline native launch runtime lineage reference; no execution",
+  "passed_native_config_sha256": "4CC24980C83E71C0C43AB057B5802B54EF614AF9688C4783E381AAA298AA0A7B",
+  "passed_native_reconciliation_sha256": "4A4F2B8DD1B8A2CC131698BB8A15EB5D8859EEBBE00ACF439BDD522B2E853202",
+  "runner_collection_reconciliation_sha256": "8E2E97B675B8BC5AD76EF1FF24F50CEF250A802196B8A58BFFC197DEF27C4618",
+  "fixture_capability_reconciliation_sha256": "D0DE4F52C32E1A9FB0C120CEE5FE0671F81874725FE1B7789082E5D238C112FA",
+  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "database_image": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+  "runner_runtime_pins": {
+    "python": [
+      3,
+      12,
+      16
+    ],
+    "psycopg": "3.2.13",
+    "sqlalchemy": "2.0.51",
+    "pq_implementation": "binary",
+    "pq_runtime": 170006,
+    "pq_build": 170006
+  },
+  "database_runtime_pins": {
+    "python": [
+      3,
+      12,
+      16
+    ],
+    "postgres": "postgres (PostgreSQL) 16.13",
+    "openssl": "OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)"
+  },
+  "collection_runtime_matches": true,
+  "collection_status": "PASS",
+  "fixture_capability_status": "PASS",
+  "python_versions_match": true,
+  "runner_site_directories": [
+    "/usr/local/lib/python3.12/site-packages"
+  ],
+  "database_python": "/usr/bin/python3",
+  "runner_tmpfs": {
+    "/tmp": "rw,nosuid,nodev,noexec,size=128m,mode=1777"
+  },
+  "evidence_boundaries": [
+    "Preserved prior-run records and exact-ID image selection only; no current image inspect/presence/capability probe",
+    "Runner collection proves imports/16 IDs at its snapshot, not test-body PASS",
+    "I01/I02 v4 has separate native PASS and exact-ID cleanup evidence; provider bytes used FixtureByteTransport",
+    "No claim that new provider peer can bind port443 or that new PKI caller has run",
+    "Host fake uses Python3.11; native runtime Python3.12.16 is distinct"
+  ],
+  "endpoint": "unbound",
+  "collection_runtime_field_matches": {
+    "psycopg": true,
+    "sqlalchemy": true,
+    "pq_implementation": true,
+    "pq_runtime": true,
+    "pq_build": true,
+    "python": true
+  },
+  "comparison_method": "Typed fields and ordered Python version tuple, independent of JSON object property order"
+}

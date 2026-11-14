@@ -1,0 +1,29 @@
+{
+  "review": "78C7AEA6BB4617860924B3124D34D76F2D3E4968FD036B8DF696913BC070FFBB",
+  "fakeSourceManifest": "EBB3BED606B5F9824FA6CFEC905E7A0FE0F098F7D932637D52499529DEB8BCD0",
+  "nativeManifest": "8BFB54075B6A8BAEF10FC591F7CD6B4B2D0381B11E9056C375CB8F2AF09B5853",
+  "remainingAuthority": 0,
+  "executionPerformed": false,
+  "assignment": "997B0121BFCB3CD20336C7A78A20F6E44AF7A32FE729E4CB8ABA37798C481D0F",
+  "status": "QUALIFIED_SOURCE_REVIEW_ACCEPTED_NO_BLOCKERS",
+  "endpoint": "unbound",
+  "nativeInputs": 310,
+  "fakeSourceInputs": 45,
+  "staging": {
+    "peerReview": "PENDING",
+    "subjectChanges": 0,
+    "command": "BEF8510660BDCF4D13811C6A2C59D75ABD6B9FEC0F26891068D094FAC6003675",
+    "packetPins": 32,
+    "manifest": "0DB0A2FAD54E9630F9266141943A36A9DD8D1D59E5AC10C01CD71D381456DED9",
+    "inputs": 49,
+    "executableChanges": 0,
+    "runtimePins": 10,
+    "admission": "3AE7EDC9FFDD84F7FE4FA13270C790250D6000404001D38C60DFE1BAB1FC8B1E"
+  },
+  "qualifications": [
+    "Only token terminal is identity-guarded; other restoration remains as reviewed",
+    "Install-before-try window retained",
+    "New restoration predicate and mutant are structural",
+    "Prior 13/64/9 PASS does not cover this revision"
+  ]
+}

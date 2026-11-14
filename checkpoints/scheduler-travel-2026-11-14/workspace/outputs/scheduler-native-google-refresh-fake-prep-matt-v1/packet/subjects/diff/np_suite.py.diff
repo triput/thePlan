@@ -1,0 +1,16 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -447,6 +447,13 @@
+ # Incomplete cases remain HOLD in runner — never fabricated PASS.
+ CASE_IMPLEMENTATION_NOTES: dict[str, str] = {
+     "NP-V-MS-NONEXPIRED": "IMPLEMENTED_SOURCE — first vertical; launch_ready gate still required",
++    "NP-V-GOOGLE-REFRESH": (
++        "IMPLEMENTED_SOURCE — separate single-case batch (Dex CEBD83C3, Google-first); expired Google "
++        "seed refreshed by the owning production google_calendar path (one OAuth POST, TOKEN COMMIT then "
++        "ROLLBACK), two non-empty one-page event imports with semantic credential, imported busy-event, "
++        "coverage and native final-assessment proof, unrelated owner unchanged; no calendarList (no alias "
++        "planted); launch_ready gate still required; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 

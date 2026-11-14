@@ -1,0 +1,14 @@
+# Matt thePlan T05 fake v3 preparation handback - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-12
+542BC53025F313046C9DA74C7A823C7590CBAF2AF2FB5F7C9B8E4ECABBF829E7  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-T05-Fake-V3-Handoff-2026-11-12.md
+DD108B3D1E957DBF0E66657F1A5A2FC034B3AE78CAC4A73FC8C38AE621B3EEC5  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/Input-Manifest.sha256
+015C732F97502F55BB2C9134C77A5EDDFF78DCA7E23A6D36DF87527A636FAC63  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/T05-V3-PREP-README.md
+87D0685F86494A602AD33B13E408776B6173943094E494A32C3DEA8B7826EB68  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/T05-V3-Freeze.json
+1552AB24096D56A993AF7ED4C906849F791021BEADB88903BB5C4EF73ED58BDD  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/Future-Command-HELD.ps1.txt
+BF5E28A98C2533C967FF1DD51EDE63D9F50885627B656937D9CE7DFAE24D7F64  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/verify/check_native_provider.py
+3F9DE7E1393D38326313559E08C5B5C8C2E90506990F5DA6720CAAA259B65289  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/verify/OUTER-ADMISSION.json
+4BEB687B61A684C06FE254C52095EFB984C96FAAD1571FADCD31E13B07364F5D  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/verify/VERIFICATION-ADMISSION.json
+D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/verify/launch_check.py
+080268BCCCCB63EB47A96A59F5EB4454575D98AA73A1B796FEAF640F1F0B260A  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/verify/EXPECTED-FAKE-STRUCTURAL.json
+08975D02774BEA7A794F6420F9FFC4DE0BB5E3F2DB53A41716A894C5F48C6B49  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/verify/verify_admission.py
+9AE55D26604174AB84B71C841E9DB3C777D41E014CF56E6FCC7E3037843F2653  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/Invoke-Fake.ps1
+617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-t05-fake-v3/packet/payload/fixture/np_suite.py

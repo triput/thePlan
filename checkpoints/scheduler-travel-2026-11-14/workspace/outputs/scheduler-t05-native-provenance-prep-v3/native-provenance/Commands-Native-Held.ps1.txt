@@ -1,0 +1,2 @@
+# HELD. Requires separate launch approval.
+# python verify_native_provenance.py --held-admission-sha256 <HELD-NATIVE-ADMISSION sha>

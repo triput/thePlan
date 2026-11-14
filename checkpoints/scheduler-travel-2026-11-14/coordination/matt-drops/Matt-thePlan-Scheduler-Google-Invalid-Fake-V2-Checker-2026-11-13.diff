@@ -1,0 +1,13 @@
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -504,7 +504,9 @@
+         f'PREFLIGHT_ACCOUNT_DISCONNECTED = "{consts["GOOGLE_INVALID_PREFLIGHT_CODE"]}"') == 1,
+         "contract:preflight literal")
+     cases["preflight_code_literal_matches"] = "PASS"
+-    refresh = subject_text("app/covering_refresh.py")
++    # Scoped comparison view (v2, Dex C966DF77): covering_refresh.py is raw CRLF; only this literal
++    # contract view normalizes CRLF pairs to LF. Raw pins, bare-CR refusal and raw AST text are unchanged.
++    refresh = subject_text("app/covering_refresh.py").replace("\r\n", "\n")
+     require(refresh.count('    if import_attempted == 0:\n        return "no_op"\n') == 1
+             and refresh.count('        phase: str = "preflight"\n        status: str = "preflight_rejected"\n') == 1
+             and _ordered(unit_text(refresh, "_static_preflight_result"),

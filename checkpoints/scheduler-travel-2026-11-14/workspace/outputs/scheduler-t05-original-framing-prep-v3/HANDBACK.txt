@@ -1,0 +1,18 @@
+SLACK TIP — post-native-t05-source-fake-prep-jim-v3-2026-11-11
+
+Supersedes v2 TIP 1C1D269244D53302DE0542DBD6DCE949420E6BA789D9E4BCCDE15F74374322B5 and v1 TIP 27EE9AB3666CC089A7541B2520FBFF02B0906ADCD26B0E207F2EC302FF13D82B (both immutable).
+
+Authoring custody (v1, preserved — do not delete):
+- Path: outputs/scheduler-t05-original-framing-prep-v1/__pycache__/_prep_build_only.cpython-311.pyc
+- SHA256: 72615E8E4EABB57A9032EF695B2752139E1BCFE42759560A4C71AB5E35AE12CC (29470 bytes, mtime 2026-11-11T21:54:19Z)
+- Origin: one-shot _prep_build_only.py wire/manifest authoring during v1 prep only
+- NOT verification execution: no check/invoke/admit/wrapper/Docker ran
+- Distinction: helper compiled to pyc; checker harness was not executed
+
+approval_sha256 (Trish): 5C0B0F0B4EE98981C5CF58534FA8EA159C24C6315FEA9C834FF36A93D3878FA7
+jim_peer_review_sha256: 722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F
+
+B1-B8 addressed in v3 check + native held supervisor.
+admission_sha256: E0CED0B952FA3130AC81AE1B14073081D2BA5551E3D2083F3C18D9BEDBA5624C
+tip_sha256: A3B7379C0A154985C1933E52011883BFA265C44B62B4F534054E108A4A7A778E
+launch_ready=false; nothing executed in v3 prep.

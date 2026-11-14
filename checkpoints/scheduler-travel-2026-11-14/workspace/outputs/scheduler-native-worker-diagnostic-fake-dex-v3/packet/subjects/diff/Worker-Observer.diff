@@ -1,0 +1,78 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -824,6 +824,8 @@
+     oauth_requests = 0
+     held_transport: list[Any] = []
+     captured_contexts: list[Any] = []
++    worker_exceptions: list[BaseException] = []
++    restore_worker_observer: Callable[[], None] | None = None
+     real_request = None
+     transport = None
+     retirement_done = False
+@@ -900,6 +902,8 @@
+ 
+         CoveringHTTP.__init__ = capturing_init  # type: ignore[method-assign]
+         try:
++            # Observe the dispatch worker boundary for this POST only (location-only diagnostic).
++            restore_worker_observer = _install_worker_exception_observer(worker_exceptions)
+             # Real monotonic clock — not ControllableClock(0.0) frozen budget evidence.
+             app = build_i01_asgi_app(
+                 session_secret=settings.session_secret,
+@@ -922,6 +926,10 @@
+                 cookies={"session": seed.cookie},
+             )
+         finally:
++            # Unconditional exact restoration of the worker observer before any assertion.
++            if restore_worker_observer is not None:
++                restore_worker_observer()
++                restore_worker_observer = None
+             CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
+             # Restore observation hooks even on failure.
+             try:
+@@ -968,6 +976,9 @@
+             )
+ 
+         if response.status_code != 200:
++            worker_failure = worker_exceptions[0] if worker_exceptions else None
++            if worker_failure is not None:
++                raise SuiteStop(f"covering-refresh status:{response.status_code}") from worker_failure
+             raise SuiteStop(f"covering-refresh status:{response.status_code}")
+         payload = response.json()
+         if not isinstance(payload, dict):
+@@ -1223,6 +1234,36 @@
+         CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
+ 
+ 
++def _install_worker_exception_observer(captured: list[BaseException]) -> Callable[[], None]:
++    """Observe the production dispatch worker's run_bounded_domain call boundary.
++
++    Location-only diagnostic aid. Delegates to the original callable with identical
++    arguments and returns its identical result. On BaseException it retains at most
++    ONE exception object (the first) and re-raises the same object with a bare raise.
++    It never formats, prints or serializes the exception, its message or locals.
++    Production modules are not edited; only the module global looked up by
++    covering_http_dispatch._worker is swapped. The returned callable restores the
++    exact original; callers must invoke it unconditionally.
++    """
++    from app.services import covering_http_dispatch as dispatch_module
++
++    original = dispatch_module.run_bounded_domain
++
++    def observed_run_bounded_domain(*args: Any, **kwargs: Any) -> Any:
++        try:
++            return original(*args, **kwargs)
++        except BaseException as exc:
++            if not captured:
++                captured.append(exc)
++            raise
++
++    def restore() -> None:
++        dispatch_module.run_bounded_domain = original
++
++    dispatch_module.run_bounded_domain = observed_run_bounded_domain
++    return restore
++
++
+ def _install_token_terminal_observer(native_terminals: list[dict[str, Any]]) -> None:
+     """Wrap CoveringORMConnection.token_terminal to capture native TOKEN receipts."""
+     from app.services.covering_native_orm_factory import CoveringORMConnection

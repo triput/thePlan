@@ -1,0 +1,44 @@
+{
+  "kind": "Dex independent reconciliation of native-v3 static peer handback",
+  "at_utc": "2026-11-12T01:16:59.7165267Z",
+  "drop_root": "F:\\DropFolder\\pending\\post-native-t05-native-provenance-dex-v3-static-review-jim-v1-2026-11-11",
+  "review_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3-review",
+  "reviewer_attribution": "Justin for Jim, per signed handback",
+  "tip_raw_sha256": "9F9592DD4D938A6AB052F2A85A060A21CB6B808ABF9D5D449D9A75BFE49876DD",
+  "tip_preimage_sha256": "B91B2F084C88081A2018AC391736C81CD4A727C006C5BE27067CF081F5D088D1",
+  "artifact_rows": [
+    {
+      "file": "HANDBACK.txt",
+      "sha256": "AC2BC81C3621641BDEAB14DCC42187161812A8511FE50E342FA8F168D7A8425E"
+    },
+    {
+      "file": "Jim-Native-Provenance-Static-Review.md",
+      "sha256": "AEBBF88EBE30091340AE2E45AC538D967A21D12CEBC43D766F91EF7BCC9D896C"
+    },
+    {
+      "file": "TIP-FREEZE.json",
+      "sha256": "9F9592DD4D938A6AB052F2A85A060A21CB6B808ABF9D5D449D9A75BFE49876DD"
+    }
+  ],
+  "reviewed_packet_files_verified": 12,
+  "manifest_rows_verified": 4,
+  "runtime_rows_verified": 25,
+  "docker_executable_hash_verified": true,
+  "evidence_absent": true,
+  "disposition": "QUALIFIED_ACCEPT reconciled; ready for launch decision only",
+  "blocking_findings": [],
+  "qualifications": [
+    "Runtime pins are an explicit 25-file subset, not a complete interpreter dependency closure (disclosed).",
+    "Inspect does not separately assert Healthcheck field beyond create --no-healthcheck (inherited; not a blocker).",
+    "Mount Source absolute path not asserted equal to ROOT; Destination/RW/Type + Binds are (Docker projection; not broadened).",
+    "Peer receipt still peer_review=pending / launch_ready=false until Dex reconciles and Trish issues exact-hash card.",
+    "Native capture proves source-byte provenance only if separately authorized+successful; not parser/transport; not full T05/T01-T08."
+  ],
+  "peer_review_does_not_authorize_execution": true,
+  "execution_performed": false,
+  "packet_helpers_imported": false,
+  "compilation_tests_docker": false,
+  "frozen_packet_mutated": false,
+  "framing_custody_issue": "Still pending on separate Jim framing handback; no framing helper is used by this native-only packet",
+  "endpoint": "unbound"
+}

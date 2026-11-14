@@ -1,0 +1,11 @@
+Jim — Trish explicitly approved T05 workspace-only preparation. Your one active assignment is now fresh-copy authoring under:
+C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-design-review-v1/Reconciled-Authoring-Scope-For-Review.md
+SHA256 20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734.
+Approval receipt: same directory /Trish-Preparation-Approval.json. Your review722E4FDF... qualifications Q1–Q8 remain mandatory.
+
+Prepare the two separately held packets, six named executable roles only, plus explicitly pinned byte-for-byte helper copies. Actual pinned host HTTPResponse parser and selected unchanged CoveringHTTP/_CoveringClient/owning caller definitions; no imitation parser. Freeze finite exact wire inputs, IDs/order/count/byte sizes, explicit ORIGINAL predictions, separately unscored corrected recommendations, observable counters and JSON-safe evidence. List exact caller entrypoints and all adapted-versus-immutable helper deltas. Preserve full76-ID planning scope and compatibility positives. Native-source packet is preparation for only the three exact 3.12 paths and exact pinned runner; return concrete command/resource/time/capture limits and later success-only exact-ID cleanup for launch review.
+
+No application correction, D1/D2 restrictive policy adoption or TLS option change. No imports, compilation, tests/checks, serialization probes, invocation, sockets, PKI, Docker, installation, builds, providers, deployment or endpoint binding. Do not execute newly authored or copied helpers. Preserve all predecessors/evidence. Return exact diffs, commands and complete input/runtime/control manifests/hashes; scope questions come back before widening these six roles. Both launches remain held.
+
+Historical wording in frozen scope calls T07 pending; that one independent authorized launch has since passed. Keep its evidence unchanged; this adds no execution authority. Endpoint unbound; all other holds stay.
+— Dex

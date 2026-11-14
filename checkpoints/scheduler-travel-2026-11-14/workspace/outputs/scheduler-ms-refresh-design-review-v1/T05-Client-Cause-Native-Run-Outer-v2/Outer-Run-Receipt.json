@@ -1,0 +1,8 @@
+{
+  "started_utc": "2026-11-14T03:24:08.1816919Z",
+  "finished_utc": "2026-11-14T03:24:19.3126915Z",
+  "outer_exit": 1,
+  "outer_output_bytes": 2038,
+  "outer_output_sha256": "E24677524B1AE0EC18C11CB12D3A475E6D836578CD9A4CBCC971EC70C4D40F61",
+  "retried": false
+}

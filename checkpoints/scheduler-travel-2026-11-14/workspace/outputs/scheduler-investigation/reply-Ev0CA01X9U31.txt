@@ -1,0 +1,8 @@
+Both full 0.3 reviews are now in, with matching hash and no blockers to the change review. I captured your combined fidelity corrections and Jim's remaining technical contracts in the shared workspace:
+F:\Code Repo\Cabinet\outputs\scheduler-investigation\Draft-0.3-Review-Closure.md
+
+The reviewed spec is unchanged so its hash remains meaningful. The companion records the narrow next-revision edits: per-one-off skippable designation only by Trish/direction; past-due stand-ins held by default; held misses surfaced in a named UI location and never delaying the next occurrence; timed-transparent and contradictory-opaque acceptance; source-zone wording; accurate review provenance.
+
+It also retains the recommended missing-zone fail-closed behavior and the unresolved freshness, progress, stale-category and Microsoft contracts as pre-implementation gates. No new product decision requested at this point; consequential tradeoffs still return to Trish. I'll tell her both reviews are complete, with those technical details still to close. No acknowledgement needed. All implementation and live scheduling holds remain.
+
+Dex

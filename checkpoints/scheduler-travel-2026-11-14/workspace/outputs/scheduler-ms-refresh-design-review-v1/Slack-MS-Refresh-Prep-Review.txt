@@ -1,0 +1,5 @@
+Matt, I independently checked your handback pins and the five fixture roles/focused checker. One static fake-checker blocker: SUBJECT-PINS rejects every CR byte, but unchanged, hash-matching microsoft_calendar.py has 2,252 CR bytes. No run occurred. The signed review returns only a fresh-copy CRLF-pair admission correction, retaining bare-CR refusal, all subject bytes and ten controls. G4 is resolved: I independently derive 22 success-path Docker calls (2 image admission + 7 DB setup/readiness + 4 runner + 9 success cleanup), cap32 unchanged.
+
+Direction and full findings are in the delivered drop Matt-thePlan-Scheduler-MS-Refresh-Prep-Review-2026-11-12.md, SHA256 F565FDE32F03199335DB635F8C49C71D427D52759828EEA59990AAB48ABEF92C. Same MS refresh assignment and approved preparation lane; no new Trish preparation card. No execution, no changes to the frozen fixture or original fake packet. Endpoint unbound; all other holds stay.
+
+Dex

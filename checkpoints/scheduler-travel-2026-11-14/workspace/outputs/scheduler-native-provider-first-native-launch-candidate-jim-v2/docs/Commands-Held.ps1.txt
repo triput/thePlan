@@ -1,0 +1,28 @@
+# COMMANDS HELD — first-native launch-candidate jim-v2. NOT INVOKED.
+# executed=false; human_launch_authorized=false; candidate_launch_ready_staged=true;
+# launch_authorized=false; prep_is_not_pass=true; endpoint=unbound; Slack tip=false.
+# Dex R1: runner-config launch_ready=true (was false @ 72EE396D… on candidate-v1).
+#
+# Absolute future native command (Reviewed-Command.ps1.txt; SHA256 D6C2A61C4F0BF165FFBE69BB9F22353FAAE64568C18C446683C043076A62C680):
+#
+#   & 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-first-native-launch-candidate-jim-v2\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 '4A04275DFCC059B9CEC0A98D12A895FE6A3CA41C017BD4E38907E9FB7D964296' -ExpectedDockerConfigSHA256 '160816EE647048F1C5AFE6765E305C7F06F5C661860FEC3966418F9785431B01' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-first-native-launch-candidate-jim-v2\host\docker-ops-config.json'
+#
+# Pins:
+#   Invoke-Native-Provider.ps1 = 3A81A5CD4F418B11CF76A1C2877702B5A2A99E644D26E69BD86FBC8783C5AD4C
+#   host/launch-config.json    = 4A04275DFCC059B9CEC0A98D12A895FE6A3CA41C017BD4E38907E9FB7D964296   (candidate launch_ready=true; human_launch_authorized=false)
+#   host/docker-ops-config.json= 160816EE647048F1C5AFE6765E305C7F06F5C661860FEC3966418F9785431B01
+#   payload/SHA256SUMS.txt     = 1B548C07586F4AC36BBD20B0ECED69626098E16D2F2AFD7A6400B2F7B2081AEE
+#   payload/runner-config.json = E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160   (launch_ready=true; launch_authorized=false; executed=false)
+#
+# Pending fake-v1 (DO NOT RUN; cite ONLY these absolute pending pins — NOT inherited prep admission):
+#   admission  1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285
+#   command    72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03
+#   wrapper    AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7
+#   absolute:  C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-fake-v1\packet\Invoke-Fake.ps1 -AdmissionSHA256 '1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285'
+#
+# Forbidden under this staging:
+# - invoking Reviewed-Command / Invoke-Native-Provider / Invoke-Fake
+# - helpers/tests/imports-to-execute / PKI / Docker / DB / sockets
+# - flipping human launch authority / treating staged launch_ready as Trish permission
+# - Slack tip from this seat
+# - mutating tipped candidate-v1 / native-ready-prep-v1 / fake-v1

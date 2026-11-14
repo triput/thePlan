@@ -1,0 +1,13 @@
+{
+  "human_authority": "NONE",
+  "runner_ca_target": "/public-ca",
+  "evidence_exists": false,
+  "default_receipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl",
+  "optional_receipt_override": "OMITTED",
+  "host_receipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "status": "STATIC_PATH_AGREEMENT_VERIFIED_NOT_RUNTIME",
+  "runner_ca": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "ca_output": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "runtime_images": "NOT_INSPECTED",
+  "operator_evidence": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence"
+}

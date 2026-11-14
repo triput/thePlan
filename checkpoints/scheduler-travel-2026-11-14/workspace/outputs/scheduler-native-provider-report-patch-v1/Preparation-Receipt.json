@@ -1,0 +1,17 @@
+{
+  "at_utc": "2026-11-12T20:44:21.9406625Z",
+  "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-v2\\payload\\fixture\\np_runner_entry.py",
+  "source_sha256": "B8E0FAF345C943E25CD85DB3DD20F56B8F6AABDA16565C838B6D62B458823E17",
+  "candidate_sha256": "B910EC04CDA020BC68C2FC8A754E2D0D2EC693E4ECF74AAB1CD24D181CB1AFC1",
+  "diff_sha256": "AA2494B2D20D7DFCDEB36A7448703385A58FF759FDCB3A66B6C638C08AC439AE",
+  "scope": "One named approved role, fresh-copy report boundary contribution for Jim review only",
+  "jim_workspace_changed": false,
+  "imports_compilation_tests_executed": false,
+  "launch_ready": false,
+  "remaining": [
+    "Native case implementation and its evidence oracles remain Jim work",
+    "Existing receipt sanitizer still needs typed safe-token-evidence correction",
+    "Host STOP diagnostic schema and machine-report producer/consumer must be reconciled and fake-verified",
+    "Actual runtime observation versus configuration pins remains subject to independent review"
+  ]
+}

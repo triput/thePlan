@@ -1,0 +1,58 @@
+{
+  "source": "Workspace approval75556514...; coding assignment1794458017.510829; Jim ACK1794458104.507949",
+  "reported_state": "Jim ACK1794458104.507949 confirms starting one framing prep; allow normal turnaround; no live process handle verified",
+  "assignment": "ONE active assignment: primary framing acknowledgment candidate implementation and four-role fake verification-packet preparation under approved workspace lane",
+  "native_target": "scheduler-t05-native-provenance-dex-v3",
+  "source_versions_preserved": "Jim v1-v3 and Dex native v1",
+  "execution_authorized": false,
+  "helper_import_compilation_invocation": "held",
+  "live_process_handle_verified": false,
+  "stall_diagnosis": "none",
+  "endpoint": "unbound",
+  "native_review_target_notice": "Slack1794444463.178769; no status reply requested; source preparation only",
+  "handback_sequencing": "Slack1794445714.905419 permits native review before the framing freeze; no status acknowledgment requested, no new source/execution authority",
+  "native_review_disposition": "QUALIFIED_ACCEPT static review reconciled; one Trish-authorized native-v3 collection PASS with success cleanup; authority consumed",
+  "framing_v4_review": "Frozen TIP A40F0DEA7A01AF9C2361E707F0BBFB081BCB1D2D195510BD96EE2E25C43A01A6 verified; REVISE delivered Slack1794447423.289159; 296 packet/19 runtime/52 wire pins match",
+  "p4_prediction_supplement": "Source-only ID table96D3D93C... delivered Slack1794447679.095559; integrate with existing P1-P6 batch, no extra assignment",
+  "framing_v5_review": "Frozen TIP65DC4D69... verified; REVISE delivered reply1794448361.731459; P1/P2/P3 statically addressed, P4/P6 blocking; custody historical UNKNOWN retained",
+  "native_run": "PASS reconciliation5F8C3118...; 3 source files159506B; exact runner501c00a4... removed/absent; Slack1794449014.857459; no new assignment",
+  "framing_v6_review": "QUALIFIED_ACCEPT staging followed by one Trish-authorized host-original fake run PASS57/57; authority consumed; result/reconciliation preserved",
+  "framing_run": "PASS reconciliationFC4B39C0...;301 packet/19 runtime postpins;57 controls,3 expectedUNKNOWN,9 original tags; no corrected/native closure; Slack1794451130.365149",
+  "queued_review": "Dex independent review when frozen handback arrives",
+  "routing_run": "PASS19/19; reconciliationF5FC5118...; authority consumed; sentSlack1794457348.077009",
+  "workspace_authoring_approved": true,
+  "implementation_assignment_sha256": "5B836550DC49C2071D09E4C40CC59BB24A0F334FA8249E530804D18C7C539B0A",
+  "provisional_review": "B04 issues P1/P2 statically addressed in29CBD read; P3 gate coherent; wire/header-leading-OWS oracle clarification delivered1794458815.831769. Not frozen/runtime proof.",
+  "framing_v2_static_review": {
+    "disposition": "REVISE",
+    "tip": "569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697",
+    "review_sha256": "C269FFC1CF3C2B793F2DA37CFA44D1FD796CF4DC79CB8041DCCEAE267A36603D",
+    "delivered_ts": "1794459957.835179",
+    "next": "same assignment, fresh packet corrections; no execution"
+  },
+  "approved_framing_policy": {
+    "approval": "call_f23e9cdb68d44ae0a628c63d2f096277",
+    "brief_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+    "delivered_ts": "1794460139.626269",
+    "execution_authorized": false
+  },
+  "current_v4_review_assignment": {
+    "one_active_assignment": "Independent static review Dex framing-v4, replacing completed v3 authoring",
+    "delivered_ts": "1794461844.023649",
+    "packet": "outputs/scheduler-framing-ack-fake-v4",
+    "review_brief_sha256": "C4A4F2721791410A4A41F677C59311FEA0E983825739CCB0FBF2444EDF3C6512",
+    "launch_authorized": false
+  },
+  "current_native_scope_assignment": {
+    "one_active_assignment": "Native-provider fixture/check implementation preparation and selected-byte workspace assembly",
+    "delivered_ts": "1794514033.615039",
+    "pickup_ack_ts": "1794514153.192869",
+    "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+    "source_authoring_authorized": true,
+    "mutable_roles": 16,
+    "launch_authorized": false,
+    "port_pass_notice_ts": "1794514519.074479"
+  },
+  "current_record_at_utc": "2026-11-12T20:15:53.6990261Z",
+  "current_record_rule": "current_native_scope_assignment governs current work; older review/assignment fields are retained history, not current authority"
+}

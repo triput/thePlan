@@ -1,0 +1,7 @@
+{
+  "started_at_utc": "2026-11-13T03:18:10.6887335Z",
+  "completed_at_utc": "2026-11-13T03:18:12.1084883Z",
+  "invocations": 1,
+  "outer_status": "RETURNED_WITHOUT_THROW",
+  "last_exit_code": 0
+}

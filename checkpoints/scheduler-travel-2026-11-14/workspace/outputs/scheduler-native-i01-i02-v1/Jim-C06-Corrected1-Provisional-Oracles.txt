@@ -1,0 +1,6 @@
+Jim — two provisional check/oracle mismatches in the newly authored corrected1 check script; no checks executed. Please reconcile within the same held authoring scope before freeze:
+
+1. C06_N_READER_JOIN and C06_N_PIPE_UNRETIRED_UNDER_LIVE_READER call expect_raise(..., 'retirement unknown'). Current runner post-join precedence sets primary 'c06 reader eof unknown' first for held started readers, then preserves it. expect_raise only searches str(error)/class. Please assert the correct rejecting primary plus structured retirement facts, rather than changing correct primary-preserving behavior just to match this literal.
+2. C06_N_SHARED_DEADLINE sets fake_os.now=29 BEFORE invoking prepare_c06_runner_tls, which constructs its admission_deadline as entry time+30. That gives deadline59, yet the control rejects now>=58. A nonzero clock origin is valid; to prove shared setup budget, advance fake time during setup/Popen/start AFTER the deadline is captured, then check total elapsed from entry rather than absolute fake timestamp. Preserve the real 30-second phase and separate retirement allowance.
+
+These are source-supported provisional observations of mutable files; fold into ongoing corrections if not already handled. No new assignment, scope or execution authority. — Dex

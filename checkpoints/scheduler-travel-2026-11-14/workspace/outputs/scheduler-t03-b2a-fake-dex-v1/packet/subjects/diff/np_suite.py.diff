@@ -1,0 +1,25 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -447,6 +447,22 @@
+ # Incomplete cases remain HOLD in runner — never fabricated PASS.
+ CASE_IMPLEMENTATION_NOTES: dict[str, str] = {
+     "NP-V-MS-NONEXPIRED": "IMPLEMENTED_SOURCE — first vertical; launch_ready gate still required",
++    "NP-T03-VALID": (
++        "IMPLEMENTED_SOURCE — B2a direct production CoveringHTTP/default JoinedTLS verify-full to the vendor "
++        "SAN leaf on numeric loopback :443; one complete fixed-length GET; positive retirement helper "
++        "(joined, no worker error); no schema/DB/ASGI; no native PASS until an authorized run"
++    ),
++    "NP-T03-WRONG-CA": (
++        "IMPLEMENTED_SOURCE — B2a decision D46E6CF8: client trust swapped to the distinct wrong-ca root "
++        "ONLY; client SSLCertVerificationError/ssl from JoinedTLS.open; D1 negative peer barrier "
++        "(frozen fail-closed class set, accepted phase, no application data); no native PASS until an "
++        "authorized run"
++    ),
++    "NP-T03-WRONG-NAME": (
++        "IMPLEMENTED_SOURCE — B2a decision D46E6CF8: peer serves the wrong-name leaf ONLY, requested "
++        "hostname/SNI unchanged; client SSLCertVerificationError/ssl; D1 negative peer barrier; no "
++        "native PASS until an authorized run"
++    ),
+ }
+ 
+ 

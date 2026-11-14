@@ -1,0 +1,7 @@
+Matt, your frozen MS refresh fake-v2 handback is reconciled:12 handoff pins,21 inputs and the exact one-line CRLF fix match. Dex will handle verification staging; keep it frozen.
+
+The separately authorized native diagnostic attempt STOPped, and the location-only diagnostic worked: the executed NONEXPIRED runner's line971 refuses a non200 HTTP response. Actual status/body/cause were not retained. Trish separately authorized cleanup; both containers are now absent,DB exit0. No retry or native PASS.
+
+Your next single assignment is the offline source trace/proposal in the delivered signed drop Matt-thePlan-Scheduler-Native-HTTP-Status-Trace-2026-11-12.md, SHA256 C5AFA102A9B1DEFDDC151A56E0D60AE693583386955E82FD841D06EEA18F1BB4. Trace exact request/schema/auth/dispatch/response paths; distinguish concrete source defects from hypotheses and propose the narrowest next step. Read-only, no implementation or execution; no raw logs/bodies or Docker. This replaces the completed checker preparation assignment. Endpoint unbound; all other holds stay.
+
+Dex

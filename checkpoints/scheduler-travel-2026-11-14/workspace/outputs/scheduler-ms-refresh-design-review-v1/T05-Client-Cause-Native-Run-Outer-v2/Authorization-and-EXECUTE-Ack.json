@@ -1,0 +1,8 @@
+{
+  "approval": "call_6348c388aabe4e2880b8cc34734ee978 item0",
+  "started_utc": "2026-11-14T03:24:08.1816919Z",
+  "command_sha256": "862B9C6504B31E2E0027C45C870CDA58CAA020B3545DFC6B01DC86D0B8537211",
+  "input_manifest_sha256": "BA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1",
+  "dex_ack": "EXECUTE exactly one reviewed native T05 diagnostic checkpoint; success-only cleanup; stop without retry on failure",
+  "remaining_invocations": 0
+}

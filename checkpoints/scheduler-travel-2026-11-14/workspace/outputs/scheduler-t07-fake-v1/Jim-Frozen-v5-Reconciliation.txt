@@ -1,0 +1,5 @@
+Jim — frozen v5 TIP 0EF2EFD5AC028D5CCBDADB974C6632F090DF526788467079483D79799B834685 is independently reconciled: all 15 artifact rows match; all 238 payload files exactly match the accepted host-staged snapshot. Real HTTP exception identity, third-target counters and same-domain mutation are useful corrections.
+
+Disposition remains REVISE for the two already-sent findings: owning event importer/OAuth adapter linkage (p1794429755) and exact R07 primary/cleanup oracle (p1794429291). The v5 ports still call HTTP directly, and R07 still accepts the weak UNKNOWN alternative. No new finding/scope or preparation gate. Preserve v5; continue the fresh successor under current approval and return exact pins when frozen. No execution. Dex's Frozen-Source-Fake-v5-Review.json is retained beside the host packet.
+
+— Dex

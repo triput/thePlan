@@ -1,0 +1,145 @@
+{
+  "class": "FAKE-T05-CORRECTED-RECOMMENDATIONS",
+  "label": "recommendations_not_adopted",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "recommendations": {
+    "D1_duplicate_content_length": [
+      "recommendation_not_adopted",
+      "Refuse when raw inventory shows more than one Content-Length field."
+    ],
+    "D2_te_plus_content_length": [
+      "recommendation_not_adopted",
+      "Refuse coexistence of Transfer-Encoding with Content-Length."
+    ],
+    "Option_A_remaining_length_gate": [
+      "recommendation_not_adopted",
+      "Gate when response.length remaining > 0 before json.loads."
+    ]
+  },
+  "inputs": {
+    "F01": {
+      "scored_on_original": false
+    },
+    "F02": {
+      "scored_on_original": false
+    },
+    "F03-oauth": {
+      "scored_on_original": false
+    },
+    "F04-oauth": {
+      "scored_on_original": false
+    },
+    "F05-oauth": {
+      "scored_on_original": false
+    },
+    "F05b-oauth": {
+      "scored_on_original": false
+    },
+    "C-BASE": {
+      "scored_on_original": false
+    },
+    "C-EXT-VALID": {
+      "scored_on_original": false
+    },
+    "C-DATA-SHORT": {
+      "scored_on_original": false
+    },
+    "C-SEP-SHORT": {
+      "scored_on_original": false
+    },
+    "C-SEP-WRONG": {
+      "scored_on_original": false
+    },
+    "C-ZERO-ABSENT": {
+      "scored_on_original": false
+    },
+    "C-TRAILER-EOF": {
+      "scored_on_original": false
+    },
+    "C-ZERO-NO-CRLF": {
+      "scored_on_original": false
+    },
+    "C-TRAILER-LINE-EOF": {
+      "scored_on_original": false
+    },
+    "C-TRAILER-MALFORMED": {
+      "scored_on_original": false
+    },
+    "H-DUP-IDENTICAL-FIELDS": {
+      "scored_on_original": false
+    },
+    "H-DUP-IDENTICAL-LIST": {
+      "scored_on_original": false
+    },
+    "H-CONFLICT-FIELDS-2-3": {
+      "scored_on_original": false
+    },
+    "H-CONFLICT-FIELDS-3-2": {
+      "scored_on_original": false
+    },
+    "H-CONFLICT-LIST-2-3": {
+      "scored_on_original": false
+    },
+    "H-CONFLICT-LIST-3-2": {
+      "scored_on_original": false
+    },
+    "H-DECIMAL-02": {
+      "scored_on_original": false
+    },
+    "H-INVALID": {
+      "scored_on_original": false
+    },
+    "H-TE-CL": {
+      "scored_on_original": false
+    },
+    "H-TE-NONEXACT+CL": {
+      "scored_on_original": false
+    },
+    "H-TE-REPEAT": {
+      "scored_on_original": false
+    },
+    "H-TE-LIST": {
+      "scored_on_original": false
+    },
+    "CD-ORDERLY": {
+      "scored_on_original": false
+    },
+    "CD-ABRUPT": {
+      "scored_on_original": false
+    },
+    "CD-DEADLINE": {
+      "scored_on_original": false
+    },
+    "F06": {
+      "scored_on_original": false
+    },
+    "F12a-INVALID-JSON-EVENT": {
+      "scored_on_original": false
+    },
+    "F12a-INVALID-JSON-IDENTITY": {
+      "scored_on_original": false
+    },
+    "F12a-INVALID-JSON-OAUTH": {
+      "scored_on_original": false
+    },
+    "F12a-NONOBJECT-EVENT": {
+      "scored_on_original": false
+    },
+    "F12a-NONOBJECT-IDENTITY": {
+      "scored_on_original": false
+    },
+    "F12a-NONOBJECT-OAUTH": {
+      "scored_on_original": false
+    },
+    "F12b-ENCODING-EVENT": {
+      "scored_on_original": false
+    },
+    "F12b-ENCODING-IDENTITY": {
+      "scored_on_original": false
+    },
+    "F12b-ENCODING-OAUTH": {
+      "scored_on_original": false
+    }
+  }
+}

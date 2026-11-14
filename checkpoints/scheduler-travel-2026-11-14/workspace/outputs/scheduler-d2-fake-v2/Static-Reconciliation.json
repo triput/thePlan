@@ -1,0 +1,28 @@
+{
+  "kind": "Independent static data/diff reconciliation; no check execution",
+  "at_utc": "2026-11-11T19:53:20.9043416Z",
+  "packet_files": 252,
+  "unchanged_files": 241,
+  "changed_files": [
+    "ARTIFACT-HASHES.txt",
+    "Delivery-Hashes.json",
+    "HANDBACK.txt",
+    "TIP-FREEZE.json",
+    "Verification-Commands-Held.md",
+    "fake-only-d2-path-admission-verification/check_d2_path_admission_fake.py",
+    "fake-only-d2-path-admission-verification/EXPECTED-OUTPUT.json",
+    "fake-only-d2-path-admission-verification/INPUT-MANIFEST.json",
+    "fake-only-d2-path-admission-verification/OUTER-ADMISSION.json",
+    "fake-only-d2-path-admission-verification/PACKET-SHA256SUMS.txt",
+    "fake-only-d2-path-admission-verification/REVIEW.md"
+  ],
+  "api_files_unchanged": 234,
+  "payload_files_unchanged": 238,
+  "controls_unchanged": 52,
+  "check_delta": "Approved extract_symbols guard/message only; original AST text and raw provenance bytes unchanged",
+  "launcher_outer_host_wrapper_unchanged": true,
+  "packet_pins_verified": 252,
+  "runtime_pins_verified": 12,
+  "original_failed_evidence_unchanged": true,
+  "source_check_or_application_execution_performed": false
+}

@@ -1,0 +1,12 @@
+{
+  "sender": "U0C68LUTURJ",
+  "slack_reply_sent": false,
+  "atUtc": "2026-11-14T04:49:53.2323891+00:00",
+  "event": "Ev0CHTUG8US0",
+  "execution_authority": "NONE",
+  "disposition": "Review pointer already reconciled; Google fake card pending user; native staging review D75FC571 is current sole assignment",
+  "endpoint": "unbound",
+  "thread_ts": "1794534925.412399",
+  "message_ts": "1794631609.320709",
+  "review": "E7CBD517572CBC673AB363E6FED9809CDD0CE159DE3141B51B5D7DD700BDA75A"
+}

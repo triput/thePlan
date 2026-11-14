@@ -1,0 +1,2402 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\check_framing_ack.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\check_framing_ack.py"
+index 3dd912a..83bba77 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\check_framing_ack.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\check_framing_ack.py"
+@@ -4,7 +4,18 @@
+ Exercises AST-extracted candidate CoveringHTTP / _GuardedHTTPResponse /
+ _admit_framing_headers / JoinedTLS.open wrap_socket option against finite
+ byte-fake stimuli. Reuses immutable 57 T05 wire inputs as original evidence
+-pins; freezes candidate expectations with policy-pending labels.
++pins; freezes candidate expectations under approved header-compatibility
++policy (AEAE5343… / 1C932F1A…).
++
++CALLER-* rows reuse aliased transcripts via the same direct CoveringHTTP
++run_http_catch path as ordinary wire controls. They are labeled as direct
++HTTP replay plus matched immutable original caller evidence — not as new
++candidate owning-caller (_CoveringClient / refresh_access_token) proof.
++Owning-caller obligation remains preserved/unproved in-candidate.
++
++Result rows emit predicted_outcome dialect "PASS" at top level (launcher
++gate) with nested OBSERVED_* candidate/observation fields. exact_predicate
++mirrors emitted entry keys for validate_result_file.
+ 
+ No live sockets/TLS/PKI/providers. executed preparation = false.
+ """
+@@ -42,6 +53,8 @@ CANDIDATE_TLS_PIN = "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C0
+ ORIGINAL_HTTP_PIN = "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F"
+ ORIGINAL_TLS_PIN = "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+ PROVIDER_CTX_PIN = "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
++HEADER_POLICY_DECISION_PIN = "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0"
++HEADER_POLICY_APPROVAL_PIN = "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+ 
+ G_HOST = "www.googleapis.com"
+ G_ADDR = "203.0.113.10"
+@@ -653,6 +666,8 @@ def assert_match(control_id: str, observed: dict[str, Any], expected_row: dict[s
+                 "item_excess_outcome",
+                 "item_excess_exception",
+                 "transport_sent_observed",
++                "lineage",
++                "policy_pending",
+             }
+         }
+     for key, want in pred.items():
+@@ -663,6 +678,36 @@ def assert_match(control_id: str, observed: dict[str, Any], expected_row: dict[s
+             )
+ 
+ 
++def observation_oracle(row: dict[str, Any]) -> dict[str, Any]:
++    """Launcher exact_predicate nests specialized claims under observation."""
++    pred = row.get("exact_predicate")
++    if not isinstance(pred, dict) or not isinstance(pred.get("observation"), dict):
++        raise WitnessFailure("missing_observation_exact_predicate")
++    return pred["observation"]
++
++
++def project_claimed(observed: dict[str, Any], claimed: dict[str, Any]) -> dict[str, Any]:
++    """Emit only fields claimed by exact_predicate (exact launcher match)."""
++    out: dict[str, Any] = {}
++    for key in claimed:
++        if key not in observed:
++            raise WitnessFailure(f"missing_claimed_field:{key}")
++        out[key] = observed[key]
++    return out
++
++
++def emit_wire_candidate(cand: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
++    """Stable candidate observation shape for launcher exact_predicate.candidate."""
++    return {
++        "observed_outcome": cand["observed_outcome"],
++        "exception_type": cand["exception_type"],
++        "response_close_calls": cand["response_close_calls"],
++        "transport_close_calls": cand["transport_close_calls"],
++        "negative_receive_requested": cand["negative_receive_requested"],
++        "policy_pending": row["candidate"].get("policy_pending", False),
++    }
++
++
+ def tls_option_controls(env: dict[str, Any]) -> dict[str, Any]:
+     """Fake wrap_socket option forwarding + exception propagation (not native TLS)."""
+     JoinedTLS = env["join"]["JoinedTLS"]
+@@ -899,78 +944,74 @@ def main() -> int:
+         kind = row.get("kind", "wire")
+         if kind == "wire":
+             purpose = purpose_for(cid, row)
+-            wire = load_wire(cid if not cid.startswith("CALLER-") else cid)
+-            # original evidence: freeze against immutable T05 predicates when present
++            # CALLER-* aliases resolve inside load_wire; path remains direct CoveringHTTP.
++            wire_bytes = load_wire(cid)
++            cand = run_http_catch(
++                envs["candidate"],
++                wire_bytes=wire_bytes,
++                purpose=purpose,
++                stall=(cid == "CD-DEADLINE"),
++            )
++            # Internal oracle uses flat candidate fields; launcher uses exact_predicate.
++            assert_match(cid + "/candidate", cand, row["candidate"])
++            cand_emit = emit_wire_candidate(cand, row)
+             if row.get("compare_original_to_t05"):
+                 t05 = json.loads((HERE / "EXPECTED-ORIGINAL-T05-IMMUTABLE.json").read_bytes())
+                 t05_row = t05["inputs"].get(cid)
+                 if t05_row is None:
+                     raise WitnessFailure(f"missing T05 original:{cid}")
+-                # Do not re-execute original scoring as a new PASS claim; pin equality.
++                # Pin immutable original evidence; do not re-score originals as new PASS.
+                 observations[cid] = {
+                     "observed_outcome": "PASS",
+                     "original_evidence": "T05-IMMUTABLE",
+                     "t05_predicted": t05_row["predicted_outcome"],
+-                    "candidate": None,
+-                }
+-                # Still exercise candidate
+-                cand = run_http_catch(
+-                    envs["candidate"],
+-                    wire_bytes=load_wire(cid),
+-                    purpose=purpose,
+-                    stall=(cid == "CD-DEADLINE"),
+-                )
+-                assert_match(cid + "/candidate", cand, row["candidate"])
+-                observations[cid]["candidate"] = {
+-                    "observed_outcome": cand["observed_outcome"],
+-                    "exception_type": cand["exception_type"],
+-                    "response_close_calls": cand["response_close_calls"],
+-                    "transport_close_calls": cand["transport_close_calls"],
+-                    "negative_receive_requested": cand["negative_receive_requested"],
+-                    "policy_pending": row["candidate"].get("policy_pending", False),
++                    "candidate": cand_emit,
+                 }
+             else:
+-                cand = run_http_catch(
+-                    envs["candidate"],
+-                    wire_bytes=load_wire(cid),
+-                    purpose=purpose,
+-                    stall=(cid == "CD-DEADLINE"),
+-                )
+-                assert_match(cid, cand, row["candidate"])
+                 observations[cid] = {
+                     "observed_outcome": "PASS",
+-                    "candidate": {
+-                        "observed_outcome": cand["observed_outcome"],
+-                        "exception_type": cand["exception_type"],
+-                        "negative_receive_requested": cand["negative_receive_requested"],
+-                        "policy_pending": row["candidate"].get("policy_pending", False),
+-                    },
++                    "candidate": cand_emit,
+                 }
+         elif kind == "tls_option":
+             obs = tls_option_controls(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "cleanup_combo":
+             obs = cleanup_combo(envs["candidate"], row["wire_id"], row["combo"])
+-            assert_match(cid, obs, row["candidate"])
+-            observations[cid] = {"observed_outcome": "PASS", "observation": {
+-                "observed_outcome": obs["observed_outcome"],
+-                "exception_type": obs["exception_type"],
+-                "retirement": obs.get("retirement"),
+-                "lineage": obs["lineage"],
+-            }}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "excess":
+             obs = excess_controls(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "primary_both_closes":
+             obs = active_primary_both_closes(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "oauth_retirement":
+             obs = oauth_unknown_owned_retirement(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "inventory":
+             observations[cid] = {
+                 "observed_outcome": "PASS",
+@@ -982,6 +1023,8 @@ def main() -> int:
+                 "dex_p1_p2_p3_addressed": True,
+                 "provisional_review_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+                 "staged_read_hash_B04B3D6B_superseded_by": CANDIDATE_HTTP_PIN,
++                "header_policy_approval_sha256": HEADER_POLICY_APPROVAL_PIN,
++                "header_policy_decision_sha256": HEADER_POLICY_DECISION_PIN,
+             }
+         else:
+             raise WitnessFailure(f"unknown kind:{kind}")
+@@ -996,8 +1039,11 @@ def main() -> int:
+         "wire_ids_in_order": list(observations),
+         "inputs": observations,
+         "limits": "byte fakes; no native TLS/provider proof",
+-        "policy_compatibility": "REVIEW_CANDIDATE_NOT_ACCEPTED_CONTRACT",
++        "policy_compatibility": "ACCEPTED_HEADER_COMPATIBILITY_POLICY",
++        "header_policy_decision_sha256": HEADER_POLICY_DECISION_PIN,
++        "header_policy_approval_sha256": HEADER_POLICY_APPROVAL_PIN,
+         "dex_provisional_p1_p2_p3": "addressed_in_candidate_29CBD53C",
++        "native_tls_orderly_vs_abrupt": "unproved",
+     }
+     raw = (json.dumps(payload, indent=2) + "\n").encode("utf-8")
+     if len(raw) > MAX_RESULT:
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\EXPECTED.json" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\EXPECTED.json"
+index c362067..a26bc60 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\EXPECTED.json"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\EXPECTED.json"
+@@ -3,7 +3,7 @@
+   "launch_ready": false,
+   "execution_authorized": false,
+   "executed_in_preparation": false,
+-  "policy_compatibility": "REVIEW_CANDIDATE_NOT_ACCEPTED_CONTRACT",
++  "policy_compatibility": "ACCEPTED_HEADER_COMPATIBILITY_POLICY",
+   "wire_count": 73,
+   "wire_ids_in_order": [
+     "F01",
+@@ -94,6 +94,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "F02": {
+@@ -109,6 +122,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "F03-oauth": {
+@@ -124,6 +150,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "F04-oauth": {
+@@ -139,6 +178,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": "CoveringReauthorizationRequired",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "F05-oauth": {
+@@ -154,6 +206,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "F05b-oauth": {
+@@ -169,6 +234,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-BASE": {
+@@ -184,6 +262,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-EXT-VALID": {
+@@ -199,6 +290,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-TRAILER-VALID": {
+@@ -214,6 +318,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-DATA-SHORT": {
+@@ -229,6 +346,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "C-SEP-SHORT": {
+@@ -244,6 +374,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "C-SEP-WRONG": {
+@@ -259,6 +402,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-ZERO-ABSENT": {
+@@ -274,6 +430,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "C-TRAILER-EOF": {
+@@ -289,6 +458,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-ZERO-NO-CRLF": {
+@@ -304,6 +486,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-TRAILER-LINE-EOF": {
+@@ -319,6 +514,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "IncompleteRead",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "C-TRAILER-MALFORMED": {
+@@ -333,7 +541,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "F12a-INVALID-JSON-EVENT": {
+@@ -349,6 +574,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "JSONDecodeError",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "F12a-INVALID-JSON-IDENTITY": {
+@@ -364,6 +602,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "JSONDecodeError",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "F12a-INVALID-JSON-OAUTH": {
+@@ -379,6 +630,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_UNKNOWN"
+       }
+     },
+     "F12a-NONOBJECT-EVENT": {
+@@ -394,6 +658,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_REFUSE"
+       }
+     },
+     "F12a-NONOBJECT-IDENTITY": {
+@@ -409,6 +686,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_REFUSE"
+       }
+     },
+     "F12a-NONOBJECT-OAUTH": {
+@@ -424,6 +714,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_UNKNOWN"
+       }
+     },
+     "F12b-ENCODING-EVENT": {
+@@ -439,6 +742,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_REFUSE"
+       }
+     },
+     "F12b-ENCODING-IDENTITY": {
+@@ -454,6 +770,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_REFUSE"
+       }
+     },
+     "F12b-ENCODING-OAUTH": {
+@@ -469,6 +798,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_UNKNOWN"
+       }
+     },
+     "CALLER-CLIENT-EVENT-F01": {
+@@ -484,6 +826,26 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
++      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
++      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
++      "historical_original_distinct_from_candidate": true,
++      "transcript_ref": "F01",
++      "historical_original_observation_boundary": "calendar_client under covering_provider_transport",
++      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "CALLER-CLIENT-OAUTH-F04": {
+@@ -499,6 +861,26 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
++      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
++      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
++      "historical_original_distinct_from_candidate": true,
++      "transcript_ref": "F04-oauth",
++      "historical_original_observation_boundary": "calendar_client under covering_provider_transport",
++      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": "CoveringReauthorizationRequired",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "CALLER-CLIENT-OAUTH-F05b": {
+@@ -514,6 +896,26 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
++      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
++      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
++      "historical_original_distinct_from_candidate": true,
++      "transcript_ref": "F05b-oauth",
++      "historical_original_observation_boundary": "calendar_client under covering_provider_transport",
++      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "CALLER-REFRESH-TOKEN-F04": {
+@@ -529,6 +931,27 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
++      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
++      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
++      "historical_original_distinct_from_candidate": true,
++      "transcript_ref": "F04-oauth",
++      "historical_original_observation_boundary": "google_calendar.refresh_access_token",
++      "historical_original_owning_caller": "google_calendar.refresh_access_token",
++      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": "CoveringReauthorizationRequired",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DUP-IDENTICAL-FIELDS": {
+@@ -543,7 +966,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DUP-IDENTICAL-LIST": {
+@@ -558,7 +998,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-CONFLICT-FIELDS-2-3": {
+@@ -573,7 +1030,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-CONFLICT-FIELDS-3-2": {
+@@ -588,7 +1062,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-CONFLICT-LIST-2-3": {
+@@ -603,7 +1094,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-CONFLICT-LIST-3-2": {
+@@ -618,7 +1126,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DECIMAL-02": {
+@@ -634,6 +1159,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DECIMAL-DUP-FIELDS": {
+@@ -648,7 +1186,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DECIMAL-DUP-LIST": {
+@@ -663,7 +1218,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-INVALID": {
+@@ -678,7 +1250,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-INVALID-PLUS": {
+@@ -693,7 +1282,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-INVALID-NEG": {
+@@ -708,7 +1314,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-INVALID-EMPTY": {
+@@ -723,7 +1346,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-INVALID-NONDEC": {
+@@ -738,7 +1378,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-INVALID-DECIMAL-EQ": {
+@@ -753,7 +1410,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DECIMAL-EQ-DUP-FIELDS": {
+@@ -768,7 +1442,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DECIMAL-EQ-DUP-LIST": {
+@@ -783,7 +1474,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-TE-CL": {
+@@ -798,7 +1506,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-TE-NONEXACT+CL": {
+@@ -813,7 +1538,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_REFUSE"
+       }
+     },
+     "H-TE-REPEAT": {
+@@ -828,7 +1570,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-TE-LIST": {
+@@ -843,7 +1602,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "H-TE-MIXED": {
+@@ -858,7 +1634,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "H-TE-MIXED-CHUNKED-GZIP": {
+@@ -873,7 +1666,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "CD-ORDERLY": {
+@@ -889,6 +1699,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "CD-ABRUPT": {
+@@ -904,6 +1727,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "CD-DEADLINE": {
+@@ -919,6 +1755,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "RemoteDisconnected",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_PARSER_ERROR"
+       }
+     },
+     "F06": {
+@@ -934,6 +1783,19 @@
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+         "policy_pending": false
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        },
++        "original_evidence": "T05-IMMUTABLE",
++        "t05_predicted": "OBSERVED_SUCCESS"
+       }
+     },
+     "H-DEFECT-COLONLESS": {
+@@ -946,9 +1808,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
++      },
++      "note": "malformed-header defect stimulus",
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+       },
+-      "note": "malformed-header defect stimulus"
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        }
++      }
+     },
+     "C-NEG-SIZE": {
+       "kind": "wire",
+@@ -962,7 +1839,18 @@
+         "negative_receive_requested": false,
+         "policy_pending": false
+       },
+-      "note": "P2 negative chunk size refuse before read(-1)"
++      "note": "P2 negative chunk size refuse before read(-1)",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        }
++      }
+     },
+     "C-TRAILER-COUNT-100": {
+       "kind": "wire",
+@@ -976,7 +1864,18 @@
+         "negative_receive_requested": false,
+         "policy_pending": false
+       },
+-      "note": "P1 trailer count boundary exact 100"
++      "note": "P1 trailer count boundary exact 100",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        }
++      }
+     },
+     "C-TRAILER-COUNT-101": {
+       "kind": "wire",
+@@ -990,7 +1889,18 @@
+         "negative_receive_requested": false,
+         "policy_pending": false
+       },
+-      "note": "P1 trailer count overflow 101"
++      "note": "P1 trailer count overflow 101",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_PARSER_ERROR",
++          "exception_type": "HTTPException",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        }
++      }
+     },
+     "H-TE-WS-TRAIL": {
+       "kind": "wire",
+@@ -1002,9 +1912,24 @@
+         "response_close_calls": 1,
+         "transport_close_calls": 1,
+         "negative_receive_requested": false,
+-        "policy_pending": true
++        "policy_pending": false
+       },
+-      "note": "P3 / Review-2: trailing SP remains parser-visible; raw_te.lower()!=\"chunked\"; REFUSE. Trailing OWS not stripped by Compat32.header_source_parse."
++      "note": "P3 / Review-2: trailing SP remains parser-visible; raw_te.lower()!=\"chunked\"; REFUSE. Trailing OWS not stripped by Compat32.header_source_parse.",
++      "header_policy_cite": {
++        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_REFUSE",
++          "exception_type": "CoveringTransportRefused",
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        }
++      }
+     },
+     "H-TE-WS-LEAD": {
+       "kind": "wire",
+@@ -1018,15 +1943,29 @@
+         "negative_receive_requested": false,
+         "policy_pending": false
+       },
+-      "note": "Review-2 wire oracle: Compat32.header_source_parse lstrips leading SP/HTAB after colon; get_all sees parser-visible \"chunked\" (not literal wire). Actual HTTPResponse path with LEADING field OWS ⇒ chunked positive / PASS. Helper Message(\" chunked\") ≠ wire outcome. No raw-header interception."
++      "note": "Review-2 wire oracle: Compat32.header_source_parse lstrips leading SP/HTAB after colon; get_all sees parser-visible \"chunked\" (not literal wire). Actual HTTPResponse path with LEADING field OWS \u21d2 chunked positive / PASS. Helper Message(\" chunked\") \u2260 wire outcome. No raw-header interception.",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "candidate": {
++          "observed_outcome": "OBSERVED_SUCCESS",
++          "exception_type": null,
++          "response_close_calls": 1,
++          "transport_close_calls": 1,
++          "negative_receive_requested": false,
++          "policy_pending": false
++        }
++      }
+     },
+     "TLS-OPTION-FORWARD": {
+       "kind": "tls_option",
+       "exact_predicate": {
+-        "suppress_ragged_eofs_forwarded_false": true,
+-        "wrap_exception_propagated": true,
+-        "native_tls_proven": false
+-      }
++        "observation": {
++          "suppress_ragged_eofs_forwarded_false": true,
++          "wrap_exception_propagated": true,
++          "native_tls_proven": false
++        }
++      },
++      "predicted_outcome": "PASS"
+     },
+     "CLEANUP-C-R02": {
+       "kind": "cleanup_combo",
+@@ -1037,6 +1976,14 @@
+           "observed_outcome": "OBSERVED_UNKNOWN",
+           "exception_type": "CoveringRootOutcomeUnknown"
+         }
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "lineage": "T07-fake-v2 C-R02..C-R06"
++        }
+       }
+     },
+     "CLEANUP-C-R03": {
+@@ -1048,6 +1995,14 @@
+           "observed_outcome": "OBSERVED_UNKNOWN",
+           "exception_type": "CoveringRootOutcomeUnknown"
+         }
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "lineage": "T07-fake-v2 C-R02..C-R06"
++        }
+       }
+     },
+     "CLEANUP-C-R04": {
+@@ -1059,6 +2014,14 @@
+           "observed_outcome": "OBSERVED_UNKNOWN",
+           "exception_type": "CoveringRootOutcomeUnknown"
+         }
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "lineage": "T07-fake-v2 C-R02..C-R06"
++        }
+       }
+     },
+     "CLEANUP-C-R05": {
+@@ -1070,6 +2033,14 @@
+           "observed_outcome": "OBSERVED_UNKNOWN",
+           "exception_type": "CoveringRootOutcomeUnknown"
+         }
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "lineage": "T07-fake-v2 C-R02..C-R06"
++        }
+       }
+     },
+     "CLEANUP-C-R06": {
+@@ -1081,36 +2052,66 @@
+           "observed_outcome": "OBSERVED_UNKNOWN",
+           "exception_type": "CoveringRootOutcomeUnknown"
+         }
++      },
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "lineage": "T07-fake-v2 C-R02..C-R06"
++        }
+       }
+     },
+     "EXCESS-ITEM-BYTE": {
+       "kind": "excess",
+       "exact_predicate": {
+-        "byte_excess_outcome": "OBSERVED_REFUSE",
+-        "byte_excess_exception": "CoveringTransportRefused",
+-        "item_excess_outcome": "OBSERVED_REFUSE",
+-        "item_excess_exception": "CoveringTransportRefused"
+-      }
++        "observation": {
++          "byte_excess_outcome": "OBSERVED_REFUSE",
++          "byte_excess_exception": "CoveringTransportRefused",
++          "item_excess_outcome": "OBSERVED_REFUSE",
++          "item_excess_exception": "CoveringTransportRefused"
++        }
++      },
++      "predicted_outcome": "PASS"
+     },
+     "PRIMARY-BOTH-CLOSES": {
+       "kind": "primary_both_closes",
+       "exact_predicate": {
+-        "observed_outcome": "OBSERVED_UNKNOWN",
+-        "three_roles_present": true,
+-        "response_close_role": "FakeResponseCloseError",
+-        "transport_close_role": "FakeTransportCloseError"
+-      }
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "three_roles_present": true,
++          "response_close_role": "FakeResponseCloseError",
++          "transport_close_role": "FakeTransportCloseError"
++        }
++      },
++      "predicted_outcome": "PASS"
+     },
+     "OAUTH-UNKNOWN-RETIREMENT": {
+       "kind": "oauth_retirement",
+       "exact_predicate": {
+-        "observed_outcome": "OBSERVED_UNKNOWN",
+-        "exception_type": "CoveringRootOutcomeUnknown",
+-        "transport_sent_observed": true
+-      }
++        "observation": {
++          "observed_outcome": "OBSERVED_UNKNOWN",
++          "exception_type": "CoveringRootOutcomeUnknown",
++          "transport_sent_observed": true
++        }
++      },
++      "predicted_outcome": "PASS"
+     },
+     "SOURCE-INVENTORY": {
+-      "kind": "inventory"
++      "kind": "inventory",
++      "predicted_outcome": "PASS",
++      "exact_predicate": {
++        "changed_files": [
++          "app/services/covering_http_transport.py",
++          "app/services/covering_joined_https.py"
++        ],
++        "source_count": 468,
++        "dex_p1_p2_p3_addressed": true,
++        "provisional_review_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
++        "staged_read_hash_B04B3D6B_superseded_by": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
++        "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
++        "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0"
++      }
+     }
+   },
+   "dex_provisional_review": {
+@@ -1123,37 +2124,11 @@
+     "candidate_unchanged_v2": true,
+     "p1": "trailer _MAXHEADERS count retained + final CRLF; boundary 100 / overflow 101",
+     "p2": "unsigned hex chunk-size admission; negative refuse before read(-1)",
+-    "p3": "TE gate raw lower==chunked no strip, coherent with begin()/response.chunked; CL SP/HTAB OWS only. Wire LEADING TE OWS → parser-visible chunked → PASS; TRAILING TE OWS → refuse. get_all = parser-visible, not literal wire.",
+-    "review_2_disposition": "OWS oracle/docs corrected in prep-v2; app candidate hash retained; no raw-header interception; no execute."
++    "p3": "TE gate raw lower==chunked no strip, coherent with begin()/response.chunked; CL SP/HTAB OWS only. Wire LEADING TE OWS \u2192 parser-visible chunked \u2192 PASS; TRAILING TE OWS \u2192 refuse. get_all = parser-visible, not literal wire.",
++    "review_2_disposition": "OWS oracle/docs corrected in prep-v2; app candidate hash retained; no raw-header interception; no execute.",
++    "prep_v3": "result-oracle schema + CALLER labels + noncircular OUTER admission; candidate 29CBD53C/76017776 retained; header policy APPROVED cites AEAE5343/1C932F1A"
+   },
+   "changed_accepted_refused_spellings": {
+-    "newly_refused_policy_pending": [
+-      "H-DUP-IDENTICAL-FIELDS",
+-      "H-DUP-IDENTICAL-LIST",
+-      "H-CONFLICT-FIELDS-2-3",
+-      "H-CONFLICT-FIELDS-3-2",
+-      "H-CONFLICT-LIST-2-3",
+-      "H-CONFLICT-LIST-3-2",
+-      "H-DECIMAL-DUP-FIELDS",
+-      "H-DECIMAL-DUP-LIST",
+-      "H-DECIMAL-EQ-DUP-FIELDS",
+-      "H-DECIMAL-EQ-DUP-LIST",
+-      "H-INVALID",
+-      "H-INVALID-PLUS",
+-      "H-INVALID-NEG",
+-      "H-INVALID-EMPTY",
+-      "H-INVALID-NONDEC",
+-      "H-INVALID-DECIMAL-EQ",
+-      "H-TE-CL",
+-      "H-TE-REPEAT",
+-      "H-TE-LIST",
+-      "H-TE-MIXED",
+-      "H-TE-MIXED-CHUNKED-GZIP",
+-      "H-TE-NONEXACT+CL",
+-      "H-TE-WS-TRAIL",
+-      "H-DEFECT-COLONLESS",
+-      "C-TRAILER-MALFORMED"
+-    ],
+     "newly_refused_framing": [
+       "F02",
+       "F03-oauth",
+@@ -1183,6 +2158,46 @@
+       "F12a-INVALID-JSON-OAUTH",
+       "F12a-NONOBJECT-OAUTH",
+       "F12b-ENCODING-OAUTH"
++    ],
++    "newly_refused_under_approved_header_policy": [
++      "H-DUP-IDENTICAL-FIELDS",
++      "H-DUP-IDENTICAL-LIST",
++      "H-CONFLICT-FIELDS-2-3",
++      "H-CONFLICT-FIELDS-3-2",
++      "H-CONFLICT-LIST-2-3",
++      "H-CONFLICT-LIST-3-2",
++      "H-DECIMAL-DUP-FIELDS",
++      "H-DECIMAL-DUP-LIST",
++      "H-DECIMAL-EQ-DUP-FIELDS",
++      "H-DECIMAL-EQ-DUP-LIST",
++      "H-INVALID",
++      "H-INVALID-PLUS",
++      "H-INVALID-NEG",
++      "H-INVALID-EMPTY",
++      "H-INVALID-NONDEC",
++      "H-INVALID-DECIMAL-EQ",
++      "H-TE-CL",
++      "H-TE-REPEAT",
++      "H-TE-LIST",
++      "H-TE-MIXED",
++      "H-TE-MIXED-CHUNKED-GZIP",
++      "H-TE-NONEXACT+CL",
++      "H-TE-WS-TRAIL",
++      "H-DEFECT-COLONLESS",
++      "C-TRAILER-MALFORMED"
+     ]
++  },
++  "header_policy": {
++    "status": "APPROVED",
++    "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++    "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
++    "decision_path": "outputs/scheduler-framing-completion-design-v1/Header-Compatibility-Decision-For-Review.md",
++    "approval_path": "outputs/scheduler-framing-completion-design-v1/Trish-Header-Policy-Approval.json",
++    "note": "Leading wire TE OWS accepted (parser-visible chunked); trailing TE OWS refused. No new trailer/extension grammar beyond stated checks. OAuth UNKNOWN/counter/retirement preserved. Native orderly-vs-abrupt TLS remains unproved."
++  },
++  "dex_revise_audit": {
++    "path": "outputs/scheduler-framing-completion-design-v1/Framing-v2-Static-Admission-Audit.json",
++    "sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
++    "status": "addressed_in_prep_v3"
+   }
+ }
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\OUTER-ADMISSION.json" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\OUTER-ADMISSION.json"
+index 3f80afd..a8dcaaa 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\OUTER-ADMISSION.json"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\OUTER-ADMISSION.json"
+@@ -5,12 +5,12 @@
+     "subjects": {
+       "admit_outer.py": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF",
+       "invoke_framing_ack_fake.py": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F",
+-      "check_framing_ack.py": "AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9",
+-      "EXPECTED.json": "FECB594AB0F8F3631F04E06B395C78225A443428A6D87DB4461834B43FBF232D",
++      "check_framing_ack.py": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
++      "EXPECTED.json": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+       "INPUT-MANIFEST.json": "0A44D9AF50D37388FA0537F0F88930539C1A03F2C157F2502DE45713E51BAFD3",
+-      "PACKET-SHA256SUMS.txt": "03DA069F1DCC0EC54021265D509764F6CACB4B8B0234A141757E965469EF950B"
++      "PACKET-SHA256SUMS.txt": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9"
+     }
+   },
+   "execution_authorized": false,
+-  "note": "Preparation only. Future exact-hash launch approval required. P1/P2/P3 addressed."
++  "note": "Preparation only. Future exact-hash launch approval required. REVISE AEF66204 addressed; header policy AEAE5343/1C932F1A approved; P1/P2/P3 retained."
+ }
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\PACKET-SHA256SUMS.txt" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\PACKET-SHA256SUMS.txt"
+index e609e34..d1db237 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\PACKET-SHA256SUMS.txt"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\PACKET-SHA256SUMS.txt"
+@@ -1,3 +1,3 @@
+-AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9  check_framing_ack.py
+-00E6105BC719FBFFA7C84AF7F3E0C8094335F426DDF6E1C29C696B12461C0528  EXPECTED.json
++9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698  check_framing_ack.py
++08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2  EXPECTED.json
+ 0A44D9AF50D37388FA0537F0F88930539C1A03F2C157F2502DE45713E51BAFD3  INPUT-MANIFEST.json
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\docs\\Implementation-Decisions.md" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\docs\\Implementation-Decisions.md"
+index 41994ce..c8537aa 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\docs\\Implementation-Decisions.md"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\docs\\Implementation-Decisions.md"
+@@ -1,50 +1,51 @@
+-# Framing-ack implementation decisions (Jim/Justin) — prep v2
++# Framing-ack implementation decisions (Jim/Justin) — prep v3
+ 
+ executed=false; launch_authorized=false; endpoint=unbound. Prep is NOT a PASS.
+ 
++Successor of prep v2 (immutable TIP `569CA4F5…`) under Dex REVISE audit `AEF66204…` (p1794459957). Immutable v1 TIP `FA211E1D…` also preserved (not rewritten).
++
+ ## Application
+ - covering_http_transport.py: covering-local `_GuardedHTTPResponse` + before-decode `_admit_framing_headers` / `_admit_fixed_length_complete`. Retains 8192 collection loop.
+ - covering_joined_https.py: exact `suppress_ragged_eofs=False` at covering-only wrap_socket (prospective 76017776…).
+ - covering_provider_context.py: UNCHANGED (route fix preserved).
+-- Candidate HTTP hash **retained** from v1: `29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368` (gate already matched begin()/chunked; Review-2 required oracle/docs truth, not app edit).
++- Candidate HTTP hash **retained** from v1/v2: `29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368`.
++- Candidate TLS hash **retained**: `760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427`.
+ - Private parser coupling disclosed to host http.client 3A752927… and captured native C2C06941…; requalify on upgrade.
++- Port-zero packet **not** merged; `covering_transport_policy.py` A265F81F… UNCHANGED.
+ 
+-## Dex provisional reviews
+-### Review-1 (87E24D1A…) — P1–P3 gate — addressed in v1 candidate
+-- P1: `_read_and_discard_trailer` retains `trailers_read > http.client._MAXHEADERS` AND requires final `\r\n`. Witnesses: C-TRAILER-COUNT-100 / C-TRAILER-COUNT-101.
+-- P2: `_read_next_chunk_size` admits only unsigned hex (`_CHUNK_SIZE_HEX`) before return; refuses signed/negative before any inherited `_safe_read`/`fp.read(-1)`. Witness: C-NEG-SIZE with `negative_receive_requested=false`.
+-- P3 gate: TE uses `raw_te.lower() == "chunked"` with NO strip (matches begin()); CL uses SP/HTAB-only `_ows_strip` then unsigned decimal. Coherence: TE accepted ⇒ `response.chunked` true.
++## Header compatibility — APPROVED (cite, not policy-pending)
++- Decision: `Header-Compatibility-Decision-For-Review.md` SHA256 `AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0`
++- Approval: `Trish-Header-Policy-Approval.json` SHA256 `1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059`
++- Contract labels cite the above. Leading-wire TE OWS → parser-visible `chunked` → **pass** (`H-TE-WS-LEAD`). Trailing TE OWS remains parser-visible → **refuse** (`H-TE-WS-TRAIL`). Valid ordinary positives retained. No new trailer/extension grammar beyond stated checks. OAuth UNKNOWN/counter/retirement contracts preserved.
++- `policy_pending` on oracle candidate observations is **false** under the approved policy (semantic refuse/accept outcomes unchanged).
+ 
+-### Review-2 (4BA86BAB…) — OWS wire-oracle truth — addressed in prep v2 (docs/oracles only)
+-- `Message.get_all` returns **parser-visible** values, not literal wire bytes after the colon.
+-- Host `email._policybase.Compat32.header_source_parse` (lines 293–303) **lstrips leading SP/HTAB** after the colon and rstrips CR/LF.
+-- Therefore **actual wire** `Transfer-Encoding:` + leading field OWS + `chunked` becomes parser value `"chunked"` and is a **chunked positive / PASS** under the existing gate (`H-TE-WS-LEAD`).
+-- **Trailing** OWS stays parser-visible (`"chunked "`) and **REFUSES** (`H-TE-WS-TRAIL`).
+-- Helper-injected `Message(' chunked')` ≠ wire outcome; do not use helper metadata as wire-spelling proof. Use actual HTTPResponse parsing path for claimed wire spellings. No raw-header interception.
++## Dex REVISE (AEF66204…) — addressed in v3
++1. **Outer admission noncircular chain** — regenerate OUTER subjects + PACKET-SHA256SUMS + INPUT-MANIFEST consistency after final code/data freeze (EXPECTED/check/etc.). Preserve v1/v2 tipped packets.
++2. **Exact result oracle schema** — every EXPECTED.inputs row now has top-level `predicted_outcome: "PASS"` (launcher compares to result `observed_outcome`) and nonempty top-level `exact_predicate` mirroring emitted entry keys. Nested candidate/observation fields retain `OBSERVED_*` dialect. Launcher `validate_result_file` strictness retained (no exit0/wildcard/broad allowed).
++3. **CALLER proof labels** — CALLER-* rows use the same direct CoveringHTTP `run_http_catch` path as wire controls (not `_CoveringClient` / `refresh_access_token`). Labeled `direct_http_replay_plus_matched_immutable_original_caller_evidence`; historical T05 originals remain distinct; owning-caller obligation preserved/unproved in-candidate. No new evidence from ID reuse alone.
++4. **Concrete Commands-Held** — exact wrapper/admission hashes after freeze (held; not invoked).
+ 
+-v1 claims that both `H-TE-WS-*` refused were incorrect for LEAD on the real wire path; corrected here.
++## Dex provisional reviews (carried)
++### Review-1 (87E24D1A…) — P1–P3 gate — addressed in v1 candidate (retained)
++- P1: trailer `_MAXHEADERS` count + final CRLF (C-TRAILER-COUNT-100/101).
++- P2: unsigned hex chunk size; C-NEG-SIZE refuse before read(-1).
++- P3 gate: TE `raw_te.lower() == "chunked"` with NO strip; CL SP/HTAB-only `_ows_strip`.
+ 
+-## Header compatibility = REVIEW CANDIDATE (not accepted contract)
+-See EXPECTED.json `changed_accepted_refused_spellings` and policy_pending labels on oracles.
++### Review-2 (4BA86BAB…) — OWS wire-oracle truth — retained from v2
++- Leading wire TE OWS → PASS; trailing → REFUSE. Helper `Message(' chunked')` ≠ wire outcome.
+ 
+ ## Verification
+ - Four roles only. Reuse 57 T05 wires + RESULT D29D4CFD… as immutable original evidence.
+-- Added: H-DEFECT-COLONLESS; P1/P2/P3 witnesses; TLS option forward; cleanup C-R02..C-R06 lineage; item/byte excess; primary+both closes; OAuth UNKNOWN retirement.
++- Result dialect: top-level `PASS` + nested `OBSERVED_*` (aligned to `validate_result_file` + check emission).
+ - Limits proposal: 30+5+5+5=45s; 64KiB/stream; 256KiB result; 2 readers; STOP/no-overwrite/UNKNOWN/no-retry; outer exclusions disclosed.
+ 
+-## Independent static note — port-zero origin check (NO implementation authority)
+-Attributed Dex offline finding; preparation-extension card pending. **Not** in the approved three-file lane. **No edit** to `covering_transport_policy.py`; **no** port-zero controls added in this prep.
+-
+-- Read/hash-verified: `scheduler-port-zero-proposal-v1/Preparation-Scope-For-Approval.md` SHA256 `A27E47A5B7106708CC1A6E683D645CAB2821FBA1FAE2F45E7A7488F1DB5B0F85`
+-- Read/hash-verified: `scheduler-port-zero-proposal-v1/Proposed-Fix.diff` SHA256 `C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB`
+-- Finding: `HTTPSPeer.check_url` uses `(u.port or 443)`; `urllib.parse` port may be `int(0)`, so URL `:0` can pass a peer-443 origin check via truthiness fallback. Dial still uses pinned destination — exact-origin admission mismatch, not arbitrary-destination proof.
+-- Narrow proposed (not applied): `(443 if u.port is None else u.port)`.
+-- Packet candidate policy file hash (unchanged, not edited): `A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598`.
++## Independent static note — port-zero (NO implementation authority)
++Unchanged from v2. Outside lane; no edit applied. See `docs/Port-Zero-Static-Source-Note.md`.
+ 
+ ## Blockers / qualifications
+-- Material header-policy freeze still Trish's before contract/launch.
+ - Native orderly vs abrupt TLS EOF unproved (byte fakes ≠ close_notify).
+ - Host characterization ≠ native runtime proof.
+-- staged B04B3D6B superseded by 29CBD53C after P1–P3 (v1); v2 retains 29CBD53C.
+ - Port-zero fix awaits Trish preparation-extension approval; outside this framing lane.
+-- Immutable v1 TIP `FA211E1D…` / candidate `29CBD53C…` preserved (not rewritten).
++- Owning-caller proof obligation remains (CALLER rows are direct HTTP replay only).
++- Immutable v1 TIP `FA211E1D…` / v2 TIP `569CA4F5…` / candidate `29CBD53C…` preserved (not rewritten).
++- Prep is not PASS; no execute/import/compile/helper invocation performed in authoring.
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\Commands-Held.ps1.txt" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\Commands-Held.ps1.txt"
+index 7ad984c..2fdb4db 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\Commands-Held.ps1.txt"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\Commands-Held.ps1.txt"
+@@ -1,14 +1,41 @@
+ # HELD framing-ack invocation (DO NOT RUN without Trish exact-hash one-shot approval)
+-# executed=false; launch_authorized=false; endpoint=unbound
++# packet: post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11
++# executed=false; launch_authorized=false; endpoint=unbound; prep_is_not_pass=true
+ 
+-$AdmissionSHA256 = '<FILL-FROM-FUTURE-LAUNCH-APPROVAL matching VERIFICATION-ADMISSION.json>'
+-# Operator wrapper only after approval:
++$ErrorActionPreference = 'Stop'
++$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
++
++# Frozen exact hashes (authoring freeze — not a launch authorization)
++$WrapperSHA256     = '0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA'
++$AdmissionSHA256   = '1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC'
++$OuterAdmissionSHA256 = 'F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6'
++$AdmitOuterSHA256  = '26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF'
++$InvokeSHA256      = '7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F'
++$CheckSHA256       = '9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698'
++$ExpectedSHA256    = '08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2'
++$PacketSumsSHA256  = '0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9'
++$CandidateHttpSHA256 = '29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368'
++$CandidateTlsSHA256  = '760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427'
++
++# Preflight hash checks (still not a launch)
++$wrapperPath = Join-Path $Root 'Invoke-Verification.ps1'
++$admissionPath = Join-Path $Root 'VERIFICATION-ADMISSION.json'
++if ((Get-FileHash -LiteralPath $wrapperPath -Algorithm SHA256).Hash -ne $WrapperSHA256) {
++    throw 'STOP: wrapper hash mismatch; held commands refuse'
++}
++if ((Get-FileHash -LiteralPath $admissionPath -Algorithm SHA256).Hash -ne $AdmissionSHA256) {
++    throw 'STOP: admission hash mismatch; held commands refuse'
++}
++
++# Operator wrapper shape after future exact-hash one-shot approval ONLY:
+ #   pwsh -NoProfile -File .\Invoke-Verification.ps1 -AdmissionSHA256 $AdmissionSHA256
+ #
+ # Proposed limits (launcher-enforced when authorized):
+ #   1 pinned Python outer/launcher/check chain
+ #   2 capture readers
+-#   30s collect + 5s kill/wait + 2×5s joins = 45s nominal
++#   30s collect + 5s kill/wait + 2x5s joins = 45s nominal
+ #   64KiB/stream; 256KiB result
+ #   STOP; no-overwrite; reader/child UNKNOWN; no retry/repair/fallback
+-# Outer exclusions: admission/file/hash/receipt I/O + OS latency; no separate outer timeout
+\ No newline at end of file
++# Outer exclusions: admission/file/hash/receipt I/O + OS latency; no separate outer timeout
++#
++# DO NOT invoke from this prep seat. No Slack tip.
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\VERIFICATION-ADMISSION.json" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\VERIFICATION-ADMISSION.json"
+index a941b86..c493505 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\VERIFICATION-ADMISSION.json"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\VERIFICATION-ADMISSION.json"
+@@ -8,7 +8,7 @@
+   "packet_files": [
+     {
+       "relative_path": "verify/check_framing_ack.py",
+-      "sha256": "AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9"
++      "sha256": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698"
+     },
+     {
+       "relative_path": "verify/invoke_framing_ack_fake.py",
+@@ -20,7 +20,7 @@
+     },
+     {
+       "relative_path": "verify/EXPECTED.json",
+-      "sha256": "00E6105BC719FBFFA7C84AF7F3E0C8094335F426DDF6E1C29C696B12461C0528"
++      "sha256": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2"
+     },
+     {
+       "relative_path": "verify/INPUT-MANIFEST.json",
+@@ -28,11 +28,11 @@
+     },
+     {
+       "relative_path": "verify/PACKET-SHA256SUMS.txt",
+-      "sha256": "03DA069F1DCC0EC54021265D509764F6CACB4B8B0234A141757E965469EF950B"
++      "sha256": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9"
+     },
+     {
+       "relative_path": "verify/OUTER-ADMISSION.json",
+-      "sha256": "39ABC9C0DC5E59469AA6D7A99B50997C4F68EDE4A5DF1CE7D5725A4C8DBD8076"
++      "sha256": "F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6"
+     },
+     {
+       "relative_path": "verify/EXPECTED-ORIGINAL-T05-IMMUTABLE.json",
+@@ -338,5 +338,9 @@
+     "capture_result_bytes": 262144,
+     "stop_no_overwrite": true,
+     "no_retry": true
+-  }
++  },
++  "prep_version": "v3",
++  "dex_revise_audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
++  "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++  "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+ }
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\TIP-FREEZE.json" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\TIP-FREEZE.json"
+index b1243bc..0d35a21 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\TIP-FREEZE.json"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\TIP-FREEZE.json"
+@@ -1,41 +1,68 @@
+ {
+   "kind": "TIP-FREEZE",
+-  "packet": "post-native-framing-ack-source-fake-prep-jim-v2-2026-11-11",
++  "packet": "post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11",
+   "at_date": "2026-11-11",
+-  "author": "Justin for Jim under Dex assignment",
++  "author": "Justin for Jim under Dex REVISE",
+   "disposition": "SOURCE_PREP_FROZEN_FOR_DEX_REVIEW",
+   "successor_of": {
+-    "packet": "post-native-framing-ack-source-fake-prep-jim-v1-2026-11-11",
+-    "tip_sha256": "FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4",
++    "packet": "post-native-framing-ack-source-fake-prep-jim-v2-2026-11-11",
++    "tip_sha256": "569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697",
+     "candidate_http": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+     "immutable": true
+   },
++  "immutable_predecessors": {
++    "v1_tip_sha256": "FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4",
++    "v2_tip_sha256": "569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697",
++    "rewritten": false
++  },
+   "executed": false,
+   "launch_authorized": false,
+   "endpoint": "unbound",
+   "prep_is_not_pass": true,
+-  "tip_preimage_sha256": "4CD4F0F388030A6D603A46FA12D5547C230EBFD382C5C6AB30A913EB1ED7898D",
++  "tip_preimage_sha256": "C001F076EC8DE951DAF930ED78E7BA9A787A3593B84504D492E7D8F6D95E2470",
+   "application": {
+     "original_http": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F",
+     "candidate_http": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+     "original_tls": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+     "candidate_tls": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+     "provider_context_unchanged": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+-    "candidate_http_unchanged_from_v1": true
++    "candidate_http_unchanged_from_v1": true,
++    "candidate_http_unchanged_from_v2": true,
++    "candidate_tls_unchanged_from_v2": true
+   },
+   "roles": {
+     "tip": "see ARTIFACT-HASHES",
+     "admit_outer": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF",
+-    "check": "AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9",
++    "check": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
+     "invoke": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F",
+     "wrapper": "0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA",
+-    "outer_admission": "39ABC9C0DC5E59469AA6D7A99B50997C4F68EDE4A5DF1CE7D5725A4C8DBD8076"
++    "outer_admission": "F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6",
++    "verification_admission": "1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC"
+   },
+   "oracles": {
+-    "EXPECTED": "00E6105BC719FBFFA7C84AF7F3E0C8094335F426DDF6E1C29C696B12461C0528",
++    "EXPECTED": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
++    "PACKET_SHA256SUMS": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9",
+     "H-TE-WS-LEAD": "OBSERVED_SUCCESS / chunked positive (wire leading OWS stripped by Compat32)",
+-    "H-TE-WS-TRAIL": "OBSERVED_REFUSE (trailing OWS parser-visible)"
++    "H-TE-WS-TRAIL": "OBSERVED_REFUSE (trailing OWS parser-visible)",
++    "predicted_outcome_dialect": "PASS",
++    "nested_observation_dialect": "OBSERVED_*"
++  },
++  "header_policy": {
++    "status": "APPROVED",
++    "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++    "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++  },
++  "dex_revise": {
++    "audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
++    "disposition": "ADDRESSED_IN_PREP_V3",
++    "items": [
++      "outer_admission_noncircular_regenerated",
++      "exact_result_oracle_schema_predicted_outcome_and_exact_predicate",
++      "caller_labels_direct_http_replay_plus_matched_immutable_original",
++      "concrete_commands_held"
++    ]
+   },
++  "caller_labeling_choice": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+   "dex_review_2": {
+     "review_sha256": "4BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E",
+     "disposition": "OWS_ORACLE_DOCS_ALIGNED_CANDIDATE_RETAINED",
+@@ -54,7 +81,7 @@
+     "note_path": "docs/Port-Zero-Static-Source-Note.md",
+     "policy_file_sha256_unchanged": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+   },
+-  "policy_pending": "header compatibility REVIEW CANDIDATE — not accepted contract",
++  "native_tls_orderly_vs_abrupt": "unproved",
+   "wire_control_count": 73,
+   "no_slack_tip": true
+ }
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\Static-Preparation-Receipt.json" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\Static-Preparation-Receipt.json"
+index 7188840..8e2f1be 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\Static-Preparation-Receipt.json"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\Static-Preparation-Receipt.json"
+@@ -2,16 +2,18 @@
+   "class": "FRAMING-ACK-STATIC-PREPARATION-RECEIPT",
+   "at_date": "2026-11-11",
+   "author": "Justin for Jim",
+-  "prep_version": "v2",
++  "prep_version": "v3",
+   "executed": false,
+   "launch_authorized": false,
+   "endpoint": "unbound",
+   "prep_labeled_pass": false,
+   "authority": {
+-    "card": "call_ea3a620c1f974c248fb94036c60f4703",
+     "approval_sha256": "75556514BB93057BAAC30B16C51E185982AD983BCB9FCA76CB5B2FD918FA35B2",
+     "assignment_sha256": "5B836550DC49C2071D09E4C40CC59BB24A0F334FA8249E530804D18C7C539B0A",
+     "brief_sha256": "BB230A784C6B556C401AF599A551E35F7650AB7F06B451AB9CC0788A4DF4E434",
++    "dex_revise_audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
++    "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
++    "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
+     "dex_provisional_review_1_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+     "dex_provisional_review_2_sha256": "4BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E"
+   },
+@@ -23,21 +25,42 @@
+     "provider_context": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+     "changed_files": 2,
+     "unchanged_application_files": 232,
+-    "candidate_http_unchanged_from_v1": true
++    "candidate_http_unchanged_from_v1": true,
++    "candidate_http_unchanged_from_v2": true,
++    "candidate_tls_unchanged_from_v2": true
+   },
+   "roles": {
+-    "check": "AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9",
++    "check": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
+     "invoke": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F",
+     "admit": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF",
+     "wrapper": "0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA",
+-    "outer_admission": "39ABC9C0DC5E59469AA6D7A99B50997C4F68EDE4A5DF1CE7D5725A4C8DBD8076"
++    "outer_admission": "F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6",
++    "verification_admission": "1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC"
+   },
+   "oracles": {
+-    "EXPECTED": "00E6105BC719FBFFA7C84AF7F3E0C8094335F426DDF6E1C29C696B12461C0528",
++    "EXPECTED": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
++    "PACKET_SHA256SUMS": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9",
+     "H-TE-WS-LEAD": "OBSERVED_SUCCESS",
+-    "H-TE-WS-TRAIL": "OBSERVED_REFUSE"
++    "H-TE-WS-TRAIL": "OBSERVED_REFUSE",
++    "predicted_outcome_dialect": "PASS",
++    "nested_observation_dialect": "OBSERVED_*"
++  },
++  "caller_labeling": {
++    "choice": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
++    "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
++    "not_claimed": [
++      "_CoveringClient",
++      "refresh_access_token"
++    ]
++  },
++  "revise_disposition": {
++    "outer_admission_noncircular": "regenerated_after_final_freeze",
++    "exact_result_oracle_schema": "predicted_outcome_PASS_plus_nonempty_exact_predicate_all_73",
++    "caller_proof_labels": "direct_http_replay_plus_matched_immutable_original",
++    "commands_held": "concrete_exact_hashes"
+   },
+   "review_2_disposition": "OWS oracle/docs aligned; candidate 29CBD53C retained",
++  "header_policy_status": "APPROVED",
+   "port_zero_note": {
+     "implementation_authority": false,
+     "edited": false,
+@@ -45,8 +68,10 @@
+     "proposed_fix_diff_sha256": "C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB"
+   },
+   "immutable_v1_tip": "FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4",
++  "immutable_v2_tip": "569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697",
+   "wire_control_count": 73,
+   "t05_immutable_wires": 57,
+   "p1_p2_p3": "addressed",
++  "native_tls_orderly_vs_abrupt": "unproved",
+   "no_slack_tip": true
+ }
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\HANDBACK.txt" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\HANDBACK.txt"
+index d1a9c9d..89dc3d1 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\HANDBACK.txt"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\HANDBACK.txt"
+@@ -1,4 +1,4 @@
+-HANDBACK — post-native-framing-ack-source-fake-prep-jim-v2-2026-11-11
++HANDBACK — post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11
+ Justin for Jim. Dex independent review next. NO Slack tip from this seat.
+ 
+ Flags: executed=false; launch_authorized=false; endpoint=unbound; prep_is_not_PASS=true.
+@@ -7,53 +7,46 @@ Authority verified:
+   Trish-Increment-Workspace-Lane-Approval.json 75556514…
+   Jim-Framing-Increment-Implementation-Assignment.md 5B836550…
+   Framing-Increment-Implementation-Brief.md BB230A78…
+-  Dex provisional source review-1 87E24D1A… (P1/P2/P3 gate; candidate 29CBD53C…)
+-  Dex provisional source review-2 4BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E
+-    disposition: OWS oracle/docs aligned; candidate retained; no raw-header interception
++  Dex REVISE Framing-v2-Static-Admission-Audit.json AEF66204…
++  Header-Compatibility-Decision-For-Review.md AEAE5343… (APPROVED)
++  Trish-Header-Policy-Approval.json 1C932F1A…
++  Dex provisional source review-1 87E24D1A…
++  Dex provisional source review-2 4BA86BAB…
+ 
+-Immutable predecessor (not rewritten):
++Immutable predecessors (not rewritten):
+   v1 TIP-FREEZE FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4
+-  v1 candidate HTTP 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368
++  v2 TIP-FREEZE 569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697
++  candidate HTTP 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368
+ 
+ Prep root:
+-  C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v2\
++  C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\
+ 
+ Handback:
+-  F:\DropFolder\pending\post-native-framing-ack-source-fake-prep-jim-v2-2026-11-11\
++  F:\DropFolder\pending\post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11\
+ 
+-Application (only two files changed vs original; candidate HTTP unchanged vs v1):
++Application (unchanged vs v1/v2 candidates):
+   covering_http_transport.py  E2FC2226… → 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368
+   covering_joined_https.py    2E6A4ABB… → 760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427  (exact EOF option)
+   covering_provider_context.py 65529CBC… UNCHANGED
+-  Unchanged other app files: 232
+-  covering_transport_policy.py A265F81F… UNCHANGED (outside lane; see port-zero note)
++  covering_transport_policy.py A265F81F… UNCHANGED (port-zero outside lane)
+ 
+ Roles SHA256:
+-  TIP-FREEZE.json              569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697
++  TIP-FREEZE.json              BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209
+   admit_outer.py               26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF
+-  check_framing_ack.py         AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9
++  check_framing_ack.py         9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698
+   invoke_framing_ack_fake.py   7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F
+   Invoke-Verification.ps1      0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA
+-  OUTER-ADMISSION.json         39ABC9C0DC5E59469AA6D7A99B50997C4F68EDE4A5DF1CE7D5725A4C8DBD8076
+-  EXPECTED.json                00E6105BC719FBFFA7C84AF7F3E0C8094335F426DDF6E1C29C696B12461C0528
++  OUTER-ADMISSION.json         F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6
++  EXPECTED.json                08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2
++  PACKET-SHA256SUMS.txt        0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9
++  VERIFICATION-ADMISSION.json  1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC
+ 
+-Controls: 73 ordered (57 T05 immutable wires reused as original evidence + supplementals).
+-Policy: header compatibility = REVIEW CANDIDATE / policy-pending on oracles — not accepted contract.
++REVISE disposition:
++  1) Outer admission noncircular chain regenerated after final freeze (OUTER subjects match live EXPECTED/PACKET-SHA256SUMS/check/invoke/admit/manifest).
++  2) Exact result oracle: all 73 rows have predicted_outcome=PASS + nonempty top-level exact_predicate mirroring check emission (nested OBSERVED_*).
++  3) CALLER labeling choice: direct_http_replay_plus_matched_immutable_original_caller_evidence; owning-caller obligation preserved/unproved in-candidate.
++  4) Concrete Commands-Held.ps1.txt carries exact wrapper/admission/outer/role hashes (held; not invoked).
+ 
+-P1: trailer _MAXHEADERS count + final CRLF (C-TRAILER-COUNT-100/101) — retained
+-P2: unsigned hex chunk size; C-NEG-SIZE refuse before read(-1) — retained
+-P3 / Review-2 OWS wire truth:
+-  H-TE-WS-LEAD  → OBSERVED_SUCCESS / chunked positive (parser lstrips leading SP/HTAB; get_all="chunked")
+-  H-TE-WS-TRAIL → OBSERVED_REFUSE (trailing OWS remains parser-visible)
+-  Helper Message(' chunked') ≠ wire outcome; actual HTTPResponse path for wire claims.
++Header policy: APPROVED (AEAE5343… / 1C932F1A…). H-TE-WS-LEAD PASS / H-TE-WS-TRAIL REFUSE retained. OAuth UNKNOWN/counter/retirement preserved.
+ 
+-Independent static note — port-zero (NO implementation authority; no edit applied):
+-  Preparation-Scope-For-Approval.md A27E47A5B7106708CC1A6E683D645CAB2821FBA1FAE2F45E7A7488F1DB5B0F85
+-  Proposed-Fix.diff C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB
+-  Finding: HTTPSPeer.check_url (u.port or 443) admits URL :0 against peer 443 via int(0) truthiness;
+-  dial still pinned. Narrow proposed: (443 if u.port is None else u.port).
+-  Trish preparation-extension card pending. See docs/Port-Zero-Static-Source-Note.md (301229DC293EA28568C5107A5FF300C680405D095F4887009B85A235300313C0).
+-
+-Blockers: Trish header-policy freeze before contract/launch; native TLS EOF unproved; port-zero outside lane; no execute/import/compile performed.
+-
+-Method attestation: ordinary file reads/hashes/UTF-8 writes only under approved workspace-authoring lane. No sockets/PKI/Docker/native/providers. No helper invocation. No Slack tip.
++Controls: 73 ordered. Native TLS orderly-vs-abrupt unproved. Port-zero not merged. No execute/import/compile/helper invocation. No Slack tip.

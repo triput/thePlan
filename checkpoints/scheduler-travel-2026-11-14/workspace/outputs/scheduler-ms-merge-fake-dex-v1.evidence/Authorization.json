@@ -1,0 +1,16 @@
+{
+  "endpoint": "unbound",
+  "receivedAtUtc": "2026-11-13T19:16:28.7323371Z",
+  "decisionBriefSha256": "F732BE1985A486A4202FF3F823DEBA2E3957C70485D04BBDFF1093510361F29F",
+  "atMostOneEach": true,
+  "stopBeforeNextOnAnyFailure": true,
+  "nativeAuthority": false,
+  "sequence": [
+    "T05-combined-witness",
+    "MS-refresh-merge"
+  ],
+  "questionId": "call_1ea6a7bb9175406b954c4db26c1c02cd",
+  "inputsReverified": 45,
+  "peerCloseV1RetryOrV2Excluded": true,
+  "userAnswer": "Authorize the two unrun fake checks (Recommended)"
+}

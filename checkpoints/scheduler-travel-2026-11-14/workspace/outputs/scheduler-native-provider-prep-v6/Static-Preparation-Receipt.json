@@ -1,0 +1,38 @@
+{
+  "kind": "static-preparation-receipt",
+  "packet": "post-native-provider-prep-jim-v6-2026-11-12",
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": false,
+  "prep_is_not_pass": true,
+  "first_vertical_increment": true,
+  "endpoint": "unbound",
+  "tip_sha256": "7F39B13BBC30CD5A92DDD5F355E31CE0F69E91C99464969CCD41EE417406C4A9",
+  "tip_on_disk_sha256": "205CAE8DEA237EDDCA2AF7AD63F61FCF03B2DF666BBBDD969B5D7D19A7E3A647",
+  "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "approval_sha256": "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4",
+  "formal_v4_revise_sha256": "CC37D4ADBA657FB3F13EDFA1F4A99A8A48D196368025A564DDE723FD78BCAB14",
+  "alias_subset_safe_seed_sha256": "7AA3407D01A9C7DA4006BA721E305CD97D90E6CE8DC2060B5F1812C79DD1AE07",
+  "provisional_v5_observations_sha256": "1CB895E089B07FFB0B3D35D75DF4042803EC8B3E0DB02285ADFEE401B834F3DF",
+  "key_role_sha256": {
+    "np_provider_peer.py": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+    "np_runner_entry.py": "BA914A73EC225B596ACAB2F5B2FAB5446D0E97DD60EAC9BF980AEF88B0D62063",
+    "np_suite.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+    "np_supervisor.py": "5258596B6F01E2D0325B9ECE39423257148B0310C4CD7FD7E018CE32D515030C",
+    "check_native_provider.py": "CA8704D6589DCC3A1D24204B23F0AF94EEDC7BB6894768F0E760660A84C95837",
+    "Invoke-Native-Provider.ps1": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+    "np_auth_seed.py": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150"
+  },
+  "verification_admission_sha256": "CB0E22D2D0140675CF9CA6A04878781640B27234EA92E5CE9A0EDA2CE9501BCB",
+  "mutable_role_hashes_sha256": "2F5E4B071BE65D8B0C48FD4CA74F77936E4859460BC3AE2F33E834947D2C407B",
+  "confirmations": {
+    "release_plan_installed": true,
+    "budget_proof_counter_remaining": true,
+    "primary_alias_on_lower_sorted_id": true,
+    "pki_caller_authored_uninvoked": true,
+    "exact_transcript_path": true,
+    "admission_schema_wrapper_fields": true,
+    "mapped_coverage_fields": true,
+    "one_attempt_retirement_guard": true
+  }
+}

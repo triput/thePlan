@@ -1,0 +1,30 @@
+{
+  "excludes": [
+    "Generated key/certificate material",
+    "Raw binary captures",
+    "Interpreter cache",
+    "Opaque historical ZIP",
+    "Unrelated main-checkout edits",
+    "Credentials and live databases"
+  ],
+  "activation": false,
+  "purpose": "User-requested Scheduler travel recovery checkpoint",
+  "secretPatternFindings": 0,
+  "uniqueContentsScanned": 3449,
+  "executionAuthority": "NONE",
+  "sourceBytes": 339694041.0,
+  "scanIsNotUniversalGuarantee": true,
+  "goalStatus": "paused",
+  "excludedFiles": 43,
+  "deployment": false,
+  "repository": "triput/thePlan",
+  "sourceAndEvidenceFiles": 32835,
+  "branch": "checkpoint/scheduler-travel-2026-11-14",
+  "includes": [
+    "Scheduler source packets and historical preparation lineage",
+    "Sanitized results and receipts",
+    "Signed thePlan coordination handoffs",
+    "Current plan and travel recovery guide"
+  ],
+  "visibility": "public"
+}

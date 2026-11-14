@@ -1,0 +1,187 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "DIFF-REDERIVATION",
+    "PRODUCER-PRECEDENT-IDENTITY",
+    "DECLARATION-MATCHES-BEHAVIOR",
+    "ORIGINAL-STATUS-KIND-ONLY",
+    "CANDIDATE-HAPPY-PATH",
+    "CAUSE-CONTEXT-CYCLE",
+    "OWNED-FRAME-REJECTIONS",
+    "BOUNDS-AND-TRUNCATION",
+    "DIAGNOSTIC-FALLBACK",
+    "PRIVACY-ENVELOPE",
+    "UNCHANGED-STOP-EXIT",
+    "HOST-VALIDATOR-EXTRACTED",
+    "MUTANT-DETECTION"
+  ],
+  "controls": {
+    "BOUNDS-AND-TRUNCATION": {
+      "cases": {
+        "envelope_gt_4096": "PASS",
+        "exceptions_gt_3": "PASS",
+        "frames_gt_8": "PASS",
+        "traceback_walk_gt_128": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "frames_after_trim": [
+        0,
+        8,
+        8
+      ],
+      "observed": "PASS"
+    },
+    "CANDIDATE-HAPPY-PATH": {
+      "control_kind": "extracted_behavior_fake",
+      "frames": 2,
+      "host_retained": true,
+      "observed": "PASS",
+      "truncated": false
+    },
+    "CAUSE-CONTEXT-CYCLE": {
+      "cases": {
+        "cause": "PASS",
+        "cause_preferred": "PASS",
+        "context_only": "PASS",
+        "cycle": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "DECLARATION-MATCHES-BEHAVIOR": {
+      "control_kind": "static_declaration",
+      "declared": {
+        "diagnostic_byte_cap": 4096,
+        "diagnostic_exception_cap": 3,
+        "diagnostic_fallback": "original_status_kind",
+        "diagnostic_frames_per_exception_cap": 8,
+        "includes_key_cert_body_credential_bytes": false,
+        "includes_packet_owned_source_locations": true,
+        "includes_raw_traceback": false,
+        "note": "STOP does not inherit success PKI summary; no inferred success",
+        "provider_pki_summary_on_stop": false,
+        "stop_schema": [
+          "status",
+          "kind",
+          "diagnostic_optional"
+        ]
+      },
+      "observed": "PASS"
+    },
+    "DIAGNOSTIC-FALLBACK": {
+      "cases": {
+        "inherited_exotic_fallback_host_refusal_expected": "PASS",
+        "manifest_missing": "PASS",
+        "manifest_row_malformed": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "inherited_asymmetry_preserved": true,
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "control_kind": "literal_text",
+      "derived_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+      "files": [
+        "a/payload/fixture/np_runner_entry.py",
+        "b/payload/fixture/np_runner_entry.py"
+      ],
+      "hunks": 3,
+      "observed": "PASS"
+    },
+    "HOST-VALIDATOR-EXTRACTED": {
+      "cases": {
+        "accepts_candidate_and_original": "PASS",
+        "ignores_unowned_attach": "PASS",
+        "refuses_carriage_return": "PASS",
+        "refuses_duplicate_key": "PASS",
+        "refuses_extra_top_key": "PASS",
+        "refuses_four_exceptions": "PASS",
+        "refuses_frame_line_oob": "PASS",
+        "refuses_frame_not_owned": "PASS",
+        "refuses_nine_frames": "PASS",
+        "refuses_non_int_exit": "PASS",
+        "refuses_over_4096": "PASS",
+        "refuses_primary_kind_mismatch": "PASS",
+        "refuses_two_lines": "PASS",
+        "refuses_version_2": "PASS"
+      },
+      "control_kind": "extracted_host_validator_fake",
+      "observed": "PASS"
+    },
+    "MUTANT-DETECTION": {
+      "control_kind": "mutation_fake",
+      "mutants": {
+        "context_ignored": "DETECTED",
+        "fallback_removed": "DETECTED",
+        "frame_cap_9": "DETECTED",
+        "walk_129": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "ORIGINAL-STATUS-KIND-ONLY": {
+      "control_kind": "extracted_original_handler_plus_host",
+      "exit": 125,
+      "host_diagnostic_unavailable": true,
+      "observed": "PASS"
+    },
+    "OWNED-FRAME-REJECTIONS": {
+      "cases": {
+        "identifier_sanitized": "PASS",
+        "line_past_end": "PASS",
+        "line_zero": "PASS",
+        "manifest_lowercase_pin": "PASS",
+        "manifest_non_canonical_path": "PASS",
+        "manifest_non_python": "PASS",
+        "path_outside_root": "PASS",
+        "rel_not_in_manifest": "PASS",
+        "source_hash_mismatch": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PRIVACY-ENVELOPE": {
+      "control_kind": "extracted_behavior_fake",
+      "envelope_bytes": 269,
+      "observed": "PASS"
+    },
+    "PRODUCER-PRECEDENT-IDENTITY": {
+      "control_kind": "extracted_text_identity",
+      "observed": "PASS",
+      "stop_payload_sha256": "A59E2933C823AC390A3E49D2237FC495A017F4C6A2886000BC07A6EDF048A01E"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "candidate/np_runner_entry.py": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+        "diff/V3-Proposed-Runner-Diagnostic.diff": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+        "host/docker_transport.py": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+        "original/np_runner_entry.py": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+        "producer/runner_entry.py": "2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E"
+      }
+    },
+    "UNCHANGED-STOP-EXIT": {
+      "control_kind": "extracted_handler_fake",
+      "observed": "PASS",
+      "runs": {
+        "candidate:keyboard_interrupt": "PASS",
+        "candidate:runtime_error": "PASS",
+        "candidate:success_no_stop": "PASS",
+        "original:keyboard_interrupt": "PASS",
+        "original:runtime_error": "PASS",
+        "original:success_no_stop": "PASS"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 51,
+  "packet": "scheduler-native-provider-runner-diagnostic-fake-prep-matt-v1",
+  "passed": 14,
+  "prep_is_not_pass": true
+}

@@ -1,0 +1,49 @@
+{
+  "transferQualification": "Unchanged source identities support limited reuse. This does not execute the current assembly or prove unchanged behavior of the composed system after five transport-path changes. Native provider vertical/TLS evidence remains required.",
+  "httpNativeAssessmentProvenAtRetainedScope": true,
+  "apiChanged": [
+    {
+      "path": "app/services/covering_http_transport.py",
+      "currentSha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "priorSha256": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF"
+    },
+    {
+      "path": "app/services/covering_joined_https.py",
+      "currentSha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "priorSha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468"
+    },
+    {
+      "path": "app/services/covering_provider_context.py",
+      "currentSha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "priorSha256": "8A40B635467D3BB3CD12E57F96521ACF7AEEF7D4A7661DB9157AC7FED9802D9F"
+    },
+    {
+      "path": "app/services/covering_refresh_import.py",
+      "currentSha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "priorSha256": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0"
+    },
+    {
+      "path": "app/services/covering_transport_policy.py",
+      "currentSha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "priorSha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485"
+    }
+  ],
+  "cleanupQualification": "Retained original exact-ID success cleanup journal rechecked; no current container probe, removal, signal or new Docker invocation performed.",
+  "providerTransport": "FixtureByteTransport",
+  "suitePass": 22,
+  "atUtc": "2026-11-13T18:24:26.1411015Z",
+  "dbObservedOwnerContentionProvenAtRetainedScope": true,
+  "journalHashes": {
+    "receipt": "31ADF9FE65D6898728356B7F2AF8428BA505A57F94FEFB4D10BFDA4E6985C5E6",
+    "commands": "9E04C9BF921FB705252C6D8F0FEA7E04CF392378E429A182551C38799B3146D3"
+  },
+  "kind": "i01-i02-retained-proof-current-source-transfer-audit",
+  "assessmentSQLPass": 16,
+  "executionPerformed": false,
+  "apiCompared": 234,
+  "apiUnchanged": 229,
+  "endpoint": "unbound",
+  "allCLIWorkersJoined": 24,
+  "goalComplete": false,
+  "defaultJoinedTLSProvenByThisRun": false
+}

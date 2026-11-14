@@ -1,0 +1,39 @@
+{
+  "kind": "T07 v7 fresh host v2 independent static review",
+  "date": "2026-11-11",
+  "tip_sha256": "19A9BE6B465CA7041231846687F85E950ED5AD0CB02C6318C93CA985E2EE63B1",
+  "check_sha256": "C8C1915AF1A2A8314BFE2A80B61B1FDA6708F9001C59CB1EC25C9410887BF19F",
+  "artifact_manifest_rows_verified": 15,
+  "accepted_payload_files_identical": 238,
+  "host_packet_pins": 253,
+  "runtime_provenance_pins": 17,
+  "controls": 41,
+  "expected_pass": 31,
+  "expected_original_pass_witness": 10,
+  "closed_v6_findings": [
+    "Explicit primitive-field prior-result projection; original SUB-1 result objects retained and asserted",
+    "C-R01 enforces one response close, one transport close and valid returned result",
+    "C-R12 uses instrumented fake socket and asserts closed/owner/socket identity unchanged with zero raw closes",
+    "C-PROV-BOUNDARY-ACCEPT invokes actual validator on valid representative inputs",
+    "C-R10 stimulus is truthfully labeled complete HTTP500 server_error; malformed/lost obligations explicitly open",
+    "Standalone assumed admission fields labeled separately from integrated observed domain counters"
+  ],
+  "retained_v6_improvements": [
+    "Owning event importer try/except and extracted Google refresh function linked to actual fake-backed HTTP",
+    "HTTP exchange-to-terminal exception identity with prior target retention and third-target refusal",
+    "Precise R07 primary/close/send oracle",
+    "Separate continuation and outer-object mutation controls"
+  ],
+  "scope_limits": [
+    "Selected extracted definitions with fake native/transaction/session/budget/ownership/socket/TLS dependencies",
+    "Not full importer setup/post-fetch or make_domain_ports.token policy/terminal/account persistence proof",
+    "Identity mapping and connector-stop controls are separate observations, not a linked real identity HTTPS/transaction proof",
+    "No real socket/provider/database proof or full T07/T01-T08 completion",
+    "Static reasoning about JSON-safe evidence is not an executed serialization PASS"
+  ],
+  "disposition": "Accepted for renewed bounded fake-only launch review; final peer host reconciliation pending",
+  "unresolved_static_findings_in_this_scope": [],
+  "execution_authorized": false,
+  "execution_performed": false,
+  "preserved_predecessor": "scheduler-t07-fake-v1 packet/admission/hold unchanged"
+}

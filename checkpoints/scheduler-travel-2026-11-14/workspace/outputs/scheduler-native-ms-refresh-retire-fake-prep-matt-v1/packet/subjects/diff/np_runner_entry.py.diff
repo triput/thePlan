@@ -1,0 +1,28 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -1655,7 +1655,12 @@
+         ]:
+             raise SuiteStop(f"client request order mismatch:{client_purposes!r}")
+ 
+-        peer_state = peer.sanitized_state()
++        # Retirement barrier BEFORE final peer evidence (Dex 6ED9B65F; same contract as
++        # Dex BB93F31E R1/R2): exactly one attempt, marked before the call; joined and no
++        # worker error required; the final sanitized state is read only after the bounded join.
++        retirement_attempted = True
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        retirement_done = True
+         served = int(peer_state.get("connection_count_served") or 0)
+         admitted = int(peer_state.get("connection_count_admitted") or 0)
+         if served != admitted or served != len(inventory_scripts):
+@@ -1746,11 +1751,6 @@
+         )
+         t_check_iso = _iso_now()
+         assert_plan_still_valid(plan.t_plan)
+-        retirement_attempted = True
+-        retirement = peer.retire_owned(join_seconds=5.0)
+-        retirement_done = True
+-        if retirement.get("joined") is not True:
+-            raise SuiteStop("peer worker unjoined — UNKNOWN")
+         unexpected = [
+             t
+             for t in threading.enumerate()

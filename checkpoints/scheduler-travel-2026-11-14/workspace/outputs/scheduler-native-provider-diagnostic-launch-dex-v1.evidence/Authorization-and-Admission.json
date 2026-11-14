@@ -1,0 +1,13 @@
+{
+  "at_utc": "2026-11-13T05:37:16.0563808Z",
+  "authorization_question": "call_d12f776c5d344a65927f9f84cb7ef0df",
+  "answer": "Authorize one native diagnostic run",
+  "command_sha256": "F39C778C9A20A5CA538CAE8F414768833866B3852367CB1EE53FF115C509A870",
+  "manifest_sha256": "1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+  "admitted_inputs": 274,
+  "dex_execute_ack": "EXECUTE exactly once by Dex; Matt does not execute",
+  "scope": "NP-V-MS-NONEXPIRED only,approved success-only exact-ID cleanup",
+  "failure_cleanup_authorized": false,
+  "retry_authorized": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,11 @@
+--- original/packet/verify/check_native_provider.py
++++ candidate/packet/verify/check_native_provider.py
+@@ -428,7 +428,7 @@
+     ok = True
+     for expectation, outcome in ADMITTED:
+         direct = call_classifier(ns, expectation, outcome)
+-        for exc in (None, client_exception(outcome[1])):
++        for exc in (None, client_exception(str(outcome[1]))):
+             got = call_helper(ns, expectation, outcome, exc)
+             ok = ok and got["raised"] is None and got["label"] == direct["label"] and direct["label"] is not None
+     require(ok, "chain:admitted label unchanged")

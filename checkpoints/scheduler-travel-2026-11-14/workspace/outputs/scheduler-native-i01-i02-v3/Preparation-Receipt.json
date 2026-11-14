@@ -1,0 +1,80 @@
+{
+  "status": "NATIVE_PREPARATION_HELD_NOT_A_LAUNCH",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v3\\packet\\payload",
+  "source_fixture_fake_proof": "scheduler-c06-fake-v3/Dex-Run-Reconciliation.json",
+  "source_fixture_runner_sha256": "2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E",
+  "only_payload_delta_before_manifest": [
+    "launch-config.json"
+  ],
+  "manifest_entries": 268,
+  "manifest_sha256": "312D6D5697402009E1EDB4C5B6CE20AA2A1BF439E37A6E429E6B43532ECF4858",
+  "config_sha256": "F0F5E88B75E9F28AB5DB61B9E9556A25C25860604BBD042C8532609D03830E18",
+  "launch_ready": false,
+  "case_ids": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08",
+    "ASSESSMENT_SQL",
+    "I01-C01",
+    "I01-C02",
+    "I01-C03",
+    "I01-C04",
+    "I01-C05",
+    "I01-C06",
+    "I01-C06-MAP",
+    "I01-C07A",
+    "I01-C07B",
+    "I01-C08",
+    "I01-C09",
+    "I01-C10",
+    "I02-C01"
+  ],
+  "assessment_case_ids": [
+    "test_a01_healthy_requested_and_all_enabled",
+    "test_a02_requested_ok_all_enabled_blocked_by_unrequested_stale",
+    "test_a03_other_owner_rows_cannot_contaminate",
+    "test_a04_coverage_gates[missing_success]",
+    "test_a04_coverage_gates[stale_age]",
+    "test_a04_coverage_gates[window_missing]",
+    "test_a04_coverage_gates[window_short]",
+    "test_a04_coverage_gates[pages_incomplete]",
+    "test_a04_coverage_gates[generation_mismatch]",
+    "test_a04_coverage_gates[microsoft_ms_view]",
+    "test_a05_newer_sidecar_failure_blocks_equal_protects",
+    "test_a06_identity_map_cannot_conceal_deleted_requested",
+    "test_a07_owner_lock_returns_locked_revision_not_mixed",
+    "test_a08_busy_policy_enrichment_and_horizon_filtering",
+    "test_a09_pending_writes_refused_and_terminal_sanitization",
+    "test_a10_public_response_preserves_targets_and_assessment"
+  ],
+  "expected_unknown": [
+    "N06",
+    "N07",
+    "I01-C06"
+  ],
+  "suite_seconds": 900,
+  "runner_seconds": 600,
+  "gate_seconds": 240,
+  "images": {
+    "database": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+    "runner": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab"
+  },
+  "resource_declarations_changed": false,
+  "future_evidence_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v3.evidence",
+  "evidence_directory_created": false,
+  "invocation_file_created": false,
+  "live_docker_checks": 0,
+  "execution_authorized": false,
+  "endpoint": "unbound",
+  "pending": [
+    "final host plan/source/manifest reconciliation",
+    "explicit PKI/process-group/runtime scope disclosure",
+    "review Jim T02 source handback before deciding integration carry-forward",
+    "exact held invocation and launch review"
+  ]
+}

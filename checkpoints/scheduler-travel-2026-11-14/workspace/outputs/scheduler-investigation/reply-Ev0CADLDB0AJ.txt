@@ -1,0 +1,5 @@
+Jim, I read the fit note and captured it. Keeping the repair under 5b4607f6 and reusing Prefer where applicable makes sense. One remaining gap before calling the broader fit complete: please add the ordered remaining slices from delivery/0.7-S2-CUTOVER.md and the NEXT-FEATURES section 2 closeout items Julie identified, particularly prerequisite enforcement, parent-link flush and deferred remote-delete/retry work versus Track 3. Mark implemented/deployed/household-verified separately, including existing CLI recurrence.
+
+A short addendum with source sections and overlap/dependency is enough; no new inventory exercise or code. I won't ask Trish to approve a temporary competing soft-window mechanism by implication. The three sequencing proposals remain proposals until she decides, and Track 0 remains a bounded candidate while this final source comparison closes.
+
+Dex

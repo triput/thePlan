@@ -1,0 +1,127 @@
+*** UNAPPLIED — documents-only design proposal. Do not apply without Trish source-change authority.
+*** Successor of v1 tip ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A (v1 immutable; this is v2).
+*** Target tree: scheduler-d2-fake-v1/packet/payload/workspace/apps/api/app/services/
+*** Base pins:
+***   covering_http_transport.py AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8
+***   covering_joined_https.py    C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468
+***   covering_refresh_import.py  C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0
+*** Status: documents_only=true; applied=false; executed=false; d2_one_shot_untouched=true
+
+diff --git a/app/services/covering_http_transport.py b/app/services/covering_http_transport.py
+--- a/app/services/covering_http_transport.py
++++ b/app/services/covering_http_transport.py
+@@ -1,6 +1,7 @@
+ """Covering HTTP/1 JSON exchange over a joined, bounded TLS transport."""
+ import http.client
+ import io
+ import json
++import sys
+ from urllib.parse import urlencode
+ import httpx
+ 
+@@ -122,8 +123,36 @@ class CoveringHTTP:
+                 # Token rotation may have occurred. No retry/replay.
+                 raise CoveringRootOutcomeUnknown() from None
+             raise
+         finally:
+-            if response is not None:
+-                response.close()
+-            transport.close()
++            # Independently owned retirement attempts. A response-close
++            # failure must not skip transport-close. Retain each cleanup
++            # exception in locals; exiting except clears the active
++            # exception, so __context__ alone cannot keep caught cleanup.
++            response_close_exc = None
++            transport_close_exc = None
++            if response is not None:
++                try:
++                    response.close()
++                except BaseException as exc:
++                    response_close_exc = exc
++            try:
++                transport.close()
++            except BaseException as exc:
++                transport_close_exc = exc
++            if response_close_exc is not None or transport_close_exc is not None:
++                # Active primary (if any) is still visible via sys.exc_info
++                # inside finally until this new raise replaces it.
++                primary = sys.exc_info()[1]
++                if isinstance(primary, CoveringRootOutcomeUnknown):
++                    # Enrich existing UNKNOWN rather than nest a second one.
++                    # Merge: do not wipe JoinedTLS-attached transport_close
++                    # when the outer close is a closed=True no-op (None).
++                    if response_close_exc is not None:
++                        primary.response_close = response_close_exc
++                    if transport_close_exc is not None:
++                        primary.transport_close = transport_close_exc
++                    primary.retirement_provenance = (
++                        getattr(primary, "primary", None),
++                        getattr(primary, "response_close", None),
++                        getattr(primary, "transport_close", None),
++                    )
++                    raise primary
++                unknown = CoveringRootOutcomeUnknown()
++                unknown.primary = primary
++                unknown.response_close = response_close_exc
++                unknown.transport_close = transport_close_exc
++                unknown.retirement_provenance = (
++                    primary, response_close_exc, transport_close_exc,
++                )
++                raise unknown
+ 
+diff --git a/app/services/covering_joined_https.py b/app/services/covering_joined_https.py
+--- a/app/services/covering_joined_https.py
++++ b/app/services/covering_joined_https.py
+@@ -10,6 +10,7 @@ import ssl
+ from threading import get_ident
+ 
+ from app.services.covering_transport_policy import CoveringTransportRefused
++from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
+ 
+ 
+ class JoinedTLS:
+@@ -69,8 +70,23 @@ class JoinedTLS:
+                     self.ready(selectors.EVENT_READ)
+                 except ssl.SSLWantWriteError:
+                     self.ready(selectors.EVENT_WRITE)
+-        except BaseException:
+-            self.close()
+-            raise
++        except BaseException as primary:
++            # Required for T07-R08: JoinedTLS.close sets closed=True before
++            # sock.close. If sock.close raises after that flag flip, a later
++            # CoveringHTTP.finally transport.close is a method no-op and does
++            # not raise. HTTP-only finally classification therefore cannot
++            # recognize this earlier uncertainty or preserve the open primary.
++            # Attempt close once; no sock.close retry. On close failure raise
++            # UNKNOWN with explicit sanitizable provenance attributes.
++            try:
++                self.close()
++            except BaseException as cleanup:
++                unknown = CoveringRootOutcomeUnknown()
++                unknown.primary = primary
++                unknown.response_close = None
++                unknown.transport_close = cleanup
++                unknown.retirement_provenance = (primary, None, cleanup)
++                raise unknown
++            raise
+ 
+     def send(self, data):
+         data=memoryview(data)
+diff --git a/app/services/covering_refresh_import.py b/app/services/covering_refresh_import.py
+--- a/app/services/covering_refresh_import.py
++++ b/app/services/covering_refresh_import.py
+@@ -974,6 +974,12 @@ def import_covering_subscription_cache(
+             access_token=access_token,
+             window=window,
+         )
+     except Exception as exc:
++        # Deferred import avoids a top-level cycle with
++        # covering_target_transaction (which imports this module before
++        # defining CoveringRootOutcomeUnknown).
++        from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
++        if isinstance(exc, CoveringRootOutcomeUnknown):
++            raise
+         logger.exception(
+             "covering provider read failed subscription=%s",
+             sub_row.id,

@@ -1,0 +1,5 @@
+Trish asks us to put the full scheduler spec in one shared document and have both of you review it, using a local team workspace if possible. No implementation or replanning.
+
+Jim's existing F:\Code Repo\Cabinet is reachable by Dex on this machine. Julie: which existing local/network path can you read from your machine? Can you already reach a share on this Windows host, or should we use an existing shared folder on supernova? Please report an exact accessible path and access method, without credentials. No new shares or permission changes yet. Jim: please identify any established shared document path you already use with Julie. I'll consolidate the full draft while we establish access.
+
+Dex

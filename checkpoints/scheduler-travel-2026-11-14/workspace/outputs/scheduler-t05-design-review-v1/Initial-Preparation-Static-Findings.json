@@ -1,0 +1,51 @@
+{
+  "kind": "Provisional static review of initial T05 preparation; no executable invoked",
+  "at_utc": "2026-11-11T21:57:37.4965633Z",
+  "status": "REVISE_BEFORE_LAUNCH",
+  "checker_sha256": "BA8EDB370CD8D43E1842A872DEF6A6DEE9360507C3F9073083F140DB35474F58",
+  "native_supervisor_sha256": "B975AB5FC7C4BE8C41AC1D8E0F53A7DA6CD989CC4B23661712586F0C379B49C4",
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "findings": [
+    {
+      "id": "B1",
+      "finding": "build_policy_stack executes complete target_transaction module importing sqlalchemy/app modules, contrary to selected-definitions/fake dependency boundary; extract only required definitions with explicit fake wiring."
+    },
+    {
+      "id": "B2",
+      "finding": "extract_covering_http compiles _Reader(io.RawIOBase) and CoveringHTTP using JoinedTLS default into a fresh module lacking io/JoinedTLS and other globals; later injection targets a different sys.modules object after extraction. Wire correct module globals before compile/exec; no execution probe authorized."
+    },
+    {
+      "id": "B3",
+      "finding": "F02/F03 allowed_outcomes admit divergent success/refusal/parser/UNKNOWN classes. Freeze exact per-transcript original predicates; no broad fallback. classify_exception defaults all unrecognized exceptions to parser error, potentially admitting harness NameError/TypeError."
+    },
+    {
+      "id": "B4",
+      "finding": "Observe-wire contract_miss for truncated invalid_grant is set false when typed reauth occurs; wrong-separator/trailer-EOF successful returns also bypass corresponding miss flags. Separate exact original observation from defect designation and do not hide unexpected results."
+    },
+    {
+      "id": "B5",
+      "finding": "Per-purpose expansion and actual _CoveringClient/owning caller wires deferred in handback; these are within the approved deliverable and must be implemented before launch card, not merely listed in manifest."
+    },
+    {
+      "id": "B6",
+      "finding": "FakeTransport stall returns empty recv, making EOF rather than a deadline stimulus. CD-ORDERLY/CD-ABRUPT byte fakes cannot establish real TLS distinction; keep explicit limits and no fake stop-guard claim."
+    },
+    {
+      "id": "B7",
+      "finding": "response_closed/body_bytes_collected/http_status fields are null rather than observed; transport close is boolean rather than counted. Per-wire byte hashes/lengths need verification, exact emitted inventory needs enforcement; unexpected row currently loops onward rather than stopping at first mismatch."
+    },
+    {
+      "id": "B8",
+      "finding": "Native verify_native_provenance.py only writes SUPERVISOR-SPEC.json. Implement actual held bounded supervisor/admission/commands/identity/collection/exact-ID success cleanup within approved sixth role; no invocation. Shell cp destination defaults under packet ro mount with no directory creation/export path; design complete owned bounded evidence transfer. Source capture caps must fit complete files."
+    }
+  ],
+  "authoring_custody_question": {
+    "path": "outputs\\scheduler-t05-original-framing-prep-v1\\__pycache__\\_prep_build_only.cpython-311.pyc",
+    "sha256": "72615E8E4EABB57A9032EF695B2752139E1BCFE42759560A4C71AB5E35AE12CC",
+    "length": 29470,
+    "last_write_utc": "2026-11-11T21:54:19.0696255Z",
+    "interpretation": "Compiled authoring-helper artifact observed; does not prove checker/test ran. Ask Jim for exact authoring actions/retained receipt and whether any forbidden imports/compilation/probes occurred; do not execute or remove artifact."
+  },
+  "execution_performed_in_review": false,
+  "next_action": "Jim preserve initial packet and finish same approved six-role scope in fresh successor, with truthful authoring custody. No new source gate for within-scope unexecuted preparation."
+}

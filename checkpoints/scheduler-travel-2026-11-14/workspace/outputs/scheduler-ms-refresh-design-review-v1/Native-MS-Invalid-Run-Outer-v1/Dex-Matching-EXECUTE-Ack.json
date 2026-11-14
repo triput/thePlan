@@ -1,0 +1,9 @@
+{
+  "manifest": "C0BCB2E1563388391F7560F3B6D8AE5495690D3F527D019CE1EE62F8E43E8B47",
+  "signed": "Dex",
+  "ack": "EXECUTE ONCE",
+  "case": "NP-V-MS-INVALID",
+  "command": "CC02480C4BB104E03DC95D85EDF9C30BF7DDB1D302F475B2F87A365C08D2C1DA",
+  "atUtc": "2026-11-14T02:01:01.5418080Z",
+  "scope": "Exact reviewed command only; success-only cleanup; stop without retry on unexpected outcome"
+}

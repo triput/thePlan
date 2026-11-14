@@ -1,0 +1,11 @@
+# T02 fake-only verification — PASS independently reconciled
+
+Trish authorized exactly one attempt in call_2efd39b0ea8a46b595fa892539d853ad/0. The reviewed operator command/input/TIP/outer hashes matched and no result/receipt existed before admission. One invocation completed with exit zero; no retry, repair or extra cleanup occurred. One-shot authority is consumed.
+
+All 20 expected control IDs, emitted/key order and exact outcomes independently match the frozen EXPECTED file. Source hashes verified, executed=true, inventory_error=null. Three original equality failures are captured as deliberate PASS_WITNESS outcomes, four extracted candidate mutations are detected, the admitted final page completes, and fake composition/ordered results and independent item/byte equality refusals match their bounded oracles. Injected counter states, convenience values and fake acknowledgments remain explicitly labeled. The synthetic inventory baseline is not suite execution evidence.
+
+The child PID110016 exited normally with code0; both capture readers joined at EOF. Launcher observed0.2 seconds, stdout54 bytes, stderr0 and result10,111 bytes. No timeout, capture stop, primary error or UNKNOWN. The outer invocation also returned zero. Post-run checks verified all19 artifact entries,240 payload entries,3 verifier checksum entries and13 source/static entries unchanged; no mismatches. No native/container resources were created or require cleanup.
+
+Retained result SHA25615C20693D238479D5971AA3630DC08DC7155BFD5D1C9C7C94483A13A682F0FB6; launcher receipt SHA256ED53C957413D615AD54C56FEB7BF9EA265B32C2E19E8DD1BF38440F127FA6A70. See Dex-Run-Reconciliation.json, Execution-Tool-Result.json and packet/fake-only-t02-admission-verification/FAKE-T02-RESULT.json plus FAKE-T02-LAUNCH-RECEIPT.json for exact observations.
+
+This proves the reviewed fake-only admission/mutation/composition/order prerequisite. It does not establish real provider TLS/socket retirement, database acknowledgment, native final assessment or full T02/T01–T08 integration proof. Endpoint remains unbound; all other holds remain. Next authorized work is offline carry-forward of the four approved files into a fresh held native packet, followed by exact-command/hash launch review. No native launch is authorized by this PASS.

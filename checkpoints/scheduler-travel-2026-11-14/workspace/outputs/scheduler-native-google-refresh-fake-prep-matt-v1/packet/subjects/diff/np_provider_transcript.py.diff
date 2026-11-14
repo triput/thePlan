@@ -1,0 +1,119 @@
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -145,6 +145,116 @@
+     )
+ 
+ 
++GOOGLE_REFRESHED_ACCESS_PLAINTEXT = "np-google-refreshed-access-not-for-receipt"
++GOOGLE_ROTATED_REFRESH_PLAINTEXT = "np-google-rotated-refresh-not-for-receipt"
++GOOGLE_REFRESH_EXPIRES_IN_SECONDS = 3600
++GOOGLE_REFRESH_EXCHANGE_COUNT = 3
++GOOGLE_TOKEN_PATH = "/token"
++
++
++def google_token_refresh_success_script() -> ExchangeScript:
++    """Synthetic Google refresh success for NP-V-GOOGLE-REFRESH (Dex CEBD83C3).
++
++    Body carries the declared synthetic refreshed access + rotated refresh values so the
++    fixture can prove semantic persistence by decrypting the stored row; production
++    google_calendar.get_valid_access_token reads access_token (required), expires_in and
++    optional refresh_token. The body is sent verbatim and never logged raw.
++    """
++    import json
++
++    body = json.dumps(
++        {
++            "access_token": GOOGLE_REFRESHED_ACCESS_PLAINTEXT,
++            "expires_in": GOOGLE_REFRESH_EXPIRES_IN_SECONDS,
++            "refresh_token": GOOGLE_ROTATED_REFRESH_PLAINTEXT,
++            "token_type": "Bearer",
++        },
++        separators=(",", ":"),
++    )
++    return ExchangeScript(
++        script_id="GOOGLE-TOKEN-REFRESH-SUCCESS",
++        purpose="google_token_refresh_success",
++        steps=(
++            ExchangeStep("recv_request", method="POST", path=GOOGLE_TOKEN_PATH),
++            ExchangeStep(
++                "send_response",
++                status=200,
++                headers=(("Content-Type", "application/json"), ("Content-Length", "PLACEHOLDER")),
++                body_template=body,
++            ),
++            ExchangeStep("close", close_mode="orderly_close_notify"),
++        ),
++    )
++
++
++def google_busy_event(*, event_id: str, start_z: str, end_z: str) -> dict:
++    """One timed, opaque, confirmed, non-recurring synthetic event (UTC 'Z' instants, no title)."""
++    if not (start_z.endswith("Z") and end_z.endswith("Z")) or not start_z < end_z:
++        raise RuntimeError("google busy event needs ordered UTC Z instants")
++    return {
++        "id": event_id,
++        "status": "confirmed",
++        "start": {"dateTime": start_z},
++        "end": {"dateTime": end_z},
++        "transparency": "opaque",
++    }
++
++
++def google_events_one_page_script(*, calendar_id: str, exact_query: str, event: dict) -> ExchangeScript:
++    """GET /calendar/v3/calendars/{id}/events?{exact_query}: one complete non-empty page.
++
++    The calendar id is encoded exactly as production _calendar_events_base
++    (quote(id, safe='')); the declared exact query constrains the wire bytes. No
++    nextPageToken/nextSyncToken: pagination completes on this page.
++    """
++    import json
++    from urllib.parse import quote
++
++    if not exact_query or "?" in exact_query or "#" in exact_query:
++        raise RuntimeError("google events script requires one exact non-empty wire query")
++    path = f"/calendar/v3/calendars/{quote(calendar_id, safe='')}/events?{exact_query}"
++    body = json.dumps({"kind": "calendar#events", "items": [event]}, separators=(",", ":"))
++    return ExchangeScript(
++        script_id=f"GOOGLE-EVENTS-ONE-PAGE:{calendar_id}",
++        purpose="event",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path=path),
++            ExchangeStep(
++                "send_response",
++                status=200,
++                headers=(("Content-Type", "application/json"), ("Content-Length", "PLACEHOLDER")),
++                body_template=body,
++            ),
++            ExchangeStep("close", close_mode="orderly_close_notify"),
++        ),
++    )
++
++
++def google_refresh_connection_inventory(
++    *,
++    wire_calendar_ids: tuple[str, ...] | list[str],
++    exact_query: str,
++    events: tuple[dict, ...] | list[dict],
++) -> tuple[ExchangeScript, ...]:
++    """Finite inventory for NP-V-GOOGLE-REFRESH: exactly three Connection:close exchanges.
++
++    Production order (str-sorted subscription targets): target 1 TOKEN refresh POST, target 1
++    events GET, then target 2 reads the committed token (no POST) and its events GET. No
++    calendarList exchange: the seed plants no Google primary alias, so production does not
++    request live identity evidence.
++    """
++    view_ids = tuple(wire_calendar_ids)
++    if len(view_ids) != 2 or len(tuple(events)) != 2:
++        raise RuntimeError("google refresh inventory requires exactly two calendars and two events")
++    scripts = (google_token_refresh_success_script(),) + tuple(
++        google_events_one_page_script(calendar_id=cid, exact_query=exact_query, event=event)
++        for cid, event in zip(view_ids, events)
++    )
++    if len(scripts) != GOOGLE_REFRESH_EXCHANGE_COUNT:
++        raise RuntimeError("google refresh inventory must contain exactly three exchanges")
++    return scripts
++
++
+ def ms_graph_identity_default_script() -> ExchangeScript:
+     """GET /v1.0/me/calendar — identity purpose (not event)."""
+     return ExchangeScript(

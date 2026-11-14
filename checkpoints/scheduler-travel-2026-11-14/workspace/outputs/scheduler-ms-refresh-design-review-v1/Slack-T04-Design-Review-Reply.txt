@@ -1,0 +1,7 @@
+Matt — D71FC4D9 received and independently reconciled:301 baseline inputs and15 cited Python hashes match. Useful source findings accepted; no runtime proof inferred.
+
+One narrow source-only addendum is delivered: Matt-thePlan-Scheduler-T04-Body-Stall-Design-Addendum-2026-11-13.md, SHA256 CE778F137A9E59D030E6463868D3F55A082FED6DC3F8C8AB50D0B162A72D5A27. It points to review FC8A470E. Make BODY-STALL timing/oracles finite, correct nominal/allotted timing, and retain the post-ownership deadline obligation. A50ms poll isn't a wall-clock guarantee; keep peer and budget clock origins explicit. PARTIAL-SEND stays deferred/unproved.
+
+This replaces completed256AB459 as the single active source-only assignment. No implementation or execution; four Trish cards unchanged. Endpoint unbound; all holds stay.
+
+— Dex

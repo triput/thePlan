@@ -1,0 +1,451 @@
+# Fixture-Changes.diff — REVISE2-corrected7 vs tipped REVISE2-corrected6
+# Primary baseline: post-native-I01-I02-fixture-prep-jim-v1-REVISE2-corrected6-2026-11-10
+# Parent tipped corrected6 preserved; MANIFEST-SELF D583BA494D972E8421D4A59B1097E6CAFD2C3C8EA0C62AD0FAB12C38C4B2389F
+# Byte semantics: UTF-8 LF. Authored not executed.
+# Dex tip IDs reconciled: p1794366621, p1794366344, p1794366450, p1794366987, p1794367441, p1794367500
+# Retained corrected6: Choice B sockets; exit-confirm before result validation; 45s retirement; corrected5 reader/N14
+diff --git a/fake-only-behavioral-harness/invoke_fake_behavioral.py b/fake-only-behavioral-harness/invoke_fake_behavioral.py
+--- a/fake-only-behavioral-harness/invoke_fake_behavioral.py
++++ b/fake-only-behavioral-harness/invoke_fake_behavioral.py
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env python3
+ """Bounded launcher for fake-only behavioral harness.
+ 
+-NOT executed during REVISE2-corrected6 preparation. This launcher IS the
++NOT executed during REVISE2-corrected7 preparation. This launcher IS the
+ in-process 30-second timeout supervisor for the check child. Outer
+ noncircular admission of this launcher's bytes is enforced by admit_outer.py
+ against OUTER-ADMISSION.json — this file does NOT embed or self-compare its
+@@ -9,7 +9,7 @@
+ 
+ Exit codes: 0 PASS / 1 FAIL / 124 timeout / 125 STOP or UNKNOWN
+ (termination unconfirmed, capture over-limit, reader retirement UNKNOWN,
+-pin mismatch, or result gate refused).
++primary collection/wait error, pin mismatch, or result gate refused).
+ 
+ Isolation: parent and child both require -I -S -B. Launcher verifies those
+ flags on the current process before admission and passes them to the child.
+@@ -27,7 +27,8 @@
+ - Check script (inside child): fixture source SHA vs INPUT-MANIFEST sources;
+   exact EXPECTED-OUTPUT control inventory + ordered contract.
+ - Result gate (launcher post-termination, only after confirmed termination +
+-  capture admission + reader retirement complete): exact control IDs/order
++  capture admission + reader retirement complete + no primary collection/
++  wait error or unexpected collection interrupt): exact control IDs/order
+   (EXPECTED control_ids_in_order / controls key order), every expected
+   result, inventory_error=None, source_hashes_verified=True, executed=True.
+ 
+@@ -39,7 +40,14 @@
+ exceptions are retained as secondary termination evidence. Any collection
+ interrupt/error (including proc_wait_error with capture_stop=None) requires
+ explicit non-None child-exit confirmation before result validation or a
+-child_exited_normally claim; pe remains primary; no retries.
++child_exited_normally claim; pe remains primary; no retries. Any primary
++collection/wait error or unexpected collection interrupt also prevents
++result admission/PASS even when child exit later proves 0 with a
++valid-looking result file — retaining primary_error on a PASS receipt is
++not stop-on-failure. Receipt pins child_pid (proc.pid at Popen success)
++plus executable/argv and creation/start timestamp for read-only custody
++reconciliation when termination is unconfirmed; no process enumeration,
++retry, fallback, or new cleanup authority.
+ Disclosed bounds: TIMEOUT_SECONDS + POST_KILL_WAIT_SECONDS +
+ 2×READER_JOIN_SECONDS = 45s total (see receipt timeout_retirement_limits).
+ 
+@@ -700,6 +708,13 @@
+                 **base_ids,
+             )
+ 
++    # Child custody pins (receipt preparation only). Retained as soon as
++    # Popen succeeds so Dex can reconcile an unconfirmed child without this
++    # launcher gaining process-enumeration / retry / cleanup authority.
++    child_pid: int | None = None
++    child_executable: str = str(interpreter)
++    child_start_timestamp: float = started
++
+     try:
+         proc = subprocess.Popen(
+             child_argv,
+@@ -715,11 +730,17 @@
+                 "status": "FAIL",
+                 "reason": "spawn_failed",
+                 "error": repr(exc),
++                "child_pid": None,
++                "child_executable": child_executable,
+                 "child_argv": child_argv,
++                "child_start_timestamp": child_start_timestamp,
+                 **base_ids,
+             }
+         )
+         return 1
++
++    child_pid = int(proc.pid)
++    child_start_timestamp = time.time()
+ 
+     timed_out = False
+     stdout_raw = b""
+@@ -728,6 +749,8 @@
+     # Never claim normal exit / confirmed termination until returncode is
+     # non-None. Interrupt/error paths (incl. proc_wait_error with
+     # capture_stop=None) must confirm explicitly before result validation.
++    # Primary collection/wait error or unexpected interrupt also blocks
++    # result admission/PASS even after a later exit-0 confirmation.
+     termination = "termination_unconfirmed"
+     termination_confirmed = False
+     secondary_termination: list[dict[str, str]] = []
+@@ -865,6 +888,10 @@
+                 "reader_retirement": reader_retirement,
+                 "termination": "termination_unconfirmed",
+                 "termination_confirmed": False,
++                "child_pid": child_pid,
++                "child_executable": child_executable,
++                "child_argv": child_argv,
++                "child_start_timestamp": child_start_timestamp,
+                 **base_ids,
+             }
+         )
+@@ -889,8 +916,14 @@
+     stderr_retained = _clip_bytes(stderr_raw, RETAINED_STDERR_BYTES)
+ 
+     # Do not validate/read child-owned result while termination unconfirmed,
+-    # capture over-limit, or reader retirement UNKNOWN (alive/incomplete/error).
++    # capture over-limit, reader retirement UNKNOWN (alive/incomplete/error),
++    # or any primary collection/wait error / unexpected collection interrupt.
+     # Process exit alone never authorizes skipping reader ownership checks.
++    # Later exit 0 + valid-looking result file must not admit PASS when
++    # primary_error / interrupt_reason remain set (stop-on-failure).
++    primary_collection_failure = (
++        primary_error is not None or interrupt_reason is not None
++    )
+     if not termination_confirmed:
+         result_ok = False
+         result_gate_reason = "termination_unconfirmed_skip_result"
+@@ -899,6 +932,12 @@
+         result_gate_reason = capture_stop_reason or (
+             "reader_retirement_UNKNOWN:"
+             + ",".join(f"{k}={v}" for k, v in reader_retirement.items())
++        )
++    elif primary_collection_failure:
++        result_ok = False
++        result_gate_reason = (
++            "primary_collection_failure_blocks_result:"
++            + str(primary_error or interrupt_reason)
+         )
+     else:
+         result_ok, result_sha256, result_gate_reason, result_read_bytes = (
+@@ -925,6 +964,12 @@
+     elif timed_out:
+         status = "TIMEOUT"
+         exit_code = 124
++    elif primary_collection_failure:
++        # pe / interrupt retained as primary; confirmed exit 0 cannot PASS.
++        status = "STOP"
++        exit_code = 125
++        if primary_error is None:
++            primary_error = interrupt_reason
+     elif returncode == 0 and result_ok:
+         status = "PASS"
+         exit_code = 0
+@@ -988,6 +1033,20 @@
+         "returncode": returncode,
+         "launcher_exit_code": exit_code,
+         "elapsed_seconds": round(elapsed, 3),
++        "child_pid": child_pid,
++        "child_executable": child_executable,
++        "child_argv": child_argv,
++        "child_start_timestamp": child_start_timestamp,
++        "child_custody": {
++            "pid": child_pid,
++            "executable": child_executable,
++            "argv": child_argv,
++            "start_timestamp": child_start_timestamp,
++            "authority": (
++                "receipt_preparation_only; no process_enumeration; "
++                "no_retry; no_fallback; no_new_cleanup_authority"
++            ),
++        },
+         "isolation": {
+             "required_flags": list(REQUIRED_ISOLATION_FLAGS),
+             "parent_flags_verified": True,
+diff --git a/fake-only-behavioral-harness/INPUT-MANIFEST.json b/fake-only-behavioral-harness/INPUT-MANIFEST.json
+--- a/fake-only-behavioral-harness/INPUT-MANIFEST.json
++++ b/fake-only-behavioral-harness/INPUT-MANIFEST.json
+@@ -1,5 +1,5 @@
+ {
+-  "packet": "post-native-I01-I02-fake-only-behavioral-harness-v1-revise2-corrected6",
++  "packet": "post-native-I01-I02-fake-only-behavioral-harness-v1-revise2-corrected7",
+   "class": "FAKE-BEHAVIORAL",
+   "executed_in_preparation": false,
+   "byte_semantics": "utf-8 lf",
+@@ -199,7 +199,9 @@
+     },
+     "output": "FAKE-BEHAVIORAL-RESULT.json",
+     "launch_receipt": "FAKE-BEHAVIORAL-LAUNCH-RECEIPT.json",
+-    "termination": "launcher kills child on timeout, observed capture overflow, or other collection interrupt/error (incl. proc_wait_error even when capture_stop is None); kill/wait exceptions retained as secondary termination evidence; any interrupt/error requires explicit non-None child-exit confirmation before result validation or child_exited_normally; pe preserved as primary; over-limit during collection → STOP; still-live/incomplete/error reader → UNKNOWN (blocks PASS + result validation; process exit alone does not imply reader EOF); exit 0 PASS / 1 FAIL / 124 timeout / 125 STOP|UNKNOWN; no retries; exit0 alone cannot PASS without fresh well-formed result",
++    "termination": "launcher kills child on timeout, observed capture overflow, or other collection interrupt/error (incl. proc_wait_error even when capture_stop is None); kill/wait exceptions retained as secondary termination evidence; any interrupt/error requires explicit non-None child-exit confirmation before result validation or child_exited_normally; pe preserved as primary; any primary collection/wait error or unexpected collection interrupt prevents result admission/PASS even when child exit later proves 0 (retaining primary_error on PASS is not stop-on-failure); receipt pins child_pid at Popen success plus executable/argv/start timestamp for read-only custody (no enumeration/retry/cleanup authority); over-limit during collection → STOP; still-live/incomplete/error reader → UNKNOWN (blocks PASS + result validation; process exit alone does not imply reader EOF); exit 0 PASS / 1 FAIL / 124 timeout / 125 STOP|UNKNOWN; no retries; exit0 alone cannot PASS without fresh well-formed result",
++    "primary_collection_failure_blocks_pass": true,
++    "child_pid_custody_at_popen": true,
+     "pin_layers": {
+       "1_outer_reviewed_file": "OUTER-ADMISSION.json (operator-compared hash in PROPOSED-VERIFICATION-COMMANDS)",
+       "2_outer_admit": "admit_outer.py verifies interpreter+subjects then spawns launcher",
+@@ -238,44 +240,46 @@
+     "n14_shared_transport_script_take_globals_patch_visibility",
+     "windows_asyncio_internal_socket_scope_choice_B_disclosed",
+     "launcher_collection_interrupt_requires_exit_confirmation_incl_proc_wait_error",
+-    "timeout_retirement_total_45s_reconciled"
++    "timeout_retirement_total_45s_reconciled",
++    "launcher_primary_collection_failure_blocks_pass_even_after_exit0",
++    "launcher_child_pid_custody_at_popen_receipt_only"
+   ],
+   "dex_tip_message_ids_reconciled": [
+     {
+-      "id": "p1794366074",
+-      "ts": "1794366074.580949",
+-      "status": "closed_corrected5",
+-      "summary": "reader is_alive/UNKNOWN; overflow interrupt; kill/wait secondary; disclosed limits"
+-    },
+-    {
+-      "id": "p1794366127",
+-      "ts": "1794366127.227349",
+-      "status": "closed_corrected5",
+-      "summary": "N14 SharedTransportScript.take.__globals__ patch visibility"
++      "id": "p1794366621",
++      "ts": "1794366621.337969",
++      "status": "closed_corrected6_retained",
++      "summary": "any collection interrupt/error (incl. proc_wait_error with capture_stop=None) requires explicit exit confirmation before result validation"
+     },
+     {
+       "id": "p1794366344",
+       "ts": "1794366344.728349",
+-      "status": "closed_corrected6_choice_B",
++      "status": "closed_corrected6_choice_B_retained",
+       "summary": "disclose Windows ProactorEventLoop internal wakeup sockets; not literally no sockets"
+     },
+     {
+       "id": "p1794366450",
+       "ts": "1794366450.439149",
+-      "status": "closed_corrected6_after_corrected5_partial",
++      "status": "closed_corrected6_retained",
+       "summary": "consolidated REVISE of 6074/6127/6344; items 1-2 closed corrected5; item 3 closed corrected6 Choice B"
+-    },
+-    {
+-      "id": "p1794366621",
+-      "ts": "1794366621.337969",
+-      "status": "closed_corrected6",
+-      "summary": "any collection interrupt/error (incl. proc_wait_error with capture_stop=None) requires explicit exit confirmation before result validation"
+     },
+     {
+       "id": "p1794366987",
+       "ts": "1794366987.193389",
+-      "status": "closed_corrected6_arithmetic",
++      "status": "closed_corrected6_arithmetic_retained",
+       "summary": "timeout_retirement total is 45s (30+5+2*5), not 40s; distinct from outer-admission deadline"
++    },
++    {
++      "id": "p1794367441",
++      "ts": "1794367441",
++      "status": "closed_corrected7",
++      "summary": "primary collection/wait error or unexpected interrupt blocks result admission/PASS even after confirmed exit 0; pe retained; no retry"
++    },
++    {
++      "id": "p1794367500",
++      "ts": "1794367500",
++      "status": "closed_corrected7",
++      "summary": "retain child_pid at Popen success plus executable/argv/start timestamp for read-only custody; no enumeration/retry/cleanup authority"
+     }
+   ],
+   "dex_provisional_notes_incorporated": [
+@@ -294,6 +298,8 @@
+     "corrected2_absorbed_dual_fault_monitor_join_n2_n10_launcher_ISB_basics",
+     "corrected3_absorbed_revise_abc_operational_cleanup_asgi_late_peer_launcher_no_site_capture_pins_inventory",
+     "corrected4_absorbed_moduletype_outer_admission_capture_during_collection_ordered_controls_cancel_before_selection",
+-    "corrected5_absorbed_reader_retirement_overflow_interrupt_kill_wait_secondary_n14_take_globals"
++    "corrected5_absorbed_reader_retirement_overflow_interrupt_kill_wait_secondary_n14_take_globals",
++    "corrected6_absorbed_choice_B_exit_confirm_45s",
++    "corrected7_absorbed_primary_collection_failure_blocks_pass_child_pid_custody"
+   ]
+ }
+diff --git a/fake-only-behavioral-harness/REVIEW.md b/fake-only-behavioral-harness/REVIEW.md
+--- a/fake-only-behavioral-harness/REVIEW.md
++++ b/fake-only-behavioral-harness/REVIEW.md
+@@ -1,60 +1,47 @@
+-# Fake-only behavioral harness — REVISE2-corrected6 review documentation
++# Fake-only behavioral harness — REVISE2-corrected7 review documentation
+ 
+-**Packet:** `fake-only-behavioral-harness/` under REVISE2-corrected6 handback
++**Packet:** `fake-only-behavioral-harness/` under REVISE2-corrected7 handback
+ **Class:** FAKE-BEHAVIORAL
+ **Status:** AUTHORED_NOT_EXECUTED (preparation)
+ 
+ ## Provenance
+ 
+-Corrected helpers are **AST-extracted** from REVISE2-corrected6 `workspace-payload/fixture/*` bytes listed in `INPUT-MANIFEST.json` (workspace fixture bytes unchanged from tipped corrected4/5). Required AST names fail closed if missing. `Lock` and deps are supplied before `SharedTransportScript` compiles. Each extraction registers a real `ModuleType` under the synthetic name in `sys.modules` and execs into that exact `module.__dict__` (dataclass `_is_type` resolves via `sys.modules.get(cls.__module__).__dict__`). Patches target that namespace. Exact source path / name / sha256 provenance is recorded in the result payload at execution time.
++Corrected helpers are **AST-extracted** from REVISE2-corrected7 `workspace-payload/fixture/*` bytes listed in `INPUT-MANIFEST.json` (workspace fixture bytes unchanged from tipped corrected4/5/6). Required AST names fail closed if missing. `Lock` and deps are supplied before `SharedTransportScript` compiles. Each extraction registers a real `ModuleType` under the synthetic name in `sys.modules` and execs into that exact `module.__dict__` (dataclass `_is_type` resolves via `sys.modules.get(cls.__module__).__dict__`). Patches target that namespace. Exact source path / name / sha256 provenance is recorded in the result payload at execution time.
+ 
+-## Corrected5 closures retained (no regression)
++## Corrected6 closures retained (no regression)
+ 
+-- Launcher reader ownership/outcome accounting: join checks `is_alive`; still-live / incomplete / error → `UNKNOWN`; overflow interrupt; kill/wait secondary evidence; disclosed timeout/retirement limits.
+-- N14 `SharedTransportScript.take.__globals__` patch visibility + separate class `__module__/sys.modules` identity.
++- Choice B: disclose Windows ProactorEventLoop internal wakeup sockets (loopback-only; concurrent bound 2; N11 sequential 3 `asyncio.run` cycles); not literally no sockets (p1794366344 / consolidated p1794366450).
++- Collection interrupt/error (incl. `proc_wait_error` with `capture_stop=None`) requires explicit non-None child-exit confirmation before result validation or `child_exited_normally` (p1794366621).
++- Retirement total **45s** (30+5+2×5); distinct from outer-admission deadline (p1794366987).
++- Corrected5 closures retained (reader `is_alive`/UNKNOWN; overflow interrupt; kill/wait secondary; N14 `take.__globals__`).
+ - Corrected4 closures retained (ModuleType registration; admit_outer noncircular pins; capture-during-collection; ordered controls; cancel-before-selection).
+-- Corrected3 REVISE A/B/C retained (I02 operational-vs-cleanup; ASGI late successful peer; launcher `no_site`/capture/pins/result inventory).
+ 
+-## Dex tip-message IDs reconciled (exact)
++## Dex tip-message IDs reconciled (exact; corrected7)
+ 
+ | ID | TS | Status |
+ |---|---|---|
+-| p1794366074 | 1794366074.580949 | Closed corrected5 — reader `is_alive`/UNKNOWN; overflow interrupt; kill/wait secondary; disclosed limits |
+-| p1794366127 | 1794366127.227349 | Closed corrected5 — N14 `SharedTransportScript.take.__globals__` |
+-| p1794366344 | 1794366344.728349 | Closed corrected6 — **Choice B** Windows asyncio internal socket disclosure |
+-| p1794366450 | 1794366450.439149 | Consolidated REVISE of 6074/6127/6344; items 1–2 corrected5; item 3 corrected6 Choice B |
+-| p1794366621 | 1794366621.337969 | Closed corrected6 — any collection interrupt/error requires explicit child-exit confirmation |
+-| p1794366987 | 1794366987.193389 | Closed corrected6 — retirement total **45s** (30+5+2×5), not 40s; distinct from outer-admission deadline |
++| p1794366621 | 1794366621.337969 | Closed corrected6 retained — exit confirmation before result validation |
++| p1794366344 | 1794366344.728349 | Closed corrected6 Choice B retained — Windows asyncio internal socket disclosure |
++| p1794366450 | 1794366450.439149 | Closed corrected6 retained — consolidated REVISE of 6074/6127/6344 |
++| p1794366987 | 1794366987.193389 | Closed corrected6 arithmetic retained — retirement total **45s** |
++| p1794367441 | 1794367441 | Closed corrected7 — primary collection/wait error or unexpected interrupt blocks result admission/PASS even after confirmed exit 0; pe retained; no retry |
++| p1794367500 | 1794367500 | Closed corrected7 — retain `child_pid` at Popen success plus executable/argv/start timestamp for read-only custody; no enumeration/retry/cleanup authority |
+ 
+-## Corrected6 closures (this packet)
++## Corrected7 closures (this packet)
+ 
+-### 1. Windows asyncio internal socket scope — Choice B (p1794366344)
++### 1. Primary collection failure blocks PASS (p1794367441)
+ 
+-**Chosen:** B — disclose standard event-loop internal socket creation/retirement.
+-**Not chosen:** A — socket-free fake scheduling seam (would risk regressing real `asyncio.run` / Queue / wait / CancelledError ASGI controls closed in corrected4/5).
++With `proc_wait_error` / `interrupt_reason` set, `capture_stop=None`, confirmed child exit 0, and a valid-looking result file, corrected6 final gating could still validate the file and choose PASS because it only checked timeout/capture/reader/termination flags. Retaining `primary_error` on a PASS receipt is **not** stop-on-failure.
+ 
+-On Windows, ordinary `asyncio.run` uses `WindowsProactorEventLoopPolicy`. `BaseProactorEventLoop.__init__` → `_make_self_pipe` → `socket.socketpair` (CPython `proactor_events.py`); fallback is loopback bind/listen/connect/accept (`Lib/socket.py`).
++**FIX:** any `primary_error` or `interrupt_reason` prevents result admission and PASS even when child exit later proves 0; pe retained as primary; status STOP (125); no retry. Exit-confirm-before-result-validation from corrected6 remains.
+ 
+-| Bound | Value |
+-|---|---|
+-| Concurrent sockets per live loop | **2** (`ssock`/`csock`); fallback may briefly hold a 3rd listening socket during pair construction |
+-| Sequential `asyncio.run` cycles in N11 | **3** (create/retire; not stacked) |
+-| Scope | loopback-only (`AF_INET` 127.0.0.1/localhost) |
+-| Retirement | `loop.close` at end of each `asyncio.run` |
+-| Excludes | provider / DNS / proxy / app network / database |
+-| Production endpoint | unbound |
+-| Socket or execution authority added | **no** |
+-| Inventory executed during prep | **no** |
++### 2. child_pid custody (p1794367500)
+ 
+-Forbidden wording is clarified: no provider/DNS/proxy/app network sockets — **not** a claim of literally zero OS sockets from stdlib event-loop internals. Future verification launch card must carry Choice B disclosure explicitly.
++As soon as `Popen` succeeds, receipt pins `proc.pid` as `child_pid` plus already-pinned executable/argv and creation/start timestamp (`child_executable`, `child_argv`, `child_start_timestamp`, plus `child_custody` object). If termination cannot be confirmed, Dex has exact local child identity for **read-only** reconciliation. No process enumeration, retry, fallback, or new cleanup authority — receipt preparation only.
+ 
+-### 2. Termination confirmation residual (p1794366621)
++### 3. Corrected6 retained confirmations
+ 
+-`_collect_bounded` returns `interrupt_reason`. `main` starts with `termination_confirmed=False` and never claims `child_exited_normally` without non-None `proc.returncode`. Any collection interrupt/error — including `proc_wait_error` when `capture_stop` is None because both readers reached EOF — requires explicit child-exit confirmation before result validation. `pe` remains primary; no retry.
+-
+-### 3. Retirement arithmetic (p1794366987)
+-
+-`TIMEOUT_RETIREMENT_TOTAL_SECONDS = 30 + 5 + 2×5 = **45**`. Docs/TIP/INPUT-MANIFEST reconciled. This is child/retirement accounting only — distinct from any outer-admission deadline. No launch authorized.
++Choice B socket disclosure; exit-confirm before result validation; 45s retirement arithmetic; corrected5 reader/N14 closures — all retained unchanged in behavior.
+ 
+ ## Exact enforcing invocation
+ 
+diff --git a/fake-only-behavioral-harness/OUTER-ADMISSION.json b/fake-only-behavioral-harness/OUTER-ADMISSION.json
+--- a/fake-only-behavioral-harness/OUTER-ADMISSION.json
++++ b/fake-only-behavioral-harness/OUTER-ADMISSION.json
+@@ -1,5 +1,5 @@
+ {
+-  "packet": "post-native-I01-I02-fake-only-behavioral-harness-v1-revise2-corrected6",
++  "packet": "post-native-I01-I02-fake-only-behavioral-harness-v1-revise2-corrected7",
+   "class": "FAKE-BEHAVIORAL-OUTER-ADMISSION",
+   "executed_in_preparation": false,
+   "byte_semantics": "utf-8 lf",
+@@ -16,11 +16,11 @@
+     "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+     "subjects": {
+       "admit_outer.py": "A5BC16C076AA3CB9BD4B8E36C3895FEFF58E028DEE28532B1CCBD90A25E8A97B",
+-      "invoke_fake_behavioral.py": "77C4793D13B348BF49A7CF1915FA02F5963F6E880CA6036F7632B5D822E8F905",
++      "invoke_fake_behavioral.py": "B03C3458A453F863DD6AB7C6E21E56800A84F8E4B763582BC441B59D9BFA48F6",
+       "check_i01_i02_fake_behavioral.py": "B8542F0C336E593C780A0DC062C4AB26A78F2534B9DC3A68FE71D4424A89973E",
+       "EXPECTED-OUTPUT.json": "BF179EA6657391E3DFBFCC5AF7F9D0ED1D42E884DA712C625D95563C1666DB6A",
+-      "INPUT-MANIFEST.json": "84CB2148A4CD95779168DFD4AE258D72966D7D48616A143AA2C5CD14D836F217",
+-      "PACKET-SHA256SUMS.txt": "8ACA3C00861755961BF452DBF0AD61AC6F5E0019A6A8F2FD56CF993F1E5F45E0"
++      "INPUT-MANIFEST.json": "91F29BA6A7A5531A4528508B9E668E3CADFADEB796C73416DB561EBB08CCD617",
++      "PACKET-SHA256SUMS.txt": "7A87A4E1E06498B668B53BB1BF11872488BBF71B3892A0D2D6BA2A297D510ECA"
+     }
+   }
+ }
+diff --git a/fake-only-behavioral-harness/PACKET-SHA256SUMS.txt b/fake-only-behavioral-harness/PACKET-SHA256SUMS.txt
+--- a/fake-only-behavioral-harness/PACKET-SHA256SUMS.txt
++++ b/fake-only-behavioral-harness/PACKET-SHA256SUMS.txt
+@@ -1,6 +1,6 @@
+ B8542F0C336E593C780A0DC062C4AB26A78F2534B9DC3A68FE71D4424A89973E  check_i01_i02_fake_behavioral.py
+ BF179EA6657391E3DFBFCC5AF7F9D0ED1D42E884DA712C625D95563C1666DB6A  EXPECTED-OUTPUT.json
+-84CB2148A4CD95779168DFD4AE258D72966D7D48616A143AA2C5CD14D836F217  INPUT-MANIFEST.json
+-77C4793D13B348BF49A7CF1915FA02F5963F6E880CA6036F7632B5D822E8F905  invoke_fake_behavioral.py
++91F29BA6A7A5531A4528508B9E668E3CADFADEB796C73416DB561EBB08CCD617  INPUT-MANIFEST.json
++B03C3458A453F863DD6AB7C6E21E56800A84F8E4B763582BC441B59D9BFA48F6  invoke_fake_behavioral.py
+ A5BC16C076AA3CB9BD4B8E36C3895FEFF58E028DEE28532B1CCBD90A25E8A97B  admit_outer.py
+-2CC09EABFC8705524C5CE787AC94331ABC0B1E040ADC7F74F34DC89EA8469CC1  REVIEW.md
++D2060EBEB8B137996F3476FFCE10AD6B09DCA0FD4E909F50B84BAC8628553530  REVIEW.md
+diff --git a/CASE-INVENTORY.md b/CASE-INVENTORY.md
+--- a/CASE-INVENTORY.md
++++ b/CASE-INVENTORY.md
+@@ -1,4 +1,4 @@
+-# Case inventory — I01/I02 fixture prep REVISE2-corrected6
++# Case inventory — I01/I02 fixture prep REVISE2-corrected7
+ 
+ ## I01
+ - I01-C01 — Happy multi-target; hex-safe distinct inverted UUIDs (actual tokens i01c01); production-sorted subscription→calendar script; reversed request_ids via `assert_ordering_request_ids` (already-sorted refuses); T_plan window; success_at=T_plan; token_expiry=T_plan+7d; full scheduling_ready; revision/trust coherence from live response observations; `assert_transport_coverage_observations`
+@@ -30,8 +30,12 @@
+ - Launcher reader ownership/outcome accounting (join `is_alive`; UNKNOWN on live/incomplete/error; overflow interrupt; kill/wait secondary evidence; disclosed timeout/retirement limits)
+ - N14 `SharedTransportScript.take.__globals__` patch visibility + separate class `__module__/sys.modules` identity
+ 
+-## Corrected6 harness deltas (fake-only; authored not executed)
++## Corrected6 harness deltas retained (fake-only; authored not executed)
+ - Choice B: disclose Windows ProactorEventLoop internal wakeup sockets (loopback-only; concurrent bound 2; N11 sequential 3 asyncio.run cycles); not literally no sockets (Dex p1794366344 / consolidated p1794366450)
+ - Any collection interrupt/error (incl. `proc_wait_error` with `capture_stop=None`) requires explicit non-None child-exit confirmation before result validation or `child_exited_normally` (Dex p1794366621)
+ - Retirement total reconciled to 45s (30+5+2×5); distinct from outer-admission deadline (Dex p1794366987)
+-- Tip message IDs reconciled: p1794366074, p1794366127, p1794366344, p1794366450, p1794366621 (+ p1794366987 arithmetic)
++
++## Corrected7 harness deltas (fake-only; authored not executed)
++- Primary collection/wait error or unexpected collection interrupt prevents result admission/PASS even when child exit later proves 0 with a valid-looking result file; pe retained as primary; no retry (Dex p1794367441)
++- Receipt pins `child_pid` at Popen success plus executable/argv/start timestamp for read-only custody; no process enumeration, retry, fallback, or new cleanup authority (Dex p1794367500)
++- Tip message IDs reconciled: p1794366621, p1794366344, p1794366450, p1794366987, p1794367441, p1794367500
+diff --git a/WORKSPACE-POINTER.md b/WORKSPACE-POINTER.md
+--- a/WORKSPACE-POINTER.md
++++ b/WORKSPACE-POINTER.md
+@@ -1,9 +1,10 @@
+-# WORKSPACE-POINTER — REVISE2-corrected6
++# WORKSPACE-POINTER — REVISE2-corrected7
+ 
+-Fresh corrected6 review copy of tipped REVISE2-corrected5.
+-Tipped corrected5 parent (preserved unchanged): `F:/DropFolder/pending/post-native-I01-I02-fixture-prep-jim-v1-REVISE2-corrected5-2026-11-10/`
++Fresh corrected7 review copy of tipped REVISE2-corrected6.
++Tipped corrected6 parent (preserved unchanged): `F:/DropFolder/pending/post-native-I01-I02-fixture-prep-jim-v1-REVISE2-corrected6-2026-11-10/`
++Tipped corrected6 MANIFEST-SELF: D583BA494D972E8421D4A59B1097E6CAFD2C3C8EA0C62AD0FAB12C38C4B2389F
++
+ Tipped corrected5 MANIFEST-SELF: 14C59BAB362172309A6744F03B6C992F439BF32B304F2FD6FD1107A3E8EE61FC
+-
+ Tipped corrected4 MANIFEST-SELF: A7423A0B9EB5A5AC258BEBE88ADF5BD5D57DBAE644A6220AB13F6B31B6BD1391
+ Tipped corrected3 MANIFEST-SELF: FF006EDA98F2560B751EBDB6AF5CBBAD3D06A60B3685AA75591640965B85DF19
+ Tipped corrected2 MANIFEST-SELF: DA55C66EAB845FCB32AF285486C74E5ED030DD34B3B7879F61E14AC37B9BEC4A
+@@ -11,5 +12,5 @@
+ Frozen REVISE2 MANIFEST-SELF: 6DB87EBCBC094824899E2F0A7FC9BD45CCD98E31B7F39C4A98D4DB5E3D00DF2D
+ REVISE1 MANIFEST-SELF: 784837940230F542F4F88A2DF1BAF39D14022F09E09CC35EE85075F6202A7191
+ 
+-Payload lives under `workspace-payload/` (unchanged from tipped corrected5). Fake-only harness outside payload under `fake-only-behavioral-harness/` (includes OUTER-ADMISSION.json + admit_outer.py).
++Payload lives under `workspace-payload/` (unchanged from tipped corrected5/6). Fake-only harness outside payload under `fake-only-behavioral-harness/` (includes OUTER-ADMISSION.json + admit_outer.py).
+ No execution / imports / tests / Docker / install / native / check / socket-inventory invocation during preparation.
+diff --git a/OBSTRUCTION.md b/OBSTRUCTION.md
+--- a/OBSTRUCTION.md
++++ b/OBSTRUCTION.md
+@@ -1,4 +1,4 @@
+-# OBSTRUCTION.md — REVISE2-corrected6
++# OBSTRUCTION.md — REVISE2-corrected7
+ 
+-No soft-obstruction card. Workspace payload SHA256SUMS unchanged from tipped corrected4/5 (no fixture byte edits). Harness PACKET/OUTER pins regenerated for corrected6 launcher/check/docs closures.
+-Parents (tipped corrected5 + tipped corrected4 + tipped corrected3 + tipped corrected2 + tipped corrected + frozen REVISE2 + REVISE1) untouched.
++No soft-obstruction card. Workspace payload SHA256SUMS unchanged from tipped corrected4/5/6 (no fixture byte edits). Harness PACKET/OUTER pins regenerated for corrected7 launcher/docs closures.
++Parents (tipped corrected6 + tipped corrected5 + tipped corrected4 + tipped corrected3 + tipped corrected2 + tipped corrected + frozen REVISE2 + REVISE1) untouched.

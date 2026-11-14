@@ -1,0 +1,34 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -3008,6 +3008,7 @@ def _run_np_t04_body_stall() -> dict[str, Any]:
+     from app.services.covering_http_transport import CoveringHTTP
+     from app.services.covering_joined_https import JoinedTLS
+     from app.services.covering_http_dispatch import CoveringReleaseBinding
++    from app.services.covering_native_orm_factory import CoveringORMConnection
+     from app.services.covering_refresh_import import EFFECT_CANONICALIZE_IDENTITY
+     from app.services.calendar_alias_canonicalize import MS_LEGACY_PRIMARY_ALIAS
+ 
+@@ -3167,6 +3168,7 @@ def _run_np_t04_body_stall() -> dict[str, Any]:
+             captured_contexts.append(context)
+ 
+         real_init = CoveringHTTP.__init__
++        real_terminal = CoveringORMConnection.token_terminal
+         _install_token_terminal_observer(native_terminals)
+ 
+         def capturing_init(self, *args, **kwargs):
+@@ -3231,12 +3233,15 @@ def _run_np_t04_body_stall() -> dict[str, Any]:
+                 restore_worker_observer()
+                 restore_worker_observer = None
+             CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            CoveringORMConnection.token_terminal = real_terminal  # type: ignore[method-assign]
+             try:
+                 if transport is not None and real_request is not None:
+                     transport.request = real_request
+             except Exception:
+                 pass
+ 
++        if CoveringORMConnection.token_terminal is not real_terminal:
++            raise SuiteStop("token terminal observer restoration failed")
+         if not captured_contexts:
+             raise SuiteStop("ingress on_context did not capture actual request context")
+         ingress_budget = getattr(captured_contexts[0], "budget", None)

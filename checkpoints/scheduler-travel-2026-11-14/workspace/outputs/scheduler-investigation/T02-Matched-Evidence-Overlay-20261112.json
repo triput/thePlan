@@ -1,0 +1,183 @@
+{
+  "kind": "T02 property-matched evidence overlay",
+  "at_utc": "2026-11-12T21:27:43.6713228Z",
+  "source_lineage_sha256": "F69E0F88A531698B807D1983E20ED8DD366D0E74C97F04B3B75C31DAB77B1256",
+  "source_lineage_path": "T02-Counter-Source-Lineage-20261112.json",
+  "t02_result_sha256": "15C20693D238479D5971AA3630DC08DC7155BFD5D1C9C7C94483A13A682F0FB6",
+  "framing_result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+  "new_execution": false,
+  "entries": [
+    {
+      "id": "T02-EVENT-PAGES-BOUNDARY",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-EVENT-BOUNDARY",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "approved event ceiling 20: 20 admit, 21st refuses"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-EVENT-PAGES-OVERFLOW",
+      "matched_counter_controls": [
+        {
+          "id": "W-CROSS-PURPOSE-PAGE",
+          "recorded_result": {
+            "result": "PASS_WITNESS",
+            "detail": "original admits identity at event equality; candidate refuses"
+          }
+        },
+        {
+          "id": "W-FINAL-RESPONSE-COMPLETES",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "final page at ceiling-minus-one drains; later new exchange refuses"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-BOUNDARY",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "approved identity ceiling 10: 10 admit, 11th refuses"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-OVERFLOW",
+      "matched_counter_controls": [
+        {
+          "id": "W-CROSS-PURPOSE-PAGE",
+          "recorded_result": {
+            "result": "PASS_WITNESS",
+            "detail": "original admits identity at event equality; candidate refuses"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-ITEMS-BOUNDARY",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-ITEMS-N-MINUS-ONE",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "INJECTED_COUNTER_STATE items=9999; approved items ceiling N-1 admits Nth"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-ITEMS-OVERFLOW",
+      "matched_counter_controls": [],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": "Framing EXCESS-ITEM-BYTE gives admitted-response refusal at reduced limits only; approved-limit crossing controls remain authored, not executed."
+    },
+    {
+      "id": "T02-BYTES-BOUNDARY",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-BYTES-N-MINUS-ONE",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "INJECTED_COUNTER_STATE bytes=16777215; approved 16MiB N-1 admits Nth byte"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-BYTES-OVERFLOW",
+      "matched_counter_controls": [],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": "Framing EXCESS-ITEM-BYTE gives admitted-response refusal at reduced limits only; approved-limit crossing controls remain authored, not executed."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-EVENT-PAGES",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-EVENT-BOUNDARY",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "approved event ceiling 20: 20 admit, 21st refuses"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-IDENTITY-PAGES",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "approved identity ceiling 10: 10 admit, 11th refuses"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-ITEMS",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "INJECTED_COUNTER_STATE items=10000 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-BYTES",
+      "matched_counter_controls": [
+        {
+          "id": "W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES",
+          "recorded_result": {
+            "result": "PASS",
+            "detail": "INJECTED_COUNTER_STATE bytes=16777216 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']; does not interrupt W-FINAL-RESPONSE-COMPLETES"
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "component_scope": "Exact recorded host-fake predicate only, with matching raw counter/approved-limit definitions; shared actual ingress/provider budget, native classification and retirement remain separate",
+      "extra_for_overflow": null
+    }
+  ],
+  "rule": "Reuse exact already-executed predicates; do not re-run matching counter checks merely to relabel a requirement. Preserve all12 broader requirements, their open native/composition gaps and later exact crossing checks."
+}

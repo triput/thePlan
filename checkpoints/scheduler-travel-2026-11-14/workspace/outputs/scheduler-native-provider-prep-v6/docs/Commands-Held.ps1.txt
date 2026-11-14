@@ -1,0 +1,29 @@
+# COMMANDS HELD — fake-only verification. NOT INVOKED under preparation approval.
+# executed=false; launch_authorized=false; launch_ready=false; prep_is_not_pass=true;
+# first_vertical_increment=true; endpoint=unbound.
+# prep-v6: port dependency = verified finite host PASS 9/9 (not native dial/TLS).
+#
+# R4 concrete reviewed input pins: see docs/R4-Reviewed-Input-Pins.json
+# Controls (held): ASSEMBLY-PINS, SUITE-INVENTORY, PEER-RUNNER-SHAPE,
+#   CANDIDATE-SOURCE-SYNTAX, T02-OVERRUN-GAP, T02-FOCUSED-CROSSING,
+#   PORT-DEPENDENCY-PASS, T08-NESTED-RESET-BEHAVIOR, T07-INDIVIDUAL-NAMES,
+#   HOST-VS-RUNNER-DOCKER, REPORT-PRODUCER-CONSUMER-SINK,
+#   MAPPED-COVERAGE-MEASUREMENT, VERTICAL-CONTRACT-SHAPE,
+#   ADMISSION-SCHEMA-WRAPPER-FIELDS
+#
+# Held fake invocation (DO NOT RUN NOW):
+#
+#   .\Invoke-Fake.ps1 -AdmissionSHA256 B924153C1C53AE6ACD51338586C24ECEBC719628003E9F5F6113406372BCC265
+#
+# Native launch separately gated; first vertical batch must admit ONLY
+# case_ids=["NP-V-MS-NONEXPIRED"].
+#
+# Forbidden under this preparation:
+# - certificate generation (prepare-np-provider-tls.sh)
+# - docker compose / docker run
+# - imports/compilation/tests of payload/api
+# - helper invocation beyond static authoring
+# - provider/credential access
+# - failed-attempt reseed/retry
+# - claiming PASS from prep / fabricating PASS for HOLD cases
+# - Slack tip from this seat

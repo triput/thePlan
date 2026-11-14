@@ -1,0 +1,79 @@
+{
+  "expectedPublic": {
+    "status": 503,
+    "readyAssessmentClaim": false,
+    "automaticRetry": false,
+    "successfulRefreshClaim": false,
+    "accountDisconnectedClaim": false,
+    "code": "CALENDAR_REFRESH_OUTCOME_UNKNOWN"
+  },
+  "authority": "NONE",
+  "sourceManifest": "0C68B57E87582B165E25AC016C28AD62FE026B7E758F3F560E8F3527CEFECD43",
+  "endpoint": "unbound",
+  "scope": "Source-derived expectations for later implementation/review only",
+  "domainTrace": [
+    "Token adapter catches only CoveringReauthorizationRequired as TokenRejected(CALENDAR_ACCOUNT_DISCONNECTED)",
+    "Acknowledgment UNKNOWN escapes the token operation rather than reaching the ordinary changed/no-change terminal hook",
+    "Domain dispatch attaches completed_results and rethrows UNKNOWN before final assessment",
+    "HTTP dispatch translates CoveringRootOutcomeUnknown to ApiError503/CALENDAR_REFRESH_OUTCOME_UNKNOWN with do-not-retry detail"
+  ],
+  "atUtc": "2026-11-14T07:53:00.1583652Z",
+  "newAssignment": false,
+  "requirements": [
+    "T06-MALFORMED-ACK",
+    "T06-TRUNCATED-ACK",
+    "T06-OTHER-ERROR"
+  ],
+  "uncertaintyBoundary": "A known local rollback or unchanged local credentials cannot prove the provider did not rotate a token. Provider-side outcome remains unknown after a possibly sent POST. The expected application UNKNOWN is finite test behavior; framework/cleanup UNKNOWN still stops.",
+  "transportTrace": [
+    "OAuth POST uses JoinedTLS.send before body parsing and JSON decode",
+    "Malformed JSON fails decode; short Content-Length fails completion; non-invalid_grant status/error maps to CoveringRootOutcomeUnknown",
+    "After any possible OAuth send, the BaseException handler remaps to CoveringRootOutcomeUnknown with no replay",
+    "Only complete status400/error invalid_grant raises CoveringReauthorizationRequired"
+  ],
+  "futureRequiredObservations": [
+    "Exact single OAuth POST inventory only after joined peer retirement",
+    "Actual typed client UNKNOWN, public503/code and zero automatic replay",
+    "No later IMPORT or final assessment role",
+    "Local semantic credentials and calendar state observed independently before/after",
+    "Actual native DB terminal/retirement evidence; do not infer a particular hook row from source branch intent",
+    "Known joined peer/PKI retirement distinct from intentionally expected application UNKNOWN"
+  ],
+  "currentAssignment": "83D434E4 BODY fake staging review remains unchanged",
+  "sourcePins": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_provider_transcript.py",
+      "sha256": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+    }
+  ],
+  "sourceChanges": false,
+  "existingScriptPurposes": [
+    "malformed_oauth_ack",
+    "truncated_oauth_ack",
+    "other_oauth_error"
+  ],
+  "kind": "Google OAuth acknowledgment failure public-outcome source trace",
+  "executionPerformed": false,
+  "notCovered": [
+    "Before-send refusal",
+    "Partial-send",
+    "Lost acknowledgment without these exact response stimuli",
+    "Native TLS behavior and exact parser exception under this runtime"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "hostReceiptDirectory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "defaultReceipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl",
+  "operatorEvidence": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "optionalReceiptOverride": false,
+  "sourceDirectory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+  "evidenceAbsent": true,
+  "humanLaunchAuthorized": false,
+  "runnerReadOnlyBinds": [
+    [
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+      "/packet"
+    ],
+    [
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+      "/public-ca"
+    ]
+  ],
+  "hostReady": true,
+  "publicCAOutput": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca"
+}

@@ -1,0 +1,50 @@
+{
+  "kind": "MS invalid-grant prep v1 static review; revise before any execution",
+  "atUtc": "2026-11-13T20:50:21.2019293Z",
+  "handoffSha256": "93CC9D1B0696CB982181C21D2780E96582971DE9237A0801BEDF325C8EABAB65",
+  "handoffPinsVerified": 26,
+  "nativeParentManifest": "DA1143947EC03F61C02171A4339283AF1D44CB623B43472E7737EBAABDCD11FA",
+  "nativeInputsVerified": 296,
+  "fakeParentManifest": "B5183A403276CE08850B72AB76EE3D8B284EE394887C3426B007B199F46A5167",
+  "fakeInputsVerified": 34,
+  "nativeRunnerSha256": "ACD7F4493492DC01406558374E4B2EC46E8CDDA59FAE4FD2195FC0B154006FF1",
+  "checkerSha256": "5EF756D2A57A42D320C59F5A74E75466F329D0AD2A2F883D110B954D7EB9FF29",
+  "checkerSourceReviewed": "12controls/65nested; no Python parsing/behavior execution",
+  "admissionJson": "both parse valid, both false",
+  "blockingFindings": [
+    {
+      "source": "np_provider_peer.retire_owned returns independent joined and worker_error_kind; new invalid and existing selected nonexpired bodies test only joined and omit worker_error_kind from the result",
+      "required": "A selected case must require joined is True AND worker_error_kind is None before success and preserve unexpected worker errors as STOP.",
+      "finding": "Joined peer worker errors do not prevent PASS",
+      "counterexample": "Structural only: retirement joined=True,worker_error_kind=RuntimeError satisfies current joined guard; other measured predicates unchanged can still reach passed=True. No fault was run.",
+      "id": "R1"
+    },
+    {
+      "source": "invalid runner snapshots peer_state/exchanges before retire_owned; existing selected nonexpired does the same",
+      "required": "Use one existing bounded retirement, mark attempted before call, then snapshot final peer state and validate inventory before success; no second retirement after error.",
+      "finding": "Peer inventory sampled before retirement barrier",
+      "counterexample": "Client can finish before asynchronous peer append/teardown completes; pre-join snapshot can be stale and is not final worker state.",
+      "id": "R2"
+    }
+  ],
+  "accepted": [
+    "Tenant-path correction, status400 exact object framing, typed reauthorization and full native rollback receipt predicates",
+    "Same-object observer/return preservation and restoration, separate semantic persisted state, no IMPORT result/no_op",
+    "Finite source-mutant distinctions, original/candidate diff rules, no source-check execution",
+    "Recorded-only assessment fields truthfully excluded from correctness claims"
+  ],
+  "qualifications": [
+    "New fake currently lacks retirement-failure and post-join-inventory controls; add actual extracted selected runner boundary controls with delayed-publication and joined+error states.",
+    "Preserve existing limits; no peer/helper retirement implementation change, extra wait/retry or new launch allowed.",
+    "Inherited Docker machine flags may remain true while host/runner/admission gates false; avoid all-flags-false prose."
+  ],
+  "nativePendingCard": {
+    "newSuccessorNeedsSeparateExactCard": true,
+    "status": "WITHHELD; shared selected NONEXPIRED fixture gap; old card must not be invoked on a late answer",
+    "originalCommandSha256": "85E6A70270D41F422E4BBF9FE0F9BD962C128B51C3CC58511353ADD66B53D84D",
+    "decisionSha256": "A50C04FB8E59AD23653C0F541970AA1C71863646674DDB43AFD041D81C58B5D9"
+  },
+  "executionPerformed": false,
+  "sourceChangesDuringReview": false,
+  "endpoint": "unbound"
+}

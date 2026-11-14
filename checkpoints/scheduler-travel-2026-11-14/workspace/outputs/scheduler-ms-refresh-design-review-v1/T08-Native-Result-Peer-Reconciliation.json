@@ -1,0 +1,29 @@
+{
+  "inputsVerified": 310,
+  "remainingAuthority": 0,
+  "review": "C2443B807D1A13F40CA65DA1FEC77ED1585475B80034731A35EA367661B4D006",
+  "assertedNotRawRetained": [
+    "Exact 91-byte wire equality",
+    "Socket object/fd identity after foreign use/close",
+    "Closed descriptor -1",
+    "Reuse preserves retired resource"
+  ],
+  "newExecution": false,
+  "scope": "Production JoinedTLS real socket/thread ownership, owner use/close and same-instance reuse refusal",
+  "receiptRows": 54,
+  "noFramingOAuthIngressAssessmentEOFClaim": true,
+  "endpoint": "unbound",
+  "cleanup": "Verified22 Docker commands, both containers absent, DB exit0",
+  "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+  "retainedOracles": [
+    "foreign_check",
+    "foreign_close",
+    "reuse_forbid",
+    "owner_retirement"
+  ],
+  "nativeCase": "NP-T08-OWNERSHIP",
+  "status": "QUALIFIED_ACCEPTED_NO_OBJECTION",
+  "unexercisedQualification": "Cleanup-error replacement remains a source qualification; no failure path ran",
+  "kind": "T08 independent result review reconciliation",
+  "resolvedRuntimeQualification": "Owner local close compatible with this scripted peer orderly close; peer joined without worker error"
+}

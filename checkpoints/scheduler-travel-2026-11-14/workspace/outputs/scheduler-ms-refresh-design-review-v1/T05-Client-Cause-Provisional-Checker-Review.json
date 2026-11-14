@@ -1,0 +1,22 @@
+{
+  "atUtc": "2026-11-14T00:24:04.6840810Z",
+  "status": "PROVISIONAL_CHECKER_SOURCE_REVIEW_NOT_ACCEPTANCE",
+  "checker": "outputs/scheduler-native-t05-client-cause-fake-prep-matt-v1/packet/verify/check_native_provider.py",
+  "checkerSha256": "93260CA296CCDDFA739660BC832849B2FA0B169D18ACC3A7845E7C1E566CC5F1",
+  "reviewedControls": [
+    "Exact admitted labels, same guard/cause object identities, None fallback and unexpected exception identity",
+    "Caller exception fields and traceback unchanged",
+    "Caller order/capture checks correctly labelled structural",
+    "Actual producer and host validator extracted with named fake modules",
+    "Secret marker absent from serialized producer and host records",
+    "Exact kind chain and owned fake frame, cleanup UNKNOWN retained, suppressed-context behavior stated honestly",
+    "Three exceptions/eight frames/4096 bytes truncation and original-kind fallback",
+    "Six actual-source mutants: four behavioral, two structural; unique whole-text anchors and precise WitnessFailure prefixes"
+  ],
+  "executionSurfaceQualification": "Checker uses real disposable local temporary directory, writes fake owned Python source/manifest, reads/hash-validates it, then removes owned temporary files. Fixture transport/process/TLS/DB are fake. This filesystem activity must be explicit in later execution card; not a no-filesystem claim.",
+  "remaining": "Full signed sidecar, complete frozen packet, expected inventories, immutable launcher/admission and exact command/limits must still be reconciled",
+  "noExecution": true,
+  "noStaticBlockerInReviewedPortion": true,
+  "nativeProof": false,
+  "endpoint": "unbound"
+}

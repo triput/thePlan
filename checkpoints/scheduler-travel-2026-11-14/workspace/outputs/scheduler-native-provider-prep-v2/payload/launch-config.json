@@ -1,0 +1,155 @@
+{
+  "launch_ready": false,
+  "packet": "scheduler-native-provider-prep-v2",
+  "endpoint": "unbound",
+  "endpoint_binding_authorized": false,
+  "port_verification_authorized": false,
+  "case_ids": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-V-MS-REFRESH",
+    "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+    "NP-V-MS-INVALID",
+    "NP-V-GOOGLE-REFRESH",
+    "NP-V-GOOGLE-INVALID",
+    "NP-T06-BEFORE-SEND",
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME",
+    "NP-T03-HANDSHAKE-STALL",
+    "NP-T03-TCP-REFUSAL",
+    "NP-T04-HEADER-STALL",
+    "NP-T04-BODY-STALL",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DEADLINE",
+    "NP-T04-DISCONNECT",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION",
+    "NP-T07-OWNED-SOCKET",
+    "NP-T07-BOTH-AFTER-FAILURE",
+    "NP-T08-OWNERSHIP"
+  ],
+  "expected_unknown_cases": [
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DISCONNECT"
+  ],
+  "include_cf_witnesses_separate_batch": true,
+  "cf_witness_case_ids": [
+    "NP-T01-USERINFO-CF",
+    "NP-T01-FRAGMENT-CF",
+    "NP-T01-CONTROL-CHAR-CF",
+    "NP-T01-PURPOSE-WRONG-CF"
+  ],
+  "batches": {
+    "B0": [
+      "NP-T01-USERINFO-CF",
+      "NP-T01-FRAGMENT-CF",
+      "NP-T01-CONTROL-CHAR-CF",
+      "NP-T01-PURPOSE-WRONG-CF"
+    ],
+    "B1": [
+      "NP-V-MS-NONEXPIRED",
+      "NP-V-MS-REFRESH",
+      "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+      "NP-V-MS-INVALID",
+      "NP-V-GOOGLE-REFRESH",
+      "NP-V-GOOGLE-INVALID",
+      "NP-T06-BEFORE-SEND",
+      "NP-T06-MALFORMED-ACK",
+      "NP-T06-TRUNCATED-ACK",
+      "NP-T06-OTHER",
+      "NP-T06-PARTIAL",
+      "NP-T06-LOST"
+    ],
+    "B2": [
+      "NP-T03-VALID",
+      "NP-T03-WRONG-CA",
+      "NP-T03-WRONG-NAME",
+      "NP-T03-TCP-REFUSAL"
+    ],
+    "B3": [
+      "NP-T03-HANDSHAKE-STALL",
+      "NP-T04-HEADER-STALL",
+      "NP-T04-BODY-STALL"
+    ],
+    "B4": [
+      "NP-T04-PARTIAL-SEND",
+      "NP-T04-DEADLINE",
+      "NP-T04-DISCONNECT"
+    ],
+    "B5": [
+      "NP-T05-ORDERLY-CLOSE",
+      "NP-T05-ABRUPT-TRUNCATION",
+      "NP-T07-OWNED-SOCKET",
+      "NP-T07-BOTH-AFTER-FAILURE",
+      "NP-T08-OWNERSHIP"
+    ]
+  },
+  "clocks": {
+    "work_deadline_seconds": 210,
+    "request_deadline_seconds": 240,
+    "cleanup_allowance_seconds": 30,
+    "attempt_validity_seconds": 600
+  },
+  "suite_seconds": null,
+  "runner_seconds": null,
+  "command_count_cap": null,
+  "output_byte_cap": 1048576,
+  "bounds_note": "Compute runner/suite/command/PKI/output/retirement bounds from actual operations before any launch card. Prefer incremental serial batches.",
+  "topology": {
+    "initial_bind": "unchanged_isolation_nonroot_443",
+    "dial": "127.0.0.1:443",
+    "verify_full": true,
+    "host_docker_ownership": true,
+    "runner_docker_socket": false,
+    "new_privileges": false
+  },
+  "retirement": {
+    "owned_peer_pki_reader": "source_may_implement_bounded; invocation_fault_authority=later_launch_card_only",
+    "failed_container_shutdown": "separately_gated",
+    "unjoined": "UNKNOWN"
+  },
+  "python_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+  "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+  "docker_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+  "self_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+  "manifest_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+  "endpoint_npipe": "npipe:////./pipe/dockerDesktopLinuxEngine",
+  "unresolved": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D7",
+    "D8",
+    "D9",
+    "D10",
+    "D11",
+    "D12"
+  ],
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "port_dependency_status": "VERIFIED_FINITE_HOST_PASS_9_OF_9",
+  "port_result_sha256": "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548",
+  "port_receipt_sha256": "61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961",
+  "port_reconciliation_sha256": "E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D",
+  "port_native_dial_tls": false,
+  "port_full_t01_closure": false,
+  "implementation_increment": {
+    "implemented_case_ids": [
+      "NP-V-MS-NONEXPIRED"
+    ],
+    "remaining": "HOLD_EXPLICIT_NOT_PASS"
+  }
+}

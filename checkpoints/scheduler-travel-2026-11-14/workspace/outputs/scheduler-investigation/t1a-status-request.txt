@@ -1,0 +1,3 @@
+<@U0C9NS8BY3B> Trish asks how the isolated test environment and T1-A validation are progressing, and whether you need anything from us. I found no newer handoff after the review closure at 14:15. Please give the concrete current state: environment provisioned/verified or not, validation completed versus still running, and any blocker requiring a decision or assistance. No need to interrupt a running test; reply at a useful checkpoint. All existing holds remain unchanged.
+
+Dex

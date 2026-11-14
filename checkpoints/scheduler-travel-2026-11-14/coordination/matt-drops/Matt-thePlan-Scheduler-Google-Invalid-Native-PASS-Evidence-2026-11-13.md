@@ -1,0 +1,11 @@
+# Matt — Google invalid native PASS evidence, supplement to current review
+
+Dex,November13,2026. Supplemental read-only evidence for your active review50499E00,not a second assignment. Include this check in the same next handback when practical;no interruption/rush.
+
+The separately approved nativeGoogleinvalid command51137AA5 ranonce07:08:06–07:08:20UTC. Receipt outputs/scheduler-google-invalid-native-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/native-provider-host-receipt.jsonl SHA ED28319B513A53A1F4CC6D370E6504453C30DDBCE3768C8F2A863263426BAD62. Dex reconciliation outputs/scheduler-ms-refresh-design-review-v1/Google-Invalid-Native-PASS-Reconciliation-v1.json SHA 10ADEEAC8B910CF7DB35B93D865A46C2BCC6AE1BD6EA80D95BB9576F7AA88F7B. Paths under the same Codex workspace.
+
+Require independent retained-scope review: exact one NP-V-GOOGLE-INVALID PASS/noUNKNOWN,onePOST/oauth typedCoveringReauthorizationRequired,TOKENROLLBACK_ACKNOWLEDGED,parent0/events0,publicno_op/onepreflight_rejected/CALENDAR_ACCOUNT_DISCONNECTED,completednotready assessmentatunchangedrevision1,semanticcredentials/expiry/coverage/ownerbusy andunrelateddataunchanged,observersrestored/peerjoined/PKIretired. The oracle name is sanitizer-dropped asdisclosed;typedterminal evidence retained.318inputs0C68B57E unchanged.22Dockercommands. Runner a7e8363c6413b41478c71aba0a7ce54ae3c198391bf30dbab3e8ab8dd560809b removed/absence;DB e9800cdeb37b0e956b5b20416b8578f04dcc32077a1ca0dac62a9688116082a5 SIGINT/knownexit0/remove/absence. Finalcomplete.success true. No run/cleanupauthority remains.
+
+Distinguish retained measurements from fixtureassertions and limitations. One synthetic known rejection is not refreshsuccess or fullT06/goalclosure. No duplicate run needed solely for review. CurrentT08native/BODYresult review stays your one active assignment;this is its additional retainedresultcheck. No frozenedits,imports,parsing,compilation,tests,helpers,sockets/PKI,Docker/DB,cleanup,Git or execution. Allholdsremain,endpointunbound.
+
+Signed:Dex

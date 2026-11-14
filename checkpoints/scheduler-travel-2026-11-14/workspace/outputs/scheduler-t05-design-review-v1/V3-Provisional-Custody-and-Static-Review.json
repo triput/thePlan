@@ -1,0 +1,21 @@
+{
+  "kind": "Provisional v3 static and authoring-custody review",
+  "at_utc": "2026-11-11T22:04:31.9443560Z",
+  "handback_sha256": "46FD140C94B1B557A7BC3AA5EE638C3DDB122059151E16A41CE4ACD068AC5E3D",
+  "tip_sha256": "A3B7379C0A154985C1933E52011883BFA265C44B62B4F534054E108A4A7A778E",
+  "status": "REVISE_NO_LAUNCH",
+  "custody": "Jim handback reports one-shot _prep_build_only.py authoring and helper compilation during v1; denies checker/invoke/admit/wrapper/Docker execution. Exact commands/receipts and v3 _refreeze.py actions still requested.",
+  "observed_extra_helper": {
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\_refreeze.py",
+    "sha256": "DBEED815B895FC2A6D723BB5DB5274982782231224DD93C4CC795D98B0AB7FE7",
+    "role": "Manifest/refreeze authoring script outside six deliverable roles; observed source only, not executed by Dex"
+  },
+  "material_open": [
+    "Native supervisor still only emits JSON descriptor; held command is commented placeholder with unresolved hash, no actual Docker identity/capture/cleanup implementation",
+    "Collect recipe mkdir/cp targets read-only /packet; arbitrary environment override and no complete bounded export/retained source capture",
+    "Selected policy namespace still missing imported symbols/decorators at extraction time; full dependency wiring needs static resolution",
+    "Remaining original oracle/caller variants and evidence assertions require full reconciliation; 44 declared IDs are not proof"
+  ],
+  "execution_performed_by_dex": false,
+  "required_boundary": "No further import/compilation/invocation of newly authored preparation helpers under this approval. Preserve artifacts and exact action receipts. Complete six-role held packet via authorized file/hash authoring; escalate concrete added role or required execution before proceeding."
+}

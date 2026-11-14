@@ -1,0 +1,117 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "NONEXPIRED-AND-DIAGNOSTIC-PRESERVED",
+    "TENANT-PATH-AGREEMENT",
+    "OAUTH-ROUTE-TABLE",
+    "REFRESH-INVENTORY-ORDER",
+    "SEMANTIC-PERSISTENCE-ADMISSION",
+    "SECRET-EXCLUSION-PROJECTION",
+    "REGISTRY-MAPPING",
+    "REFRESH-BODY-SHAPE",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutants": {
+        "ciphertext_only_persistence": "DETECTED",
+        "graph_only_routes": "DETECTED",
+        "legacy_token_path": "DETECTED",
+        "missing_token_script": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "NONEXPIRED-AND-DIAGNOSTIC-PRESERVED": {
+      "cases": {
+        "np_auth_seed.py:derive_production_target_calendar_order": "PASS",
+        "np_auth_seed.py:fixture_settings": "PASS",
+        "np_auth_seed.py:measure_subscription_coverage_state": "PASS",
+        "np_auth_seed.py:seed_browser_owner_with_subscriptions": "PASS",
+        "np_provider_transcript.py:ms_graph_calendar_view_empty_script": "PASS",
+        "np_provider_transcript.py:ms_graph_identity_default_script": "PASS",
+        "np_provider_transcript.py:ms_graph_identity_list_script": "PASS",
+        "np_provider_transcript.py:ms_nonexpired_connection_inventory": "PASS",
+        "np_provider_transcript.py:ms_token_invalid_grant_script": "PASS",
+        "np_receipts.py:build_receipt": "PASS",
+        "np_receipts.py:case_result_receipt": "PASS",
+        "np_receipts.py:redact_mapping": "PASS",
+        "np_runner_entry.py:_extract_token_rollback_ack": "PASS",
+        "np_runner_entry.py:_install_token_terminal_observer": "PASS",
+        "np_runner_entry.py:_ms_provider_routes": "PASS",
+        "np_runner_entry.py:_run_np_v_ms_nonexpired": "PASS",
+        "np_runner_entry.py:build_registry_from_suite": "PASS",
+        "np_runner_entry.py:provision_disposable_schema": "PASS",
+        "np_runner_entry.py:stop_payload": "PASS",
+        "np_suite.py:NATIVE_CASES": "PASS",
+        "np_suite.py:check_oracles_immediate": "PASS",
+        "np_suite.py:registry_by_id": "PASS",
+        "np_suite.py:validate_inventory_counts": "PASS",
+        "seed_literals_unchanged": "PASS"
+      },
+      "control_kind": "extracted_text_identity",
+      "observed": "PASS"
+    },
+    "OAUTH-ROUTE-TABLE": {
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "routes": 4
+    },
+    "REFRESH-BODY-SHAPE": {
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "REFRESH-INVENTORY-ORDER": {
+      "control_kind": "extracted_behavior_fake",
+      "exchanges": 5,
+      "observed": "PASS"
+    },
+    "REGISTRY-MAPPING": {
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "SECRET-EXCLUSION-PROJECTION": {
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "SEMANTIC-PERSISTENCE-ADMISSION": {
+      "cases": {
+        "after_refreshed_state": "PASS",
+        "before_seed_state": "PASS",
+        "changed_ciphertext_unchanged_plaintext_refused": "PASS",
+        "invalid_expiry_refused": "PASS",
+        "missing_rotation_refused": "PASS",
+        "projection_has_no_plaintext": "PASS",
+        "refuses_missing_account": "PASS",
+        "refuses_missing_ciphertext": "PASS",
+        "refuses_missing_expiry": "PASS",
+        "refuses_naive_reference": "PASS",
+        "wrong_token_refused": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": 12
+    },
+    "TENANT-PATH-AGREEMENT": {
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "path": "/common/oauth2/v2.0/token",
+      "refused_tenants": 5
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 46,
+  "packet": "scheduler-ms-refresh-fake-prep-matt-v1",
+  "passed": 10,
+  "prep_is_not_pass": true
+}

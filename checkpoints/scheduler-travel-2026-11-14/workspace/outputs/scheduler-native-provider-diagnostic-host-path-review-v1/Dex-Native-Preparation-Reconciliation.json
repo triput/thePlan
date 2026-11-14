@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-11-13T03:46:40.2883388Z",
+  "status": "NATIVE_PREPARATION_INDEPENDENTLY_RECONCILED_STAGING_PEER_REVIEW_PENDING",
+  "matt_handback_sha256": "90B11F15F37FA115722AE8900CCC22AA84BE797A526B5A1BF9068E65D4E36BE3",
+  "handoff_manifest_sha256": "6251A568E3A9849F2461389797CD986A162BDB7AA43E88EAD11D13F1179A5238",
+  "handoff_pins": 13,
+  "source_inputs_verified": 269,
+  "payload_pins_verified": 257,
+  "exact_operator_change": true,
+  "all_other_executable_payload_bytes_unchanged": true,
+  "source_host_gates_false": true,
+  "qualification": "Seven active ops root path strings, not eight as handback stated. Exact semantic path-only diff and every path independently checked.",
+  "stage_manifest_sha256": "1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+  "stage_entries": 274,
+  "stage_command_sha256": "F39C778C9A20A5CA538CAE8F414768833866B3852367CB1EE53FF115C509A870",
+  "stage_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1",
+  "execution_authorized": false,
+  "target_commands_invoked": 0,
+  "endpoint": "unbound"
+}

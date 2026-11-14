@@ -1,0 +1,12 @@
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,7 +1,8 @@
+ {
+   "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-NONEXPIRED"
++    "NP-T05-ORDERLY-CLOSE",
++    "NP-T05-ABRUPT-TRUNCATION"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,

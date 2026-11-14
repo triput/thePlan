@@ -1,0 +1,11 @@
+{
+  "at_utc": "2026-11-11T19:55:03.9662007Z",
+  "authority": "Trish answer in this chat",
+  "answer": "Authorize one D2 fake-only v2 verification (Recommended)",
+  "authorized_attempts": 1,
+  "wrapper_sha256": "B72C1CBCAC9229F47FBB5E7A88462BB3D0C02DC8FA6B3DE163EE8FFECB195CA7",
+  "admission_sha256": "D7F088CBBCCDA3C32860F14AED475824BE260B70E9389289580B787C0C4A9591",
+  "stop_conditions": "failure/mismatch/timeout/unexpected output/UNKNOWN; no retries/repairs/extra cleanup",
+  "endpoint": "unbound",
+  "other_holds": "retained"
+}

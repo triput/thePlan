@@ -1,0 +1,270 @@
+{
+  "status": "PASS",
+  "class": "FAKE-T07-RETIREMENT",
+  "executed_in_preparation": false,
+  "later_authorized_run": {
+    "executed": true,
+    "held": false,
+    "source_hashes_verified": true,
+    "inventory_error": null
+  },
+  "inventory_contract": "exact_unique_control_ids_no_omission_exact_emitted_order",
+  "ordered_contract": "emitted control_ids_in_order compared DIRECTLY to EXPECTED.control_ids_in_order before PASS",
+  "named_expected_control_count": 39,
+  "functional_control_count": 31,
+  "original_witness_count": 9,
+  "candidate_functional_count": 22,
+  "mutation_control_count": 3,
+  "inventory_self_check_count": 5,
+  "c_out_ve_present": true,
+  "c_out_unk_present": true,
+  "crlf_aware_extract": true,
+  "supersedes_v1_tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "oracle_gaps_closed": [
+    "caller_no_later_role_ports",
+    "importer_complete_try_except",
+    "r07_r08_r09_joined_via_http",
+    "mutations_rebind_same_oracle",
+    "inventory_compare_to_expected",
+    "provenance_boundary_before_sanitize"
+  ],
+  "control_ids_in_order": [
+    "C-R01",
+    "C-R02",
+    "C-R03",
+    "C-R04",
+    "C-R05",
+    "C-R06",
+    "C-R07",
+    "C-R08",
+    "C-R09",
+    "C-R10",
+    "C-R11",
+    "C-R12",
+    "C-OUT-VE",
+    "C-OUT-UNK",
+    "C-UNK-PULL",
+    "C-CALLER-EVENT",
+    "C-CALLER-OAUTH",
+    "C-CALLER-IDENTITY",
+    "C-NO-LATER-ADMISSION",
+    "C-POS-KNOWN-REAUTH",
+    "C-PROV-BOUNDARY-ACCEPT",
+    "C-PROV-BOUNDARY-REJECT",
+    "O-R02",
+    "O-R03-EV",
+    "O-R04",
+    "O-R05",
+    "O-R06",
+    "O-R08",
+    "O-UNK-PULL",
+    "O-ID-OS",
+    "O-R11",
+    "M-SKIP-SECOND-CLOSE",
+    "M-AMBIENT-EXC-INFO",
+    "M-MUTATE-OUTER-UNKNOWN",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "controls": {
+    "C-R01": {
+      "result": "PASS",
+      "kind": "candidate_success",
+      "criterion": "complete event; both closes succeed; no UNKNOWN"
+    },
+    "C-R02": {
+      "result": "PASS",
+      "kind": "candidate_cleanup",
+      "criterion": "response.close failure; transport attempted; UNKNOWN primary None"
+    },
+    "C-R03": {
+      "result": "PASS",
+      "kind": "candidate_cleanup",
+      "criterion": "transport.close failure; UNKNOWN; no later admission"
+    },
+    "C-R04": {
+      "result": "PASS",
+      "kind": "candidate_provenance",
+      "criterion": "parser/body primary + response.close independently retained"
+    },
+    "C-R05": {
+      "result": "PASS",
+      "kind": "candidate_provenance",
+      "criterion": "parser/body primary + transport.close independently retained"
+    },
+    "C-R06": {
+      "result": "PASS",
+      "kind": "candidate_provenance",
+      "criterion": "both distinct cleanup objects retained"
+    },
+    "C-R07": {
+      "result": "PASS",
+      "kind": "candidate_joined_http",
+      "criterion": "CoveringHTTP→JoinedTLS setblocking/open; method/raw close counted"
+    },
+    "C-R08": {
+      "result": "PASS",
+      "kind": "candidate_joined_http",
+      "criterion": "CoveringHTTP→JoinedTLS UNKNOWN; outer method close; no second raw close"
+    },
+    "C-R09": {
+      "result": "PASS",
+      "kind": "candidate_idempotence",
+      "criterion": "first raw close may raise; later method close no second raw"
+    },
+    "C-R10": {
+      "result": "PASS",
+      "kind": "candidate_oauth",
+      "criterion": "oauth sent + malformed + cleanup → UNKNOWN; no later admission"
+    },
+    "C-R11": {
+      "result": "PASS",
+      "kind": "candidate_oauth",
+      "criterion": "invalid_grant + uncertain retirement → UNKNOWN with Reauth primary"
+    },
+    "C-R12": {
+      "result": "PASS",
+      "kind": "candidate_foreign",
+      "criterion": "foreign retirement refused before socket mutation"
+    },
+    "C-OUT-VE": {
+      "result": "PASS",
+      "kind": "outer_handler",
+      "criterion": "success+cleanup under except ValueError; primary None; outer not attributed"
+    },
+    "C-OUT-UNK": {
+      "result": "PASS",
+      "kind": "outer_handler",
+      "criterion": "success+cleanup under except UNKNOWN; new UNKNOWN; outer unchanged"
+    },
+    "C-UNK-PULL": {
+      "result": "PASS",
+      "kind": "importer",
+      "criterion": "complete owning try/except re-raises UNKNOWN on candidate"
+    },
+    "C-CALLER-EVENT": {
+      "result": "PASS",
+      "kind": "caller_txn",
+      "criterion": "event purpose + extracted role txn; prior preserved; no later"
+    },
+    "C-CALLER-OAUTH": {
+      "result": "PASS",
+      "kind": "caller_txn",
+      "criterion": "oauth/token purpose + role txn; no later admission"
+    },
+    "C-CALLER-IDENTITY": {
+      "result": "PASS",
+      "kind": "caller_txn",
+      "criterion": "actual identity OSError prepare path + role stop"
+    },
+    "C-NO-LATER-ADMISSION": {
+      "result": "PASS",
+      "kind": "admission",
+      "criterion": "zero later PARENT/TOKEN/ASSESSMENT after injected cleanup UNKNOWN"
+    },
+    "C-POS-KNOWN-REAUTH": {
+      "result": "PASS",
+      "kind": "known_outcome",
+      "criterion": "invalid_grant alone → CoveringReauthorizationRequired"
+    },
+    "C-PROV-BOUNDARY-ACCEPT": {
+      "result": "PASS",
+      "kind": "provenance_boundary",
+      "criterion": "finite production provenance-boundary inventory accepted"
+    },
+    "C-PROV-BOUNDARY-REJECT": {
+      "result": "PASS",
+      "kind": "provenance_boundary",
+      "criterion": "over-count/non-exception/malformed rejected before sanitize"
+    },
+    "O-R02": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "transport.close skipped after response.close raise"
+    },
+    "O-R03-EV": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "cleanup escapes as raw error; later admission risk"
+    },
+    "O-R04": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "observed primary/context/cleanup classes; no dual provenance attrs"
+    },
+    "O-R05": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "observed primary/context/cleanup classes; no dual provenance attrs"
+    },
+    "O-R06": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "second close not attempted; no dual cleanup objects"
+    },
+    "O-R08": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "CoveringHTTP→JoinedTLS raw cleanup escape; HTTP-only insufficient"
+    },
+    "O-UNK-PULL": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "complete try/except swallows UNKNOWN → failed + later admission"
+    },
+    "O-ID-OS": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "actual prepare OSError except → preflight; no UNKNOWN stop"
+    },
+    "O-R11": {
+      "result": "PASS_WITNESS",
+      "kind": "original_contract_miss",
+      "criterion": "cleanup may replace reauth without UNKNOWN provenance"
+    },
+    "M-SKIP-SECOND-CLOSE": {
+      "result": "PASS",
+      "kind": "mutation",
+      "criterion": "rebind CoveringHTTP.request; unmutated C-R06 pass; mutant dual absent"
+    },
+    "M-AMBIENT-EXC-INFO": {
+      "result": "PASS",
+      "kind": "mutation",
+      "criterion": "rebind finally ambient exc_info; unmutated None; mutant detected"
+    },
+    "M-MUTATE-OUTER-UNKNOWN": {
+      "result": "PASS",
+      "kind": "mutation",
+      "criterion": "unmutated zero later; mutant continuation detected"
+    },
+    "H-INVENTORY-ACCEPTS-GOOD": {
+      "result": "PASS",
+      "kind": "inventory",
+      "criterion": "compare_to_expected accepts complete valid result"
+    },
+    "H-INVENTORY-REJECTS-MISSING": {
+      "result": "PASS",
+      "kind": "inventory",
+      "criterion": "compare_to_expected refuses missing"
+    },
+    "H-INVENTORY-REJECTS-DUPLICATE": {
+      "result": "PASS",
+      "kind": "inventory",
+      "criterion": "compare_to_expected refuses duplicate"
+    },
+    "H-INVENTORY-REJECTS-REORDER": {
+      "result": "PASS",
+      "kind": "inventory",
+      "criterion": "compare_to_expected refuses reorder"
+    },
+    "H-INVENTORY-REJECTS-ALTERED": {
+      "result": "PASS",
+      "kind": "inventory",
+      "criterion": "compare_to_expected refuses altered"
+    }
+  },
+  "byte_semantics": "utf-8 lf"
+}

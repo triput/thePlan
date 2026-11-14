@@ -1,0 +1,44 @@
+{
+  "atUtc": "2026-11-14T02:03:27.0864403Z",
+  "status": "NATIVE_CASE_PASS_WITH_RECEIPT_RETENTION_QUALIFICATION",
+  "case": "NP-V-MS-INVALID",
+  "userApproval": "call_435f6409cd774c61aee8751339bbbbfa",
+  "invocations": 1,
+  "remainingInvocations": 0,
+  "hostReceiptSHA256": "4BF457AA0364B2A3B38C982C7207607166923A37CE6C301CAC4B0E488150D9CC",
+  "hostReceiptBytes": 17352,
+  "hostReceiptRows": 54,
+  "dockerCommands": 22,
+  "postInputsUnchanged": 301,
+  "directRetainedProof": [
+    "Exact typed reauthorization exception from defaultJoinedTLS and shared ingress/provider budget",
+    "One OAuth POST and one completed orderly tenant-path peer exchange",
+    "Public no_op/preflight_rejected CALENDAR_ACCOUNT_DISCONNECTED; no import entered",
+    "Semantic seed credentials and expiry unchanged; coverage before/after unchanged",
+    "Joined peer and PKI/readers/group retirement",
+    "Both exact container IDs removed/absence verified through frozen supervisor guards; DB SIGINT exit0 required before complete.success"
+  ],
+  "containers": [
+    {
+      "id": "de660d635fb696d2da300dd6084d1446b5efc2cb76f3a46feb9adb350f113741",
+      "role": "database"
+    },
+    {
+      "id": "806436f97bef2f1c799b0c36b6a739790faa297bcb6d5d60bf006e93ca3da022",
+      "role": "runner"
+    }
+  ],
+  "cleanup": "SUCCESS_ONLY_COMPLETE; verified source guards and exact-ID receipt sequence, no extra Docker commands",
+  "qualification": {
+    "receiptFile": "payload/fixture/np_receipts.py",
+    "assertionEvidence": "Pinned runner checks exact one native TOKEN ROLLBACK_ACKNOWLEDGED row plus separate observer row before returning case PASS; retained suite PASS establishes those assertions passed, but actual row cannot be independently reread from receipt",
+    "automaticRepairOrRerun": false,
+    "fullT06Closure": false,
+    "cause": "np_receipts._forbidden_key drops token-containing names not explicitly allowlisted; these two keys absent from allowlist",
+    "omittedMeasuredKey": "token_terminal_rows",
+    "omittedObservationKey": "token_rejected_after_unchanged_unit_rollback",
+    "runnerLines": "1849-1854,2153-2159,2244-2270"
+  },
+  "executionAuthority": "CONSUMED",
+  "endpoint": "unbound"
+}

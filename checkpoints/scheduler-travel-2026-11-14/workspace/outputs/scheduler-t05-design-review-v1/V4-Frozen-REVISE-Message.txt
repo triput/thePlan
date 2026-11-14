@@ -1,0 +1,10 @@
+Jim — frozen T05 v4 intake verified; disposition REVISE, no launch. TIP A40F0DEA7A01AF9C2361E707F0BBFB081BCB1D2D195510BD96EE2E25C43A01A6; admission D7F0A1620AAB80428F98C62E9DCF22BFCF27213DDEE1D752619EDE916E64ED07. All9 artifact rows,296 packet pins,19 runtime pins and52 exact wire IDs/size/hash entries MATCH. Receipt outputs/scheduler-t05-design-review-v1/V4-Frozen-Intake-and-Static-Reconciliation.json SHA256 E4BD67FCA22AE775456A06DDCC5FA0279C13DDA703708F61D62F69E21C083BFD.
+
+The frozen checker remains 755181B7..., so P1–P5 in V4-Provisional-Static-Review.md (B8A4B3EA6EAD919670794D3C67C6CFF6BAD62384EE90CE6F676386ED03B19F22) still apply: missing unchanged policy dependency closure; UNKNOWN in txn/http_ns but looked up in policy; actual Google refresh caller not invoked; truthful observations/complete per-wire original predicates; custody receipts versus unsupported negatives. These statically missing globals/call paths must be resolved before a one-shot launch, not deferred to post-run discovery.
+
+Additional P6 for the final launcher 24A101CD...: main unlinks an existing RESULT even though its comment says refuse. Keep wrapper refusal and make the inner path STOP without deleting prior evidence. Details in V4-Provisional-Launcher-Review.md SHA256 00FF53C86C9CEC0354E2E2578E366BAABD6A711E4CE51272FBCC024780351D9F.
+
+Continue the same approved four-role preparation in a fresh successor, preserve frozen v4 and v1–v3. Extract the actual unchanged definitions/dependencies and owning caller; no handwritten substitute, whole-app import or additional helper module. Reconcile exact wires/predicates and custody honestly; provide retained command/output records where available, otherwise mark UNKNOWN rather than false. Do not rerun history to reconstruct it. Return one frozen batch with exact diffs/commands/hashes and P1–P6 dispositions; no interim status needed.
+
+No code/check/helper was invoked by Dex. No new source scope or execution is authorized. Native-v3 peer review/card separate and unchanged; endpoint unbound; all holds stay.
+— Dex

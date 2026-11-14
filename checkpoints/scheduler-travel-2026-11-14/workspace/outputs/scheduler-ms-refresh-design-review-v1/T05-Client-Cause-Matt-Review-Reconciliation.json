@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T00:35:50.2664286Z",
+  "status": "PEER_REVIEW_RECONCILED_NO_STATIC_BLOCKERS",
+  "reviewSha256": "B5605279",
+  "sidecarPins": 14,
+  "taskCompleted": "B238FE6E6B26E09DED8E5A817E916DF1FD43D4E5797183E546E7B1B4481315DA",
+  "reviewFullSha256": "B560527924C70461DB888A125D3874FA0C31F140C57E56735AB0BA4CE9CD9B92",
+  "stagingInputs": 23,
+  "packetPins": 17,
+  "partialRuntimePins": 10,
+  "unchangedSourceInputs": 18,
+  "metadataChanges": 2,
+  "nonexpiredEvidenceCorroborated": true,
+  "exactQueryBytesUnverified": true,
+  "nonblockingLabels": "Inherited packet identifier and false-authorization prose are history; current exact hashes/booleans and external review control the proposed invocation",
+  "executionAuthority": "NONE",
+  "existingCard": "Unchanged; pending Trish",
+  "endpoint": "unbound"
+}

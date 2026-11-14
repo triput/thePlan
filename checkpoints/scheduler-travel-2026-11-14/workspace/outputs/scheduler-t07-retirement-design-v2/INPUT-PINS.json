@@ -1,0 +1,87 @@
+{
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "d2_one_shot_untouched": true,
+  "supersedes_v1_tip_sha256": "ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A",
+  "assignment": {
+    "path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/Next-Transport-Design-Assignment.md",
+    "sha256": "28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719",
+    "reverified": true
+  },
+  "api_root": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/packet/payload/workspace/apps/api",
+  "required_pins_match": true,
+  "required_sources": [
+    {
+      "relative": "app/services/covering_http_transport.py",
+      "sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_joined_https.py",
+      "sha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_refresh_import.py",
+      "sha256": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "match": true
+    }
+  ],
+  "additional_cited_sources": [
+    {
+      "relative": "app/services/covering_provider_context.py",
+      "sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240"
+    },
+    {
+      "relative": "app/services/covering_transport_policy.py",
+      "sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+    },
+    {
+      "relative": "app/services/google_calendar.py",
+      "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F"
+    },
+    {
+      "relative": "app/services/microsoft_calendar.py",
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF"
+    },
+    {
+      "relative": "app/services/covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+    },
+    {
+      "relative": "app/services/covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+    },
+    {
+      "relative": "app/services/covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "relative": "app/services/covering_refresh.py",
+      "sha256": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E"
+    },
+    {
+      "relative": "app/services/calendar_alias_canonicalize.py",
+      "sha256": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F"
+    }
+  ],
+  "dex_provisional_feedback_closed": [
+    "R08 JoinedTLS.open required; HTTP-only insufficient",
+    "explicit dual cleanup provenance attrs; not __context__",
+    "doc hygiene; strict JSON INPUT-PINS"
+  ],
+  "design_verdict": "NO",
+  "proposed_diff_present": true,
+  "proposed_diff_applied": false
+}

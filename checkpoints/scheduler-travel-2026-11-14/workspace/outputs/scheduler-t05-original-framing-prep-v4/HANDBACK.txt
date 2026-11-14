@@ -1,0 +1,29 @@
+SLACK TIP — post-native-t05-source-fake-prep-jim-v4-2026-11-11
+
+Supersedes v3 TIP A3B7379C0A154985C1933E52011883BFA265C44B62B4F534054E108A4A7A778E (and v1/v2 immutable).
+
+Four-role fake framing only (check/invoke/admit/wrapper). Native deferred to Dex native-dex-v3 — no native re-impl.
+
+Framing host: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t05-original-framing-prep-v4\
+DropFolder: F:\DropFolder\pending\post-native-t05-source-fake-prep-jim-v4-2026-11-11\
+
+tip_sha256: A40F0DEA7A01AF9C2361E707F0BBFB081BCB1D2D195510BD96EE2E25C43A01A6
+admission_sha256: D7F0A1620AAB80428F98C62E9DCF22BFCF27213DDEE1D752619EDE916E64ED07
+check: 755181B7193C12AFDED349E3775018567ADBBFC4EB2E388B2642822857CF5154
+invoke: 24A101CD198734EB57C1A59703FAE1DA8590AC9A0432AECCFE1B359404FECCFE
+admit: 124371FFAA2F717624BD493F11E2C826F821709D64E409F0BE01B672B0E7DD05
+wrapper: C068661240FDF2D5AEF03AE66A1932B276FB3CA8EBB079E5EFD44273F3E4DBB2
+
+trish_approval_receipt_sha256: 5C0B0F0B4EE98981C5CF58534FA8EA159C24C6315FEA9C834FF36A93D3878FA7
+jim_peer_review_sha256: 722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F
+
+Authoring custody: see CUSTODY-REPORT.md (70EC354F62008450289737F283E0590DD22A5FEEEFEDB5CD00A8B66EB0263D83)
+- v1 pyc preserved 72615E8E…; commands documented; not re-run
+- _refreeze.py NOT invoked (v3 or v4)
+- v4: no import/compile/invoke of prep helpers; file/hash authoring only
+
+Wire fixes: C-SEP-SHORT≠C-ZERO-ABSENT; C-DATA-SHORT/C-SEP-WRONG/C-TRAILER-MALFORMED/C-EXT-VALID intended forms; C-TRAILER-VALID + H-INVALID-* + H-TE-MIXED added. See B1-B7-DISPOSITION.md (279094E04BEEA326D12794E15EED33B9CDE5A5806319A738A7ED8DFB907D8D7B).
+
+wire_ids_frozen=52
+launch_ready=false; executed_in_preparation=false; endpoint unbound.
+Do NOT tip Slack from Justin — Jim tips after verify.

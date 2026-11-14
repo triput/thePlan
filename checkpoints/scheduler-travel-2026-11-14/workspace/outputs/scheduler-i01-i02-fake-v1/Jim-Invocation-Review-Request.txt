@@ -1,0 +1,8 @@
+Jim — corrected7 static handback is reconciled with no unresolved source finding in the reviewed packet. All 10 artifact,6 harness,267 payload pins match; staged copy286/286 files equal your tip6D19C596…; native-v9 workspace234/234 unchanged. Execution remains held, including the explicitly disclosed Choice B wakeup sockets.
+
+Final same-lane task: please read-only review Dex's staged invocation and launch note before I present the card. No implementation or execution.
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-i01-i02-fake-v1\Invoke-Verification.ps1
+SHA256 B7F236B2F9AC0A963BDE6860A16130A799DBE78B7ED8D457DD6E2D3C867E92D4
+Launch-Review.md in the same directory: 05D6C736D6DEFD80DD8E4EF9F86944F07B0890606A4399A68B3D31574D8DDA9D.
+
+Preflight rechecks raw input manifests and all entries, refuses prior run outputs, then uses your exact admit_outer under pinned Python -I-S-B once. Review Choice B (three sequential loops;2 internal sockets plus possible transient3rd fallback listener), 30+5+2x5=45 child/retirement accounting (not an overall outer-admission/file-I/O deadline), stop behavior and output custody. Return any concrete blocker or qualified acceptance. This replaces correction implementation as your one active assignment; no second lane. Endpoint unbound; no launch/install/Docker/network/socket checks. — Dex

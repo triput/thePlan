@@ -1,0 +1,47 @@
+HANDBACK -- post-native-provider-prep-scope-jim-v2-2026-11-11
+
+Status: NATIVE_PROVIDER_IMPLEMENTATION_SCOPE_PROPOSAL_V2_COMPLETE_NOT_IMPLEMENTED (documents only)
+
+Packet roots:
+- Prep/docs: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-prep-scope-jim-v2/
+- DropFolder: F:/DropFolder/pending/post-native-provider-prep-scope-jim-v2-2026-11-11/
+
+Disposition: DESIGN_SCOPE_PROPOSAL_V2 / QUALIFIED_FOR_DEX_REVIEW
+executed=false; launch_authorized=false; implementation_authorized=false; prep_is_not_pass=true
+endpoint=unbound
+No Slack tip from this seat.
+
+Immutable v1 preserved:
+- TIP on-disk 531BFBDE267872AFA3DC58C0294ECFE3270F01650D5DA52D5D1F900A5A45C130
+- tip_sha256 2ED4F5DC6E97B54DAF6F06D51DD47975B7D3861241F453CEC4CBB54625958BDA
+- Proposal 126AC17B31B14C3D2AF5864ABB9830666A42F6C7A2F453F152521AF52431555C
+
+Dex review addressed: 5306D7C646A26080F1AD4C3CA1687409E14F20312A41A1F5C6889345A0FB9059
+
+Canonical case count after canonicalize: native STOP units = 27 (+ 4 pure CF witnesses = 31 fixture STOP units if B0 included). Planning IDs preserved = 76.
+
+R1–R8 one-line dispositions:
+- R1: Unchanged-isolation :443 first; contingencies only after need; STOP on bind fail.
+- R2: Canonical 27 native (+4 CF); OTHER/PARTIAL/-ACK orphans fixed; exact 76-ID map.
+- R3: Exact lineage cites; framing PASS 73/73 host-fake only; T02 overrun retained.
+- R4: 630s work / 720s request-envelope clarified; 600s plan validity + fresh planning.
+- R5: Host Docker; np_integrated_runner = registry/guard; no Docker socket to runner.
+- R6: Owned retirement ≠ container disposal; fault retirement launch-gated.
+- R7: ASGI disconnect ≠ abrupt EOF; orderly short-CL + close_notify requal.
+- R8: No code until card; Final-Assembly JSON 85714151… data-only; launch freeze later.
+
+Remaining open decisions: D1 (assemble framing into final tree — run already PASS), D2 port, D3 final assembly hashes, D4 contingency-after-bind-fail, D5 prep card, D7 launch packaging, D8 launch freeze, D9 T02 overrun witness, D10 peer mechanism, D11 fault-retirement launch text, D12 CF batch packaging. D6 T08 packaging resolved (multi-oracle OK).
+
+Confirmation: no fixture/application/check/helper source authoring; no imports/compilation/tests; no PKI/sockets/Docker/providers/credentials; no installation/build; no source edits; no port/framing merge; no execution/endpoint binding.
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+96DF63DA63D51A2D3BB22AF6A37A0148BEB0BC711C9623A3C5DFA9A71A35CDCF
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+1D88A97FCD60BF65B95414044CEA3D90FCD110848C05B67E54DAC0BDA8C575F4
+
+Implementation-Scope-Proposal.md SHA256:
+F89B990CA1EA4FB89DD58756136F8972EF9AFAE00AE6150C9FD54EF936C9784B
+
+Case-Registry.md SHA256:
+BBFEF33312A4E532BCC0FD49BACAA40641C26F955F5862FD3192641621F15F05

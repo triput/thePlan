@@ -1,0 +1,251 @@
+{
+  "status": "PASS",
+  "class": "FAKE-C06-RUNNER-TLS",
+  "executed_in_preparation": false,
+  "later_authorized_run": {
+    "executed": true,
+    "held": false,
+    "source_hashes_verified": true,
+    "inventory_error": null
+  },
+  "inventory_contract": "exact_unique_control_ids_no_omission",
+  "ordered_contract": "EXPECTED.controls key order == EXPECTED.control_ids_in_order == result.control_ids_in_order",
+  "control_ids_in_order": [
+    "C06_N_PREEXIST",
+    "C06_N_NONEMPTY",
+    "C06_N_UID",
+    "C06_N_MODE",
+    "C06_N_TRUST_SAME_CA",
+    "C06_N_TRUST_PARENT_DB_CA",
+    "C06_N_TRUST_BACKEND_GATE_CA",
+    "C06_N_ROOT_FIXTURE_TLS",
+    "C06_N_ORDER_C06_BEFORE_N06",
+    "C06_N_GEN_REFUSE",
+    "C06_N_GEN_TIMEOUT",
+    "C06_N_CAP",
+    "C06_N_SHELL_ONLY_KILL",
+    "C06_N_GROUP_LEADER_EXITED_DESCENDANT_ALIVE",
+    "C06_N_GROUP_SIGTERM_IGNORED",
+    "C06_N_READER_JOIN",
+    "C06_N_LATE_READER_ERROR",
+    "C06_N_PIPE_UNRETIRED_UNDER_LIVE_READER",
+    "C06_N_BOUNDED_CAP_EVIDENCE",
+    "C06_N_PARTIAL_START_RETIRE",
+    "C06_N_PARTIAL_CONSTRUCT_RETIRE",
+    "C06_N_PRIMARY_PRESERVE",
+    "C06_N_DUAL_FAULT_PRIMARY",
+    "C06_N_SHARED_DEADLINE",
+    "C06_N_OBSERVED_VS_RETAINED",
+    "C06_P_DISTINCT_CA",
+    "C06_P_HOOK_ORDER",
+    "C06_P_SYNTHETIC_MODULE",
+    "C06_P_MAP_SEPARATE",
+    "C06_P_UNKNOWN_INVENTORY",
+    "C06_P_PORT_15432",
+    "C06_P_ABS_BINARIES",
+    "C06_P_RECIPE_LITERALS",
+    "C06_P_LAUNCH_READY_FALSE",
+    "C06_N_WRONG_READY_ROOT",
+    "C06_P_CHILD_ENV_PATH",
+    "C06_P_SUITE_CA_EVIDENCE",
+    "C06_P_EXPLICIT_ROOT_WIRING",
+    "C06_P_BUDGETS_UNCHANGED"
+  ],
+  "controls": {
+    "C06_N_PREEXIST": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "exclusive create refuses any pre-existing /tmp/c06-gate-tls; no delete/reuse"
+    },
+    "C06_N_NONEMPTY": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "owned directory must be empty after exclusive create; nonempty stops"
+    },
+    "C06_N_UID": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "UID must be 65534"
+    },
+    "C06_N_MODE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "directory mode must be 0700 after umask 077"
+    },
+    "C06_N_TRUST_SAME_CA": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "identical public gate CA and DB CA hashes refuse"
+    },
+    "C06_N_TRUST_PARENT_DB_CA": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "extracted build_c06_dual_peer_binding refuses direct profile on runner CA"
+    },
+    "C06_N_TRUST_BACKEND_GATE_CA": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "extracted serve_i01_c06_gate create_default_context uses /public-ca/ca.crt"
+    },
+    "C06_N_ROOT_FIXTURE_TLS": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: extracted default C06_GATE_ROOT / artifact path inventory is not /fixture-tls; path comparison only"
+    },
+    "C06_N_ORDER_C06_BEFORE_N06": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "extracted occupied-bind branch raises occupied gate port (C06-before-N06 occupancy)"
+    },
+    "C06_N_GEN_REFUSE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "nonzero openssl/sh status stops; no retry"
+    },
+    "C06_N_GEN_TIMEOUT": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "shared 30s generation/admission deadline then owned process-group retire"
+    },
+    "C06_N_CAP": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "64KiB stdout/stderr during-read cap stops"
+    },
+    "C06_N_SHELL_ONLY_KILL": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "killing the shell pid alone does not retire OpenSSL children; killpg required"
+    },
+    "C06_N_GROUP_LEADER_EXITED_DESCENDANT_ALIVE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "group probe independent of leader poll; SIGKILL when descendant remains"
+    },
+    "C06_N_GROUP_SIGTERM_IGNORED": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "SIGTERM-ignored group remains present until SIGKILL; independent of leader-exit case"
+    },
+    "C06_N_READER_JOIN": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "held started readers reject on primary c06 reader eof unknown; extra records unjoined + pipes_unretired; do not expect retirement unknown"
+    },
+    "C06_N_LATE_READER_ERROR": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "reader throw after leader wait is rechecked post-join; cannot reach prepared"
+    },
+    "C06_N_PIPE_UNRETIRED_UNDER_LIVE_READER": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "primary remains c06 reader eof unknown; extra pipes_unretired/unjoined; no close under live reader"
+    },
+    "C06_N_BOUNDED_CAP_EVIDENCE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "repeated cap is bounded flag/counter; observed bytes vs retained length"
+    },
+    "C06_N_PARTIAL_START_RETIRE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "partial Thread.start joins only started readers and still attempts group/pipe retirement"
+    },
+    "C06_N_PARTIAL_CONSTRUCT_RETIRE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "second Thread constructor throw: two owned pipes registered then closed once each; one constructed and zero started readers; generation-wrap primary preserved; STOP; no real child or live thread"
+    },
+    "C06_N_PRIMARY_PRESERVE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "prepare_c06_runner_tls keeps generation primary; secondary retirement attached"
+    },
+    "C06_N_DUAL_FAULT_PRIMARY": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "timeout plus unjoined readers: primary remains timeout"
+    },
+    "C06_N_SHARED_DEADLINE": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "nonzero origin valid; setup/Popen advances after deadline capture; elapsed from entry consumes 30s phase; C06_DISCLOSED_RETIREMENT_SECONDS=45 is total (30+5+5+5) not extra 45; elapsed<=45; no fresh 30s wait"
+    },
+    "C06_N_OBSERVED_VS_RETAINED": {
+      "result": "REFUSE",
+      "kind": "behavioral",
+      "criterion": "overflow distinguishes total observed bytes from retained buffer length"
+    },
+    "C06_P_DISTINCT_CA": {
+      "result": "PASS",
+      "kind": "behavioral",
+      "criterion": "distinct public gate CA hash vs DB public CA hash recorded; no key hashes"
+    },
+    "C06_P_HOOK_ORDER": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: AST of main() call sites: prepare_c06_runner_tls before sys.addaudithook (not first def text)"
+    },
+    "C06_P_SYNTHETIC_MODULE": {
+      "result": "PASS",
+      "kind": "behavioral",
+      "criterion": "synthetic ModuleType registered in sys.modules; exec uses that module.__dict__; required symbols enforced"
+    },
+    "C06_P_MAP_SEPARATE": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: I01-C06-MAP remains mapping-only; I01-C06 remains tls_ack_gate_n06"
+    },
+    "C06_P_UNKNOWN_INVENTORY": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: expected_unknown_cases remain N06, N07, I01-C06"
+    },
+    "C06_P_PORT_15432": {
+      "result": "PASS",
+      "kind": "behavioral",
+      "criterion": "extracted occupied bind on port 15432 raises C06GateError without retry"
+    },
+    "C06_P_ABS_BINARIES": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: fixed absolute /bin/sh and /usr/bin/openssl"
+    },
+    "C06_P_RECIPE_LITERALS": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: RSA3072, CN=Dex-Disposable-C06-Gate-CA, SAN DNS:native-fixture.invalid, serverAuth, -days 2, TMPDIR=/tmp; no untrusted CA"
+    },
+    "C06_P_LAUNCH_READY_FALSE": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: payload launch-config.launch_ready remains false"
+    },
+    "C06_N_WRONG_READY_ROOT": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: extracted c06_artifact_paths with an explicit supplied root returns a different path than the default runner root; path-wiring inventory only; no new production guard"
+    },
+    "C06_P_CHILD_ENV_PATH": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: minimal child env PATH=/usr/bin:/bin TMPDIR=/tmp and start_new_session"
+    },
+    "C06_P_SUITE_CA_EVIDENCE": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: c06_lost_ack records public_ca_identity via require_distinct_public_ca_hashes"
+    },
+    "C06_P_EXPLICIT_ROOT_WIRING": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: serve/ready/load use the same C06_GATE_ROOT"
+    },
+    "C06_P_BUDGETS_UNCHANGED": {
+      "result": "PASS",
+      "kind": "static",
+      "criterion": "STATIC: runner 600s / suite 900s unchanged; disclosed collection/retirement 45s is 30+5+5+5 total"
+    }
+  }
+}

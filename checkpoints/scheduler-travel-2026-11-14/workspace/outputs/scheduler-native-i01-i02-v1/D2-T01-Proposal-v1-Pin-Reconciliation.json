@@ -1,0 +1,173 @@
+{
+  "reviewer": "Dex",
+  "checked_at_utc": "2026-11-11T08:57:04.0652303Z",
+  "mode": "static read/hash only",
+  "checks": [
+    {
+      "kind": "artifact",
+      "path": "Seam-Inventory.md",
+      "expected": "09A0185E16ED50F357741722A2C57818C78AD40B911F8575D5F12773E3E08E2A",
+      "actual": "09A0185E16ED50F357741722A2C57818C78AD40B911F8575D5F12773E3E08E2A",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "Proposed-Fix.diff",
+      "expected": "08D0AE38C63F6579DED252549C439215CA35988BE1D0625D4A843550FF25078B",
+      "actual": "08D0AE38C63F6579DED252549C439215CA35988BE1D0625D4A843550FF25078B",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "Proposal-Pins.json",
+      "expected": "A832F481A958604E47C19E23AAFAC3068BEC7073A7CBA8DE674BBBD2EDD4BC89",
+      "actual": "A832F481A958604E47C19E23AAFAC3068BEC7073A7CBA8DE674BBBD2EDD4BC89",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "Controls-Plan.md",
+      "expected": "E3743CE2D257AFF0C6D5AAE6F1E829B11C5AF668C57CD9DD22F486A635014E6A",
+      "actual": "E3743CE2D257AFF0C6D5AAE6F1E829B11C5AF668C57CD9DD22F486A635014E6A",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "Unresolved-Decisions.md",
+      "expected": "18E6B4B1291D2FA56369151C7C07011D89DC660FB518BCBF9A8C6122EA415BBE",
+      "actual": "18E6B4B1291D2FA56369151C7C07011D89DC660FB518BCBF9A8C6122EA415BBE",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "Preparation-Scope-Draft.md",
+      "expected": "C711C9F32EC9C615838F725659FC6DC6029F3BE552D84CC4607BCAF7237F51E1",
+      "actual": "C711C9F32EC9C615838F725659FC6DC6029F3BE552D84CC4607BCAF7237F51E1",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "INPUT-MANIFEST.json",
+      "expected": "1D2C4010F471815FF78A6B3ED145D165F3056FD30E114B5BB30338C6359BF3E6",
+      "actual": "1D2C4010F471815FF78A6B3ED145D165F3056FD30E114B5BB30338C6359BF3E6",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "TIP-FREEZE.json",
+      "expected": "E6CB1A4201294427F45E5546E7DDAC6EEE106123B5AD79C8A80E9BF8F08CE385",
+      "actual": "E6CB1A4201294427F45E5546E7DDAC6EEE106123B5AD79C8A80E9BF8F08CE385",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "HANDBACK.txt",
+      "expected": "6B3AB595325579976D153E0B37D989F0ACFD109385E488ECE1666932507A2291",
+      "actual": "6B3AB595325579976D153E0B37D989F0ACFD109385E488ECE1666932507A2291",
+      "matches": true
+    },
+    {
+      "kind": "policy",
+      "path": "D2-Reconciled-Decision.md",
+      "expected": "BCE8A75E018A7387316446ACE24DB03E69CBD2FBE1CF87E8643D88160206E71D",
+      "actual": "BCE8A75E018A7387316446ACE24DB03E69CBD2FBE1CF87E8643D88160206E71D",
+      "matches": true
+    },
+    {
+      "kind": "policy",
+      "path": "D2-Policy-Approval.json",
+      "expected": "D3FAF2EDA2F5247D6B33194FE7C2A869A169A49FDC2575D23092D1BD6576FA23",
+      "actual": "D3FAF2EDA2F5247D6B33194FE7C2A869A169A49FDC2575D23092D1BD6576FA23",
+      "matches": true
+    },
+    {
+      "kind": "policy",
+      "path": "Transport-Proof-Matrix.md",
+      "expected": "E811BCB6C19443A5F2EBC4E468E72FA785519E4FD73EAEB15AA73DBD8E99EAEC",
+      "actual": "E811BCB6C19443A5F2EBC4E468E72FA785519E4FD73EAEB15AA73DBD8E99EAEC",
+      "matches": true
+    },
+    {
+      "kind": "policy",
+      "path": "T01-Path-Policy-Review-Prerequisites.md",
+      "expected": "E0E74E1DD9CA360889899B1A24E92722D24ACAF47E0F7DD2D5B8DAB16AB91F18",
+      "actual": "E0E74E1DD9CA360889899B1A24E92722D24ACAF47E0F7DD2D5B8DAB16AB91F18",
+      "matches": true
+    },
+    {
+      "kind": "policy",
+      "path": "Continuation-Route-Review.md",
+      "expected": "9E53E69F563CDE308B5119F95F5952EC95E02B3E30EEF3CB1CFAAE16BF5CF732",
+      "actual": "9E53E69F563CDE308B5119F95F5952EC95E02B3E30EEF3CB1CFAAE16BF5CF732",
+      "matches": true
+    },
+    {
+      "kind": "policy",
+      "path": "Transport-Addendum-Acceptance.md",
+      "expected": "1A826484A7C160FC3265B0678AD174136374C932C25A432A10188813534B02BB",
+      "actual": "1A826484A7C160FC3265B0678AD174136374C932C25A432A10188813534B02BB",
+      "matches": true
+    },
+    {
+      "kind": "base_source",
+      "path": "app/services/covering_transport_policy.py",
+      "expected": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "actual": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "matches": true
+    },
+    {
+      "kind": "base_source",
+      "path": "app/services/covering_http_transport.py",
+      "expected": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "actual": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "matches": true
+    },
+    {
+      "kind": "base_source",
+      "path": "app/services/covering_provider_context.py",
+      "expected": "8A40B635467D3BB3CD12E57F96521ACF7AEEF7D4A7661DB9157AC7FED9802D9F",
+      "actual": "8A40B635467D3BB3CD12E57F96521ACF7AEEF7D4A7661DB9157AC7FED9802D9F",
+      "matches": true
+    },
+    {
+      "kind": "caller_source",
+      "path": "app/services/google_calendar.py",
+      "expected": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+      "actual": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+      "matches": true
+    },
+    {
+      "kind": "caller_source",
+      "path": "app/services/microsoft_calendar.py",
+      "expected": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+      "actual": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+      "matches": true
+    },
+    {
+      "kind": "caller_source",
+      "path": "app/services/covering_refresh_import.py",
+      "expected": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0",
+      "actual": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0",
+      "matches": true
+    },
+    {
+      "kind": "caller_source",
+      "path": "app/services/covering_joined_https.py",
+      "expected": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "actual": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "matches": true
+    },
+    {
+      "kind": "caller_source",
+      "path": "app/services/covering_release_plan.py",
+      "expected": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "actual": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "matches": true
+    }
+  ],
+  "count": 23,
+  "mismatch_count": 0,
+  "candidate_diff_applied": false,
+  "proposed_code_executed": false,
+  "prospective_hashes_independently_reconstructed": false
+}

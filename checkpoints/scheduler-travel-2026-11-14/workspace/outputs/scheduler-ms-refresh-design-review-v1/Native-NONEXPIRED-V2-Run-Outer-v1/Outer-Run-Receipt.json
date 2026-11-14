@@ -1,0 +1,12 @@
+{
+  "startedAtUtc": "2026-11-14T00:10:43.6710178Z",
+  "outerFailure": null,
+  "remainingInvocations": 0,
+  "endpoint": "unbound",
+  "finishedAtUtc": "2026-11-14T00:10:55.1440996Z",
+  "outerBytes": 0,
+  "failureCleanupAuthorized": false,
+  "rawOuterRetained": false,
+  "exitCode": 0,
+  "outerSha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+}

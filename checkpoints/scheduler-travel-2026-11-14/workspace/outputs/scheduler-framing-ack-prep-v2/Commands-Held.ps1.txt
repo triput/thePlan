@@ -1,0 +1,14 @@
+# HELD framing-ack invocation (DO NOT RUN without Trish exact-hash one-shot approval)
+# executed=false; launch_authorized=false; endpoint=unbound
+
+$AdmissionSHA256 = '<FILL-FROM-FUTURE-LAUNCH-APPROVAL matching VERIFICATION-ADMISSION.json>'
+# Operator wrapper only after approval:
+#   pwsh -NoProfile -File .\Invoke-Verification.ps1 -AdmissionSHA256 $AdmissionSHA256
+#
+# Proposed limits (launcher-enforced when authorized):
+#   1 pinned Python outer/launcher/check chain
+#   2 capture readers
+#   30s collect + 5s kill/wait + 2×5s joins = 45s nominal
+#   64KiB/stream; 256KiB result
+#   STOP; no-overwrite; reader/child UNKNOWN; no retry/repair/fallback
+# Outer exclusions: admission/file/hash/receipt I/O + OS latency; no separate outer timeout

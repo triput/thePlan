@@ -1,0 +1,18 @@
+{
+  "nativeDeadlineProof": false,
+  "inputsUnchanged": 40,
+  "scope": "Extracted peer/transcript/query/timing/observer and structural wiring with fake dependencies; no real210s elapsed proof",
+  "mutants": 9,
+  "behavioralMutants": 7,
+  "runtimePinsUnchanged": 10,
+  "zeroChildOutput": true,
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+  "controls": 13,
+  "structuralMutants": 2,
+  "cleanJoinedReaders": true,
+  "endpoint": "unbound",
+  "result": "2EFD098F02E05862D2987A8F6D355DB6CFE8260C49790FC3AEF1A7593EB510BA",
+  "remainingAuthority": 0,
+  "reportedPredicates": 64,
+  "receipt": "AF6399D8698AC46ECD453B6C2CB1495A4526184136F9F10ABF280F09FCE5EB3D"
+}

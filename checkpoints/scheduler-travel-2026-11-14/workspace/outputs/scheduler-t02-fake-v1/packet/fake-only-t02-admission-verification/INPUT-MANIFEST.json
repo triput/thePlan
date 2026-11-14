@@ -1,0 +1,118 @@
+{
+  "packet": "fake-only-t02-admission-verification",
+  "kind": "held-fake-only-t02-provider-limit-admission-harness",
+  "byte_semantics": "utf-8 lf",
+  "execution_authorized": false,
+  "held": true,
+  "parent_packet": "post-native-t02-admission-prep-jim-v1-corrected1-2026-11-10",
+  "parent_tip_preserved": "6B4944B8DACE130CFFC3F74993D13D47F4FD81745612EDE2B7D3BB46F2F18625",
+  "parent_v1_tip_preserved": "A5C7E1DE33E63857A7A8E503262F6F2A85A34C6E5573C50734538E00147C0526",
+  "revision": "corrected2",
+  "approval_call": "call_61f574d0b91546148d1c5fde581a4e37/1",
+  "scope_sha256": "8A427389E46F6318999192A7AD7934A8F96B93F154C719DAEE984FF6DD358A99",
+  "diff_sha256": "BEBCE1010F2086D09DFFD978C4032A1F7C1CF7133A3EC944D1648C3DB97A9979",
+  "prior_jim_static_review_manifest_self": "0EBDF9D92F026C92250E2213E6419F4E6A853D7B25770019DFEF9078A9EE189B",
+  "c06_corrected6_manifest_self_preserved": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+  "dex_review": "T02-Corrected1-Provisional-Review.md + Slack p1794383509/p1794383631/p1794383742/p1794383896",
+  "source_extraction": {
+    "algorithm": "AST module parse of frozen UTF-8 LF source bytes; required names FAIL CLOSED if missing from AST; synthetic ModuleType registered in sys.modules; exec against that exact module.__dict__; coherent registered module globals; fully fake dependencies; instrument fake transport construct/open/send/close separately; missing-symbol refusal; exact source/name/sha256 provenance; mutations built from pinned extracted candidate definitions (admit/check/stopped/drainage only)",
+    "sources": {
+      "bases/app/services/covering_transport_policy.py": "B1EEA43A0A0B6EB56AC8B7F95D1A5611A139C9C5D7784FB1EB3348146EE89896",
+      "bases/app/services/covering_http_transport.py": "E2F30AA3DF04EC310514A4155C7D039BA6D26A2AE3F04470CF1F82EC6383FBB6",
+      "bases/app/services/covering_domain_adapters.py": "D94344AA20897C4C0D4FD8479F53B25C022955B08DC5EDA04C69A834A2933620",
+      "bases/tests/test_covering_transport_policy.py": "071A54E1D9C7D7885B78460206E31E4496AA5D2CDEACCD610F32E3927AE05D18",
+      "workspace/apps/api/app/services/covering_transport_policy.py": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "workspace/apps/api/app/services/covering_http_transport.py": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "workspace/apps/api/app/services/covering_domain_adapters.py": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "workspace/apps/api/tests/test_covering_transport_policy.py": "4A8C7EF1D4539F48B012797A478628267F2F544C3E62AB891B9E870131B1D342"
+    },
+    "extracted_symbols": {
+      "bases/app/services/covering_transport_policy.py": [
+        "CoveringTransportRefused",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "workspace/apps/api/app/services/covering_transport_policy.py": [
+        "CoveringTransportRefused",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "bases/app/services/covering_http_transport.py": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "workspace/apps/api/app/services/covering_http_transport.py": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "bases/app/services/covering_domain_adapters.py": [
+        "make_domain_ports"
+      ],
+      "workspace/apps/api/app/services/covering_domain_adapters.py": [
+        "make_domain_ports"
+      ],
+      "workspace/apps/api/app/services/covering_release_plan.py": [
+        "CoveringReleasePlan"
+      ],
+      "workspace/apps/api/app/services/covering_domain_dispatch.py": [
+        "run_bounded_domain"
+      ]
+    }
+  },
+  "pinned_static_inputs": {
+    "bases/app/services/covering_request_budget.py": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975",
+    "bases/app/services/covering_release_plan.py": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+    "workspace/apps/api/app/services/covering_release_plan.py": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+    "workspace/apps/api/app/services/covering_domain_dispatch.py": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+    "workspace/apps/api/app/services/covering_http_dispatch.py": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+  },
+  "does_not_import_app": true,
+  "does_not_open_real_sockets": true,
+  "does_not_use_real_providers_or_credentials": true,
+  "does_not_claim_db_ack": true,
+  "launch_ready": false,
+  "pinned_interpreter": {
+    "path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+  },
+  "named_expected_controls": [
+    "W-CROSS-PURPOSE-PAGE",
+    "W-OAUTH-AT-EQUALITY",
+    "W-TOKEN-AT-EQUALITY",
+    "W-FINAL-RESPONSE-COMPLETES",
+    "M-A-OAUTH-CHECK-NOT-ADMIT",
+    "M-B-PAGE-CHECK-NOT-ADMIT",
+    "M-C-TOKEN-STOPPED-ONLY",
+    "M-D-DRAINAGE-CALLS-ADMIT",
+    "R1-TEST-STUB-ADMISSION-EXHAUSTED",
+    "W-COUNTER-IDENTITY-REQUEST-WIDE",
+    "W-ORDERED-RESULTS-LATER-LIMIT",
+    "W-CEILING-MINUS-ONE-ADMITS",
+    "W-APPROVED-CEILING-EVENT-BOUNDARY",
+    "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+    "W-APPROVED-CEILING-ITEMS-N-MINUS-ONE",
+    "W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES",
+    "W-APPROVED-CEILING-BYTES-N-MINUS-ONE",
+    "W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES",
+    "L-CONVENIENCE-LIMITS-LABELED",
+    "H-INVENTORY-ENFORCER-REJECTS-BAD"
+  ],
+  "named_expected_control_count": 20,
+  "provisional_notes_closed": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "sentinel_location_pin": "db.info.get:covering_token_terminal",
+  "dex_inventory_amendment": "H control only; full accepted synthetic baseline; no execution",
+  "parent_corrected2_tip_preserved": "57BE64F8297D6D19911C94D330B0F1062F93AAC5D565DB5F75F6D91E042762BF"
+}

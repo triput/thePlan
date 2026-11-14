@@ -1,0 +1,9 @@
+{
+  "nativeAuthority": "NONE",
+  "slackReply": "NONE_QUIET_DUPLICATE_POINTER",
+  "review": "595B17D1BC3ECE46CB24B2B0877DCAC83308975F6B721A948A7661D1ACD01EF6",
+  "qualificationOverlay": "Corrected fake PASS14/67/11 already reconciled",
+  "messageTs": "1794635209.054619",
+  "disposition": "POINTER_TO_ALREADY_RECONCILED_REVIEW",
+  "eventId": "Ev0CHJ7A0VPD"
+}

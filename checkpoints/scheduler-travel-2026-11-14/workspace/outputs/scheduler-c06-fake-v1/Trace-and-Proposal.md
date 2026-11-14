@@ -1,0 +1,13 @@
+# C06 first-control failure: offline trace and narrow proposal
+
+One authorized invocation stopped with ControlFailure: expected raise containing pre-exists. Zero of39 controls completed; there is no passing C06 fake evidence. No retry, repair, installation, PKI, Docker or native continuation occurred.
+
+Retained launch receipt records returncode1, elapsed0.431s, child85680 exited normally with termination_confirmed=true, both readers joined_eof, empty stderr and no timeout/capture interrupt. Post-run rehash of294 manifest entries found no mismatch. Original corrected5 TIP remains unchanged. Exact tool output, result, launch receipt and independent reconciliation are retained in this packet.
+
+Actual helper exclusive_create_c06_gate_tls_dir tests os.path.lexists(C06_GATE_TLS_DIR). FakeOS.__init__ constructs self.path=SimpleNamespace(lexists=self.lexists,join=posixpath.join), saving the then-current bound method. The first control later assigns fake_os.lexists=lambda path:True; that assignment does not replace the callable already saved in fake_os.path.lexists. The fake therefore fails to present the pre-existing-directory condition, and the helper returns instead of raising. This is a source-supported check-wiring diagnosis, consistent with the exact failure; no directory/certificate was created outside the in-memory fixture.
+
+Narrowest proposal: change only the first control's assignment from fake_os.lexists to fake_os.path.lexists. Preserve the expected pre-exists exception, original fixture helper, all assertions, other controls,39-control inventory and production sources. Proposed-Fix.diff is unapplied; Proposal-Pins.json records original/prospective/diff hashes. No verification of the proposed change has run.
+
+Evidence limitation: the result's source_hashes_verified=false is set by a broad ControlFailure handler around both pin admission and controls. It is not a reported hash mismatch. The failure reached the first control; source/static admission precedes it, and independent post-run hashes all match. Preserve this raw result honestly rather than rewriting the flag or claiming a PASS.
+
+Fresh-copy implementation/packet preparation requires Trish's approval under the stopped run's no-repairs hold. A future verification would need separate exact commands/hashes and launch approval. No current authority permits repair or rerun of the failed packet. Jim remains on his existing T02 static review until the next source assignment is authorized and coordinated.

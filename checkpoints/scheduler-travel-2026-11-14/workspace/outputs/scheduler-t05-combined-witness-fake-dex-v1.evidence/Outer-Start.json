@@ -1,0 +1,9 @@
+{
+  "packet": "T05-combined-witness",
+  "atUtc": "2026-11-13T19:16:57.7321829Z",
+  "admissionSha256": "D07EE140C235B0E0024ECDFD0434C7E33BB174F6A41200D4C3F813B5A7FD632A",
+  "continuationPosition": 1,
+  "commandSha256": "F03685858A7F098405E4A1726B52A9A20CE4B47F7DCF5211ECDF6D6B2EFEDB3E",
+  "oneShotConsumed": true,
+  "retries": 0
+}

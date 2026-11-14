@@ -1,0 +1,41 @@
+# HELD framing-ack invocation (DO NOT RUN without Trish exact-hash one-shot approval)
+# packet: post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11
+# executed=false; launch_authorized=false; endpoint=unbound; prep_is_not_pass=true
+
+$ErrorActionPreference = 'Stop'
+$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# Frozen exact hashes (authoring freeze — not a launch authorization)
+$WrapperSHA256     = '0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA'
+$AdmissionSHA256   = '1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC'
+$OuterAdmissionSHA256 = 'F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6'
+$AdmitOuterSHA256  = '26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF'
+$InvokeSHA256      = '7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F'
+$CheckSHA256       = '9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698'
+$ExpectedSHA256    = '08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2'
+$PacketSumsSHA256  = '0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9'
+$CandidateHttpSHA256 = '29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368'
+$CandidateTlsSHA256  = '760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427'
+
+# Preflight hash checks (still not a launch)
+$wrapperPath = Join-Path $Root 'Invoke-Verification.ps1'
+$admissionPath = Join-Path $Root 'VERIFICATION-ADMISSION.json'
+if ((Get-FileHash -LiteralPath $wrapperPath -Algorithm SHA256).Hash -ne $WrapperSHA256) {
+    throw 'STOP: wrapper hash mismatch; held commands refuse'
+}
+if ((Get-FileHash -LiteralPath $admissionPath -Algorithm SHA256).Hash -ne $AdmissionSHA256) {
+    throw 'STOP: admission hash mismatch; held commands refuse'
+}
+
+# Operator wrapper shape after future exact-hash one-shot approval ONLY:
+#   pwsh -NoProfile -File .\Invoke-Verification.ps1 -AdmissionSHA256 $AdmissionSHA256
+#
+# Proposed limits (launcher-enforced when authorized):
+#   1 pinned Python outer/launcher/check chain
+#   2 capture readers
+#   30s collect + 5s kill/wait + 2x5s joins = 45s nominal
+#   64KiB/stream; 256KiB result
+#   STOP; no-overwrite; reader/child UNKNOWN; no retry/repair/fallback
+# Outer exclusions: admission/file/hash/receipt I/O + OS latency; no separate outer timeout
+#
+# DO NOT invoke from this prep seat. No Slack tip.

@@ -1,0 +1,12 @@
+Jim — corrected2 independent review: five artifact pins and all seven production-source pins verify. The equality operational reading, encoded-ID positives, actual CoveringHTTP.request mapping and distinct A/B/C proof boundaries are accepted for design carry-forward. No implementation or execution authority added.
+
+Please finish this same docs-only assignment in a fresh addendum (preserve corrected2), with these bounded residuals:
+1. Reconcile inventory mechanically from exact unique IDs. Original draft has 41 IDs BEFORE adding TCP refusal; your named_draft_case_ids_41 array actually contains 42. Expanded replacement set is 67 (50 Packet1 +17 deferred), rather than69: replace3 T01 umbrellas with18, do not retain umbrellas as executable cases. Counts remain descriptive, never a scope ceiling.
+2. The final candidate table still needs separate complete Content-Length and complete chunked positives, valid-short versus invalid-short JSON, and individual conflicting/duplicate Content-Length and TE+CL witnesses. Give each distinct input/outcome its own ID; expand totals honestly. The T02 cross-phase witness must be executable cases with exact IDs for each ceiling, not only a spanning prose note. These are existing review obligations, not new policy.
+3. D1 is an inherited accepted contract, not another Trish decision. Keep approved equality wording/A1+A3 as the oracle; only an actual proposed relaxation or source repair would need a card. Cert generator/hostname/topology can be concrete design recommendations bundled into eventual source/execution review, rather than separate questions for routine design. D2 remains the actual path-policy proposal for Trish.
+4. Add a concise proposed executable fixture/module file list with responsibilities and exact production seams (not code), alongside the data-folder outline. No modules, fixtures, streams or imports/tests authored/executed now.
+
+Expected document drift: I updated only Transport-Proof-Matrix's stale assignment paragraph and its mutable index pin during your preparation. Matrix is now E811BCB6C19443A5F2EBC4E468E72FA785519E4FD73EAEB15AA73DBD8E99EAEC; requirements and production bytes unchanged. Cite the prior input snapshot honestly; no frozen packet rewrite required.
+
+One active assignment remains this documents-only completion. Corrected7 and the pending 22-control execution card remain untouched. Endpoint unbound; all other holds stay.
+— Dex

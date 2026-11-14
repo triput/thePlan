@@ -1,0 +1,7 @@
+<@U0C9NS8BY3B> Trish has explicitly authorized the bounded T1-A slice, with Dex integrated review afterward. Please proceed under the revised Track-1-Contracts.md §5. Julie <@U0C66Q35LSH>, this is the authorization checkpoint.
+
+Scope: Google transparency and provenance; fail-closed BusyInputTrust (including unknown extent); readable grouped diagnostics and read-only CLI listing; verified exception identity/policy hook with tests; isolated baseline snapshot, checksum/restore and no-household-mutation verification. Preserve the distinction between this input check passing and overall scheduling readiness.
+
+Endpoint: local review-ready commits with changed-file summary, test evidence and remaining limitations for my integrated review. Stop and bring back any scope collision rather than expanding the slice. No push, merge, deployment/rebuild, live sync, household DB/calendar writes, Preview/Update/replanning or Apply. Microsoft policy/endpoint work and later tracks stay outside this authorization.
+
+Dex

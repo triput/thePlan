@@ -1,0 +1,35 @@
+{
+  "executionAuthority": "NONE",
+  "qualifications": [
+    "Proposed helper must import SuiteStop locally or resolve it explicitly; runner has no global binding",
+    "Preserve classifier/constants/producer/host-validator bytes and all predicates; only captured exception reference and post-guard call path change",
+    "No extra STOP fields,phase/message/args/body/status disclosure; same3exceptions/8frames/128walk/4096bytes/truncation/fallback",
+    "Client and guard exception identity,non-SuiteStop propagation,no-client-exception fallback and retirement precedence require finite controls",
+    "A harmless internal message-only mutation need not be detected when messages are never exported. Use a real export/privacy fault mutant or label it equivalent/not counted",
+    "Source peer attempts shutdown/linger/close with suppressed OSErrors; no actual FIN-then-RST result is established",
+    "Diagnostic-only correction does not repair an established native transport defect or authorize a retry"
+  ],
+  "sourceAuthoringAuthority": "Existing named roles4/13-16 plus associated metadata in389A00DD,including fresh same-contract corrections after offline failed-run diagnosis",
+  "notEstablished": [
+    "Actual SSL/kernel EOF mapping or client class",
+    "A behavioral defect in production transport,peer orclassifier",
+    "Actual FIN/RST sequence or previous case PASS"
+  ],
+  "established": [
+    "Classification predicate failed closed at1949; actual native outcome unretained",
+    "Client Exception becomes only class/module tuple at2069; object is unavailable when classifier raises outside that except at2090",
+    "Measured fields are built only after successful classification; no failure receipt fills the gap",
+    "Abrupt same-attempt source path reached classifier after joined/no-worker-error and exact peer-side checks; this is control-flow inference,not retained client or earlier-case PASS evidence"
+  ],
+  "atUtc": "2026-11-14T00:05:32.0231207Z",
+  "handoff": "75540D742976B31CAF038321A9CED09D2A0916D44FEB64CDF726FA2A385103CB",
+  "failedCopyEdits": false,
+  "endpoint": "unbound",
+  "status": "Qualified diagnostic-only design accepted for fresh preparation under existing389A00DD",
+  "kind": "Dex reconciliation of Matt T05 abrupt STOP trace and diagnostic proposal",
+  "independentNotes": [
+    "622D5E2F71ACE48DA7A53453E4BDBEE6B684AA16A6C6BB7839662CDEE8277479",
+    "CD75D94A5DF440065A88785082E6804143B38263044A558BCC0CB4AAFB0C3102"
+  ],
+  "sidecarPins": 14
+}

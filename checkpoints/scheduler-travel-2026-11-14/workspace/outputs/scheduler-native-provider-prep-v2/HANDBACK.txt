@@ -1,0 +1,46 @@
+HANDBACK — post-native-provider-prep-jim-v2-2026-11-12
+Jim (Justin), 2026-11-12
+
+STATUS: NATIVE_PROVIDER_PREPARATION_AUTHORED_NOT_EXECUTED
+FLAGS: executed=false; launch_authorized=false; implementation_beyond_prep=false; prep_is_not_pass=true; endpoint=unbound; slack_tip=false
+
+AUTHORITY (unchanged):
+- Scope 389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D
+- Approval 5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4
+
+PREDECESSOR (immutable tipped prep-v1 scaffolding):
+- TIP on-disk 0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D
+- tip_sha256 31FC0AD8F8A9700F0B8FC168134AA0973FE5C9207BC68BB2A72AF5A8823B07B7
+
+WORKSPACE: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-v2
+DROP: F:\DropFolder\pending\post-native-provider-prep-jim-v2-2026-11-12
+
+DEX PROVISIONAL / R1:
+- np_provider_peer.py: real socket/TLS lifecycle (bind/accept/handshake/request/response/close_notify/abrupt/stalls + retire_owned)
+  SHA256 D64668B417FAEC91886080AFC2AA84E1E021A29202015F7B53647FB73C25377F
+- np_runner_entry.py: real case dispatch; NP-V-MS-NONEXPIRED implemented; others CaseBodyHold; main runs suite when launch_ready
+  SHA256 B8E0FAF345C943E25CD85DB3DD20F56B8F6AABDA16565C838B6D62B458823E17
+- np_suite.py: inventory + port PASS status + observation aids
+  SHA256 AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673
+
+PORT DEPENDENCY (updated):
+- RESULT B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548
+- Receipt 61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961
+- Reconciliation E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D
+- Verified finite host PASS 9/9; still not native dial/TLS or full T01 closure
+- Assembly consumes policy 5F48FD7E… under verified PASS status
+
+ASSEMBLY: 234 files re-verified; sole override 5F48FD7E… unchanged
+
+REMAINING HOLDS/GAPS: docs/Remaining-Gaps.md
+- T02 items/bytes GAP (reduced-limit host-fake cite)
+- T08 nested/reset GAP_OR_FOCUSED_FAKE (behavioral controls authored)
+- T01 port host-PASS-not-native
+- Case bodies HOLD except NP-V-MS-NONEXPIRED
+- Bounds unfrozen; launch_ready=false
+
+TIP_SHA256 (preimage): 5AC8EBE2EF6EFB29F22C8274E5F1CC65AB942540BB1724B1CF14B6A288BD79F9
+TIP-FREEZE on-disk: 9C49E0B84B36F7B53FADC79490FCEF3AB2CE093FA6F6B6A8E16F40243BEDD38D
+ARTIFACT-HASHES on-disk: B9C7BC2C654D52E01662ACBAFA62552643D38FEA57DACEC3B7B8830E22EE11B9
+
+No imports/compilation/tests/helpers/PKI/sockets/Docker/install/providers executed. No Slack tip.

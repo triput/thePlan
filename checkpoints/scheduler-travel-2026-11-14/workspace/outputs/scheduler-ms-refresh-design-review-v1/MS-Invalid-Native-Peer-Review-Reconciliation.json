@@ -1,0 +1,18 @@
+{
+  "atUtc": "2026-11-14T01:37:54.7025266Z",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED",
+  "peerReview": "D94614D80D9107449A7F6CD1D7BB463E414588BD756FAE59D7A687934659D573",
+  "sidecarEntries": 1,
+  "completedTask": "F5524FDD594377E0D9346BBDF4A5D905F6977088358304E63AE49B8B073D6161",
+  "manifest": "C0BCB2E1563388391F7560F3B6D8AE5495690D3F527D019CE1EE62F8E43E8B47",
+  "inputs": 301,
+  "staticBlockers": 0,
+  "retainedFakePrerequisite": "6004BED4293F8E3801B82EF75415427872ABCFB6520F53B756B4AF6E57C6481F",
+  "prerequisiteScope": "Finite invalid-grant/parser/helper behavior and structural selected caller wiring; exact runner4CBF198E and API/dependency subjects map; no native proof",
+  "executablesMatch": true,
+  "evidenceAbsent": true,
+  "authorshipQualification": "Matt authored source; consistency review of Dex staging. Dex independently reviewed source and staging.",
+  "labelNit": "Accepted inherited prep attribution, current hash/paths/docs unambiguous",
+  "nativeExecution": "NONE",
+  "endpoint": "unbound"
+}

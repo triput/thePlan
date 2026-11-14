@@ -1,0 +1,24 @@
+{
+  "kind": "Native peer-close candidate prerequisites resolved, human launch HELD",
+  "atUtc": "2026-11-13T20:13:40.6519138Z",
+  "manifestSha256": "2913656ABBEF2232A707CE57DDEA4CAD0AE50703B75B37CBC78BFC1DB12B2FB3",
+  "commandSha256": "85E6A70270D41F422E4BBF9FE0F9BD962C128B51C3CC58511353ADD66B53D84D",
+  "counts": {
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt": 257,
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\Input-Manifest.sha256": 287,
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\Input-Manifest.sha256": 269
+  },
+  "independentNativeReviewSha256": "A76CFAC7BC669F62107DBDF63142F192A4559D6AC7AAA132081B866372650E9A",
+  "nativeReviewReconciliation": "01E49396F15478DDE038A329E61BA8E137E64E36AE7274B705F287A27720B9E3",
+  "peerCloseFake": "PASS11/35,4mutants,known retirement/postpins",
+  "peerCloseFakeReconciliationSha256": "4A5B51B51C25113E2518D1ABBFAD0A2F247960F0196EC60ED6E22874BCBBA9E1",
+  "prerequisiteSubjectPeerSha256": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+  "runtimeExePinsMatched": true,
+  "evidenceAbsent": true,
+  "pathAgreement": true,
+  "nativeCardPresentable": true,
+  "nativeExecutionAuthority": "NONE",
+  "allPriorFakeGrantsConsumed": true,
+  "T05NativeIsSeparate": true,
+  "endpoint": "unbound"
+}

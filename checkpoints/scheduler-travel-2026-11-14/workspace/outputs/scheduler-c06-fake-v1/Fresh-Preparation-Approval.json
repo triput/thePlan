@@ -1,0 +1,16 @@
+{
+  "approval": "fresh-copy one-line C06 check preparation",
+  "question_item": "call_32f9e623299f4b0e8bc3eed4532b8278",
+  "answer": "Approve fresh-copy check preparation (Recommended)",
+  "recorded_utc": "2026-11-11T06:38:07.8877547Z",
+  "proposal_diff_sha256": "2F798B6F1F4B0C968A198746F36FF55D9776935B678A6DA6F08962D563D23F47",
+  "change": "fake_os.lexists to fake_os.path.lexists in first preexisting-directory control",
+  "expected_check_sha256": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8",
+  "fixture_sources": "unchanged",
+  "controls": 39,
+  "regenerate": "fresh packet labels, commands and manifests",
+  "execution_authorized": false,
+  "rerun_authorized": false,
+  "preserve_failed_evidence": true,
+  "endpoint": "unbound"
+}

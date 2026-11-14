@@ -1,0 +1,13 @@
+{
+  "kind": "T07 host static final packet reconciliation",
+  "checked_utc": "2026-11-11T20:56:11.2489417Z",
+  "packet_pins": 253,
+  "runtime_pins": 17,
+  "named_controls": 41,
+  "expected_pass": 31,
+  "expected_original_pass_witness": 10,
+  "errors": [],
+  "execution_performed": false,
+  "execution_authorized": false,
+  "peer_host_review": "pending"
+}

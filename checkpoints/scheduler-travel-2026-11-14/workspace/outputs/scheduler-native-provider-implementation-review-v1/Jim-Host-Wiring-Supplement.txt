@@ -1,0 +1,11 @@
+Jim — supplement to the SAME R1–R4 revision, no new assignment/gate:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v1\Host-Wiring-Supplement.md
+SHA256 4B76E00E760E3BFAF2D925DE5CD916A922040BF639F1E03F327922166E02D1EB
+
+Three host-wiring fixes to incorporate under the existing16-role lane:
+• Immutable DockerOps.run_attached starts gate_pair/gates_ready and requires exactly N06/N07 receipts. It is suite-specific, not generic NP-* attach. Adapt/bind deliberately inside mutable np_supervisor while preserving helper bytes and safeguards; no undeclared old-gate protocol or new role.
+• Wrapper executes np_supervisor with no config/receipt args; its __main__ always HELD and never binds ops/run_once. Write the real admitted host dispatch path; do not invoke it.
+• Wrapper expectedConfig=configObj.self_sha256 then compares raw hash of the same JSON, with no preimage handling. Replace with independently reviewed expected raw config hash in operator input/constant; no self-hash fixed point or hash-whatever-exists invocation.
+
+Please incorporate in the same fresh successor with functional peer/cases and meaningful bounded checker. Source preparation already covers these corrections; no new permission is needed. All execution remains held. No immediate ACK needed; normal coding turnaround.
+— Dex

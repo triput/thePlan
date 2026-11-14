@@ -1,0 +1,128 @@
+{
+  "status": "PASS",
+  "class": "FAKE-BEHAVIORAL",
+  "inventory_contract": "exact_unique_control_ids_no_omission_no_dict_overwrite",
+  "ordered_contract": "EXPECTED.controls key order == EXPECTED.control_ids_in_order == result.control_ids_in_order == result.controls key order; run_controls may record N7 first",
+  "control_ids_in_order": [
+    "N1",
+    "N2",
+    "N3",
+    "N4",
+    "N5",
+    "N6",
+    "N7",
+    "N8",
+    "N9",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "N14",
+    "P_UUID_actual_tokens",
+    "P_script_production_order",
+    "P_C07_uppercase_ids",
+    "P_C03_count_types",
+    "P_gate_idempotent_second_stop",
+    "P_admit_mutation_commits",
+    "P_C09_hold_snapshot_shape",
+    "P_synthetic_module_registration"
+  ],
+  "controls": {
+    "N1": {
+      "result": "REFUSE",
+      "criterion": "primary preserved; cleanup attaches; no PASS"
+    },
+    "N2": {
+      "result": "REFUSE",
+      "criterion": "I02 select operational-vs-cleanup; owner+worker-close preserves owner; worker+observer-close; verify-close dual-faults; cleanup-only rejects"
+    },
+    "N3": {
+      "result": "REFUSE",
+      "criterion": "failure wake-up leaves mutator_committed=false"
+    },
+    "N4": {
+      "result": "REFUSE",
+      "criterion": "missing intended diagnostic fails; no db_cause fallback"
+    },
+    "N5": {
+      "result": "REFUSE",
+      "criterion": "wrong cause fails even if DB matches"
+    },
+    "N6": {
+      "result": "REFUSE_OR_IDEMPOTENT",
+      "criterion": "second stop_gate no-op; unjoined refuses"
+    },
+    "N7": {
+      "result": "PASS_CONSTRUCT",
+      "criterion": "i01c01/i01c10 hex UUID construct + invert + distinct"
+    },
+    "N8": {
+      "result": "REFUSE",
+      "criterion": "wrong script order refused by SharedTransportScript"
+    },
+    "N9": {
+      "result": "REFUSE",
+      "criterion": "legacy I01-C07a/b fail host regex; I01-C07A/B pass"
+    },
+    "N10": {
+      "result": "REFUSE",
+      "criterion": "gate+lock+budget+transport missing/wrong observations refuse; positives pass"
+    },
+    "N11": {
+      "result": "REFUSE",
+      "criterion": "C09 checkpoint/monitor/send/error/late-peer-success negatives refuse via extract; peer error secondary under primary; cancellation-before-selection retains already-done peer error as secondary without replacing cancellation"
+    },
+    "N12": {
+      "result": "REFUSE",
+      "criterion": "unrelated 422 cannot satisfy count proof"
+    },
+    "N13": {
+      "result": "REFUSE",
+      "criterion": "already-sorted request_ids refuse ordering claim via fixture guard"
+    },
+    "N14": {
+      "result": "REFUSE",
+      "criterion": "synthetic ModuleType in sys.modules; exec on module.__dict__; dataclass _is_type probe; patch visibility; missing-symbol refuse"
+    },
+    "P_UUID_actual_tokens": {
+      "result": "PASS"
+    },
+    "P_script_production_order": {
+      "result": "PASS"
+    },
+    "P_C07_uppercase_ids": {
+      "result": "PASS"
+    },
+    "P_C03_count_types": {
+      "result": "PASS"
+    },
+    "P_gate_idempotent_second_stop": {
+      "result": "PASS"
+    },
+    "P_admit_mutation_commits": {
+      "result": "PASS"
+    },
+    "P_C09_hold_snapshot_shape": {
+      "result": "PASS"
+    },
+    "P_synthetic_module_registration": {
+      "result": "PASS"
+    }
+  },
+  "cannot_waive": [
+    "native SQL contention",
+    "real TLS terminal",
+    "integrated ingress timing under Docker"
+  ],
+  "windows_asyncio_internal_socket_scope": {
+    "choice": "B",
+    "dex_finding": "p1794366344",
+    "mechanism": "disclose_standard_event_loop_internal_wakeup_sockets",
+    "not_literally_no_sockets": true,
+    "concurrent_bound_sockets": 2,
+    "sequential_asyncio_run_cycles_in_N11": 3,
+    "scope": "loopback-only ProactorEventLoop self-pipe; no provider/DNS/proxy/app/database",
+    "socket_authority_added": false,
+    "inventory_executed": false
+  }
+}

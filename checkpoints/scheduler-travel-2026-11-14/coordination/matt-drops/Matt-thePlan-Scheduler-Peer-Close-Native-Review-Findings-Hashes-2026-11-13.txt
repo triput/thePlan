@@ -1,0 +1,3 @@
+# Matt thePlan peer-close native review findings - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-13
+A76CFAC7BC669F62107DBDF63142F192A4559D6AC7AAA132081B866372650E9A  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Peer-Close-Native-Review-Findings-2026-11-13.md
+2913656ABBEF2232A707CE57DDEA4CAD0AE50703B75B37CBC78BFC1DB12B2FB3  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-peer-close-launch-dex-v1/Input-Manifest.sha256 (reviewed, unmodified)

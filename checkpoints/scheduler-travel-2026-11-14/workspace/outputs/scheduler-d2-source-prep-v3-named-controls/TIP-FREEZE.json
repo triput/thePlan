@@ -1,0 +1,54 @@
+{
+  "api_file_count": 234,
+  "author": "Justin",
+  "byte_semantics": "utf-8 lf",
+  "changed_existing_api_files": 3,
+  "date": "2026-11-11",
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "disposition": "fresh_successor_fake_only_named_control_closure_oracle_gaps_retained_source_pins_unchanged_held",
+  "docker_or_live_checks": 0,
+  "endpoint": "unbound",
+  "executed": false,
+  "execution_authorized": false,
+  "fake_packet": {
+    "check_sha256": "A8787F873BC54BFE1B71BB487716DF14D85D21BB932B5EE53BCA0A5F1AB9C9FC",
+    "dir": "fake-only-d2-path-admission-verification",
+    "executed_in_preparation": false,
+    "expected_sha256": "1ACD3F2D0F223C9C637C6F1EAE526E675A6D8618AF87ACDADD923EBF77AA5667",
+    "functional_control_rows": 44,
+    "approved_core_functional_control_rows": 41,
+    "launch_ready": false,
+    "named_controls_total": 52,
+    "outer_admission_sha256": "D330D9BAE50BE9589A675FAA95EE618828288FE78704CB25BF84B65FD14669D2",
+    "oracle_gap_added_controls": [
+      "CTRL-NEG-CTX-ORD-SLASH",
+      "CTRL-NEG-CTX-ENC-SLASH",
+      "CTRL-NEG-CTX-MALFORM"
+    ],
+    "named_control_strengthenings": [
+      "CTRL-POS-MS-VIEW",
+      "CTRL-POS-MS-DELTA-COMPAT",
+      "CTRL-COLLIDE-DUP-SAME-PURPOSE",
+      "pos_get_request_line_assertion"
+    ],
+    "new_control_ids": []
+  },
+  "implementation_applied_in_fresh_copy_only": true,
+  "imports_of_app": 0,
+  "original_t02_sources_mutated": false,
+  "outputs_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-source-prep-v3-named-controls",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "packet": "post-native-d2-source-fake-prep-jim-v3-named-controls-2026-11-11",
+  "predecessor_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "predecessor_frozen_v2_tip_sha256": "9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB",
+  "predecessor_packet": "post-native-d2-source-fake-prep-jim-v2-oracle-gaps-2026-11-11",
+  "resulting_pins": {
+    "covering_http_transport.py": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+    "covering_provider_context.py": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+    "covering_transport_policy.py": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+  },
+  "role": "Jim D2 source+fake preparation successor (Dex named-control closure)",
+  "scope_sha256": "C3D7B8F130BEDBD23F4ACE579F5049D7EC8CE76B4E022631B3A5B0A8DEA55C2A",
+  "status": "D2_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED",
+  "tests_run": 0
+}

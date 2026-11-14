@@ -1,0 +1,50 @@
+{
+  "kind": "Dex independent native-v3 run reconciliation",
+  "at_utc": "2026-11-12T02:02:37.5564228Z",
+  "status": "PASS",
+  "host_tool_chunk": "09c38a",
+  "host_exit_code": 0,
+  "attempts": 1,
+  "docker_commands": 7,
+  "captures_verified": 14,
+  "all_exit0_complete_eof_joined": true,
+  "stderr_empty": true,
+  "source_files": [
+    {
+      "path": "/usr/local/lib/python3.12/http/client.py",
+      "file": "http-client.py.source",
+      "bytes": 59574,
+      "sha256": "C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9"
+    },
+    {
+      "path": "/usr/local/lib/python3.12/ssl.py",
+      "file": "ssl.py.source",
+      "bytes": 51536,
+      "sha256": "0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3"
+    },
+    {
+      "path": "/usr/local/lib/python3.12/email/message.py",
+      "file": "email-message.py.source",
+      "bytes": 48396,
+      "sha256": "BA32EFEA2602EA52E73028A2817AFDDCCCCACC4385B9800896556D5C22DB2B90"
+    }
+  ],
+  "source_bytes_total": 159506,
+  "source_bytes_independently_decoded_and_hashed": true,
+  "container_id": "501c00a46066c4e3e30a4fc7ee4dd9b0d1fe0cd638cf33b919ac69085d579ce4",
+  "created_and_exited0_identity_isolation_mounts_verified": true,
+  "exact_id_removal_and_absence_verified_from_retained_commands": true,
+  "new_docker_checks_during_reconciliation": 0,
+  "success_only_cleanup_completed": true,
+  "packet_pins_postverified": 4,
+  "runtime_pins_postverified": 25,
+  "manifest_and_command_pins_postverified": true,
+  "result_sha256": "C3694449C24FD4BCB5C631689B0D5358D056F8A0CBCF89437D79AE4AADB6DC22",
+  "receipt_sha256": "29DA8A7D9BFDD93245A69089813554BCF610C45B07A5577E5D9584DE525E6157",
+  "offline_comparison_clarification": "Offline-Comparison-Clarification.json; empty object count, no invariant relaxed",
+  "authorization_consumed": true,
+  "retries_repairs": false,
+  "behavior_proven": false,
+  "full_T05_T01_T08_closed": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,34 @@
+{
+  "packet": "fake-only-d2-path-admission-verification",
+  "class": "FAKE-D2-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "Packet-authored text UTF-8; source payload retains pinned original LF/CRLF",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_d2_fake.py do not embed their own final raw-byte hashes; operator verifies this file's published hash before invoke; empty pin literals refuse",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pin_layers": [
+    "1_operator_OUTER_ADMISSION_hash",
+    "2_admit_outer_subject_pins",
+    "3_launcher_interpreter_and_packet_pins_excluding_self",
+    "4_check_source_pins_and_inventory"
+  ],
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "D511AEE78936177004A37BB187A98B728185B7A7A95C2F22FBB1FA835039678B",
+      "invoke_d2_fake.py": "560E9037DA168E03845098000EA34FB17C35509EED9D283B48F265A7EBF002DC",
+      "check_d2_path_admission_fake.py": "65AA2582C9EB6636BDFCE4B9AD6AE16D6A32910CFE5008D54C336C3C1ECD1286",
+      "EXPECTED-OUTPUT.json": "F3ADF7346FCB2CD7BD3D1C176A21D5446AA9C72D25D81AA6170F5CF756E0E692",
+      "INPUT-MANIFEST.json": "685C3B7F02B2E704985B901D0C286535C0CC086D3825454495242050ED9C64D4",
+      "PACKET-SHA256SUMS.txt": "83831CDE2891BE8C280BF401CEB218CCDF091C9308D850F4B3CF025460618809"
+    }
+  },
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "supersedes_frozen_v3_tip_sha256": "A9415BB75B5B46CF774ABC239813815D015E0EDE07D46E53268E94C15DFB4BE8",
+  "predecessor_frozen_v2_tip_sha256": "9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB",
+  "predecessor_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "launch_ready": false,
+  "parent_packet": "scheduler-d2-fake-v2",
+  "predecessor_stopped_run": "scheduler-d2-fake-v1; no rerun authority"
+}

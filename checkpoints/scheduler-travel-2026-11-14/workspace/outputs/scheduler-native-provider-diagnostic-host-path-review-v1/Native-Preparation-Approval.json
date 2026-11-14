@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-11-13T03:28:01.6675687Z",
+  "authority": "Trish explicit card answer: Approve fresh-copy native preparation (Recommended)",
+  "scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891",
+  "diff_sha256": "5092F682AA95D66245F76A68B1E4B1B3DEB1725C2FAA07F50D9B53D8ABE69D7F",
+  "prospective_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "implementer": "Matt",
+  "preparation_only": true,
+  "execution_authorized": false,
+  "cleanup_authorized": false,
+  "endpoint": "unbound"
+}

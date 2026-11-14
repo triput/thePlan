@@ -1,0 +1,39 @@
+{
+  "kind": "t05-fake-v3-preparation-freeze",
+  "packet": "scheduler-native-provider-t05-fake-v3",
+  "author": "Matt",
+  "date": "2026-11-12",
+  "status": "PREPARED_NOT_EXECUTED",
+  "assignment_sha256": "7F1852AF3C38C1F69191D0A0B4C117671FF1337F4787CF85CED12A1EBB888FBC",
+  "approved_scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "approval_record_sha256": "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4",
+  "baseline_packet": "scheduler-native-provider-t05-fake-v2",
+  "baseline_input_manifest_sha256": "103B35619A5A4B482DCCB7444D6DE95F1632D10BE176214CABCEC910237002A6",
+  "approved_diff_sha256": "09DFA0B73DBA0233270635BA660E90A4E88A6AD1C647521ACDB84A8FB7656933",
+  "changed_packet_files": {
+    "verify/check_native_provider.py": {"before": "099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F", "after": "BF5E28A98C2533C967FF1DD51EDE63D9F50885627B656937D9CE7DFAE24D7F64", "line": 920},
+    "verify/OUTER-ADMISSION.json": {"before": "F2841A1CFEB74A0BF81FAB4BCC38FAE17D51BFD31DF6FCF6A2DD31C2E3ABF26A", "after": "3F9DE7E1393D38326313559E08C5B5C8C2E90506990F5DA6720CAAA259B65289"},
+    "verify/VERIFICATION-ADMISSION.json": {"before": "9048AD31BE3E0E5A80C9E7E41E16E6D8DEA6E7B25EDED2B3D746BCF280EAEB17", "after": "4BEB687B61A684C06FE254C52095EFB984C96FAAD1571FADCD31E13B07364F5D"}
+  },
+  "unchanged_roles": {
+    "launcher": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "expected": "080268BCCCCB63EB47A96A59F5EB4454575D98AA73A1B796FEAF640F1F0B260A",
+    "wrapper": "9AE55D26604174AB84B71C841E9DB3C777D41E014CF56E6FCC7E3037843F2653",
+    "outer_admission_script": "08975D02774BEA7A794F6420F9FFC4DE0BB5E3F2DB53A41716A894C5F48C6B49",
+    "np_suite": "617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562"
+  },
+  "runtime_files": [{"absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe", "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC", "scope": "interpreter executable only"}],
+  "packet_file_pin_count": 23,
+  "controls": {"top_level": 17, "nested": 19, "changed": false, "nested_classification": {"extracted_helper_fake_behavior": 15, "structural": 2, "separately_authored_hole_demonstrations": 2}, "actual_source_mutants_claimed": false},
+  "deferred_nonblocking": ["H1 sys.modules save/restore", "H2 dead loop", "H3 docstring wording"],
+  "retained_gap": "T05-SHORT-LENGTH-INVALID-JSON combined witness not filled",
+  "launch_authorized_outer": false,
+  "launch_authorized_verification": false,
+  "native_flags": false,
+  "executed": false,
+  "execute_ack_exists": false,
+  "endpoint": "unbound",
+  "future_command_admission_sha256": "4BEB687B61A684C06FE254C52095EFB984C96FAAD1571FADCD31E13B07364F5D",
+  "manifest_root": "packet/ (Input-Manifest.sha256 at packet parent; 289 entries)",
+  "writer_active": false
+}

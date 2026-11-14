@@ -1,0 +1,26 @@
+{
+  "atUtc": "2026-11-14T01:15:53.9342216Z",
+  "status": "CURRENT_TWO_CASE_BATCH_NOT_READY",
+  "sourceManifest": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+  "runner": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+  "consideredBatch": [
+    "NP-V-MS-REFRESH",
+    "NP-V-MS-INVALID"
+  ],
+  "sourceFacts": [
+    "Each case creates a fresh_attempt_plan(case_id) at entry, so per-case planning clocks are separately captured",
+    "Each case opens the same disposable database profile and invokes provision_disposable_schema before seeding",
+    "Shared provision_disposable_schema uses Base.metadata.create_all(setup.connection(),checkfirst=False) at581",
+    "No between-case table reset or schema isolation is present in these case bodies"
+  ],
+  "decision": "Retain separate single-case native checkpoints for this lineage. Do not request a two-case batch or silently change schema provisioning merely to reduce cards.",
+  "runtimeQualification": "Source-supported batch incompatibility; no combined invocation or native duplicate-table error observed",
+  "futureOption": "A separate reviewed fixture design could provision once or isolate case schemas while preserving fresh-state evidence; no such change is assigned or authorized here",
+  "preserved": [
+    "Separate fake prerequisites",
+    "Original source and both native drafts",
+    "No repairs/retries/cleanup or execution"
+  ],
+  "execution": "NONE",
+  "endpoint": "unbound"
+}

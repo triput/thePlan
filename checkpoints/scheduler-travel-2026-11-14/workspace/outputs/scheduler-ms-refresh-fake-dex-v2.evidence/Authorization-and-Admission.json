@@ -1,0 +1,11 @@
+{
+  "at_utc": "2026-11-13T05:47:12.8946249Z",
+  "question": "call_9037d8f2199940c99068ee826f8b6dd7",
+  "answer": "Authorize one MS refresh fake verification",
+  "command_sha256": "E7473EEC6A99FDB41FCCC03C88857D6596A0FC1CE138D03648CA98304C044914",
+  "manifest_sha256": "4F831BDF5CAEDBA527BEB355964CD6F3F45101E63614717F0EB9CD9B34C04196",
+  "input_count": 25,
+  "dex_execute_ack": "EXECUTE once by Dex,not Matt",
+  "one_invocation": true,
+  "endpoint": "unbound"
+}

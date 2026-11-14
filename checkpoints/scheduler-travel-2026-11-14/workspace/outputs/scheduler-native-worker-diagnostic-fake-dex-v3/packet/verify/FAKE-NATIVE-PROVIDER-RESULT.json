@@ -1,0 +1,144 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "PRODUCTION-BOUNDARY-STRUCTURE",
+    "OBSERVER-SUCCESS-IDENTITY",
+    "OBSERVER-EXCEPTION-IDENTITY",
+    "RESTORE-WIRING",
+    "CHAINING-WIRING",
+    "PRODUCER-HOST-END-TO-END",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutants": {
+        "chaining_removed": "DETECTED",
+        "no_restore": "DETECTED",
+        "replacement_reraise": "DETECTED",
+        "swallowed": "DETECTED",
+        "unbounded_capture": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "CHAINING-WIRING": {
+      "cases": {
+        "chained_cause": "PASS",
+        "fallback_raise_unchanged": "PASS",
+        "first_captured_only": "PASS",
+        "status_200_no_raise": "PASS",
+        "unchained_fallback": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "control_kind": "literal_text",
+      "derived_sha256": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+      "files": [
+        "a/payload/fixture/np_runner_entry.py",
+        "b/payload/fixture/np_runner_entry.py"
+      ],
+      "hunks": 5,
+      "lines_added": 41,
+      "lines_removed": 0,
+      "observed": "PASS"
+    },
+    "OBSERVER-EXCEPTION-IDENTITY": {
+      "cases": {
+        "base_exception_reraised": "PASS",
+        "bound_one": "PASS",
+        "captured_identity": "PASS",
+        "chain_unchanged": "PASS",
+        "exception_identity": "PASS",
+        "no_formatting": "PASS",
+        "restore_identity": "PASS",
+        "sandbox_restored": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "OBSERVER-SUCCESS-IDENTITY": {
+      "cases": {
+        "argument_identity": "PASS",
+        "installed": "PASS",
+        "nothing_captured": "PASS",
+        "restore_idempotent": "PASS",
+        "restore_identity": "PASS",
+        "result_identity": "PASS",
+        "sandbox_restored": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "diff_purely_additive": "PASS",
+        "main_guard_identical": "PASS",
+        "stop_payload_identical": "PASS",
+        "top_level_nodes_identical": "PASS"
+      },
+      "control_kind": "extracted_text_identity",
+      "observed": "PASS"
+    },
+    "PRODUCER-HOST-END-TO-END": {
+      "cases": {
+        "deeper_chain_capped": "PASS",
+        "owned_production_frames": "PASS",
+        "privacy_envelope": "PASS",
+        "real_chain_through_observer": "PASS",
+        "unowned_frames_dropped": "PASS"
+      },
+      "control_kind": "extracted_producer_and_host_fake",
+      "observed": "PASS"
+    },
+    "PRODUCTION-BOUNDARY-STRUCTURE": {
+      "cases": {
+        "connector_from_none_conversions": "PASS",
+        "dispatch_maps_unknown_to_503": "PASS",
+        "module_level_import": "PASS",
+        "observer_targets_dispatch_global": "PASS",
+        "worker_global_lookup": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "RESTORE-WIRING": {
+      "cases": {
+        "chaining_after_restore": "PASS",
+        "install_first_in_try": "PASS",
+        "locals_initialized": "PASS",
+        "restore_block_behavior": "PASS",
+        "restore_first_in_finally": "PASS",
+        "single_install_call": "PASS"
+      },
+      "control_kind": "structural_source_plus_extracted_block",
+      "observed": "PASS"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "candidate/np_runner_entry.py": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+        "diff/Worker-Observer.diff": "2023F97B5695BF690F50186C56B4DD3FCFF1A2BAFB3CA637B1051F400F3F2468",
+        "host/docker_transport.py": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+        "production/covering_http_dispatch.py": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+        "production/covering_role_connector.py": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+        "source/np_runner_entry.py": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 47,
+  "packet": "scheduler-native-worker-diagnostic-fake-prep-matt-v1",
+  "passed": 10,
+  "prep_is_not_pass": true
+}

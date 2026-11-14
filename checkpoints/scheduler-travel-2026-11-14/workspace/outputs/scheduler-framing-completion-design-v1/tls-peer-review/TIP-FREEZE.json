@@ -1,0 +1,87 @@
+{
+  "packet": "post-native-tls-eof-proposal-static-review-jim-v1-2026-11-11",
+  "status": "TLS_EOF_PROPOSAL_STATIC_REVIEW_COMPLETE_NOT_IMPLEMENTED",
+  "disposition": "QUALIFIED_ACCEPT",
+  "disposition_one_liner": "QUALIFIED ACCEPT — suppress_ragged_eofs=False is the narrow covering-only wrap_socket change; source mechanism verified; native teardown unproved; HTTP gates still co-required; implementation_authorized=false; executed=false; diff not applied",
+  "author": "Justin",
+  "role": "Jim documents-only independent static review of narrow TLS EOF proposal",
+  "date": "2026-11-11",
+  "byte_semantics": "utf-8 lf",
+  "documents_only": true,
+  "implementation_authorized": false,
+  "executed": false,
+  "execution_authorized": false,
+  "launch_authorized": false,
+  "source_fixture_edits": false,
+  "diff_applied": false,
+  "candidate_file_written": false,
+  "endpoint": "unbound",
+  "slack_tip_from_this_seat": false,
+  "tip_sha256": "5818EC31AD12DCFA0494FE686169CDF5617E94435510BC274A5503C048893EB5",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled).",
+  "review_sha256": "D7EEEC73C676696C96CC3F12654118BCD288EC4161609AEA4E31C8AC7544885F",
+  "reviewed_input_sha256": {
+    "TLS-EOF-Acknowledgment-Trace-and-Proposal.md": "F5E761F5E41C595D87F47C3F45A2724C740B534AA2487199F8A561EC751F3C48",
+    "Proposed-TLS-EOF-Option.diff": "E5DA81D57E19A6ED0524100A6D25FE3FE828D706C9D0014BAF8C5B0188AAF670",
+    "Proposed-TLS-EOF-Option-Pins.json": "CE5AB23AEED325E37C1CB33BF3F49231A3D0E67FFF827A71BB35A6F74BB747FE",
+    "covering_joined_https.py_original": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_joined_https.py_prospective_in_memory_only": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "ssl.py.source": "0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3",
+    "http-client.py.source": "C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9"
+  },
+  "narrow_change": {
+    "is_suppress_ragged_eofs_false": true,
+    "caveat": "narrow covering-only wrap_socket option forwarding; runtime/native SSL_ERROR_EOF surface still unproved; not a substitute for HTTP length/chunk gates"
+  },
+  "blocking_findings": 0,
+  "hold_conditions_not_proposal_defects": [
+    "trish_source_authoring_approval_required",
+    "http_completion_framing_gates_co_required",
+    "native_synthetic_tls_orderly_vs_abrupt_proof_separately_authorized"
+  ],
+  "qualifications": [
+    "source_mechanism_not_native_teardown_proof",
+    "tls_option_necessary_not_sufficient_for_acknowledgment",
+    "prospective_hash_in_memory_only_no_candidate",
+    "no_implementation_execution_launch_or_slack_tip_from_this_seat",
+    "no_protocol_hardening_expansion"
+  ],
+  "unchanged_by_proposal": [
+    "ca_hostname_cert_required",
+    "numeric_peer_nonblocking_handshake",
+    "shared_deadline",
+    "sent_marker_before_send",
+    "local_close_no_unwrap",
+    "independent_response_transport_retirement"
+  ],
+  "minimal_observations": [
+    "fake_option_forwarding_and_SSL_ERROR_EOF_propagation",
+    "fake_oauth_sent_UNKNOWN_remap_and_retirement",
+    "fake_complete_fixed_length_chunked_without_extra_eof_shutdown",
+    "native_orderly_close_notify_vs_abrupt_truncation"
+  ],
+  "does_not_authorize": [
+    "implementation_or_source_edits",
+    "checker_fixture_authoring",
+    "imports_compilation_tests",
+    "sockets_pki_docker_provider_ops",
+    "endpoint_binding",
+    "slack_tip",
+    "diff_apply",
+    "claiming_tls_eof_native_proof_or_framing_fix"
+  ],
+  "handback_dir": "F:/DropFolder/pending/post-native-tls-eof-proposal-static-review-jim-v1-2026-11-11",
+  "artifact_hashes_list_order": [
+    "ARTIFACT-HASHES.txt",
+    "HANDBACK.txt",
+    "Jim-TLS-EOF-Proposal-Static-Review.md",
+    "TIP-FREEZE.json"
+  ],
+  "message_context": [
+    "narrow TLS EOF proposal static review only",
+    "route-fake QUALIFIED ACCEPT context held",
+    "Dex owns mechanism; Trish must approve authoring",
+    "Jim tips after verify"
+  ]
+}

@@ -1,0 +1,1 @@
+HELD: use only the separately reviewed workspace Invoke-Verification.ps1 after Trish authorizes its exact hash. No invocation is authorized by this preparation. Original Jim commands remain historical in the preserved corrected2 directory. No native, PKI, sockets or database operations.

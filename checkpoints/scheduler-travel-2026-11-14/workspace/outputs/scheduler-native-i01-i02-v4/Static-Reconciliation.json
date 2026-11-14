@@ -1,0 +1,29 @@
+{
+  "case_ids_match": true,
+  "case_count": 22,
+  "assessment_ids_count": 16,
+  "unknown_match": true,
+  "expected_unknown": [
+    "N06",
+    "N07",
+    "I01-C06"
+  ],
+  "isolation_and_tmpfs_unchanged": true,
+  "suite_seconds": 900,
+  "runner_seconds": 600,
+  "gate_seconds": 240,
+  "command_count_cap": 64,
+  "output_byte_cap": 1048576,
+  "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+  "docker_pin_match": true,
+  "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "python_pin_match": true,
+  "database_image": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "database_payload_bind_match": true,
+  "runner_payload_bind_match": true,
+  "runner_public_ca_bind_match": true,
+  "evidence_directory_exists": false,
+  "live_docker_commands": 0,
+  "executed": false
+}

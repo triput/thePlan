@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T02:48:15.8706561Z",
+  "status": "FRESH_COPY_PREPARATION_ONLY_NO_EXECUTION",
+  "sourceRoot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t05-client-cause-fake-dex-v1",
+  "sourceManifest": "F94FE06950460E6FA557C1419AE7922029777EE610ED2B82DE9D81C9D800CA2F",
+  "failedReceipt": "0E7722BDAF90EC143822CB8D8B9EC6DFCB8177403C55DE96431675E1A6433D09",
+  "failedReconciliation": "8267E110F8A89AC80B0BF3F49196D5C93B94EA6B4B220743DD01A0468118F403",
+  "sourceChecker": "93260CA296CCDDFA739660BC832849B2FA0B169D18ACC3A7845E7C1E566CC5F1",
+  "candidateChecker": "8B364EDEF6CE203EEE95A494303B77912EF2205F8319DCA817280B56CCB12D18",
+  "admission": "D9E0305630642B01B8C02A82C71EAC687E6709F8C5EBD0ED5BBF848622CC222F",
+  "commandSHA256": "32908BA50D15FEB19CC4FCB97997629B2AA00E1A0C3EC9694BFA5C714EFE7F33",
+  "diffSHA256": "54D29B2E0D0E1855A71D17245F7DDDF8AFCD8BE9707E9E85E7A9FF87A1FDFC67",
+  "correction": "One line wraps outcome[1] in str before fake exception class construction; status200 becomes string, existing exception-name strings remain unchanged",
+  "preserved": "All11subject files, EXPECTED10controls/38predicates, mutation/oracle inventory, immutable launcher/wrapper/admissionhelper, runtime pins and fake-only limits",
+  "authority": "Standing389A00DD named-role13 fresh successor authoring only; no retry or new execution",
+  "executionAuthority": "NONE",
+  "nativeT05Held": true,
+  "inheritedLabels": "PACKET_NAME/source label identifies original fixture preparation; current staging identity/path is Dex v2. Copied prior Launch-Decision/Future-Command/old review receipt are immutable history."
+}

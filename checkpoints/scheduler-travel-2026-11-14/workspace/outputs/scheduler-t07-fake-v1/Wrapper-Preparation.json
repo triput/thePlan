@@ -1,0 +1,16 @@
+{
+  "kind": "T07 host wrapper authoring; static template comparison only",
+  "at_utc": "2026-11-11T19:58:01.7622116Z",
+  "template_sha256": "B72C1CBCAC9229F47FBB5E7A88462BB3D0C02DC8FA6B3DE163EE8FFECB195CA7",
+  "wrapper_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "substitutions": [
+    "scheduler-d2-one-shot-fake-verification-admission -> scheduler-t07-one-shot-fake-verification-admission",
+    "fake-only-d2-path-admission-verification -> fake-only-t07-retirement-verification",
+    "FAKE-D2- -> FAKE-T07-"
+  ],
+  "control_flow_changed": false,
+  "executed_or_parsed_as_runtime": false,
+  "admission_file_created": false,
+  "packet_staged": false,
+  "execution_authorized": false
+}

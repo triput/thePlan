@@ -1,0 +1,350 @@
+{
+  "class": "FAKE-T05-ORIGINAL-PREDICTIONS",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "wire_ids_in_order": [
+    "F01",
+    "F02",
+    "F03-oauth",
+    "F04-oauth",
+    "F05-oauth",
+    "F05b-oauth",
+    "C-BASE",
+    "C-EXT-VALID",
+    "C-DATA-SHORT",
+    "C-SEP-SHORT",
+    "C-SEP-WRONG",
+    "C-ZERO-ABSENT",
+    "C-TRAILER-EOF",
+    "C-ZERO-NO-CRLF",
+    "C-TRAILER-LINE-EOF",
+    "C-TRAILER-MALFORMED",
+    "F12a",
+    "F12b",
+    "H-DUP-IDENTICAL-FIELDS",
+    "H-DUP-IDENTICAL-LIST",
+    "H-CONFLICT-FIELDS-2-3",
+    "H-CONFLICT-FIELDS-3-2",
+    "H-CONFLICT-LIST-2-3",
+    "H-CONFLICT-LIST-3-2",
+    "H-DECIMAL-02",
+    "H-INVALID",
+    "H-TE-CL",
+    "H-TE-NONEXACT+CL",
+    "H-TE-REPEAT",
+    "H-TE-LIST",
+    "CD-ORDERLY",
+    "CD-ABRUPT",
+    "CD-DEADLINE",
+    "F06"
+  ],
+  "inputs": {
+    "F01": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Complete CL=2 object under event purpose."
+    },
+    "F02": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_REFUSE",
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Short CL with valid JSON prefix may succeed without remaining-length gate."
+    },
+    "F03-oauth": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_UNKNOWN",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Truncated invalid_grant may still type reauth on prefix-valid JSON."
+    },
+    "F04-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Complete invalid_grant raises CoveringReauthorizationRequired."
+    },
+    "F05-oauth": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_UNKNOWN",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Truncated token-success may expose success-shaped object."
+    },
+    "F05b-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Complete token-success JSON."
+    },
+    "C-BASE": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Valid chunked terminator."
+    },
+    "C-EXT-VALID": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Valid chunk extension preserved."
+    },
+    "C-DATA-SHORT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE",
+        "OBSERVED_UNKNOWN",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Short chunk data."
+    },
+    "C-SEP-SHORT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE",
+        "OBSERVED_UNKNOWN",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Short chunk separator."
+    },
+    "C-SEP-WRONG": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Wrong separator may still accept two-byte chunk."
+    },
+    "C-ZERO-ABSENT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE",
+        "OBSERVED_UNKNOWN",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Missing zero chunk."
+    },
+    "C-TRAILER-EOF": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Trailer EOF tolerance may look complete."
+    },
+    "C-ZERO-NO-CRLF": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE",
+        "OBSERVED_UNKNOWN"
+      ],
+      "rationale": "Zero chunk without CRLF."
+    },
+    "C-TRAILER-LINE-EOF": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE",
+        "OBSERVED_UNKNOWN",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Trailer line without terminator."
+    },
+    "C-TRAILER-MALFORMED": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE",
+        "OBSERVED_UNKNOWN"
+      ],
+      "rationale": "Malformed trailer."
+    },
+    "F12a": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Non-object JSON refused after decode."
+    },
+    "F12b": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Non-identity Content-Encoding refused."
+    },
+    "H-DUP-IDENTICAL-FIELDS": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "First duplicate CL may win."
+    },
+    "H-DUP-IDENTICAL-LIST": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Comma list CL may fail int()."
+    },
+    "H-CONFLICT-FIELDS-2-3": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "First CL=2 may win with short body."
+    },
+    "H-CONFLICT-FIELDS-3-2": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "First CL=3 may interact with short body."
+    },
+    "H-CONFLICT-LIST-2-3": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "List conflict may fail conversion."
+    },
+    "H-CONFLICT-LIST-3-2": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "List conflict may fail conversion."
+    },
+    "H-DECIMAL-02": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Decimal CL 02 may parse as 2."
+    },
+    "H-INVALID": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Invalid CL may become unspecified length path."
+    },
+    "H-TE-CL": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "TE+CL coexistence path varies."
+    },
+    "H-TE-NONEXACT+CL": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Nonexact TE with CL."
+    },
+    "H-TE-REPEAT": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Repeated TE fields."
+    },
+    "H-TE-LIST": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Comma-coded TE list."
+    },
+    "CD-ORDERLY": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Close-delimited via empty recv; close_notify not proven."
+    },
+    "CD-ABRUPT": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Fake cannot distinguish abrupt vs orderly EOF."
+    },
+    "CD-DEADLINE": {
+      "predicted_outcome": "OBSERVED_STOP_GUARD",
+      "allowed_outcomes": [
+        "OBSERVED_STOP_GUARD",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Stall/incomplete close-delimited may hit deadline or parser stop."
+    },
+    "F06": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Alias of C-BASE."
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T00:48:44.0304347Z",
+  "status": "NATIVE_DRAFT_V2_HELD_F1_RESOLVED",
+  "baseManifest": "866FB67847CF0273460C9ACEE5958560B91174C57407FA70E6092E19A26154BE",
+  "baseInputs": 305,
+  "peerReview": "227F001E4485F1170ED98F39ED4632148C5F20C6118471D23C86DAB11F54FC51",
+  "change": "Two truthful machine-gate notes plus fresh own-root path/manifest/command metadata; all executable and application bytes unchanged",
+  "hostConfigSha256": "64683893DB7F77CFDEE3EC500B60A88243A45FA40036A97FC0CD4BECAA787836",
+  "dockerOpsConfigSha256": "48653FB3D61EEB64886F9D60CE0FCCC943E6839221F1EE17B37E1614C8F41162",
+  "commandSha256": "862B9C6504B31E2E0027C45C870CDA58CAA020B3545DFC6B01DC86D0B8537211",
+  "nestedManifestSha256": "029D176DF5421C95952F95758DED95DED12099B3949C7DE27B531700932BD155",
+  "payloadManifestSha256": "43EACD30734FE5689022E7BF99C21EA321D064B68D6FDAC0893A461F42D3CCB5",
+  "metadataReview": "Every host field except two note strings equal after own-root path substitution",
+  "authoringIncident": "Local JSON comparison pipeline returned null for a null/empty field; corrected to explicit -InputObject serialization before acceptance. No subject execution.",
+  "humanAuthority": "NONE",
+  "fakePrerequisite": "PENDING",
+  "nativeCard": "NOT_PRESENTED",
+  "endpoint": "unbound"
+}

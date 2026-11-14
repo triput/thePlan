@@ -1,0 +1,29 @@
+{
+  "status": "SOURCE_PREPARATION_ONLY_NOT_A_LAUNCH_PACKET",
+  "native_candidate_manifest": "36EBD35374D107946924527E2206833AA6B0C275A4A2B4C0D3B1E4B049EB649E",
+  "controls": [
+    "SUBJECT-PINS",
+    "FOREIGN-CHECK",
+    "FOREIGN-CLOSE",
+    "OWNER-USE-CLOSE",
+    "SAME-INSTANCE-REUSE",
+    "NATIVE-WIRING-STRUCTURAL",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "mutants": [
+    "foreign_check_guard",
+    "foreign_close_guard",
+    "reuse_guard"
+  ],
+  "scope": "Actual extracted unchanged production JoinedTLS class methods with named fake owner identity,budget and already-owned byte socket. Native case wiring is structural only.",
+  "limitations": [
+    "Not imported, parsed, compiled or executed",
+    "No real threads, sockets, TLS, context, PKI, DB, Docker, providers or application imports",
+    "Does not exercise native case body/fault retirement; independent review remains required",
+    "No admission, launcher or execution authority included"
+  ],
+  "author": "Dex",
+  "human_authority": "NONE",
+  "endpoint": "unbound",
+  "matt_assignment_unchanged": "D75FC5718F385050E9188DE383EC99A0CFD0C76EBD86EE36D6CE3DEE7F32C3C8"
+}

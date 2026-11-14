@@ -1,0 +1,4 @@
+Jim — one substantive addition to the existing native-v2 peer-review scope; no status reply or new assignment needed. Offline self-review found that the pre-removal packet check rereads SHA256SUMS.txt without rechecking its approved manifest hash or retaining admission's four path/hash pairs. This can compare against a changed inventory rather than the admitted one. No drift or run is alleged; v2 stays unchanged/unexecuted.
+
+Review note: outputs/scheduler-t05-design-review-v1/Native-V2-Manifest-Continuity-Review.md, SHA256 9708406AAB6E222A5FA4425FDA75BCBF0B054E462305E1FBFABAA063AFD2F379. Narrow successor proposal: retain admitted pairs, rehash manifest against approved pin before cleanup, compare original pairs. Please reconcile with your independent native review in the same frozen handback; I will handle any native successor preparation. Continue your four-role framing/custody/wire work uninterrupted. No execution, endpoint unbound, all holds stay.
+— Dex

@@ -1,0 +1,395 @@
+--- a/verify/check_native_provider.py
++++ b/verify/check_native_provider.py
+@@ -21,31 +21,32 @@
+-import ast
+-import hashlib
+-import json
+-import os
+-import sys
+-from contextlib import contextmanager
+-from contextvars import ContextVar
+-from pathlib import Path
+-from typing import Any
+-
+-
+-HERE = Path(__file__).resolve().parent
+-ROOT = HERE.parent
+-FIXTURE = ROOT / "payload" / "fixture"
+-API = ROOT / "payload" / "api"
+-EXPECTED = HERE / "EXPECTED-FAKE-STRUCTURAL.json"
+-RESULT = HERE / "FAKE-NATIVE-PROVIDER-RESULT.json"
+-MAX_RESULT = 262144
+-
+-ASSEMBLY_SELECTION_PIN = "857141512AADF6F90F1CA8F92547A777E3D5FE943671495512FA18CEA7CBA296"
+-POLICY_OVERRIDE_PIN = "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88"
+-FRAMING_RESULT_PIN = "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3"
+-FRAMING_RECEIPT_PIN = "166BB080CCCD19B80F88703BA3CC16B46142DAEF3904BDAF5D7AA9CF3254E6E6"
+-CASE_REGISTRY_PIN = "BBFEF33312A4E532BCC0FD49BACAA40641C26F955F5862FD3192641621F15F05"
+-PORT_RESULT_PIN = "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548"
+-PORT_RECEIPT_PIN = "61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961"
+-PORT_RECONCILE_PIN = "E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D"
+-PROVIDER_CONTEXT_PIN = "ALONGSIDE_SELECTED_ASSEMBLY"  # verified via live hash below
+-OBSERVATION_REVIEW_PIN = "1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069"
+-
+-
++import ast
++import copy
++import hashlib
++import json
++import os
++import sys
++from contextlib import contextmanager
++from contextvars import Context, ContextVar
++from pathlib import Path
++from typing import Any
++
++
++HERE = Path(__file__).resolve().parent
++ROOT = HERE.parent
++FIXTURE = ROOT / "payload" / "fixture"
++API = ROOT / "payload" / "api"
++EXPECTED = HERE / "EXPECTED-FAKE-STRUCTURAL.json"
++RESULT = HERE / "FAKE-NATIVE-PROVIDER-RESULT.json"
++MAX_RESULT = 262144
++
++ASSEMBLY_SELECTION_PIN = "857141512AADF6F90F1CA8F92547A777E3D5FE943671495512FA18CEA7CBA296"
++POLICY_OVERRIDE_PIN = "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88"
++FRAMING_RESULT_PIN = "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3"
++FRAMING_RECEIPT_PIN = "166BB080CCCD19B80F88703BA3CC16B46142DAEF3904BDAF5D7AA9CF3254E6E6"
++CASE_REGISTRY_PIN = "BBFEF33312A4E532BCC0FD49BACAA40641C26F955F5862FD3192641621F15F05"
++PORT_RESULT_PIN = "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548"
++PORT_RECEIPT_PIN = "61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961"
++PORT_RECONCILE_PIN = "E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D"
++PROVIDER_CONTEXT_PIN = "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
++OBSERVATION_REVIEW_PIN = "1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069"
++
++
+@@ -102,68 +103,59 @@
+-def _case_decl_ids_from_assign(node: ast.AST) -> list[str]:
+-    ids: list[str] = []
+-    if not isinstance(node, ast.Assign):
+-        return ids
+-    value = node.value
+-    if isinstance(value, ast.Tuple):
+-        elts = value.elts
+-    elif isinstance(value, ast.List):
+-        elts = value.elts
+-    else:
+-        return ids
+-    for elt in elts:
+-        if not isinstance(elt, ast.Call):
+-            continue
+-        func = elt.func
+-        if isinstance(func, ast.Name) and func.id != "CaseDecl":
+-            continue
+-        if not elt.args:
+-            continue
+-        first = elt.args[0]
+-        if isinstance(first, ast.Constant) and isinstance(first.value, str):
+-            ids.append(first.value)
+-    return ids
+-
+-
+-def check_suite_inventory_ast() -> dict[str, Any]:
+-    suite_path = FIXTURE / "np_suite.py"
+-    tree = ast.parse(suite_path.read_text(encoding="utf-8"))
+-    expected = load_expected()
+-    native_ids: list[str] = []
+-    cf_ids: list[str] = []
+-    for node in tree.body:
+-        if isinstance(node, ast.Assign):
+-            for target in node.targets:
+-                if isinstance(target, ast.Name) and target.id == "NATIVE_CASES":
+-                    native_ids = _case_decl_ids_from_assign(node)
+-                if isinstance(target, ast.Name) and target.id == "CF_WITNESS_CASES":
+-                    cf_ids = _case_decl_ids_from_assign(node)
+-    if native_ids != expected["native_case_ids"]:
+-        raise WitnessFailure(
+-            f"native registry mismatch: got={native_ids} expected={expected['native_case_ids']}"
+-        )
+-    if cf_ids != expected["cf_witness_case_ids"]:
+-        raise WitnessFailure(
+-            f"cf registry mismatch: got={cf_ids} expected={expected['cf_witness_case_ids']}"
+-        )
+-    if len(set(native_ids)) != len(native_ids):
+-        raise WitnessFailure("duplicate native case_id")
+-    if len(set(cf_ids)) != len(cf_ids):
+-        raise WitnessFailure("duplicate cf case_id")
+-    # Orderly close dual observations as literal oracle names in CaseDecl
+-    src = suite_path.read_text(encoding="utf-8")
+-    for name in (
+-        "orderly_close_delimited_complete_accepted",
+-        "orderly_short_cl_valid_json_prefix_refused",
+-    ):
+-        if f'name="{name}"' not in src and f"name='{name}'" not in src:
+-            raise WitnessFailure(f"NP-T05-ORDERLY-CLOSE observation missing:{name}")
+-    return {
+-        "native_count": len(native_ids),
+-        "cf_count": len(cf_ids),
+-        "native_ids_in_order": native_ids,
+-        "cf_ids_in_order": cf_ids,
+-        "orderly_dual_observations": True,
+-        "observed": "PASS",
+-    }
+-
+-
++def _case_decl_ids_from_assign(node: ast.AST) -> list[str]:
++    if not isinstance(node, (ast.Assign, ast.AnnAssign)):
++        raise WitnessFailure("registry must be a literal assignment")
++    value = node.value
++    if not isinstance(value, (ast.Tuple, ast.List)):
++        raise WitnessFailure("registry must be a literal tuple/list")
++    ids: list[str] = []
++    for entry in value.elts:
++        if (not isinstance(entry, ast.Call) or not isinstance(entry.func, ast.Name)
++                or entry.func.id != "CaseDecl" or not entry.args
++                or not isinstance(entry.args[0], ast.Constant)
++                or not isinstance(entry.args[0].value, str)):
++            raise WitnessFailure("registry entry must be a literal CaseDecl id")
++        ids.append(entry.args[0].value)
++    return ids
++
++
++def check_suite_inventory_ast() -> dict[str, Any]:
++    tree = ast.parse((FIXTURE / "np_suite.py").read_text(encoding="utf-8"))
++    expected = load_expected()
++    declarations: dict[str, ast.AST] = {}
++    for node in tree.body:
++        if isinstance(node, ast.Assign):
++            targets = node.targets
++        elif isinstance(node, ast.AnnAssign):
++            targets = [node.target]
++        else:
++            continue
++        for target in targets:
++            if isinstance(target, ast.Name) and target.id in ("NATIVE_CASES", "CF_WITNESS_CASES"):
++                if target.id in declarations:
++                    raise WitnessFailure("duplicate registry declaration")
++                declarations[target.id] = node
++    if set(declarations) != {"NATIVE_CASES", "CF_WITNESS_CASES"}:
++        raise WitnessFailure("missing registry declaration")
++    native_ids = _case_decl_ids_from_assign(declarations["NATIVE_CASES"])
++    cf_ids = _case_decl_ids_from_assign(declarations["CF_WITNESS_CASES"])
++    if native_ids != expected["native_case_ids"] or cf_ids != expected["cf_witness_case_ids"]:
++        raise WitnessFailure("exact registry ID/order mismatch")
++    if len(set(native_ids + cf_ids)) != len(native_ids) + len(cf_ids):
++        raise WitnessFailure("duplicate case id across registries")
++    native_tuple = declarations["NATIVE_CASES"].value
++    close_case = native_tuple.elts[native_ids.index("NP-T05-ORDERLY-CLOSE")]
++    names = set()
++    for node in ast.walk(close_case):
++        if not isinstance(node, ast.Call):
++            continue
++        for keyword in node.keywords:
++            if keyword.arg == "name" and isinstance(keyword.value, ast.Constant):
++                names.add(keyword.value.value)
++    required = {"orderly_close_delimited_complete_accepted", "orderly_short_cl_valid_json_prefix_refused"}
++    if not required <= names:
++        raise WitnessFailure("orderly dual oracle declarations missing from exact case")
++    return {
++        "native_count": len(native_ids), "cf_count": len(cf_ids),
++        "native_ids_in_order": native_ids, "cf_ids_in_order": cf_ids,
++        "orderly_dual_observations": True, "observed": "PASS",
++    }
++
+@@ -284,102 +276,98 @@
+-def check_t08_nested_reset_behavior() -> dict[str, Any]:
+-    """Extracted-behavior control from selected covering_provider_context.py.
+-
+-    No app import: re-create ContextVar nest/reset semantics matching selected
+-    source (nested refuse before _current.set; reset saved token in finally).
+-    Meaningful mutations must fail.
+-    """
+-    context_path = API / "app" / "services" / "covering_provider_context.py"
+-    if not context_path.is_file():
+-        raise WitnessFailure("covering_provider_context missing from assembly")
+-    src = context_path.read_text(encoding="utf-8")
+-    context_hash = sha256_file(context_path)
+-    if "_current=ContextVar" not in src and '_current = ContextVar' not in src.replace(" ", ""):
+-        # tolerate spacing
+-        if "ContextVar(\"covering_provider_transport\"" not in src and "ContextVar('covering_provider_transport'" not in src:
+-            raise WitnessFailure("selected context missing ContextVar")
+-    if "nested provider transport refused" not in src:
+-        raise WitnessFailure("selected context missing nested refusal")
+-    if "_current.reset(token)" not in src and ".reset(token)" not in src:
+-        raise WitnessFailure("selected context missing reset in finally")
+-
+-    class _Refused(Exception):
+-        pass
+-
+-    _current: ContextVar[Any] = ContextVar("covering_provider_transport_fake", default=None)
+-
+-    @contextmanager
+-    def covering_provider_transport(transport):
+-        if _current.get() is not None:
+-            raise _Refused("nested provider transport refused")
+-        token = _current.set(transport)
+-        try:
+-            yield transport
+-        finally:
+-            _current.reset(token)
+-
+-    # Normal-exit reset
+-    with covering_provider_transport("A"):
+-        if _current.get() != "A":
+-            raise WitnessFailure("context not set inside scope")
+-    if _current.get() is not None:
+-        raise WitnessFailure("normal-exit reset failed")
+-
+-    # Exceptional-exit reset
+-    try:
+-        with covering_provider_transport("B"):
+-            raise RuntimeError("boom")
+-    except RuntimeError:
+-        pass
+-    if _current.get() is not None:
+-        raise WitnessFailure("exceptional-exit reset failed")
+-
+-    # Nested refusal
+-    nested_refused = False
+-    with covering_provider_transport("C"):
+-        try:
+-            with covering_provider_transport("D"):
+-                raise WitnessFailure("nested must refuse")
+-        except _Refused:
+-            nested_refused = True
+-    if not nested_refused:
+-        raise WitnessFailure("nested refusal not observed")
+-    if _current.get() is not None:
+-        raise WitnessFailure("outer reset after nested refuse failed")
+-
+-    # Mutation: if we skip the nested check, control must detect the hole
+-    @contextmanager
+-    def broken_no_nest_check(transport):
+-        token = _current.set(transport)
+-        try:
+-            yield transport
+-        finally:
+-            _current.reset(token)
+-
+-    hole_detected = False
+-    with broken_no_nest_check("E"):
+-        try:
+-            with broken_no_nest_check("F"):
+-                hole_detected = _current.get() == "F"
+-        finally:
+-            pass
+-    if not hole_detected:
+-        raise WitnessFailure("mutation probe did not demonstrate nest-check necessity")
+-    # Restore clean state
+-    if _current.get() is not None:
+-        # broken path may leave state; force clear for checker isolation
+-        try:
+-            _current.set(None)
+-        except Exception:
+-            pass
+-
+-    return {
+-        "t08_nested": "OBSERVED_REFUSE",
+-        "t08_reset_normal": "OBSERVED_RESET",
+-        "t08_reset_exceptional": "OBSERVED_RESET",
+-        "selected_context_sha256": context_hash,
+-        "observation_review_pin": OBSERVATION_REVIEW_PIN,
+-        "closes_native_foreign_thread_close_reuse": False,
+-        "observed": "PASS",
+-    }
+-
+-
++def _selected_context_namespace(src: str, *, mutation: str | None = None) -> dict[str, Any]:
++    tree = ast.parse(src)
++    assignments = [node for node in tree.body if isinstance(node, ast.Assign)
++                   and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
++                   and node.targets[0].id == "_current"]
++    managers = [node for node in tree.body if isinstance(node, ast.FunctionDef)
++                and node.name == "covering_provider_transport"]
++    if len(assignments) != 1 or len(managers) != 1:
++        raise WitnessFailure("selected context definition inventory")
++    manager = copy.deepcopy(managers[0])
++    if mutation == "NO_NEST_GUARD":
++        if not isinstance(manager.body[0], ast.If):
++            raise WitnessFailure("nested-guard mutation target changed")
++        manager.body.pop(0)
++    elif mutation == "NO_FINALLY_RESET":
++        scopes = [node for node in manager.body if isinstance(node, ast.Try)]
++        if len(scopes) != 1 or not scopes[0].finalbody:
++            raise WitnessFailure("finally-reset mutation target changed")
++        scopes[0].finalbody = [ast.Pass()]
++    elif mutation is not None:
++        raise WitnessFailure("unknown context mutation")
++
++    class FakeRefused(Exception):
++        pass
++
++    namespace: dict[str, Any] = {
++        "ContextVar": ContextVar, "contextmanager": contextmanager,
++        "CoveringTransportRefused": FakeRefused,
++    }
++    module = ast.Module(body=[copy.deepcopy(assignments[0]), manager], type_ignores=[])
++    exec(compile(ast.fix_missing_locations(module), "<pinned-selected-context>", "exec"), namespace)
++    return namespace
++
++
++def _probe_selected_context(namespace: dict[str, Any]) -> None:
++    manager = namespace["covering_provider_transport"]
++    current = namespace["_current"]
++    refused_type = namespace["CoveringTransportRefused"]
++    if current.get() is not None:
++        raise WitnessFailure("context initial state")
++    with manager("A"):
++        if current.get() != "A":
++            raise WitnessFailure("context active value")
++    if current.get() is not None:
++        raise WitnessFailure("normal-exit reset missing")
++
++    class ProbeError(Exception):
++        pass
++
++    escaped = False
++    try:
++        with manager("B"):
++            raise ProbeError()
++    except ProbeError:
++        escaped = True
++    if not escaped or current.get() is not None:
++        raise WitnessFailure("exception propagation/reset missing")
++    with manager("C"):
++        nested_refused = False
++        try:
++            with manager("D"):
++                pass
++        except refused_type:
++            nested_refused = True
++        if not nested_refused or current.get() != "C":
++            raise WitnessFailure("nested refusal/outer preservation missing")
++    if current.get() is not None:
++        raise WitnessFailure("outer reset after refusal missing")
++
++
++def check_t08_nested_reset_behavior() -> dict[str, Any]:
++    path = API / "app/services/covering_provider_context.py"
++    raw = path.read_bytes()
++    digest = hashlib.sha256(raw).hexdigest().upper()
++    if digest != PROVIDER_CONTEXT_PIN:
++        raise WitnessFailure("selected provider context raw pin mismatch")
++    source = raw.decode("utf-8")
++    Context().run(_probe_selected_context, _selected_context_namespace(source))
++    mutations = []
++    for mutation in ("NO_NEST_GUARD", "NO_FINALLY_RESET"):
++        namespace = _selected_context_namespace(source, mutation=mutation)
++        detected = False
++        try:
++            Context().run(_probe_selected_context, namespace)
++        except WitnessFailure:
++            detected = True
++        if not detected:
++            raise WitnessFailure("context mutation survived the same behavioral oracle")
++        mutations.append(mutation)
++    return {
++        "t08_nested": "OBSERVED_REFUSE", "t08_reset_normal": "OBSERVED_RESET",
++        "t08_reset_exceptional": "OBSERVED_RESET", "selected_context_sha256": digest,
++        "observation_review_pin": OBSERVATION_REVIEW_PIN,
++        "closes_native_foreign_thread_close_reuse": False,
++        "source_definitions_extracted": True, "mutations_rejected": mutations,
++        "observed": "PASS",
++    }
++

@@ -1,0 +1,64 @@
+{
+  "kind": "Independent frozen T07 v1 static review",
+  "at_utc": "2026-11-11T19:17:01.4422026Z",
+  "tip_sha256": "ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A",
+  "artifact_index_sha256": "ECEC792D010430ACC271631EC739548D5A31611603F659BD480E2422D6E8D4A2",
+  "verified_artifact_rows": [
+    {
+      "path": "Caller-Trace.md",
+      "sha256": "0B1CA412BF28654232976B8546FCC7F1E6AE1BEC56B6B395CC27CA84A0959511"
+    },
+    {
+      "path": "Decisions-vs-Routine.md",
+      "sha256": "2225ADB48DBC5EB1C98973670984C87B32644D11D8EE20657191196DE567DA00"
+    },
+    {
+      "path": "Design-Recommendation.md",
+      "sha256": "A5C52729622D6B5D86CCBD15C936C38ABC29AB0AC1D9A04D2D3215EB636CC4F5"
+    },
+    {
+      "path": "HANDBACK.txt",
+      "sha256": "10B53DE728B5D18B84700B9BB9C4614DC1822ED07C69E5E90C243FD4FB7E19D8"
+    },
+    {
+      "path": "INPUT-PINS.json",
+      "sha256": "AA5BF46BB8D339BB7D4F2717CD17A24E4BD2F7BAE77BDAAAFD7284374856DC32"
+    },
+    {
+      "path": "Proof-Inventory.md",
+      "sha256": "9ADD13BB4DD02036A6EE8B06F0BAA40830762D3B06AC2E7999C55A2814EF637B"
+    },
+    {
+      "path": "Proposed-Changes.diff",
+      "sha256": "F9250CDBF031876B1CAFBD264FD74E76B6189D4C8BCA76094055DFD3D7E95937"
+    },
+    {
+      "path": "README.md",
+      "sha256": "2D5B930D0DEE9BC628FB1104FFBE4D70441CCB196EB6645267D7DBBC03DBDBC8"
+    },
+    {
+      "path": "Scope-and-Limits.md",
+      "sha256": "A932275C7F6FBC161EFBCB37CCCED99806EFA7E72D81B4779FCABC82EDCFDAEF"
+    },
+    {
+      "path": "T07-R01-R12-Reconciliation.md",
+      "sha256": "6E49BD1620510883AB1DC926C56990E3CBC825762EA7720305477A0C9410FF16"
+    },
+    {
+      "path": "TIP-FREEZE.json",
+      "sha256": "ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A"
+    }
+  ],
+  "verified_tip_subject_count": 10,
+  "disposition": "REVISE; no implementation card",
+  "blockers": [
+    "HTTP Boolean loses cleanup exception provenance",
+    "INPUT-PINS strict JSON invalid",
+    "README non-whitespace ASCII control bytes"
+  ],
+  "strict_input_json_valid": false,
+  "readme_control_bytes": 3,
+  "source_changed": false,
+  "execution_performed": false,
+  "successor": "Jim ACKed fresh v2 docs-only preparation; same assignment"
+}

@@ -1,0 +1,145 @@
+--- corrected2/check_t02_admission_fake.py
++++ staged/check_t02_admission_fake.py
+@@ -2112,71 +2112,71 @@
+-    # --- Harness-only: inventory enforcer rejects bad order/dup/missing/outcome ---
+-    try:
+-        expected = load_expected()
+-        # Build a minimal correct prefix from already-recorded results for mutation.
+-        if not results:
+-            raise ControlFailure("no results yet for inventory enforcer self-check")
+-        # Wrong order
+-        wrong_order = list(reversed(results))
+-        if wrong_order == results and len(results) > 1:
+-            raise ControlFailure("cannot build wrong-order fixture")
+-        caught = False
+-        try:
+-            enforce_expected_inventory(wrong_order, expected)
+-        except ControlFailure as exc:
+-            if "order mismatch" not in str(exc):
+-                raise ControlFailure(f"wrong-order did not cite order: {exc}")
+-            caught = True
+-        if not caught:
+-            raise ControlFailure("enforcer accepted wrong order")
+-        # Duplicate
+-        dup = list(results) + [results[0]]
+-        caught = False
+-        try:
+-            enforce_expected_inventory(dup, expected)
+-        except ControlFailure as exc:
+-            if "duplicate" not in str(exc):
+-                raise ControlFailure(f"duplicate did not cite duplicate: {exc}")
+-            caught = True
+-        if not caught:
+-            raise ControlFailure("enforcer accepted duplicate")
+-        # Missing (drop last recorded so far — before this control is appended)
+-        missing = list(results[:-1]) if len(results) > 1 else []
+-        caught = False
+-        try:
+-            enforce_expected_inventory(missing, expected)
+-        except ControlFailure as exc:
+-            if "order mismatch" not in str(exc) and "missing" not in str(exc):
+-                raise ControlFailure(f"missing did not cite mismatch: {exc}")
+-            caught = True
+-        if not caught:
+-            raise ControlFailure("enforcer accepted missing inventory")
+-        # Unexpected outcome
+-        bad_outcome = [
+-            ControlResult(r.control_id, "FAIL" if r.result != "FAIL" else "PASS", r.detail)
+-            for r in results
+-        ]
+-        # Pad/truncate will order-mismatch vs full expected; use exact IDs with bad outcomes
+-        # once this control is part of expected — for self-check, craft from expected ids.
+-        expected_ids = expected_control_ids(expected)
+-        # Synthesize full-length list with wrong outcome on first id.
+-        synth = [
+-            ControlResult(cid, "FAIL", "deliberate unexpected-outcome")
+-            for cid in expected_ids
+-        ]
+-        caught = False
+-        try:
+-            enforce_expected_inventory(synth, expected)
+-        except ControlFailure as exc:
+-            if "unexpected-outcome" not in str(exc):
+-                raise ControlFailure(f"bad outcome did not cite unexpected-outcome: {exc}")
+-            caught = True
+-        if not caught:
+-            raise ControlFailure("enforcer accepted unexpected outcome")
+-        record(
+-            "H-INVENTORY-ENFORCER-REJECTS-BAD",
+-            "PASS",
+-            "harness-only: enforce_expected_inventory rejects wrong-order, duplicate, "
+-            "missing, and unexpected-outcome before PASS",
+-        )
+-    except Exception as exc:
+-        record("H-INVENTORY-ENFORCER-REJECTS-BAD", "FAIL", repr(exc))
++    # --- Harness-only: inventory enforcer rejects bad order/dup/missing/outcome ---
++    try:
++        expected = load_expected()
++        # Synthetic gate fixtures only: never count these as executed suite results.
++        # First prove this complete baseline is accepted, including this control's ID.
++        expected_ids = expected_control_ids(expected)
++        if len(expected_ids) < 2:
++            raise ControlFailure("inventory self-check requires at least two IDs")
++        baseline = [
++            ControlResult(cid, expected["controls"][cid]["result"], "synthetic gate baseline")
++            for cid in expected_ids
++        ]
++        enforce_expected_inventory(baseline, expected)
++        # Wrong order only: same complete inventory and outcomes.
++        wrong_order = list(baseline)
++        wrong_order[0], wrong_order[1] = wrong_order[1], wrong_order[0]
++        caught = False
++        try:
++            enforce_expected_inventory(wrong_order, expected)
++        except ControlFailure as exc:
++            if "order mismatch" not in str(exc):
++                raise ControlFailure(f"wrong-order did not cite order: {exc}")
++            caught = True
++        if not caught:
++            raise ControlFailure("enforcer accepted wrong order")
++        # Duplicate
++        dup = list(baseline) + [baseline[0]]
++        caught = False
++        try:
++            enforce_expected_inventory(dup, expected)
++        except ControlFailure as exc:
++            if "duplicate" not in str(exc):
++                raise ControlFailure(f"duplicate did not cite duplicate: {exc}")
++            caught = True
++        if not caught:
++            raise ControlFailure("enforcer accepted duplicate")
++        # Missing only: remove one ID from the accepted complete baseline.
++        missing = list(baseline[:-1])
++        caught = False
++        try:
++            enforce_expected_inventory(missing, expected)
++        except ControlFailure as exc:
++            if "order mismatch" not in str(exc) and "missing" not in str(exc):
++                raise ControlFailure(f"missing did not cite mismatch: {exc}")
++            caught = True
++        if not caught:
++            raise ControlFailure("enforcer accepted missing inventory")
++        # Unexpected outcome
++        # Wrong outcome only: keep the complete accepted ID order.
++        synth = list(baseline)
++        synth[0] = ControlResult(
++            baseline[0].control_id, "UNEXPECTED_OUTCOME", "deliberate unexpected-outcome"
++        )
++        caught = False
++        try:
++            enforce_expected_inventory(synth, expected)
++        except ControlFailure as exc:
++            if "unexpected-outcome" not in str(exc):
++                raise ControlFailure(f"bad outcome did not cite unexpected-outcome: {exc}")
++            caught = True
++        if not caught:
++            raise ControlFailure("enforcer accepted unexpected outcome")
++        record(
++            "H-INVENTORY-ENFORCER-REJECTS-BAD",
++            "PASS",
++            "harness-only: full synthetic baseline accepted; single-dimension "
++            "wrong-order, duplicate, missing, and unexpected-outcome fixtures refused; "
++            "synthetic baseline is not an executed suite result",
++        )
++    except Exception as exc:
++        record("H-INVENTORY-ENFORCER-REJECTS-BAD", "FAIL", repr(exc))

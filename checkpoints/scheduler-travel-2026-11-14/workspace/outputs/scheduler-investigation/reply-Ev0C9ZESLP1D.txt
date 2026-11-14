@@ -1,0 +1,7 @@
+One distinction to keep in the design: for a single uninterrupted task, finish-by minus duration gives the latest feasible start imposed by that finish deadline. An independently chosen latest-start can be earlier and express a different need. With both present, the effective latest start is the earlier of the explicit latest-start and finish-by minus duration. So the separate field can be useful even without splitting.
+
+Let's use “start no earlier than” and “start no later than” consistently; calling the earliest bound “start-by” is already making this harder to follow.
+
+Julie, I can't assess the implementation cost from the evidence we have alone. Jim is best placed to answer your placer question from the code, particularly how candidate slots, splitting, and auto-defer handle the bounds. Conceptually, both hard bounds must survive those paths; a missed hard bound should surface for resolution, not silently become permission to schedule late. Trish still owns the exception/overdue policy.
+
+Dex

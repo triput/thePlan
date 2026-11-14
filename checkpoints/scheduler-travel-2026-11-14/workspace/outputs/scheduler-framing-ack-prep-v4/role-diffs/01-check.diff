@@ -1,0 +1,48 @@
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\packet\verify\check_framing_ack.py
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\packet\verify\check_framing_ack.py
+@@ -16,6 +16,11 @@
+ Result rows emit predicted_outcome dialect "PASS" at top level (launcher
+ gate) with nested OBSERVED_* candidate/observation fields. exact_predicate
+ mirrors emitted entry keys for validate_result_file.
++
++policy_pending is frozen accepted-policy metadata on EXPECTED candidate rows
++and is stamped into launcher emit via emit_wire_candidate; it is excluded
++from assert_match's flat runtime observation whitelist (absent from
++run_http_catch cand).
+ 
+ No live sockets/TLS/PKI/providers. executed preparation = false.
+ """
+@@ -643,7 +648,10 @@
+ def assert_match(control_id: str, observed: dict[str, Any], expected_row: dict[str, Any]) -> None:
+     pred = expected_row.get("exact_predicate")
+     if not isinstance(pred, dict):
+-        # Flat candidate predicate (wire rows): ignore metadata keys.
++        # Flat candidate predicate (wire rows): only measured runtime fields.
++        # policy_pending is frozen accepted-policy metadata on EXPECTED rows /
++        # emit_wire_candidate output — not present on run_http_catch cand, so it
++        # must not enter this runtime observation whitelist.
+         pred = {
+             k: v
+             for k, v in expected_row.items()
+@@ -667,7 +675,6 @@
+                 "item_excess_exception",
+                 "transport_sent_observed",
+                 "lineage",
+-                "policy_pending",
+             }
+         }
+     for key, want in pred.items():
+@@ -697,7 +704,12 @@
+ 
+ 
+ def emit_wire_candidate(cand: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
+-    """Stable candidate observation shape for launcher exact_predicate.candidate."""
++    """Stable candidate observation shape for launcher exact_predicate.candidate.
++
++    Runtime outcome/exception/close counters come from measured cand.
++    policy_pending is frozen accepted-policy metadata copied from the EXPECTED
++    row (not asserted against cand; absent from run_http_catch observation).
++    """
+     return {
+         "observed_outcome": cand["observed_outcome"],
+         "exception_type": cand["exception_type"],

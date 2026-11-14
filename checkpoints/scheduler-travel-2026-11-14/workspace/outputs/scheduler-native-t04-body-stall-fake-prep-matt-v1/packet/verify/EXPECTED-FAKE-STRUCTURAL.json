@@ -1,0 +1,66 @@
+{
+  "kind": "native-t04-body-stall-fake-structural-expected",
+  "packet": "scheduler-native-t04-body-stall-fake-prep-matt-v1",
+  "candidate_root": "scheduler-native-provider-t04-body-stall-prep-matt-v1",
+  "assignment": "Dex F465A4E2 under Trish-approved design/preparation decision 4F2F3B3F (NP-T04-BODY-STALL only)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "PEER-CLEAN-STOP",
+    "TRANSCRIPT-STALL-SCRIPT",
+    "QUERY-DERIVATION",
+    "TIMING-PREDICATE",
+    "RUNNER-WIRING",
+    "OBSERVERS",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "peer", "transcript", "suite", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "peer", "transcript", "suite"],
+    "PEER-CLEAN-STOP": ["retired_clean_return", "deadline_remains_error", "late_stop_is_deadline", "body_stall_head_only", "header_stall_clean", "instants_recorded_structural"],
+    "TRANSCRIPT-STALL-SCRIPT": ["exactly_three_exchanges", "exact_path_query_stall_body", "positive_content_length_head", "bad_query_refused"],
+    "QUERY-DERIVATION": ["exact_literal_from_window", "offset_window_normalized_to_utc", "invalid_window_refused"],
+    "TIMING-PREDICATE": ["ordered_values_accepted", "each_inequality_stops", "deadline_reason_stops", "missing_or_nonfinite_stops"],
+    "RUNNER-WIRING": ["case_peer_life_240_only", "real_monotonic_clock", "single_retirement_barrier", "timing_after_retirement", "observers_restored_in_finally", "allowlisted_token_key_and_oracle"],
+    "OBSERVERS": ["parent_same_return_and_exception", "target_same_return_and_disposition", "restored_exactly"],
+    "RECEIPT-RETENTION": ["every_emitted_key_survives", "typed_evidence_survives_sanitizer", "privacy_filter_unchanged"],
+    "CONFIG-AND-IMMUTABLES": ["runner_config", "launch_config", "docker_ops_root_rename_only", "payload_delta_exact", "nested_delta_exact", "api_and_helpers_immutable"],
+    "ACTUAL-SOURCE-MUTANTS": ["peer_lax_stop", "peer_deadline_returns", "peer_body_sent", "timing_epsilon", "timing_no_reason", "observer_copy_return", "query_top_changed", "default_peer_life", "dropped_token_key"]
+  },
+  "expected_nested_predicates": 61,
+  "nested_count_breakdown": "SUBJECT 1 + RUNTIME 7 + DIFF 5 + PRESERVED 4 + PEER 6 + TRANSCRIPT 4 + QUERY 3 + TIMING 4 + WIRING 6 + OBSERVERS 3 + RETENTION 3 + CONFIG 6 + MUTANTS 9 = 61",
+  "check_kinds": {
+    "behavioral_extracted": "PEER-CLEAN-STOP a-e (actual _hold_stall/_send_response/_http_response_bytes with a named fake clock, select and self); TRANSCRIPT-STALL-SCRIPT (actual transcript units); QUERY-DERIVATION (actual runner unit over the actual covering_refresh_window module and actual calendarView param builders); TIMING-PREDICATE (actual runner units); OBSERVERS (actual runner unit with named fake classes); RECEIPT-RETENTION b-c (actual np_receipts redaction)",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; PEER-CLEAN-STOP f; RUNNER-WIRING; RECEIPT-RETENTION a; CONFIG-AND-IMMUTABLES",
+    "behavioral_mutants": ["peer_lax_stop", "peer_deadline_returns", "peer_body_sent", "timing_epsilon", "timing_no_reason", "observer_copy_return", "query_top_changed"],
+    "structural_mutants": ["default_peer_life", "dropped_token_key"]
+  },
+  "mutant_oracles": {
+    "peer_lax_stop": "peer:late stop strict",
+    "peer_deadline_returns": "peer:deadline error",
+    "peer_body_sent": "peer:body stall head only",
+    "timing_epsilon": "timing:each inequality stops",
+    "timing_no_reason": "timing:deadline reason stops",
+    "observer_copy_return": "observers:target same return",
+    "query_top_changed": "query:exact literal",
+    "default_peer_life": "wiring:case peer life",
+    "dropped_token_key": "retention:no forbidden key"
+  },
+  "fixed_literals": {
+    "query_window": ["2026-11-14T02:00:00.123456+00:00", "2026-11-28T02:00:00.123456+00:00"],
+    "query": "startDateTime=2026-11-14T02%3A00%3A00.123456Z&endDateTime=2026-11-28T02%3A00%3A00.123456Z&%24top=100",
+    "stall_head": "HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: 12\\r\\nConnection: close\\r\\n\\r\\n"
+  },
+  "limits": {"check_seconds": 120, "timeout_retirement_total_seconds": 135, "result_byte_cap": 262144, "capture_byte_cap_per_stream": 65536, "temporary_files": "none (result and launch receipt only)"},
+  "not_proved": "native elapsed time or 240 s peer behavior; TLS; selector scheduling; database; native TOKEN/PARENT terminals; recorder disposition; any behavior of the whole case; any T04 requirement",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

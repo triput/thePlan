@@ -1,0 +1,69 @@
+{
+  "kind": "Host fake-verification runtime admission data",
+  "interpreter": {
+    "path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+  },
+  "stdlib_root": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib",
+  "stdlib": [
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\urllib\\parse.py",
+      "relative_path": "urllib/parse.py",
+      "sha256": "7BFE4ADF0944AA4AA57AAAA1111BCDBB4B40546ED9CDA319EDED770B87625644"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ipaddress.py",
+      "relative_path": "ipaddress.py",
+      "sha256": "B7CB21107E90A9922B0AB8F8BA01444823693075B8BB07620B5E80267F46F203"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\http\\client.py",
+      "relative_path": "http/client.py",
+      "sha256": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py",
+      "relative_path": "json/__init__.py",
+      "sha256": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\dataclasses.py",
+      "relative_path": "dataclasses.py",
+      "sha256": "EABCB7B9EDB1073172915E871E7773FD44054E2A0AB33D1977C69E653946BA5C"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ast.py",
+      "relative_path": "ast.py",
+      "sha256": "60CA452CFAC189E51C7C2A582C1240C28FCCD12964221BC8D10462F2EE74DE18"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\hashlib.py",
+      "relative_path": "hashlib.py",
+      "sha256": "158B8E4D4F5FCECEF24B840AF0BEE5632B27F948C74FAF0810CC598B508E4F97"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\io.py",
+      "relative_path": "io.py",
+      "sha256": "F54831C68F1D335B8796C5FFDC4296D48DFE6A04150A92B69696585B4C275754"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\types.py",
+      "relative_path": "types.py",
+      "sha256": "C762D2321A143AA9A7EAEB30F8ED8042C10A3E98E4FA678E4F659E2136BF85B5"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\contextlib.py",
+      "relative_path": "contextlib.py",
+      "sha256": "2BDAC461CF2A1DC783C34E69AD24FC5C0507DA34FF148DD815676F9E0B815287"
+    },
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\contextvars.py",
+      "relative_path": "contextvars.py",
+      "sha256": "758A96E17249E1E97C5CA5D1EE39AA31E5D439D0922AE7AF0064318E70B59FC8"
+    }
+  ],
+  "purpose": "Final held PowerShell wrapper must compare reviewed raw pins before invoking Python; not a runtime probe or execution receipt",
+  "origin": "Reviewed source/fake v1 INPUT-MANIFEST, subject to reconciliation against final successor",
+  "scope": "Host Python fake verification only; no native-container parser equivalence claim",
+  "execution_authorized": false
+}

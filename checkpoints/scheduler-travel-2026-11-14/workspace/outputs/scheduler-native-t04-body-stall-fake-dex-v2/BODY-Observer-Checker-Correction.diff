@@ -1,0 +1,98 @@
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -11,7 +11,7 @@ reviewed launcher (launch_check.py, D22C37E3...) and outer admission
+ 
+ Subjects (raw-pinned): source/candidate runner, peer, transcript and suite (source =
+ scheduler-native-provider-ms-refresh-retire-prep-matt-v1, candidate =
+-scheduler-native-provider-t04-body-stall-prep-matt-v1), their five diffs,
++scheduler-native-provider-t04-body-stall-prep-dex-v2), their five diffs,
+ source/candidate runner-config, launch-config and docker-ops-config, both payload and
+ nested manifests, and three unchanged dependencies: microsoft_calendar.py,
+ covering_refresh_window.py and np_receipts.py.
+@@ -62,14 +62,14 @@ PACKET_NAME = "scheduler-native-t04-body-stall-fake-prep-matt-v1"
+ 
+ SUBJECT_PINS = {
+     "runner/source.py": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+-    "runner/candidate.py": "9DAE7119354CA65BCF02DF5D2868F81F34D111828684B1C9761C2C1B70A5E2D3",
++    "runner/candidate.py": "7087015D1136A963FC87B502CA600FA8C868B8F4FBEDCAF08D684C16BA76951D",
+     "peer/source.py": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+     "peer/candidate.py": "F721BBE741AE5E59DFFB67D0B6EE364982CC1705C27FD635A36752BD3F86BDFA",
+     "transcript/source.py": "BEDCCFD3C3E8F776C4EC0B3379F863E976C73AF350DD6AE8B308518AB4A47735",
+     "transcript/candidate.py": "D3B9379B7C062DFBB5E6CF13F6AD44003C040545383BF893B514C0A685861C6B",
+     "suite/source.py": "DAB88CB352189411EED6A2181417CB813D592406598D89192FF307E9081205A1",
+     "suite/candidate.py": "00DF3510E36B6A652D6073E6D1DDC8F475182222C8AEDB29BE8AE93B8EAFE173",
+-    "diff/np_runner_entry.py.diff": "8B4B11707DDBF799D662E4E8B87B74D4C86C5F61C7D4DF2A78E9A6FC682F7AF1",
++    "diff/np_runner_entry.py.diff": "8FD8DF567A133C9CE1DC790CE9A6647785A1E50DA856D7FEECEE1AC3C5F58936",
+     "diff/np_provider_peer.py.diff": "995F91A1248564F297C197C137CCC0385CE58BDEE4B4A6E634CFDBB0989CCBCC",
+     "diff/np_provider_transcript.py.diff": "B97F9B2FA2EE9491DF866BB8DC43C7F67B6868F25DE7578E6B81E6028125A67C",
+     "diff/np_suite.py.diff": "3A1B5798ECA6F09C471AE68925BE51FF8FE6656CB9BBA2BD09549D09B2557A60",
+@@ -77,13 +77,13 @@ SUBJECT_PINS = {
+     "config/source-runner-config.json": "D4C8BDBD83C3C5D0F76564C5E5BB6B5962CBBEBA4D3D3C3618E55DC8C693A88A",
+     "config/candidate-runner-config.json": "F43275F305C8BEEAE13B1372BE60278C8714E504DF6C9BB450284F6FCFE34923",
+     "config/source-launch-config.json": "09C9D618DC0177FACD8E29A35DEDEEAFF637424D0C447C939B4834EC07EB7ED5",
+-    "config/candidate-launch-config.json": "98C791686CD5E91110AE32338E3302AB34A7D97F4880D6C39B4A5A9C0C36B355",
++    "config/candidate-launch-config.json": "2C9219556B07F0BFF36DF05B5F20F3AF181A82BECD95709817EF9432BD32084A",
+     "config/source-docker-ops-config.json": "9455026A775EF769C71D960A71ADEBC623BDC01299844C08B5F69F0C90130F1D",
+-    "config/candidate-docker-ops-config.json": "A4A6B4526FA3E7603BB5C076DC4AA68F94BC84C9783C56D10D89DA8AB6B30CD4",
++    "config/candidate-docker-ops-config.json": "A3F4FF782018227D05B65D12D95E7E0B9C6E2F4DC648C8F4FEEACD6591FBAB98",
+     "manifest/source.txt": "CC02F38CFBD8542AD49DA8663FE3BCACD8F8712FDD97FE53D5F739A52C0CA687",
+-    "manifest/candidate.txt": "6CFB1DB748CEC474C298CE053CCD0D0446D9B55B54407E02F22FD60C862D7FDA",
++    "manifest/candidate.txt": "6DF528898EC326008B43922410678A8E1071FE36A2F72CA3A9490009E2597A1E",
+     "manifest/source-nested.txt": "C83A5E9E324C77465F03C3EEE371AEF7A16917FCD8335B943AFF98E2FAD7AB5B",
+-    "manifest/candidate-nested.txt": "97E9B316F1E7C5A7E0F0AE3E1EA7DE3A1BCD59018E8094C7AF1D0878A9A4CF84",
++    "manifest/candidate-nested.txt": "C78B1AFD9F1C7E4B30238B8435271AC5A815280D60497A2B81CB567DDE290314",
+     "app/microsoft_calendar.py": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+     "app/covering_refresh_window.py": "7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0",
+     "fixture/np_receipts.py": "7F27A3C2CBCA73C27DCEC6C9DCF6277C7F131ACC3A561C4170636EAB5D5E24C7",
+@@ -115,7 +115,7 @@ CONTROL_IDS = (
+ 
+ CASE_ID = "NP-T04-BODY-STALL"
+ CASE_FN = "_run_np_t04_body_stall"
+-OWN_ROOT = "scheduler-native-provider-t04-body-stall-prep-matt-v1"
++OWN_ROOT = "scheduler-native-provider-t04-body-stall-prep-dex-v2"
+ SOURCE_ROOT = "scheduler-native-provider-ms-refresh-retire-prep-matt-v1"
+ RUNNER_ADDED = {
+     "T04_BODY_STALL_PEER_SECONDS", "T04_BODY_STALL_PEER_SECONDS_CONFIG_KEY",
+@@ -170,6 +170,12 @@ M_RUN_OBSERVER_COPY = ("        return returned\n", "        return (result, fai
+ M_RUN_QUERY_TOP = ('        "$top": "100",\n', '        "$top": "50",\n')
+ 
+ 
++
++
++
++M_RUN_TOKEN_RESTORE = ("            if restore_target_observers is not None:\n                restore_target_observers()\n                restore_target_observers = None\n            if restore_worker_observer is not None:\n                restore_worker_observer()\n                restore_worker_observer = None\n            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]\n            CoveringORMConnection.token_terminal = real_terminal  # type: ignore[method-assign]", "            if restore_target_observers is not None:\n                restore_target_observers()\n                restore_target_observers = None\n            if restore_worker_observer is not None:\n                restore_worker_observer()\n                restore_worker_observer = None\n            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]\n            pass  # mutant: original token observer not restored")
++
++
+ class WitnessFailure(Exception):
+     pass
+ 
+@@ -816,6 +822,13 @@ def oracle_wiring(runner_text: str) -> dict[str, str]:
+             and any(_calls(s, "restore_target_observers") for s in inner.finalbody)
+             and any(_calls(s, "restore_worker_observer") for s in inner.finalbody), "wiring:observers restored")
+     cases["observers_restored_in_finally"] = "PASS"
++    require(any(ast.dump(s) == dump_stmt("real_terminal = CoveringORMConnection.token_terminal") for s in main.body)
++            and any(ast.dump(s) == dump_stmt("CoveringORMConnection.token_terminal = real_terminal")
++                    for s in inner.finalbody)
++            and any(isinstance(s, ast.If) and ast.dump(s.test) == ast.dump(ast.parse(
++                "CoveringORMConnection.token_terminal is not real_terminal", mode="eval").body)
++                    and _calls(s, "SuiteStop") for s in main.body), "wiring:token observer restored")
++    cases["token_observer_restored_and_identity_checked"] = "PASS"
+     keys = _dict_keys(fn, "measured")
+     require("token_terminal_sequence" in keys and "token_terminal_rows" not in keys
+             and _dict_keys(fn, "observations") == ["first_guard_body_phase_deadline"], "wiring:receipt keys")
+@@ -1021,12 +1034,15 @@ MUTANT_KINDS = {
+     "peer_lax_stop": "behavioral", "peer_deadline_returns": "behavioral", "peer_body_sent": "behavioral",
+     "timing_epsilon": "behavioral", "timing_no_reason": "behavioral", "observer_copy_return": "behavioral",
+     "query_top_changed": "behavioral", "default_peer_life": "structural", "dropped_token_key": "structural",
++    "token_restore_dropped": "structural",
+ }
+ 
+ 
+ def check_mutants() -> dict[str, Any]:
+     peer, runner = subject_text("peer/candidate.py"), subject_text("runner/candidate.py")
+     mutants = {
++        "token_restore_dropped": (lambda: oracle_wiring(_mutate(runner, M_RUN_TOKEN_RESTORE)),
++                                  "wiring:token observer restored"),
+         "peer_lax_stop": (lambda: oracle_peer(_mutate(peer, M_PEER_LAX_STOP)), "peer:late stop strict"),
+         "peer_deadline_returns": (lambda: oracle_peer(_mutate(peer, M_PEER_DEADLINE_RETURNS)), "peer:deadline error"),
+         "peer_body_sent": (lambda: oracle_peer(_mutate(peer, M_PEER_BODY_SENT)), "peer:body stall head only"),

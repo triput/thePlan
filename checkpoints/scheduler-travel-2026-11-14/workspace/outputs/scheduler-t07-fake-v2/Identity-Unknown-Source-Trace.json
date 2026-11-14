@@ -1,0 +1,48 @@
+{
+  "kind": "Source-only identity uncertainty propagation trace; not behavior proof",
+  "at_utc": "2026-11-11T23:50:06.0245823Z",
+  "source_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services",
+  "files": [
+    {
+      "file": "covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A"
+    },
+    {
+      "file": "covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+    },
+    {
+      "file": "calendar_alias_canonicalize.py",
+      "sha256": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F"
+    },
+    {
+      "file": "google_calendar.py",
+      "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F"
+    },
+    {
+      "file": "microsoft_calendar.py",
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF"
+    },
+    {
+      "file": "covering_provider_context.py",
+      "sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240"
+    }
+  ],
+  "observations": [
+    "CoveringRootOutcomeUnknown directly subclasses Exception; it is not ApiError, httpx.TransportError, JSONDecodeError or OSError",
+    "prepare_requested_subscription_for_covering identity fetch catches only httpx.TransportError, JSONDecodeError and OSError; cleanup UNKNOWN is not in that catch tuple",
+    "fetch_account_identity_evidence catches ApiError for Google calendar-list or Microsoft default/list; UNKNOWN does not match",
+    "Inspected Google list and Microsoft default/list/_graph_collect paths have no generic catcher converting UNKNOWN into successful identity evidence",
+    "Context-bound calendar_client delegates through _CoveringClient to CoveringHTTP; actual later TLS/caller/native proof is still required"
+  ],
+  "conclusion": "No identity-specific source fix is justified by the inspected catch boundaries. Existing known failure catches and uncertain outcome propagation are distinct. Do not broaden T07 source changes merely to add redundant UNKNOWN rethrows.",
+  "limits": [
+    "No real socket/TLS failure injected",
+    "No full native parent/session/terminal or public response behavior claimed",
+    "Prior fake identity mapping and separate connector-stop controls remain separate observations; full linked identity HTTPS/native proof stays open"
+  ],
+  "source_changes": false,
+  "execution_performed": false,
+  "endpoint": "unbound",
+  "goal_complete": false
+}

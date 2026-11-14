@@ -1,0 +1,111 @@
+{
+  "at_utc": "2026-11-11T09:15:02.1411217Z",
+  "mode": "static read/hash review",
+  "tip": "3795B1AFCE6A18F2A271008D89B122D6D0E4520D63A70DB3450BB65E2AD8356C",
+  "checks": [
+    {
+      "path": "Seam-Inventory.md",
+      "expected": "592C554DA5D7E932E478ADA1EF8D6A1D304B90710FED5F1CC58F6958CA540033",
+      "actual": "592C554DA5D7E932E478ADA1EF8D6A1D304B90710FED5F1CC58F6958CA540033",
+      "matches": true
+    },
+    {
+      "path": "Proposed-Fix.diff",
+      "expected": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+      "actual": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+      "matches": true
+    },
+    {
+      "path": "Proposal-Pins.json",
+      "expected": "D252EF92B87A5B982623813E11BA7473F2FD9158F8AA1778725BF41586AF8694",
+      "actual": "D252EF92B87A5B982623813E11BA7473F2FD9158F8AA1778725BF41586AF8694",
+      "matches": true
+    },
+    {
+      "path": "Controls-Plan.md",
+      "expected": "47B98FFBD567CEE9F85DE9940766DB864A68EA41AD70352FC86720FB4C79C8EB",
+      "actual": "47B98FFBD567CEE9F85DE9940766DB864A68EA41AD70352FC86720FB4C79C8EB",
+      "matches": true
+    },
+    {
+      "path": "Wire-Path-Outcomes.md",
+      "expected": "FBB9C1B185ECD9F51ED6D1DFBA8732A86ED2B295E29B180FBC4D7BCB411D644E",
+      "actual": "FBB9C1B185ECD9F51ED6D1DFBA8732A86ED2B295E29B180FBC4D7BCB411D644E",
+      "matches": true
+    },
+    {
+      "path": "Compatibility-Flags.md",
+      "expected": "58765FE3641BD7A68D711CD996AEAF30C7691E635550A298D000A6C63804021C",
+      "actual": "58765FE3641BD7A68D711CD996AEAF30C7691E635550A298D000A6C63804021C",
+      "matches": true
+    },
+    {
+      "path": "Preparation-Scope-Draft.md",
+      "expected": "2A66F8E896E02E10485BF76033C5EA389E38DCC93C59D1A19E9C38E836A34A1E",
+      "actual": "2A66F8E896E02E10485BF76033C5EA389E38DCC93C59D1A19E9C38E836A34A1E",
+      "matches": true
+    },
+    {
+      "path": "INPUT-MANIFEST.json",
+      "expected": "4DC40CC3C40634D8B34CCE0E1DE2D825F134F716B6A725078459E5001D8E0B8C",
+      "actual": "4DC40CC3C40634D8B34CCE0E1DE2D825F134F716B6A725078459E5001D8E0B8C",
+      "matches": true
+    },
+    {
+      "path": "HANDBACK.txt",
+      "expected": "7EBAE9B4A53D4706A769F477D0B87AC56AA1490FA05B2E11CC5194D944D804B8",
+      "actual": "7EBAE9B4A53D4706A769F477D0B87AC56AA1490FA05B2E11CC5194D944D804B8",
+      "matches": true
+    },
+    {
+      "path": "TIP-FREEZE.json",
+      "expected": "3795B1AFCE6A18F2A271008D89B122D6D0E4520D63A70DB3450BB65E2AD8356C",
+      "actual": "3795B1AFCE6A18F2A271008D89B122D6D0E4520D63A70DB3450BB65E2AD8356C",
+      "matches": true
+    }
+  ],
+  "mismatches": 0,
+  "named_control_occurrences": 34,
+  "control_ids": [
+    "CTRL-POS-G-PLUS-AT",
+    "CTRL-POS-G-PERCENT",
+    "CTRL-POS-G-INTERNAL-DOT",
+    "CTRL-POS-G-UNICODE",
+    "CTRL-POS-G-ID-LITERAL-CALENDARS",
+    "CTRL-POS-MS-VIEW",
+    "CTRL-POS-MS-DELTA-COMPAT",
+    "CTRL-POS-G-CALENDARLIST",
+    "CTRL-POS-MS-LIST",
+    "CTRL-POS-MS-DEFAULT",
+    "CTRL-POS-G-OAUTH",
+    "CTRL-POS-MS-OAUTH",
+    "CTRL-POS-G-PAGE-TOKEN",
+    "CTRL-POS-BUDGET-EQ-8",
+    "CTRL-NEG-ORD-SLASH",
+    "CTRL-NEG-NEST-252F",
+    "CTRL-NEG-NEST-25252F",
+    "CTRL-NEG-NEST-DOT",
+    "CTRL-NEG-EMPTY",
+    "CTRL-NEG-TRAILING",
+    "CTRL-NEG-MALFORM-BARE",
+    "CTRL-NEG-MALFORM-G1",
+    "CTRL-NEG-MALFORM-TRUNC",
+    "CTRL-NEG-UTF8-INVALID",
+    "CTRL-NEG-STRUCT-PCT",
+    "CTRL-NEG-BUDGET-EQ-9",
+    "CTRL-NEG-EVENT-MUTATION",
+    "CTRL-COLLIDE-MULTI-PURPOSE",
+    "CTRL-COLLIDE-DUP-SAME-PURPOSE",
+    "CTRL-CONT-FOREIGN-BEFORE-SEND",
+    "CTRL-CONT-REDIRECT-3XX",
+    "CTRL-CONT-MS-NEXTLINK",
+    "CTRL-CONT-G-PAGE-TOKEN",
+    "CTRL-SEP-TARGET-AUTHZ"
+  ],
+  "claimed_count": 32,
+  "source_applied": false,
+  "candidate_executed": false,
+  "prospective_hashes_independently_reconstructed": false,
+  "next_user_decision": "Additional eight-transition/strict UTF8 compatibility restrictions; hold until Trish returns",
+  "source_preparation_ready": false
+}

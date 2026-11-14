@@ -1,0 +1,93 @@
+{
+  "before": {
+    "packet": "native-integrated-launch-v9",
+    "launch_ready": true,
+    "case_ids": [
+      "N01",
+      "N02",
+      "N03",
+      "N04",
+      "N05",
+      "N06",
+      "N07",
+      "N08",
+      "ASSESSMENT_SQL"
+    ],
+    "expected_unknown_cases": [
+      "N06",
+      "N07"
+    ],
+    "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\theplan-next-step-2026-11-06\\calendar-correction-completion-v1\\native-integrated-launch-v9\\payload\\docker-config",
+    "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\theplan-next-step-2026-11-06\\calendar-correction-completion-v1\\native-integrated-launch-v9.evidence",
+    "database_binds": [
+      [
+        "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\theplan-next-step-2026-11-06\\calendar-correction-completion-v1\\native-integrated-launch-v9\\payload",
+        "/packet"
+      ]
+    ],
+    "runner_binds": [
+      [
+        "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\theplan-next-step-2026-11-06\\calendar-correction-completion-v1\\native-integrated-launch-v9\\payload",
+        "/packet"
+      ],
+      [
+        "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\theplan-next-step-2026-11-06\\calendar-correction-completion-v1\\native-integrated-launch-v9.evidence\\public-ca",
+        "/public-ca"
+      ]
+    ],
+    "unresolved": []
+  },
+  "after": {
+    "packet": "scheduler-native-i01-i02-v1",
+    "launch_ready": true,
+    "case_ids": [
+      "N01",
+      "N02",
+      "N03",
+      "N04",
+      "N05",
+      "N06",
+      "N07",
+      "N08",
+      "ASSESSMENT_SQL",
+      "I01-C01",
+      "I01-C02",
+      "I01-C03",
+      "I01-C04",
+      "I01-C05",
+      "I01-C06",
+      "I01-C06-MAP",
+      "I01-C07A",
+      "I01-C07B",
+      "I01-C08",
+      "I01-C09",
+      "I01-C10",
+      "I02-C01"
+    ],
+    "expected_unknown_cases": [
+      "N06",
+      "N07",
+      "I01-C06"
+    ],
+    "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\payload\\docker-config",
+    "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1.evidence",
+    "database_binds": [
+      [
+        "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\payload",
+        "/packet"
+      ]
+    ],
+    "runner_binds": [
+      [
+        "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\payload",
+        "/packet"
+      ],
+      [
+        "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1.evidence\\public-ca",
+        "/public-ca"
+      ]
+    ],
+    "unresolved": []
+  },
+  "other_semantic_fields": "must remain unchanged at independent review"
+}

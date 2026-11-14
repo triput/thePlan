@@ -1,0 +1,69 @@
+{
+  "at_utc": "2026-11-13T07:32:31.4674331Z",
+  "source_map_sha256": "5603B4EE60C8A49D316A4747E922B27174161AD7D86F5C33F8721ADA8B5B1966",
+  "status": "12filehashes_and_named_lineanchors_match",
+  "checked": [
+    {
+      "file": "api/app/services/covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "line": 73
+    },
+    {
+      "file": "api/app/services/covering_native_orm_factory.py",
+      "sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229",
+      "line": 339
+    },
+    {
+      "file": "api/app/services/covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "line": 119
+    },
+    {
+      "file": "api/app/services/covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "line": 93
+    },
+    {
+      "file": "api/app/services/covering_refresh_locks.py",
+      "sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69",
+      "line": 190
+    },
+    {
+      "file": "api/app/services/covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "line": 30
+    },
+    {
+      "file": "api/app/services/covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "line": 828
+    },
+    {
+      "file": "api/app/services/covering_refresh.py",
+      "sha256": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E",
+      "line": 379
+    },
+    {
+      "file": "api/app/services/covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "line": 284
+    },
+    {
+      "file": "api/app/services/covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "line": 40
+    },
+    {
+      "file": "api/app/services/covering_transport_policy.py",
+      "sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "line": 183
+    },
+    {
+      "file": "api/app/services/covering_request_budget.py",
+      "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975",
+      "line": 55
+    }
+  ],
+  "scope": "Reading-route identity only;no execution,not runtime proof",
+  "walkthrough": "Important noturgent;plainlanguage delivery remains requested,not another execution gate"
+}

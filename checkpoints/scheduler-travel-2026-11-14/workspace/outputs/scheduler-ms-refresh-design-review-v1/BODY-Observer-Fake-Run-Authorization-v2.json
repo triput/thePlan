@@ -1,0 +1,7 @@
+{
+  "status": "CONSUMED_ONE_ATTEMPT_NO_RETRY",
+  "command": "BEF8510660BDCF4D13811C6A2C59D75ABD6B9FEC0F26891068D094FAC6003675",
+  "atUtc": "2026-11-14T07:56:33.8751124Z",
+  "questionId": "call_180d27f7eb7842c1ac85a7d6e968c9be",
+  "remainingAuthority": 0
+}

@@ -1,0 +1,22 @@
+{
+  "status": "JIM_STATIC_REVIEW_RECONCILED_EXECUTION_HELD",
+  "review_directory": "F:\\DropFolder\\pending\\post-native-t02-h-amendment-static-review-jim-v1-2026-11-11",
+  "review_tip_sha256": "59A7B9AAD668150B8496204028C900F5E7FB912155E1746C276844BF02A48FB4",
+  "review_artifact_entries_verified": 4,
+  "staged_subject_pins_verified": 8,
+  "pin_mismatches": [],
+  "disposition": "QUALIFIED_ACCEPT_STATIC_EXECUTION_NOT_AUTHORIZED",
+  "blockers": [],
+  "soft_notes": [
+    "wrong-order uses adjacent swap not full reverse (still single-dimension order)",
+    "missing drops last baseline entry",
+    "Jim corrected3 is parked parallel authoring and is not required for this staged path"
+  ],
+  "item5_closed": true,
+  "runtime_proof": "not executed; not established",
+  "command_sha256": "24DD26B7A06F5C8655AFA69F1D35629184EEF4F91B726A6D2527115A0E41CB3D",
+  "input_manifest_sha256": "48099B5C94EEC091BA44AF106F3863ED6C3D4AE6C554BC910B2DDBF16FE66C63",
+  "execution_authorized": false,
+  "executed": false,
+  "endpoint": "unbound"
+}

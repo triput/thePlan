@@ -1,0 +1,310 @@
+{
+  "kind": "Offline local module-level import graph for T07 new exception dependency",
+  "at_utc": "2026-11-11T20:23:18.3726571Z",
+  "root": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api",
+  "new_edge": "covering_joined_https -> covering_target_transaction",
+  "reverse_path_found": false,
+  "reachable_modules": [
+    {
+      "module": "app.api.errors",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\api\\errors.py",
+      "sha256": "1F826204BEBFA69315FEB92692E1B2475296638FF4E03F5572F632093C7B45D6",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.config",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\config.py",
+      "sha256": "BCBB3A546212A04F3085285B741D15B7FB59B322B97EA67CB2DA3715514B3433",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.db",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\db.py",
+      "sha256": "072DA45FD24FE2A121C5CA3F7796CBC388F4006B27E3A38A22A98E4E40DCD4E1",
+      "top_level_local_imports": [
+        "app.config",
+        "app.services.agent_auth_context"
+      ]
+    },
+    {
+      "module": "app.models",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\__init__.py",
+      "sha256": "692BC4F706F1AB3A492A711F8DE4B31E42B0E1578DEDB7C935BBBF2F07610B00",
+      "top_level_local_imports": [
+        "app.models.availability",
+        "app.models.calendar",
+        "app.models.free_busy_policy",
+        "app.models.enums",
+        "app.models.scheduling_assignment",
+        "app.models.scheduling_day_scoped",
+        "app.models.handoff",
+        "app.models.hierarchy",
+        "app.models.label",
+        "app.models.mixins",
+        "app.models.schedule",
+        "app.models.task",
+        "app.models.task_occurrence_disposition",
+        "app.models.time_map_override",
+        "app.models.user"
+      ]
+    },
+    {
+      "module": "app.models.availability",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\availability.py",
+      "sha256": "F65A553268A7C8FA47F0EED23ECCFAEBE78E884A59CC967B70330971AD5B8C8F",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.calendar",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\calendar.py",
+      "sha256": "0A8B0E20B4F058311CF93322C74BB2C0522C6FFC1E28237A9D7D72C9C10CC6DF",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.enums",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\enums.py",
+      "sha256": "9B5D7A0E4836799B097D05C1447CDE91CCD680E02232ADDA9802AB791AA1D069",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.models.free_busy_policy",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\free_busy_policy.py",
+      "sha256": "2AE3E64ADF5608CA6C6808FE901B329995788079EB85792612D9BC3CE36C7B44",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.handoff",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\handoff.py",
+      "sha256": "8CC634B0859E9D3D55A8697CAADBE69CCDFA9CFF4B8D580F998331B10256DFD8",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.hierarchy",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\hierarchy.py",
+      "sha256": "0919B0302C1FFC059D8CE38B8C452CF1516723BC344915D7AEF3A7FCE212CC72",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.label",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\label.py",
+      "sha256": "BC7F298C76F516B5154814579FE386351EF758F9D289BF1118C623AC409D6EA8",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.mixins",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\mixins.py",
+      "sha256": "05C3F0B223C02F71192680F5A5CEE8CE250DD9CDA04947FDD3E9C8F84C6D27DE",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.models.schedule",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\schedule.py",
+      "sha256": "4AB4D55D8C746FC17146EC34E8AC0F166F2E9031CD76BD453324AABD23F4E927",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.scheduling_assignment",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\scheduling_assignment.py",
+      "sha256": "2702413D2604DFF6D64F8AA22CF70FBC70910828EA0FFC310A9941E0BEA7B1F0",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.scheduling_day_scoped",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\scheduling_day_scoped.py",
+      "sha256": "9EFF3EF4B270DAE2AF0E141BB03E9FD9AE3F16743795F25571B331A612384219",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.task",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\task.py",
+      "sha256": "8F280CB956F0E35CD208389CAE1EC0A1CDA4F5DC9846923C1447F39653A865C5",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.task_occurrence_disposition",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\task_occurrence_disposition.py",
+      "sha256": "2D34DC21868CF2E76C2BE2BD50FA6C5F17E551EEC5598B8D5D598D9F6CD37B86",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.time_map_override",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\time_map_override.py",
+      "sha256": "36B0F9E6AD835F358D75327E2BE41D2D31F9D34634DFA33DEF58E8F88EADC09B",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.models.user",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\models\\user.py",
+      "sha256": "CD5F181F485804027951F80C20DD4804C017E82EF82E41ABBC2CD892D2FE1228",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models.enums",
+        "app.models.mixins"
+      ]
+    },
+    {
+      "module": "app.scheduler.horizon",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\scheduler\\horizon.py",
+      "sha256": "33B8BB153E967EC2E5079A0E011C06561053716924C844EF32838D2412A8D870",
+      "top_level_local_imports": [
+        "app.config",
+        "app.models",
+        "app.services",
+        "app.services.mirror_tombstone"
+      ]
+    },
+    {
+      "module": "app.services",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\__init__.py",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.services.agent_auth_context",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\agent_auth_context.py",
+      "sha256": "1CB122594D156051E80774771E65D69C70EF17F3215C3D5D36B9DFCC38757844",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.services.calendar_alias_canonicalize",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\calendar_alias_canonicalize.py",
+      "sha256": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F",
+      "top_level_local_imports": [
+        "app.api.errors",
+        "app.config",
+        "app.models",
+        "app.models.enums",
+        "app.services.calendar_coverage"
+      ]
+    },
+    {
+      "module": "app.services.calendar_coverage",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\calendar_coverage.py",
+      "sha256": "2B6D9DC9A8A29F2791C6E1A2AF9CDDF05BB953DFA6D56BAB75018CB3E6CD301A",
+      "top_level_local_imports": [
+        "app.models"
+      ]
+    },
+    {
+      "module": "app.services.covering_refresh_failure",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\covering_refresh_failure.py",
+      "sha256": "DCDF16ACF79F05D2EEB54CE1D4E6F4ED23F0D136E15571B444050EAD8B931920",
+      "top_level_local_imports": [
+        "app.db",
+        "app.models",
+        "app.scheduler.horizon",
+        "app.services.calendar_coverage",
+        "app.services.covering_refresh_locks",
+        "app.services.scheduling_revision"
+      ]
+    },
+    {
+      "module": "app.services.covering_refresh_import",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "top_level_local_imports": [
+        "app.config",
+        "app.models",
+        "app.models.enums",
+        "app.services.calendar_alias_canonicalize",
+        "app.services.calendar_coverage",
+        "app.services.covering_refresh_locks",
+        "app.services.covering_refresh_window",
+        "app.services.scheduling_revision"
+      ]
+    },
+    {
+      "module": "app.services.covering_refresh_locks",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\covering_refresh_locks.py",
+      "sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69",
+      "top_level_local_imports": [
+        "app.models",
+        "app.models.enums",
+        "app.services.calendar_alias_canonicalize",
+        "app.services.calendar_coverage",
+        "app.services.scheduling_revision"
+      ]
+    },
+    {
+      "module": "app.services.covering_refresh_window",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\covering_refresh_window.py",
+      "sha256": "7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0",
+      "top_level_local_imports": []
+    },
+    {
+      "module": "app.services.covering_target_transaction",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "top_level_local_imports": [
+        "app.services.covering_refresh_failure",
+        "app.services.covering_refresh_import",
+        "app.services.covering_refresh_locks"
+      ]
+    },
+    {
+      "module": "app.services.mirror_tombstone",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\mirror_tombstone.py",
+      "sha256": "FDCE0188FD0505F0C470DC7A17D789E9079EC7D31C3F43884C57B03BBD0C4BB2",
+      "top_level_local_imports": [
+        "app.models"
+      ]
+    },
+    {
+      "module": "app.services.scheduling_revision",
+      "path": "F:\\DropFolder\\pending\\post-native-t07-source-fake-prep-jim-v3-2026-11-11\\payload\\workspace\\apps\\api\\app\\services\\scheduling_revision.py",
+      "sha256": "4A3CBAA0F4A7CF386A37CC26FEEB0D36BE020A07A7C844D7BC70758BB2C831B6",
+      "top_level_local_imports": [
+        "app.api.errors",
+        "app.models"
+      ]
+    }
+  ],
+  "relative_import_rows": [],
+  "method": "Read source lines only: unindented absolute app from/import statements, package __init__ files mapped to packages; no AST/app import/execution",
+  "limitations": "Does not model dynamic/indented/conditional imports, arbitrary package side effects, vendor initialization or runtime import order. Actual module import must be proven in later authorized integrated/native verification.",
+  "disposition": "No reverse path in inspected top-level local graph; no additional static cycle blocker established",
+  "executed_app_imports": false
+}

@@ -1,0 +1,10 @@
+T05 native parser provenance prep v1 (held; not executed).
+
+Dir: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-native-provenance-prep-v1/
+
+Executables (preparation only):
+- native-provenance/collect-parser-sources.sh
+- native-provenance/verify_native_provenance.py
+
+Runner pin: sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab
+launch_ready=false; execution_authorized=false; no Docker invocation in prep.

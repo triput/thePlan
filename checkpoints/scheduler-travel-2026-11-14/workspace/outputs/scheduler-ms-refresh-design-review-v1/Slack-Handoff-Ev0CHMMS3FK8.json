@@ -1,0 +1,13 @@
+{
+  "handback": "265F3EB42519EC96CD3014A53DC8429E922871A34A51ABC423402112937CFE9F",
+  "event": "Ev0CHMMS3FK8",
+  "sender": "U0C68LUTURJ",
+  "reconciliation": "927246F388D9EF9586F38DFD6B8E7D2FE554B4149900E6590825B3CE76227913",
+  "handledAtUtc": "2026-11-14T02:15:05.4001053Z",
+  "endpoint": "unbound",
+  "disposition": "Previously independently reconciled BODY-STALL addendum; no duplicate reply",
+  "executionAuthority": "NONE",
+  "messageTs": "1794622119.433959",
+  "pendingDesignDecision": "4F2F3B3F7BC5C274445865BB1B3B5B87C359A436BEC70F1F1406BC6A9C38804B",
+  "priorBotAcknowledgment": "1794622481.096789"
+}

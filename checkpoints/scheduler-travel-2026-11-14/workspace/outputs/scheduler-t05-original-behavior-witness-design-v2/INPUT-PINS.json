@@ -1,0 +1,32 @@
+{
+  "kind": "T05 original-behavior witness/design v2 input pins",
+  "date": "2026-11-11",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "supersedes_v1_tip_sha256": "8C32BFECCF225C77BEE0E1C102C09D4F09CE20ECEF7881D3C87AEF8E6B7FDA29",
+  "supersedes_v1_brief_sha256": "B7A8A945FC0CEADC09A4A84056ED85E4D42DF635AE45C9C25CFBC80980DE97CB",
+  "dex_revise": {
+    "Reply-Ev0CH04PEKED.txt": "F9096CF971E7D6201388B6FB31C39A863A04909B250A93C621556A79ACD27175",
+    "Jim-Design-Reconciliation.json": "91BED21C966B146B7D3C108D4E0568DF6036D5C23F83005C3FF06759199C2917",
+    "Header-Representation-Witness-Review.md": "C4BA19806F7E2D9FA58317429586E6532FB45771E92A70DC2E4112A929CC072D",
+    "Upstream-31216-Framing-Reference.md": "FE1894B6AC7B60CBD12C94FB663FAE4EE7CBCC36A46DF8685BC0FFEB95BD9E14"
+  },
+  "source_snapshot_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload",
+  "accepted_t07_application_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+    "covering_provider_context.py": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240"
+  },
+  "provenance_layers": {
+    "host_py311_http_client": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+    "host_py311_ssl": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E",
+    "upstream_cpython_3_12_16": "published tag reference only; not native image bytes",
+    "native_runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+    "native_python_version_only": "3.12.16 at /usr/local/bin/python3",
+    "native_http_client_ssl_message_bytes": "UNESTABLISHED"
+  },
+  "transport_audit_candidate_count": 76,
+  "t05_planning_ids": 13
+}

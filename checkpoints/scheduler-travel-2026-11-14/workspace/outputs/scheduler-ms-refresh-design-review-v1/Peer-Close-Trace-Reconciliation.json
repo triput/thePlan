@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-13T07:29:43.8289171Z",
+  "status": "QUALIFIED_FIXTURE_CORRECTION_ACCEPTED_FOR_PREPARATION_ONLY",
+  "peer_findings_sha256": "F1C7210499E275EF6F2FEB189E602F71745B574F4EF20923B39214317FD5FC3D",
+  "diff_sha256": "023303AC81AC8F3F3460CBDE9E2AFAFFB4A3EA85D97FE547AD5C78E60B54B30D",
+  "original_peer_sha256": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+  "prospective_peer_sha256": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+  "source_delta": "One catch clause ssl.SSLError to OSError in fixture orderly-close only",
+  "confidence": "Connection-establishment failure at second identity call observed/source-supported;peer reset exception plausible and mechanism source-supported,but exact cause unretained. Do not endorse categorical root-cause certainty.",
+  "required_checker_correction": "Original ConnectionResetError/BrokenPipeError/TimeoutError escapes after finally close,before orderly_close_notify_attempted note. Original note absent on propagating error;candidate note present. Matt proposed oracle both notes present is incorrect.",
+  "qualifications": [
+    "No changed production bytes or transaction/TLS contract",
+    "Non-OSError still propagates after cleanup",
+    "No clean TLS closure claim from attempted marker",
+    "Per-connection listener continuation must use extracted actual methods and exact inventory",
+    "No target retries or failed-copy changes;fresh successors under existing role7/13-16 lane"
+  ],
+  "cleanup": "COMPLETE9calls,bothabsent,DBexit0;receipt56523DFDDCCEE7767C47BE9A37B4705BB63FA8B02C837A70FAFACD7F3734EFDD",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

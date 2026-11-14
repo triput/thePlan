@@ -1,0 +1,7 @@
+# Matt thePlan worker connection-trace findings - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-12
+F1C7210499E275EF6F2FEB189E602F71745B574F4EF20923B39214317FD5FC3D  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Worker-Connection-Trace-Findings-2026-11-12.md
+023303AC81AC8F3F3460CBDE9E2AFAFFB4A3EA85D97FE547AD5C78E60B54B30D  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Peer-Close-Notify-Proposed-2026-11-12.diff
+1180A5B8516E16B7FFAFE0F0E5F73E02F4C29F7D289C558D0C35C4372D22F745  /Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/native-provider-host-receipt.jsonl (read-only)
+84F327B6374DECB97D29E9A29B2E3EED833535AF0965E9493D5185A6029EBD41  /Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1.evidence/Dex-Stopped-Run-Reconciliation.json (read-only)
+BCF86CA7E187A4D84CE6713F315A3E0103B94967B472762B2CC6B28F614E205F  /Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1/Input-Manifest.sha256 (read-only)
+5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55  /Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_provider_peer.py (read-only)

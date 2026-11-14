@@ -1,0 +1,14 @@
+{
+  "invocations": 1,
+  "authorization_consumed": true,
+  "tool_chunk_id": "2fd0f5",
+  "exit_code": 1,
+  "tool_wall_seconds": 9.5320575,
+  "disposition": "STOP_DOCKER_EXIT_STDERR_FAILURE_DURING_RUNNER_ATTACH",
+  "success_cleanup_ran": false,
+  "retry_repair_rerun_authorized": false,
+  "native_execution_authorized": false,
+  "read_only_exact_reconciliation_allowed": true,
+  "failure_container_cleanup_authorized": false,
+  "endpoint": "unbound"
+}

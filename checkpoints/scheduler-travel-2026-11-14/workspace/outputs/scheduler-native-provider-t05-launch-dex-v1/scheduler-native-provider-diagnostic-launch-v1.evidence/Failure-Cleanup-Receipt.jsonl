@@ -1,0 +1,24 @@
+{"data": ["container", "inspect", "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6"], "event": "docker_command"}
+{"data": {"bytes": 8472, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "42335901eceed302a49bccf6a74d627d8d3c390eab97b704e4846068a6240fcb", "workers_joined": true}, "event": "docker_output"}
+{"data": {"exit_code": 125, "status": "exited"}, "event": "runner_identity_rechecked"}
+{"data": ["container", "rm", "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "ba65a6b9fd087a867024544d6fec1f703e32ab9f1c3023115afde49f3b3ce846", "workers_joined": true}, "event": "docker_output"}
+{"data": ["ps", "-a", "--no-trunc", "--filter", "id=eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6", "--format", "{{.ID}}"], "event": "docker_command"}
+{"data": {"bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "workers_joined": true}, "event": "docker_output"}
+{"data": {"id": "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6"}, "event": "runner_absence_verified"}
+{"data": ["container", "inspect", "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857"], "event": "docker_command"}
+{"data": {"bytes": 8739, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "065d8346229c0f3882b633b935061b5dbae0ee1266743ba801869d0f51c6d51e", "workers_joined": true}, "event": "docker_output"}
+{"data": {"exit_code": 0, "status": "running"}, "event": "database_identity_rechecked"}
+{"data": ["kill", "--signal=SIGINT", "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "5ffd9db675b4ca5036875b3515e08e187eabebb0d71190e9d50c3f3a69b342aa", "workers_joined": true}, "event": "docker_output"}
+{"data": ["wait", "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857"], "event": "docker_command"}
+{"data": {"bytes": 2, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa", "workers_joined": true}, "event": "docker_output"}
+{"data": ["container", "inspect", "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857"], "event": "docker_command"}
+{"data": {"bytes": 8582, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "f3c8fd990c89c510b87e74819d4399c00ef822bdaf12f3741e2d065834af27b6", "workers_joined": true}, "event": "docker_output"}
+{"data": {"exit_code": 0, "status": "exited"}, "event": "database_exit_zero_identity_rechecked"}
+{"data": ["container", "rm", "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "5ffd9db675b4ca5036875b3515e08e187eabebb0d71190e9d50c3f3a69b342aa", "workers_joined": true}, "event": "docker_output"}
+{"data": ["ps", "-a", "--no-trunc", "--filter", "id=2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857", "--format", "{{.ID}}"], "event": "docker_command"}
+{"data": {"bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "workers_joined": true}, "event": "docker_output"}
+{"data": {"id": "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857"}, "event": "database_absence_verified"}
+{"data": {"database_absence_verified": true, "database_sigint_exit_code": 0, "docker_calls": 9, "endpoint": "unbound", "force": false, "other_native_authority": "NONE", "retries": 0, "runner_absence_verified": true, "status": "PASS_EXACT_ID_CLEANUP"}, "event": "cleanup_complete"}

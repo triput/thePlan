@@ -1,0 +1,12 @@
+{
+  "kind": "Preserved T07 v6 host-review v2 reconciliation",
+  "date": "2026-11-11",
+  "peer_tip_sha256": "D58FA973CC3C9BF2F01E90C0F65DF890D4B4398BF89EDD8B2D8FC6F9C65A6AEF",
+  "peer_review_sha256": "114C0D66AAD143D1DB6E14B75F5A66791BA6E94592DFABD6C41CFA8F5C3EE8E7",
+  "artifact_rows_verified": 3,
+  "peer_disposition": "BLOCKERS for preserved v6 host/checker",
+  "reconciled": "Agrees with Dex superseding prelaunch hold; five finding groups preserved and addressed by fresh v7 checker subject to renewed host review",
+  "does_not_accept_fresh_host": true,
+  "execution_performed": false,
+  "execution_authorized": false
+}

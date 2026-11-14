@@ -1,0 +1,226 @@
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-runner-diagnostic-prep-matt-v1/Future-Native-Command-HELD.ps1.txt scheduler-native-provider-diagnostic-launch-v1/Future-Native-Command-HELD.ps1.txt
+--- scheduler-native-provider-runner-diagnostic-prep-matt-v1/Future-Native-Command-HELD.ps1.txt	1969-12-31 16:00:00.000000000 -0800
++++ scheduler-native-provider-diagnostic-launch-v1/Future-Native-Command-HELD.ps1.txt	2026-11-12 19:35:21.982407000 -0800
+@@ -0,0 +1,6 @@
++# HELD. NOT AUTHORIZED. CURRENT shape of the one future native diagnostic invocation of this packet, for review.
++# Against these prep configs (host launch_ready=false), the operator throws STOP before starting any child process or Docker command.
++# A real launch needs a reviewed staging change that sets host launch_ready=true (which changes the launch-config hash below),
++# Dex's matching EXECUTE acknowledgement and Trish's explicit one-shot approval of the final exact hashes.
++# Omit -ReceiptPath: the default receipt must derive under the sibling evidence root.
++& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 'A7535D803B7351DFD2B814880698BC7509437C8697D302C77F42EE584E03CE43' -ExpectedDockerConfigSHA256 'B930542A56EA47C3EDA65B04A9C958D8CE67103AE7D92635B8D08E34B80E6508' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-runner-diagnostic-prep-matt-v1/Invoke-Native-Provider.ps1 scheduler-native-provider-diagnostic-launch-v1/Invoke-Native-Provider.ps1
+--- scheduler-native-provider-runner-diagnostic-prep-matt-v1/Invoke-Native-Provider.ps1	2026-11-12 16:58:33.469202600 -0800
++++ scheduler-native-provider-diagnostic-launch-v1/Invoke-Native-Provider.ps1	2026-11-12 19:34:36.307161800 -0800
+@@ -39,7 +39,7 @@
+ $manifest = Join-Path $payload 'SHA256SUMS.txt'
+ $config = Join-Path $hostDir 'launch-config.json'
+ $defaultDockerConfig = Join-Path $hostDir 'docker-ops-config.json'
+-$evidence = Join-Path (Split-Path $PSScriptRoot -Parent) 'scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence'
++$evidence = Join-Path (Split-Path $PSScriptRoot -Parent) 'scheduler-native-provider-diagnostic-launch-v1.evidence'
+ 
+ # Pins are placeholders until a later launch card freezes exact hashes.
+ # Mismatch or unfrozen sentinel => STOP before any child/Docker call.
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-runner-diagnostic-prep-matt-v1/LAUNCH-PACKET-README.md scheduler-native-provider-diagnostic-launch-v1/LAUNCH-PACKET-README.md
+--- scheduler-native-provider-runner-diagnostic-prep-matt-v1/LAUNCH-PACKET-README.md	1969-12-31 16:00:00.000000000 -0800
++++ scheduler-native-provider-diagnostic-launch-v1/LAUNCH-PACKET-README.md	2026-11-12 19:35:57.031394100 -0800
+@@ -0,0 +1,63 @@
++# Native diagnostic launch packet v1: CURRENT README (preparation only)
++
++Matt, November 12, 2026. Assignment `Matt-thePlan-Scheduler-Native-Diagnostic-Preparation-2026-11-12.md` (`0215F8A7…C2AA`); approved scope `FCB1B4BB…7891`.
++
++**Status: PREPARED_NOT_EXECUTED.** Host `launch_ready` is false, so the operator stops before starting any child. No EXECUTE acknowledgement exists. The endpoint is unbound.
++
++## This is the current document set
++- **Current:** `LAUNCH-PACKET-README.md` (this file), `Launch-Packet-Freeze.json` and `Future-Native-Command-HELD.ps1.txt`.
++- **Historical records, not current authority:** `TIP-FREEZE.json`, `Launch-Decision.md`, `Static-Staging-Receipt.json` and `Reviewed-Command.ps1.txt` are byte-identical dex-v3 records. `Reviewed-Command.ps1.txt` points at the **stopped** dex-v3 operator and must not be used.
++- **`SUCCESSOR-README.md` is historical too.** It is the diagnostic successor README, and its **O1 statement ("successor is not launchable…") is superseded here**: this packet's operator line 42 names the new sibling evidence root.
++
++## Lineage and the single source change
++- **Fresh copy of** `scheduler-native-provider-runner-diagnostic-prep-matt-v1`, whose 266/266 inputs verified before copying (manifest `899B06F6…0DA7`).
++- **Operator** `Invoke-Native-Provider.ps1`: the approved diff `5092F682…7D69F`, applied with `patch -p1`, changes line 42 only. Hash `090A0FA8…F612` → **`5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6`**.
++  ```
++  -$evidence = Join-Path (Split-Path $PSScriptRoot -Parent) 'scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence'
++  +$evidence = Join-Path (Split-Path $PSScriptRoot -Parent) 'scheduler-native-provider-diagnostic-launch-v1.evidence'
++  ```
++- **Unchanged:**
++  - the payload, 257/257, `SHA256SUMS.txt` `3B25ABB6…2A90`, including all 234 API files;
++  - runner `40A1BA8E…F73F`, host validator `7F7EA820…AC53` and `runner-config.json` `E132A138…A160`;
++  - every other fixture and helper byte, and the operator's refusals and admission order;
++  - the NP-V-MS-NONEXPIRED batch, images, isolation, budgets and caps.
++
++## Data changes (host configs, outside the payload)
++- **`host/docker-ops-config.json`** (`B930542A…6508`): 8 path strings changed from `…runner-diagnostic-prep-matt-v1` to `…diagnostic-launch-v1`. No other bytes changed.
++- **`host/launch-config.json`** (`A7535D80…CE43`):
++  - packet name, `docker_ops_config_path` and `receipt_directory` now name the new packet and its evidence root;
++  - the candidate note was rewritten;
++  - the O1 note was marked HISTORICAL and resolved;
++  - four `launch_packet_*` lineage keys were added;
++  - **`launch_ready` and `candidate_launch_ready_staged` remain false**, and `manifest_sha256` is unchanged (`3B25ABB6…`).
++
++## Static path agreement (review only; no code enforces it)
++| Consumer | Resolves to |
++| --- | --- |
++| Operator evidence root (line 42) | `…\outputs\scheduler-native-provider-diagnostic-launch-v1.evidence` |
++| Default receipt (line 136, derived) | `<evidence root>\native-provider-host-receipt.jsonl` |
++| Public-CA output (line 139, derived) | `<evidence root>\public-ca` |
++| Docker config `public_ca_directory` (line 5) | `<evidence root>\public-ca` ✔ |
++| Runner read-only `/public-ca` bind (line 114) | `<evidence root>\public-ca` ✔ |
++| Host `receipt_directory` (launch-config line 56; informational, not read by the operator) | `<evidence root>` ✔ |
++| `source_directory`, `manifest`, payload binds (database and runner), `docker_config`, `docker_ops_config_path` | under `…\scheduler-native-provider-diagnostic-launch-v1\` ✔ |
++
++- **Every active `.evidence` literal** (operator, host configs, payload) names `scheduler-native-provider-diagnostic-launch-v1.evidence`.
++- **No active path** names the stopped dex-v3 root or the matt-v1 root. Two launch-config **label** keys (`diagnostic_successor_of`, `launch_packet_prepared_from`) carry lineage names and are not paths.
++- **Why the agreement matters:** the operator does not compare the config's `public_ca_directory` with its own `$evidence\public-ca`, so the agreement is static review only. The stopped `…dex-v3.evidence\public-ca\` still contains `ca.crt` and `untrusted-ca.crt`, and no active input points there.
++- The evidence root `…diagnostic-launch-v1.evidence` **does not exist** at freeze. The operator refuses an existing root.
++
++## Future command (HELD)
++See `Future-Native-Command-HELD.ps1.txt`. It contains:
++- the absolute new operator path;
++- `-ExpectedConfigSHA256 A7535D80…CE43` and `-ExpectedDockerConfigSHA256 B930542A…6508`;
++- the new `-DockerConfigPath`;
++- **no `-ReceiptPath`**.
++
++Against these configs the operator stops on `launch_ready=false`. A launch requires:
++- a reviewed staging flip, which changes the launch-config hash;
++- Dex's EXECUTE acknowledgement;
++- Trish's one-shot approval of the final hashes.
++
++## Proof boundary
++This packet is authored and statically reviewed only. Diagnostic fake v2 PASS (`48B7C45F…`) proves extracted runner and host-validator behavior with fakes only. Nothing in this packet has been executed: no native, Docker, PKI, TLS, provider or database proof. `Input-Manifest.sha256` covers every file except itself.
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-runner-diagnostic-prep-matt-v1/Launch-Packet-Freeze.json scheduler-native-provider-diagnostic-launch-v1/Launch-Packet-Freeze.json
+--- scheduler-native-provider-runner-diagnostic-prep-matt-v1/Launch-Packet-Freeze.json	1969-12-31 16:00:00.000000000 -0800
++++ scheduler-native-provider-diagnostic-launch-v1/Launch-Packet-Freeze.json	2026-11-12 19:35:38.082558500 -0800
+@@ -0,0 +1,44 @@
++{
++  "kind": "native-diagnostic-launch-packet-preparation-freeze",
++  "packet": "scheduler-native-provider-diagnostic-launch-v1",
++  "author": "Matt",
++  "date": "2026-11-12",
++  "status": "PREPARED_NOT_EXECUTED",
++  "assignment_sha256": "0215F8A7EFA1DAEAE791444C022C658E0BADEAC35C08DA582C6322CE7952C2AA",
++  "approved_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891",
++  "baseline_packet": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
++  "baseline_input_manifest_sha256": "899B06F6E3FEB3AB82AC11E47BE25A6F3923CF081D4DA3E2E9EEDAFA7A4E0DA7",
++  "source_change": {
++    "file": "Invoke-Native-Provider.ps1",
++    "line": 42,
++    "approved_diff_sha256": "5092F682AA95D66245F76A68B1E4B1B3DEB1725C2FAA07F50D9B53D8ABE69D7F",
++    "before_sha256": "090A0FA89549D33A381A9DDFF64DFC6AEE59E22F6832AD36018F7ACF8D3AF612",
++    "after_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6"
++  },
++  "unchanged_executables_and_payload": {
++    "payload_manifest_sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90",
++    "payload_entries": 257,
++    "runner_np_runner_entry_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
++    "host_validator_docker_transport_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
++    "runner_config_sha256": "E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160"
++  },
++  "external_admission_pins": {
++    "host_launch_config_sha256": "A7535D803B7351DFD2B814880698BC7509437C8697D302C77F42EE584E03CE43",
++    "docker_ops_config_sha256": "B930542A56EA47C3EDA65B04A9C958D8CE67103AE7D92635B8D08E34B80E6508",
++    "operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
++    "acyclic_note": "Operator admits launch-config and docker-ops-config only by caller-supplied expected hashes; launch-config pins payload manifest_sha256; payload SHA256SUMS.txt covers payload except itself; host configs live outside payload. This freeze record is covered by Input-Manifest.sha256, which the handback pins; nothing here pins Input-Manifest."
++  },
++  "evidence_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "evidence_root_exists_at_freeze": false,
++  "host_launch_ready": false,
++  "candidate_launch_ready_staged": false,
++  "payload_runner_config_launch_ready": "true (inherited, byte-unchanged per Q1; not permission; host gate authoritative)",
++  "batch": ["NP-V-MS-NONEXPIRED"],
++  "executed": false,
++  "launch_authorized": false,
++  "execute_ack_exists": false,
++  "endpoint": "unbound",
++  "proof_boundary": "Authored + static review only. Fake diagnostic v2 PASS covers extracted runner/host-validator behavior only. No native, Docker, PKI, TLS, provider or database proof; operator and configs never executed in this packet.",
++  "historical_records_in_packet": ["TIP-FREEZE.json", "Launch-Decision.md", "Static-Staging-Receipt.json", "Reviewed-Command.ps1.txt", "SUCCESSOR-README.md"],
++  "writer_active": false
++}
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/docker-ops-config.json scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json
+--- scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/docker-ops-config.json	2026-11-12 18:10:28.102807300 -0800
++++ scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json	2026-11-12 19:34:44.062791000 -0800
+@@ -1,8 +1,8 @@
+ {
+-  "packet": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1.evidence\\public-ca",
++  "packet": "scheduler-native-provider-diagnostic-launch-v1",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/launch-config.json scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json
+--- scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/launch-config.json	2026-11-12 18:10:37.555562100 -0800
++++ scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json	2026-11-12 19:34:52.839416200 -0800
+@@ -1,6 +1,6 @@
+ {
+   "launch_ready": false,
+-  "packet": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
++  "packet": "scheduler-native-provider-diagnostic-launch-v1",
+   "batch_id": "np-v-ms-nonexpired-first-vertical",
+   "endpoint": "unbound",
+   "endpoint_binding_authorized": false,
+@@ -51,9 +51,9 @@
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "manifest_sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\host\\docker-ops-config.json",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+@@ -82,7 +82,7 @@
+   "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": false,
+-  "candidate_note": "Matt diagnostic successor: host launch_ready=false (operator refuses before any child); payload/runner-config launch_ready byte-unchanged (true, inherited, not permission); human_launch_authorized=false; do not invoke",
++  "candidate_note": "Matt native diagnostic launch packet (prep only): host launch_ready=false (operator refuses before any child); payload/runner-config launch_ready byte-unchanged (true, inherited, not permission); human_launch_authorized=false; do not invoke",
+   "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+   "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+   "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+@@ -93,5 +93,9 @@
+   "diagnostic_successor_base_input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+   "diagnostic_successor_approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+   "diagnostic_successor_runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+-  "diagnostic_successor_operator_evidence_path_note": "Byte-unchanged operator hardcodes the dex-v3 .evidence directory (exists) and refuses on existing evidence; successor is not launchable without a separately reviewed operator change"
++  "diagnostic_successor_operator_evidence_path_note": "HISTORICAL O1 resolved in this packet: operator line 42 now names sibling scheduler-native-provider-diagnostic-launch-v1.evidence (operator 5A8A04B6...D7D6, approved diff 5092F682...7D69F); refusals on existing evidence/receipt unchanged",
++  "launch_packet_prepared_from": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
++  "launch_packet_baseline_input_manifest_sha256": "899B06F6E3FEB3AB82AC11E47BE25A6F3923CF081D4DA3E2E9EEDAFA7A4E0DA7",
++  "launch_packet_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
++  "launch_packet_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891"
+ }

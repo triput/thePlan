@@ -1,0 +1,29 @@
+# Held Microsoft route verification packet
+Prepared under Trish's policy approval call_490d74ab1e8543eebb401c6e5e377a29 and fresh-copy preparation approval call_9afb0e0727794cb6a8a4e91034a1d1d7. No imports, compilation or verification performed. Independent packet review is pending. launch_ready=false; no execution card is being requested yet.
+
+## Exact proposed changes
+Application diff: [Proposed-Application.diff](C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-route-fake-v1\Proposed-Application.diff), SHA256 535FB0A3AFA576EB739042BDD72B707218E42D13D278E8C007B87083DC66D5A6. Only two predicates change in the candidate workspace. All234 originals match accepted T07. Candidate232 other files are identical. Historical bases and T05 evidence are untouched.
+
+Four verification roles: [Proposed-Verification-Files.diff](C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-route-fake-v1\Proposed-Verification-Files.diff), SHA256 7108C445C7A844DE783C02D864079DAE6DBC95B724E9957B41AC159B528C1247. The new checker extracts real definitions without importing application/vendor packages. The launcher and outer admission adapt the previously passed T05 mechanisms; names, exact nested result gate and custody wording differ. Result validation compares exact JSON observations, including bool-versus-number distinction. Irrelevant T05 close-counter assertions are removed from the route result schema. No extra executable preparation helper exists.
+
+## Exact held command and hashes
+[Commands.ps1.txt](C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-route-fake-v1\Commands.ps1.txt), SHA256 9E6AC4B0C103707E786997CEB1C17F98852C6E36CFF0B5A5D6C89F72B69B334F.
+[VERIFICATION-ADMISSION.json](C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-route-fake-v1\VERIFICATION-ADMISSION.json), SHA256 BE913D81E977F9F6C35D304DE1C9EF0F1DEA75C4812007A0038A530C052E36BB.
+The command verifies the wrapper hash and passes the exact admission hash. Wrapper verifies475 packet files and19 partial runtime provenance pins before Python. Outer verifies itself, launcher, checker, oracles, source manifest and checksum manifest without a self-embedded hash. Do not invoke without a later one-shot authorization.
+
+## Controls and dependency boundary
+19 exact ordered controls cover both original and candidate classifiers, actual Microsoft default/list/calendarView methods and Google list/events pagination, absolute/root-relative query continuations, the original ancestor ambiguity, corrected event accounting, approved unlisted identity-descendant refusal at both classifiers, explicit second identity routes, event descendants, equal-path conflicts, OAuth exact paths, selected approved URL-path cases and request-wide sharing. Two in-memory AST predicate reversions must reproduce the original bad behavior. Source inventory checks the exact two changes and calls the source-pin validator with one corrupted synthetic manifest row.
+
+Selected application definitions are AST-extracted and compiled only during a later authorized check. Dependencies: real standard-library AST, dataclasses, context variables, urllib, HTTPResponse and memory buffers; fake httpx objects and memory-only TLS transport. No application/vendor package imports, real sockets, DNS, PKI or TLS handshakes. Synthetic token strings are fixture data, not credentials. Finite complete HTTP200 frames are generated in memory; parser/framing correctness is outside this route proof. There is no real database, provider, Docker or product endpoint. No process creation from the check itself. Host Python3.11 evidence is not native-runtime execution.
+
+Request-sharing control uses the real counter: first identity request consumes one item and raw response bytes and reaches the identity ceiling; the later event admission must refuse before allocating another transport. Original client ambiguity is isolated by calling the actual purpose-filtered HTTP path for that second request. The real remaining callback is observed as used; a deadline expiry is not proved here.
+
+## Supervision proposed for later launch
+Pinned Python outer admission starts one launcher; launcher starts one owned check child and two capture readers.30s child collection +5s owned-child kill/wait +two5s reader joins =45s nominal collection/retirement, excluding outer admission, file/hash/receipt I/O and process/OS latency.64KiB stdout,64KiB stderr,256KiB result. Existing evidence refuses without overwrite. Owned-child termination on timeout/error/overflow is bounded; unconfirmed exit or incomplete/error readers stop as UNKNOWN. Outer-to-launcher wait has no separate timeout; do not describe45s as an absolute whole-command wall limit. No retries, repairs, fallback or extra cleanup.
+
+## Required independent review and post-run reconciliation
+Review extraction dependency closure, source predictions/oracles, exact application diff, all four roles and noncircular pins, owned-process/readers, refusals before allocation/send, byte/item/page observations, inventory/mutation effectiveness and every qualification. Unexpected NameError/TypeError/UNKNOWN is a failure, never an accepted route refusal. The19 controls are a finite prerequisite, not closure of all76 transport obligations.
+
+If later authorized and run, require exact19 ordered observations, PASS status, exit0, empty stdout/stderr, both readers joined_eof, no primary/secondary/capture errors, and unchanged475 packet/19 runtime/wrapper/admission/command pins; only two expected result/receipt files may be new. Verify all source observations, both original witnesses and mutation outcomes independently. Preserve failures without repair or rerun.
+
+Endpoint unbound; no installation, native launch, deployment, live-provider operations or additional authority.

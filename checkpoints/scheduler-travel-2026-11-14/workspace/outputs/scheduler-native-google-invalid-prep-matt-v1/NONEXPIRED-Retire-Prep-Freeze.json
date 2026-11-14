@@ -1,0 +1,33 @@
+{
+  "kind": "native-nonexpired-selected-retirement-preparation-freeze",
+  "workspace": "scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1",
+  "batch_case_ids": ["NP-V-MS-NONEXPIRED"],
+  "expected_unknown_cases": [],
+  "author": "Matt",
+  "date": "2026-11-13",
+  "status": "PREPARED_NOT_EXECUTED",
+  "assignment_sha256": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+  "approved_envelope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "copy_source": "scheduler-native-provider-peer-close-launch-dex-v1",
+  "copy_source_input_manifest_sha256": "2913656ABBEF2232A707CE57DDEA4CAD0AE50703B75B37CBC78BFC1DB12B2FB3",
+  "withheld_card": "A50C04FB (original native card; WITHHELD, not reusable)",
+  "changed_files_vs_source": {
+    "payload/fixture/np_runner_entry.py": {"before": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645", "after": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D", "role": 4, "change": "new pure helper _retire_selected_peer_then_observe; _run_np_v_ms_nonexpired retires (one attempt, joined and no worker error) before the final peer-state checks; late retirement removed"},
+    "payload/runner-config.json": {"before": "E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160", "after": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929", "change": "launch_ready true -> false only (restores the pre-staging bytes)"},
+    "payload/SHA256SUMS.txt": {"before": "5F94DD7D4FA34BC9FB16273F040AED7FD066CE768DAE26694DF4457B4B04CCD6", "after": "5835297919BA3B43DEB767FD5F88F9A8AE41F7EBF0EC3F5B73EB5CCC87251BF3", "entries": 257},
+    "host/launch-config.json": {"after": "9BE3C57D1F99E39AB93355A80B8A8D74C84C7CFCE6E6099B284FAA0303F414D9", "change": "root rename, payload pin, launch_ready and candidate_launch_ready_staged true -> false, candidate_note, dex_r1_revise_note marked historical"},
+    "host/docker-ops-config.json": {"after": "29FE19C0922EB96325D264F4461317765E8CFE6DCB3975D92B1155A3578E224D", "change": "root rename only"},
+    "Input-Manifest.sha256 (nested)": {"after": "908C0F6E228DED21FB39F8521DBBB2A4674C466481887208B9B39ECB5254C908", "entries": 269}
+  },
+  "unchanged_vs_source": {"peer_role_7": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039", "api_files": 234, "host_operator_and_helpers": "byte-identical", "assertions_outside_boundary": "four-connection inventory, alias rewrite, coverage, TOKEN terminal, assessment and public checks unchanged"},
+  "inventory": {"native_cases": 27, "cf_witnesses": 4, "declarations": 31, "planning_ids_retained": 76, "declarations_changed": false},
+  "bounds": {"owned_peers": 1, "peer_seconds": 120, "peer_retire_join_seconds": 5.0, "retirement_attempts": 1, "provider_pki_retirement_total_nominal": 45, "suite_seconds": 900, "runner_seconds": 600, "command_count_cap": 32, "static_success_docker_command_count": 22, "output_byte_cap_per_command_combined_streams": 1048576, "report_byte_cap_separate": 1048576, "note": "The barrier moved earlier; no new wait and no second attempt. Supervisor expiry is UNKNOWN, never PASS."},
+  "gates": {"host_launch_ready": false, "candidate_launch_ready_staged": false, "human_launch_authorized": false, "runner_config_launch_ready": false},
+  "machine_data_flags": {"docker_ops_launch_ready": true, "docker_ops_candidate_launch_ready_staged": true, "docker_ops_human_launch_authorized": false, "note": "copied docker-ops machine data, never human authority"},
+  "companion_fake_packet": "scheduler-native-ms-selected-retire-fake-prep-matt-v1",
+  "evidence_root_exists_at_freeze": false,
+  "executed": false,
+  "execute_ack_exists": false,
+  "endpoint": "unbound",
+  "writer_active": false
+}

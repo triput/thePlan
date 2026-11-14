@@ -1,0 +1,113 @@
+{
+  "kind": "Read-only wire byte inventory; no parser execution",
+  "at_utc": "2026-11-11T23:39:03.7338602Z",
+  "checker_sha256": "C4627D26D8F5F11EA2D1067F8EDBD11AA5005E87EA1A6575F1320A597B150836",
+  "rows": [
+    {
+      "id": "C-DATA-SHORT",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-DATA-SHORT.wire",
+      "bytes": 101,
+      "sha256": "5AC256FBB532DB764B28016D3BA0ACBC8303552988D2AE61CF699C1E23A2C78D",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n3\\r\\n{}\\r\\n"
+    },
+    {
+      "id": "C-SEP-SHORT",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-SEP-SHORT.wire",
+      "bytes": 101,
+      "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n"
+    },
+    {
+      "id": "C-SEP-WRONG",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-SEP-WRONG.wire",
+      "bytes": 108,
+      "sha256": "9CADE02C4E1A7F2FE4BC52A85003CED404CDD3195B0B7D9C9BC82F321268BA61",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\nXX0\\r\\n\\r\\n"
+    },
+    {
+      "id": "C-ZERO-ABSENT",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-ZERO-ABSENT.wire",
+      "bytes": 101,
+      "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n"
+    },
+    {
+      "id": "C-TRAILER-EOF",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-TRAILER-EOF.wire",
+      "bytes": 104,
+      "sha256": "CCE59FBDEDC749AA44F0792D81B630D00B54416D0DCA11F890564E09E7B367EB",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\n"
+    },
+    {
+      "id": "C-ZERO-NO-CRLF",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-ZERO-NO-CRLF.wire",
+      "bytes": 102,
+      "sha256": "0D4FEEAFA9AF74C2E40E2A92F1AED638DC4CCC9395708E8939ED48C8A966576B",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0"
+    },
+    {
+      "id": "C-TRAILER-LINE-EOF",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-TRAILER-LINE-EOF.wire",
+      "bytes": 106,
+      "sha256": "B8EEA183024DC1FEDDBBA031FC99CAAAB4DC3AEC279B7171E1D7743B1C590396",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\nt:"
+    },
+    {
+      "id": "C-TRAILER-MALFORMED",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-TRAILER-MALFORMED.wire",
+      "bytes": 116,
+      "sha256": "CC2A5206BDF415A0908D6E12BF2DD0B2E73AA96C4ED2AA7022CF57B90A1390EC",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\nbadtrailer\\r\\n"
+    },
+    {
+      "id": "C-BASE",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-BASE.wire",
+      "bytes": 106,
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\n\\r\\n"
+    },
+    {
+      "id": "C-EXT-VALID",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\C-EXT-VALID.wire",
+      "bytes": 116,
+      "sha256": "219DED98655D8F88E8C1BCD82ECB8B814345F06B3D911E420878BD789B002E93",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2;ext=valid\\r\\n{}\\r\\n0\\r\\n\\r\\n"
+    },
+    {
+      "id": "H-TE-REPEAT",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\H-TE-REPEAT.wire",
+      "bytes": 134,
+      "sha256": "39A5ADA6BDC14B99C9ED1B093E3FA187EA7CC6C1085E816CDA4D0328DE36BD05",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nTransfer-Encoding: chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\n\\r\\n"
+    },
+    {
+      "id": "H-TE-LIST",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\H-TE-LIST.wire",
+      "bytes": 115,
+      "sha256": "1FBCC0D5A47DAD75486E2C79093D3DE9D1C3291AD6E7F0FB977DCE2172725D91",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked, chunked\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\n\\r\\n"
+    },
+    {
+      "id": "H-TE-CL",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\H-TE-CL.wire",
+      "bytes": 125,
+      "sha256": "840D382D9B4A6DB242AE43C92929B522BBE4B48ED2409B17930B7A1AF1477F95",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: chunked\\r\\nContent-Length: 2\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\n\\r\\n"
+    },
+    {
+      "id": "H-TE-NONEXACT+CL",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\H-TE-NONEXACT+CL.wire",
+      "bytes": 131,
+      "sha256": "0BA91225FDBE946AE8FA17E85BE78C8D68812E5156F7407E8863731670EF512F",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nTransfer-Encoding: gzip, chunked\\r\\nContent-Length: 2\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n2\\r\\n{}\\r\\n0\\r\\n\\r\\n"
+    },
+    {
+      "id": "H-INVALID",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v3\\packet\\fake-only-t05-framing-verification\\wire_transcripts\\H-INVALID.wire",
+      "bytes": 120,
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0",
+      "ascii_escaped": "HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: +2\\r\\nContent-Encoding: identity\\r\\nConnection: close\\r\\n\\r\\n{}"
+    }
+  ],
+  "executed": false
+}

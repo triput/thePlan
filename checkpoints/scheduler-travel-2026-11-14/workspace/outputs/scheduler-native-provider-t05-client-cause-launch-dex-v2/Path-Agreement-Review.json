@@ -1,0 +1,30 @@
+{
+  "status": "STATIC_PATH_AND_SOURCE_AGREEMENT_VERIFIED",
+  "packet_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1",
+  "operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "table": {
+    "operator_evidence_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+    "default_receipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl",
+    "public_ca_output": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "ops_public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "runner_ca_bind": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "host_receipt_declaration": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+    "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+    "payload_manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+    "cli_config_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config",
+    "host_ops_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json"
+  },
+  "receipt_override": false,
+  "evidence_absent": true,
+  "staging_changed_files": [
+    "Input-Manifest.sha256",
+    "host\\docker-ops-config.json",
+    "host\\launch-config.json"
+  ],
+  "executable_payload_bytes_unchanged": true,
+  "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+  "images_live_checked": false,
+  "execution_authorized": false,
+  "qualification": "Path agreement verified statically, not enforced by new code. Seven active ops root values, not eight as handback stated."
+}

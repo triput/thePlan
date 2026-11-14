@@ -1,0 +1,1992 @@
+{
+  "kind": "Current transport completion audit; full scope remains unproven",
+  "at_utc": "2026-11-14T07:28:46.8038034+00:00",
+  "predecessor_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-investigation\\Transport-Completion-Audit-Before-Google-Native-F143EF647069.json",
+  "predecessor_sha256": "F143EF647069E596B388FAE84F184E757110455323C3545069D15CE73DE3A597",
+  "accepted_addendum_tip": "CF6D3DD150F2A77EE078C9C2F376A70185411EED14B9736ACE84B9D6787FC797",
+  "candidate_table_sha256": "CC3CF9F8A9FE8C6A72D33B5CB8D524B01B00C8798B45C89A75B46535B35B9D1F",
+  "planning_count": 76,
+  "planning_count_is_not_a_cap": true,
+  "completed_integration_obligations": [
+    "Production in-process HTTP ingress/dispatch/connector with native assessment at verified I01/I02 v4 scope",
+    "PostgreSQL-observed owner-lock contention and coherent assessment at verified I02 scope",
+    "Success-only exact-ID disposal of native I01/I02 v4 containers"
+  ],
+  "verified_retained_evidence": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\Dex-Run-Reconciliation.json",
+      "sha256": "4A4F2B8DD1B8A2CC131698BB8A15EB5D8859EEBBE00ACF439BDD522B2E853202"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\Jim-Peer-Review-Reconciliation.json",
+      "sha256": "05B556AA906A1F0C01AE2A2119517DBFC1A899AE1AFA433381576FE4B85666C0"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t02-fake-v1\\Dex-Run-Reconciliation.json",
+      "sha256": "0CCA83455CA832DDC32FA6FC9BC8202E647BBF3FA0648924DEF13248B61970C2"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-fake-v1\\Static-Reconciliation.json",
+      "sha256": "8B75235CA8E25CD9DE45232AF34A0E08F1187748D4B69DBF67A02EDAAF52698D"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-fake-v2\\Dex-Run-Reconciliation.json",
+      "sha256": "A13B5B8BB6B548829A06AA2FC74F2CF7DFE76F773510833A18922DE56B31DBAE"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\Dex-Run-Reconciliation.json",
+      "sha256": "07B6C05F1366BA27F85E0BA65DFF2A3319ADBD223BF885CCC39FE43D82B0F10C"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\Transport-Evidence-Overlay.json",
+      "sha256": "ABD1DADF7AFEBB119239E44F85E71FA4FC489BBEC7F2F8E88FE9CEF907528864"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3-review\\Dex-Run-Reconciliation.json",
+      "sha256": "5F8C311840561CF6E723C0BCDC3BFC13CFD43BA781C3F1B62E5EA35DEC06AEAA"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3.evidence\\RESULT.json",
+      "sha256": "C3694449C24FD4BCB5C631689B0D5358D056F8A0CBCF89437D79AE4AADB6DC22"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3.evidence\\receipt.jsonl",
+      "sha256": "29DA8A7D9BFDD93245A69089813554BCF610C45B07A5577E5D9584DE525E6157"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3-review\\Captured-Native-Source-Boundary-Review.md",
+      "sha256": "18CDE7526B3EC82E0728249800A60E95F76966CB21B8D52D6FDA9AC6B16E570D"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1\\Dex-Run-Reconciliation.json",
+      "sha256": "FC4B39C040131ACB8DD381D4811238C26808DD3A8AE4FB9ABAFAF1EA07143825"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1\\packet\\fake-only-t05-framing-verification\\FAKE-T05-RESULT.json",
+      "sha256": "D29D4CFDDE2B6EA3A7D2A99366A7211AA4FE58C34EC66FF7C6A8945F4525BCFC"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1\\packet\\fake-only-t05-framing-verification\\FAKE-T05-LAUNCH-RECEIPT.json",
+      "sha256": "C8E42467214EAEAA37B6AF20F0C80D6D6AFD14F3E2BBE972B3A16275D850887D"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1\\Original-Behavior-Witness-Summary.md",
+      "sha256": "7384BCF8312902DB60BEDB97B4BDE067BEC6260301AA505FFA8F0E50752CEA6C"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Dex-Run-Reconciliation.json",
+      "sha256": "F5FC51185F547F2F91EEEDA76A9A1F67C464E84D68E096FA498F0C153686727E"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\FAKE-ROUTE-RESULT.json",
+      "sha256": "4466CEBD189A0D316C456217ECD9FFCFC8F142D5F7EC58091E32CA6916AF23BC"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\FAKE-ROUTE-LAUNCH-RECEIPT.json",
+      "sha256": "56D49E5C157259F3F9EFBC2BDD52C92C8D03DDF68E86F0F26DBAAAB707B55CE0"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1\\packet\\verify\\FAKE-NATIVE-PROVIDER-RESULT.json",
+      "sha256": "88805F6E67176B50F2B150200436431A3FCA527FB162B5D88CF5C09FE1B403B5"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1\\packet\\verify\\FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json",
+      "sha256": "8AA3F9E9BB9CB0B536AE4C75D2C207FF73586F2D7C9C255C9A4C6C01BE4B76F5"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1.evidence\\Dex-Reconciliation.json",
+      "sha256": "8D489C62069D5A7FD1873568C28B022F71BC042875DD866B550E325B8310F7B1"
+    }
+  ],
+  "family_counts": [
+    {
+      "family": "T01",
+      "planning_ids": 18,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T02",
+      "planning_ids": 12,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T03",
+      "planning_ids": 5,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T04",
+      "planning_ids": 5,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T05",
+      "planning_ids": 13,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T06",
+      "planning_ids": 10,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T07",
+      "planning_ids": 8,
+      "full_scope_status": "completion_unproven"
+    },
+    {
+      "family": "T08",
+      "planning_ids": 5,
+      "full_scope_status": "completion_unproven"
+    }
+  ],
+  "entries": [
+    {
+      "id": "T01-ORIGIN-FOREIGN-HOST",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-ORIGIN-FOREIGN-PORT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-ORIGIN-USERINFO",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-ORIGIN-FRAGMENT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-ORIGIN-CONTROL-CHAR",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PURPOSE-WRONG",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PURPOSE-AMBIGUOUS",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-CONTINUATION-REDIRECT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-CONTINUATION-GOOGLE-PAGE-TOKEN",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-CONTINUATION-MS-NEXTLINK",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-POSITIVE-EXACT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-POSITIVE-CHILD",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-PREFIX-BOUNDARY",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-DOT-SEGMENT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-ENCODED-DOT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-ENCODED-SEP",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-GOOGLE",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-MICROSOFT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite passed at its recorded scope; full family not proven.",
+      "prerequisite_state": "52-control fake URL/path prerequisite passed; exact full route/purpose/continuation and synthetic provider proof remain open",
+      "references_relative_to_outputs": [
+        "scheduler-d2-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-EVENT-PAGES-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-EVENT-PAGES-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-ITEMS-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-ITEMS-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-BYTES-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-BYTES-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-EVENT-PAGES",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-IDENTITY-PAGES",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-ITEMS",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-BYTES",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "prerequisite_state": "20-control extracted fake admission/composition prerequisite passed; real synthetic counter/drain/ordered-target proof remains open",
+      "references_relative_to_outputs": [
+        "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CONTENT-LENGTH",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CHUNKED",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-SHORT-LENGTH-VALID-JSON",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-SHORT-LENGTH-INVALID-JSON",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "evidence_gap": "Direct short-body plus invalid-JSON runtime witness not found in retained framing run; historical reuse label does not alone prove this combined variant.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json",
+      "new_finite_evidence": {
+        "status": "Direct combined host witness PASS",
+        "result_sha256": "F48C53A193FC59F672D0B49CA32AB2BDBA8472F30500CAA6F792BDF2C804AF25",
+        "control": "SHORT-INVALID-JSON-COMBINED",
+        "declared": 5,
+        "received_body": 1,
+        "completeness_before_decode": "observed under actual host parser with fake dependencies",
+        "native_proof": false,
+        "family_closed": false,
+        "supersedes_gap_only_at_finite_host_scope": true
+      }
+    },
+    {
+      "id": "T05-CHUNK-EOF",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-DUPLICATE-CONTENT-LENGTH",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-CONFLICTING-CONTENT-LENGTH",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-TE-CHUNKED-PLUS-CL",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-TE-NONEXACT-PLUS-CL",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-MALFORMED-HEADER",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-MALFORMED-JSON",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-NONOBJECT",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T05-ENCODING",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "prerequisite_state": "Native source provenance/cleanup PASS; host-original57-control fake run PASS with original witnesses, not corrected/native/TLS proof",
+      "references_relative_to_outputs": [
+        "scheduler-t05-design-review-v1/V2-Preparation-Reconciliation.json",
+        "scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json",
+        "scheduler-t05-native-provenance-dex-v3-review/Captured-Native-Source-Boundary-Review.md",
+        "scheduler-t05-design-review-v1/V6-Frozen-Intake-and-Static-Reconciliation.json",
+        "scheduler-t05-fake-v1/Review-and-Commands.md",
+        "scheduler-t05-fake-v1/Dex-Run-Reconciliation.json",
+        "scheduler-t05-fake-v1/Original-Behavior-Witness-Summary.md"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "property_reuse_index": "T05-Property-Reuse-Overlay.json"
+    },
+    {
+      "id": "T06-BEFORE-SEND",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T06-MALFORMED-ACK",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T06-TRUNCATED-ACK",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T06-INVALID-GRANT-GOOGLE",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "verified_native_selected_scope_with_qualifications",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "CorrectedfakePASS10/47/9 andnative NP-V-GOOGLE-INVALID PASS;typed reauthorization,TOKENrollback,zeroIMPORT andunchangedpersistedstate",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "One synthetic Google400invalid_grant;independentresultreviewreconciled. OtherOAutherror/uncertainackcases andfullT06/goalremainopen.",
+      "nativeEvidence": {
+        "receipt": "ED28319B513A53A1F4CC6D370E6504453C30DDBCE3768C8F2A863263426BAD62",
+        "peerReview": "5B10347936C40119426F76B4268E481CB2950F365A980EC160B2E95F49857944",
+        "publicOutcome": "no_op/preflight_rejected/CALENDAR_ACCOUNT_DISCONNECTED",
+        "cleanup": "22commands,bothabsenceverified,DBexit0",
+        "reconciliation": "10ADEEAC8B910CF7DB35B93D865A46C2BCC6AE1BD6EA80D95BB9576F7AA88F7B"
+      }
+    },
+    {
+      "id": "T06-INVALID-GRANT-MICROSOFT",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "verified_native_checkpoint_with_retention_qualification",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim.",
+      "currentEvidence": {
+        "hostReceipt": "4BF457AA0364B2A3B38C982C7207607166923A37CE6C301CAC4B0E488150D9CC",
+        "reconciliation": "BA01CEF3DA4A2D02D5C353AEBCBA7C3AFEACF88A636D5F8D7FEB755A2F61E63D",
+        "nativeTerminal": "Exact executed assertion over product-returned native terminal; detailed row filtered, not reconstructed",
+        "fullFamilyClosure": false,
+        "cleanup": "Complete exact-ID success cleanup",
+        "peerReview": "43A87AA6C54D2A04856E7A5B322BE08E3DBD7D5893AA4BAA00EB69B70E1A7E18",
+        "case": "NP-V-MS-INVALID"
+      }
+    },
+    {
+      "id": "T06-OTHER-ERROR",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T06-SUCCESS-GOOGLE",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "verified_native_selected_scope_with_qualifications",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Corrected fake14/67/11 and native NP-V-GOOGLE-REFRESH PASS; actual owning refresh, semantic rotation/persistence, native acknowledged terminals and final assessment measured",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json",
+        "scheduler-ms-refresh-design-review-v1/Google-Corrected-Native-PASS-Reconciliation-v2.json"
+      ],
+      "limitation": "Exact positive synthetic Google scope only; peer result review reconciled. Invalid grant and uncertain-acknowledgment cases,fullT06 and goal remain separate.",
+      "nativeEvidence": {
+        "parentCommits": "TWO_ACKNOWLEDGED",
+        "reconciliation": "2D03C8551FEA52BA758A5D9162A33A31F29ED92CA3625CF5E10F572B96ACD1DD",
+        "busyIntervals": "0to2",
+        "receipt": "FDC0AF907211D2F163A63F6A8EFF65925E7E743D95135EC523FB7BFBB208139E",
+        "cleanup": "Both exact container IDs removed/absence verified",
+        "persistedRevision": "1to4",
+        "case": "NP-V-GOOGLE-REFRESH",
+        "tokenCommitAndRollback": "ACKNOWLEDGED",
+        "peerStaticReview": "595B17D1BC3ECE46CB24B2B0877DCAC83308975F6B721A948A7661D1ACD01EF6",
+        "queryVerifiedIdentityAndEvents": true,
+        "resultPeerReview": "82929ABFDC1D9761CC646FDB7717663E9128E7108FB381DE080D0F44871847BD"
+      }
+    },
+    {
+      "id": "T06-SUCCESS-MICROSOFT",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T08-NESTED",
+      "family": "T08",
+      "planning_packet": 1,
+      "status": "verified_extracted_context_property_with_qualifications",
+      "required_evidence": "Actual extracted context-manager behavior for nested entry refusal and scope reset; real transport ownership/socket lifecycle belongs to the separate T08-FOREIGN-THREAD, T08-FOREIGN-CLOSE and T08-REUSE obligations.",
+      "prerequisite_state": "Exact current source matches executed T08-NESTED-RESET-BEHAVIOR: real independent Context, nested refusal, normal and exceptional reset; fake refusal class and string transport values.",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json",
+        "scheduler-native-provider-fake-v1/packet/verify/FAKE-NATIVE-PROVIDER-RESULT.json",
+        "scheduler-investigation/T08-Context-Property-Reuse-Reconciliation-2026-11-13.json"
+      ],
+      "limitation": "Finite pure context behavior only. No direct calendar_client/httpx fallback invocation, actual-source mutant, real foreign thread/socket or full T08 closure. Do not repeat these pure properties solely because the old prerequisite index was stale.",
+      "executed_control": "T08-NESTED-RESET-BEHAVIOR",
+      "result_sha256": "88805F6E67176B50F2B150200436431A3FCA527FB162B5D88CF5C09FE1B403B5",
+      "subject_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    },
+    {
+      "id": "T08-RESET",
+      "family": "T08",
+      "planning_packet": 1,
+      "status": "verified_extracted_context_property_with_qualifications",
+      "required_evidence": "Actual extracted context-manager behavior for nested entry refusal and scope reset; real transport ownership/socket lifecycle belongs to the separate T08-FOREIGN-THREAD, T08-FOREIGN-CLOSE and T08-REUSE obligations.",
+      "prerequisite_state": "Exact current source matches executed T08-NESTED-RESET-BEHAVIOR: real independent Context, nested refusal, normal and exceptional reset; fake refusal class and string transport values.",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json",
+        "scheduler-native-provider-fake-v1/packet/verify/FAKE-NATIVE-PROVIDER-RESULT.json",
+        "scheduler-investigation/T08-Context-Property-Reuse-Reconciliation-2026-11-13.json"
+      ],
+      "limitation": "Finite pure context behavior only. No direct calendar_client/httpx fallback invocation, actual-source mutant, real foreign thread/socket or full T08 closure. Do not repeat these pure properties solely because the old prerequisite index was stale.",
+      "executed_control": "T08-NESTED-RESET-BEHAVIOR",
+      "result_sha256": "88805F6E67176B50F2B150200436431A3FCA527FB162B5D88CF5C09FE1B403B5",
+      "subject_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    },
+    {
+      "id": "T03-VALID",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T03-WRONG-CA",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T03-WRONG-NAME",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T03-HANDSHAKE-STALL",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T03-TCP-REFUSAL",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T04-HEADER-STALL",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T04-BODY-STALL",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T04-PARTIAL-SEND",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T04-DEADLINE",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T04-DISCONNECT",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "prerequisite_state": "No new accepted family-specific execution from this reconciliation",
+      "references_relative_to_outputs": [],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T06-PARTIAL-SEND",
+      "family": "T06",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T06-LOST-ACK",
+      "family": "T06",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "prerequisite_state": "Selected Google refresh/cleanup propagation fake only; not full token role, rotation/persistence or native terminal proof",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-OPEN-CLOSE",
+      "family": "T07",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T07-SETBLOCKING",
+      "family": "T07",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "prerequisite_state": "41-control fake prerequisite reconciled; exact branch mapping and explicit gaps in overlay",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Transport-Evidence-Overlay.json"
+      ],
+      "limitation": "No full requirement is closed by this prerequisite index. Exact executed controls and substitutions must be reconciled against the individual requirement before any closure claim."
+    },
+    {
+      "id": "T08-FOREIGN-THREAD",
+      "family": "T08",
+      "planning_packet": 2,
+      "status": "verified_native_selected_scope_with_independent_result_review",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "prerequisite_state": "Focused fakePASS7controls/9reportedunits/3mutants; exact guard source76017776; native checkpoint310inputs prepared,not authorized",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "DirectJoinedTLSownershipproof;noCoveringHTTP/framing/OAuth/ingress/assessmentclaim;independentresultreviewpending",
+      "executedFakePrerequisite": {
+        "receipt": "A8AECBF34E8C760BED0007B30C74862A4EE801DE236C7A65BA50C2B4D85D4005",
+        "remaining": "Real foreign thread/socket ownership lifecycle and known joined native retirement",
+        "mutant": "foreign_check_guard",
+        "control": "FOREIGN-CHECK",
+        "nativeProof": false,
+        "scope": "Actual extracted JoinedTLS methods with fake owneridentity,alreadyowned socket,budget and refusingfactory",
+        "reconciliation": "B9AE5213527B5729FBA23409A916604CF0863E104B673BFC6F585EF2BFC53362",
+        "result": "286665D1AA107F532B1653EBCC508FA63644DE179D166741076CD51A7A725CFB"
+      },
+      "nativeEvidence": {
+        "peerReview": "PENDING",
+        "reconciliation": "E13BAB6EF8B35A599A2970E51AB09C7A87250216BAAEE8C3CA8B07FCEB63DB39",
+        "scope": "Realforeignthreadguardandclose/refusal,ownerexactexchange/localclosure,reuserefusal,joinedretirement",
+        "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+        "case": "NP-T08-OWNERSHIP",
+        "cleanup": "Bothcontainersabsent,DBexit0"
+      },
+      "independent_result_review": "C2443B807D1A13F40CA65DA1FEC77ED1585475B80034731A35EA367661B4D006",
+      "result_peer_reconciliation": "4F8B7F03A4FDD3572622B150B7BDCAD4CA9E83743C12384C2F833F49354CA704"
+    },
+    {
+      "id": "T08-FOREIGN-CLOSE",
+      "family": "T08",
+      "planning_packet": 2,
+      "status": "verified_native_selected_scope_with_independent_result_review",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "prerequisite_state": "Focused fakePASS7controls/9reportedunits/3mutants; exact guard source76017776; native checkpoint310inputs prepared,not authorized",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "DirectJoinedTLSownershipproof;noCoveringHTTP/framing/OAuth/ingress/assessmentclaim;independentresultreviewpending",
+      "executedFakePrerequisite": {
+        "receipt": "A8AECBF34E8C760BED0007B30C74862A4EE801DE236C7A65BA50C2B4D85D4005",
+        "remaining": "Real foreign thread/socket ownership lifecycle and known joined native retirement",
+        "mutant": "foreign_close_guard",
+        "control": "FOREIGN-CLOSE",
+        "nativeProof": false,
+        "scope": "Actual extracted JoinedTLS methods with fake owneridentity,alreadyowned socket,budget and refusingfactory",
+        "reconciliation": "B9AE5213527B5729FBA23409A916604CF0863E104B673BFC6F585EF2BFC53362",
+        "result": "286665D1AA107F532B1653EBCC508FA63644DE179D166741076CD51A7A725CFB"
+      },
+      "nativeEvidence": {
+        "peerReview": "PENDING",
+        "reconciliation": "E13BAB6EF8B35A599A2970E51AB09C7A87250216BAAEE8C3CA8B07FCEB63DB39",
+        "scope": "Realforeignthreadguardandclose/refusal,ownerexactexchange/localclosure,reuserefusal,joinedretirement",
+        "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+        "case": "NP-T08-OWNERSHIP",
+        "cleanup": "Bothcontainersabsent,DBexit0"
+      },
+      "independent_result_review": "C2443B807D1A13F40CA65DA1FEC77ED1585475B80034731A35EA367661B4D006",
+      "result_peer_reconciliation": "4F8B7F03A4FDD3572622B150B7BDCAD4CA9E83743C12384C2F833F49354CA704"
+    },
+    {
+      "id": "T08-REUSE",
+      "family": "T08",
+      "planning_packet": 2,
+      "status": "verified_native_selected_scope_with_independent_result_review",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "prerequisite_state": "Focused fakePASS7controls/9reportedunits/3mutants; exact guard source76017776; native checkpoint310inputs prepared,not authorized",
+      "references_relative_to_outputs": [
+        "scheduler-t07-fake-v2/Dex-Run-Reconciliation.json"
+      ],
+      "limitation": "DirectJoinedTLSownershipproof;noCoveringHTTP/framing/OAuth/ingress/assessmentclaim;independentresultreviewpending",
+      "executedFakePrerequisite": {
+        "receipt": "A8AECBF34E8C760BED0007B30C74862A4EE801DE236C7A65BA50C2B4D85D4005",
+        "remaining": "Real foreign thread/socket ownership lifecycle and known joined native retirement",
+        "mutant": "reuse_guard",
+        "control": "SAME-INSTANCE-REUSE",
+        "nativeProof": false,
+        "scope": "Actual extracted JoinedTLS methods with fake owneridentity,alreadyowned socket,budget and refusingfactory",
+        "reconciliation": "B9AE5213527B5729FBA23409A916604CF0863E104B673BFC6F585EF2BFC53362",
+        "result": "286665D1AA107F532B1653EBCC508FA63644DE179D166741076CD51A7A725CFB"
+      },
+      "nativeEvidence": {
+        "peerReview": "PENDING",
+        "reconciliation": "E13BAB6EF8B35A599A2970E51AB09C7A87250216BAAEE8C3CA8B07FCEB63DB39",
+        "scope": "Realforeignthreadguardandclose/refusal,ownerexactexchange/localclosure,reuserefusal,joinedretirement",
+        "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+        "case": "NP-T08-OWNERSHIP",
+        "cleanup": "Bothcontainersabsent,DBexit0"
+      },
+      "independent_result_review": "C2443B807D1A13F40CA65DA1FEC77ED1585475B80034731A35EA367661B4D006",
+      "result_peer_reconciliation": "4F8B7F03A4FDD3572622B150B7BDCAD4CA9E83743C12384C2F833F49354CA704"
+    }
+  ],
+  "supplementary_requirements": [
+    {
+      "document": "T05-Chunk-Termination-and-TLS-EOF-Review.md",
+      "role": "Separate chunk/framing/TLS EOF variants; later executable IDs must expand umbrella requirements",
+      "status": "design_only"
+    },
+    {
+      "document": "T08-Context-Ownership-and-Budget-Proof.md",
+      "role": "Context/owner/deadline witness distinctions",
+      "status": "design_only"
+    },
+    {
+      "document": "T07-Provisional-R08-Review.md",
+      "role": "Earlier retirement uncertainty must survive outer no-op close",
+      "status": "provisional_design_challenge"
+    }
+  ],
+  "current_assignment": "Matt CEC53278 independent Google invalid fake/native staging and T08 result review; no execution authority",
+  "goal_complete": false,
+  "endpoint": "unbound",
+  "execution_performed_in_audit": false,
+  "native_source_provenance": {
+    "status": "completed at exact source-byte/cleanup scope only",
+    "image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+    "files": 3,
+    "raw_bytes": 159506,
+    "container": "501c00a46066c4e3e30a4fc7ee4dd9b0d1fe0cd638cf33b919ac69085d579ce4",
+    "removed_and_absent": true,
+    "parser_TLS_behavior_proven": false,
+    "authorization_consumed": true
+  },
+  "routing_increment": {
+    "status": "PASS19 exact controls",
+    "reconciliation_sha256": "F5FC51185F547F2F91EEEDA76A9A1F67C464E84D68E096FA498F0C153686727E",
+    "scope": "Host extracted real classifiers and Google/Microsoft owning pagination with memory HTTP responses",
+    "no_native_tls_or_final_assembly_claim": true,
+    "authority_consumed": true
+  },
+  "framing_increment": {
+    "status": "PASS_73_OF_73",
+    "result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+    "receipt_sha256": "166BB080CCCD19B80F88703BA3CC16B46142DAEF3904BDAF5D7AA9CF3254E6E6",
+    "reconciliation_sha256": "E9BCFB2D91A4C6E52657DF719F749B0FE8E21959D9CBEDB074516CB729C50E18",
+    "packet_postpins": 537,
+    "partial_runtime_postpins": 21,
+    "boundary": "Finite host-fake controls only; includes EXCESS-ITEM-BYTE and PRIMARY-BOTH-CLOSES. Native TLS, candidate owning-call integration and full T01-T08 remain open.",
+    "port_run": "PASS9/9 at host-origin-validator scope; native dial/TLS still open"
+  },
+  "port_increment": {
+    "status": "PASS_9_OF_9_INDEPENDENTLY_RECONCILED",
+    "result_sha256": "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548",
+    "receipt_sha256": "61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961",
+    "reconciliation_sha256": "E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D",
+    "packet_postpins": 475,
+    "partial_runtime_postpins": 19,
+    "authority_consumed": true,
+    "boundary": "Exact host3.11 extracted HTTPSPeer origin-port validator only; no native dial/TLS or full T01 closure"
+  },
+  "t02_property_reuse_overlay": {
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-investigation\\T02-Matched-Evidence-Overlay-20261112.json",
+    "sha256": "27197C6220DDC8864EBDD45542CCBFCB4C92FB806AD368C10B4A61DEE82E26A1",
+    "full_t02_closed": false,
+    "new_execution": false
+  },
+  "t01_path_property_reuse_overlay": {
+    "path": "T01-Path-Helper-Evidence-Reuse-20261112.json",
+    "sha256": "03240B226FA4B1A38BC96837C9A4B5EC20288732CBB7E609096FE189D5701617",
+    "requirements_mapped": 8,
+    "full_t01_closed": false,
+    "new_execution": false
+  },
+  "native_provider_fake_increment": {
+    "status": "PASS_16_OF_16_INDEPENDENTLY_RECONCILED",
+    "result_sha256": "88805F6E67176B50F2B150200436431A3FCA527FB162B5D88CF5C09FE1B403B5",
+    "receipt_sha256": "8AA3F9E9BB9CB0B536AE4C75D2C207FF73586F2D7C9C255C9A4C6C01BE4B76F5",
+    "reconciliation_sha256": "8D489C62069D5A7FD1873568C28B022F71BC042875DD866B550E325B8310F7B1",
+    "packet_postpins": 285,
+    "runtime_scope": "partial interpreter-only",
+    "authority_consumed": true,
+    "boundary": "Finite prep-v9 source/inventory and extracted fake controls only; later native entry/operator/T05 changes and actual provider TLS/PKI/DB remain unproved",
+    "requirement_ids_closed_by_this_overlay": []
+  },
+  "native_provider_first_attempt": {
+    "status": "STOP_NO_NATIVE_SUITE_REPORT",
+    "packet": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+    "input_pins_unchanged": 265,
+    "runner_exit": 125,
+    "diagnostic": "SuiteStop; diagnostic_unavailable",
+    "cleanup": "exact-ID failure cleanup complete, DB SIGINT exit0, both IDs absent",
+    "cleanup_receipt_sha256": "2FB901B4AE779B73A36345EDF71A580A8401E03C4A3BA31C736D9348DE60E8DB",
+    "native_pass": false,
+    "requirement_ids_closed": []
+  },
+  "runner_diagnostic_fake_attempt": {
+    "status": "STOP_CHECKER_MUTATION_ANCHOR",
+    "packet": "scheduler-runner-diagnostic-fake-v1",
+    "input_pins_unchanged": 17,
+    "result_file_exists": false,
+    "receipt_sha256": "3B385B4FC4A2E44CADB3859D9E46837E4EE8EFAF684D255D5148E7211A9A376C",
+    "readers_joined_clean_eof": true,
+    "timeout_or_retirement_unknown": false,
+    "independent_trace": "Dex and Matt exact error-hash match; terminal-comment anchor omitted by AST extraction",
+    "fresh_copy_v2_preparation_approved": true,
+    "rerun_authorized": false,
+    "requirement_ids_closed": []
+  },
+  "runner_diagnostic_fake_v2_increment": {
+    "status": "PASS14_OF14_INDEPENDENTLY_RECONCILED",
+    "result_sha256": "48B7C45F1DA355D890229CBF3B63A601502EBFF9D20628C66EFDE0A28DA596A8",
+    "receipt_sha256": "C6E6C34ED6D90308F31F4F3CE63782FD1DECFF8E4164CFB4339A17432519293F",
+    "input_postpins": 17,
+    "named_nested": 44,
+    "all_mutants_detected": 4,
+    "authority_consumed": true,
+    "native_proof": false,
+    "requirement_ids_closed": [],
+    "boundary": "Extracted fake diagnostic producer and immutable host metadata validator only; not native failure attribution or transport completion"
+  },
+  "native_diagnostic_staging": {
+    "status": "274_INPUTS_VERIFIED_PEER_ACCEPTANCE_RECONCILED_LAUNCH_DECISION_PENDING",
+    "manifest_sha256": "1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+    "command_sha256": "F39C778C9A20A5CA538CAE8F414768833866B3852367CB1EE53FF115C509A870",
+    "executable_bytes_unchanged": true,
+    "execution_authorized": false,
+    "requirements_closed": 0,
+    "peer_review_sha256": "7344994B30C2BD7D617B871AEB3366E3A6BC6F2EEAEFF6714890F08B79FD45BF"
+  },
+  "t05_prelaunch_static_review": {
+    "status": "B1_B2_B3_FIXED_FRESH_COPIES_SINGLE_V3_FAKE_RUN_PASS",
+    "verified_inputs": 289,
+    "findings": "outputs/scheduler-native-provider-t05-closure-dex-review-v3/Concrete-Staging-Static-Findings.json",
+    "execution_performed": false,
+    "requirements_closed": 0,
+    "native_diagnostic_packet_affected": false,
+    "staged_manifest_sha256": "43CF735E7FAF231F97EF5E91DBCA7C74798102FD4194E9734F1F914360B76210",
+    "final_peer_review_sha256": "5EFB23E5AB5CC41D8B91E477C3D4041C569C86336BEAFB7B973C08A527EF5753"
+  },
+  "t05_property_reuse_overlay": {
+    "path": "T05-Property-Reuse-Overlay.json",
+    "sha256": "C0FC9411B6C63FF9D7CBACE8D9673512A591479D99F33C6FBFA7090DC2CD7431",
+    "planning_ids_retained": 13,
+    "finite_properties_matched": 12,
+    "direct_combined_witness_gap": "T05-SHORT-LENGTH-INVALID-JSON",
+    "full_t05_closed": false,
+    "new_execution": false
+  },
+  "ms_refresh_preparation": {
+    "status": "EXISTING_CASE_PREPARATION_ASSIGNED",
+    "case_id": "NP-V-MS-REFRESH",
+    "requirement_id": "T06-SUCCESS-MICROSOFT",
+    "scope_sha256": "EAAFA222DF4E043135EBBA8E2306C5C5F58D8A93929949A950B49CCD1DA1488A",
+    "expected_oauth_requests": 1,
+    "expected_peer_exchanges": 5,
+    "expected_token_terminals": [
+      "COMMIT_ACKNOWLEDGED",
+      "ROLLBACK_ACKNOWLEDGED"
+    ],
+    "semantic_persisted_token_match_required": true,
+    "execution_authorized": false,
+    "requirement_closed": false,
+    "depends_on_native_diagnostic_harness_outcome": true
+  },
+  "t05_fake_v3_increment": {
+    "status": "PASS17_OF17_INDEPENDENTLY_RECONCILED",
+    "result_sha256": "6B345E5CD3F45E5F7F17815CB11D42F0CE0E268C84CCEBE9F9AF5509282DF646",
+    "receipt_sha256": "5CD79AB88F77A884DF3C6356F17533D133F6DCD15D91A6B0B437C4522F2545B3",
+    "reconciliation_sha256": "4834FB023F7E29C50BE1C02D0D0856F09ABF8B1436867F49436EA584CE6091A3",
+    "top_level": 17,
+    "ordered_t05_nested": 19,
+    "classification": {
+      "separately_authored_holes": 2,
+      "structural": 2,
+      "extracted_helper_fake": 15
+    },
+    "postpins": 301,
+    "runtime_pins": 1,
+    "child_exit": 0,
+    "child_seconds": 0.516,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0,
+    "readers_clean_joined": true,
+    "retirement_unknown": false,
+    "authority_consumed": true,
+    "requirement_ids_closed": [],
+    "native_tls_proof": false,
+    "boundary": "Finite extracted-helper/shape/hole predicates only; combined short-invalid-JSON witness and native TLS remain open; diagnostic/T05 source integration unperformed"
+  },
+  "latest_native_diagnostic_outcome": {
+    "status": "STOP",
+    "source_frame": "fixture/np_runner_entry.py971",
+    "interpretation": "HTTPstatus !=200;actual status/body/cause unknown",
+    "native_pass": false,
+    "host_receipt_sha256": "2734173205FAA2F84877FC5C6C665EB86D81528214D435D8C850FC94F5820382",
+    "postpins": 274,
+    "cleanup": "separately authorized9calls PASS;DBexit0,both absent",
+    "cleanup_receipt_sha256": "9AAB988ECE794ED976C4606D1F26139FCC325CB5A79550AF5D7CC3F5D5ADAC1B",
+    "authority": "run and cleanup consumed;no rerun",
+    "full_requirement_ids_closed": []
+  },
+  "ms_refresh_fake_v2_staging": {
+    "status": "PASS10_OF10_INDEPENDENTLY_RECONCILED",
+    "inputs": 25,
+    "packet_pins": 18,
+    "runtime_scope": "interpreter only",
+    "controls": 10,
+    "manifest_sha256": "4F831BDF5CAEDBA527BEB355964CD6F3F45101E63614717F0EB9CD9B34C04196",
+    "source_correction": "exact one-line CRLF predicate;subjects/oracles/helpers unchanged",
+    "full_requirement_ids_closed": [],
+    "result_sha256": "3CDC86B70EBCD143540335954A45E638E9452CC24996013F3C46C08C954D4F88",
+    "receipt_sha256": "5F437940AE37594976BF960B419ACFD57692EC93F372CF7520E8A2154E20F58B",
+    "proof_boundary": "24 text identity,11 semanticfake,4 actualmutants plus7 singletons;no nativeTLSDBOAuth or fullrefreshbody proof"
+  },
+  "worker_observer_fake_v3": {
+    "at_utc": "2026-11-13T07:03:14.3141372Z",
+    "status": "PASS10_OF10_EXACT47_PREDICATES_INDEPENDENTLY_RECONCILED",
+    "top_level_controls": 10,
+    "reported_nested_predicates": 47,
+    "actual_source_mutants_detected": 5,
+    "proof_kind_inventory_exact": true,
+    "fixture_diff": "5hunks,+41/-0,rederivedexact341074AEsource",
+    "child_elapsed_seconds": 0.516,
+    "child_stream_bytes": 0,
+    "clean_joined_readers": true,
+    "known_retirement": true,
+    "child_killed": false,
+    "postpins": [
+      {
+        "root": "outputs\\scheduler-native-worker-diagnostic-fake-dex-v3",
+        "entries": 20
+      },
+      {
+        "root": "outputs\\scheduler-native-worker-diagnostic-fake-prep-matt-v2",
+        "entries": 15
+      },
+      {
+        "root": "outputs\\scheduler-native-worker-diagnostic-fake-prep-matt-v1",
+        "entries": 15
+      },
+      {
+        "root": "outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1",
+        "entries": 278
+      },
+      {
+        "root": "outputs\\scheduler-native-provider-worker-diagnostic-launch-dex-v1",
+        "entries": 283
+      },
+      {
+        "root": "outputs\\scheduler-native-provider-diagnostic-launch-dex-v1",
+        "entries": 274
+      }
+    ],
+    "actual_stage_files": 23,
+    "new_evidence_files": 2,
+    "unexpected_files": 0,
+    "result_sha256": "36C329DE49C0E63065D1167829357D783272D70CDA28B5829F01ECE87E73172C",
+    "receipt_sha256": "D7B96DBD37B54414070E246F7BB5B7B5849D66078063716D73E2F439D86BF3FD",
+    "authority": "consumedoneauthorizedinvocation;no retry/rerun",
+    "proof_limit": "finiteextractedobserver/producer/hostfakecomposition;notnativeobserverTLSDBoractualHTTPfailurecause",
+    "full_requirement_ids_closed": [],
+    "endpoint": "unbound"
+  },
+  "latest_worker_observer_native": {
+    "at_utc": "2026-11-13T07:20:59.5118055Z",
+    "status": "STOP_ONE_SHOT_CONSUMED",
+    "authorization_question": "call_181bbe0859224ff7b548cb1719e8b6fc",
+    "host_receipt_sha256": "1180A5B8516E16B7FFAFE0F0E5F73E02F4C29F7D289C558D0C35C4372D22F745",
+    "outer_receipt_sha256": "D3D2BA48EFEEB05BD8478F8B064472DE782FC9FB9C7DF126759BC9DF96F0A183",
+    "runner_stop": {
+      "cli_exit_code": 125,
+      "diagnostic": {
+        "exceptions": [
+          {
+            "frames": [
+              {
+                "line": 1562,
+                "path": "fixture/np_runner_entry.py"
+              },
+              {
+                "line": 1514,
+                "path": "fixture/np_runner_entry.py"
+              },
+              {
+                "line": 39,
+                "path": "fixture/np_integrated_runner.py"
+              },
+              {
+                "line": 1293,
+                "path": "fixture/np_runner_entry.py"
+              },
+              {
+                "line": 981,
+                "path": "fixture/np_runner_entry.py"
+              }
+            ],
+            "kind": "SuiteStop"
+          },
+          {
+            "frames": [
+              {
+                "line": 59,
+                "path": "api/app/services/covering_http_dispatch.py"
+              },
+              {
+                "line": 39,
+                "path": "api/app/services/covering_http_dispatch.py"
+              },
+              {
+                "line": 1254,
+                "path": "fixture/np_runner_entry.py"
+              },
+              {
+                "line": 234,
+                "path": "api/app/services/covering_domain_dispatch.py"
+              },
+              {
+                "line": 204,
+                "path": "api/app/services/covering_role_connector.py"
+              }
+            ],
+            "kind": "CoveringRootOutcomeUnknown"
+          },
+          {
+            "frames": [
+              {
+                "line": 198,
+                "path": "api/app/services/calendar_alias_canonicalize.py"
+              },
+              {
+                "line": 708,
+                "path": "api/app/services/microsoft_calendar.py"
+              },
+              {
+                "line": 663,
+                "path": "api/app/services/microsoft_calendar.py"
+              },
+              {
+                "line": 43,
+                "path": "api/app/services/covering_provider_context.py"
+              },
+              {
+                "line": 41,
+                "path": "api/app/services/covering_provider_context.py"
+              },
+              {
+                "line": 898,
+                "path": "fixture/np_runner_entry.py"
+              },
+              {
+                "line": 332,
+                "path": "api/app/services/covering_http_transport.py"
+              },
+              {
+                "line": 56,
+                "path": "api/app/services/covering_joined_https.py"
+              }
+            ],
+            "kind": "CoveringTransportRefused"
+          }
+        ],
+        "truncated": true,
+        "version": 1
+      },
+      "kind": "SuiteStop",
+      "status": "STOP"
+    },
+    "source_interpretation": "Third captured exception CoveringTransportRefused at covering_joined_https.py56:socket SO_ERROR nonzero after readiness;connection establishment refused. Exact errno/message and any deeper cause unretained. Truncated chain,not native PASS.",
+    "postpins": 283,
+    "read_only_reconciliation": "PASS2calls exact identity/isolation/mount checks;DB running,runner exited125",
+    "readonly_receipt_sha256": "2D08CD8DAEF39FF18BD445635210DEB0567CE90C178C352B1DEC16D36D1D0520",
+    "database_id": "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c",
+    "runner_id": "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818",
+    "cleanup_authorized": false,
+    "native_pass": false,
+    "endpoint": "unbound"
+  },
+  "latest_worker_observer_cleanup": {
+    "at_utc": "2026-11-13T07:24:53.844585Z",
+    "status": "CLEANUP_COMPLETE_INDEPENDENTLY_RECONCILED",
+    "authorization_question": "call_3dce516874774295a8f2297e0f9fe258",
+    "calls": 9,
+    "identity_checks": 3,
+    "removals": 2,
+    "both_absent": true,
+    "database_exit": 0,
+    "clean_cli_readers": 9,
+    "cleanup_receipt_sha256": "56523DFDDCCEE7767C47BE9A37B4705BB63FA8B02C837A70FAFACD7F3734EFDD",
+    "postpins": 283,
+    "native_status": "STOP preserved,no rerun",
+    "endpoint": "unbound"
+  },
+  "current_native_implementation_checkpoint": {
+    "implementedSourceBodies": 2,
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-investigation\\Native-Provider-Coverage-Checkpoint-2026-11-13.json",
+    "heldSourceBodies": 29,
+    "declarations": 31,
+    "mergedNativePass": false,
+    "sha256": "971B3E4A04E2FF4AA220D7AC545DF3505867876FA2209D5B0513088A91128B7D"
+  },
+  "native_t05_preparation_v1": {
+    "correctionAssignmentSha256": "8893E2425DE0F3C67CFC5F68550525A729CEDB1D2E1D038593A60388B69A56F8",
+    "D1": "Add separate complete fixed-length positive,correct oracle mapping;retain supplementary close-delimited positive",
+    "D2": "Fail closed;no automatic unexpected-class widening",
+    "sourcePreparationAuthority": "existing consolidated lane",
+    "fakeProof": false,
+    "nativeProof": false,
+    "integrityVerified": {
+      "native": 290,
+      "apiUnchanged": 234,
+      "payload": 257,
+      "handoff": 26,
+      "fake": 31
+    },
+    "verdict": "REVISE_FRESH_COPY_BEFORE_LAUNCH_CARD",
+    "handoffSha256": "7C520BA74BBC2607542FC32ADE8AA6BEF2E8652E1E8F6CA4E547A53FB56D8966"
+  },
+  "t05_combined_host_witness": {
+    "familyComplete": false,
+    "status": "PASS11_CONTROLS_40_PREDICATES",
+    "resultSha256": "F48C53A193FC59F672D0B49CA32AB2BDBA8472F30500CAA6F792BDF2C804AF25",
+    "scope": "Combined short invalid JSON body fails completeness before decode;host parser actual-source finite witness,not native TLS",
+    "reconciliationSha256": "66733EF4307A032E7E175732C23527137B17AC1F6EB814CE0204F7ED40502175"
+  },
+  "ms_refresh_merge_fake": {
+    "status": "PASS9_CONTROLS_33_PREDICATES",
+    "resultSha256": "114A510945F6FCE345D5576B5F51470297A6B7DA713E6E937E2676C35506201E",
+    "scope": "Source/merge/selection/batch lineage only,not native execution",
+    "reconciliationSha256": "0A50E925310172AC33029FB61385872B63F6C6544A36B4B58FFD6DC7838898C1"
+  },
+  "peer_close_fake": {
+    "freshV2Prepared": true,
+    "failedEvidencePreserved": true,
+    "status": "STOP125_CHECKER_MARKER_INDENT",
+    "nativeFailureEstablished": false,
+    "freshV2Executed": false
+  },
+  "latest_native_t05_static_review": {
+    "atUtc": "2026-11-13T19:50:03.8184502Z",
+    "reconciliationSha256": "3D1FD47052820500AA2915D75A1B697787DC7D6590BA8EF7897DDF67241859B0",
+    "decisionSha256": "A7E1E8AD8F18EC9ECD89E5B8C84A55080E15ABE6B50C3398F23206901698D736",
+    "status": "Two fake checks held pending new explicit approval",
+    "nativeAuthority": false,
+    "remainingExecutionAuthority": "NONE",
+    "mattAssignment": "completed, hands off frozen packets until next bounded assignment",
+    "blockedCounter": 0,
+    "endpoint": "unbound"
+  },
+  "latest_offline_progress": {
+    "atUtc": "2026-11-13T19:54:25.9033849Z",
+    "previousGoalTurn": "progress: completed static review, fresh staging and exact decision",
+    "currentGoalTurn": "progress: native source host audit and single bounded offline assignment delivered",
+    "nativeHostAuditSha256": "B016565460FCFB666069EF6EC8F8B9D9A3A63E001B3F75C86CC12F2AB94AE74E",
+    "activeMattAssignmentSha256": "57DA3EF58BA36808EB7D1FDF4FBB1284485CF921F032D1F1A4C694FB6FC3B573",
+    "activeMattAssignment": "MS invalid_grant design only",
+    "liveMattProcessClaim": false,
+    "normalTurnaroundAllowed": true,
+    "executionAuthority": "NONE",
+    "pendingDecisionSha256": "A7E1E8AD8F18EC9ECD89E5B8C84A55080E15ABE6B50C3398F23206901698D736",
+    "blockedCounter": 0,
+    "goalComplete": false,
+    "endpoint": "unbound",
+    "t05EvidenceReuse": "39 retained framing observations verified; direct combined witness completes finite host property index13/13, no requirement/native closure"
+  },
+  "t05_property_reuse_overlay_v2": {
+    "retained_controls_rechecked": 39,
+    "full_requirements_closed": 0,
+    "matched_finite_requirements": 13,
+    "sha256": "98CBA30620EFAE44A0A4313811DBB0335D3176FA7F18CCEE6D34BC71CD9E7B5B",
+    "new_execution": false,
+    "path": "T05-Property-Reuse-Overlay-2026-11-13-v2.json"
+  },
+  "native_t05_launch_staging": {
+    "kind": "Native T05 staging prepared; no execution",
+    "atUtc": "2026-11-13T20:07:12.7319105Z",
+    "root": "outputs/scheduler-native-provider-t05-launch-dex-v1",
+    "inputManifestSha256": "417BEA58FD10956DF9B33778672CD2197E548BD5E2ABD9F53C6B1EF0BAF1596F",
+    "inputCount": 297,
+    "nestedManifestSha256": "3C4D775444D00B5277DA05C096092F53E4B1F1995B292D7C638CCE298903747F",
+    "nestedCount": 269,
+    "payloadManifestSha256": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B",
+    "payloadCount": 257,
+    "commandSha256": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3",
+    "codeChanges": 0,
+    "applicationFilesPreserved": 234,
+    "humanAuthority": "NONE",
+    "prerequisites": "two pending fakes, independent staging review, exact native approval",
+    "mattAssignmentUnchanged": "MS invalid_grant design57DA3EF5",
+    "metadataObserver": {
+      "terminalExit": 0,
+      "noNewDesignDropDuringWindow": true,
+      "noRestartSolelyOnObservationExpiry": true,
+      "sessionId": 9367,
+      "completedAtUtc": "2026-11-13T20:03:56.6283181Z",
+      "notMattProcessLiveness": true
+    },
+    "blockedCounter": 0,
+    "goalComplete": false,
+    "endpoint": "unbound"
+  },
+  "two_fake_sequence_completed": {
+    "kind": "Authorized two-fake sequence completed once each",
+    "atUtc": "2026-11-13T20:14:47.5421888Z",
+    "authorizationSha256": "E347339B821330FD424D30772CA2E91DA7E0E6D4AAB61CF07BF9CBE3089C7830",
+    "peerClose": {
+      "predicates": 35,
+      "result": "911AC7A05F317A54522EE15DE5A33DC264929A1D5FA6B6419F8EF9E4A3079625",
+      "status": "PASS",
+      "receipt": "40D8C7C6365B9CA9B905B5F5E2B04C78B70F87183039F26DC9230DBCBC1797D3",
+      "mutants": 4,
+      "reconciliation": "4A5B51B51C25113E2518D1ABBFAD0A2F247960F0196EC60ED6E22874BCBBA9E1",
+      "controls": 11,
+      "inputs": 18
+    },
+    "T05": {
+      "predicates": 74,
+      "result": "C4771F532ED50FAF8FD40A811317C30DFEC1195F55A8AF02B997328FEDCE80FF",
+      "status": "PASS",
+      "receipt": "A743860BA3447AD49169CE96AD52794625F30EA13ACD22EFF89E4DD47D55BC76",
+      "reconciliation": "C52971E5454A1A590F797D2F6D9658D7CC78DAC149D3B65CC3B54F421FD01ED4",
+      "targetedMutants": 10,
+      "controls": 14,
+      "inputs": 37
+    },
+    "eachInvokedOnce": true,
+    "priorReconciliationBeforeSecondStart": true,
+    "bothZeroOutput": true,
+    "bothCleanReadersAndKnownRetirement": true,
+    "all55InputPinsUnchanged": true,
+    "remainingFakeExecutionAuthority": "NONE",
+    "nativeExecutionAuthority": "NONE",
+    "endpoint": "unbound"
+  },
+  "peer_close_native_prerequisite_resolution": {
+    "sha256": "1654A1D3F23FD4B1DE1748C4E01DEC70E199D8F7200C9D88C2C79DECB0524C7F",
+    "humanAuthority": "NONE",
+    "nativeCardPresentable": false,
+    "supersedingReview": "90B66DA8"
+  },
+  "ms_invalid_grant_preparation": {
+    "executionAuthority": "NONE",
+    "nativeCardPending": "A50C04FB",
+    "atUtc": "2026-11-13T20:20:19.069045Z",
+    "blockedCounter": 0,
+    "normalTurnaroundAllowed": true,
+    "verificationRoles": [
+      13,
+      14,
+      15,
+      16
+    ],
+    "singleActiveMattAssignment": "66D016138E4B51CBA41BCCB7B7A091E754F57D225E1729EE6B829F30B08EEA54",
+    "status": "workspace preparation only under389A00DD",
+    "reconciliation": "49742EEE2190974AA5D97B09AA3BA7A255291B27EE4410483074F613AC1661CF",
+    "applicationEdits": false,
+    "mutableFixtureRoles": [
+      4,
+      5,
+      8
+    ],
+    "handoff": "74F493D8CA5B52B8CCCF6A5DF4A89DDE15972E3982D4E248508988909A56B8DA",
+    "endpoint": "unbound"
+  },
+  "t05_native_parser_applicability": {
+    "fullRequirementsClosed": 0,
+    "textEqualAfterDisclosedNormalization": 4,
+    "sha256": "C22FA2AD755C587CC8CD34D71E6070EC2ED5AC9CA648B08D5B5F50B57B04961A",
+    "nativeBehaviorProven": false,
+    "wholeParserEqual": false,
+    "sourceOnly": true,
+    "scope": "Covering overrides five compared methods; inherited begin/_safe_read/_read_chunked differences disclosed; bounded8192 source reasoning is not native runtime proof",
+    "comparedMethods": 9
+  },
+  "selected_microsoft_retirement_review": {
+    "blockedCounter": 0,
+    "singleActiveMattAssignment": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+    "status": "REVISE before execution",
+    "normalImplementationTimeAllowed": true,
+    "review": "90B66DA8AC20B78195B00224EA4698F4C07E4E422F396254BA7E41E52A398394",
+    "sourceAuthoringAuthority": "existing389A00DD",
+    "oldNativeCard": "A50C04FB superseded/withheld",
+    "atUtc": "2026-11-13T20:51:51.5614588Z",
+    "endpoint": "unbound",
+    "executionAuthority": "NONE"
+  },
+  "latest_current_checkpoint": {
+    "reconciliation": "6004BED4293F8E3801B82EF75415427872ABCFB6520F53B756B4AF6E57C6481F",
+    "selectedRetirementFake": "PASS13/85 finite properties, no native proof",
+    "goalComplete": false,
+    "endpoint": "unbound",
+    "nativeT05CurrentDecision": "D6B942D089B64C35108447EE9536C2E3EEADB6C5413ABCF2AABB9EF1EF25B30A",
+    "activeMattAssignment": "0048FC07132B32C677C93E1DAFEEE47DF565D5AA26C9A5E0FE31D935BF99E558",
+    "retainedRequirementCount": 76,
+    "nativeT05PeerReview": "Qualified static acceptance611959EC",
+    "fullTransportRequirementsClosed": 0,
+    "atUtc": "2026-11-13T23:05:26.7376417Z",
+    "nativeExecutionAuthority": "NONE",
+    "result": "A8CDBF04FD2D7FC5A76A7234B54F99322FC3FCD5B75A8455CA5CD3B22C85A4DF"
+  },
+  "latestNativeT05Attempt": {
+    "sourceLocation": "fixture/np_runner_entry.py:1949",
+    "status": "STOP",
+    "fullRequirementsClosed": 0,
+    "frozenPinsUnchanged": 297,
+    "readOnlyReconciliation": "PASS",
+    "retainedNativeCasePasses": 0,
+    "actualOutcome": "NOT_RETAINED",
+    "cleanupAuthority": "NONE",
+    "atUtc": "2026-11-13T23:37:48.2926549Z"
+  },
+  "latestNativeNonexpiredCheckpoint": {
+    "atUtc": "2026-11-14T00:19:13.7656321Z",
+    "scope": "Production in-process HTTP/connector through default JoinedTLS to synthetic Microsoft HTTPS and native assessment; nonexpired credentials only",
+    "cleanup": "complete",
+    "reconciliation": "DF17A59EEBDCDDF58845D26B1AD3D03F75AC9C9D2479FAC58258024E9C125837",
+    "status": "PASS",
+    "endpoint": "unbound",
+    "fullTransportClosure": false
+  },
+  "nonexpiredRequirementReuseOverlay": {
+    "sha256": "FE4C18C564115884E2E824BA18C1B4D0C69DEC4EC6960914222240BB50E948E8",
+    "fullRequirementsClosed": 0,
+    "positiveIntegrationProof": "proven at selected Microsoft nonexpired/default JoinedTLS scope",
+    "path": "outputs\\scheduler-investigation\\NONEXPIRED-Native-Requirement-Reuse-Overlay-2026-11-13.json",
+    "duplicatePositiveRun": "not automatically needed"
+  },
+  "t08ContextPropertyReuse": {
+    "review": "6A3498F24FEF0E849DBD31C6A81CC20A37EF799E68E152E87CCE6B92B4A4C5B1",
+    "all76RequirementsRetained": true,
+    "resultSHA256": "88805F6E67176B50F2B150200436431A3FCA527FB162B5D88CF5C09FE1B403B5",
+    "controls": "Nested refusal plus normal/exceptional reset through actual extracted ContextVar manager",
+    "newExecution": false,
+    "remaining": [
+      "Direct ordinary-client fallback refusal wiring not exercised by this control",
+      "Real foreign-thread/foreign-close/reuse and known owner retirement"
+    ],
+    "scope": "Exact unchanged source; fake transport markers and refusal class; no real socket/thread lifecycle claim",
+    "sourceSHA256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+  },
+  "latestNativeT05Diagnostic": {
+    "status": "STOP_PRESERVED_NO_RETRY",
+    "receipt": "174E1BE136693014C7B9F5F1E885342604BF50FC52B0B9BAB83412EC6CC9EB13",
+    "observation": "BrokenPipeError at actual response-body receive under abrupt classifier",
+    "trace": "FD3877736081277F5EC1745B470E85E9EC7BC19B898B7356DD0E59BD00309F00",
+    "cleanup": "PASS9_BOTH_ABSENT_DBEXIT0",
+    "cleanup_receipt": "D944C6A1D6C3637C016A69CA7236697DF786974544C1FD3FF069432A918ABC6E",
+    "no_requirement_closed": true
+  },
+  "latestGoogleNativeCheckpoint": {
+    "retainedAll76Requirements": true,
+    "atUtc": "2026-11-13T22:07:03.2854827-08:00",
+    "duplicatePositiveGoogleRun": "Not automatically needed",
+    "reconciliation": "2D03C8551FEA52BA758A5D9162A33A31F29ED92CA3625CF5E10F572B96ACD1DD",
+    "status": "PASS_RECONCILED_INDEPENDENT_RESULT_REVIEW_ACCEPTED",
+    "fullGoalClosure": false
+  },
+  "t08OwnershipFake": {
+    "fullRequirementsClosed": 0,
+    "controls": 7,
+    "reportedUnits": 9,
+    "nativeStage": "4C9CAE799A4C431442782B34FDEEFE586199A8FD775AB59024C968D0667B443B",
+    "all76RequirementsRetained": true,
+    "mutants": 3,
+    "newExecution": false
+  },
+  "latestGoogleInvalidNativeCheckpoint": {
+    "cleanup": {
+      "databaseExit": 0,
+      "containers": [
+        {
+          "id": "e9800cdeb37b0e956b5b20416b8578f04dcc32077a1ca0dac62a9688116082a5",
+          "role": "database"
+        },
+        {
+          "id": "a7e8363c6413b41478c71aba0a7ce54ae3c198391bf30dbab3e8ab8dd560809b",
+          "role": "runner"
+        }
+      ],
+      "absenceChecks": 2,
+      "complete": true,
+      "commands": 22
+    },
+    "receipt": "ED28319B513A53A1F4CC6D370E6504453C30DDBCE3768C8F2A863263426BAD62",
+    "oauthRequests": 1,
+    "parentImports": 0,
+    "persistedCredentialsCoverageOwnerUnchanged": true,
+    "tokenRollbackAcknowledged": true,
+    "remainingAuthority": 0,
+    "eventImports": 0,
+    "independentResultReview": "QUALIFIED_ACCEPTED",
+    "inputsUnchanged": 318,
+    "limitations": "One synthetic known rejection through production path;not refresh success,not live activation or fullT06/goalclosure",
+    "typedReauthorization": true,
+    "unrelatedUnchanged": true,
+    "finalAssessment": "completed_not_ready_at_unchanged_revision1",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "endpoint": "unbound",
+    "case": "NP-V-GOOGLE-INVALID",
+    "publicOutcome": "no_op/preflight_rejected/CALENDAR_ACCOUNT_DISCONNECTED"
+  },
+  "latestT08NativeCheckpoint": {
+    "remainingAuthority": 0,
+    "cleanup": {
+      "complete": true,
+      "absenceChecks": 2,
+      "databaseExit": 0,
+      "commands": 22,
+      "containers": [
+        {
+          "id": "1bc707c578fcfec90af13c18bbf04c300ae7e96bcd1c1b43f19a234537341dd1",
+          "role": "database"
+        },
+        {
+          "id": "0b53280b35337fc554f65926732392531d803eb1f8eb547e78c17cd053cf07b1",
+          "role": "runner"
+        }
+      ]
+    },
+    "reuseRefused": true,
+    "ownerSocketRetired": true,
+    "ownerSocketUnchangedAfterForeign": true,
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+    "case": "NP-T08-OWNERSHIP",
+    "inputsUnchanged": 310,
+    "ownerExchangeBytes": 91,
+    "foreignJoinAttempts": 1,
+    "realForeignThreadUseAndCloseRefused": true,
+    "peerJoinedNoWorkerError": true,
+    "independentResultReview": "QUALIFIED_ACCEPTED_C2443B80",
+    "scope": "Direct productionJoinedTLS realthread/socket ownership,exactfinitewire,retirement;no HTTPframing/OAuth/ingress/assessmentclaim",
+    "endpoint": "unbound"
+  },
+  "t03PositiveTLSReuseFromT08": {
+    "changesFrozenT03Batch": false,
+    "sha256": "7816F042573475607FFD0FDB5723F69F1E09807CE6070B9CF03B39D7305CD090",
+    "negativeCasesProven": false,
+    "path": "T03-Positive-TLS-Reuse-From-T08-2026-11-13.json",
+    "status": "POSITIVE_NATIVE_WITNESS_REUSE_WITH_ACCEPTED_T08_RESULT_REVIEW",
+    "newExecution": false
+  }
+}

@@ -1,0 +1,5 @@
+# HELD: preparation only; invoke once only after Trish's exact-hash launch approval.
+$ErrorActionPreference = 'Stop'
+$wrapperPath = 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-fake-v4\Invoke-Verification.ps1'
+if ((Get-FileHash -LiteralPath $wrapperPath -Algorithm SHA256).Hash -cne '0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA') { throw 'STOP: reviewed wrapper mismatch; no invocation' }
+& $wrapperPath -AdmissionSHA256 '4BE04F87B1AD858C05DCA789DEF05B602E80DF33274E7D19A9BB4E985B865D85'

@@ -1,0 +1,106 @@
+{
+  "launch_ready": false,
+  "packet": "scheduler-native-provider-diagnostic-launch-v1",
+  "batch_id": "np-t03-b2a",
+  "endpoint": "unbound",
+  "endpoint_binding_authorized": false,
+  "port_verification_authorized": false,
+  "case_ids": [
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME"
+  ],
+  "expected_unknown_cases": [],
+  "include_cf_witnesses_separate_batch": true,
+  "cf_witness_case_ids": [
+    "NP-T01-USERINFO-CF",
+    "NP-T01-FRAGMENT-CF",
+    "NP-T01-CONTROL-CHAR-CF",
+    "NP-T01-PURPOSE-WRONG-CF"
+  ],
+  "master_inventory_note": "All 76 planning requirements retained; other 26 native + 4 CF remain HOLD_EXPLICIT_NOT_PASS in suite registry / Expected-Outcomes",
+  "clocks": {
+    "work_deadline_seconds": 210,
+    "request_deadline_seconds": 240,
+    "cleanup_allowance_seconds": 30,
+    "attempt_validity_seconds": 600
+  },
+  "suite_seconds": 900,
+  "runner_seconds": 600,
+  "command_count_cap": 32,
+  "output_byte_cap": 1048576,
+  "peer_seconds": 120,
+  "peer_retire_join_seconds": 5.0,
+  "provider_pki_retirement_total_seconds": 45,
+  "bounds_note": "Proposed caps from Dex C7B8FD74 reconciliation; product 210/240/30 and 600s plan validity remain distinct. Caps are not observed timings.",
+  "topology": {
+    "initial_bind": "unchanged_isolation_nonroot_443",
+    "dial": "127.0.0.1:443",
+    "verify_full": true,
+    "host_docker_ownership": true,
+    "runner_docker_socket": false,
+    "new_privileges": false,
+    "runner_uid": 65534
+  },
+  "retirement": {
+    "owned_peer_pki_reader": "source_implements_bounded; invocation_fault_authority=later_launch_card_only",
+    "failed_container_shutdown": "separately_gated",
+    "unjoined": "UNKNOWN",
+    "success_cleanup": "exact_id_only"
+  },
+  "python": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+  "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+  "manifest_sha256": "79810C46C3F42EB25C3B3A0BE4720960D5A5CD897F7AF4565BD20762BCD2F195",
+  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t03-b2a-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+  "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t03-b2a-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "acyclic_input_graph": {
+    "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+    "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+    "C_docker_ops_config": "operator ExpectedDockerConfigSHA256 admits host/docker-ops-config.json (outside payload)",
+    "D_host_exe_pins": "python_sha256 / docker_sha256 retained from prior proven host inventory / I01 path"
+  },
+  "endpoint_npipe": "npipe:////./pipe/dockerDesktopLinuxEngine",
+  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "database_image": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+  "image_presence_verified_this_prep": false,
+  "port_443_bind_verified_this_prep": false,
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "implementation_increment": {
+    "implemented_case_ids": [
+      "NP-V-MS-NONEXPIRED",
+      "NP-T03-VALID",
+      "NP-T03-WRONG-CA",
+      "NP-T03-WRONG-NAME"
+    ],
+    "remaining": "HOLD_EXPLICIT_NOT_PASS"
+  },
+  "first_vertical_increment": true,
+  "first_vertical_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "static_success_docker_command_count": 22,
+  "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+  "human_launch_authorized": false,
+  "candidate_launch_ready_staged": false,
+  "candidate_note": "Matt native T03 B2a preparation (scheduler-native-provider-t03-b2a-prep-matt-v1) from passed NONEXPIRED retirement v2 (C62FDA91), Trish-approved decision D46E6CF8: batch NP-T03-VALID, NP-T03-WRONG-CA, NP-T03-WRONG-NAME (direct production CoveringHTTP/default JoinedTLS, no schema); roles 4 (D1 negative helper, _t03_observe, three bodies), 5 (notes), 8 (fixed-length GET script) changed; peer/routes/PKI/application unchanged; gates AS AUTHORED in this prep root: host launch_ready=false, candidate staging false, runner-config launch_ready=false (any staging that flips a gate must restate this note); copied docker-ops machine flags are data only; human authority HELD; a run needs the focused fake PASS, a reviewed staging copy and an exact approved card.",
+  "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+  "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+  "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+  "source_candidate_v1_tip_sha256": "E5788AB2348B5EA578E25B2FD7B211F52DDD876202837D419D0BB130413AA313",
+  "dex_r1_revise_note": "HISTORICAL (Dex staging 2913656A): runner-config launch_ready flipped true; host flags already true; human authority HELD. Superseded in this successor: host and runner gates are false.",
+  "source_candidate_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
+  "diagnostic_successor_of": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+  "diagnostic_successor_base_input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+  "diagnostic_successor_approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+  "diagnostic_successor_runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+  "diagnostic_successor_operator_evidence_path_note": "HISTORICAL O1 resolved in this packet: operator line 42 now names sibling scheduler-native-provider-diagnostic-launch-v1.evidence (operator 5A8A04B6...D7D6, approved diff 5092F682...7D69F); refusals on existing evidence/receipt unchanged",
+  "launch_packet_prepared_from": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
+  "launch_packet_baseline_input_manifest_sha256": "899B06F6E3FEB3AB82AC11E47BE25A6F3923CF081D4DA3E2E9EEDAFA7A4E0DA7",
+  "launch_packet_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "launch_packet_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891"
+}

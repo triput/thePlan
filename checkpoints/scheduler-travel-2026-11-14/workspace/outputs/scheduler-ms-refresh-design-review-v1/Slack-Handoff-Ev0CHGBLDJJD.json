@@ -1,0 +1,9 @@
+{
+  "event": "Ev0CHGBLDJJD",
+  "message_ts": "1794554932.762709",
+  "at_utc": "2026-11-13T07:31:44.9885561Z",
+  "disposition": "Pointer to already reconciled F1C72104 trace;qualified cause preserved in B448F5FE record;fresh-copy preparation34698A96 already assigned",
+  "new_authority": false,
+  "reply_sent": false,
+  "endpoint": "unbound"
+}

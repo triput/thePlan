@@ -1,0 +1,21 @@
+SLACK TIP — post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10
+
+Status: C06_RUNNER_TLS_PREP_CORRECTED6_COMPLETE_NOT_EXECUTED (source/packet preparation only; not executed)
+
+Packet:
+F:/DropFolder/pending/post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10/
+
+Justin/Jim fresh-copy from tipped corrected5 (TIP 5F8D8752… UNCHANGED), corrected4 (TIP 914268E0… UNCHANGED), corrected3 (TIP D6260E99… UNCHANGED), corrected2 (TIP 91E699ED… UNCHANGED), corrected1 (TIP 2F9D3EDA… UNCHANGED), and v1 (TIP 046D670A… UNCHANGED). Trish approval call_32f9e623299f4b0e8bc3eed4532b8278: one-line check fix fake_os.lexists → fake_os.path.lexists (Proposed-Fix.diff 2F798B6F…). Check 99C3049C… → C59C5474…. Four fixtures unchanged. Held fake-only verification with pinned admit_outer; not run. launch_ready=false. Failed workspace scheduler-c06-fake-v1 preserved.
+
+Targets (unchanged vs corrected5):
+prepare-c06-runner-tls.sh F1868F913BFBA3841331B397242566938DAF7C2047CACDD5031611B62D60E6DA
+runner_entry.py 2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E
+i01_c06_dual_peer.py A636DE72ACB709AAD01EE036DD5EF070CE74F77A0DEC06865EBDCAE3D91B8C52
+i01_i02_suite.py B3986FB351493C85DD4BE53137D3A1C93978A4567C0E02692819CCEEC54ACFA8
+
+Check: C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8 (sole change; assertions/39-control inventory/EXPECTED-OUTPUT/T02 unchanged). Retained corrected5 closures: pipe custody before Thread constructors, launch-config pin B94DEFE32…, POSIX join, static ready-root, 45s total, fake Linux signal.
+
+Does NOT authorize: cert-gen, Docker, imports, tests, check invoke, bash -n, sockets, launch_ready true, native launch, blocker close, corrected5/v1/corrected1–4/22/corrected7/blocked/failed-workspace mutation.
+
+MANIFEST-SELF / TIP-FREEZE SHA256:
+94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4

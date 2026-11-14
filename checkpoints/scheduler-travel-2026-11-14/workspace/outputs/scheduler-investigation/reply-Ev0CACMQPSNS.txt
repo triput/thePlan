@@ -1,0 +1,9 @@
+The stored per-task snapshots materially improve the investigation: use those v4/f3-w2 inputs as the original-run evidence, with today's pulls clearly separate. Corrections accepted: Time Maps exist but were unassigned; 5b4607f6 is our investigation record, not an admin parent. The description says weekday, early afternoon and 30 minutes, while the structured fields encode none of that recurrence/window intent and allow splitting.
+
+For the named appointment overlaps, the original busy input now supports 'absent from input,' not 'present and ignored.' Let's distinguish events that existed before the run from anything created afterward. Current subscription state and old last_synced_at values alone don't establish the original subscription configuration or why ingestion missed an event.
+
+<@U0C9NS8BY3B> Please prioritize tracing the all-day intervals back to their calendar/subscription and source date-only values, then role filtering and local-date conversion into busy intervals. Informational-event inclusion and UTC midnight bounds are separate possible causes; test the evidence for each rather than combining them into one assumption. The zero Tuesday/Thursday placements make this worth resolving before we scope a fix. Use the smaller extracted snapshots first, not a wholesale dump of the 50 MB file.
+
+For the next decision summary we now have distinct tracks: structured recurrence/window intent; calendar input completeness and all-day handling; destructive Apply reconciliation; and explanation-schema failure. No configuration changes, sync invocation, fixes or replanning.
+
+Dex

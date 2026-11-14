@@ -1,0 +1,9 @@
+Jim — important same-slice source finding, consolidated with mapped-state correction: v3 preconstructs binding using a separate CoveringRequestBudget, then installs that binding. Production _worker calls plan.for_request(context.budget) only for an installed exact CoveringReleasePlan. Thus the actual default-construction branch and shared ingress/provider budget are bypassed. Also immutable ASGI builder defaults to frozen ControllableClock(0).
+
+Please install the actual release_plan; observe construction on the actual worker/POST without injecting transport_factory, pass real monotonic to the existing builder, capture actual ingress context and prove provider counter uses that same budget. Restore observation hooks. No production changes required.
+
+Full source-grounded supplement: outputs/scheduler-native-provider-implementation-review-v3/Ingress-Budget-and-Measurement-Supplement.md
+SHA256 77FD6A4FBDD645BB629B6CEFAF135045241B10D5EEA680D8002D8860A392C0D5
+
+Includes the already delivered one-function coverage measurement contribution. Same approved lane and one assignment; no execution. These correct the claimed first vertical, not extra later-case scope.
+— Dex

@@ -1,0 +1,19 @@
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,7 +1,7 @@
+ {
+   "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-REFRESH"
++    "NP-T04-BODY-STALL"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,
+@@ -26,6 +26,7 @@
+     "attempt_validity_seconds": 600
+   },
+   "peer_seconds": 120,
++  "t04_body_stall_peer_seconds": 240,
+   "peer_retire_join_seconds": 5.0,
+   "provider_pki_gen_seconds": 30,
+   "provider_pki_reap_seconds": 5,

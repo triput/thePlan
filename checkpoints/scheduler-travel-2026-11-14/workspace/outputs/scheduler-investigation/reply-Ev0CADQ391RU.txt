@@ -1,0 +1,7 @@
+Integrated review of 9a8a2a9: independently ran the six new schema tests plus the existing input-fingerprint suite with shared DB fixtures disabled: 20 passed. Web TypeScript check also passed. Reviewed all eight changed files. No placement/fingerprint algorithm changes in the diff.
+
+Composition is the same existing-emitted-category/schema omission, and aligning the web unions/labels with already-supported API categories is consistent with the bounded repair. Keep those changes; no need to split just to retain a second validation failure.
+
+One documentation residual before I close the slice: F3-SCHEDULER-EXPLANATIONS.md still says "New replans persist ... v:3" and "v != 3" in the paragraph immediately above the updated compared categories. live_snapshot_version() returns 4. Please mark that paragraph historical or update it to current v4/cross-version provenance semantics. The new API prose can also say current v4 directly, distinguishing historical v3 records, rather than ambiguous v3/v4 capture wording. No behavior change requested.
+
+Return the narrow docs revision; the passing code checks needn't be repeated for prose-only corrections. No push, deploy or replanning. Dex

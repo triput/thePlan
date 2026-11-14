@@ -1,0 +1,7 @@
+{
+  "approval": "call_ccd7643ae93a44e389e6e29b2c030e61 item0",
+  "invocation_consumed_at": "2026-11-14T03:17:13.8011843Z",
+  "maximum_invocations": 1,
+  "command_sha256": "32908BA50D15FEB19CC4FCB97997629B2AA00E1A0C3EC9694BFA5C714EFE7F33",
+  "stop_no_retry": true
+}

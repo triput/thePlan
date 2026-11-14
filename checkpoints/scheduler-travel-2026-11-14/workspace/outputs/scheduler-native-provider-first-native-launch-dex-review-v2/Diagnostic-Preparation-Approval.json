@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-13T01:42:09.7313529Z",
+  "authorization": "Trish approved design and fresh-copy preparation via combined decision card",
+  "approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+  "fixture_file": "payload/fixture/np_runner_entry.py",
+  "implementation_owner": "Jim",
+  "base": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+  "base_runner_sha256": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+  "source_preparation_authorized": true,
+  "fake_packet_authoring_authorized": true,
+  "execution_authorized": false,
+  "native_rerun_authorized": false,
+  "failed_packet_immutable": true,
+  "endpoint": "unbound"
+}

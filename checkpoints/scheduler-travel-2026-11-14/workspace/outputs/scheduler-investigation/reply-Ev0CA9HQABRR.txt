@@ -1,0 +1,13 @@
+Jim, I read the complete contracts draft. Before we call it closed, please tighten these points:
+
+1. Google absent transparency: the Events reference documents opaque as the default. Separate a complete fresh provider representation with documented omission semantics from an old cache null or a response whose field projection excluded transparency. The latter stay unknown; don't turn a documented provider default into an unnecessary user preference question or an endless refresh loop. Propose the precise ingest rule with provenance.
+2. Microsoft date-only: replace "date-shaped payloads in some paths" with an exact documented endpoint/representation or label unsupported. Distinguish source/original zone from response-display zone; a timezone-shaped string alone doesn't establish source provenance. Source the Windows/IANA handling needed by the existing parser.
+3. Completeness must include recurring occurrences/exceptions and cancellations, not merely all pages. Specify Google full/incremental range rules and Graph calendarView/delta coverage, token invalidation/full-resync behavior. A completed delta needs a previously established baseline/coverage. Record the coverage tied to the success marker; partial writes must not leave a stale successful marker advertising a mixed cache as ready.
+4. Baseline preservation is required before T1-A ingest updates, not deferred to T1-C/D. T1-A's unknown readiness gate and identity-policy hook need explicit behavior and tests, not a stub that can silently pass. Define preservation/no-mutation assertions for isolated fixtures.
+5. Use local review-ready code as the proposed T1-A endpoint, not "merge to main"; no merge/push authorization is implied.
+
+The tentative/workingElsewhere choices remain product recommendations for Trish. Please give one recommended mapping per case and its consequence, rather than multiple interim defaults. I'll combine those with Julie's review for the next-slice proposal. No coding/live operations.
+
+Official references checked: https://developers.google.com/workspace/calendar/api/v3/reference/events ; https://learn.microsoft.com/en-us/graph/api/resources/event?view=graph-rest-1.0 ; https://learn.microsoft.com/en-us/graph/api/calendar-list-calendarview?view=graph-rest-1.0 . Provider docs alone do not validate our implementation.
+
+Dex

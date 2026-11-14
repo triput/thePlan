@@ -1,0 +1,667 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -56,7 +56,7 @@
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-V-GOOGLE-REFRESH"})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -1304,6 +1304,642 @@
+     native_terminals.append({"observer": "CoveringORMConnection.token_terminal", "terminal": None})
+ 
+ 
++# NP-V-GOOGLE-REFRESH (T06-SUCCESS-GOOGLE; Dex CEBD83C3, Trish Google-first direction).
++# Source-derived expectations (google_calendar.py / covering_domain_adapters.py):
++# target 1 refreshes the expired token (one OAuth POST, TOKEN COMMIT); target 2 reads the
++# committed token (no POST, TOKEN ROLLBACK); both targets import one page each.
++GOOGLE_SEED_ACCESS_PLAINTEXT = "fixture-access-plaintext-not-for-receipt"  # np_auth_seed literal
++GOOGLE_SEED_REFRESH_PLAINTEXT = "fixture-refresh-plaintext-not-for-receipt"  # np_auth_seed literal
++GOOGLE_EVENTS_PREFIX = "/calendar/v3/calendars/"
++GOOGLE_CLIENT_PURPOSES = [("POST", "oauth"), ("GET", "event"), ("GET", "event")]
++GOOGLE_TOKEN_TERMINAL_SEQUENCE = [
++    {"terminal": "COMMIT_ACKNOWLEDGED", "token_rollback_ack": False, "commit_requested": True},
++    {"terminal": "ROLLBACK_ACKNOWLEDGED", "token_rollback_ack": True, "commit_requested": False},
++]
++GOOGLE_PARENT_TERMINAL_SEQUENCE = [
++    {"terminal": "COMMIT_ACKNOWLEDGED", "commit_requested": True},
++    {"terminal": "COMMIT_ACKNOWLEDGED", "commit_requested": True},
++]
++GOOGLE_ACTION_SUMMARY = {
++    "requested": 2,
++    "preflight_rejected": 0,
++    "import_attempted": 2,
++    "import_ok": 2,
++    "import_failed": 0,
++}
++GOOGLE_CREDENTIAL_SEMANTIC_KEYS = (
++    "seed_access_match",
++    "seed_refresh_match",
++    "refreshed_access_match",
++    "rotated_refresh_match",
++    "expiry",
++)
++GOOGLE_EVENT_IDS = ("np-google-busy-1", "np-google-busy-2")
++
++
++def _google_provider_routes(*, api_route: Any, token_route: Any):
++    """Exact Google OAuth vs event route classification for CoveringHTTP (no identity route:
++    the seed plants no Google primary alias, so production requests no calendarList)."""
++    from app.services.covering_transport_policy import HTTPSPeer
++
++    api_peer = HTTPSPeer(
++        hostname=api_route.server_hostname,
++        address=api_route.dial_address,
++        port=api_route.dial_port,
++        ca_file=api_route.ca_path,
++    )
++    token_peer = HTTPSPeer(
++        hostname=token_route.server_hostname,
++        address=token_route.dial_address,
++        port=token_route.dial_port,
++        ca_file=token_route.ca_path,
++    )
++    return ((token_peer, "/token", "oauth"), (api_peer, GOOGLE_EVENTS_PREFIX, "event"))
++
++
++def _google_events_exact_query(window_start: datetime, window_end: datetime) -> str:
++    """Exact Google events wire query (google_calendar.py l.409-416 params, in source order).
++
++    Production builds the dict inline in list_calendar_events (no separate builder), so the
++    keys/values are mirrored from source and the instants use the UNCHANGED production
++    google_calendar._iso_z over the production effective window (read-only pure calls). The
++    wire form is CoveringHTTP's urlencode(params, doseq=True); any mismatch fails closed as an
++    exact peer query mismatch.
++    """
++    from urllib.parse import urlencode
++
++    from app.services import google_calendar as production_google
++    from app.services.covering_refresh_window import effective_covering_pull_window
++
++    window = effective_covering_pull_window(window_start, window_end)
++    params = {
++        "timeMin": production_google._iso_z(window.effective_start),  # noqa: SLF001
++        "timeMax": production_google._iso_z(window.effective_end),  # noqa: SLF001
++        "singleEvents": "true",
++        "showDeleted": "true",
++        "orderBy": "startTime",
++        "maxResults": "2500",
++    }
++    return urlencode(params, doseq=True)
++
++
++def _measure_google_credential_state(
++    db: Any, *, settings: Any, account_id: UUID, reference_instant: datetime
++) -> dict[str, Any]:
++    """Fresh persisted read of one Google account's credential columns (semantic, not ciphertext).
++
++    Decrypts with the UNCHANGED production token_crypto inside the fixture and compares with the
++    declared seed and refreshed values. Emits only booleans and the persisted expiry instant;
++    plaintext and ciphertext are never returned.
++    """
++    from np_provider_transcript import GOOGLE_REFRESHED_ACCESS_PLAINTEXT, GOOGLE_ROTATED_REFRESH_PLAINTEXT
++    from app.models import CalendarAccount
++    from app.services.token_crypto import decrypt_token
++
++    account = db.get(CalendarAccount, account_id)
++    if account is None:
++        raise RuntimeError("calendar account missing for credential measurement")
++    access = decrypt_token(settings, account.access_token_enc) if account.access_token_enc else None
++    refresh = decrypt_token(settings, account.refresh_token_enc) if account.refresh_token_enc else None
++    expiry = account.token_expires_at
++    if expiry is not None and expiry.tzinfo is None:
++        expiry = expiry.replace(tzinfo=timezone.utc)
++    return {
++        "seed_access_match": access == GOOGLE_SEED_ACCESS_PLAINTEXT,
++        "seed_refresh_match": refresh == GOOGLE_SEED_REFRESH_PLAINTEXT,
++        "refreshed_access_match": access == GOOGLE_REFRESHED_ACCESS_PLAINTEXT,
++        "rotated_refresh_match": refresh == GOOGLE_ROTATED_REFRESH_PLAINTEXT,
++        "expiry": expiry.isoformat() if expiry is not None else None,
++        "expiry_at_or_before_reference": bool(expiry is not None and expiry <= reference_instant),
++    }
++
++
++def _measure_google_events(db: Any, *, account_ids: list[UUID]) -> list[dict[str, Any]]:
++    """Fresh persisted read of ExternalCalendarEvent rows for the given accounts (no titles)."""
++    from app.models import ExternalCalendarEvent
++
++    def utc(value: datetime) -> str:
++        return (value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)).astimezone(
++            timezone.utc
++        ).isoformat()
++
++    rows = (
++        db.query(ExternalCalendarEvent)
++        .filter(ExternalCalendarEvent.calendar_account_id.in_(list(account_ids)))
++        .all()
++    )
++    out = [
++        {
++            "owner_id": str(row.owner_id),
++            "calendar_account_id": str(row.calendar_account_id),
++            "provider": getattr(row.provider, "value", str(row.provider)),
++            "external_event_id": row.external_event_id,
++            "calendar_id": row.calendar_id,
++            "start_utc": utc(row.start_time),
++            "end_utc": utc(row.end_time),
++            "is_all_day": bool(row.is_all_day),
++            "transparency": row.transparency,
++            "free_busy_provenance": row.free_busy_provenance,
++            "is_provider_cancelled": bool(row.is_provider_cancelled),
++            "pending_deletion": bool(row.pending_deletion),
++            "scheduled_block_absent": row.scheduled_block_id is None,
++            "source_zone_missing": bool(row.source_zone_missing),
++        }
++        for row in rows
++    ]
++    return sorted(out, key=lambda item: (item["calendar_id"], item["external_event_id"]))
++
++
++def _install_google_parent_observer(parent_terminals: list[dict[str, Any]]) -> Callable[[], None]:
++    """Same-return/same-exception wrapper on CoveringParentAdapter.finish_root; restorable."""
++    from app.services.covering_parent_adapter import CoveringParentAdapter
++
++    real_finish_root = CoveringParentAdapter.finish_root
++
++    def observed_finish_root(self, *, commit):
++        try:
++            outcome = real_finish_root(self, commit=commit)
++        except BaseException as exc:
++            parent_terminals.append({"raised": type(exc).__name__, "commit_requested": bool(commit)})
++            raise
++        parent_terminals.append(
++            {"terminal": outcome.name if hasattr(outcome, "name") else str(outcome), "commit_requested": bool(commit)}
++        )
++        return outcome
++
++    def restore() -> None:
++        CoveringParentAdapter.finish_root = real_finish_root  # type: ignore[method-assign]
++
++    CoveringParentAdapter.finish_root = observed_finish_root  # type: ignore[method-assign]
++    return restore
++
++
++def _run_np_v_google_refresh() -> dict[str, Any]:
++    """NP-V-GOOGLE-REFRESH (T06-SUCCESS-GOOGLE): expired Google token refreshed by the owning
++    production function, then two non-empty one-page Google event imports, through actual
++    covering-refresh ASGI ingress -> CoveringReleasePlan -> ProviderCounter -> CoveringHTTP
++    (default JoinedTLS) and the real native final assessment. Separate single-case batch.
++    """
++    import inspect
++    from datetime import timedelta
++
++    from np_suite import SuiteStop, check_oracles_immediate, registry_by_id
++    from np_auth_seed import (
++        assert_plan_still_valid,
++        covering_refresh_body,
++        fixture_settings,
++        fresh_attempt_plan,
++        inverted_subscription_ids,
++        measure_subscription_coverage_state,
++        PlanValidityExpired,
++        seed_browser_owner_with_subscriptions,
++        seed_token_plan,
++    )
++    from np_receipts import case_result_receipt
++    from np_provider_routes import google_api_route, google_token_route
++    from np_provider_transcript import (
++        GOOGLE_REFRESH_EXCHANGE_COUNT,
++        google_busy_event,
++        google_refresh_connection_inventory,
++    )
++    from np_provider_peer import SyntheticProviderPeer, PeerMaterial, PeerRetirementUnknown, _http_response_bytes
++    from i01_asgi_app import asgi_client, build_i01_asgi_app, install_binding
++    from app.services.covering_release_plan import CoveringReleasePlan
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_http_dispatch import CoveringReleaseBinding
++
++    case_id = "NP-V-GOOGLE-REFRESH"
++    decl = registry_by_id(include_cf=True)[case_id]
++    plan = fresh_attempt_plan(case_id)
++    t_plan_iso = plan.t_plan.isoformat()
++    token_seed = seed_token_plan(case_id=case_id, provider="google", expired=True)
++    settings = fixture_settings()
++    if inspect.signature(CoveringHTTP.__init__).parameters["transport_factory"].default is not JoinedTLS:
++        raise SuiteStop("production CoveringHTTP default is not JoinedTLS")
++    api_route = google_api_route()
++    token_route = google_token_route()
++    if (token_route.dial_address, token_route.dial_port, token_route.ca_path) != (
++        api_route.dial_address, api_route.dial_port, api_route.ca_path
++    ):
++        raise SuiteStop("Google token route must share API CA/address/port")
++
++    planted = inverted_subscription_ids(case_token=plan.attempt_token)
++    factory = _open_native_setup_factory(settings=settings)
++    schema_receipt = provision_disposable_schema(factory)
++    setup = factory.open_setup_session()
++    try:
++        seed = seed_browser_owner_with_subscriptions(
++            setup, settings=settings, username_prefix="np-google-refresh", subscription_count=2,
++            provider="google", expired=True, mark_covering_fresh_at_seed=False,
++            planted_subscription_ids=planted, t_plan=plan.t_plan,
++        )
++        unrelated = seed_browser_owner_with_subscriptions(
++            setup, settings=settings, username_prefix="np-google-unrelated", subscription_count=1,
++            provider="google", expired=False, mark_covering_fresh_at_seed=False, t_plan=plan.t_plan,
++        )
++        setup.commit()
++    finally:
++        factory.close(setup)
++
++    assert seed.request_window_start is not None and seed.request_window_end is not None
++    assert_plan_still_valid(seed.t_plan)
++    if seed.token_expired is not True or seed.provider != "google":
++        raise SuiteStop("google refresh vertical requires an expired Google seed")
++    if len(seed.account_ids) != 1 or len(seed.subscription_ids) != 2 or len(unrelated.account_ids) != 1:
++        raise SuiteStop("google refresh requires two subscriptions on one account plus one unrelated account")
++    account_id = seed.account_ids[0]
++    targets = sorted(seed.subscription_ids, key=str)
++    wire_calendar_ids = tuple(seed.subscription_calendar_map[str(sub)] for sub in targets)
++    if "primary" in wire_calendar_ids or len(set(wire_calendar_ids)) != 2:
++        raise SuiteStop("google refresh seed must plant two distinct non-alias calendar ids")
++    window_start, window_end = seed.request_window_start, seed.request_window_end
++    if window_end - window_start < timedelta(hours=5):
++        raise SuiteStop("google refresh window too short for the declared busy events")
++    event_bounds = [
++        (window_start + timedelta(hours=1), window_start + timedelta(hours=2)),
++        (window_start + timedelta(hours=3), window_start + timedelta(hours=4)),
++    ]
++
++    def z(value: datetime) -> str:
++        return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
++
++    events = tuple(
++        google_busy_event(event_id=GOOGLE_EVENT_IDS[i], start_z=z(start), end_z=z(end))
++        for i, (start, end) in enumerate(event_bounds)
++    )
++    exact_query = _google_events_exact_query(window_start, window_end)
++    inventory_scripts = google_refresh_connection_inventory(
++        wire_calendar_ids=wire_calendar_ids, exact_query=exact_query, events=events
++    )
++    if len(inventory_scripts) != GOOGLE_REFRESH_EXCHANGE_COUNT:
++        raise SuiteStop("google refresh inventory is not exactly three exchanges")
++    expected_bytes_sent = sum(
++        len(_http_response_bytes(step))
++        for script in inventory_scripts
++        for step in script.steps
++        if step.direction == "send_response"
++    )
++    expected_events = sorted(
++        (
++            {
++                "owner_id": str(seed.owner_id),
++                "calendar_account_id": str(account_id),
++                "provider": "google",
++                "external_event_id": GOOGLE_EVENT_IDS[i],
++                "calendar_id": wire_calendar_ids[i],
++                "start_utc": datetime.fromisoformat(events[i]["start"]["dateTime"].replace("Z", "+00:00")).isoformat(),
++                "end_utc": datetime.fromisoformat(events[i]["end"]["dateTime"].replace("Z", "+00:00")).isoformat(),
++                "is_all_day": False,
++                "transparency": "opaque",
++                "free_busy_provenance": "provider_explicit",
++                "is_provider_cancelled": False,
++                "pending_deletion": False,
++                "scheduled_block_absent": True,
++                "source_zone_missing": False,
++            }
++            for i in range(2)
++        ),
++        key=lambda item: (item["calendar_id"], item["external_event_id"]),
++    )
++
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}", route=api_route, connection_scripts=inventory_scripts, material=PeerMaterial()
++    )
++    native_terminals: list[dict[str, Any]] = []
++    parent_terminals: list[dict[str, Any]] = []
++    client_inventory: list[dict[str, Any]] = []
++    client_outcomes: list[tuple[str, str, str]] = []
++    oauth_requests = 0
++    held_transport: list[Any] = []
++    captured_contexts: list[Any] = []
++    worker_exceptions: list[BaseException] = []
++    restore_worker_observer: Callable[[], None] | None = None
++    restore_parent_observer: Callable[[], None] | None = None
++    real_request = None
++    transport = None
++    retirement_done = False
++    retirement_attempted = False
++    primary_failure: BaseException | None = None
++
++    def measure_all() -> dict[str, Any]:
++        db = factory.open_setup_session()
++        try:
++            return {
++                "credential": _measure_google_credential_state(
++                    db, settings=settings, account_id=account_id, reference_instant=plan.t_plan
++                ),
++                "unrelated_credential": _measure_google_credential_state(
++                    db, settings=settings, account_id=unrelated.account_ids[0], reference_instant=plan.t_plan
++                ),
++                "coverage": measure_subscription_coverage_state(db, subscription_ids=seed.subscription_ids),
++                "unrelated_coverage": measure_subscription_coverage_state(
++                    db, subscription_ids=unrelated.subscription_ids
++                ),
++                "events": _measure_google_events(db, account_ids=[account_id]),
++                "unrelated_events": _measure_google_events(db, account_ids=list(unrelated.account_ids)),
++            }
++        finally:
++            factory.close(db)
++
++    try:
++        assert_plan_still_valid(plan.t_plan)
++        before = measure_all()
++        cred = before["credential"]
++        if (
++            cred["seed_access_match"] is not True
++            or cred["seed_refresh_match"] is not True
++            or cred["refreshed_access_match"] is not False
++            or cred["rotated_refresh_match"] is not False
++            or cred["expiry_at_or_before_reference"] is not True
++        ):
++            raise SuiteStop("before-state credential is not exactly the expired declared seed")
++        if before["coverage"]["any_covering_success"] is not False or before["events"] or before["unrelated_events"]:
++            raise SuiteStop("before-state must have no coverage success and no imported events")
++
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++        release_plan = CoveringReleasePlan(
++            database_profile=_fixture_database_profile(),
++            password_supplier=lambda: "",
++            runtime_pins=_runtime_pins_from_config(),
++            provider_routes=_google_provider_routes(api_route=api_route, token_route=token_route),
++            settings=settings,
++        )
++        if type(release_plan) is CoveringReleaseBinding:
++            raise SuiteStop("must install CoveringReleasePlan, not prebuilt binding")
++
++        def on_context(context: Any) -> None:
++            captured_contexts.append(context)
++
++        real_init = CoveringHTTP.__init__
++        _install_token_terminal_observer(native_terminals)
++
++        def capturing_init(self, *args, **kwargs):
++            nonlocal real_request, transport
++            real_init(self, *args, **kwargs)
++            held_transport.append(self)
++            transport = self
++            if self.transport_factory is not JoinedTLS:
++                raise SuiteStop("transport_factory injection refused — require default JoinedTLS")
++            underlying = self.request
++
++            def counted_request(method, url, *, purpose, **kwargs):
++                nonlocal oauth_requests
++                if purpose == "oauth":
++                    oauth_requests += 1
++                client_inventory.append({"method": method, "purpose": purpose})
++                try:
++                    result = underlying(method, url, purpose=purpose, **kwargs)
++                except BaseException as exc:
++                    client_outcomes.append(("exception", type(exc).__name__, type(exc).__module__))
++                    raise
++                client_outcomes.append(("response", type(result).__name__, type(result).__module__))
++                return result
++
++            real_request = underlying
++            self.request = counted_request  # type: ignore[method-assign]
++
++        CoveringHTTP.__init__ = capturing_init  # type: ignore[method-assign]
++        try:
++            restore_worker_observer = _install_worker_exception_observer(worker_exceptions)
++            restore_parent_observer = _install_google_parent_observer(parent_terminals)
++            app = build_i01_asgi_app(session_secret=settings.session_secret, clock=monotonic, on_context=on_context)
++            install_binding(app, release_plan)
++            client = asgi_client(app)
++            body = covering_refresh_body(
++                list(seed.subscription_ids), window_start=window_start, window_end=window_end,
++                horizon_label="np-google-refresh-horizon-v1",
++            )
++            assert_plan_still_valid(seed.t_plan)
++            response = client.post(
++                COVERING_PATH,
++                content=json.dumps(body).encode("utf-8"),
++                headers={"content-type": "application/json"},
++                cookies={"session": seed.cookie},
++            )
++        finally:
++            if restore_parent_observer is not None:
++                restore_parent_observer()
++                restore_parent_observer = None
++            if restore_worker_observer is not None:
++                restore_worker_observer()
++                restore_worker_observer = None
++            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            try:
++                if transport is not None and real_request is not None:
++                    transport.request = real_request
++            except Exception:
++                pass
++
++        assert_plan_still_valid(seed.t_plan)
++        if not captured_contexts or getattr(captured_contexts[0], "budget", None) is None:
++            raise SuiteStop("ingress on_context did not capture the request budget")
++        ingress_budget = captured_contexts[0].budget
++        if len(held_transport) != 1 or type(held_transport[0]) is not CoveringHTTP:
++            raise SuiteStop("worker/POST did not construct exactly one CoveringHTTP")
++        from app.services.covering_request_budget import CoveringRequestBudget
++
++        remaining_cb = getattr(getattr(held_transport[0], "counter", None), "remaining", None)
++        if (
++            getattr(remaining_cb, "__self__", None) is not ingress_budget
++            or getattr(remaining_cb, "__func__", None) is not CoveringRequestBudget.work_remaining
++        ):
++            raise SuiteStop("ProviderCounter.remaining is not the ingress budget work_remaining")
++
++        if response.status_code != 200:
++            raise SuiteStop(f"covering-refresh status:{response.status_code}")
++        payload = response.json()
++        if not isinstance(payload, dict) or payload.get("overall_outcome") != "success":
++            raise SuiteStop("overall_outcome is not success")
++        results = payload.get("results")
++        if not isinstance(results, list) or len(results) != 2:
++            raise SuiteStop("results must list exactly the two requested subscriptions")
++        for row in results:
++            if (
++                not isinstance(row, dict)
++                or row.get("phase") != "import"
++                or row.get("status") != "ok"
++                or row.get("preflight_code") is not None
++                or row.get("cause") is not None
++                or row.get("upserted") != 1
++            ):
++                raise SuiteStop("each target row must be import/ok with exactly one upserted event")
++        summary = payload.get("action_summary") or {}
++        if {key: summary.get(key) for key in GOOGLE_ACTION_SUMMARY} != GOOGLE_ACTION_SUMMARY:
++            raise SuiteStop("action_summary is not requested2/preflight0/attempted2/ok2/failed0")
++        coverage_action = payload.get("coverage_action")
++        readiness = payload.get("scheduling_readiness")
++        if not isinstance(coverage_action, dict) or not isinstance(readiness, dict):
++            raise SuiteStop("coverage_action/scheduling_readiness must be objects")
++        freshness_requested = coverage_action.get("freshness_requested") or {}
++        freshness_all = readiness.get("freshness_all_enabled") or {}
++        scheduling_revision = readiness.get("scheduling_revision")
++        if (
++            coverage_action.get("all_requested_covering_ok") is not True
++            or freshness_requested.get("ok") is not True
++            or readiness.get("scheduling_ready") is not True
++            or type(scheduling_revision) is not int
++            or scheduling_revision < 1
++            or freshness_all.get("ok") is not True
++            or readiness.get("assessment_error") is not None
++        ):
++            raise SuiteStop("final native assessment/readiness is not complete success")
++        for banned in ("command", "provider", "mode", "seed_hash", "assessment"):
++            if banned in payload:
++                raise SuiteStop(f"public covering-refresh must not carry private key:{banned}")
++
++        token_sequence = [row for row in native_terminals if "observer" not in row]
++        if oauth_requests != 1:
++            raise SuiteStop(f"google refresh must perform exactly one OAuth exchange:{oauth_requests}")
++        if [(row.get("method"), row.get("purpose")) for row in client_inventory] != GOOGLE_CLIENT_PURPOSES:
++            raise SuiteStop("client request order is not POST oauth, GET event, GET event")
++        if [item[0] for item in client_outcomes] != ["response", "response", "response"]:
++            raise SuiteStop("every client exchange must return a response")
++        if token_sequence != GOOGLE_TOKEN_TERMINAL_SEQUENCE:
++            raise SuiteStop(f"TOKEN terminal sequence mismatch:{token_sequence!r}")
++        if [row for row in native_terminals if "observer" in row] != [
++            {"observer": "CoveringORMConnection.token_terminal", "terminal": None}
++        ]:
++            raise SuiteStop("token terminal observer marker missing or duplicated")
++        if parent_terminals != GOOGLE_PARENT_TERMINAL_SEQUENCE:
++            raise SuiteStop(f"PARENT terminal sequence mismatch:{parent_terminals!r}")
++
++        after = measure_all()
++        cred_after = after["credential"]
++        expiry_after = datetime.fromisoformat(cred_after["expiry"]) if cred_after["expiry"] else None
++        if (
++            cred_after["refreshed_access_match"] is not True
++            or cred_after["rotated_refresh_match"] is not True
++            or cred_after["seed_access_match"] is not False
++            or cred_after["seed_refresh_match"] is not False
++            or expiry_after is None
++            or not expiry_after > datetime.now(timezone.utc) + timedelta(seconds=30)
++        ):
++            raise SuiteStop("refreshed Google credential not persisted semantically with a future expiry")
++        if any(
++            after["unrelated_credential"][key] != before["unrelated_credential"][key]
++            for key in GOOGLE_CREDENTIAL_SEMANTIC_KEYS
++        ):
++            raise SuiteStop("unrelated account credential changed")
++        if after["coverage"].get("all_covering_success") is not True:
++            raise SuiteStop("requested Google subscriptions not covering-success after import")
++        if after["unrelated_coverage"] != before["unrelated_coverage"] or after["unrelated_events"]:
++            raise SuiteStop("unrelated owner/account data changed")
++        if after["events"] != expected_events:
++            raise SuiteStop("imported Google events do not match the declared busy events exactly")
++
++        assert_plan_still_valid(plan.t_plan)
++        retirement_attempted = True
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        retirement_done = True
++        peer_exchanges = list(peer_state.get("exchange_inventory") or [])
++        if (
++            int(peer_state.get("connection_count_admitted") or 0) != GOOGLE_REFRESH_EXCHANGE_COUNT
++            or int(peer_state.get("connection_count_served") or 0) != GOOGLE_REFRESH_EXCHANGE_COUNT
++            or [row.get("method") for row in peer_exchanges] != ["POST", "GET", "GET"]
++            or peer_exchanges[0].get("path") != "/token"
++            or any(row.get("query_verified") is not True for row in peer_exchanges[1:])
++            or any(row.get("close_mode_observed") != "orderly_close_notify" for row in peer_exchanges)
++            or peer_state.get("bytes_sent") != expected_bytes_sent
++        ):
++            raise SuiteStop("peer inventory is not token POST plus two exact one-page event GETs")
++        if any(t is not threading.main_thread() and t.name.startswith("np-peer-") for t in threading.enumerate()):
++            raise SuiteStop("unjoined np-peer worker after retirement")
++
++        # Both declared oracles are enforced in memory; the TOKEN COMMIT evidence is retained
++        # under "token_terminal", which THIS baseline's unchanged sanitizer (np_receipts
++        # 69F59AF1) allowlists ("token_terminal_sequence" is not allowlisted here, and a
++        # token-named observation key would be dropped).
++        check_oracles_immediate(
++            decl, {"owning_google_refresh": "OBSERVED", "token_commit_not_ms_proof": "OBSERVED"}
++        )
++        t_check_iso = _iso_now()
++        measured = {
++            "oauth_request_count": oauth_requests,
++            "client_exchange_inventory": list(client_inventory),
++            "client_outcomes": [list(item) for item in client_outcomes],
++            "token_terminal": token_sequence,
++            "parent_terminal_sequence": list(parent_terminals),
++            "credential_state_before": before["credential"],
++            "credential_state_after": cred_after,
++            "coverage_before": before["coverage"],
++            "coverage_after": after["coverage"],
++            "imported_event_count_before": len(before["events"]),
++            "imported_events_after": after["events"],
++            "unrelated_unchanged": True,
++            "public_response": {
++                "overall_outcome": "success",
++                "action_summary": dict(GOOGLE_ACTION_SUMMARY),
++                "scheduling_ready": True,
++                "scheduling_revision": scheduling_revision,
++                "scheduling_revision_bumped": payload.get("scheduling_revision_bumped"),
++            },
++            "wire_calendar_order": list(wire_calendar_ids),
++            "exact_query_bytes": len(exact_query.encode("ascii")),
++            "label_hash": token_seed.label_hash,
++            "schema_provisioned": schema_receipt,
++            "ingress_budget_same_as_provider": True,
++            "joined_tls_default": True,
++            "peer_side_wire_bytes_sent_exact": True,
++        }
++        return case_result_receipt(
++            case_id=case_id,
++            passed=True,
++            workers_joined=True,
++            expected_unknown=False,
++            executed=True,
++            prep_is_not_pass=True,
++            observations={"owning_google_refresh": "OBSERVED"},
++            t_plan_iso=t_plan_iso,
++            t_check_iso=t_check_iso,
++            measured=measured,
++            peer_exchange_inventory=peer_exchanges,
++            resource_disposition={
++                "peer_retired": True,
++                "peer_joined": True,
++                "factory_closed": True,
++                "observers_restored": True,
++                "provider_pki_status": (
++                    "GENERATED"
++                    if _PROVIDER_PKI_GENERATE_ONCE_DONE
++                    else ("PREPARED_NOT_GENERATED" if _PROVIDER_PKI_PREPARED else "NOT_PREPARED")
++                ),
++            },
++        )
++    except PlanValidityExpired:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except PeerRetirementUnknown:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise SuiteStop("owned peer retirement UNKNOWN")
++    except CaseBodyHold:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except SuiteStop:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except BaseException as exc:
++        primary_failure = exc
++        raise SuiteStop(f"framework_stop:{case_id}:{type(exc).__name__}") from exc
++    finally:
++        try:
++            if transport is not None and real_request is not None:
++                transport.request = real_request
++        except Exception:
++            pass
++        if not retirement_attempted and peer._worker is not None and not peer.life.joined:  # noqa: SLF001
++            retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++                retirement_done = True
++            except PeerRetirementUnknown:
++                if primary_failure is None:
++                    raise SuiteStop("owned peer retirement UNKNOWN on cleanup")
++                raise SuiteStop(
++                    f"owned peer retirement UNKNOWN after primary:{type(primary_failure).__name__}"
++                ) from primary_failure
++
++
+ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+     if case_id == "NP-V-MS-NONEXPIRED":
+         def _run() -> dict[str, Any]:
+@@ -1311,6 +1947,12 @@
+ 
+         _run.__name__ = f"run_{case_id}"
+         return _run
++    if case_id == "NP-V-GOOGLE-REFRESH":
++        def _run_google() -> dict[str, Any]:
++            return _run_np_v_google_refresh()
++
++        _run_google.__name__ = f"run_{case_id}"
++        return _run_google
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 

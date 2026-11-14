@@ -1,0 +1,17 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "launch_check_sha256": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+    "check_native_provider_sha256": "9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48",
+    "expected_fake_structural_sha256": "788710ED1BFD6D4B3BFF496C9AF79DBCFDBA69D6F346754D3A072C2748F7313A",
+    "verification_admission_sha256": "B924153C1C53AE6ACD51338586C24ECEBC719628003E9F5F6113406372BCC265",
+    "verify_admission_sha256_note": "verify_admission must not self-waive via embedded own hash"
+  },
+  "note": "Concrete reviewed pins authored for later launch-card flip; preparation does not authorize invocation (launch_authorized=false)."
+}

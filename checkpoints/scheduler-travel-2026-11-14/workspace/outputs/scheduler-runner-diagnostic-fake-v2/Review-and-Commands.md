@@ -1,0 +1,21 @@
+# Runner diagnostic fake v2 — reviewed invocation, execution HELD
+
+Trish approved preparation only. No verification or rerun has been authorized for this packet. Staged true admission flags are machine preparation, not human authority or a Dex EXECUTE acknowledgment.
+
+Matt's frozen v2 handback is independently reconciled:11 handoff hashes,14 v2 inputs,14 prior-preparation inputs,17 failed-staging inputs,11 packet admission pins and one interpreter pin match. The checker equals the exact approved one-line anchor correction, SHA256 BA1C333D5109D38569B6784332B1291B1035EF88737D774D303F34F88D6C4C7A. All other executable/subject/expected-inventory bytes remain unchanged. Diff from v1 preparation is exactly the checker, two admissions, two preparation documents and manifest. Matt reports solo work and no active writer.
+
+The failed v1 run and its receipt remain preserved. Dex and Matt independently traced its exact62-byte error hash to a mutation anchor containing a trailing comment omitted by AST extraction. V2 shortens only that anchor; replacement raise, unique-anchor guard and expected FileNotFoundError oracle remain. This source fix has not been executed or compiled. No native diagnostic/application behavior is repaired or proved by the checker correction.
+
+This fresh staging copy changes only two admission booleans and the dependent OUTER pin under packet/. All source bytes match Matt v2 preparation. Copied Launch-Decision.md and Future-Command-HELD.ps1.txt describe that preparation; they are historical pointers, not the current command. Use this review, Reviewed-Command.ps1.txt and Dex-Staging-Receipt.json for any later explicit approval. Retained checker/result v1 packet labels identify unchanged lineage; actual output paths are relative to this fresh v2 staging directory.
+
+Scope:14 ordered top-level controls against exact extracted original/candidate/precedent producer and immutable host validator, using memory-only fake dependencies. Includes cause/context/cycle, owned source/path/hash/line refusal,3-exception/8-frame/128-node/4096-byte bounds, privacy/fallback, unchanged STOP/exit behavior and four targeted mutations. Exact nested inventory:44 named nested cases plus7 single-predicate top-level controls; checker reports51 nested_predicates under that counting convention. These counts do not establish native provider/TLS/PKI/database proof.
+
+Process chain: one PowerShell wrapper -> pinned isolated Python outer admission -> local Python launcher -> one checker child and two capture readers. Runtime provenance pins only the interpreter executable, not the standard library/DLL/environment. No app/vendor package imports, real sockets, PKI, providers, database, Docker, installation, build or native run. Fixture operations remain fake.
+
+Bounds:120s checker collection +5s owned-child kill/wait +two5s reader joins =135s nominal collection/retirement. Startup, outer waits, hashing/file/receipt I/O and process/OS latency are excluded; no separate outer timeout.64KiB each child stream,256KiB result. Includes bounded owned-check-child termination on timeout/error/overflow only. No container lifecycle action occurs.
+
+Acceptance: child exit0, empty stdout/stderr, joined clean EOF readers without capture/reader errors or overflow, no timeout or retirement UNKNOWN, exact14 ordered PASS controls, passed14/failed0/no extras and exact nested inventories. Cases/runs must be PASS; four mutant values DETECTED. Result and launcher receipt use exclusive creation in packet/verify; retain them and outer output/receipt. Child streams retain hashes/counts only. Dex independently checks postpins and predecessor evidence before claiming PASS.
+
+Stop on failure, mismatch, timeout, unexpected output or UNKNOWN. No retries, repairs, rerun or extra cleanup. Expected diagnostic refusal controls are finite positive predicates, not permission for framework UNKNOWN. Native evidence-folder correction and all native execution remain separately held. Endpoint unbound; all other holds stay.
+
+Exact command and hashes are in Reviewed-Command.ps1.txt and Dex-Staging-Receipt.json. Input-Manifest.sha256 is a separate full staging integrity root, covering all files except itself. It is not execution authority.

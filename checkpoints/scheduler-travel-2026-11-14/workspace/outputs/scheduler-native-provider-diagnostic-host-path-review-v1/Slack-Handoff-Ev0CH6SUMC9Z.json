@@ -1,0 +1,9 @@
+{
+  "event_id": "Ev0CH6SUMC9Z",
+  "message_ts": "1794542139.167609",
+  "checked_at_utc": "2026-11-13T03:57:37.1238374Z",
+  "disposition": "already-reconciled-review-pointer",
+  "review_sha256": "7344994B30C2BD7D617B871AEB3366E3A6BC6F2EEAEFF6714890F08B79FD45BF",
+  "basis": "Signed findings already independently reconciled; exact launch card presented with full staging-root command and historical-document qualification. No new request, blocker or authority.",
+  "reply_sent": false
+}

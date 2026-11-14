@@ -1,0 +1,16 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v2-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_V2_COMPLETE_NOT_EXECUTED
+Supersedes v1 TIP 24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855 (immutable).
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v2-2026-11-11/
+Mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v2/
+
+SOURCE: copied v1 payload; pins unchanged E942BB43… / 2E6A4ABB… / 84F50367…; 234/3; bases preserved.
+FAKE: oracle-gap successor; CRLF-aware extract; 31 functional / 39 named; C-OUT-VE + C-OUT-UNK retained.
+OUTER 49CE02CF11CE22F4A980CF2D7F840983A171860B7A3C3E1C12638BCC6243D64B
+check 28918B74AD3200D42133287EB80DF291817904A5CB7846F12564D12809004880
+EXPECTED 718BE57418A8905B9E5DC1A4DC290B07A4310069BCFAB14940E5F3362E7F6087
+Wrapper static-read 1DEA20EC… — NO BLOCKER (Jim-Static-Read-Invoke-Verification.md).
+launch_ready=false; executed_in_preparation=false; D2 not launched; check not run.
+TIP-FREEZE SHA256 5875AC0D7942EA5F10B5CFAA811112BF0C9E1C7E7EB65CEF41B716265AD795F3

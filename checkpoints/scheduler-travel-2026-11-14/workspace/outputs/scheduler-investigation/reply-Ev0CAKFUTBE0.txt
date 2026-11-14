@@ -1,0 +1,7 @@
+Julie, these are useful contract gaps, especially readable/grouped diagnostics, value provenance and preserving both sides of a manual/provider conflict. One boundary correction: we shouldn't assume persisted diagnostic lifecycle, undoable resolution, series-policy migration and CLI actions are cheap or already inside the small T1-A slice. Jim, estimate and separate those capabilities explicitly before we present the coding scope.
+
+For the contract: retain who/when/reason/source for any future manual resolution; later disagreement reopens an unresolved conflict rather than silently overwriting either side. Readiness must state the affected horizon and whether uncertain bounds prevent proving an event irrelevant. Calendar/title are display context only. Series inheritance requires verified provider series identity; identity changes must not transfer policy by title.
+
+For migration: preserve immutable pre-change evidence before T1-A cache writes, on an isolated copy for tests, and record origin/provenance. A recovery plan must distinguish restoring our local snapshot from restoring remote state: no blanket restore over later legitimate changes, and no remote calendar rollback implied. A snapshot is not an original-export baseline merely because it's immutable. Keep the retirement evidence file read-only and cite it.
+
+Please consolidate these with my review into one revised contract and an honest minimal slice/dependency list. This remains design work; no coding or live changes. Dex

@@ -1,0 +1,237 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -1921,7 +1921,7 @@
+ def _t05_classify_client_outcome(expectation: str, outcome: Any) -> str:
+     """Finite T05 classification of one observed native client outcome.
+ 
+-    outcome is ("response", status, body_exact, framing_headers_absent) or
++    outcome is ("response", status, body_exact, scripted_wire_framing_headers_absent) or
+     ("exception", class_name, class_module). Only the exact expected shape maps to
+     an oracle label; every other outcome raises SuiteStop (fail closed).
+     """
+@@ -1943,6 +1943,24 @@
+     raise SuiteStop("t05 unknown expectation")
+ 
+ 
++def _t05_response_outcome(
++    status: int, content: bytes, expected_body: bytes, scripted_wire: bytes
++) -> tuple[Any, ...]:
++    """Client-observed status/body plus framing of the exact scripted wire.
++
++    The httpx.Response that CoveringHTTP returns is rebuilt by production code and
++    httpx 0.28.1 supplies Content-Length for non-empty bytes content, so its headers
++    are NOT the wire headers. Framing absence is judged on the exact scripted bytes
++    (the peer's sent byte count is separately required to equal their length); the
++    client side contributes only its status and exact body.
++    """
++    head = scripted_wire.partition(b"\r\n\r\n")[0].lower()
++    scripted_wire_framing_headers_absent = (
++        b"\r\ncontent-length:" not in head and b"\r\ntransfer-encoding:" not in head
++    )
++    return ("response", status, content == expected_body, scripted_wire_framing_headers_absent)
++
++
+ def _t05_observe(case_id: str, script: Any, expectation: str) -> dict[str, Any]:
+     """One finite T05 exchange through the production contracts.
+ 
+@@ -2014,12 +2032,10 @@
+         except Exception as exc:
+             outcome = ("exception", type(exc).__name__, type(exc).__module__)
+         else:
+-            names = {str(name).lower() for name in response.headers.keys()}
+-            outcome = (
+-                "response",
+-                response.status_code,
+-                response.content == expected_body,
+-                "content-length" not in names and "transfer-encoding" not in names,
++            # Never read response.headers here: production rebuilds the API object
++            # (httpx 0.28.1 adds Content-Length for non-empty bytes content).
++            outcome = _t05_response_outcome(
++                response.status_code, response.content, expected_body, expected_wire
+             )
+     finally:
+         retirement = peer.retire_owned(join_seconds=5.0)
+@@ -2043,8 +2059,8 @@
+         "client_outcome_class": outcome[1] if outcome[0] == "exception" else None,
+         "response_status": outcome[1] if outcome[0] == "response" else None,
+         "body_exact": outcome[2] if outcome[0] == "response" else None,
+-        "framing_headers_absent": outcome[3] if outcome[0] == "response" else None,
+-        "peer_wire_bytes_exact": True,
++        "scripted_wire_framing_headers_absent": outcome[3] if outcome[0] == "response" else None,
++        "peer_side_wire_bytes_sent_exact": True,
+         "peer_close_mode": state["close_mode_observed"],
+         "default_joined_tls": True,
+     }
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -53,7 +53,7 @@
+ EXPECTED = HERE / "EXPECTED-FAKE-STRUCTURAL.json"
+ RESULT = HERE / "FAKE-NATIVE-PROVIDER-RESULT.json"
+ MAX_RESULT = 262144
+-PACKET_NAME = "scheduler-native-t05-fake-prep-matt-v1"
++PACKET_NAME = "scheduler-native-t05-fake-prep-matt-v2"
+ 
+ SUBJECT_PINS = {
+     "peer/source.py": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+@@ -61,20 +61,20 @@
+     "transcript/source.py": "0AA3BC093711B7EEBADD1F23A80BF86F2B5AEAB4C1224014537BB051FDDCE52E",
+     "transcript/candidate.py": "46455CD603355E30819FBF944ADAC141DDE04D78E28C4F25783681A67A0212D8",
+     "runner/source.py": "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C",
+-    "runner/candidate.py": "E75F7C2426662A1AE68DF7D31998197916960E757998D21184FF388D2EAA4827",
++    "runner/candidate.py": "EB76303F175E1CDCFA859069CAB9DA3FA2BA245C1275AD2CE72157701B0C100B",
+     "suite/source.py": "46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D",
+     "suite/candidate.py": "E5C63D9CE7AA3E66784216B0E88D14434F7016E67E6D22931C58504D87209189",
+     "fixture/np_auth_seed.py": "2ADFA3ADCFDA8DB4D9D32EDFC9950AF354CE29ADFA1B5A8162FD5182DC22ED05",
+-    "diff/np_runner_entry.py.diff": "76B90D4863EF2FCE21D8B7FA1A08D9062CF0AB5B6E3314AD0411D66A6DFCE37D",
++    "diff/np_runner_entry.py.diff": "AAC99686D2B58F0D494856045AD6F3B71DB79063411707B81B9A16C7EB63F0E7",
+     "diff/np_provider_peer.py.diff": "12A40E631007C3E8435D1BBB9741243A2CD8ABA841D84C79722FEF1B2D4A16A4",
+     "diff/np_provider_transcript.py.diff": "E9C6886C3AE04CCD15EA92A77DF7D04A7D2BBA24190211E2E029AFB9036882AF",
+     "diff/np_suite.py.diff": "FF2F85AF0D5EDEF6F0FF085010FAE58B03BB81D09A6FD875FB33ADA1470A6EEB",
+     "diff/runner-config.json.diff": "AA0586060552193ED29DA1647F194B68DC985017F228D41F80402B28792CE72D",
+     "config/source-runner-config.json": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929",
+     "config/candidate-runner-config.json": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+-    "config/candidate-launch-config.json": "653132D0B5315EE5936D1D8CDC31F0AD332A506C736AF9F66757C46367D1DF41",
++    "config/candidate-launch-config.json": "3B98C20F383C15AC0D6B17B23C8DB2FFF19D5FC2B218CC3CF6611C76F38E319B",
+     "manifest/source.txt": "14FA30AD16E719150CA81F07274FF6AC8D3A2D80A065296D9FDB2830E2B00B46",
+-    "manifest/candidate.txt": "62E29339859E81234A637E4794682912278B8A4D6DEC0794179C53A52582C54E",
++    "manifest/candidate.txt": "98BE4F8E216410AEF536CC450E96E6EA505C5E0EDB40C6DD1C14495C7266776E",
+     "app/covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+     "app/covering_transport_policy.py": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+     "app/covering_joined_https.py": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+@@ -112,9 +112,10 @@
+                                  b"Connection: close\r\n\r\n{}")
+ INVENTORY_IDS = ("cal-ms-default", "cal-np-other")
+ STEP_FIELDS = ("direction", "method", "path", "status", "headers", "body_template", "close_mode", "note")
+-OWN_ROOT = "scheduler-native-provider-t05-prep-matt-v1"
++OWN_ROOT = "scheduler-native-provider-t05-prep-matt-v2"
+ FOREIGN_ROOTS = ("ms-merge-nonexpired-prep-matt-v1", "ms-merge-refresh-prep-matt-v1",
+-                 "peer-close-prep-matt-v1", "peer-close-launch-dex-v1", "scheduler-ms-refresh-prep-matt-v1")
++                 "peer-close-prep-matt-v1", "peer-close-launch-dex-v1", "scheduler-ms-refresh-prep-matt-v1",
++                 "t05-prep-matt-v1")
+ CHANGED_PAYLOAD_ROWS = {
+     "fixture/np_runner_entry.py": "runner/candidate.py",
+     "fixture/np_provider_peer.py": "peer/candidate.py",
+@@ -137,6 +138,10 @@
+              "    http = CoveringHTTP(counter=counter, routes=routes, transport_factory=JoinedTLS)\n")
+ M_RETIRE = ("        retirement = peer.retire_owned(join_seconds=5.0)\n",
+             '        retirement = {"joined": True, "worker_error_kind": None}\n')
++# Applied to the extracted _t05_response_outcome segment (source text contains the
++# literal backslash escapes, matched here verbatim).
++M_WIRE_PREDICATE = ('        b"\\r\\ncontent-length:" not in head and b"\\r\\ntransfer-encoding:" not in head\n',
++                    "        True\n")
+ 
+ 
+ class WitnessFailure(Exception):
+@@ -316,7 +321,7 @@
+ def check_preserved_outside_change() -> dict[str, Any]:
+     expected = {
+         "runner": ({"IMPLEMENTED_CASE_IDS", "T05_SHORT_CL_REFUSAL_CLASS", "T05_ABRUPT_CLIENT_CLASSES",
+-                    "_t05_classify_client_outcome", "_t05_observe", "_run_np_t05_orderly_close",
++                    "_t05_classify_client_outcome", "_t05_response_outcome", "_t05_observe", "_run_np_t05_orderly_close",
+                     "_run_np_t05_abrupt_truncation", "_make_implemented_case"},
+                    {"IMPLEMENTED_CASE_IDS", "_make_implemented_case"}),
+         "peer": ({"RESPONSE_FRAMING_MODES", "_http_response_bytes"}, {"_http_response_bytes"}),
+@@ -536,6 +541,17 @@
+         self.status_code, self.content, self.headers, self.request = status, content, headers, request
+ 
+ 
++class AutoLengthHttpxResponse(FakeHttpxResponse):
++    """Models the httpx 0.28.1 adaptation trap: a missing Content-Length is supplied
++    for non-empty bytes content when the API response object is rebuilt."""
++
++    def __init__(self, status: int, *, content: bytes, headers: dict[str, str], request: Any) -> None:
++        rebuilt = dict(headers)
++        if content and not any(str(k).lower() == "content-length" for k in rebuilt):
++            rebuilt["Content-Length"] = str(len(content))
++        super().__init__(status, content=content, headers=rebuilt, request=request)
++
++
+ class JsonSpy:
+     def __init__(self, log: list[str]) -> None:
+         self.log = log
+@@ -584,7 +600,8 @@
+         self.log.append("transport_close")
+ 
+ 
+-def run_scenario(response: bytes, after: BaseException | None = None) -> dict[str, Any]:
++def run_scenario(response: bytes, after: BaseException | None = None,
++                 response_cls: type = FakeHttpxResponse) -> dict[str, Any]:
+     log: list[str] = []
+     with Sandbox(APP_NAMES) as box:
+         for name in ("app", "app.services"):
+@@ -599,7 +616,7 @@
+                 types.ModuleType("app.services.covering_target_transaction")).CoveringRootOutcomeUnknown = \
+             FakeRootOutcomeUnknown
+         httpx = box.put("httpx", types.ModuleType("httpx"))
+-        httpx.Request, httpx.Response = FakeHttpxRequest, FakeHttpxResponse
++        httpx.Request, httpx.Response = FakeHttpxRequest, response_cls
+         module = box.load("app.services.covering_http_transport", subject_text("app/covering_http_transport.py"),
+                           TRANSPORT_FILE)
+         spy = JsonSpy(log)
+@@ -668,10 +685,41 @@
+     require(run["escaped"] is injected and not run["spy"].calls and run["gate_calls"] == 0
+             and run["transport"].closes == 1, "client:transport error propagates unchanged")
+     cases["transport_error_propagates_unchanged"] = "PASS"
++    cases["rebuilt_content_length_trap"] = oracle_rebuilt_trap(subject_text("runner/candidate.py"))
+     return {"cases": cases, "eof_model": "fake b'' after bytes models a client-observed orderly EOF; not native TLS proof",
+             "control_kind": "actual_source_host_parser", "observed": "PASS"}
+ 
+ 
++def response_outcome_fn(runner_text: str) -> Callable[..., tuple[Any, ...]]:
++    namespace: dict[str, Any] = {"Any": Any}
++    exec(compile(unit_text(runner_text, "_t05_response_outcome"), "<extracted:runner:_t05_response_outcome>", "exec"),
++         namespace)
++    return namespace["_t05_response_outcome"]
++
++
++def oracle_rebuilt_trap(runner_text: str) -> str:
++    """A correct close-delimited result whose rebuilt API response gained Content-Length
++    must still be accepted; a really CL-framed wire must still be refused as framing."""
++    outcome_fn = response_outcome_fn(runner_text)
++    call = classifier(runner_text)
++    cand_ser = serializer("candidate")
++    wire = cand_ser(send_step(script_by_id("candidate", CHANGED_SCRIPT)))
++    run = run_scenario(wire, response_cls=AutoLengthHttpxResponse)
++    result = run["result"]
++    require(run["escaped"] is None and type(result) is AutoLengthHttpxResponse
++            and result.headers.get("Content-Length") == "2", "client:rebuilt trap reproduced")
++    outcome = outcome_fn(result.status_code, result.content, b"{}", wire)
++    require(outcome == ("response", 200, True, True)
++            and call("complete_accept", outcome) == "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY", "client:rebuilt trap positive")
++    cl_step = types.SimpleNamespace(direction="send_response", status=200,
++                                    headers=(("Content-Type", "application/json"),), body_template="{}", framing="auto")
++    cl_wire = cand_ser(cl_step)
++    negative = outcome_fn(200, b"{}", b"{}", cl_wire)
++    require(b"\r\nContent-Length: 2\r\n" in cl_wire and negative == ("response", 200, True, False)
++            and _stops(call, "complete_accept", negative), "client:rebuilt trap negative")
++    return "PASS"
++
++
+ # ---------------------------------------------------------------------------
+ # Runner classifier and wiring
+ # ---------------------------------------------------------------------------
+@@ -796,6 +844,15 @@
+             and "return _run_np_t05_orderly_close()" in mapper and "return _run_np_t05_abrupt_truncation()" in mapper,
+             "wiring:mapper_and_implemented")
+     cases["mapper_and_implemented"] = "PASS"
++    rebuilt_header_reads = [n for n in ast.walk(fn) if isinstance(n, ast.Attribute) and n.attr == "headers"
++                            and isinstance(n.value, ast.Name) and n.value.id == "response"]
++    outcome_calls = [n for n in ast.walk(fn) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
++                     and n.func.id == "_t05_response_outcome"]
++    require(not rebuilt_header_reads and len(outcome_calls) == 1 and not outcome_calls[0].keywords
++            and [ast.dump(a) for a in outcome_calls[0].args]
++            == [dump_expr(x) for x in ("response.status_code", "response.content", "expected_body", "expected_wire")],
++            "wiring:no_rebuilt_header_oracle")
++    cases["no_rebuilt_header_oracle"] = "PASS"
+     return cases
+ 
+ 
+@@ -930,6 +987,8 @@
+                                        "wiring:default_joined_tls_construction"),
+         "retirement_removed": (lambda: oracle_wiring(_mutate(observe, M_RETIRE), runner),
+                                "wiring:retirement_in_finally_before_classification"),
++        "wire_framing_predicate_dropped": (lambda: oracle_rebuilt_trap(_mutate(runner, M_WIRE_PREDICATE)),
++                                           "client:rebuilt trap negative"),
+     }
+     results = {name: _expect_detected(name, action, prefix) for name, (action, prefix) in mutants.items()}
+     return {"mutants": results, "control_kind": "actual_source_mutant", "observed": "PASS"}

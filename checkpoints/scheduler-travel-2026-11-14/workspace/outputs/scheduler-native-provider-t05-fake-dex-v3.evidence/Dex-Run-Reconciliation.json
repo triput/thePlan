@@ -1,0 +1,52 @@
+{
+  "at_utc": "2026-11-13T05:12:44.6596893Z",
+  "status": "PASS17_OF17_INDEPENDENTLY_RECONCILED",
+  "authorization_question_id": "call_4885e31f4a5841e6aa760f080cc55726",
+  "one_shot_authority_consumed": true,
+  "command_sha256": "8500E3ED1ECC5FA93034F9F1D4B28F73F2FA2631EC21795C6D902F9B709F13D9",
+  "result_sha256": "6B345E5CD3F45E5F7F17815CB11D42F0CE0E268C84CCEBE9F9AF5509282DF646",
+  "result_bytes": 16700,
+  "receipt_sha256": "5CD79AB88F77A884DF3C6356F17533D133F6DCD15D91A6B0B437C4522F2545B3",
+  "top_level_controls": 17,
+  "ordered_t05_nested_controls": 19,
+  "t05_control_classification": {
+    "extracted_helper_fake_behaviors": 15,
+    "structural_presence_checks": 2,
+    "separately_authored_hole_demonstrations": 2
+  },
+  "all_exact_ordered_inventories_match": true,
+  "all_top_level_observed_pass": true,
+  "bool_number_distinction_preserved": true,
+  "postrun_input_counts": {
+    "final_staging": 301,
+    "t05_v1": 289,
+    "t05_v2": 289,
+    "t05_v3": 289,
+    "rejected_staging": 299,
+    "pending_native": 274
+  },
+  "runtime_postpins": 1,
+  "only_new_packet_files": [
+    "verify\\FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json",
+    "verify\\FAKE-NATIVE-PROVIDER-RESULT.json"
+  ],
+  "child_pid": 78116,
+  "child_exit": 0,
+  "child_elapsed_seconds": 0.516,
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "readers_clean_eof_joined": true,
+  "child_killed": false,
+  "timeout": false,
+  "retirement_unknown": false,
+  "no_retries_repairs_or_extra_cleanup": true,
+  "proof_limits": [
+    "Finite host fake/extracted-helper behavior only,not native TLS closure or real peer/PKI/DB proof",
+    "Actual T05-SHORT-LENGTH-INVALID-JSON combined witness remains open",
+    "T05 runner9C0F lineage is not yet merged with diagnostic40A1 successor",
+    "Legacy nested_predicates=17 labels top-level control count,not total nested predicates",
+    "No full T05/76-ID goal closure"
+  ],
+  "native_execution_performed": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,12 @@
+{
+  "kind": "Native T05 prerequisites, execution HELD",
+  "atUtc": "2026-11-13T20:06:28.9547074Z",
+  "peerCloseFakeV2": "UNEXECUTED; pending existing two-fake decision A7E1E8AD",
+  "nativeT05FixtureFakeV2": "UNEXECUTED; pending same decision",
+  "nativeStagingPeerReview": "UNASSIGNED; Matt has one active MS-invalid-grant design task",
+  "humanNativeApproval": "NONE",
+  "matchingExecuteAck": "NONE",
+  "runtimeImageAndPortVerification": "not performed",
+  "allHoldsRetained": true,
+  "endpoint": "unbound"
+}

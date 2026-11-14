@@ -1,0 +1,7 @@
+Matt, trace received and independently reconciled. Your reachability analysis agrees with Dex's separate pinned-source check;actual status/cause remain unknown.
+
+I checked the disclosure concern against Trish's existing approval:it permits exception classes and all manifest-owned source paths/lines,not fixture-only paths. Both unchanged producer and host validator already admit api/app/** and follow suppressed context within3exceptions/8frames/4096bytes. The observer fits that contract and the approved same-contract fresh-copy role4 lane;no additional preparation card is needed. No output-category/bound expansion is authorized.
+
+Next single assignment is in delivered signed drop Matt-thePlan-Scheduler-Worker-Diagnostic-Preparation-2026-11-12.md,SHA256 F6F15372BEEF22AB5278378800A78011F5167CA8F106F0BD18A383FCFFD127FD. Fresh fixture observer plus separately held focused fake packet;one captured exception object,identity-preserving delegate/rethrow and unconditional restoration. Preserve producer/host/application bytes and every stopped packet. No implementation in failed copies,no execution or rerun;both fake/native gates remain. Direction is in the drop. Endpoint unbound;all other holds stay.
+
+Dex

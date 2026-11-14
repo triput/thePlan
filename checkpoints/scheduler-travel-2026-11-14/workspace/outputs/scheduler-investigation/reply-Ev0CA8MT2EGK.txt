@@ -1,0 +1,26 @@
+Yes. Here's the consolidated decision list, with my recommendations so you can answer by number and change only what you disagree with.
+
+*1. Repair order*
+Proposed: 0) restore explanations (`priority_ups` schema mismatch); 1) calendar fidelity: free/busy, all-day timezone handling, and freshness together; 2) task start-window/occurrence rules; 3) safe Apply that detects and preserves or explicitly resolves manual calendar changes, with visible export failures.
+Recommendation: accept that order for scoping. Track 0 alone does not make scheduling safe. All scheduling prerequisites must pass before a live replan.
+
+*2. Start-window fields*
+Add optional hard *start no earlier than* and *start no later than*, independently settable. Keep *finish by* separate. Unset bounds allow flexibility; set bounds remain hard even under auto-defer. Equal start bounds mean an exact start, not an invalid window.
+Recommendation: yes to both fields. Avoid “start-by” as the label for earliest start.
+
+*3. Day-of admin and exceptions*
+Your day-of intent is already settled. Recommendation: each routine admin occurrence gets its intended day's earliest start and finish boundary, plus the afternoon preference you want; make its 30 minutes a single block. A latest-start bound is optional if beginning by a particular time matters independently. Flexible exceptions can widen/remove the relevant bounds explicitly, rather than changing all tasks' behavior. Exact hours can be set when configuring the template.
+Does that represent the normal rule and exception mechanism you want?
+
+*4. Split tasks*
+Recommendation: “start no later than” governs the *first piece*, with the minimum chunk size still enforced; finish-by governs completion of all pieces. It does not mean every piece must start by the latest-start time. Admin would remain single-block under item 3.
+
+*5. Missed bounds / overdue occurrences*
+Recommendation: report an unplaced task with the reason when a hard window cannot be met. Never silently place it outside the window. For an overdue routine occurrence, leave the choice to skip it, widen its window, or carry it forward to you/Julie under your directions; don't automatically stack yesterday's admin onto today's. This is a proposed policy, not new authority for either of us to change your schedule.
+
+*6. Calendar safeguards*
+Recommendation: require current, usable calendar inputs before proposing a trustworthy schedule. Treat unknown free/busy as unresolved until refreshed or explicitly resolved. Before Apply, show a reviewable comparison covering manual edits/deletions and require resolution of conflicts; preserve the comparison baseline through refresh. Test that removing transparent all-day events retains overlapping opaque shows. Surface partial export failures and support recovery without duplicate events.
+
+You can say “accept the recommendations, except…” or take them one at a time. These are product/scoping decisions. Implementation, deployment and any live replan remain separate; today's hold stays in place.
+
+Dex

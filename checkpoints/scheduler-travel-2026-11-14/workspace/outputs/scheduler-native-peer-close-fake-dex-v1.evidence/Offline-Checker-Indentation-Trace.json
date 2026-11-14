@@ -1,0 +1,27 @@
+{
+  "rerun": false,
+  "sourceCandidateBranchSuffixesEqual": true,
+  "failedPacketModified": false,
+  "badMarkerCounts": {
+    "source": 0,
+    "candidate": 0
+  },
+  "narrowFix": "Change only marker literal indentation from8spaces to4;preserve count==1 and full suffix equality,all11controls/35predicates/fourmutants and source/candidate fixture bytes.",
+  "stderrCorrelation": {
+    "sourceDerivedLiteral": "STOP: abrupt/normal branch text changed",
+    "bytes": 41,
+    "rawChildStderrRetained": false,
+    "lineEnding": "CRLF",
+    "sha256": "3B378E39646189915B3572ED64FF967663F413C72D648D8169D2E84488AB403D"
+  },
+  "applicationFailureEstablished": false,
+  "nativeExecutionPerformed": false,
+  "endpoint": "unbound",
+  "atUtc": "2026-11-13T19:09:25.1877681Z",
+  "finding": "Checker marker has8spaces;extract_function applies textwrap.dedent to method with4space class indent,resulting branch has4spaces. Count0 triggers unchanged-branch refusal before comparing suffix.",
+  "statedBasis": "Static source plus ordinary text/hash calculations only;no subject parsing/compilation/import/test or checker execution.",
+  "proposedMarkerCounts": {
+    "source": 1,
+    "candidate": 1
+  }
+}

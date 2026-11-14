@@ -1,0 +1,10 @@
+{
+  "event_id": "Ev0CHH2C2YNQ",
+  "message_ts": "1794544600.167659",
+  "checked_at_utc": "2026-11-13T04:43:11.6471003Z",
+  "disposition": "already-reconciled-v3-preparation-pointer",
+  "handoff_sha256": "542BC53025F313046C9DA74C7A823C7590CBAF2AF2FB5F7C9B8E4ECABBF829E7",
+  "hash_manifest_sha256": "D9F8B42E15512A2E9B0260A7D549A6CBCBD86FC7B8467650D44D56700138C972",
+  "basis": "Exact v3 correction289/13/23/1 already independently reconciled; separate301-input verification staging reviewed/card pending. Next read-only MS refresh trace assigned. No new blocker,request or authority.",
+  "reply_sent": false
+}

@@ -1,0 +1,61 @@
+{
+  "kind": "native-google-refresh-fake-structural-expected",
+  "packet": "scheduler-native-google-refresh-fake-prep-matt-v1",
+  "candidate_root": "scheduler-native-google-refresh-prep-matt-v1",
+  "assignment": "Dex CEBD83C3 (NP-V-GOOGLE-REFRESH / T06-SUCCESS-GOOGLE only; Google-first direction)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "TRANSCRIPT-SCRIPTS",
+    "ROUTES-AND-QUERY",
+    "CREDENTIAL-MEASUREMENT",
+    "EVENT-MEASUREMENT",
+    "PARENT-OBSERVER",
+    "CASE-WIRING",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["json_init_pin", "json_decoder_pin", "json_scanner_pin", "unpinned_runtime_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "transcript", "suite", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "reused_helpers_byte_identical", "transcript_and_suite"],
+    "TRANSCRIPT-SCRIPTS": ["token_body_and_framing", "busy_event_shape_and_refusals", "events_path_query_exact", "inventory_exact_three_ordered", "peer_exact_query_semantics_present"],
+    "ROUTES-AND-QUERY": ["routes_classify_oauth_and_event_only", "exact_query_literal_with_microseconds", "offset_input_normalized_to_utc", "params_mirror_production_source"],
+    "CREDENTIAL-MEASUREMENT": ["seed_state", "refreshed_state_each_field_independent", "naive_utc_absent_and_missing_account", "no_plaintext_or_ciphertext_emitted", "seed_literals_match_auth_seed"],
+    "EVENT-MEASUREMENT": ["account_filter_and_sort", "utc_normalization_flags_and_expected_form"],
+    "PARENT-OBSERVER": ["same_return_recorded", "same_exception_recorded", "installed_then_restored_identity"],
+    "CASE-WIRING": ["case_mapping_exact", "oracle_names_equal_declarations", "production_ingress_and_default_tls", "single_retirement_paths", "sequences_and_summary_literal", "seed_arguments_match_signature", "free_names_resolve", "unrelated_and_semantic_guards_exact", "peer_inventory_guard_exact", "observers_restored_in_finally"],
+    "RECEIPT-RETENTION": ["every_emitted_key_survives", "typed_evidence_survives_disclosed_drops"],
+    "CONFIG-AND-IMMUTABLES": ["runner_config", "launch_config", "docker_ops_root_rename_only", "payload_delta_exact", "nested_delta_exact", "api_peer_seed_sanitizer_immutable"],
+    "ACTUAL-SOURCE-MUTANTS": ["refresh_token_omitted", "query_param_changed", "rotated_compared_to_access", "parent_exception_swallowed", "event_sort_dropped", "token_key_unallowlisted", "second_retirement", "unrelated_events_check_dropped"]
+  },
+  "expected_nested_predicates": 57,
+  "nested_count_breakdown": "SUBJECT 1 + RUNTIME 4 + DIFF 4 + PRESERVED 3 + TRANSCRIPT 5 + QUERY 4 + CREDENTIAL 5 + EVENTS 2 + PARENT 3 + WIRING 10 + RETENTION 2 + CONFIG 6 + MUTANTS 8 = 57",
+  "check_kinds": {
+    "behavioral_extracted": "TRANSCRIPT-SCRIPTS (actual transcript units inside a privately registered ModuleType, actual peer serializer); ROUTES-AND-QUERY (actual runner route/query helpers over actual production _iso_z, google_mirror_datetime_token, _ensure_aware_utc and the whole registered covering_refresh_window module; named HTTPSPeer fake); CREDENTIAL-MEASUREMENT and EVENT-MEASUREMENT (actual runner helpers with named ORM/token_crypto fakes); PARENT-OBSERVER (actual observer with a named CoveringParentAdapter fake); RECEIPT-RETENTION b (actual redact_mapping)",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; CASE-WIRING (case body not executed); RECEIPT-RETENTION a; CONFIG-AND-IMMUTABLES",
+    "behavioral_mutants": ["refresh_token_omitted", "query_param_changed", "rotated_compared_to_access", "parent_exception_swallowed", "event_sort_dropped"],
+    "structural_mutants": ["token_key_unallowlisted", "second_retirement", "unrelated_events_check_dropped"]
+  },
+  "mutant_oracles": {
+    "refresh_token_omitted": "transcript:token body",
+    "query_param_changed": "query:literal",
+    "rotated_compared_to_access": "credential:refreshed state",
+    "parent_exception_swallowed": "parent:same exception",
+    "event_sort_dropped": "events:filter and sort",
+    "token_key_unallowlisted": "retention:no forbidden key",
+    "second_retirement": "wiring:single retirement",
+    "unrelated_events_check_dropped": "wiring:unrelated and semantic guards"
+  },
+  "module_registration": "np_provider_transcript, app.services.google_calendar, app.services.covering_refresh_window and every other faked module name are registered as owned ModuleTypes BEFORE any extracted definition executes; Sandbox refuses any pre-existing name and removes only its own entries on every exit path",
+  "limits": {"check_seconds": 120, "timeout_retirement_total_seconds": 135, "result_byte_cap": 262144, "capture_byte_cap_per_stream": 65536, "temporary_files": "none (result and launch receipt only)"},
+  "not_proved": "_run_np_v_google_refresh execution; production refresh, persistence, import mapping, coverage and final assessment; CoveringHTTP urlencode wire form; the TOKEN/PARENT sequences, upserted=1 and provenance (source-derived inferences); native TLS and timing; any T06 requirement",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

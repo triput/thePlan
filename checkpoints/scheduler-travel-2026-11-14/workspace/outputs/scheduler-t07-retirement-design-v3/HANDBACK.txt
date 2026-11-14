@@ -1,0 +1,17 @@
+T07 retirement / caller-classification — frozen documents-only handback v3
+Jim under Dex. Justin design only.
+
+documents_only=true
+applied=false
+executed=false
+d2_one_shot_untouched=true
+
+Supersedes v2 TIP 9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB (v1 ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A and v2 immutable).
+
+Answer: NO on current source.
+
+v3 closes Dex p1794424822:
+1) invocation_primary set in this request's except paths (including OAuth remaps); finally never uses sys.exc_info(); cleanup raises a NEW UNKNOWN and never mutates caller-owned or invocation_primary objects; prior_retirement_provenance / retirement_occurrences are append-only.
+2) Proposed-Changes.diff hunk headers programmatically verified against body counts; prospective SHA256s for the three resulting files recorded (no apply).
+
+Proposed unapplied diff: YES.

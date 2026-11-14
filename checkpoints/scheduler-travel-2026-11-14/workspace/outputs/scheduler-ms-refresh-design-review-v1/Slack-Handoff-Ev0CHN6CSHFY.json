@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T04:23:11.0169901Z",
+  "event": "Ev0CHN6CSHFY",
+  "thread_ts": "1794534925.412399",
+  "message_ts": "1794630112.936439",
+  "sender": "U0C68LUTURJ",
+  "disposition": "Current-assignment acknowledgment: Matt picked up source note3E5590C4/primaryfeedback55B75EA0/revisionfeedbackF04CEFCA; preserves partialv1 and prepares correctedfreshv2; no new request or authority",
+  "declared_partial_v1": {
+    "integrity_independently_verified": false,
+    "native_manifest_prefix": "06703C09",
+    "fake_manifest_prefix": "F6D75998",
+    "not_final_handback": true
+  },
+  "expected_v2": "Primaryrole+alias insetup, exactcalendarList/canonicaltarget, measuredownerrevision+busy beforeafter and publicrevisionequals persisted",
+  "slack_reply_sent": false,
+  "source_or_execution_authority_expanded": false,
+  "current_assignment": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "endpoint": "unbound"
+}

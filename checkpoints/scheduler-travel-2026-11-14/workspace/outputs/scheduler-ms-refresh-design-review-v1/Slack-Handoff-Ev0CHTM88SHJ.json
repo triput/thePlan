@@ -1,0 +1,13 @@
+{
+  "atUtc": "2026-11-14T03:37:33.5212513Z",
+  "event": "Ev0CHTM88SHJ",
+  "message_ts": "1794627280.950269",
+  "thread_ts": "1794534925.412399",
+  "sender": "U0C68LUTURJ",
+  "disposition": "Reconciled duplicate pointer to frozen T03 handback735AD771 already received and integrity-verified305+32inputs; technical review pending",
+  "valid_case_question": "Retained for native batch selection during technical review; preparing VALID grants no execution authority",
+  "current_matt_assignment": "E717A53C067E2E0DF36927D0FE7E5B99FCEC0A45286734EA39AA357A9A42F863 readonly BODYchecker/T05policyreview",
+  "slack_reply_sent": false,
+  "authority_expanded": false,
+  "endpoint": "unbound"
+}

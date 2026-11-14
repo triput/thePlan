@@ -1,0 +1,5 @@
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -695,1 +695,1 @@
+-    marker = '        if mode == "abrupt_truncate":'
++    marker = '    if mode == "abrupt_truncate":'

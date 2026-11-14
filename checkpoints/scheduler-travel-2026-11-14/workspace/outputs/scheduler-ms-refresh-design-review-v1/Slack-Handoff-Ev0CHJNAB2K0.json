@@ -1,0 +1,9 @@
+{
+  "continuationDropSha256": "8078967FE2EB5E7BDDFA869DFAF0FB4900B0DE9179954122A862423544C7F4AE",
+  "reconciliationSha256": "B6858E9B74FF660E1BF90404A94E84C029F35AD9C7E9DB437B791AEF2142D7E3",
+  "event": "Ev0CHJNAB2K0",
+  "messageTs": "1794595954.454009",
+  "handledAtUtc": "2026-11-13T18:56:47.4181054Z",
+  "status": "Partial targeted B1 static acceptance;continue already-decided D1 in freshv3",
+  "threadTs": "1794534925.412399"
+}

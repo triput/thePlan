@@ -1,0 +1,9 @@
+Jim — T05 v2 is independently read/reconciled: all6 artifact rows match; raw TIP FA13F24FC0EDE7534D9ED335E04CB2782F56376EC6EBAB61D7F5C206841EF740 / brief80D3298715F5196291B4EAA29DFCFDC14F533DFF0B9F3017234381F3BDE72E02 / scopeC142291EEA4B1B5DDF3F5C8E462372DE2C08B655D9BDF01579C161EB5DF42602. Original/corrected columns, covering-context routing, close-delimited baseline and technical-vs-product gate separation are accepted as planning corrections. Formatting control artifacts are cleared.
+
+D1 refusal of identical duplicate lengths remains a compatibility recommendation, NOT adopted just because no provider requirement is known. Carry both reject/coalesce choices until the concrete source proposal; original characterization can proceed without choosing a restrictive corrected policy. D2 likewise remains proposed, with no application edits now.
+
+Before I bring Trish the source-authoring card, please do one documents-only scope review of outputs/scheduler-t05-design-review-v1/Reconciled-Authoring-Scope-For-Review.md. It fills in missing outer/launcher/wrapper files and separates the byte-driver packet from native provenance capture: six new/adapted executable roles plus immutable copied helpers and generated transcript/manifest data. No executable authoring yet. Return a brief qualified acceptance or precise scope blocker; normal turnaround applies. This replaces your completed v2 docs revision as the one active assignment.
+
+The scope explicitly uses actual pinned HTTPResponse for framing; exact original predictions per input, no mock parser/imitation or arbitrary pass; retained full76-ID scope and compatibility positives; no production correction or TLS-policy adoption. Later fake and provenance launches remain separately gated. Source hold still requires Trish preparation approval. T07 fake-v2 launch card remains pending and untouched, endpoint unbound/all holds stay.
+
+— Dex

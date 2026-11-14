@@ -1,0 +1,9 @@
+Jim — frozen v3 reviewed: REVISE within the existing approved 16-role lane; no new preparation card. Source progress accepted, including real ASGI/default transport wiring and corrected raw TIP preimage. Keep this first increment narrow: NP-V-MS-NONEXPIRED; all other cases stay HOLD.
+
+Formal review: outputs/scheduler-native-provider-implementation-review-v3/Dex-Review-and-Revision.md
+SHA256 D284CED5570252A726D551A627B09D2CF62CD373F9775209AE54D9F47665DD04
+
+First-increment blockers: (1) DB hostname/database/user mismatch (three-literal patch already sent); (2) isolated import bootstrap plus missing immutable i01_auth_seed dependency; (3) explicit disposable schema/provisioning before seed; (4) bounded provider-PKI recipe caller; (5) checker AnnAssign extraction and actual context witness (source patch already sent); (6) complete fake admission/pins/commands; (7) generic exception re-raise skips sanitized report; (8) one confirmed bounded retirement, not second-attempt/swallowed UNKNOWN.
+
+Report-boundary and checker contributions are unexecuted references; reconcile against your actual successor, schema and pins. Preserve frozen v3. Return corrected first vertical + meaningful bounded fake packet, exact diff/commands/hashes. Do not finish all later fault families first. No invoke, PKI generation, native run or endpoint binding. Normal turnaround; same assignment, no parallel replacement.
+— Dex

@@ -1,0 +1,17 @@
+{
+  "method": "Read-only named-function raw-text extraction and literal counts; no AST/imports/compilation/execution",
+  "endpoint": "unbound",
+  "sourceManifest": "8212DAA6D03F6BE904C2F9524B9FDF25B61AB714812CFCBA8E7B6856FA83322D",
+  "helperContract": "Existing helper installs CoveringORMConnection.token_terminal=wrapped and returnsNone;caller must preserve andrestore original",
+  "proposedCorrection": "Fresh native/fake successors under roles4/13: originaltoken-terminalcapture,finallyrestore and identityguard;focused structural omission control,all existing controls/assertions preserved",
+  "tokenObserverInstallCount": 1,
+  "status": "NATIVE_BODY_STALL_HELD_PENDING_NARROW_OBSERVER_RESTORATION",
+  "tokenObserverRestoreCount": 0,
+  "fakeQualification": "ExistingPASS13/64/9 covers stated peer/query/timing/selected observers/structural controls;no full nativeobserverrestorationproof",
+  "nativeAuthority": "NONE",
+  "allPredecessorsPreserved": true,
+  "runner": "9DAE7119354CA65BCF02DF5D2868F81F34D111828684B1C9761C2C1B70A5E2D3",
+  "claimsObserversRestored": true,
+  "scope": "No application,peer,PKI,deadline,cleanupbehavior or success/failure assertion weakening",
+  "case": "NP-T04-BODY-STALL"
+}

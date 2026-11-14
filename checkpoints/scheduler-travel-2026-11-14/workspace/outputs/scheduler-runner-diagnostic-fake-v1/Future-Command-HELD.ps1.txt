@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. Shape of the one future fake-only invocation, for review.
+# Against the current prep admission (launch_authorized=false), the wrapper refuses before starting any child.
+# A real run needs a reviewed staging change that flips both launch_authorized booleans,
+# a new VERIFICATION-ADMISSION hash in this command, and Trish's explicit one-shot approval.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-runner-diagnostic-fake-prep-matt-v1\packet\Invoke-Fake.ps1' -AdmissionSHA256 'D482CEB187B1729D6265E96D1D2ADDC3FC769C7B64BEC546C05161ED8CF07F54'

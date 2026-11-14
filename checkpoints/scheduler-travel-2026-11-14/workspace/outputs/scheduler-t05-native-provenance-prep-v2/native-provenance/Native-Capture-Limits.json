@@ -1,0 +1,18 @@
+{
+  "host_reference_raw_bytes_total": 164197,
+  "host_reference_file_bytes": {
+    "http/client.py": 59093,
+    "ssl.py": 55874,
+    "email/message.py": 49230
+  },
+  "envelope_base64_estimate_bytes": 219000,
+  "envelope_metadata_headroom_bytes": 65536,
+  "capture_stdout_bytes": 262144,
+  "capture_stderr_bytes": 65536,
+  "capture_result_bytes": 524288,
+  "per_collected_file_max_bytes": 59093,
+  "overflow_policy": "STOP_no_clip",
+  "rationale": "512KiB result admits complete three-file provenance receipt with ~219KiB base64 payload plus JSON metadata/sha256 lines without clipping. Stdout 256KiB bounds sha256sum lines only; raw bytes land in result envelope. Separate from fake framing 64KiB pipes / 256KiB result.",
+  "launch_ready": false,
+  "execution_authorized": false
+}

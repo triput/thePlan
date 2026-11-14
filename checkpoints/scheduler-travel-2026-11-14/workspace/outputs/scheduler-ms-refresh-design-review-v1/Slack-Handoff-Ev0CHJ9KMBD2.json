@@ -1,0 +1,10 @@
+{
+  "event": "Ev0CHJ9KMBD2",
+  "message_ts": "1794555937.381039",
+  "at_utc": "2026-11-13T07:46:10.3087731Z",
+  "disposition": "Matt acknowledged signed standdown;reports frozen prep,no active writer,nothing in flight or executed",
+  "provenance": "Colleague statement only;technical handback review remains deferred",
+  "goal": "paused",
+  "reply_sent": false,
+  "endpoint": "unbound"
+}

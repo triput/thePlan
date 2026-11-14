@@ -1,0 +1,14 @@
+{
+  "kind": "T07 fake v2 final pre-card reconciliation",
+  "checked_utc": "2026-11-11T21:23:06.0594239Z",
+  "packet_pins": 253,
+  "runtime_pins": 17,
+  "command_sha256": "3432F0E35D2D24CCC704423299B656A1BB275705AA95D68B431630649948D10C",
+  "admission_sha256": "903FFC3D9EE425027FDBBD97EE265E3D3A1AB822D2508819BB2D3C783DD636D2",
+  "wrapper_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "fresh_evidence_paths": true,
+  "errors": [],
+  "execution_authorized": false,
+  "execution_performed": false,
+  "peer_review": "reconciled qualified accept"
+}

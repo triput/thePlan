@@ -1,0 +1,104 @@
+{
+  "kind": "TIP-FREEZE",
+  "packet": "post-native-framing-ack-source-fake-prep-jim-v4-2026-11-11",
+  "at_date": "2026-11-11",
+  "author": "Justin for Jim under Dex provisional checker finding p1794461191",
+  "disposition": "SOURCE_PREP_FROZEN_FOR_DEX_REVIEW",
+  "successor_of": {
+    "packet": "post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11",
+    "tip_sha256": "BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209",
+    "check": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
+    "candidate_http": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "immutable": true
+  },
+  "immutable_predecessors": {
+    "v1_tip_sha256": "FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4",
+    "v2_tip_sha256": "569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697",
+    "v3_tip_sha256": "BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209",
+    "rewritten": false
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "endpoint": "unbound",
+  "prep_is_not_pass": true,
+  "tip_preimage_sha256": "D000AA40BD825F4E9274F300F6DE80FBACEAB3B0133D7DB54804754187146E1C",
+  "application": {
+    "original_http": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F",
+    "candidate_http": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "original_tls": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "candidate_tls": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+    "provider_context_unchanged": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+    "candidate_http_unchanged_from_v1": true,
+    "candidate_http_unchanged_from_v2": true,
+    "candidate_http_unchanged_from_v3": true,
+    "candidate_tls_unchanged_from_v2": true,
+    "candidate_tls_unchanged_from_v3": true,
+    "no_application_change_in_v4": true
+  },
+  "roles": {
+    "tip": "see ARTIFACT-HASHES",
+    "admit_outer": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF",
+    "check": "44210460FB238B31B9D07A2015E21337C11504F985A83F9E7CEBE9775D9A1201",
+    "invoke": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F",
+    "wrapper": "0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA",
+    "outer_admission": "38A37E4C736BD40B05222170776CD057B74DCEE7B017D85B989FB43995117AE4",
+    "verification_admission": "0994AD2F70EE910E2FE2B14753FDC563C70E789513421A3DEE7D09DFCA97FD39"
+  },
+  "oracles": {
+    "EXPECTED": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+    "PACKET_SHA256SUMS": "BF506033CAD23BD19F0B1AEE7210CCD9640CF0419CBB79B7FFE272A291840F12",
+    "H-TE-WS-LEAD": "OBSERVED_SUCCESS / chunked positive (wire leading OWS stripped by Compat32)",
+    "H-TE-WS-TRAIL": "OBSERVED_REFUSE (trailing OWS parser-visible)",
+    "predicted_outcome_dialect": "PASS",
+    "nested_observation_dialect": "OBSERVED_*"
+  },
+  "header_policy": {
+    "status": "APPROVED",
+    "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+    "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+  },
+  "policy_pending_separation": {
+    "assert_match_flat_runtime_whitelist": "excludes_policy_pending",
+    "expected_rows_retain_policy_pending_metadata": true,
+    "emit_wire_candidate_stamps_from_row": true,
+    "asserted_against_cand": false
+  },
+  "dex_provisional_checker": {
+    "finding": "p1794461191",
+    "on_v3_check": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
+    "on_v3_tip": "BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209",
+    "disposition": "ADDRESSED_IN_PREP_V4"
+  },
+  "dex_revise": {
+    "audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
+    "disposition": "CARRIED_FROM_PREP_V3",
+    "items": [
+      "outer_admission_noncircular_regenerated",
+      "exact_result_oracle_schema_predicted_outcome_and_exact_predicate",
+      "caller_labels_direct_http_replay_plus_matched_immutable_original",
+      "concrete_commands_held"
+    ]
+  },
+  "caller_labeling_choice": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+  "dex_review_2": {
+    "review_sha256": "4BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E",
+    "disposition": "OWS_ORACLE_DOCS_ALIGNED_CANDIDATE_RETAINED",
+    "addressed": true
+  },
+  "dex_review_1": {
+    "review_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+    "candidate": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "addressed": true
+  },
+  "port_zero_static_note": {
+    "implementation_authority": false,
+    "edited_covering_transport_policy": false,
+    "scope_sha256": "A27E47A5B7106708CC1A6E683D645CAB2821FBA1FAE2F45E7A7488F1DB5B0F85",
+    "proposed_fix_diff_sha256": "C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB",
+    "note_path": "docs/Port-Zero-Static-Source-Note.md",
+    "policy_file_sha256_unchanged": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+  },
+  "native_tls_orderly_vs_abrupt": "unproved",
+  "wire_control_count": 73,
+  "no_slack_tip": true
+}

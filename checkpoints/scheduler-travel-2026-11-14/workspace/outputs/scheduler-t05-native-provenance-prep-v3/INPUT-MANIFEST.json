@@ -1,0 +1,33 @@
+{
+  "packet": "scheduler-t05-native-provenance-prep-v3",
+  "approval_sha256": "5C0B0F0B4EE98981C5CF58534FA8EA159C24C6315FEA9C834FF36A93D3878FA7",
+  "jim_peer_review_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "capture_limits": {
+    "host_reference_raw_bytes_total": 164197,
+    "host_reference_file_bytes": {
+      "http/client.py": 59093,
+      "ssl.py": 55874,
+      "email/message.py": 49230
+    },
+    "envelope_base64_estimate_bytes": 219000,
+    "envelope_metadata_headroom_bytes": 65536,
+    "capture_stdout_bytes": 262144,
+    "capture_stderr_bytes": 65536,
+    "capture_result_bytes": 524288,
+    "per_collected_file_max_bytes": 59093,
+    "overflow_policy": "STOP_no_clip",
+    "rationale": "512KiB result admits complete three-file provenance receipt with ~219KiB base64 payload plus JSON metadata/sha256 lines without clipping. Stdout 256KiB bounds sha256sum lines only; raw bytes land in result envelope. Separate from fake framing 64KiB pipes / 256KiB result.",
+    "launch_ready": false,
+    "execution_authorized": false
+  },
+  "native_admission": {
+    "kind": "scheduler-t05-native-parser-provenance-admission",
+    "launch_ready": false,
+    "execution_authorized": false,
+    "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+    "capture_limits_sha256": "1EEFFC451ADDCB4DC8C25D133CD6D6DF5D89A2D1F6ADD0076C71BE3C5A453D81",
+    "collect_script_sha256": "AB470286DE23F0443B62FED8A3626A291E7351456958D0BD12F420995F5469F2"
+  },
+  "launch_ready": false,
+  "execution_authorized": false
+}

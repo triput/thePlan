@@ -1,0 +1,195 @@
+{
+  "kind": "draft_human_code_review_route_not_completion_claim",
+  "prepared_at_utc": "2026-11-13T06:53:05.5393515Z",
+  "requested_by": "Trish:consequential-file walkthrough,purpose/risk/invariants,pinnedspotchecks,evidenceandlimits;important,noturgent",
+  "priority": "Behind currently pendingobserverfakeverification;draft forlaterinteractivewalkthrough,notanadditionalexecutiongate",
+  "snapshot_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+  "snapshot_native_parent_manifest": "9DCAA6FF06FF890E53AB867ECFDFA5617115A0B684762304E49AF6BE07F00A68",
+  "snapshot_state": "Unactivated workspace candidate;all234APIbytesunchangedfromstoppednativepacket",
+  "first_session_suggestion": "Start with revieworders1,2,5:knowntransactionoutcomes,nativeacknowledgment,andcorrectowner/lockorder. ChooseotherstopswithTrish.",
+  "production_route": [
+    {
+      "review_order": 1,
+      "file": "api/app/services/covering_target_transaction.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "spot_check_line": 73,
+      "symbol": "def run(",
+      "what_it_owns": "Orders one calendar import transaction,acknowledged outcome,lock exit,parent retirement and any later failure record.",
+      "possible_consequence": "A failed or uncertain write could be presented as a known result,or failure recording could overlap unresolved work.",
+      "walkthrough_question": "Trace finish_root and the terminal mismatch branch;then see when locks and the parent are retired before a failure session opens.",
+      "rule_to_check": "Only the required acknowledged terminal permits the corresponding known outcome;uncertainty stops the unit.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 2,
+      "file": "api/app/services/covering_native_orm_factory.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_native_orm_factory.py",
+      "sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229",
+      "spot_check_line": 339,
+      "symbol": "def token_terminal(",
+      "what_it_owns": "Connects ORM actions to evidence from the actual PostgreSQL command and connection state.",
+      "possible_consequence": "Python-level success could conceal missing database acknowledgment or the wrong transaction.",
+      "walkthrough_question": "Read finish and token_terminal together:which root is active,and where do command_sent,drained,idle and command_tag become mandatory?",
+      "rule_to_check": "The expected native command acknowledgment must match this exact root and operation.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 3,
+      "file": "api/app/services/covering_role_connector.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "spot_check_line": 119,
+      "symbol": "def _session_scope(",
+      "what_it_owns": "Opens and retires role-specific native resources under one request budget.",
+      "possible_consequence": "A resource could outlive its owner,or unresolved retirement could be treated as safe to continue.",
+      "walkthrough_question": "Follow the exception conversion,quarantine and retirement paths in _session_scope and run_target.",
+      "rule_to_check": "Unclassified native or retirement failure yields UNKNOWN and stops admission.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 4,
+      "file": "api/app/services/covering_domain_dispatch.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "spot_check_line": 93,
+      "symbol": "def authenticate(",
+      "what_it_owns": "Resolves the authenticated owner and orders auth,preflight,token,import and final assessment phases.",
+      "possible_consequence": "The wrong owner could reach calendar work,or readiness could be assembled from the wrong phase.",
+      "walkthrough_question": "Read authenticate first,then run_bounded_domain and its final assessment branch.",
+      "rule_to_check": "Owner and eligibility are established before target work;final results follow classified work and assessment.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 5,
+      "file": "api/app/services/covering_refresh_locks.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh_locks.py",
+      "sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69",
+      "spot_check_line": 190,
+      "symbol": "def covering_unit_locks(",
+      "what_it_owns": "Acquires account identity,owner scheduling and subscription locks in one defined order.",
+      "possible_consequence": "Concurrent refreshes could deadlock or change a calendar while the decision is based on stale identity.",
+      "walkthrough_question": "Inspect the acquire order and owner/account/subscription checks;follow require_covering_receipt for forged or mismatched receipts.",
+      "rule_to_check": "Lock order and the identity triple must agree before mutation.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 6,
+      "file": "api/app/services/covering_domain_adapters.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "spot_check_line": 30,
+      "symbol": "def token(",
+      "what_it_owns": "Separates credential refresh from the import unit and binds provider work to the selected transport.",
+      "possible_consequence": "Credential rotation could be rolled back,duplicated or confused with calendar import success.",
+      "walkthrough_question": "Read token:compare before/after credential state and expected terminal;then read apply and its native-flush binding check.",
+      "rule_to_check": "TOKEN and IMPORT have distinct native units;no ordinary ORM commit fallback supplies missing terminal proof.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 7,
+      "file": "api/app/services/covering_refresh_import.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "spot_check_line": 828,
+      "symbol": "def import_covering_subscription_cache(",
+      "what_it_owns": "Prepares and applies provider calendar data and coverage changes inside the caller-owned transaction.",
+      "possible_consequence": "Incomplete pulls or changed eligibility could produce incorrect busy time or falsely fresh coverage.",
+      "walkthrough_question": "Start at import_covering_subscription_cache;follow _pull_provider,_apply_provider and the commit/rollback result fields.",
+      "rule_to_check": "Imports require live matching lock evidence and return explicit mutation/outcome requirements.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 8,
+      "file": "api/app/services/covering_refresh.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh.py",
+      "sha256": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E",
+      "spot_check_line": 379,
+      "symbol": "def _assemble_final_assessment(",
+      "what_it_owns": "Reads requested freshness,readiness and scheduling revision under one locked owner view.",
+      "possible_consequence": "A ready result could combine facts from different moments or uncommitted local changes.",
+      "walkthrough_question": "Inspect the clean-session guard,owner lock,assessment clock and shared revision passed into readiness.",
+      "rule_to_check": "Assessment starts clean and derives its outputs from a coherent locked owner state.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 9,
+      "file": "api/app/services/covering_http_transport.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "spot_check_line": 284,
+      "symbol": "def request(",
+      "what_it_owns": "Admits a provider route,performs bounded HTTP,checks framing and classifies response and retirement.",
+      "possible_consequence": "A partial or redirected response could be accepted,or token rotation uncertainty could invite unsafe replay.",
+      "walkthrough_question": "Inspect _admit_framing_headers and _admit_fixed_length_complete;then request exception mapping and independent closes.",
+      "rule_to_check": "Admitted destination,purpose,complete framing and known retirement are required;OAuth after-send uncertainty remains UNKNOWN.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 10,
+      "file": "api/app/services/covering_joined_https.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "spot_check_line": 40,
+      "symbol": "def open(",
+      "what_it_owns": "Owns the actual verified TLS connection,nonblocking I/O and local close on its creating worker.",
+      "possible_consequence": "Traffic could reach an unintended peer or continue beyond the owner/deadline.",
+      "walkthrough_question": "Read open certificate/hostname checks,receive error handling and close ownership;compare the TLS proof still outstanding.",
+      "rule_to_check": "Vendor identity verification,numeric dial and the live remaining-time callback stay attached to the same owner.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 11,
+      "file": "api/app/services/covering_transport_policy.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_transport_policy.py",
+      "sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "spot_check_line": 183,
+      "symbol": "def check_url(",
+      "what_it_owns": "Restricts destinations and paths and enforces request-wide provider exchange,page,byte and item limits.",
+      "possible_consequence": "A continuation could escape its reviewed route,or work could exceed its shared request ceiling.",
+      "walkthrough_question": "Read HTTPSPeer.check_url and ProviderCounter.admit/page/body/batch;check absent-port versus explicit-port behavior.",
+      "rule_to_check": "Each new exchange needs admission under the original shared limits and exact reviewed destination policy.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    },
+    {
+      "review_order": 12,
+      "file": "api/app/services/covering_request_budget.py",
+      "absolute_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_request_budget.py",
+      "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975",
+      "spot_check_line": 55,
+      "symbol": "def cleanup(",
+      "what_it_owns": "Shares work,request and cumulative cleanup time across every role in one request.",
+      "possible_consequence": "Each target could reset its clock,or cleanup could reopen ordinary work after uncertainty.",
+      "walkthrough_question": "Read work_remaining,cleanup_remaining and cleanup finally;follow _cleanup_left and the stopped latch.",
+      "rule_to_check": "210s work,240s request and30s cumulative cleanup are separate ceilings,with monotonic time and no fresh cleanup budget per role.",
+      "evidence_status": "Source-pinned reading route only. Consult actual native/fake result scopes before treating a rule as runtime-proved."
+    }
+  ],
+  "follow_on_harness_files": [
+    {
+      "focus": "Fixture assertions,machine reports,worker observer restoration and bounded stop_payload;false confidence or leaked diagnostics are consequential.",
+      "file": "fixture/np_runner_entry.py"
+    },
+    {
+      "focus": "Exact case admission,reportedPASS checks,success-only disposal and stop-on-failure;machineflags do not grant human permission.",
+      "file": "fixture/np_supervisor.py"
+    },
+    {
+      "focus": "Exactcontaineridentity/isolation/mountchecks,capturelimits,validatedSTOPmetadata andownedCLIretirementqualifications.",
+      "file": "fixture/docker_transport.py"
+    },
+    {
+      "focus": "Whether controls execute actual chosen source and whether targeted mutants fail for the intended reason;source-vs-runtime proof distinction. Use the eventually verified checker version,not superseded v1/v2.",
+      "file": "separate fake packet/verify/check_native_provider.py"
+    }
+  ],
+  "known_proof_limits": [
+    "Current real default provider HTTP/native attempt STOPped before200;underlyingcauseunknown.",
+    "T05 realTLSclosure and fullprovider/error-family proof remain open.",
+    "Passing fake observer/refresh controls establish finitefake/extracted properties only.",
+    "PriorN/I01/SQLnativeevidence must be matched to actual selected source/runtime and exercised branch;presenceofafile doesnotproveitsentirebehavior."
+  ],
+  "refresh_before_handoff": "Recheck each hash/anchor against the final selected source;revise links after any allowed source change. Expand consequential dependencies such as failure recording and alias handling as the guided review follows them. This draft is not an exhaustive234-file audit.",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

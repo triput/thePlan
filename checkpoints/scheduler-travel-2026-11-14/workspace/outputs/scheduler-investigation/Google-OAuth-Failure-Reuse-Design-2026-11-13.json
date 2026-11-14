@@ -1,0 +1,44 @@
+{
+  "nextAssignmentIssued": false,
+  "scope": "Source-derived design for later review; no new Matt task or source edit, no policy decision or run authorization",
+  "atUtc": "2026-11-14T06:09:24.5204869+00:00",
+  "existingScripts": [
+    {
+      "requirement": "T06-MALFORMED-ACK",
+      "script": "oauth_ack_fault_scripts[malformed_oauth_ack]",
+      "wire": "POST/token,200,complete fixed-length malformed JSON,orderly close",
+      "expected": "After possible send, exact CoveringRootOutcomeUnknown; no retry or known rejection inferred from parser failure"
+    },
+    {
+      "requirement": "T06-TRUNCATED-ACK",
+      "script": "oauth_ack_fault_scripts[truncated_oauth_ack]",
+      "wire": "POST/token,200,Content-Length80,short JSON prefix,orderly close",
+      "expected": "Incomplete acknowledgment after send -> exact UNKNOWN; no successful rotation/import/readiness claim"
+    },
+    {
+      "requirement": "T06-OTHER-ERROR",
+      "script": "oauth_ack_fault_scripts[other_oauth_error]",
+      "wire": "POST/token,400,complete temporarily_unavailable JSON,orderly close",
+      "expected": "Only complete400 invalid_grant is typed reauthorization; other errors remain exact UNKNOWN"
+    }
+  ],
+  "kind": "GOOGLE_OAUTH_FAILURE_SOURCE_REUSE_DESIGN_NOT_AUTHORITY",
+  "endpoint": "unbound",
+  "newExecution": false,
+  "precedingPositiveCase": "NP-V-GOOGLE-REFRESH PASS; no duplicate positive run solely for next failure fixtures",
+  "sourcePins": {
+    "fixture/np_suite.py": "E028812B852C73A1183D609803A450AB41B42CCDE44B4DEE4441EEDB21EA7D1A",
+    "api/app/services/covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "fixture/np_provider_transcript.py": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513",
+    "api/app/services/covering_domain_adapters.py": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+  },
+  "preservation": [
+    "Do not widen expected peer error set, retirement errors or sanitizer",
+    "Observe exact one-POST inventory only after known joined retirement",
+    "No IMPORT and no automatic token replay; persisted semantic credentials observed rather than inferred from requested rollback",
+    "Keep original production clocks and plan expiry",
+    "Before-send,partial-send,lost-ack are distinct obligations and remain open",
+    "Fixture implementation, finite fake review and exact native approval still required; no claim from script catalog alone"
+  ],
+  "currentAssignment": "5FA59395 Google invalid-grant prep, unchanged"
+}

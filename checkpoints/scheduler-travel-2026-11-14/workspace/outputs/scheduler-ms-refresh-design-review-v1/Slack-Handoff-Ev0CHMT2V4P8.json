@@ -1,0 +1,12 @@
+{
+  "decision": "A830406059BED3F081FDA1B82762BEB756D1D6ABBF4AAC60D6D91CAC0A880F50",
+  "peerReview": "FB153E9A85F64E3A0D269509833B7E1B45F06B095DEC26ABBFA152B81066D726",
+  "event": "Ev0CHMT2V4P8",
+  "priorBotAcknowledgment": "1794625617.628279",
+  "reconciliation": "129A7419E713F2CAFC878D003CA09D41A538434346CB537A4065334D395194CF",
+  "disposition": "Previously reconciled T05v2 peer review and card already pending; no new finding or duplicate reply",
+  "endpoint": "unbound",
+  "executionAuthority": "NONE",
+  "messageTs": "1794625075.940039",
+  "handledAtUtc": "2026-11-14T03:07:26.3471460Z"
+}

@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-client-cause-launch-dex-v2\scheduler-native-provider-diagnostic-launch-v1\payload\fixture\np_supervisor.py", line 353, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-client-cause-launch-dex-v2\scheduler-native-provider-diagnostic-launch-v1\payload\fixture\np_supervisor.py", line 348, in main
+    run_once(plan, ops, str(receipt_path))
+  File "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-client-cause-launch-dex-v2\scheduler-native-provider-diagnostic-launch-v1\payload\fixture\np_supervisor.py", line 225, in run_once
+    report = call(ops.run_attached, ids["runner"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-client-cause-launch-dex-v2\scheduler-native-provider-diagnostic-launch-v1\payload\fixture\np_supervisor.py", line 179, in call
+    result = method(*args, deadline=deadline)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-client-cause-launch-dex-v2\scheduler-native-provider-diagnostic-launch-v1\payload\fixture\np_supervisor.py", line 132, in run_attached
+    self._inner._cmd(
+  File "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-client-cause-launch-dex-v2\scheduler-native-provider-diagnostic-launch-v1\payload\fixture\docker_transport.py", line 183, in _cmd
+    raise RuntimeError('Docker exit/stderr failure')
+RuntimeError: Docker exit/stderr failure
+STOP: native-provider launch failed; preserve evidence; no retry, repair or failure cleanup

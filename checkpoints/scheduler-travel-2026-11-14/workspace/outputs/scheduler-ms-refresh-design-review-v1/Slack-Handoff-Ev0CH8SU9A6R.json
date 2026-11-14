@@ -1,0 +1,8 @@
+{
+  "event": "Ev0CH8SU9A6R",
+  "message_ts": "1794552398.369659",
+  "checked_at_utc": "2026-11-13T06:49:38.8136764Z",
+  "disposition": "AlreadyreconciledDEA6E362qualifiedpeeracceptance;all20inputs/12packet/1runtimeverified;exactone-shotfakecardpending. No newquestionorblocker,no duplicateSlackreply.",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

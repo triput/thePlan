@@ -1,0 +1,13 @@
+{
+  "review": "BB175B53D630337E150DCE22279C41C511A25295250A4C2254C2984E9271E860",
+  "slack_reply_sent": false,
+  "thread_ts": "1794534925.412399",
+  "atUtc": "2026-11-14T05:00:26.7138379+00:00",
+  "message_ts": "1794632290.842999",
+  "human_authority": "NONE",
+  "event": "Ev0CH8T8E3TR",
+  "current_assignment": "0A06CDA8703A9B5591ED0D6D04563EBCE14DB9C7A803ED0AAF5D1CD175D45CBA",
+  "disposition": "Duplicate pointer to native Google staging review already independently reconciled; qualifications retained",
+  "endpoint": "unbound",
+  "sender": "U0C68LUTURJ"
+}

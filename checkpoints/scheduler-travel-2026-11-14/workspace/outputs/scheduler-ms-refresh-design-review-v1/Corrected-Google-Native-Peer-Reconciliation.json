@@ -1,0 +1,24 @@
+{
+  "review": "595B17D1BC3ECE46CB24B2B0877DCAC83308975F6B721A948A7661D1ACD01EF6",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED_NO_BLOCKERS",
+  "fake_receipt": "7F2084B19AA80A8533D2252991FDC01334FFEF65DC81490267A84FCE073016DC",
+  "endpoint": "unbound",
+  "atUtc": "2026-11-14T05:49:22.6054678+00:00",
+  "human_authority": "NONE",
+  "nested_pins": 269,
+  "evidence_absent": true,
+  "old_command": "6CB658FB remains WITHHELD",
+  "fake_result": "CFD4FECFBAD2F5AD98868AA676C5CC71CAB4100B55C3A95418521306EA362CC6",
+  "command": "47E9CBDEA1261D275DD84538BBF8FE62A665FD6F47F7A51015458DFA3E08F8BE",
+  "payload_pins": 257,
+  "remaining_qualifications": [
+    "CRLF actualreadersnewlineagnostic",
+    "32cap/22successpath andPKI timings inherited unchanged;image/nonroot443uninspected",
+    "Optionalinstallwindowhardeningdeferred;sourcebehaviorinferencespendingnative"
+  ],
+  "manifest": "66909DED6CBC6683C18DA8876A1EC0AD07641FF1100F24258D1E8E01CF62C888",
+  "inputs": 314,
+  "qualification3_overlay": "Reviewer read frozen preparation PENDING note; actual authorized corrected fake completed05:37-05:38UTC and is now independently reconciled. No frozen source metadata edited.",
+  "fake_prerequisite": "CORRECTED_PASS14_67_11_RECONCILED",
+  "executable_pins_match": true
+}

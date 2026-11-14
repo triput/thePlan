@@ -1,0 +1,20 @@
+{
+  "atUtc": "2026-11-14T03:10:42.1576267Z",
+  "status": "PREPARED_NOT_EXECUTED_PEER_REVIEW_REQUIRED",
+  "sourceManifest": "37F978FDDCCC7326059E457977B22583558668CBBB3C1381FD489586D11B8BC0",
+  "sourceChecker": "DFB2D4380CD6DFCC842EA26444977A3B4ECD7ABBFCCCA42A49289CE454E23CDF",
+  "sourceStaticFinding": "EDE5EC3010C5AD89D79D068B46213F7CF4F401C3C538A50CCA9672DB0E3BBEA8",
+  "candidateChecker": "950863A9C0BF691945D0BD77CE5BADD0EA305679A5B9FB31607F48D21F0F96D0",
+  "expected": "7E2E5CB3DBD2D360FA8CE1A9E352F2419DB374911B25847D4A39A3DB84CB4F70",
+  "admission": "E9DA1CF5E5730D9C6AC4996353CD0D810C7D2A9E24EE2F67DD7F309156B45523",
+  "commandSHA256": "2A9D65D014DBB68C698E9FDB33A410FE60534753CF7B1B1DE4D31AFB81895FA0",
+  "diffSHA256": "BAA06C10633455D6D0BA0CF14D76465FDB17FE75520D57AFC203A53300D75E59",
+  "localDataclassesReferenceSHA256": "EABCB7B9EDB1073172915E871E7773FD44054E2A0AB33D1977C69E653946BA5C",
+  "localDataclassesHashIsRuntimeAdmissionPin": false,
+  "runtimeProvenance": "Same10partialruntimepins, not a full transitive stdlib inventory",
+  "preserved": "All26rawsubjects/native305inputs unchanged; original13controls/61predicates/9mutants retained; add3in-memory module-lifecycle predicates toTRANSCRIPT for64total",
+  "codeDelta": "transcript_namespace uses existingSandbox and ownedModuleType for actual dataclass definitions; oracle_transcript adds success cleanup, pre-existing preservation/refusal, and exceptional definition cleanup/identity controls",
+  "newExecutionAuthority": "NONE",
+  "standingAuthoringLane": "389A00DD namedrole13 and finite associateddata",
+  "endpoint": "unbound"
+}

@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-11-13T02:20:18.3902067Z",
+  "classification": "PROVISIONAL_STATIC_MANIFEST_REVIEW",
+  "checks": [
+    {
+      "manifest": "Input-Manifest.sha256",
+      "sha256": "899B06F6E3FEB3AB82AC11E47BE25A6F3923CF081D4DA3E2E9EEDAFA7A4E0DA7",
+      "entries": 266,
+      "problems": []
+    },
+    {
+      "manifest": "payload\\SHA256SUMS.txt",
+      "sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90",
+      "entries": 257,
+      "problems": []
+    }
+  ],
+  "execution": false,
+  "frozen_handback_received": false
+}

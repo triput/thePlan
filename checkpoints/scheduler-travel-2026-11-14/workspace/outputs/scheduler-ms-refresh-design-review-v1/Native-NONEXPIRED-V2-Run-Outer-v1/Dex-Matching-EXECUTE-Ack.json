@@ -1,0 +1,8 @@
+{
+  "atUtc": "2026-11-14T00:10:17.7141840Z",
+  "signed": "Dex",
+  "manifest": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "command": "8031885C1F5ED8256CA7557041BDDCB737D1355D8F6E7D7CE8D194D28E288A59",
+  "acknowledgment": "EXECUTE exactly one reviewed corrected NONEXPIRED native invocation under Trish authorization",
+  "otherRuns": "HELD"
+}

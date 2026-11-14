@@ -1,0 +1,22 @@
+{
+  "atUtc": "2026-11-14T04:58:46.4793701+00:00",
+  "review": "BB175B53D630337E150DCE22279C41C511A25295250A4C2254C2984E9271E860",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED_NO_BLOCKERS",
+  "manifest": "441B3ACA895143588E4D89545D46DC618899166DC0FE86B0C89ADD535F7337CC",
+  "inputs": 310,
+  "unchanged_source_files": 300,
+  "changed_data_files": 5,
+  "added_staging_documents": 5,
+  "all_executables_unchanged": true,
+  "qualifications": [
+    "Data/manifest CRLF conversion is admitted by raw pins; actual PowerShell/Python readers are newline-agnostic; GNU sha256sum needs separate CR handling",
+    "32 hard cap,22 success path and PKI timings inherited from unchanged lineage; peer did not independently rederive them",
+    "Runtime images/nonroot443 not inspected in preparation",
+    "Google fake exact00C77B7D prerequisite remains unrun/pending user approval",
+    "No native user approval or EXECUTE acknowledgement; all source-derived behavior remains unproved"
+  ],
+  "evidence_root_absent": true,
+  "native_card": "NOT_PRESENTED_PREREQUISITE_PENDING",
+  "human_authority": "NONE",
+  "endpoint": "unbound"
+}

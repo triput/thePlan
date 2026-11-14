@@ -1,0 +1,27 @@
+# COMMANDS HELD — native-ready prep-v1. NOT INVOKED under preparation.
+# executed=false; launch_authorized=false; launch_ready=false; prep_is_not_pass=true;
+# endpoint=unbound; Slack tip=false; fake-v1 untouched.
+#
+# Future native launch (requires separate exact-hash approval + launch_ready=true):
+#
+#   $ws = 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-native-ready-prep-v1'
+#   .\Invoke-Native-Provider.ps1 `
+#     -ExpectedConfigSHA256 A7932F5906B386E5672556124FC1216B8A82EF687B3A26C4973F1D293B0183C1 `
+#     -ExpectedDockerConfigSHA256 5361734C877E10E1DCF76BD1F6D390964F396A9FA2E703FFDADDD5C474A287B3 `
+#     -DockerConfigPath (Join-Path $ws 'host\docker-ops-config.json')
+#
+# NOTE: The SHA256 values above are the authored prep hashes of host/launch-config.json
+# and host/docker-ops-config.json. They do NOT authorize run while launch_ready=false.
+# A later launch card must re-admit frozen bytes after any authorized flip.
+#
+# Held fake invocation (DO NOT RUN NOW; unchanged fake-v1 card path):
+#
+#   .\Invoke-Fake.ps1 -AdmissionSHA256 B924153C1C53AE6ACD51338586C24ECEBC719628003E9F5F6113406372BCC265
+#
+# Forbidden under this preparation:
+# - certificate generation / provider PKI invoke
+# - docker compose / docker run / image inspect
+# - imports/compilation/tests of payload/api
+# - helper invocation beyond static authoring
+# - claiming PASS from prep
+# - Slack tip from this seat

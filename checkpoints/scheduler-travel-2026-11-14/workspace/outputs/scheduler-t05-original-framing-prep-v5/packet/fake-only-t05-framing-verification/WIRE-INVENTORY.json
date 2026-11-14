@@ -1,0 +1,444 @@
+{
+  "wire_count": 52,
+  "wires": [
+    {
+      "wire_id": "F01",
+      "purpose": "event",
+      "path": "wire_transcripts/F01.wire",
+      "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496",
+      "byte_size": 119,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F02",
+      "purpose": "event",
+      "path": "wire_transcripts/F02.wire",
+      "sha256": "D58751EE563CB10B622B5B7DCFF646E66CD5A5727D4AF2127E8C8AE147B16240",
+      "byte_size": 119,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F03-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F03-oauth.wire",
+      "sha256": "7D387AC47BA834A2AA6A94F2733D84F4B3D4AD5C5CAC28D760ACB1C28D0850EF",
+      "byte_size": 152,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F04-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F04-oauth.wire",
+      "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892",
+      "byte_size": 152,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F05-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F05-oauth.wire",
+      "sha256": "4A0D644A04EA81B81391391EBFE888FB6517A97F3F3DE01400F89FA7BF60E937",
+      "byte_size": 158,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F05b-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F05b-oauth.wire",
+      "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197",
+      "byte_size": 158,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-BASE",
+      "purpose": "event",
+      "path": "wire_transcripts/C-BASE.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+      "byte_size": 106,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-EXT-VALID",
+      "purpose": "event",
+      "path": "wire_transcripts/C-EXT-VALID.wire",
+      "sha256": "9A751FB3DF44B331427727DBFEB59367592A9CBFEC93921679776875085EF789",
+      "byte_size": 131,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-TRAILER-VALID",
+      "purpose": "event",
+      "path": "wire_transcripts/C-TRAILER-VALID.wire",
+      "sha256": "FF58E4A04C7FAC656406ED71494DC2561C01F2F413F811783C8EAA0E219DE7E9",
+      "byte_size": 121,
+      "driver": "covering_http",
+      "stimulus": "valid_trailer_positive"
+    },
+    {
+      "wire_id": "C-DATA-SHORT",
+      "purpose": "event",
+      "path": "wire_transcripts/C-DATA-SHORT.wire",
+      "sha256": "5CFFB2738B3D56487CADBB2A8CC5870F2D6A8789C34F4BF318FCA3397B7A6A83",
+      "byte_size": 99,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-SEP-SHORT",
+      "purpose": "event",
+      "path": "wire_transcripts/C-SEP-SHORT.wire",
+      "sha256": "1AEC0F54DAF220586736DEF77DE39E8D7AFE6DF9B7D7EB25DB680C09CDD2F821",
+      "byte_size": 100,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-SEP-WRONG",
+      "purpose": "event",
+      "path": "wire_transcripts/C-SEP-WRONG.wire",
+      "sha256": "C24CC2E9091879CA8F938AC2260B05EE5E488A69EA87B9989CA8C3D63C4CE44C",
+      "byte_size": 106,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-ZERO-ABSENT",
+      "purpose": "event",
+      "path": "wire_transcripts/C-ZERO-ABSENT.wire",
+      "sha256": "E69CB0CEB14578282AD18648A88145D0F1C1802CB3CC87A6E0748E7EA3E781A7",
+      "byte_size": 99,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-TRAILER-EOF",
+      "purpose": "event",
+      "path": "wire_transcripts/C-TRAILER-EOF.wire",
+      "sha256": "CCE59FBDEDC749AA44F0792D81B630D00B54416D0DCA11F890564E09E7B367EB",
+      "byte_size": 104,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-ZERO-NO-CRLF",
+      "purpose": "event",
+      "path": "wire_transcripts/C-ZERO-NO-CRLF.wire",
+      "sha256": "0D4FEEAFA9AF74C2E40E2A92F1AED638DC4CCC9395708E8939ED48C8A966576B",
+      "byte_size": 102,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-TRAILER-LINE-EOF",
+      "purpose": "event",
+      "path": "wire_transcripts/C-TRAILER-LINE-EOF.wire",
+      "sha256": "B8EEA183024DC1FEDDBBA031FC99CAAAB4DC3AEC279B7171E1D7743B1C590396",
+      "byte_size": 106,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "C-TRAILER-MALFORMED",
+      "purpose": "event",
+      "path": "wire_transcripts/C-TRAILER-MALFORMED.wire",
+      "sha256": "58D5A7288F7FD26F4200C389C26DE7B62C90FC72642A4E6E164A140D17A40720",
+      "byte_size": 118,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12a-INVALID-JSON-EVENT",
+      "purpose": "event",
+      "path": "wire_transcripts/F12a-INVALID-JSON-EVENT.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+      "byte_size": 133,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12a-INVALID-JSON-IDENTITY",
+      "purpose": "identity",
+      "path": "wire_transcripts/F12a-INVALID-JSON-IDENTITY.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+      "byte_size": 133,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12a-INVALID-JSON-OAUTH",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F12a-INVALID-JSON-OAUTH.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+      "byte_size": 133,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12a-NONOBJECT-EVENT",
+      "purpose": "event",
+      "path": "wire_transcripts/F12a-NONOBJECT-EVENT.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+      "byte_size": 121,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12a-NONOBJECT-IDENTITY",
+      "purpose": "identity",
+      "path": "wire_transcripts/F12a-NONOBJECT-IDENTITY.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+      "byte_size": 121,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12a-NONOBJECT-OAUTH",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F12a-NONOBJECT-OAUTH.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+      "byte_size": 121,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12b-ENCODING-EVENT",
+      "purpose": "event",
+      "path": "wire_transcripts/F12b-ENCODING-EVENT.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+      "byte_size": 115,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12b-ENCODING-IDENTITY",
+      "purpose": "identity",
+      "path": "wire_transcripts/F12b-ENCODING-IDENTITY.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+      "byte_size": 115,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "F12b-ENCODING-OAUTH",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F12b-ENCODING-OAUTH.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+      "byte_size": 115,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "CALLER-CLIENT-EVENT-F01",
+      "purpose": "event",
+      "path": "wire_transcripts/F01.wire",
+      "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496",
+      "byte_size": 119,
+      "driver": "calendar_client",
+      "transcript_ref": "F01",
+      "owning_caller": "calendar_client under covering_provider_transport"
+    },
+    {
+      "wire_id": "CALLER-CLIENT-OAUTH-F04",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F04-oauth.wire",
+      "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892",
+      "byte_size": 152,
+      "driver": "calendar_client",
+      "transcript_ref": "F04-oauth",
+      "owning_caller": "calendar_client under covering_provider_transport"
+    },
+    {
+      "wire_id": "CALLER-CLIENT-OAUTH-F05b",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F05b-oauth.wire",
+      "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197",
+      "byte_size": 158,
+      "driver": "calendar_client",
+      "transcript_ref": "F05b-oauth",
+      "owning_caller": "calendar_client under covering_provider_transport"
+    },
+    {
+      "wire_id": "CALLER-REFRESH-TOKEN-F04",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F04-oauth.wire",
+      "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892",
+      "byte_size": 152,
+      "driver": "calendar_client",
+      "transcript_ref": "F04-oauth",
+      "owning_caller": "google_calendar.refresh_access_token via calendar_client"
+    },
+    {
+      "wire_id": "H-DUP-IDENTICAL-FIELDS",
+      "purpose": "event",
+      "path": "wire_transcripts/H-DUP-IDENTICAL-FIELDS.wire",
+      "sha256": "B07F9E56E236B3987AC49DEAFC6FBBDB320CC3F81A8A09ABB0DCB43AB74895C2",
+      "byte_size": 138,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-DUP-IDENTICAL-LIST",
+      "purpose": "event",
+      "path": "wire_transcripts/H-DUP-IDENTICAL-LIST.wire",
+      "sha256": "7CF16642407ED6415E26459667CF7F32DDA394D754105AD184CD433D28BB157B",
+      "byte_size": 122,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-CONFLICT-FIELDS-2-3",
+      "purpose": "event",
+      "path": "wire_transcripts/H-CONFLICT-FIELDS-2-3.wire",
+      "sha256": "004583BC0A6E6847D191184C9781C7E9B74435107983F3B6168609261CF89876",
+      "byte_size": 138,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-CONFLICT-FIELDS-3-2",
+      "purpose": "event",
+      "path": "wire_transcripts/H-CONFLICT-FIELDS-3-2.wire",
+      "sha256": "DA0133D46ADF8E84211DE5DFE350BEC8483B394BDB4E3FC4532BFF8093FFA7BB",
+      "byte_size": 138,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-CONFLICT-LIST-2-3",
+      "purpose": "event",
+      "path": "wire_transcripts/H-CONFLICT-LIST-2-3.wire",
+      "sha256": "4833158B69A4ECAD4A84FA17FDA1AAE30AEA58D10A2B915E32145008F5E49C57",
+      "byte_size": 122,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-CONFLICT-LIST-3-2",
+      "purpose": "event",
+      "path": "wire_transcripts/H-CONFLICT-LIST-3-2.wire",
+      "sha256": "3D1C5DE2067CC5D18234042D9E02140EDADED4171A0C6F5E2D30942391836D64",
+      "byte_size": 122,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-DECIMAL-02",
+      "purpose": "event",
+      "path": "wire_transcripts/H-DECIMAL-02.wire",
+      "sha256": "B9B204433236D92501FA8435DB6543E2039866FBC8DEB41F36CB814CFF50AAEC",
+      "byte_size": 120,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-INVALID",
+      "purpose": "event",
+      "path": "wire_transcripts/H-INVALID.wire",
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0",
+      "byte_size": 120,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-INVALID-PLUS",
+      "purpose": "event",
+      "path": "wire_transcripts/H-INVALID-PLUS.wire",
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0",
+      "byte_size": 120,
+      "driver": "covering_http",
+      "stimulus": "content_length_plus"
+    },
+    {
+      "wire_id": "H-INVALID-NEG",
+      "purpose": "event",
+      "path": "wire_transcripts/H-INVALID-NEG.wire",
+      "sha256": "A602DF3E1B12BB9EB95184F038C795A229E68E492D331630333303975E16902D",
+      "byte_size": 120,
+      "driver": "covering_http",
+      "stimulus": "content_length_negative"
+    },
+    {
+      "wire_id": "H-INVALID-EMPTY",
+      "purpose": "event",
+      "path": "wire_transcripts/H-INVALID-EMPTY.wire",
+      "sha256": "6B6B65D7508B8A1EB4243AC1A6E071BA43E9BD7D6387A37B053987AB687AEE4D",
+      "byte_size": 118,
+      "driver": "covering_http",
+      "stimulus": "content_length_empty"
+    },
+    {
+      "wire_id": "H-INVALID-NONDEC",
+      "purpose": "event",
+      "path": "wire_transcripts/H-INVALID-NONDEC.wire",
+      "sha256": "BC3028CE4FAAF5C958C2F5B5D7E056787E38A78E6D0AB37AA8519BCE594EBEAA",
+      "byte_size": 121,
+      "driver": "covering_http",
+      "stimulus": "content_length_nondecimal"
+    },
+    {
+      "wire_id": "H-INVALID-DECIMAL-EQ",
+      "purpose": "event",
+      "path": "wire_transcripts/H-INVALID-DECIMAL-EQ.wire",
+      "sha256": "3AD9BD75D8F9EF5B8ADF1945812DD819A073F9058C38264816C1E9C440D39CAA",
+      "byte_size": 121,
+      "driver": "covering_http",
+      "stimulus": "content_length_decimal_equivalent"
+    },
+    {
+      "wire_id": "H-TE-CL",
+      "purpose": "event",
+      "path": "wire_transcripts/H-TE-CL.wire",
+      "sha256": "840D382D9B4A6DB242AE43C92929B522BBE4B48ED2409B17930B7A1AF1477F95",
+      "byte_size": 125,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-TE-NONEXACT+CL",
+      "purpose": "event",
+      "path": "wire_transcripts/H-TE-NONEXACT+CL.wire",
+      "sha256": "0BA91225FDBE946AE8FA17E85BE78C8D68812E5156F7407E8863731670EF512F",
+      "byte_size": 131,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-TE-REPEAT",
+      "purpose": "event",
+      "path": "wire_transcripts/H-TE-REPEAT.wire",
+      "sha256": "39A5ADA6BDC14B99C9ED1B093E3FA187EA7CC6C1085E816CDA4D0328DE36BD05",
+      "byte_size": 134,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-TE-LIST",
+      "purpose": "event",
+      "path": "wire_transcripts/H-TE-LIST.wire",
+      "sha256": "1FBCC0D5A47DAD75486E2C79093D3DE9D1C3291AD6E7F0FB977DCE2172725D91",
+      "byte_size": 115,
+      "driver": "covering_http"
+    },
+    {
+      "wire_id": "H-TE-MIXED",
+      "purpose": "event",
+      "path": "wire_transcripts/H-TE-MIXED.wire",
+      "sha256": "5B3407984CB288C16B69C4457D5E8A3581345C4E95F0920633AC9C843623A774",
+      "byte_size": 131,
+      "driver": "covering_http",
+      "stimulus": "te_mixed_coding_field_order"
+    },
+    {
+      "wire_id": "CD-ORDERLY",
+      "purpose": "event",
+      "path": "wire_transcripts/CD-ORDERLY.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA",
+      "byte_size": 100,
+      "driver": "covering_http",
+      "close_delimited_note": "byte_fake_eof_only_not_tls_proof",
+      "byte_fake_eof_only": true,
+      "tls_close_notify_proven": false
+    },
+    {
+      "wire_id": "CD-ABRUPT",
+      "purpose": "event",
+      "path": "wire_transcripts/CD-ABRUPT.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA",
+      "byte_size": 100,
+      "driver": "covering_http",
+      "close_delimited_note": "byte_fake_eof_only_not_tls_proof",
+      "byte_fake_eof_only": true,
+      "tls_close_notify_proven": false
+    },
+    {
+      "wire_id": "CD-DEADLINE",
+      "purpose": "event",
+      "path": "wire_transcripts/CD-DEADLINE.wire",
+      "sha256": "E14AAAC69EABB2D765D408611C6D0848F68BDBEFCE86B1C693D7F6E6AC8FA023",
+      "byte_size": 99,
+      "driver": "covering_http",
+      "stall_stimulus": true
+    },
+    {
+      "wire_id": "F06",
+      "purpose": "event",
+      "path": "wire_transcripts/F06.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+      "byte_size": 106,
+      "driver": "covering_http",
+      "alias_of": "C-BASE"
+    }
+  ]
+}

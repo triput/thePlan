@@ -1,0 +1,11 @@
+# Native I01/I02 packet: HELD on C06 filesystem boundary
+
+No native execution occurred. The assembled draft is not launchable: launch-config.launch_ready=false, unresolved C06 runner TLS material dependency. Commands.ps1.txt retains pre-blocker pins and must not be presented or invoked; its manifest guard now refuses. Preserve the draft and fake PASS evidence. No source correction performed.
+
+Source trace: I01I02Suite.c06_lost_ack starts serve_i01_c06_gate in a runner-local thread and calls it without root override. It checks /fixture-tls/I01-C06.ready and loads its receipt from that default root. serve_i01_c06_gate loads /fixture-tls/server.crt, server.key and ca.crt before signaling readiness. The launch topology mounts /fixture-tls as a DB-only tmpfs; runner has /tmp tmpfs and only read-only /packet and /public-ca binds. Sharing the DB network namespace does not share its filesystem. prepare-tls.sh uses umask077/private keys0600 in the DB. Therefore the frozen native topology does not supply the runner-local C06 gate inputs. The fake extraction checks do not exercise this boundary.
+
+Do not mount or transfer DB private keys, weaken file permissions, alter production guards, replace the lost-ack proof with mapping-only C06-MAP, or rerun anything as a workaround.
+
+Candidate direction for review only: runner-owned fixture CA/leaf in its existing private /tmp tmpfs, with C06 client trust distinct from backend DB trust. Existing runner OpenSSL CLI capability is retained evidence; exact certificate commands, bounded generation, ownership, paths, C06 profile and backend trust changes require a concrete fixture-only proposal and source-change approval. Alternative DB-owned gate must account for readiness/receipt/process custody without broadening host source scope silently. No option is approved here.
+
+Jim's next single assignment is independent offline trace and narrow correction proposal, not implementation. Dex retains D2 addendum review. All execution holds remain, endpoint unbound.

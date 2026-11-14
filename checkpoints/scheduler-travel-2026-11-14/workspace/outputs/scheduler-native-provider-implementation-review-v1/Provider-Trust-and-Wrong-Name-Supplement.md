@@ -1,0 +1,14 @@
+# Provider trust and wrong-name stimulus — v1 implementation review supplement
+
+Dex static source review only. Same approved native preparation roles; no generation, import, socket or launch.
+
+The provider recipe prepares its CA and leaves under /tmp/np-provider-tls. In contrast, np_provider_routes.py declares FIXTURE_CA_PATH=/public-ca/ca.crt and WRONG_CA_PATH=/public-ca/wrong-ca.crt. The immutable DockerOps uses /public-ca/ca.crt for the transferred database public CA. No code in the frozen peer/runner bridges the new provider CA to those declared client paths. Therefore the positive provider chain is not yet wired to the provider leaf's issuer, and the wrong-CA path is not yet guaranteed to exist as distinct material. Keep database trust unchanged and separate. Route the provider clients to their actually generated provider trust material in the runner-owned private tmpfs (or another explicitly declared owned public-only location); never replace the DB CA, export private keys, or write through its read-only public mount. Verify distinct public hashes/roles at runtime when that later launch is authorized.
+
+The wrong_name branches currently change server_hostname to wrong-name.fixture.invalid. Production HTTPSPeer uses its single hostname for both URL origin equality and TLS server_hostname verification. If wrong-name.fixture.invalid becomes HTTPSPeer.hostname, a graph.microsoft.com URL is refused before TLS; if the peer also serves the wrong-name leaf, that altered hostname can even match the leaf. Neither is the intended hostname-mismatch TLS witness.
+
+For the wrong-name case keep the vendor URL, HTTPSPeer.hostname/SNI/check_hostname/CERT_REQUIRED and numeric loopback dial unchanged. Change the SERVER-SERVED certificate to the distinct wrong-name leaf signed by the otherwise trusted provider CA. Assert the TLS hostname-verification failure before useful application data, separately from origin admission refusal and wrong-issuer failure. Do not rewrite production URL builders or weaken trust policy.
+
+Correct these paths and stimulus selection while implementing the actual peer/runner under the already approved roles. The shell recipe's caller must create/admit its private directory and invoke generation under the separately reviewed bounded owned-child retirement contract; a bare source recipe is not proof that the child is bounded. Generation itself remains held until launch approval.
+
+No new user policy decision is needed: these corrections implement the accepted verify-full and separated-trust contract. Preserve frozen v1, use the same fresh successor, and retain every execution gate.
+— Dex

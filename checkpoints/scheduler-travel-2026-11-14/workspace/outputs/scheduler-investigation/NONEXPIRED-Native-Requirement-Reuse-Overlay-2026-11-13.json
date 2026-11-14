@@ -1,0 +1,59 @@
+{
+  "atUtc": "2026-11-14T00:31:09.5059855Z",
+  "kind": "Finite native evidence reuse overlay; original 76 planning requirements retained",
+  "receiptSha256": "7A88204AA058B3C2FB274EE30A45AB640C245154E3FB5DF716283286286204A9",
+  "reconciliationSha256": "DF17A59EEBDCDDF58845D26B1AD3D03F75AC9C9D2479FAC58258024E9C125837",
+  "positiveIntegrationObligation": {
+    "scope": "Production in-process HTTP/dispatch/connector -> synthetic Microsoft HTTPS via default JoinedTLS -> real native final assessment with observable not-ready to ready coverage and scheduling readiness",
+    "notProven": "OAuth refresh, Google, all-provider or all-fault composition",
+    "status": "PROVEN_AT_SELECTED_SCOPE"
+  },
+  "requirementEvidence": [
+    {
+      "established": "Four successful actual JoinedTLS exchanges, peer TLS handshake observations, native runtime pins, generated synthetic TLS material and known joined retirement",
+      "avoidDuplicateWork": "Reuse existing positive witness in later T03 design; do not automatically schedule a duplicate positive run",
+      "id": "T03-VALID",
+      "status": "POSITIVE_RUNTIME_WITNESS_AVAILABLE_FOR_REUSE",
+      "remaining": "Reconcile the exact individual T03 acceptance row and hostname/CA assertions against the executed source before full ID closure; wrong-CA/name/stall/refusal are separate negative obligations"
+    },
+    {
+      "established": "Ordered identity,identity,event,event exchanges and shared ingress/provider budget identity",
+      "id": "T02-IDENTITY-PAGES-BOUNDARY / related equality-overflow IDs",
+      "status": "PARTIAL_COMPOSITION_WITNESS_ONLY",
+      "remaining": "No exact request-wide ceiling equality or overflow stimulus in this checkpoint"
+    },
+    {
+      "established": "Zero OAuth requests, TOKEN rollback acknowledged",
+      "id": "T06-SUCCESS-MICROSOFT",
+      "status": "NOT_ESTABLISHED_BY_NONEXPIRED",
+      "remaining": "A refresh-success requirement needs an actual OAuth exchange, rotation/persistence and native terminal evidence"
+    },
+    {
+      "established": "This owned positive peer/transport lifecycle joined cleanly",
+      "id": "T08-NESTED / RESET / FOREIGN-THREAD / FOREIGN-CLOSE / REUSE",
+      "status": "JOINED_LIFECYCLE_WITNESS_ONLY",
+      "remaining": "No dedicated nested/reset/foreign-owner/reuse fault stimulus"
+    },
+    {
+      "established": "Positive normal response integration is separate from failed abrupt classification",
+      "id": "T05",
+      "status": "UNCHANGED_OPEN",
+      "remaining": "Native diagnostic/fault proof still open; no T05 PASS transferred"
+    }
+  ],
+  "fullRequirementsClosedByThisOverlay": 0,
+  "existingOwnerLockProof": "I02 retained at prior verified PostgreSQL lock-contention scope; no need to repeat that proof solely because this positive TLS checkpoint passed",
+  "exactQueryBytes": "Not verified",
+  "additionalExecution": "NONE",
+  "activeMattAssignment": "B238FE6E6B26E09DED8E5A817E916DF1FD43D4E5797183E546E7B1B4481315DA",
+  "pendingCard": "ONE diagnostic fake verification; unchanged",
+  "endpoint": "unbound",
+  "goalComplete": false,
+  "exactT03AcceptanceSource": "outputs/theplan-next-step-2026-11-06/calendar-correction-completion-v1/post-native-integration-proposal-v1/Transport-Case-Inventory-Draft.md:9",
+  "exactT03Acceptance": "Real certificate/hostname verification; numeric destination; no DNS/proxy/default-client fallback; before-send state; bounded elapsed time; joined/closed resources",
+  "t03PositiveClosureQualification": {
+    "notSeparatelyRecorded": "Per-exchange elapsed time and dedicated before-send-state/negative admission observations are not separate positive-case report fields",
+    "available": "Actual default JoinedTLS handshake/response success and joined retirement within the supervised native checkpoint",
+    "decision": "Retain this positive witness; reconcile numeric-destination/trust/no-fallback source assertions and deadline supervision before deciding whether any additional positive measurement is necessary. No blanket T03 completion claim or automatic duplicate run."
+  }
+}

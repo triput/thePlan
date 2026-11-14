@@ -1,0 +1,24 @@
+{
+  "disposition": "QUALIFIED_ACCEPT_RECONCILED_FOR_LAUNCH_REVIEW_ONLY",
+  "author": "Dex",
+  "peer_author": "Justin under Jim",
+  "peer_tip_sha256": "ACF569647DB909124225D7EC40B3BC418E230648E13F44A3D73FE87D56CF7FC2",
+  "peer_review_sha256": "9EC908376D447CD3910077094A98FA91BBC3067CF4A0E68D8053DAD94D5589CB",
+  "blocking_findings": 0,
+  "packet_file_pins_verified": 475,
+  "runtime_pins_verified": 19,
+  "reviewed_input_pins_verified": 9,
+  "outer_subject_pins_verified": 6,
+  "command_sha256": "A98838452A0E7B6FA5BA504E38F2BA54E05890DFC759D33AE23412F94D87E048",
+  "admission_sha256": "AE502E6BAA2CF8CA33B9E1137E5BB8C5E5FCC14F620239914DB3CAFCE1E86532",
+  "qualifications": [
+    "Nine finite origin-port controls only, no full transport closure",
+    "Host Python3.11 extracted-class proof, not native TLS/socket/timing/dial",
+    "19 runtime pins partial, not full transitive stdlib/DLL closure",
+    "45s nominal collection/retirement excludes outer wait/file/hash/OS latency; no separate outer timeout",
+    "No framing merge or live activation authority"
+  ],
+  "executed": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

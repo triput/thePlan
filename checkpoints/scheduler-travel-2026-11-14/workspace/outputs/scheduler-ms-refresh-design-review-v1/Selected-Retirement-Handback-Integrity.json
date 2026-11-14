@@ -1,0 +1,38 @@
+{
+  "atUtc": "2026-11-13T22:44:33.9130801Z",
+  "checks": [
+    {
+      "manifest": "F:\\DropFolder\\Matt-Drops\\Matt-thePlan-Scheduler-MS-Selected-Retirement-Correction-Hashes-2026-11-13.txt",
+      "count": 32,
+      "sha256": "53405760924ED06812F5D4E6CE95509006D8D20F36CCE081D166F8D78AAC6925"
+    },
+    {
+      "manifest": "outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\Input-Manifest.sha256",
+      "count": 297,
+      "sha256": "6144365E0E7F282BABEDF0FDFB454E309112A16D17CE8464CF5335F7AFC5505B"
+    },
+    {
+      "manifest": "outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\Input-Manifest.sha256",
+      "count": 291,
+      "sha256": "F6DBB55155B9C8757A22FCE75292618E4306C21CA426FE22A90848C262E68C48"
+    },
+    {
+      "manifest": "outputs\\scheduler-native-ms-selected-retire-fake-prep-matt-v1\\Input-Manifest.sha256",
+      "count": 45,
+      "sha256": "A6AE21A9A373BB47593415AD4D193FDCBB9204585329D24B5662F1000429D9C0"
+    },
+    {
+      "manifest": "outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\Input-Manifest.sha256",
+      "count": 269,
+      "sha256": "545C6BDD6A9E99850ECA62F0779D58052BE7A57BBA661B154FD4DBFC6F54153E"
+    },
+    {
+      "manifest": "outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\Input-Manifest.sha256",
+      "count": 269,
+      "sha256": "908C0F6E228DED21FB39F8521DBBB2A4674C466481887208B9B39ECB5254C908"
+    }
+  ],
+  "handoff": "4138F3AD03C929FBC87392DBC9E4F9357F64C120F9A47B2619ECEC7F6A322B66",
+  "executionPerformed": false,
+  "status": "all listed pins match"
+}

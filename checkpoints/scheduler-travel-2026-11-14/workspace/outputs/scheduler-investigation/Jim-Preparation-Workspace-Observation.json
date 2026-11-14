@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-12T20:17:50.4539605Z",
+  "classification": "Implementation workspace observed; handback not frozen",
+  "metadata_only": true,
+  "workspace": "outputs\\scheduler-native-provider-prep-v1",
+  "file_count": 256,
+  "latest_file": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-v1\\verify\\check_native_provider.py",
+  "latest_mtime_utc": "2026-11-12T20:17:46.9847912Z",
+  "source_contents_reviewed": false,
+  "live_process_handle_verified": false,
+  "stall_inferred": false,
+  "one_assignment_retained": true,
+  "launch_authorized": false,
+  "endpoint": "unbound"
+}

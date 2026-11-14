@@ -1,0 +1,106 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-ms-refresh-fake-prep-matt-v2",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "runtime_file_pin_count": 1,
+  "runtime_files": [
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "note": "partial runtime scope: reviewed interpreter executable only; not a standard-library/DLL/environment lock"
+    }
+  ],
+  "packet_file_pin_count": 18,
+  "packet_files": [
+    {
+      "sha256": "6F4D83C04640E596A806E19FFCECDA026662CEB51B6B138C3C79EFBDD1FD2971",
+      "relative_path": "verify/check_native_provider.py"
+    },
+    {
+      "sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+      "relative_path": "verify/launch_check.py"
+    },
+    {
+      "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "relative_path": "verify/verify_admission.py"
+    },
+    {
+      "sha256": "FD98745D2B83A2FD0C9233C16B050BDC5A1C719FA572793D99A95949B2EBDB71",
+      "relative_path": "verify/EXPECTED-FAKE-STRUCTURAL.json"
+    },
+    {
+      "sha256": "0CD0706B9CD62B1F8697158547C0DF633DD2BAAD3C140D1BB0BFC6D62CE03645",
+      "relative_path": "verify/OUTER-ADMISSION.json"
+    },
+    {
+      "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "relative_path": "Invoke-Fake.ps1"
+    },
+    {
+      "sha256": "2ADFA3ADCFDA8DB4D9D32EDFC9950AF354CE29ADFA1B5A8162FD5182DC22ED05",
+      "relative_path": "subjects/candidate/np_auth_seed.py"
+    },
+    {
+      "sha256": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+      "relative_path": "subjects/candidate/np_provider_peer.py"
+    },
+    {
+      "sha256": "0AA3BC093711B7EEBADD1F23A80BF86F2B5AEAB4C1224014537BB051FDDCE52E",
+      "relative_path": "subjects/candidate/np_provider_transcript.py"
+    },
+    {
+      "sha256": "7F27A3C2CBCA73C27DCEC6C9DCF6277C7F131ACC3A561C4170636EAB5D5E24C7",
+      "relative_path": "subjects/candidate/np_receipts.py"
+    },
+    {
+      "sha256": "CC4D49E758F22E5E34C0D6093946CA390BC95A4C320C3D92B24AD723FA8634FF",
+      "relative_path": "subjects/candidate/np_runner_entry.py"
+    },
+    {
+      "sha256": "46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D",
+      "relative_path": "subjects/candidate/np_suite.py"
+    },
+    {
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+      "relative_path": "subjects/production/microsoft_calendar.py"
+    },
+    {
+      "sha256": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+      "relative_path": "subjects/source/np_auth_seed.py"
+    },
+    {
+      "sha256": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3",
+      "relative_path": "subjects/source/np_provider_transcript.py"
+    },
+    {
+      "sha256": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+      "relative_path": "subjects/source/np_receipts.py"
+    },
+    {
+      "sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+      "relative_path": "subjects/source/np_runner_entry.py"
+    },
+    {
+      "sha256": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "relative_path": "subjects/source/np_suite.py"
+    }
+  ],
+  "result_byte_cap": 262144,
+  "capture_byte_cap": 65536,
+  "reader_join_seconds": 5,
+  "post_kill_wait_seconds": 5,
+  "check_seconds_budget": 120,
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_root": "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+  "exclusive_evidence": [
+    "verify/FAKE-NATIVE-PROVIDER-RESULT.json",
+    "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"
+  ],
+  "candidate_workspace": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1",
+  "note": "Dex reviewed staging only;Trish execution permission absent. Only staged OUTER data pin changes;all executable/subject/oracle bytes unchanged. Original frozen packets preserved."
+}

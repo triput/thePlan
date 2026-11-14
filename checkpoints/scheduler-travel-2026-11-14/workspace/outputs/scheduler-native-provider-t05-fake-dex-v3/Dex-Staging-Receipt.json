@@ -1,0 +1,20 @@
+{
+  "status": "EXACT_V3_STAGING_INDEPENDENTLY_REVIEWED_HELD",
+  "at_utc": "2026-11-13T04:38:39.9616013Z",
+  "source_manifest_sha256": "DD108B3D1E957DBF0E66657F1A5A2FC034B3AE78CAC4A73FC8C38AE621B3EEC5",
+  "packet_manifest_sha256": "7985375052B528B353054AD5700D452A6858C3AF109FBA440750B5CD1A44E1E6",
+  "command_sha256": "8500E3ED1ECC5FA93034F9F1D4B28F73F2FA2631EC21795C6D902F9B709F13D9",
+  "admission_sha256": "523574A769AB466BAD5C7E5112BF8FE64C8A224360B8AE2AFAD570BFEA49D2FB",
+  "outer_sha256": "075794DF322FCF8F9661B89705D855FE36FF665C0EFFED2067EB946B9B1C7786",
+  "changed_packet_files": [
+    "verify\\OUTER-ADMISSION.json",
+    "verify\\VERIFICATION-ADMISSION.json"
+  ],
+  "checker_sha256": "BF5E28A98C2533C967FF1DD51EDE63D9F50885627B656937D9CE7DFAE24D7F64",
+  "launcher_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+  "peer_review_disposition": "Prior Matt B3 objection resolved exact proposed change; Dex independently reviewed correction and full final staging; prior unchanged-part qualifications retained",
+  "human_execution_authorized": false,
+  "execute_ack_issued": false,
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

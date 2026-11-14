@@ -1,0 +1,14 @@
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,7 +1,9 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-NONEXPIRED"
++    "NP-T03-VALID",
++    "NP-T03-WRONG-CA",
++    "NP-T03-WRONG-NAME"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,

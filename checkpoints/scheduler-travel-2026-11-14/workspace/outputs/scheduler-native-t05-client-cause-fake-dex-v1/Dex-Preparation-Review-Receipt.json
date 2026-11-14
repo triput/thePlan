@@ -1,0 +1,23 @@
+{
+  "atUtc": "2026-11-14T00:27:00.6699685Z",
+  "status": "STAGED_FOR_REVIEW_NO_HUMAN_EXECUTION_AUTHORITY",
+  "sourceManifest": "0458DBDC3E35AA23BBFBD5FADD656EF83C3A7401719D4A982E30592A9419B3E8",
+  "sourceInputs": 20,
+  "unchangedSourceInputs": 18,
+  "changedMetadataOnly": [
+    "packet/verify/VERIFICATION-ADMISSION.json",
+    "packet/verify/OUTER-ADMISSION.json"
+  ],
+  "commandSha256": "08709F146A56F54F021AD6FA7F11C6660C8AA4D8C5D50845EFFD5FEFCC3918C2",
+  "admissionSha256": "5B8F8B830B17A0F4E2037D3C0E9AEE903207D71C43DCECC51B82D81D2563D044",
+  "outerSha256": "C2EC4165EC1CEF9154ED1BB62F914B0563DE398432C482F9373F17DF6A6B4F94",
+  "controls": 10,
+  "reportedPredicates": 38,
+  "packetPins": 17,
+  "partialRuntimePins": 10,
+  "humanApproval": "NONE",
+  "executions": 0,
+  "nativeLaunch": "HELD",
+  "endpoint": "unbound",
+  "metadataFlagsAreNotHumanAuthority": true
+}

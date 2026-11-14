@@ -1,0 +1,1 @@
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-ms-selected-retirement-fake-dex-v1\packet\Invoke-Fake.ps1' -AdmissionSHA256 'CDC8F7721BF250BEF7D48481219295EBB76C70F978C7D1F80D5538DEFDEB753A'

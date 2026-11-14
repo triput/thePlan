@@ -1,0 +1,9 @@
+{
+  "event_id": "Ev0CHBEKDB1U",
+  "message_ts": "1794545492.851349",
+  "checked_at_utc": "2026-11-13T05:01:28.8720713Z",
+  "disposition": "already-reconciled-design-pointer",
+  "proposal_sha256": "5A482D5CF141839B12E122C539B48644668DC971AA81D95645266BF2881037B2",
+  "basis": "Actual source blockers and Q1-Q4 already independently reconciled, semantic persistence qualification retained. One approved-lane preparation assignment F462C385 delivered with scopeEAAFA222 and Slack1794546060.530279. No new request,blocker,scope or execution authority.",
+  "reply_sent": false
+}

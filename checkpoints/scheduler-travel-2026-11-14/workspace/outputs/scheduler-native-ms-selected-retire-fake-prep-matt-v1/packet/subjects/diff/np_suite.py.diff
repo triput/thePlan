@@ -1,0 +1,17 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -460,6 +460,14 @@
+         "peer exchanges, semantic persisted-credential proof; launch_ready gate still "
+         "required; no native PASS until an authorized run"
+     ),
++    "NP-V-MS-INVALID": (
++        "IMPLEMENTED_SOURCE — separate single-case batch; one expired MS subscription, exactly "
++        "one OAuth POST at the production-derived tenant path answered by a complete status-400 "
++        "invalid_grant object; typed CoveringReauthorizationRequired, one acknowledged native "
++        "TOKEN ROLLBACK, unchanged semantic credentials/expiry/coverage from separate sessions, "
++        "preflight-rejected CALENDAR_ACCOUNT_DISCONNECTED/no_op and IMPORT not entered; "
++        "launch_ready gate still required; no native PASS until an authorized run"
++    ),
+     "NP-T05-ORDERLY-CLOSE": (
+         "IMPLEMENTED_SOURCE — production Counter/CoveringHTTP/default JoinedTLS; three separate "
+         "sequential owned-peer observations after orderly close_notify: supplementary close-delimited "

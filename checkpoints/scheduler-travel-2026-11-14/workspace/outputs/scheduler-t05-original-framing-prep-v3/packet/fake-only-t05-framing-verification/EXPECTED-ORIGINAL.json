@@ -1,0 +1,479 @@
+{
+  "class": "FAKE-T05-ORIGINAL-PREDICTIONS",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "wire_ids_in_order": [
+    "F01",
+    "F02",
+    "F03-oauth",
+    "F04-oauth",
+    "F05-oauth",
+    "F05b-oauth",
+    "C-BASE",
+    "C-EXT-VALID",
+    "C-DATA-SHORT",
+    "C-SEP-SHORT",
+    "C-SEP-WRONG",
+    "C-ZERO-ABSENT",
+    "C-TRAILER-EOF",
+    "C-ZERO-NO-CRLF",
+    "C-TRAILER-LINE-EOF",
+    "C-TRAILER-MALFORMED",
+    "F12a-INVALID-JSON-EVENT",
+    "F12a-INVALID-JSON-IDENTITY",
+    "F12a-INVALID-JSON-OAUTH",
+    "F12a-NONOBJECT-EVENT",
+    "F12a-NONOBJECT-IDENTITY",
+    "F12a-NONOBJECT-OAUTH",
+    "F12b-ENCODING-EVENT",
+    "F12b-ENCODING-IDENTITY",
+    "F12b-ENCODING-OAUTH",
+    "CALLER-CLIENT-EVENT-F01",
+    "CALLER-CLIENT-OAUTH-F04",
+    "CALLER-CLIENT-OAUTH-F05b",
+    "H-DUP-IDENTICAL-FIELDS",
+    "H-DUP-IDENTICAL-LIST",
+    "H-CONFLICT-FIELDS-2-3",
+    "H-CONFLICT-FIELDS-3-2",
+    "H-CONFLICT-LIST-2-3",
+    "H-CONFLICT-LIST-3-2",
+    "H-DECIMAL-02",
+    "H-INVALID",
+    "H-TE-CL",
+    "H-TE-NONEXACT+CL",
+    "H-TE-REPEAT",
+    "H-TE-LIST",
+    "CD-ORDERLY",
+    "CD-ABRUPT",
+    "CD-DEADLINE",
+    "F06"
+  ],
+  "inputs": {
+    "F01": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Complete CL=2 object under event purpose."
+    },
+    "F02": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Short CL with valid JSON prefix may succeed without remaining-length gate."
+    },
+    "F03-oauth": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Truncated invalid_grant may still type reauth on prefix-valid JSON."
+    },
+    "F04-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Complete invalid_grant raises CoveringReauthorizationRequired."
+    },
+    "F05-oauth": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Truncated token-success may expose success-shaped object."
+    },
+    "F05b-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Complete token-success JSON."
+    },
+    "C-BASE": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Valid chunked terminator."
+    },
+    "C-EXT-VALID": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Valid chunk extension preserved."
+    },
+    "C-DATA-SHORT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Short chunk data."
+    },
+    "C-SEP-SHORT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Short chunk separator."
+    },
+    "C-SEP-WRONG": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Wrong separator may still accept two-byte chunk."
+    },
+    "C-ZERO-ABSENT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Missing zero chunk."
+    },
+    "C-TRAILER-EOF": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Trailer EOF tolerance may look complete."
+    },
+    "C-ZERO-NO-CRLF": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Zero chunk without CRLF."
+    },
+    "C-TRAILER-LINE-EOF": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Trailer line without terminator."
+    },
+    "C-TRAILER-MALFORMED": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Malformed trailer."
+    },
+    "H-DUP-IDENTICAL-FIELDS": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "First duplicate CL may win."
+    },
+    "H-DUP-IDENTICAL-LIST": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Comma list CL may fail int()."
+    },
+    "H-CONFLICT-FIELDS-2-3": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "First CL=2 may win with short body."
+    },
+    "H-CONFLICT-FIELDS-3-2": {
+      "predicted_outcome": "CONTRACT_MISS",
+      "allowed_outcomes": [
+        "CONTRACT_MISS",
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "First CL=3 may interact with short body."
+    },
+    "H-CONFLICT-LIST-2-3": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "List conflict may fail conversion."
+    },
+    "H-CONFLICT-LIST-3-2": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "List conflict may fail conversion."
+    },
+    "H-DECIMAL-02": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Decimal CL 02 may parse as 2."
+    },
+    "H-INVALID": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "Invalid CL may become unspecified length path."
+    },
+    "H-TE-CL": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_REFUSE"
+      ],
+      "rationale": "TE+CL coexistence path varies."
+    },
+    "H-TE-NONEXACT+CL": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE",
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Nonexact TE with CL."
+    },
+    "H-TE-REPEAT": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Repeated TE fields."
+    },
+    "H-TE-LIST": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "OBSERVED_PARSER_ERROR",
+        "CONTRACT_MISS"
+      ],
+      "rationale": "Comma-coded TE list."
+    },
+    "CD-ORDERLY": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Close-delimited via empty recv; close_notify not proven.",
+      "tls_close_notify_proven": false,
+      "byte_fake_eof_only": true
+    },
+    "CD-ABRUPT": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS",
+        "CONTRACT_MISS",
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "rationale": "Fake cannot distinguish abrupt vs orderly EOF.",
+      "tls_close_notify_proven": false,
+      "byte_fake_eof_only": true
+    },
+    "CD-DEADLINE": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR",
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Stall/incomplete close-delimited may hit deadline or parser stop.",
+      "tls_close_notify_proven": false,
+      "byte_fake_eof_only": true
+    },
+    "F06": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "rationale": "Alias of C-BASE."
+    },
+    "F12a-INVALID-JSON-EVENT": {
+      "purpose": "event",
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_PARSER_ERROR",
+      "underlying_cause_hypothesis": "JSONDecodeError at json.loads",
+      "rationale": "Complete framing; malformed JSON exposes parser error at boundary.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet"
+    },
+    "F12a-INVALID-JSON-IDENTITY": {
+      "purpose": "identity",
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "allowed_outcomes": [
+        "OBSERVED_PARSER_ERROR"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_PARSER_ERROR",
+      "underlying_cause_hypothesis": "JSONDecodeError at json.loads",
+      "rationale": "Complete framing; malformed JSON exposes parser error at boundary.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet"
+    },
+    "F12a-INVALID-JSON-OAUTH": {
+      "purpose": "oauth",
+      "predicted_outcome": "OBSERVED_UNKNOWN",
+      "allowed_outcomes": [
+        "OBSERVED_UNKNOWN"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_UNKNOWN",
+      "underlying_cause_hypothesis": "JSONDecodeError at json.loads then oauth after-send remap (raise-from-None)",
+      "rationale": "After transport.sent; boundary exposes UNKNOWN, not typed parser error.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet",
+      "instrumentation_note": "Do not label JSONDecodeError as independently observed at boundary without instrumentation."
+    },
+    "F12a-NONOBJECT-EVENT": {
+      "purpose": "event",
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_REFUSE",
+      "underlying_cause_hypothesis": "Explicit JSON object guard",
+      "rationale": "Non-object JSON refused before success exposure.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet"
+    },
+    "F12a-NONOBJECT-IDENTITY": {
+      "purpose": "identity",
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_REFUSE",
+      "underlying_cause_hypothesis": "Explicit JSON object guard",
+      "rationale": "Non-object JSON refused before success exposure.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet"
+    },
+    "F12a-NONOBJECT-OAUTH": {
+      "purpose": "oauth",
+      "predicted_outcome": "OBSERVED_UNKNOWN",
+      "allowed_outcomes": [
+        "OBSERVED_UNKNOWN"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_UNKNOWN",
+      "underlying_cause_hypothesis": "CoveringTransportRefused object guard then oauth after-send remap",
+      "rationale": "After transport.sent; boundary exposes UNKNOWN.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet",
+      "instrumentation_note": "Underlying refuse cause not scored separately from exposed UNKNOWN."
+    },
+    "F12b-ENCODING-EVENT": {
+      "purpose": "event",
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_REFUSE",
+      "underlying_cause_hypothesis": "Content-Encoding guard before body loop",
+      "rationale": "Non-identity encoding refused at boundary.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet"
+    },
+    "F12b-ENCODING-IDENTITY": {
+      "purpose": "identity",
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "allowed_outcomes": [
+        "OBSERVED_REFUSE"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_REFUSE",
+      "underlying_cause_hypothesis": "Content-Encoding guard before body loop",
+      "rationale": "Non-identity encoding refused at boundary.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet"
+    },
+    "F12b-ENCODING-OAUTH": {
+      "purpose": "oauth",
+      "predicted_outcome": "OBSERVED_UNKNOWN",
+      "allowed_outcomes": [
+        "OBSERVED_UNKNOWN"
+      ],
+      "exposed_boundary_outcome": "OBSERVED_UNKNOWN",
+      "underlying_cause_hypothesis": "Encoding guard then oauth after-send remap",
+      "rationale": "After transport.sent; boundary exposes UNKNOWN.",
+      "observation_boundary": "CoveringHTTP.request",
+      "terminal_evidence_layer": "not_claimed_in_framing_packet",
+      "instrumentation_note": "Do not score CoveringTransportRefused as exposed outcome for oauth row."
+    },
+    "CALLER-CLIENT-EVENT-F01": {
+      "purpose": "event",
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "observation_boundary": "CoveringHTTP.request via _CoveringClient.get",
+      "underlying_cause_hypothesis": "Same transcript as F01",
+      "rationale": "Caller-path witness under covering_provider_transport.",
+      "transcript_ref": "F01"
+    },
+    "CALLER-CLIENT-OAUTH-F04": {
+      "purpose": "oauth",
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "observation_boundary": "_CoveringClient.post token route",
+      "underlying_cause_hypothesis": "Same transcript as F04-oauth",
+      "rationale": "Caller-path witness under covering_provider_transport.",
+      "transcript_ref": "F04-oauth"
+    },
+    "CALLER-CLIENT-OAUTH-F05b": {
+      "purpose": "oauth",
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "allowed_outcomes": [
+        "OBSERVED_SUCCESS"
+      ],
+      "observation_boundary": "_CoveringClient.post complete token success",
+      "underlying_cause_hypothesis": "Same transcript as F05b-oauth",
+      "rationale": "Caller-path witness under covering_provider_transport.",
+      "transcript_ref": "F05b-oauth"
+    }
+  },
+  "layering_trace_sha256": "7676931DF1652653CAA837D094FA335D89FDB5F00055449CAA5F6A6B8C1E162A",
+  "prep_version": "v3",
+  "dex_findings_addressed": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7"
+  ]
+}

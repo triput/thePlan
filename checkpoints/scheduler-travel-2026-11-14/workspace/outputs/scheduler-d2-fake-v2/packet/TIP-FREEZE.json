@@ -1,0 +1,19 @@
+{
+  "packet": "scheduler-d2-fake-v2",
+  "author": "Dex",
+  "at_utc": "2026-11-11T19:52:10.6974448Z",
+  "kind": "Approved fresh-copy check-only preparation; execution held",
+  "check_fix_diff_sha256": "FE65B6B54A9FE2B3412E25515F3873C1E1047C8D3C6C08144E6D63CDB76EF659",
+  "predecessor_jim_tip": "3FC58EF9A45A40C5147C26040B49896DE396531EE55FC0059BC3F034874A6064",
+  "predecessor_stopped_result": "B9E06AEE93AD981D0AFD4FC7CB05E03FD40D9FFC259364982351804677896ED7",
+  "api_file_count": 234,
+  "application_bytes_changed_from_d2_v1": 0,
+  "named_control_count": 52,
+  "check_sha256": "65AA2582C9EB6636BDFCE4B9AD6AE16D6A32910CFE5008D54C336C3C1ECD1286",
+  "expected_sha256": "F3ADF7346FCB2CD7BD3D1C176A21D5446AA9C72D25D81AA6170F5CF756E0E692",
+  "input_manifest_sha256": "685C3B7F02B2E704985B901D0C286535C0CC086D3825454495242050ED9C64D4",
+  "outer_admission_sha256": "B6ABBA75F77B8225EF90C2CD284B4DDE0B63E300AE551E0D8CBA0A2DF6D567EC",
+  "executed": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

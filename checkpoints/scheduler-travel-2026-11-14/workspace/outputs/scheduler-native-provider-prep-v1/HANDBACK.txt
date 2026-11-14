@@ -1,0 +1,48 @@
+HANDBACK — post-native-provider-prep-jim-v1-2026-11-12
+Jim (Justin), 2026-11-12
+
+STATUS: NATIVE_PROVIDER_PREPARATION_AUTHORED_NOT_EXECUTED
+FLAGS: executed=false; launch_authorized=false; implementation_beyond_prep=false; prep_is_not_pass=true; endpoint=unbound; slack_tip=false
+
+AUTHORITY (hash-verified):
+- Scope 389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D
+- Approval 5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4
+- Assembly selection 857141512AADF6F90F1CA8F92547A777E3D5FE943671495512FA18CEA7CBA296
+- jim-v2 TIP 1D88A97F… / Proposal F89B990C… / Case-Registry BBFEF333…
+
+WORKSPACE: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-v1
+DROP: F:\DropFolder\pending\post-native-provider-prep-jim-v1-2026-11-12
+
+ASSEMBLY:
+- 234 files at payload/api/
+- Base framing-ack-fake-v4/packet/candidate
+- Sole override covering_transport_policy.py SHA256 5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88
+- 233 other base files retained unchanged; source re-verified before copy; destination rehashed
+- Manifest + diff under docs/
+
+MUTABLE ROLES (16) — see docs/Mutable-Role-Hashes.json / ARTIFACT-HASHES.txt
+IMMUTABLE HELPERS (7) — docs/Immutable-Helper-Lineage.json (I01/I02-v4 fixture copies, unchanged)
+
+CASES:
+- 27 native STOP + 4 CF witnesses
+- 76 planning IDs mapped in data/Case-Requirement-Map.json
+- NP-T05-ORDERLY-CLOSE dual observations authored
+- Expected outcomes in data/Expected-Outcomes.json
+
+FAKE-ONLY VERIFICATION:
+- Commands held in docs/Commands-Held.ps1.txt — NOT INVOKED
+- verify/check_native_provider.py + launch_check.py + verify_admission.py + Invoke-Fake.ps1 authored
+- OUTER/VERIFICATION admission scaffolds launch_authorized=false
+
+REMAINING GAPS: docs/Remaining-Gaps.md
+- T02 items/bytes overrun GAP (host-fake cite only)
+- T08 nested/reset GAP_OR_FOCUSED_FAKE
+- T01-ORIGIN-FOREIGN-PORT HOLD (port unverified)
+- Bounds unfrozen pending actual ops
+- Port candidate assembled but not authorized to run
+
+TIP_SHA256 (preimage): 31FC0AD8F8A9700F0B8FC168134AA0973FE5C9207BC68BB2A72AF5A8823B07B7
+TIP-FREEZE on-disk: 0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D
+ARTIFACT-HASHES on-disk: 7F6A8089C2D93673927C4540D7EC0F173FF909F4675AA14B9FFAF799683D4F03
+
+No imports/compilation/tests/helpers/PKI/sockets/Docker/install/providers executed.

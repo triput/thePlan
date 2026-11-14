@@ -1,0 +1,31 @@
+{
+  "saved_at_utc": "2026-11-13T05:18:53.0746125Z",
+  "reason": "Trish restarting ChatGPT for app update,expected about1minute",
+  "goal_status": "active_incomplete",
+  "explicit_goal_pause_requested": false,
+  "target_verification_or_native_run_active": false,
+  "owned_readonly_delivery_watch_session": 93170,
+  "watch_is_not_a_target_run": true,
+  "current_assignment": "Matt: one approved-lane NP-V-MS-REFRESH fixture and held fake-packet preparation; Dex independently reconciled T05 fakev3 PASS17/17+19 nested; native diagnostic card pending; Jim parked.",
+  "assignment_drop": "F:\\DropFolder\\Matt-Drops\\Matt-thePlan-Scheduler-MS-Refresh-Preparation-2026-11-12.md",
+  "assignment_sha256": "F462C385F10581CA81BF8B4C10052071818D9318A154994BEB76B143D54C0009",
+  "scope": "outputs/scheduler-ms-refresh-design-review-v1/Reconciled-Preparation-Scope.md",
+  "scope_sha256": "EAAFA222DF4E043135EBBA8E2306C5C5F58D8A93929949A950B49CCD1DA1488A",
+  "t05_fake_status": "PASS17/17 and exact19 ordered nested independently reconciled; one-shot authority consumed",
+  "t05_result_sha256": "6B345E5CD3F45E5F7F17815CB11D42F0CE0E268C84CCEBE9F9AF5509282DF646",
+  "t05_receipt_sha256": "5CD79AB88F77A884DF3C6356F17533D133F6DCD15D91A6B0B437C4522F2545B3",
+  "t05_reconciliation": "outputs/scheduler-native-provider-t05-fake-dex-v3.evidence/Dex-Run-Reconciliation.json",
+  "native_diagnostic_card_pending": true,
+  "native_execution_authorized": false,
+  "pending_native_command_sha256": "F39C778C9A20A5CA538CAE8F414768833866B3852367CB1EE53FF115C509A870",
+  "pending_native_manifest_sha256": "1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+  "source_of_truth": [
+    "outputs/scheduler-investigation/Scheduler-Consolidated-Plan-Current.md",
+    "outputs/scheduler-investigation/Pending-Decision-Goal-Audit.json",
+    "outputs/scheduler-investigation/Transport-Completion-Audit-Current.json",
+    "outputs/matt-drops-monitor/receipts.json"
+  ],
+  "pickup": "Read current audit and exact new Matt drops; revalidate any tool handle before polling; normal10minute pickup plus authoring time. Do not restart any target,repeat consumed T05 run,or treat app restart as execution approval.",
+  "endpoint": "unbound",
+  "holds": "Native diagnostic separate answer required;no live providers,real credentials,installation,build,deployment,activation,automatic retry/repair/rerun or failure cleanup."
+}

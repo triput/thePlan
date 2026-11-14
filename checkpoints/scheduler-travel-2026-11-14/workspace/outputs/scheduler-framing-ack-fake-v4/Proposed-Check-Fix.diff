@@ -1,0 +1,10 @@
+--- a/packet/verify/check_framing_ack.py
++++ b/packet/verify/check_framing_ack.py
+@@ -667,7 +667,6 @@
+                 "item_excess_exception",
+                 "transport_sent_observed",
+                 "lineage",
+-                "policy_pending",
+             }
+         }
+     for key, want in pred.items():

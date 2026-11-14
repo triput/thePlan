@@ -1,0 +1,74 @@
+{
+  "packet": "post-native-t07-host-launch-static-review-jim-v2-2026-11-11",
+  "status": "T07_HOST_LAUNCH_STATIC_REVIEW_BLOCKERS_NOT_EXECUTED",
+  "disposition": "BLOCKERS",
+  "disposition_one_liner": "BLOCKERS — v6 ACCEPT withdrawn; B1/B2/batch; launch_authorized=false; executed=false; review_only=true",
+  "author": "Justin",
+  "role": "Jim host launch static review v2 (Justin) for Dex scheduler-t07-fake-v1",
+  "date": "2026-11-11",
+  "byte_semantics": "utf-8 lf",
+  "executed": false,
+  "execution_authorized": false,
+  "launch_authorized": false,
+  "review_only": true,
+  "wrapper_launched": false,
+  "host_packet_mutated": false,
+  "imports_compile_tests": false,
+  "blocking_count": 5,
+  "host_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v1",
+  "outputs_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-host-launch-static-review-v2",
+  "review_sha256": "114C0D66AAD143D1DB6E14B75F5A66791BA6E94592DFABD6C41CFA8F5C3EE8E7",
+  "tip_sha256": "3B82AD35291985A6C7BD512264A767DB82430CD087910F096687F9C0BFB0913A",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled).",
+  "supersedes_v1_tip_on_disk_sha256": "7B3F7104A489EB5FB8C97B5BB0D3B48E9D13EF935035982128753B25A87F01BB",
+  "supersedes_v1_disposition": "QUALIFIED_ACCEPT",
+  "accepted_v6_tip_sha256": "671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599",
+  "v6_accept_withdrawn": true,
+  "check_sha256_staged_v6": "7CD8D26B5E402F4548E4E7DA3EFD64F6A7738D54731C6E7FEC67FE7CACB6C899",
+  "source_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "host_pins": {
+    "Commands.ps1.txt": "52E73835D67C04D2A27B047F49499C779DB3CBBAB682E485528EDA2DD1ED538C",
+    "VERIFICATION-ADMISSION.json": "4EEAE5B1C12F7FC6B97E00B62EAEB12CAE0F94C34A17D7E0744888367203695B",
+    "Invoke-Verification.ps1": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B"
+  },
+  "admission_kind": "scheduler-t07-one-shot-fake-verification-admission",
+  "named_controls": 41,
+  "blockers": [
+    "B1_prior_completed_SimpleNamespace_json_dumps",
+    "B2_c_r01_and_False_disables_normal_close_oracle",
+    "C-R12_sock_None_no_mutation_assert",
+    "C-PROV-BOUNDARY-ACCEPT_validator_not_exercised",
+    "C-R10-R11_assumed_later_admission_and_untruthful_R10_stimulus"
+  ],
+  "finding_docs": [
+    "V6-Prelaunch-Serialization-and-R01-Findings.md",
+    "V6-Batch-Oracle-Evidence-Review.md"
+  ],
+  "fresh_checker_successor_required": true,
+  "does_not_authorize": [
+    "wrapper launch",
+    "Python child execution",
+    "imports/compile/tests",
+    "serialization probe",
+    "packet/admission/commands edits",
+    "endpoint binding",
+    "Docker/sockets/PKI/providers/DB/native launch",
+    "claiming verification PASS",
+    "closing full T07 or T01-T08"
+  ],
+  "artifact_hashes_list_order": [
+    "HANDBACK.txt",
+    "Jim-Host-Launch-Static-Review.md",
+    "TIP-FREEZE.json"
+  ],
+  "message_context": [
+    "Jim host launch static review v2 of scheduler-t07-fake-v1",
+    "BLOCKERS; supersedes v1 QUALIFIED ACCEPT 7B3F7104…",
+    "v6 ACCEPT withdrawn by Dex prelaunch",
+    "launch_authorized=false; host untouched"
+  ]
+}

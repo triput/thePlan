@@ -1,0 +1,10 @@
+{
+  "status": "PROPOSED_ONLY_NOT_APPLIED",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v1\\packet\\fake-only-c06-verification\\check_c06_runner_tls_fake.py",
+  "source_sha256": "99C3049C69C5837C728236D6ED8332A286A0E22FF6A35A8C47157165CF78D51E",
+  "prospective_sha256": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8",
+  "diff_sha256": "2F798B6F1F4B0C968A198746F36FF55D9776935B678A6DA6F08962D563D23F47",
+  "actual_changed_lines": 1,
+  "tests_or_rerun": 0,
+  "repairs_applied": false
+}

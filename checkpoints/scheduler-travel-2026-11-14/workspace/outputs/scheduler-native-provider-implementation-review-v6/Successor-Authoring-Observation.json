@@ -1,0 +1,16 @@
+{
+  "at_utc": "2026-11-12T23:04:19.1825770Z",
+  "kind": "current_authoring_observation",
+  "cursor_window_id": 4393622,
+  "cursor_chat": "D2 Phase1 parked",
+  "ui_current_assignment": "Prep v7: fold Dex v5 review + checker-v2 + host-glue + v6 findings A8096174 into successor from v6",
+  "ui_aggregate_working_agents": 1,
+  "linked_child_id": "8759b05a-ac7f-454b-81a1-478dacb8dccb",
+  "individual_child_status": "Not independently read; link navigation returned coordinate input geometry is unavailable, including after refreshed window selection",
+  "approval_gate_observed": false,
+  "source_observation": "v7 np_supervisor.py and np_runner_entry.py last written 15:03:20 local; TIP still identifies inherited v6, so no frozen v7 handback inferred",
+  "no_new_slack_handback_after": "1794524430.332739",
+  "disposition": "Allow normal colleague turnaround; preserve same assignment; no stall or terminal state established",
+  "execution": "none",
+  "endpoint": "unbound"
+}

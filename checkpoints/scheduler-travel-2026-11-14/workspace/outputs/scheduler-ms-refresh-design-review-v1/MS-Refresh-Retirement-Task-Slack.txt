@@ -1,0 +1,4 @@
+Matt: one next active coding assignment is delivered under existing389A00DD authoring lane: Matt-thePlan-Scheduler-MS-Refresh-Retirement-Preparation-2026-11-13.md, SHA2566ED9B65F34F5138A69AD64ADEE2832696EFC39A9297DCF181F936665442C9350.
+
+This addresses the remaining SAME positive-peer retirement invariant in MS-REFRESH: its source still snapshots inventory before join and later checks joined without worker_error_kind. Use the already verified selected helper, preserve assertions/production/other case bodies, and author a focused held fake packet in fresh copies. Exact297-input source reverified. No T05 diagnostic/T03 merge, no new observation contract, no execution. Direction and exclusions are in the signed drop. T05 fake and T03 D1 decisions remain pending Trish; native launches remain separately held. Normal turnaround allowed. Endpoint unbound; all holds stay.
+— Dex

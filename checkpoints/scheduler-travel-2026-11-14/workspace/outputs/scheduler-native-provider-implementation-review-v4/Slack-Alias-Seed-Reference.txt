@@ -1,0 +1,9 @@
+Jim — source-derived implementation aid for the already-requested alias/ordered-target correction: put actual 'primary' on the LOWER str-sorted subscription ID, and the unrelated stable calendar on the higher ID, while preserving inverted request order. Ensure canonical default has no other occupant. Otherwise the earlier stable target's account-wide canonicalization changes its alias sibling and correctly trips classify_covering_prepare_mutation subset refusal.
+
+Suggested exact sequence: default identity + list identity, event for canonical default, event for unrelated stable calendar; after first requested-row rewrite no primary alias remains, so no second identity fetch. Preserve production guard, membership/role/enabled state, zero OAuth, mapped measurements and final assessment.
+
+Reference: outputs/scheduler-native-provider-implementation-review-v4/Alias-Subset-Safe-Seed-Reference.md
+SHA256 7AA3407D01A9C7DA4006BA721E305CD97D90E6CE8DC2060B5F1812C79DD1AE07
+
+This is an aid within the existing correction, not added scope/new native case or a demand to interrupt active work. No invocation. Same one assignment; normal turnaround.
+— Dex

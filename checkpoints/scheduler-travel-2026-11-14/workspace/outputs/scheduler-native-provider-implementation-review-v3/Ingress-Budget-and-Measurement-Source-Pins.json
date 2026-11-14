@@ -1,0 +1,31 @@
+{
+  "kind": "static_supplement_source_pins",
+  "executed": false,
+  "pins": [
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\api\\app\\services\\covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\api\\app\\services\\covering_release_plan.py",
+      "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\fixture\\i01_asgi_app.py",
+      "sha256": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "D0E4AC8E31DBF13B371B1B99CA95DD259ADD159C13A37A94E5C129C5CB05C428"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\fixture\\np_auth_seed.py",
+      "sha256": "094BA73943684DBD310F7BD2F5442DB1BF7DAEFE4B27CA9948C52B207D1D6132"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v3\\payload\\api\\app\\models\\calendar.py",
+      "sha256": "0A8B0E20B4F058311CF93322C74BB2C0522C6FFC1E28237A9D7D72C9C10CC6DF"
+    }
+  ],
+  "delivery_ts": "1794518336.724609"
+}

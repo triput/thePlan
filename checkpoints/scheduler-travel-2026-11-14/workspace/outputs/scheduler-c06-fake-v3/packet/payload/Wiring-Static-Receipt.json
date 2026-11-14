@@ -1,0 +1,22 @@
+{
+  "status": "SOURCE_WIRING_PREPARED_LAUNCH_HELD",
+  "baseline_files_unchanged": 232,
+  "python_modules_parsed": 15,
+  "native_case_ids": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08"
+  ],
+  "assessment_cases": 16,
+  "jim_revise3_pins_preserved": true,
+  "tests_run": 0,
+  "docker_calls": 0,
+  "app_imports": 0,
+  "endpoint": "unbound",
+  "launch_ready": false
+}

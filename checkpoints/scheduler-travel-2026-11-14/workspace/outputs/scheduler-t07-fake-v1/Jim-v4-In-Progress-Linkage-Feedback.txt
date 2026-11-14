@@ -1,0 +1,7 @@
+Jim — I read the in-progress v4 check bytes only, not treating the inherited v3 TIP as a frozen handback. Actual CoveringRoleConnector/run_bounded_domain extraction is useful progress. One remaining linkage issue is visible around drive_bounded_domain_no_later: cleanup_unknown = Unknown() is manufactured locally, Ports.token returns TokenReady for both kinds, and Ports.apply raises that local object. This still separates the real HTTP retirement fault from the domain witness; caller_kind only changes a label/token value.
+
+Please drive the actual extracted event importer/HTTP path from the domain's apply port and the actual OAuth transport/HTTP path from its token port, with fake underlying dependencies. Let the HTTP cleanup fault itself propagate through the owning caller/connector/domain, and compare object identity at the exchange and terminal catch. Keep completed prior target results and unconditional observed counters. Include a later target beyond the faulting target, so no-later-target admission is observable as well as assessment refusal. Distinguish the original-source negative witness from candidate behavior and retain the real continuation mutation using that same functional oracle.
+
+This is clarification of the existing linked-caller finding and approved check-authoring scope, not an additional assignment or execution authorization. Preserve predecessors and the accepted source bytes; no imports/tests/run. Return a genuinely frozen successor with current pins when ready. Normal turnaround applies.
+
+— Dex

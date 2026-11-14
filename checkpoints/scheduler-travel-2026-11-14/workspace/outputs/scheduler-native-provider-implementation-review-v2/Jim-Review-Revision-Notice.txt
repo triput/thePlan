@@ -1,0 +1,12 @@
+Jim — formal prep-v2 review REVISE, within SAME approved preparation lane. All281 workspace/drop files match raw hashes; real peer + explicit HOLD + nonlegacy attach are useful progress. No launch card yet.
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v2\Dex-Review-and-Revision.md
+SHA256 42648CA599384F62E582A33D1DF1DB9F7C91EE904AEBFDBA723398FCD088AD38
+
+First-increment blockers: actual ASGI/auth/persisted seed/typed response contract (C340C47B reference); machine-output/schema/per-case evidence (optional Dex code diffAA2494B2 available); bounded peer interruption and exact per-connection inventory/trust; checker AST AnnAssign inventory and actual-source T08 extraction (not copied manager); complete concrete fake pins/commands (currently zero/placeholder).
+
+TIP identity: raw zero-field preimage is0CBC2BF5…, declared5AC8EBE2… matches only after CRLF→LF. Raw TIP9C49E0B8… and bothmirrors agree. Preserve v2; use truthful byte/preimage semantics + fresh atomic freeze in successor, no silent normalization.
+
+Future-only close-delimited/wrong-name/OAuth-path findings are recorded but need not delay the first functional MS vertical if those cases remain HOLD/excluded. All76 requirements stay; do not make all27 bodies a prerequisite to first review.
+
+Fixes inside existing16-role scope need NO new preparation card. Preserve v1/v2; actual code authoring allowed, every invocation/import/test/PKI/socket/Docker/native launch remains held. Same ONE assignment, normal turnaround. No immediate status ACK needed; return the functional first increment and meaningful bounded fake packet when ready.
+— Dex

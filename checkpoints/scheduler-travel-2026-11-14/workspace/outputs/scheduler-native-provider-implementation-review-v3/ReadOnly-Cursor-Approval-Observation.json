@@ -1,0 +1,17 @@
+{
+  "at_utc": "2026-11-12T21:37:52.8375474Z",
+  "kind": "read_only_cursor_attention_observation",
+  "app": "Cursor Agents",
+  "window_id": 4393622,
+  "chat": "D2 Phase1 parked",
+  "authoritative_ui_state": "Waiting for approval",
+  "completed_preparation_todos": 36,
+  "total_preparation_todos": 52,
+  "task": "Prep v4 fold Dex patches",
+  "new_messages_indicator": "30+ New Messages",
+  "full_command_reviewed": false,
+  "allow_clicked": false,
+  "terminal_commands_executed_via_ui": false,
+  "observations": "Read-only capture, foreground activation and selection of existing pinned chat only",
+  "disposition": "Trish action surfaced via card; retain same Jim assignment; execution holds unchanged"
+}

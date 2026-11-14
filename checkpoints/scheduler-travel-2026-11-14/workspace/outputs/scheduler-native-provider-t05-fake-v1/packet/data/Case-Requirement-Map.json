@@ -1,0 +1,409 @@
+{
+  "kind": "native-provider-prep-v1 case/requirement map",
+  "case_registry_jim_v2_sha256": "BBFEF33312A4E532BCC0FD49BACAA40641C26F955F5862FD3192641621F15F05",
+  "planning_ids_retained": 76,
+  "native_stop_cases": 27,
+  "cf_witness_cases": 4,
+  "no_silent_omission": true,
+  "np_t05_orderly_close_dual_observations": [
+    "orderly_close_delimited_complete_accepted",
+    "orderly_short_cl_valid_json_prefix_refused"
+  ],
+  "abrupt_tls_distinct_case": "NP-T05-ABRUPT-TRUNCATION",
+  "requirements": [
+    {
+      "id": "T01-ORIGIN-FOREIGN-HOST",
+      "disposition": "REUSE",
+      "lineage": "D2 CTRL-CONT-FOREIGN-BEFORE-SEND result 2FB80F2C…"
+    },
+    {
+      "id": "T01-ORIGIN-FOREIGN-PORT",
+      "disposition": "HOLD",
+      "lineage": "port-zero unexecuted/unapproved"
+    },
+    {
+      "id": "T01-ORIGIN-USERINFO",
+      "disposition": "CF-WITNESS",
+      "case": "NP-T01-USERINFO-CF"
+    },
+    {
+      "id": "T01-ORIGIN-FRAGMENT",
+      "disposition": "CF-WITNESS",
+      "case": "NP-T01-FRAGMENT-CF"
+    },
+    {
+      "id": "T01-ORIGIN-CONTROL-CHAR",
+      "disposition": "CF-WITNESS",
+      "case": "NP-T01-CONTROL-CHAR-CF"
+    },
+    {
+      "id": "T01-PURPOSE-WRONG",
+      "disposition": "CF-WITNESS",
+      "case": "NP-T01-PURPOSE-WRONG-CF"
+    },
+    {
+      "id": "T01-PURPOSE-AMBIGUOUS",
+      "disposition": "REUSE",
+      "lineage": "ROUTE-EQUAL-PATH-CONFLICT 5CD74FD0…"
+    },
+    {
+      "id": "T01-CONTINUATION-REDIRECT",
+      "disposition": "REUSE",
+      "lineage": "D2 CTRL-CONT-REDIRECT-3XX"
+    },
+    {
+      "id": "T01-CONTINUATION-GOOGLE-PAGE-TOKEN",
+      "disposition": "REUSE",
+      "lineage": "ROUTE-GOOGLE-LIST/EVENT + D2"
+    },
+    {
+      "id": "T01-CONTINUATION-MS-NEXTLINK",
+      "disposition": "REUSE",
+      "lineage": "ROUTE-MS-*-CONTINUATION + D2"
+    },
+    {
+      "id": "T01-PATH-POSITIVE-EXACT",
+      "disposition": "REUSE+COMPOSE",
+      "case_compose": "NP-V-*"
+    },
+    {
+      "id": "T01-PATH-POSITIVE-CHILD",
+      "disposition": "REUSE",
+      "lineage": "5CD74FD0…"
+    },
+    {
+      "id": "T01-PATH-PREFIX-BOUNDARY",
+      "disposition": "REUSE",
+      "lineage": "D2 CTRL-NEG-PREFIX-BOUNDARY"
+    },
+    {
+      "id": "T01-PATH-DOT-SEGMENT",
+      "disposition": "REUSE",
+      "lineage": "D2 CTRL-NEG-RAW-DOT / NEST-DOT"
+    },
+    {
+      "id": "T01-PATH-ENCODED-DOT",
+      "disposition": "REUSE",
+      "lineage": "D2 encoded-dot negatives"
+    },
+    {
+      "id": "T01-PATH-ENCODED-SEP",
+      "disposition": "REUSE",
+      "lineage": "D2 CTRL-NEG-ENC-SLASH-*"
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-GOOGLE",
+      "disposition": "REUSE",
+      "lineage": "D2/route Google ID"
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-MICROSOFT",
+      "disposition": "REUSE+COMPOSE",
+      "case_compose": "NP-V-MS-*"
+    },
+    {
+      "id": "T02-EVENT-PAGES-BOUNDARY",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay D27CA244…"
+    },
+    {
+      "id": "T02-EVENT-PAGES-OVERFLOW",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-BOUNDARY",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-OVERFLOW",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-ITEMS-BOUNDARY",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-ITEMS-OVERFLOW",
+      "disposition": "GAP",
+      "note": "host-fake EXCESS-ITEM-BYTE does not close native"
+    },
+    {
+      "id": "T02-BYTES-BOUNDARY",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-BYTES-OVERFLOW",
+      "disposition": "GAP",
+      "note": "retained with items overrun"
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-EVENT-PAGES",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-IDENTITY-PAGES",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-ITEMS",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-BYTES",
+      "disposition": "REUSE",
+      "lineage": "T02 overlay"
+    },
+    {
+      "id": "T03-VALID",
+      "disposition": "NATIVE",
+      "case": "NP-T03-VALID"
+    },
+    {
+      "id": "T03-WRONG-CA",
+      "disposition": "NATIVE",
+      "case": "NP-T03-WRONG-CA"
+    },
+    {
+      "id": "T03-WRONG-NAME",
+      "disposition": "NATIVE",
+      "case": "NP-T03-WRONG-NAME"
+    },
+    {
+      "id": "T03-HANDSHAKE-STALL",
+      "disposition": "NATIVE",
+      "case": "NP-T03-HANDSHAKE-STALL"
+    },
+    {
+      "id": "T03-TCP-REFUSAL",
+      "disposition": "NATIVE",
+      "case": "NP-T03-TCP-REFUSAL"
+    },
+    {
+      "id": "T04-HEADER-STALL",
+      "disposition": "NATIVE",
+      "case": "NP-T04-HEADER-STALL"
+    },
+    {
+      "id": "T04-BODY-STALL",
+      "disposition": "NATIVE",
+      "case": "NP-T04-BODY-STALL"
+    },
+    {
+      "id": "T04-PARTIAL-SEND",
+      "disposition": "NATIVE",
+      "case": "NP-T04-PARTIAL-SEND"
+    },
+    {
+      "id": "T04-DEADLINE",
+      "disposition": "NATIVE",
+      "case": "NP-T04-DEADLINE"
+    },
+    {
+      "id": "T04-DISCONNECT",
+      "disposition": "NATIVE",
+      "case": "NP-T04-DISCONNECT"
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CONTENT-LENGTH",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4 3905A070…; native requal share NP-T05-ORDERLY-CLOSE obs a",
+      "native_orderly_oracle": "orderly_close_delimited_complete_accepted"
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CHUNKED",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T05-SHORT-LENGTH-VALID-JSON",
+      "disposition": "REUSE_HOST_FAKE+NATIVE_REQUAL",
+      "case": "NP-T05-ORDERLY-CLOSE",
+      "oracle": "orderly_short_cl_valid_json_prefix_refused",
+      "native_orderly_oracle": "orderly_short_cl_valid_json_prefix_refused",
+      "paired_orderly_complete_oracle": "orderly_close_delimited_complete_accepted"
+    },
+    {
+      "id": "T05-SHORT-LENGTH-INVALID-JSON",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T05-CHUNK-EOF",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T05-DUPLICATE-CONTENT-LENGTH",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing + header policy AEAE5343…"
+    },
+    {
+      "id": "T05-CONFLICTING-CONTENT-LENGTH",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing + header policy"
+    },
+    {
+      "id": "T05-TE-CHUNKED-PLUS-CL",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing + header policy"
+    },
+    {
+      "id": "T05-TE-NONEXACT-PLUS-CL",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing + header policy"
+    },
+    {
+      "id": "T05-MALFORMED-HEADER",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T05-MALFORMED-JSON",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T05-NONOBJECT",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T05-ENCODING",
+      "disposition": "REUSE_HOST_FAKE",
+      "lineage": "framing-fake-v4"
+    },
+    {
+      "id": "T06-BEFORE-SEND",
+      "disposition": "NATIVE",
+      "case": "NP-T06-BEFORE-SEND"
+    },
+    {
+      "id": "T06-MALFORMED-ACK",
+      "disposition": "NATIVE",
+      "case": "NP-T06-MALFORMED-ACK"
+    },
+    {
+      "id": "T06-TRUNCATED-ACK",
+      "disposition": "NATIVE",
+      "case": "NP-T06-TRUNCATED-ACK"
+    },
+    {
+      "id": "T06-INVALID-GRANT-GOOGLE",
+      "disposition": "NATIVE",
+      "case": "NP-V-GOOGLE-INVALID"
+    },
+    {
+      "id": "T06-INVALID-GRANT-MICROSOFT",
+      "disposition": "NATIVE",
+      "case": "NP-V-MS-INVALID"
+    },
+    {
+      "id": "T06-OTHER-ERROR",
+      "disposition": "NATIVE",
+      "case": "NP-T06-OTHER"
+    },
+    {
+      "id": "T06-SUCCESS-GOOGLE",
+      "disposition": "NATIVE",
+      "case": "NP-V-GOOGLE-REFRESH"
+    },
+    {
+      "id": "T06-SUCCESS-MICROSOFT",
+      "disposition": "NATIVE",
+      "case": "NP-V-MS-REFRESH"
+    },
+    {
+      "id": "T06-PARTIAL-SEND",
+      "disposition": "NATIVE",
+      "case": "NP-T06-PARTIAL"
+    },
+    {
+      "id": "T06-LOST-ACK",
+      "disposition": "NATIVE",
+      "case": "NP-T06-LOST"
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-SUCCESS",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_response_close_after_success"
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-PRIMARY-FAILURE",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_response_close_after_primary_failure"
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-SUCCESS",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_transport_close_after_success"
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-PRIMARY-FAILURE",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_transport_close_after_primary_failure"
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-SUCCESS",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_both_close_after_success"
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-PRIMARY-FAILURE",
+      "disposition": "GAP→NATIVE",
+      "case": "NP-T07-BOTH-AFTER-FAILURE"
+    },
+    {
+      "id": "T07-OPEN-CLOSE",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_open_close"
+    },
+    {
+      "id": "T07-SETBLOCKING",
+      "disposition": "REUSE+NATIVE",
+      "case": "NP-T07-OWNED-SOCKET",
+      "oracle": "t07_setblocking"
+    },
+    {
+      "id": "T08-NESTED",
+      "disposition": "GAP_OR_FOCUSED_FAKE",
+      "note": "focused witness in check_native_provider"
+    },
+    {
+      "id": "T08-RESET",
+      "disposition": "GAP_OR_FOCUSED_FAKE",
+      "note": "focused witness in check_native_provider"
+    },
+    {
+      "id": "T08-FOREIGN-THREAD",
+      "disposition": "NATIVE",
+      "case": "NP-T08-OWNERSHIP",
+      "oracle": "foreign_check"
+    },
+    {
+      "id": "T08-FOREIGN-CLOSE",
+      "disposition": "NATIVE",
+      "case": "NP-T08-OWNERSHIP",
+      "oracle": "foreign_close"
+    },
+    {
+      "id": "T08-REUSE",
+      "disposition": "NATIVE",
+      "case": "NP-T08-OWNERSHIP",
+      "oracle": "reuse_forbid"
+    }
+  ]
+}

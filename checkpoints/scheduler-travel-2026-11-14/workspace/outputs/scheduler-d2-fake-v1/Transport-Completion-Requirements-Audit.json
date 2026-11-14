@@ -1,0 +1,669 @@
+{
+  "kind": "Completion requirements audit; current evidence does not establish transport completion",
+  "at_utc": "2026-11-11T19:58:23.4843135Z",
+  "accepted_addendum_tip": "CF6D3DD150F2A77EE078C9C2F376A70185411EED14B9736ACE84B9D6787FC797",
+  "candidate_table_sha256": "CC3CF9F8A9FE8C6A72D33B5CB8D524B01B00C8798B45C89A75B46535B35B9D1F",
+  "candidate_count": 76,
+  "packet1_count": 59,
+  "packet2_count": 17,
+  "count_is_not_a_scope_ceiling": true,
+  "completed_integration_obligations": [
+    "Production in-process HTTP ingress/dispatch/connector with native assessment at verified I01/I02 v4 scope",
+    "PostgreSQL-observed owner-lock contention and coherent assessment at verified I02 scope",
+    "Success-only exact-ID disposal of native I01/I02 v4 containers"
+  ],
+  "retained_evidence": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\Dex-Run-Reconciliation.json",
+      "sha256": "4A4F2B8DD1B8A2CC131698BB8A15EB5D8859EEBBE00ACF439BDD522B2E853202"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\Jim-Peer-Review-Reconciliation.json",
+      "sha256": "05B556AA906A1F0C01AE2A2119517DBFC1A899AE1AFA433381576FE4B85666C0"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t02-fake-v1\\Dex-Run-Reconciliation.json",
+      "sha256": "0CCA83455CA832DDC32FA6FC9BC8202E647BBF3FA0648924DEF13248B61970C2"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-fake-v1\\Static-Reconciliation.json",
+      "sha256": "8B75235CA8E25CD9DE45232AF34A0E08F1187748D4B69DBF67A02EDAAF52698D"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-fake-v2\\Dex-Run-Reconciliation.json",
+      "sha256": "A13B5B8BB6B548829A06AA2FC74F2CF7DFE76F773510833A18922DE56B31DBAE"
+    }
+  ],
+  "entries": [
+    {
+      "id": "T01-ORIGIN-FOREIGN-HOST",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-ORIGIN-FOREIGN-PORT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-ORIGIN-USERINFO",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-ORIGIN-FRAGMENT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-ORIGIN-CONTROL-CHAR",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PURPOSE-WRONG",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PURPOSE-AMBIGUOUS",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-CONTINUATION-REDIRECT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-CONTINUATION-GOOGLE-PAGE-TOKEN",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-CONTINUATION-MS-NEXTLINK",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-POSITIVE-EXACT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-POSITIVE-CHILD",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-PREFIX-BOUNDARY",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-DOT-SEGMENT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-ENCODED-DOT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-ENCODED-SEP",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-GOOGLE",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-MICROSOFT",
+      "family": "T01",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Exact application route/caller and continuation provenance; D2 fake prerequisite pending; full family not proven.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-EVENT-PAGES-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-EVENT-PAGES-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-ITEMS-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-ITEMS-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-BYTES-BOUNDARY",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-BYTES-OVERFLOW",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-EVENT-PAGES",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-IDENTITY-PAGES",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-ITEMS",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-BYTES",
+      "family": "T02",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Request-wide counter and ordered multi-target composition at exact ceilings and overflow; existing 20-control fake receipt is prerequisite only.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CONTENT-LENGTH",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CHUNKED",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-SHORT-LENGTH-VALID-JSON",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-SHORT-LENGTH-INVALID-JSON",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-CHUNK-EOF",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-DUPLICATE-CONTENT-LENGTH",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-CONFLICTING-CONTENT-LENGTH",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-TE-CHUNKED-PLUS-CL",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-TE-NONEXACT-PLUS-CL",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-MALFORMED-HEADER",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-MALFORMED-JSON",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-NONOBJECT",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T05-ENCODING",
+      "family": "T05",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual pinned parser/application on complete exact wire inputs; expanded framing/JSON variants, no partial-data success, actual caller classification.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-BEFORE-SEND",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-MALFORMED-ACK",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-TRUNCATED-ACK",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-INVALID-GRANT-GOOGLE",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-INVALID-GRANT-MICROSOFT",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-OTHER-ERROR",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-SUCCESS-GOOGLE",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-SUCCESS-MICROSOFT",
+      "family": "T06",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T08-NESTED",
+      "family": "T08",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T08-RESET",
+      "family": "T08",
+      "planning_packet": 1,
+      "status": "completion_unproven",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T03-VALID",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T03-WRONG-CA",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T03-WRONG-NAME",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T03-HANDSHAKE-STALL",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T03-TCP-REFUSAL",
+      "family": "T03",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual JoinedTLS against isolated local TLS peer; CA/hostname/handshake/TCP evidence with native runtime provenance and joined retirement.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T04-HEADER-STALL",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T04-BODY-STALL",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T04-PARTIAL-SEND",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T04-DEADLINE",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T04-DISCONNECT",
+      "family": "T04",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual send/read/deadline/disconnect paths; live request budget, bounded elapsed time, joined owned resources and actual caller outcome.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-PARTIAL-SEND",
+      "family": "T06",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T06-LOST-ACK",
+      "family": "T06",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Token caller through provider request and native terminal; before/after possible send, complete acknowledgment, no retry and UNKNOWN stop.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-OPEN-CLOSE",
+      "family": "T07",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T07-SETBLOCKING",
+      "family": "T07",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Both retirement attempts and truthful uncertainty through actual callers; primary/cleanup provenance, raw-close evidence and no later target/assessment.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T08-FOREIGN-THREAD",
+      "family": "T08",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T08-FOREIGN-CLOSE",
+      "family": "T08",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    },
+    {
+      "id": "T08-REUSE",
+      "family": "T08",
+      "planning_packet": 2,
+      "status": "completion_unproven",
+      "required_evidence": "Actual context/worker/transport ownership/reset/reuse; fake control flow plus separately admitted real joined-thread/socket lifecycle.",
+      "limitation": "Planning ID only; no accepted full-scope execution receipt reconciled for this requirement. Do not substitute narrower baseline or prerequisite evidence."
+    }
+  ],
+  "supplementary_requirements": [
+    {
+      "document": "T05-Chunk-Termination-and-TLS-EOF-Review.md",
+      "role": "Separate chunk/framing/TLS EOF variants; later executable IDs must expand umbrella requirements",
+      "status": "design_only"
+    },
+    {
+      "document": "T08-Context-Ownership-and-Budget-Proof.md",
+      "role": "Context/owner/deadline witness distinctions",
+      "status": "design_only"
+    },
+    {
+      "document": "T07-Provisional-R08-Review.md",
+      "role": "Earlier retirement uncertainty must survive outer no-op close",
+      "status": "provisional_design_challenge"
+    }
+  ],
+  "d2_execution": "D2 fake v2 PASS independently reconciled; prerequisite only, no T01-T08 family closure",
+  "jim_assignment": "Approved T07 fresh-copy implementation and held verification authoring; final handback pending",
+  "goal_complete": false,
+  "endpoint": "unbound",
+  "execution_performed_in_audit": false
+}

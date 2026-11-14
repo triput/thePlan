@@ -1,0 +1,1191 @@
+{
+  "kind": "scheduler-t05-one-shot-fake-framing-original-admission",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "endpoint": "unbound",
+  "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+  "packet_file_pin_count": 289,
+  "packet_files": [
+    {
+      "relative_path": "fake-only-t05-framing-verification/admit_outer.py",
+      "sha256": "124371FFAA2F717624BD493F11E2C826F821709D64E409F0BE01B672B0E7DD05"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/check_t05_framing_original.py",
+      "sha256": "C4627D26D8F5F11EA2D1067F8EDBD11AA5005E87EA1A6575F1320A597B150836"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/EXPECTED-CORRECTED.json",
+      "sha256": "56EC113DDEE1BAE2CFF4A69B75F53985F1B15E3ED5A23A409063970FBC6ED79E"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/EXPECTED-ORIGINAL.json",
+      "sha256": "0A99EBA924797C83E27507969EEF236FF87DA84AEB18503A2D48FD2750704E2D"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/INPUT-MANIFEST.json",
+      "sha256": "E35B45881D701DCF61FCEC466FB5AA8F5FBDDC6BA2B03D208AB8F6CDC02944A7"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/invoke_t05_fake.py",
+      "sha256": "82EDC456FFEF51F3A82701B0ED1C763F0CF2EDA8BF85F564254C379F6F289AE3"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/OUTER-ADMISSION.json",
+      "sha256": "E11948F19EF42491A338FCF6BE0E1C862F58087184DC704CD20D1E94628156E7"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/PACKET-SHA256SUMS.txt",
+      "sha256": "B15B44B2A55F6D4EAF0112FA63237364366FE1A3E6425AEB671C654F4004E8AE"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/REVIEW.md",
+      "sha256": "15064F64285E757932B603557B1F78DD5C7DA8484D8AA93B4909B03AD181D1FF"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/WIRE-INVENTORY.json",
+      "sha256": "9F51802AC87A7EA73E63D3A990A393DD0876ACD5DF8987EB463700A73737E5BF"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-BASE.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-DATA-SHORT.wire",
+      "sha256": "5AC256FBB532DB764B28016D3BA0ACBC8303552988D2AE61CF699C1E23A2C78D"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-EXT-VALID.wire",
+      "sha256": "219DED98655D8F88E8C1BCD82ECB8B814345F06B3D911E420878BD789B002E93"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-SEP-SHORT.wire",
+      "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-SEP-WRONG.wire",
+      "sha256": "9CADE02C4E1A7F2FE4BC52A85003CED404CDD3195B0B7D9C9BC82F321268BA61"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-TRAILER-EOF.wire",
+      "sha256": "CCE59FBDEDC749AA44F0792D81B630D00B54416D0DCA11F890564E09E7B367EB"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-TRAILER-LINE-EOF.wire",
+      "sha256": "B8EEA183024DC1FEDDBBA031FC99CAAAB4DC3AEC279B7171E1D7743B1C590396"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-TRAILER-MALFORMED.wire",
+      "sha256": "CC2A5206BDF415A0908D6E12BF2DD0B2E73AA96C4ED2AA7022CF57B90A1390EC"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-ZERO-ABSENT.wire",
+      "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/C-ZERO-NO-CRLF.wire",
+      "sha256": "0D4FEEAFA9AF74C2E40E2A92F1AED638DC4CCC9395708E8939ED48C8A966576B"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/CD-ABRUPT.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/CD-DEADLINE.wire",
+      "sha256": "E14AAAC69EABB2D765D408611C6D0848F68BDBEFCE86B1C693D7F6E6AC8FA023"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/CD-ORDERLY.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F01.wire",
+      "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F02.wire",
+      "sha256": "D58751EE563CB10B622B5B7DCFF646E66CD5A5727D4AF2127E8C8AE147B16240"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F03-oauth.wire",
+      "sha256": "7D387AC47BA834A2AA6A94F2733D84F4B3D4AD5C5CAC28D760ACB1C28D0850EF"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F04-oauth.wire",
+      "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F05-oauth.wire",
+      "sha256": "4A0D644A04EA81B81391391EBFE888FB6517A97F3F3DE01400F89FA7BF60E937"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F05b-oauth.wire",
+      "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F06.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12a-INVALID-JSON-EVENT.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12a-INVALID-JSON-IDENTITY.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12a-INVALID-JSON-OAUTH.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12a-NONOBJECT-EVENT.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12a-NONOBJECT-IDENTITY.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12a-NONOBJECT-OAUTH.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12b-ENCODING-EVENT.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12b-ENCODING-IDENTITY.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/F12b-ENCODING-OAUTH.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-CONFLICT-FIELDS-2-3.wire",
+      "sha256": "004583BC0A6E6847D191184C9781C7E9B74435107983F3B6168609261CF89876"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-CONFLICT-FIELDS-3-2.wire",
+      "sha256": "DA0133D46ADF8E84211DE5DFE350BEC8483B394BDB4E3FC4532BFF8093FFA7BB"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-CONFLICT-LIST-2-3.wire",
+      "sha256": "4833158B69A4ECAD4A84FA17FDA1AAE30AEA58D10A2B915E32145008F5E49C57"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-CONFLICT-LIST-3-2.wire",
+      "sha256": "3D1C5DE2067CC5D18234042D9E02140EDADED4171A0C6F5E2D30942391836D64"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-DECIMAL-02.wire",
+      "sha256": "B9B204433236D92501FA8435DB6543E2039866FBC8DEB41F36CB814CFF50AAEC"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-DUP-IDENTICAL-FIELDS.wire",
+      "sha256": "B07F9E56E236B3987AC49DEAFC6FBBDB320CC3F81A8A09ABB0DCB43AB74895C2"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-DUP-IDENTICAL-LIST.wire",
+      "sha256": "7CF16642407ED6415E26459667CF7F32DDA394D754105AD184CD433D28BB157B"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-INVALID.wire",
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-TE-CL.wire",
+      "sha256": "840D382D9B4A6DB242AE43C92929B522BBE4B48ED2409B17930B7A1AF1477F95"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-TE-LIST.wire",
+      "sha256": "1FBCC0D5A47DAD75486E2C79093D3DE9D1C3291AD6E7F0FB977DCE2172725D91"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-TE-NONEXACT+CL.wire",
+      "sha256": "0BA91225FDBE946AE8FA17E85BE78C8D68812E5156F7407E8863731670EF512F"
+    },
+    {
+      "relative_path": "fake-only-t05-framing-verification/wire_transcripts/H-TE-REPEAT.wire",
+      "sha256": "39A5ADA6BDC14B99C9ED1B093E3FA187EA7CC6C1085E816CDA4D0328DE36BD05"
+    },
+    {
+      "relative_path": "payload/bases/app/services/covering_http_transport.py",
+      "sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8"
+    },
+    {
+      "relative_path": "payload/bases/app/services/covering_joined_https.py",
+      "sha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468"
+    },
+    {
+      "relative_path": "payload/bases/app/services/covering_refresh_import.py",
+      "sha256": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0"
+    },
+    {
+      "relative_path": "payload/SHA256SUMS.txt",
+      "sha256": "31743D610D254D5F8149063E3C02FD1DBF2063A1B7831E2F2AD92B5853160183"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/__init__.py",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/__init__.py",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/deps.py",
+      "sha256": "7EABB11E13DF1B0AFAD483AF9F66D1CF93B837A32D07FBA86939077D639E3A11"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/errors.py",
+      "sha256": "1F826204BEBFA69315FEB92692E1B2475296638FF4E03F5572F632093C7B45D6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/middleware/__init__.py",
+      "sha256": "2B54DD2A37C3B51EB2D1A4D5E6B1A26C51670D6D9A62BEE90163D954C16ED951"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/middleware/agent_boundary_a.py",
+      "sha256": "9AB4E6A85FFF64D6E82A65DF3E93FCC1C07229DF35A6B0B7B7B28514CBD311C3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/middleware/covering_ingress.py",
+      "sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/middleware/password_change_gate.py",
+      "sha256": "EF504B7CBABB8FB0B3D1CFEEDAC586B92629A5C85DCB9EE326A27C868FCB86DE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/__init__.py",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/agent_credentials.py",
+      "sha256": "CE8F4052E955526304803402B0638DA0699A58C17E490FC6D2F98DF58946C40E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/assist.py",
+      "sha256": "BE0D19A6760618736AC6D9CCA78CEFB5A3A393996EA67B514604694DA79D3EB9"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/auth.py",
+      "sha256": "91939800E70E58A86F6F4E3034E9383AAF92267B8819F753BEE5E64CEB83A181"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/availability_policies.py",
+      "sha256": "25284E0D8BDE5DB54A7630A219FD7D261350678C057770560CF8E097B810A40A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/calendar.py",
+      "sha256": "23DC03967DE3919610DE84AF6CF651E221DA9444C4A82FB43A0DB8FBA8A120BA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/epics.py",
+      "sha256": "06D4F88DAEDA5170456A32537615704BB4B1CECA8F50D3E8B9C4592B9852EFBA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/focus_windows.py",
+      "sha256": "C45CC362E9D91CA5D42BDB46C58D6CA12EB4A3E9DEE7D3E726D4579B4C52D9AD"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/handoffs.py",
+      "sha256": "6756D5A4D2B91EF57CEFC3FF510BCDEDB4C6AA5E73D2FA9FB4528C3CC00E5A6F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/labels.py",
+      "sha256": "DD01FD11270D1ACEB620545748CCE12CDF4F1EDE8DAF2286E181750F8B4CE9D8"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/outlines.py",
+      "sha256": "E1B56312B506E8320F586442191D69DC08D9D807966D347F91878EDAEDBCB928"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/plans.py",
+      "sha256": "E5007150D84879421DE389885D708DB93EE7F1EF8C9ACB0D4F37D4348DE98CD1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/projects.py",
+      "sha256": "86422D5F452934EE13115255980F8D2D0956A20235AA540754FC3F93C3DE34A6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/quick_add.py",
+      "sha256": "01F40EBFE0357962F206249FA0401A681E8D577E7AF6748A699D3EB1BC0613EA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/reminders.py",
+      "sha256": "0507B9AF1E7D328DFB4AC790E0A9302D15F5A93A8F87DCA9748F07703D865860"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/schedule.py",
+      "sha256": "24D43DC02E37F443185025CE882EE1C28928509013BB76E725DD2836E57043A2"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/scheduled_blocks.py",
+      "sha256": "FB1B7B959050A040BA8F92424B77FAAA0450712B56FB168D3A39B08CBBEF31AC"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/scheduling_assignments.py",
+      "sha256": "CB03043193D8BB788D5C72BC71CD9380AAEF347CAB4240858A0D89721B03D483"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/search.py",
+      "sha256": "C80981D3832121B2B3E6D703A88ED5F9D4E2A8627CDF43026DD51CB9DFEF5A1F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/sections.py",
+      "sha256": "708A5987A53F8B1B2DD47A1BDA1AC8A29352370F49FA2D0035C98360872FCA41"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/settings.py",
+      "sha256": "92F0D2E1CFDDC29F95B26DED3A12E86686B2A70B4E2973294CF958032170E008"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/task_dependencies.py",
+      "sha256": "6AF6F2F49B63D376426CA6FCD4A63433B3EDB64B2DEA72CEF29A80B376B02BFD"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/tasks.py",
+      "sha256": "5CDEC58A922F5C3F2C4358FB052072E9D28E555A8A7DCF9A7D26044190E3D11B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/templates.py",
+      "sha256": "4C03405F798F5F07FE2E64A4133B00A78CA2E9EBEEF8162344EB81918A2C30A6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/time_map_overrides.py",
+      "sha256": "67D7AE432F6C73C5EA6FC83D493A32550FAAA24791C4BA16B29E6C13909F4380"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/api/routes/views.py",
+      "sha256": "C6484BCAF13AA2D0FC7D617E6B4FF94E79FB8432256E2EC0F0011EA989C25C37"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/bootstrap.py",
+      "sha256": "1023C0B1866B25BB31408BD2775D68580BBFFEF0D7F6DDF269F0E96BFD459B4A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/config.py",
+      "sha256": "BCBB3A546212A04F3085285B741D15B7FB59B322B97EA67CB2DA3715514B3433"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/data/__init__.py",
+      "sha256": "2BC5024EE3F310CA0E3C081E6230C3E0C71F2B38A3DDE02086618A0E86851167"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/data/outlines/blank_hierarchy_v1.json",
+      "sha256": "6BB6461E4E5179F7F47B0C49E192CE6B5CFD869E8F8DE458A9DA1B7EBF38FD03"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/db.py",
+      "sha256": "072DA45FD24FE2A121C5CA3F7796CBC388F4006B27E3A38A22A98E4E40DCD4E1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/main.py",
+      "sha256": "001B9BB86F6FF249B32E6FC47D303375F613B1710612273054A2C02C8DB90227"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/__init__.py",
+      "sha256": "692BC4F706F1AB3A492A711F8DE4B31E42B0E1578DEDB7C935BBBF2F07610B00"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/availability.py",
+      "sha256": "F65A553268A7C8FA47F0EED23ECCFAEBE78E884A59CC967B70330971AD5B8C8F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/calendar.py",
+      "sha256": "0A8B0E20B4F058311CF93322C74BB2C0522C6FFC1E28237A9D7D72C9C10CC6DF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/enums.py",
+      "sha256": "9B5D7A0E4836799B097D05C1447CDE91CCD680E02232ADDA9802AB791AA1D069"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/free_busy_policy.py",
+      "sha256": "2AE3E64ADF5608CA6C6808FE901B329995788079EB85792612D9BC3CE36C7B44"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/handoff.py",
+      "sha256": "8CC634B0859E9D3D55A8697CAADBE69CCDFA9CFF4B8D580F998331B10256DFD8"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/hierarchy.py",
+      "sha256": "0919B0302C1FFC059D8CE38B8C452CF1516723BC344915D7AEF3A7FCE212CC72"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/label.py",
+      "sha256": "BC7F298C76F516B5154814579FE386351EF758F9D289BF1118C623AC409D6EA8"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/mixins.py",
+      "sha256": "05C3F0B223C02F71192680F5A5CEE8CE250DD9CDA04947FDD3E9C8F84C6D27DE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/schedule.py",
+      "sha256": "4AB4D55D8C746FC17146EC34E8AC0F166F2E9031CD76BD453324AABD23F4E927"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/scheduling_assignment.py",
+      "sha256": "2702413D2604DFF6D64F8AA22CF70FBC70910828EA0FFC310A9941E0BEA7B1F0"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/scheduling_day_scoped.py",
+      "sha256": "9EFF3EF4B270DAE2AF0E141BB03E9FD9AE3F16743795F25571B331A612384219"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/task.py",
+      "sha256": "8F280CB956F0E35CD208389CAE1EC0A1CDA4F5DC9846923C1447F39653A865C5"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/task_occurrence_disposition.py",
+      "sha256": "2D34DC21868CF2E76C2BE2BD50FA6C5F17E551EEC5598B8D5D598D9F6CD37B86"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/time_map_override.py",
+      "sha256": "36B0F9E6AD835F358D75327E2BE41D2D31F9D34634DFA33DEF58E8F88EADC09B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/models/user.py",
+      "sha256": "CD5F181F485804027951F80C20DD4804C017E82EF82E41ABBC2CD892D2FE1228"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/__init__.py",
+      "sha256": "D3856652C23C85259C8E7CB248BAFCBAD2B5E264359A9B1F556E5DC3D6335E63"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/apply.py",
+      "sha256": "D8F0A47876A7646EE8FA7B8DE076EB51A4B448746E02CB28A4D86FF17ECECED4"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/assignment_resolve.py",
+      "sha256": "9BA04877E358D6057DBD8666140E1041605C5BC91741E4C4EC5531DB317A89B5"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/assignment_resolver.py",
+      "sha256": "109334339CEE464B1868B2F8F03014C273D898215FF2AE449D9D8D9ADB100CAA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/availability_materializer.py",
+      "sha256": "5DE93B0B11EB6FA0FFE1CFC6D868D3CFB52EF42249C126037E67014E270E7142"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/busy_map.py",
+      "sha256": "54AB49C79855995DFDF15AEB7ACEBCC1F68406F5D75D81544EBB4CD5FCB361D3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/calculate.py",
+      "sha256": "4070655899C315DC59573FD7046E588370C7DF17C9E78DD6E7C35A48D9FFED31"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/calendar_freshness.py",
+      "sha256": "20540D7D4CDB03CA045454BDAEE2E6EE760A1634B96FD2C5EC60B13F645553EE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/candidates.py",
+      "sha256": "A8C473F1D062CF0DF3C4E8D3614283D9B5E2CF8682982CDC00CBC514CA628B71"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/collect.py",
+      "sha256": "1848AED7B197E7F55FF9FAB954102ED7C6852BB7C7A2306AA9C1A93EE3A9ACEA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/composition.py",
+      "sha256": "2E33B976969C0E5495FC11245940B4980FBA80C13ADDA4670B385980A67A99C5"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/composition_resolver.py",
+      "sha256": "5EADE04EE75B650203D1B991328CE5DAEC611080E3127AC6DA0F7A06673C2904"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/day_scoped.py",
+      "sha256": "DDC28D5BC8003638CB5386E35C568033B8B864482D4C345B75C092DA4CDAC62B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/dependencies.py",
+      "sha256": "E505425147F133B2EF59D44CA71A29CD627B53B5596D7E8A739BFB7D5EBBF4A6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/free_busy.py",
+      "sha256": "EDA6021C382F42944C621348A6AEFC7F20A87CF37DE694A6CE9D633632BA0350"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/horizon.py",
+      "sha256": "33B8BB153E967EC2E5079A0E011C06561053716924C844EF32838D2412A8D870"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/input_fingerprint.py",
+      "sha256": "478A39A844D17A4C8AA1522D6D1E72BCA1596B31B274657B1ADC7F5749E979A1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/keep_in_one_conflicts.py",
+      "sha256": "7DF2F74ADCBBFDCFA76CCFF5C40E1287BBB09797C8A66C48A660220C09A1AA4E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/occurrence_bounds.py",
+      "sha256": "92958C0A3FF86521756AFC22153D334C78F103574F3ED75AC86DE7C2EA505B1F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/outcomes.py",
+      "sha256": "CA00CADFE7F3064E16BF37ACECBFC3754718FCB39FCDCA3B521DE7F1E70B51A1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/pin_reservation.py",
+      "sha256": "1A75F1915472FC2E28FA4AB5D7A190D5FF7D846F55D5022A7D412C73FEB67026"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/placement.py",
+      "sha256": "4F36B59F7A7E5BD9329E827F2920E680C41C22DB3D836722CD1F641835309253"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/preview.py",
+      "sha256": "64327045AE6A2A2BA9024774A4CF5EB6036956AE7EB2588F08286EE28F858C5C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/preview_guard.py",
+      "sha256": "C9BE28DF643A862A5468E1A413FF4DCE08AB7CA36940B5BD6DE2A8ADACD70A7E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/preview_inputs.py",
+      "sha256": "F60FC4ACB39DF45F6D1DE13FE24DABECA65C70F547E27C48FC057A7B79F77E4E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/preview_orchestration.py",
+      "sha256": "3144FD591ED9C21B6339DB0EEF7B0EAD2CA4D72663EB3C14BCAC6FF24809E692"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/preview_planning.py",
+      "sha256": "036005E745FCB93CB58598E2EC33F8199069529135ECB646633FB5E9490BD6A3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/preview_proposal.py",
+      "sha256": "99828315BCE10B4DB002747BE79A5384F9CE6F8AE7604E54D909B3FFC011E800"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/proposal_revalidation.py",
+      "sha256": "585DDEBFD2B7BF6662E0EE821BB6FFA4D2B9A640EBA9CE46C8D86985662B8DA4"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/ranking_protection.py",
+      "sha256": "2F90DF211563F22E4014E7DF51BB25D69F189696C8B30686AEFB9F68F0EA1E14"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/README.md",
+      "sha256": "0BA1540C9EA998B4C89286DF76BD08C127B226330CCBEBDD9D28D01296A2B64A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/reasons.py",
+      "sha256": "547EF76713FD309DB6E7FA92675371DF853350BB80D47A4B10BFD38237EFE262"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/replan.py",
+      "sha256": "0A28DFD540623453DE68C7B527FADA0D5DC9F88EDF9B924FD1997F7CCBF9C4CE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/style.py",
+      "sha256": "AFAA59CD1195EA190C589C06A2D988836B6E2EBB59F4C4BE6A976777BFFDD781"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/task_effort.py",
+      "sha256": "665C9AD0DDC951FA0E88BA2F674F7D68F936AF1105A87BF416269AEF5F10BD5D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/time_map_overrides.py",
+      "sha256": "87FA497E89FFF90705C877055A9A9FA16E4A02A161CF9D2B89EE11B2DFE42429"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/ups.py",
+      "sha256": "F50920A3B36DEE137D4710E25B69A097EA38F4C43DEA907E9E300E2D0456373A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/windows.py",
+      "sha256": "9FF38BD5FFB8488D0FD48F7D798953731E37A793E28A9FF262EC7319608E19C4"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/scheduler/worker.py",
+      "sha256": "5CA0A457BDF56CE47E88400369A8EC52B3AA3A47B51DFA056A2160C6C1D2379D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/__init__.py",
+      "sha256": "7C0B887B4F93F327DBE6C113721B6D78CE5C931CA112049177EC864629F8BCF3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/agent_credentials.py",
+      "sha256": "FFB6D235144F42D5CD022B55D20E4FD9D1F16F782F3756EBDAB065AD472CEBE4"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/assist.py",
+      "sha256": "5B9C71625DB9FF4D6667295B6BFEFA3678FCFFF3831C9454D8F363D0AA6974B1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/auth.py",
+      "sha256": "29575325829FE9E3F1AFCFF966601CA13E995A837CB6030F37D68C20E688550B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/availability.py",
+      "sha256": "BFE64F3A9BD8AB7240F43CEFA311BFEB2B65FE16C084B86216F71FC25E6F4524"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/calendar.py",
+      "sha256": "5870CA694785015531BE952E1C3D08C9481771428C143C0BB60BB3FA5AAFEB3A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/common.py",
+      "sha256": "8BE681E7A81337FD4E98A7DD887E0FC185548EE771AD2ACC6DF337FFBB22FDFF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/handoffs.py",
+      "sha256": "BADF60F167047B423131A2CB9A4B1D3C7A1427CE157E5786F024F11ED864596D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/hierarchy.py",
+      "sha256": "496C2C50525ED9C6D7F31E8FB298E0A8480FEBB0A001DD274FC163B599B62611"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/labels.py",
+      "sha256": "799B932A0DC5BF4060C8350651501F6D751187185EDD402DD86745460B5C642A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/occurrence_disposition.py",
+      "sha256": "15350E0DFA6DE6432FB426B70CF3C0A3F465743935C733CA669B9BDC732E6F69"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/outlines.py",
+      "sha256": "233222BFAB45630F83DAA04D0174180C92CAEADD8FDEDB4F17060D584B487611"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/progress.py",
+      "sha256": "2289BCDAF18509C4CA4D01794246CD493D5C3154F38D7F6F13F24602231954A1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/saved_views.py",
+      "sha256": "5875FAFD7DE8E922DE5E164A3FB8C5FAB4907FA1C1C80AF25207FEC7E2BC4761"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/schedule.py",
+      "sha256": "D622213CD439B2D8D7D1AC2A1D742EE42EB566483CC31195871878256EA7A3E8"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/schedule_preview.py",
+      "sha256": "26E42B5A76EA788EE6ACED62FB4094B10483A4DF40ED116C36B729192C5ED87C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/scheduling_assignment.py",
+      "sha256": "DA1BAB426965E92D7CB2704F716063F8006354188CA0820386BEFDA789D1C8DA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/search.py",
+      "sha256": "CD2F1DC05CC06986B9CD92584597C835AE256B8EC0320BA2D6B7020749A04546"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/settings.py",
+      "sha256": "5FCD342B3486DAF8C6E885FFBEBDD2A73F395A288BD62BE9C14F42CC4AB87F69"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/task_scheduling.py",
+      "sha256": "94667305903CC419D41BC10C2B058688F110F8DD7D00B7468F6E0C02B28BD9EC"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/tasks.py",
+      "sha256": "D096571F433C932F82F0FC443F0C34BFAA295148CD7FDCAC70765F3AAF2DDA5A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/templates.py",
+      "sha256": "2B27EB79F97CD73C0837A804A5C3325245288F6AAE26733F9653B8569F9B7831"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/schemas/time_map_overrides.py",
+      "sha256": "9E4E86BB7FA05F77D6F33046E383AC713F97F57B4EAEB9FEE0D4D6D75D4AA4D8"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/__init__.py",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/agent_auth_context.py",
+      "sha256": "1CB122594D156051E80774771E65D69C70EF17F3215C3D5D36B9DFCC38757844"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/agent_credentials.py",
+      "sha256": "F62D5B90E775A92B48D0ABDF7E3D58203B5EAA179CA440424DA98F60902A52CC"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/assist_apply.py",
+      "sha256": "F749EE6A960DDDEC153CA41C5587D11CE22DC3962CB3AF942A248443487E2F51"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/assist_llm.py",
+      "sha256": "5D0D6527427E3734A80B8AE458E24318479D4CFDBE8E4CD9739D41DBB7EE13CB"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/auth_users.py",
+      "sha256": "9C6851F0FDFB7BE2CCE0C24D3392890056A6B7EC5233F9202767E5A6EF13567C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/availability_cutover_activation.py",
+      "sha256": "75AA9E8DD101C41221AED9E01FB2CD3D239F9F6001E89057243B20036668392A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/availability_policies.py",
+      "sha256": "DB6FD04EFF790B9AC8573B49DA0540691AF3E443EA899E903CD764DA591AEC1B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/availability_seed.py",
+      "sha256": "1A1CFCBDDEDADFDCDA5BB91A4056DD4B5C237AD0DCB49D28C515015C1C249E71"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/availability_slug.py",
+      "sha256": "483484D98DCD35ED6D2C8E24199B8FF910ADD9252F18CC8436FC485CF04BA7C1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/builtin_templates.py",
+      "sha256": "4A8D4229674BDBC07E2F7AC7898ED01F55DBAF832F0694E87A2DE874712BC25C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/bundle_blocks.py",
+      "sha256": "9A960147F443D2F3228C3BA2F87F2BD992AA97E00DB34C7C6FFADAAF794EF93E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/busy_intervals.py",
+      "sha256": "132A8DF7E120725D2763BC23CD914BE2063AE4C084AF69D18DABB0264FE8B4DE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/calendar_alias_canonicalize.py",
+      "sha256": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/calendar_conflicts.py",
+      "sha256": "86BB433C22BA05304423AEA239C5C0FA46FEDAB5783EE8B6E2C6A17A9BA000FF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/calendar_coverage.py",
+      "sha256": "2B6D9DC9A8A29F2791C6E1A2AF9CDDF05BB953DFA6D56BAB75018CB3E6CD301A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/calendar_refresh_failures.py",
+      "sha256": "65B362BA1BFC43CE05C9D95160435A2692AE8082F5F15E330AEF5D208AFE3D81"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/chunking_cutover_activation.py",
+      "sha256": "D2ED8B829989E6A5AA9B0EE3B55A2D47DB40DD6B501E43198014ECDC2BA2CE54"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/chunking_effective.py",
+      "sha256": "6049C8D1B91A959709251D7EC5A74C66C477F11A8A1E7C564556D4CF4D1704F7"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/composition_cutover_activation.py",
+      "sha256": "E6BC24AA976122A58BBD0D0FEACB630520D04D8D5A5B66B93FFD9ACD8509ADFE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_http_transport.py",
+      "sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_joined_https.py",
+      "sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_native_checkout.py",
+      "sha256": "681497FCDB625249E5BAF4771D6F9AEB60324691F228EFEA1F78CE0C491D46B6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_native_orm_factory.py",
+      "sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_native_terminal.py",
+      "sha256": "1EF89808EB5FD7162304D7CEEC87A2FE46F255388DB66A1C6987E55EBC108CCE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_parent_adapter.py",
+      "sha256": "08129D4E451A449A8426E2B8F087C041D61AF45723A893D3F6135B7237B9FDE9"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_provider_context.py",
+      "sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_refresh.py",
+      "sha256": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_refresh_failure.py",
+      "sha256": "DCDF16ACF79F05D2EEB54CE1D4E6F4ED23F0D136E15571B444050EAD8B931920"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_refresh_locks.py",
+      "sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_refresh_window.py",
+      "sha256": "7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_release_plan.py",
+      "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_request_budget.py",
+      "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_role_admission.py",
+      "sha256": "79A95035953C7280EFD6F48683A80E49422C4C4BEBF39E0E515EA2629860D4BE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/covering_transport_policy.py",
+      "sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/day_scoped_ranking_cutover_activation.py",
+      "sha256": "041A570D403B433C5D390577B5AE0C0F670A7DBB6C2691591F7A2A640593DD77"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/demo_seed.py",
+      "sha256": "81433DB4B59E248F137313C7DC9146D16B362C9F57D899451CCBD70102EFB72E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/duration_fields.py",
+      "sha256": "CFF4178C2BA9D3666C763B8A5E1666FC0D486F3F4716500CE0CAA4AC3BDCEA48"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/export_baseline.py",
+      "sha256": "39EB4E58DE2096F951383F70CDD814F82970FA65A640B9E26E5BA50DF94A2347"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/focus_windows.py",
+      "sha256": "C6397CB5E209AC9C8EDBAAE8A883700840A34FFB68D8B872D5640821BAED73E1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/free_busy_resolver_allowlist.py",
+      "sha256": "741005D546AB98FE2A917E89FB3776E724F6EF8DF7EA3FFF388A426A4FD1245D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/free_busy_series_policy.py",
+      "sha256": "1BA4F64472DDCA8B510745C20E62CFF8202C089A2EAA9138893B588AC849280B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/friendly_duration.py",
+      "sha256": "CD5433A5939FD9D1B0E681AD68F6D608D382D0210539D37F980874ACBA36A060"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/google_calendar.py",
+      "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/handoff_apply.py",
+      "sha256": "2E4BBEA9816A33E758A8AC808ED9DC8D147DE6564CD5824AAC75D4F2F2E3C8A0"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/hierarchy_promote.py",
+      "sha256": "E9944B9354CF87DC67C3B9CEE549D7E450C93699EF534D1A6CC420CD9892F17D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/keep_in_one_conflicts.py",
+      "sha256": "678A95B2BF0B604678A71DF25ACC5C53D110E4FDC26FE0395FB8F2645843410B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/microsoft_calendar.py",
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/microsoft_series_identity.py",
+      "sha256": "6715C10AD2FF0770AB4E1B837305495303DC57A30AE3E97C67A77771267A1379"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/mirror_tombstone.py",
+      "sha256": "FDCE0188FD0505F0C470DC7A17D789E9079EC7D31C3F43884C57B03BBD0C4BB2"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/occurrence_disposition.py",
+      "sha256": "5DA5FCB42127318801346D8469CA5449C973D87FDBC1C9280FB2ADAFC028FBD4"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/outline_apply.py",
+      "sha256": "909EB90889ABFCD8AA6EBB68ED85382F27D48EC8D08380D4FDF0546B9F1FECDF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/outline_templates.py",
+      "sha256": "F2290BD40E5F14C2079CB1B3B2DA158086CBAF6D6EC4EB62619675AB52714688"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/outline_to_handoff.py",
+      "sha256": "ED07301884B2372A9B9F9A91E33B2D717252177F343F2E00DBBC69CE9D781A9F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/ownership.py",
+      "sha256": "262A625B0818180DB8DA7E5AECC00219F1BE23E52A6D2493DAC5DA0CC0E2C2D1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/passwords.py",
+      "sha256": "C470DE9A9498EC3F7D9EA41F2D1C6A9D3FE8050F703D2BF962999A351C8D68D6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/quick_add.py",
+      "sha256": "468D5E0AE3A0A4688BE09145DFD08C26750D4E3CE5656946072E9F53E5E74651"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/recurrence.py",
+      "sha256": "1B9B82485DEE3B18C0FDDF81527E6A83328592AA3B6480DA9DDE275EE7E529A1"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/reorder.py",
+      "sha256": "CB423406B1535C18C1E0AF9A88DDA046080600359289A4B99E7F524EABE126A2"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/s2_v3_availability_guard.py",
+      "sha256": "FB69E74541A6B8E2FF3E35B5A02CF2AF5605E198879A4D197E893E4C55FF4C9F"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/saved_filter_predicate.py",
+      "sha256": "FFD3AD65D70CF8E896899257EC892D088F2EA2AD9710754A53A3CD8FBC56162B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/saved_filter_query.py",
+      "sha256": "980C84026FD24285B8619599BD6098E3FB0B5E45616174353FA9CE48D6A054E5"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/saved_filter_v1.py",
+      "sha256": "4E882BAF6516065393BB50987703768882889EA1ED862EA585201198432473CE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/saved_view_presentation.py",
+      "sha256": "692CE59506E4642C158D2CD24911347A61936BDE0A2EA72B1A4465ED568191FF"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/schedule_dispatch.py",
+      "sha256": "954D796DBBA19037A06767B2D416D6FE772968943FC592B3C52E1EE5BF167D15"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/schedule_explanations.py",
+      "sha256": "DF0E31A74BB2E001617ECDCB7A18EC6C73A257AB2AB0B2D9BE5017BD9CD1206A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/schedule_preview_apply.py",
+      "sha256": "09F72DDB9728CD0B8E45EE6ABFA3EDAEAA792717F6E8DF3E3195B10EB95A16D0"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/schedule_preview_dispatch.py",
+      "sha256": "0FB9D2FD88AD189EB4259F93D538728AE41D6AA3923705321E5DB49B75986F7D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/schedule_preview_staleness.py",
+      "sha256": "B6761A79514F0EA3B1E1454B6D193610DC49811871C3D54283C77017B9F62539"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/schedule_previews.py",
+      "sha256": "DD84BA434194847560E3EEDBCB2A741789C0BD3769725462293C4ADFE956982D"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/scheduling_assignments.py",
+      "sha256": "83F5A5977FFEA312F21BE7DFF6338CF91648D26D44C502417A9BBAB8D2273004"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/scheduling_day_scoped.py",
+      "sha256": "1CA940BE54AC7A2F83FA2F152E82CB17C2A6E3C196632EEFC147DC3C0DAA8B2E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/scheduling_revision.py",
+      "sha256": "4A3CBAA0F4A7CF386A37CC26FEEB0D36BE020A07A7C844D7BC70758BB2C831B6"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/source_timezone.py",
+      "sha256": "67D31E42ABFAE43906160FCD78410567CA370390817CE0BD7E4F1A9516BE10F2"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_chunking_guard.py",
+      "sha256": "F8CDA9596849F6B1D892121C9E4F114E74235BE37D8A6F0F76A2E8D782C57F76"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_dependencies.py",
+      "sha256": "F4ECCA73AD6894B05EBEBC592C57D89D1CD7A05939CA0B4657DB4A33FD1A7A24"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_effort_init.py",
+      "sha256": "C963BB9963D7A13120BF372DBD40BCF97FEE0F125AC4B8F6868266344B86E911"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_helpers.py",
+      "sha256": "55DDE0275CD4BE25EFC5C2CDF6062D07AF7E8A7367AB842844AED7F985AF3649"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_occurrence_bounds.py",
+      "sha256": "F104FEE74BE212D2C139D9BA9A2E04B6D99B3C8075869F5F6809133D13D9E411"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_patch.py",
+      "sha256": "C6BBE3F75B68C3C383B440322B237BFEBC6E4D46F54167FECA676BFA8A01DB0C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_progress.py",
+      "sha256": "A4594315C3F5BE2AED6E0BDAB8A41EE0A7C8D3470B360ED2276926E5B5266020"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_scheduling_effective.py",
+      "sha256": "7645BDAD6BE70FB238ED49F4810A86A5FD9EF0D8DEAB71B8413C3D66F8493E24"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/task_workflow.py",
+      "sha256": "F67D16C44D9748909BDFB9E9D6057763B501B5096E6222C8743C7CFA7F722026"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/template_apply.py",
+      "sha256": "0BA49CA8BCF2BD427C7220D456339A7F3F347A060D16FC5CD75C006680D673E5"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/time_map_overrides.py",
+      "sha256": "F473C1E217EE8F88BDEC464439A578AD734A0CC6B7B242F2D9C43DC27DDDA7EC"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/app/services/token_crypto.py",
+      "sha256": "28205C019FCF531D4C71BBA8E323CDB42501BEB1D43758DEA4F05AB602D232DA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/pyproject.toml",
+      "sha256": "7FDE41DF137612B3C752B120330C128B58FD41E967A4ABB38B2535283C22629E"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/requirements.txt",
+      "sha256": "87D11EE35BAB8C5163F29C990F1570D94D7218931D77F215F7D55AE9024D4C17"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/conftest.py",
+      "sha256": "56061DE9B2000E7B5F6728704DAC9F28F5F057499CED6BB3BCA994F997094E42"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/__init__.py",
+      "sha256": "08447C8DCA0F6EDC275645C231282240FCB6C230A5E3F2A80209DA4131C5A970"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/_empty_pytest.ini",
+      "sha256": "4C0F13ADDCA047B1C20D84FA8774A7F29EA64E9F9BF3143764B4DE534C73F6E3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/assessment_sql_fixture.py",
+      "sha256": "7C1C90BCE57EC75775689641BABCF92F6AE77CB5A005330594784EE55ADA5F2B"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/covering_refresh_asgi_harness.py",
+      "sha256": "D45021649982904C4A4DEA91F8A72FAE1145A3DB8D726231964CB6B45C88ED05"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/domain_auth_ordered_result_asgi_harness.py",
+      "sha256": "16337F1A9D3E801AEAB848F5BFB9479404B13FD89367CAE4FDFA8D7EC59A5043"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/run_covering_refresh_http_harness_offline.py",
+      "sha256": "18DFA92A398AE7C4C67E152CAD8888F112356A92195742697609C8EAE3F08900"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/run_domain_auth_ordered_result_harness_offline.py",
+      "sha256": "BE7CB44F1B8C3778984E963EB7AB1C9E5661BB3669F58B2648A191D4997CCF0A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/run_native_factory_fake_offline.py",
+      "sha256": "D6C4594F46853FEFD91AB8CF7853681B2681E0A70563C3AADF42791BE986FE33"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/support/t1a_pg.py",
+      "sha256": "F12B59909668CBF8ADCA42EED3495E9B3716845E9FE386B758EA186F74DD265A"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_assessment_cases_a01_a10.py",
+      "sha256": "25CA51965E138A89B45282CAED12252302E3C0349C3642087480158C99AB93D3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_bounded_domain.py",
+      "sha256": "03046DE50B076CCB6852BDFE229EF3948BEC8ECD3851DC2B11283CE6541810B3"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_http_connector_seam.py",
+      "sha256": "7FD73B8770875030B9E275D62A03D4D33CA743298BC05E601DC5AFFEFDAEC150"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_ingress_response_regression.py",
+      "sha256": "9D9D44C68115C8BA92A6039F6E19D7D5B5D13DF8A3121090EA5A8DE46C2C1BB4"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_native_orm_factory.py",
+      "sha256": "34941A19923F077DAF801565A583EA54F3587B845C733B05BF24262C9D13DAE9"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_production_boundary.py",
+      "sha256": "DAB8F97307B85F26C5562AAE309197C53E938674145FCA148F9F24A1181C50DE"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_refresh_d2.py",
+      "sha256": "E7A75177199A155DBF35749DFCE8F0DF12E9F52BD008FE1DB0BF3B38F00E9EBA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_refresh_http_harness.py",
+      "sha256": "74F1F2C88A9F8645054B04A9AE74713C35B6A33E0A582377ACCCD4A24B7CE3AA"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_refresh_microsoft_boundaries.py",
+      "sha256": "73F4181A55276FAF5FD2077E4FFAFB53FA0FB90928A20F0F013E36FB6183B072"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_refresh_microsoft_identity.py",
+      "sha256": "602F5250F84F8324AAF1A67DD60EE8E0716F0F48DE5CFF70F4806CEC17A5F42C"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_covering_transport_policy.py",
+      "sha256": "4A8C7EF1D4539F48B012797A478628267F2F544C3E62AB891B9E870131B1D342"
+    },
+    {
+      "relative_path": "payload/workspace/apps/api/tests/test_domain_auth_ordered_result_harness.py",
+      "sha256": "27993DFE64F6D2A557BA15967A4A5419BC0FFF942B9AB9E6D2220D0DC5EECB9F"
+    }
+  ],
+  "runtime_files": [
+    {
+      "absolute_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+    },
+    {
+      "absolute_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib/http/client.py",
+      "sha256": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2"
+    },
+    {
+      "absolute_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib/ssl.py",
+      "sha256": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E"
+    },
+    {
+      "absolute_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib/email/message.py",
+      "sha256": "5254462AF22B409A88F238ED385ECB0E4E67EDEA64CF569FAD2AD78C293AFA2A"
+    }
+  ],
+  "runtime_file_pin_count": 4,
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "approval_json_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "provenance_note": "host_parser_pins_are_not_native_acceptance",
+  "prep_version": "v3",
+  "supersedes_v1_tip_sha256": "27EE9AB3666CC089A7541B2520FBFF02B0906ADCD26B0E207F2EC302FF13D82B",
+  "supersedes_v2_tip_sha256": "1C1D269244D53302DE0542DBD6DCE949420E6BA789D9E4BCCDE15F74374322B5"
+}

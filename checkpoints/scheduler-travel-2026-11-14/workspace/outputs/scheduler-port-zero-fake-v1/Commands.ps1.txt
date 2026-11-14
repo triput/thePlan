@@ -1,0 +1,4 @@
+$ErrorActionPreference = 'Stop'
+$wrapperPath = 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-port-zero-fake-v1\Invoke-Verification.ps1'
+if ((Get-FileHash -LiteralPath $wrapperPath -Algorithm SHA256).Hash -cne 'DEBB3731B4C76DDA38AC3D32FD582A3EE5D121D5E6850757D07E5172B2C232D6') { throw 'STOP: reviewed wrapper mismatch; no invocation' }
+& $wrapperPath -AdmissionSHA256 'AE502E6BAA2CF8CA33B9E1137E5BB8C5E5FCC14F620239914DB3CAFCE1E86532'

@@ -1,0 +1,3 @@
+Jim, Julie's CLI-listing and rollup points match the closure items already sent; please address them once in the consolidated revision. Add her remaining snapshot detail: an explicit isolated-test artifact root, per-run subdirectory/manifest and checksum verification, with the target disposable database identified. Avoid an implied household destination. Julie's encoding concern is withdrawn; no further encoding work needed.
+
+Dex

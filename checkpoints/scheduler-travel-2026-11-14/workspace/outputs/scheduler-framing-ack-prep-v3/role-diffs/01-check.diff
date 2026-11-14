@@ -1,0 +1,224 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\check_framing_ack.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\check_framing_ack.py"
+index 3dd912a..83bba77 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v2\\packet\\verify\\check_framing_ack.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3\\packet\\verify\\check_framing_ack.py"
+@@ -4,7 +4,18 @@
+ Exercises AST-extracted candidate CoveringHTTP / _GuardedHTTPResponse /
+ _admit_framing_headers / JoinedTLS.open wrap_socket option against finite
+ byte-fake stimuli. Reuses immutable 57 T05 wire inputs as original evidence
+-pins; freezes candidate expectations with policy-pending labels.
++pins; freezes candidate expectations under approved header-compatibility
++policy (AEAE5343… / 1C932F1A…).
++
++CALLER-* rows reuse aliased transcripts via the same direct CoveringHTTP
++run_http_catch path as ordinary wire controls. They are labeled as direct
++HTTP replay plus matched immutable original caller evidence — not as new
++candidate owning-caller (_CoveringClient / refresh_access_token) proof.
++Owning-caller obligation remains preserved/unproved in-candidate.
++
++Result rows emit predicted_outcome dialect "PASS" at top level (launcher
++gate) with nested OBSERVED_* candidate/observation fields. exact_predicate
++mirrors emitted entry keys for validate_result_file.
+ 
+ No live sockets/TLS/PKI/providers. executed preparation = false.
+ """
+@@ -42,6 +53,8 @@ CANDIDATE_TLS_PIN = "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C0
+ ORIGINAL_HTTP_PIN = "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F"
+ ORIGINAL_TLS_PIN = "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+ PROVIDER_CTX_PIN = "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
++HEADER_POLICY_DECISION_PIN = "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0"
++HEADER_POLICY_APPROVAL_PIN = "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+ 
+ G_HOST = "www.googleapis.com"
+ G_ADDR = "203.0.113.10"
+@@ -653,6 +666,8 @@ def assert_match(control_id: str, observed: dict[str, Any], expected_row: dict[s
+                 "item_excess_outcome",
+                 "item_excess_exception",
+                 "transport_sent_observed",
++                "lineage",
++                "policy_pending",
+             }
+         }
+     for key, want in pred.items():
+@@ -663,6 +678,36 @@ def assert_match(control_id: str, observed: dict[str, Any], expected_row: dict[s
+             )
+ 
+ 
++def observation_oracle(row: dict[str, Any]) -> dict[str, Any]:
++    """Launcher exact_predicate nests specialized claims under observation."""
++    pred = row.get("exact_predicate")
++    if not isinstance(pred, dict) or not isinstance(pred.get("observation"), dict):
++        raise WitnessFailure("missing_observation_exact_predicate")
++    return pred["observation"]
++
++
++def project_claimed(observed: dict[str, Any], claimed: dict[str, Any]) -> dict[str, Any]:
++    """Emit only fields claimed by exact_predicate (exact launcher match)."""
++    out: dict[str, Any] = {}
++    for key in claimed:
++        if key not in observed:
++            raise WitnessFailure(f"missing_claimed_field:{key}")
++        out[key] = observed[key]
++    return out
++
++
++def emit_wire_candidate(cand: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
++    """Stable candidate observation shape for launcher exact_predicate.candidate."""
++    return {
++        "observed_outcome": cand["observed_outcome"],
++        "exception_type": cand["exception_type"],
++        "response_close_calls": cand["response_close_calls"],
++        "transport_close_calls": cand["transport_close_calls"],
++        "negative_receive_requested": cand["negative_receive_requested"],
++        "policy_pending": row["candidate"].get("policy_pending", False),
++    }
++
++
+ def tls_option_controls(env: dict[str, Any]) -> dict[str, Any]:
+     """Fake wrap_socket option forwarding + exception propagation (not native TLS)."""
+     JoinedTLS = env["join"]["JoinedTLS"]
+@@ -899,78 +944,74 @@ def main() -> int:
+         kind = row.get("kind", "wire")
+         if kind == "wire":
+             purpose = purpose_for(cid, row)
+-            wire = load_wire(cid if not cid.startswith("CALLER-") else cid)
+-            # original evidence: freeze against immutable T05 predicates when present
++            # CALLER-* aliases resolve inside load_wire; path remains direct CoveringHTTP.
++            wire_bytes = load_wire(cid)
++            cand = run_http_catch(
++                envs["candidate"],
++                wire_bytes=wire_bytes,
++                purpose=purpose,
++                stall=(cid == "CD-DEADLINE"),
++            )
++            # Internal oracle uses flat candidate fields; launcher uses exact_predicate.
++            assert_match(cid + "/candidate", cand, row["candidate"])
++            cand_emit = emit_wire_candidate(cand, row)
+             if row.get("compare_original_to_t05"):
+                 t05 = json.loads((HERE / "EXPECTED-ORIGINAL-T05-IMMUTABLE.json").read_bytes())
+                 t05_row = t05["inputs"].get(cid)
+                 if t05_row is None:
+                     raise WitnessFailure(f"missing T05 original:{cid}")
+-                # Do not re-execute original scoring as a new PASS claim; pin equality.
++                # Pin immutable original evidence; do not re-score originals as new PASS.
+                 observations[cid] = {
+                     "observed_outcome": "PASS",
+                     "original_evidence": "T05-IMMUTABLE",
+                     "t05_predicted": t05_row["predicted_outcome"],
+-                    "candidate": None,
+-                }
+-                # Still exercise candidate
+-                cand = run_http_catch(
+-                    envs["candidate"],
+-                    wire_bytes=load_wire(cid),
+-                    purpose=purpose,
+-                    stall=(cid == "CD-DEADLINE"),
+-                )
+-                assert_match(cid + "/candidate", cand, row["candidate"])
+-                observations[cid]["candidate"] = {
+-                    "observed_outcome": cand["observed_outcome"],
+-                    "exception_type": cand["exception_type"],
+-                    "response_close_calls": cand["response_close_calls"],
+-                    "transport_close_calls": cand["transport_close_calls"],
+-                    "negative_receive_requested": cand["negative_receive_requested"],
+-                    "policy_pending": row["candidate"].get("policy_pending", False),
++                    "candidate": cand_emit,
+                 }
+             else:
+-                cand = run_http_catch(
+-                    envs["candidate"],
+-                    wire_bytes=load_wire(cid),
+-                    purpose=purpose,
+-                    stall=(cid == "CD-DEADLINE"),
+-                )
+-                assert_match(cid, cand, row["candidate"])
+                 observations[cid] = {
+                     "observed_outcome": "PASS",
+-                    "candidate": {
+-                        "observed_outcome": cand["observed_outcome"],
+-                        "exception_type": cand["exception_type"],
+-                        "negative_receive_requested": cand["negative_receive_requested"],
+-                        "policy_pending": row["candidate"].get("policy_pending", False),
+-                    },
++                    "candidate": cand_emit,
+                 }
+         elif kind == "tls_option":
+             obs = tls_option_controls(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "cleanup_combo":
+             obs = cleanup_combo(envs["candidate"], row["wire_id"], row["combo"])
+-            assert_match(cid, obs, row["candidate"])
+-            observations[cid] = {"observed_outcome": "PASS", "observation": {
+-                "observed_outcome": obs["observed_outcome"],
+-                "exception_type": obs["exception_type"],
+-                "retirement": obs.get("retirement"),
+-                "lineage": obs["lineage"],
+-            }}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "excess":
+             obs = excess_controls(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "primary_both_closes":
+             obs = active_primary_both_closes(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "oauth_retirement":
+             obs = oauth_unknown_owned_retirement(envs["candidate"])
+-            assert_match(cid, obs, row)
+-            observations[cid] = {"observed_outcome": "PASS", "observation": obs}
++            claimed = observation_oracle(row)
++            assert_match(cid, obs, {"exact_predicate": claimed})
++            observations[cid] = {
++                "observed_outcome": "PASS",
++                "observation": project_claimed(obs, claimed),
++            }
+         elif kind == "inventory":
+             observations[cid] = {
+                 "observed_outcome": "PASS",
+@@ -982,6 +1023,8 @@ def main() -> int:
+                 "dex_p1_p2_p3_addressed": True,
+                 "provisional_review_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+                 "staged_read_hash_B04B3D6B_superseded_by": CANDIDATE_HTTP_PIN,
++                "header_policy_approval_sha256": HEADER_POLICY_APPROVAL_PIN,
++                "header_policy_decision_sha256": HEADER_POLICY_DECISION_PIN,
+             }
+         else:
+             raise WitnessFailure(f"unknown kind:{kind}")
+@@ -996,8 +1039,11 @@ def main() -> int:
+         "wire_ids_in_order": list(observations),
+         "inputs": observations,
+         "limits": "byte fakes; no native TLS/provider proof",
+-        "policy_compatibility": "REVIEW_CANDIDATE_NOT_ACCEPTED_CONTRACT",
++        "policy_compatibility": "ACCEPTED_HEADER_COMPATIBILITY_POLICY",
++        "header_policy_decision_sha256": HEADER_POLICY_DECISION_PIN,
++        "header_policy_approval_sha256": HEADER_POLICY_APPROVAL_PIN,
+         "dex_provisional_p1_p2_p3": "addressed_in_candidate_29CBD53C",
++        "native_tls_orderly_vs_abrupt": "unproved",
+     }
+     raw = (json.dumps(payload, indent=2) + "\n").encode("utf-8")
+     if len(raw) > MAX_RESULT:

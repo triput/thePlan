@@ -1,0 +1,71 @@
+# Fixture-Changes.diff vs tipped corrected4 post-native-c06-runner-tls-prep-jim-v1-corrected4-2026-11-10
+# Parent corrected4 TIP 914268E0C980FEAB4DC93752D733AB4AF1133F5C1869BB99032FB71CE8EE7192 (UNCHANGED)
+# Parent corrected3 TIP D6260E99FFC203733DB84B4D7E8970AFE92E511B1DC3467949792D88A258EACC (UNCHANGED)
+# Parent corrected2 TIP 91E699ED7A490D0A070A4D44EB33F3B62CD5D1C9D83F55A0D77634B9D62DC74A (UNCHANGED)
+# Parent corrected1 TIP 2F9D3EDA861F67A0881C46953B92248A1A6D996DF3BB41C87C1EA55A7E449676 (UNCHANGED)
+# Parent v1 TIP 046D670AC261A3E72920264C44DC16F3DB39B8D5E386CA4D4CAA726ED97108BA (UNCHANGED)
+# Dex closure p1794377787: register owned stdout/stderr pipes immediately after Popen
+# (reader=None, started=False), then construct/attach readers incrementally, then start.
+# Fake C06_N_PARTIAL_CONSTRUCT_RETIRE: second Thread constructor throws; two pipe close
+# attempts; one constructed / zero started; primary preserved; STOP. No real child/thread.
+# launch-config.launch_ready remains false (B94DEFE32C2C25B22D0AFBCBA0CC5E2365CBB5AD8FEE291C83667DC51145B4A9).
+
+# unchanged vs corrected4:
+#   payload/fixture/prepare-c06-runner-tls.sh
+#   payload/fixture/i01_c06_dual_peer.py
+#   payload/fixture/i01_i02_suite.py
+#   payload/launch-config.json
+
+# changed four-target fixture:
+#   payload/fixture/runner_entry.py
+#   payload/SHA256SUMS.txt (runner_entry line only)
+
+# harness/docs (not a four-target fixture edit besides runner_entry):
+#   fake-only-c06-verification/check_c06_runner_tls_fake.py
+#   fake-only-c06-verification/EXPECTED-OUTPUT.json
+#   fake-only-c06-verification/REVIEW.md
+#   fake-only-c06-verification/INPUT-MANIFEST.json
+#   plus held PACKET-SHA256SUMS / OUTER-ADMISSION / admit_outer / invoke docstring pins
+#   Expected-Outputs.md, Verification-Commands-Held.md, packet manifests
+
+# Retained from corrected4:
+#   launch-config pinned as separate static input (B94DEFE32…); C06_N_WRONG_READY_ROOT
+#   static/PASS path-wiring inventory; FakeOS.path.join posixpath.join; disclosed 45 is
+#   total (30+5+5+5); fake Linux SIGTERM=15 SIGKILL=9 namespace.
+
+--- a/payload/fixture/runner_entry.py
++++ b/payload/fixture/runner_entry.py
+@@ -382,21 +382,24 @@ def prepare_c06_runner_tls():
+                 close_fds=True,
+             )
+             owned_pgid = _c06_owned_pgid(proc)
+-            stdout_reader = Thread(
+-                target=_c06_capture_reader, args=(proc.stdout, stdout_sink, None),
+-                name='c06-openssl-stdout', daemon=False)
+-            stderr_reader = Thread(
+-                target=_c06_capture_reader, args=(proc.stderr, stderr_sink, None),
+-                name='c06-openssl-stderr', daemon=False)
+-            constructed_readers = [stdout_reader, stderr_reader]
+             owned_endpoints = [
+-                {'pipe': proc.stdout, 'reader': stdout_reader, 'sink': stdout_sink,
++                {'pipe': proc.stdout, 'reader': None, 'sink': stdout_sink,
+                  'started': False, 'closed': False},
+-                {'pipe': proc.stderr, 'reader': stderr_reader, 'sink': stderr_sink,
++                {'pipe': proc.stderr, 'reader': None, 'sink': stderr_sink,
+                  'started': False, 'closed': False},
+             ]
++            for endpoint, name in (
++                    (owned_endpoints[0], 'c06-openssl-stdout'),
++                    (owned_endpoints[1], 'c06-openssl-stderr')):
++                reader = Thread(
++                    target=_c06_capture_reader, args=(endpoint['pipe'], endpoint['sink'], None),
++                    name=name, daemon=False)
++                constructed_readers.append(reader)
++                endpoint['reader'] = reader
+             for endpoint in owned_endpoints:
+                 reader = endpoint['reader']
++                if reader is None:
++                    continue
+                 try:
+                     reader.start()
+                 except BaseException as error:

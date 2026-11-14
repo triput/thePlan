@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-12T23:07:43.0262567Z",
+  "workspace_files": 285,
+  "drop_files": 285,
+  "mirror_mismatches": [],
+  "application_files": 234,
+  "application_mismatches": [],
+  "declared_packet_pins": 18,
+  "declared_pin_mismatches": [],
+  "tip_raw_sha256": "B99657509593AB385BA67D9F2AB0287D89E0D37F07B42EA87668300B07CBA149",
+  "preimage": "0CFB98C616362B36C50EADF610FE8873C442A610B25B5BF9EF108D041F409B42",
+  "preimage_match": true,
+  "executed": false,
+  "endpoint": "unbound"
+}

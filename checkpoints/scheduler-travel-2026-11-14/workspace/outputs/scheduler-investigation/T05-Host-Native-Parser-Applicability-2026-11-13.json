@@ -1,0 +1,91 @@
+{
+  "kind": "T05 host versus captured-native parser source applicability",
+  "atUtc": "2026-11-13T20:22:29.1806359Z",
+  "method": "Ordinary raw hash and regex-bounded text comparison; no imports, AST parsing, compilation, execution or source modification",
+  "rawSourcePins": {
+    "native": "C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9",
+    "host": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+    "covering": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368"
+  },
+  "rawPinsUnchanged": true,
+  "normalization": "For method text comparison only: CRLF to LF and TrimEnd at extracted method tail; raw provenance hashes remain untouched",
+  "methods": [
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": false,
+      "method": "read",
+      "nativeTextSha256": "92A8A09D8CCDA0F54B11B503F3A6563D98BD18E33557933F09C4B1E6F1585510",
+      "hostTextSha256": "F229AD73EFBAF6C3C1D107B921AA9A12160A165A47683A203D51C623CB3017C7",
+      "overriddenByCovering": true
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": true,
+      "method": "readinto",
+      "nativeTextSha256": "A818B2E3716C1310BB93BC20B60C1D82E382578F23B27D0F8CE6185996B499A9",
+      "hostTextSha256": "A818B2E3716C1310BB93BC20B60C1D82E382578F23B27D0F8CE6185996B499A9",
+      "overriddenByCovering": true
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": false,
+      "method": "_safe_read",
+      "nativeTextSha256": "2ED575BEC97817ED59C202E5C22A6F9B841691408EBBFB5357C942CD4591F3B8",
+      "hostTextSha256": "D2EBA225C8333BCACA21C73CAE247A51C591C2B39E7DE1FF61EA52C4CE82AB57",
+      "overriddenByCovering": false
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": true,
+      "method": "_safe_readinto",
+      "nativeTextSha256": "9C1BF1FC31D4260CE6B5083E5DD96CA9AE1ACF9B4C24C5E46898DE3400A22942",
+      "hostTextSha256": "9C1BF1FC31D4260CE6B5083E5DD96CA9AE1ACF9B4C24C5E46898DE3400A22942",
+      "overriddenByCovering": false
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": false,
+      "method": "_read_chunked",
+      "nativeTextSha256": "CBDB1F542CA330A26BD7C7FAAE34883C9945F68BFCC259C4B3E848BF20D4BC39",
+      "hostTextSha256": "704FD7652C6AB1375075CEC9EACC621271497C9BC4B32BF9E92CEF1E9B9B52C4",
+      "overriddenByCovering": false
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": true,
+      "method": "_get_chunk_left",
+      "nativeTextSha256": "490F7FCCE4BA08A2B714481A0ED357C8BAD270DBAB9BB05EFD106DC108138357",
+      "hostTextSha256": "490F7FCCE4BA08A2B714481A0ED357C8BAD270DBAB9BB05EFD106DC108138357",
+      "overriddenByCovering": true
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": true,
+      "method": "_read_next_chunk_size",
+      "nativeTextSha256": "3BF036B2F9197CDB3169EC6588B0F92151FB3E76B25688F400D00263D8296084",
+      "hostTextSha256": "3BF036B2F9197CDB3169EC6588B0F92151FB3E76B25688F400D00263D8296084",
+      "overriddenByCovering": true
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": false,
+      "method": "_read_and_discard_trailer",
+      "nativeTextSha256": "5CB38DF3FD51B99CBC7DC56EBDC1E50D13E317B5569FD39D5F4C051B0DBE3331",
+      "hostTextSha256": "71724F2C9794C636A173261FDC6EB8A2CE32A95286316079232A70771B93EDAD",
+      "overriddenByCovering": true
+    },
+    {
+      "equalAfterLfAndMethodTailWhitespaceNormalization": false,
+      "method": "begin",
+      "nativeTextSha256": "F6FA61097A3E61E1CCABE2C8C56B8FDA25089DC55A6DEF9E3A8AFB4A8A93ACEF",
+      "hostTextSha256": "A418BB0F76EF859EB6A65EFFD0901011A480B13A9F186C416365ADE3F0A965A1",
+      "overriddenByCovering": false
+    }
+  ],
+  "methodCount": 9,
+  "textEqualCount": 4,
+  "sourceInferences": [
+    "Whole HTTP parser files differ; host fake PASS cannot be relabeled native parser/TLS PASS.",
+    "Covering overrides read/readinto/chunk-size/CRLF separator/trailer helpers; native stdlib trailer-bound difference is not an automatically inherited gap because the covering override retains the100trailer bound.",
+    "Inherited native _safe_read differs but amt<=8192 on the actual bounded chunk collection path is below native _MIN_READ_BUF_SIZE1048576. Its small-amount branch reads amt and raises IncompleteRead if short, like the host source; this is bounded source reasoning only.",
+    "Inherited native _read_chunked adds negative-amt normalization and a loop expression rewrite. Covering request loop supplies positive8192; negative-amt branch is outside that request path. No behavioral proof inferred from apparent loop equivalence.",
+    "Inherited native begin limits interim responses to100 where host loops; existing fake one-response wires do not exercise this native cap. Do not claim interim-cap runtime proof.",
+    "Native TLS orderly/abrupt outcomes, actual parser composition and real socket/peer retirement remain unproved; selected native batches and separate approval still required."
+  ],
+  "nativeBehaviorProven": false,
+  "requirementsClosed": 0,
+  "newExecution": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,11 @@
+Jim — implementation review aid, same assignment/scope (no new workstream):
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-investigation\Native-Deadline-TLS-Observation-Review.md
+SHA256 1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069
+Six source hashes recorded alongside in Source-Pins-Native-Observation-Review.json.
+
+Key observation traps: measure from actual ASGI budget admission; supervisor kill is not app deadline proof. sent=True is conservative uncertainty-before-call, not a byte count; peer prefix-only receive does not alone prove sender partial completion. Preserve default ReleasePlan→Counter→CoveringHTTP→JoinedTLS chain. Actual ASGI disconnect, provider EOF and task cancellation differ. Complete close-delimited positive and orderly short-CL negative need distinct observations. Expected app UNKNOWN never absorbs unjoined/invalid fixture STOP.
+
+The companion T02-T08-Witness-Matching-20261112.md identifies framing excess probes as reduced limits (8 bytes /3 items versus5), useful logical evidence alongside exact-ceiling T02 controls, not native or actual10,000/16MiB overrun proof. Cite existing matching witnesses rather than repeat them; retain focused gap controls where needed.
+
+No source/contract expansion or launch authority. Continue normal implementation; no immediate response needed.
+— Dex

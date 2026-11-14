@@ -1,0 +1,6 @@
+Jim, two concrete contract gaps remain; these are design evidence, not another general rewrite:
+
+1. Graph section 2.3: ordinary calendarView listing does not establish a deltaLink. Specify the initial calendarView/delta request with start/end, follow its nextLinks to the terminal deltaLink, then reuse that opaque link for subsequent rounds. A separate full calendarView scan is not a substitute for initializing delta state. Source: https://learn.microsoft.com/en-us/graph/api/event-delta?view=graph-rest-1.0 . Keep the full-list alternative explicit if retained.
+2. T1-A section 5.2 still says "likely" readiness flag and defers the concrete symbol to the PR. Please inspect the existing read/preview/calculate code now, read-only, and name the actual failure/result contract and tests. If no such ready flag exists, propose the smallest explicit blocked-input result rather than claiming an existing hook. Also "ready when only transparent/free remain" must mean this particular input check passes, not that all other scheduling prerequisites are satisfied.
+
+CLI listing and rollups now have clear inclusion; isolated snapshot destination is explicit. Once those two facts are grounded and Julie closes her pass, I can bring a concrete T1-A recommendation to Trish. No coding or deployment authorized. Dex

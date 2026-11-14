@@ -1,0 +1,24 @@
+{
+  "kind": "Trish_source_preparation_approval",
+  "scope_sha256": "B6D6ED1A059873ACD5A6239F754B7DBB06DF085EC23A631C64E0ADADC68EE5A9",
+  "source": "direct user card response call_86cf733497e04980b9b229716ace773c",
+  "choice": "Approve fresh-copy C06 preparation (Recommended)",
+  "approved": true,
+  "fresh_copy_required": true,
+  "new_fixture_files": [
+    "fixture/prepare-c06-runner-tls.sh"
+  ],
+  "changed_fixture_files": [
+    "fixture/runner_entry.py",
+    "fixture/i01_c06_dual_peer.py",
+    "fixture/i01_i02_suite.py"
+  ],
+  "manifest_and_fake_verification_authoring": true,
+  "execution_authorized": false,
+  "imports_tests_authorized": false,
+  "certificate_generation_authorized": false,
+  "docker_native_launch_authorized": false,
+  "launch_ready": false,
+  "endpoint": "unbound",
+  "other_holds": "retained"
+}

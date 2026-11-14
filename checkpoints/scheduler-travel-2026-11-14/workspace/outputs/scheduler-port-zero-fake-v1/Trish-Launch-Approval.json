@@ -1,0 +1,14 @@
+{
+  "at_utc": "2026-11-12T20:14:02.5715853Z",
+  "question_call": "call_8ec6a73ede164a108b819c8180f07b09",
+  "item": 0,
+  "answer": "Authorize one port fake verification (Recommended)",
+  "command_sha256": "A98838452A0E7B6FA5BA504E38F2BA54E05890DFC759D33AE23412F94D87E048",
+  "admission_sha256": "AE502E6BAA2CF8CA33B9E1137E5BB8C5E5FCC14F620239914DB3CAFCE1E86532",
+  "authorized_attempts": 1,
+  "no_retries": true,
+  "no_repairs": true,
+  "bounded_owned_child_retirement": true,
+  "endpoint": "unbound",
+  "all_other_holds_retained": true
+}

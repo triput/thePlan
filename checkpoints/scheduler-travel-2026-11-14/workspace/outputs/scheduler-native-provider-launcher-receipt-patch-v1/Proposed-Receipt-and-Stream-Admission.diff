@@ -1,0 +1,387 @@
+--- a/verify/launch_check.py
++++ b/verify/launch_check.py
+@@ -340,191 +340,193 @@
+-    if RECEIPT.is_file() or RESULT.is_file():
+-        return _refuse_without_writing(
+-            reason,
+-            preexisting_receipt=RECEIPT.is_file(),
+-            preexisting_result=RESULT.is_file(),
+-            primary_error=str(primary) if primary is not None else None,
+-            **extra,
+-        )
+-    disposition = session.disposition() if session is not None else {
+-        "owned_child_present": False,
+-        "retirement_attempted": False,
+-        "retirement_unknown": False,
+-    }
+-    status = "UNKNOWN" if (session is not None and session.retirement_unknown) else "STOP"
+-    primary_text = None
+-    if primary is not None:
+-        primary_text = str(primary.args[0]) if primary.args else type(primary).__name__
+-    elif session is not None and session.primary is not None:
+-        p = session.primary
+-        primary_text = str(p.args[0]) if p.args else type(p).__name__
+-    out = session.stdout_sink if session is not None else None
+-    err = session.stderr_sink if session is not None else None
+-    receipt = {
+-        "kind": "fake-native-provider-launch-receipt",
+-        "status": status,
+-        "reason": reason,
+-        "lineage": LINEAGE,
+-        "dex_launcher_retirement_sha256": DEX_LAUNCHER_RETIREMENT_SHA256,
+-        "prep_is_not_pass": True,
+-        "endpoint": "unbound",
+-        "launch_authorized": False,
+-        "primary_error": primary_text,
+-        "check_exit_code": disposition.get("exit_code"),
+-        "stdout_sha256": (
+-            hashlib.sha256(bytes(out.retained)).hexdigest().upper() if out is not None else None
+-        ),
+-        "stderr_sha256": (
+-            hashlib.sha256(bytes(err.retained)).hexdigest().upper() if err is not None else None
+-        ),
+-        "stdout_observed_bytes": out.observed if out is not None else 0,
+-        "stderr_observed_bytes": err.observed if err is not None else 0,
+-        "stdout_retained_bytes": len(out.retained) if out is not None else 0,
+-        "stderr_retained_bytes": len(err.retained) if err is not None else 0,
+-        "capture_stdout_cap": CAPTURE_STDOUT_BYTES,
+-        "capture_stderr_cap": CAPTURE_STDERR_BYTES,
+-        "capture_result_cap": CAPTURE_RESULT_BYTES,
+-        "check_seconds_budget": seconds,
+-        "post_kill_wait_seconds": POST_KILL_WAIT_SECONDS,
+-        "reader_join_seconds_each": READER_JOIN_SECONDS,
+-        "timeout_retirement_total_seconds": (
+-            seconds + POST_KILL_WAIT_SECONDS + (2 * READER_JOIN_SECONDS)
+-        ),
+-        "separate_outer_timeout": False,
+-        "elapsed_seconds": round(time.monotonic() - started, 6),
+-        "disposition": disposition,
+-        **extra,
+-    }
+-    try:
+-        exclusive_write(RECEIPT, (json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+-    except FileExistsError:
+-        return _refuse_without_writing(
+-            "receipt_exclusive_create_failed_preexisting",
+-            attempted_reason=reason,
+-            primary_error=primary_text,
+-            **extra,
+-        )
+-    print(f"launch_check STOP: {reason}", file=sys.stderr)
+-    return 125
+-
+-
+-def main() -> int:
+-    started = time.monotonic()
+-    session: OwnedCheckSession | None = None
+-    seconds = DEFAULT_CHECK_SECONDS
+-    try:
+-        missing = verify_parent_isolation()
+-        if missing:
+-            raise LaunchStop(f"parent_isolation_flags_missing:{missing}")
+-        if RESULT.exists() or RECEIPT.exists():
+-            return _refuse_without_writing(
+-                "existing evidence; no replay",
+-                preexisting_receipt=RECEIPT.is_file(),
+-                preexisting_result=RESULT.is_file(),
+-            )
+-        admission = load_admission()
+-        pins = admission.get("pins") or {}
+-        check_pin = str(pins.get("check_native_provider_sha256", "")).strip().upper()
+-        if not check_pin or sha256_file(CHECK) != check_pin:
+-            raise LaunchStop("check pin mismatch")
+-        expected_pin = str(pins.get("expected_fake_structural_sha256", "")).strip().upper()
+-        if not expected_pin or sha256_file(EXPECTED) != expected_pin:
+-            raise LaunchStop("expected pin mismatch")
+-        interpreter = Path(str(admission["interpreter_path"]))
+-        if sha256_file(interpreter) != str(pins.get("interpreter_sha256", "")).strip().upper():
+-            raise LaunchStop("interpreter pin mismatch")
+-        seconds = int(admission.get("check_seconds", DEFAULT_CHECK_SECONDS))
+-        if not 1 <= seconds <= TIMEOUT_SECONDS_CAP:
+-            raise LaunchStop("check_seconds out of bounds")
+-        expected_doc = json.loads(EXPECTED.read_text(encoding="utf-8"))
+-        expected_controls = list(expected_doc.get("control_ids_in_order") or [])
+-        if not expected_controls:
+-            raise LaunchStop("EXPECTED missing control_ids_in_order")
+-
+-        env = {
+-            "PATH": os.environ.get("PATH", ""),
+-            "LANG": "C",
+-            "LC_ALL": "C",
+-            "PYTHONUTF8": "1",
+-        }
+-        cmd = [str(interpreter), *REQUIRED_ISOLATION_FLAGS, str(CHECK)]
+-        session = OwnedCheckSession()
+-        session.stdout_sink = CaptureSink(CAPTURE_STDOUT_BYTES)
+-        session.stderr_sink = CaptureSink(CAPTURE_STDERR_BYTES)
+-        try:
+-            session.proc = subprocess.Popen(
+-                cmd,
+-                cwd=str(HERE),
+-                env=env,
+-                stdout=subprocess.PIPE,
+-                stderr=subprocess.PIPE,
+-                stdin=subprocess.DEVNULL,
+-            )
+-        except OSError as exc:
+-            session.mark_primary(LaunchStop(f"spawn_failed:{exc!r}"))
+-            raise LaunchStop(f"spawn_failed:{exc!r}") from exc
+-        assert session.proc.stdout is not None and session.proc.stderr is not None
+-        # Reader construction/start is inside owned-child retirement scope (Dex 30FEEDFF…).
+-        try:
+-            session.t_out = threading.Thread(
+-                target=_reader,
+-                args=(session.proc.stdout, session.stdout_sink, session.overflow),
+-                daemon=True,
+-            )
+-            session.readers_constructed += 1
+-            session.t_err = threading.Thread(
+-                target=_reader,
+-                args=(session.proc.stderr, session.stderr_sink, session.overflow),
+-                daemon=True,
+-            )
+-            session.readers_constructed += 1
+-            session.t_out.start()
+-            session.readers_started += 1
+-            session.t_err.start()
+-            session.readers_started += 1
+-        except BaseException as exc:
+-            session.mark_primary(LaunchStop(f"capture_reader_setup:{type(exc).__name__}"))
+-            session.retire_once()
+-            raise LaunchStop(f"capture_reader_setup:{type(exc).__name__}") from exc
+-
+-        deadline = time.monotonic() + seconds
+-        try:
+-            while True:
+-                if session.overflow.is_set():
+-                    session.retire_once()
+-                    break
+-                rc = session.proc.poll()
+-                if rc is not None:
+-                    session.exit_code = rc
+-                    break
+-                if time.monotonic() >= deadline:
+-                    session.timed_out = True
+-                    session.retire_once()
+-                    break
+-                time.sleep(WAIT_POLL_SECONDS)
+-        except BaseException as exc:
+-            session.mark_primary(LaunchStop(f"collection:{type(exc).__name__}"))
+-            session.retire_once()
+-            raise LaunchStop(f"collection:{type(exc).__name__}") from exc
+-
+-        if not session.retirement_attempted:
+-            # Normal exit: one-attempt join path (kill skipped when child already exited).
+-            session.retire_once()
+-
+-        out = session.stdout_sink
+-        err = session.stderr_sink
+-        assert out is not None and err is not None
+-
+-        if out.overflow or err.overflow:
+-            raise LaunchStop("capture overflow during collection")
+-        if session.timed_out:
+-            raise LaunchStop("check timeout")
+-        if session.retirement_unknown:
+-            raise LaunchStop("reader join failure — UNKNOWN disposition")
+-        if not session.readers_joined:
+-            raise LaunchStop("reader join failure — UNKNOWN disposition")
+-        if out.reader_error or err.reader_error:
+-            raise LaunchStop("capture reader error — UNKNOWN disposition")
+-        if not (out.saw_eof and err.saw_eof):
+-            raise LaunchStop("capture reader EOF incomplete — UNKNOWN disposition")
+-        if session.exit_code != 0:
+-            raise LaunchStop(f"check exited {session.exit_code}")
++    if RECEIPT.is_file():
++        return _refuse_without_writing(
++            reason,
++            preexisting_receipt=RECEIPT.is_file(),
++            preexisting_result=RESULT.is_file(),
++            primary_error=str(primary) if primary is not None else None,
++            **extra,
++        )
++    disposition = session.disposition() if session is not None else {
++        "owned_child_present": False,
++        "retirement_attempted": False,
++        "retirement_unknown": False,
++    }
++    status = "UNKNOWN" if (session is not None and session.retirement_unknown) else "STOP"
++    primary_text = None
++    if primary is not None:
++        primary_text = str(primary.args[0]) if primary.args else type(primary).__name__
++    elif session is not None and session.primary is not None:
++        p = session.primary
++        primary_text = str(p.args[0]) if p.args else type(p).__name__
++    out = session.stdout_sink if session is not None else None
++    err = session.stderr_sink if session is not None else None
++    receipt = {
++        "kind": "fake-native-provider-launch-receipt",
++        "status": status,
++        "reason": reason,
++        "lineage": LINEAGE,
++        "dex_launcher_retirement_sha256": DEX_LAUNCHER_RETIREMENT_SHA256,
++        "prep_is_not_pass": True,
++        "endpoint": "unbound",
++        "launch_authorized": False,
++        "primary_error": primary_text,
++        "check_exit_code": disposition.get("exit_code"),
++        "stdout_sha256": (
++            hashlib.sha256(bytes(out.retained)).hexdigest().upper() if out is not None else None
++        ),
++        "stderr_sha256": (
++            hashlib.sha256(bytes(err.retained)).hexdigest().upper() if err is not None else None
++        ),
++        "stdout_observed_bytes": out.observed if out is not None else 0,
++        "stderr_observed_bytes": err.observed if err is not None else 0,
++        "stdout_retained_bytes": len(out.retained) if out is not None else 0,
++        "stderr_retained_bytes": len(err.retained) if err is not None else 0,
++        "capture_stdout_cap": CAPTURE_STDOUT_BYTES,
++        "capture_stderr_cap": CAPTURE_STDERR_BYTES,
++        "capture_result_cap": CAPTURE_RESULT_BYTES,
++        "check_seconds_budget": seconds,
++        "post_kill_wait_seconds": POST_KILL_WAIT_SECONDS,
++        "reader_join_seconds_each": READER_JOIN_SECONDS,
++        "timeout_retirement_total_seconds": (
++            seconds + POST_KILL_WAIT_SECONDS + (2 * READER_JOIN_SECONDS)
++        ),
++        "separate_outer_timeout": False,
++        "elapsed_seconds": round(time.monotonic() - started, 6),
++        "disposition": disposition,
++        **extra,
++    }
++    try:
++        exclusive_write(RECEIPT, (json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode("utf-8"))
++    except FileExistsError:
++        return _refuse_without_writing(
++            "receipt_exclusive_create_failed_preexisting",
++            attempted_reason=reason,
++            primary_error=primary_text,
++            **extra,
++        )
++    print(f"launch_check STOP: {reason}", file=sys.stderr)
++    return 125
++
++
++def main() -> int:
++    started = time.monotonic()
++    session: OwnedCheckSession | None = None
++    seconds = DEFAULT_CHECK_SECONDS
++    try:
++        missing = verify_parent_isolation()
++        if missing:
++            raise LaunchStop(f"parent_isolation_flags_missing:{missing}")
++        if RESULT.exists() or RECEIPT.exists():
++            return _refuse_without_writing(
++                "existing evidence; no replay",
++                preexisting_receipt=RECEIPT.is_file(),
++                preexisting_result=RESULT.is_file(),
++            )
++        admission = load_admission()
++        pins = admission.get("pins") or {}
++        check_pin = str(pins.get("check_native_provider_sha256", "")).strip().upper()
++        if not check_pin or sha256_file(CHECK) != check_pin:
++            raise LaunchStop("check pin mismatch")
++        expected_pin = str(pins.get("expected_fake_structural_sha256", "")).strip().upper()
++        if not expected_pin or sha256_file(EXPECTED) != expected_pin:
++            raise LaunchStop("expected pin mismatch")
++        interpreter = Path(str(admission["interpreter_path"]))
++        if sha256_file(interpreter) != str(pins.get("interpreter_sha256", "")).strip().upper():
++            raise LaunchStop("interpreter pin mismatch")
++        seconds = int(admission.get("check_seconds", DEFAULT_CHECK_SECONDS))
++        if not 1 <= seconds <= TIMEOUT_SECONDS_CAP:
++            raise LaunchStop("check_seconds out of bounds")
++        expected_doc = json.loads(EXPECTED.read_text(encoding="utf-8"))
++        expected_controls = list(expected_doc.get("control_ids_in_order") or [])
++        if not expected_controls:
++            raise LaunchStop("EXPECTED missing control_ids_in_order")
++
++        env = {
++            "PATH": os.environ.get("PATH", ""),
++            "LANG": "C",
++            "LC_ALL": "C",
++            "PYTHONUTF8": "1",
++        }
++        cmd = [str(interpreter), *REQUIRED_ISOLATION_FLAGS, str(CHECK)]
++        session = OwnedCheckSession()
++        session.stdout_sink = CaptureSink(CAPTURE_STDOUT_BYTES)
++        session.stderr_sink = CaptureSink(CAPTURE_STDERR_BYTES)
++        try:
++            session.proc = subprocess.Popen(
++                cmd,
++                cwd=str(HERE),
++                env=env,
++                stdout=subprocess.PIPE,
++                stderr=subprocess.PIPE,
++                stdin=subprocess.DEVNULL,
++            )
++        except OSError as exc:
++            session.mark_primary(LaunchStop(f"spawn_failed:{exc!r}"))
++            raise LaunchStop(f"spawn_failed:{exc!r}") from exc
++        assert session.proc.stdout is not None and session.proc.stderr is not None
++        # Reader construction/start is inside owned-child retirement scope (Dex 30FEEDFF…).
++        try:
++            session.t_out = threading.Thread(
++                target=_reader,
++                args=(session.proc.stdout, session.stdout_sink, session.overflow),
++                daemon=True,
++            )
++            session.readers_constructed += 1
++            session.t_err = threading.Thread(
++                target=_reader,
++                args=(session.proc.stderr, session.stderr_sink, session.overflow),
++                daemon=True,
++            )
++            session.readers_constructed += 1
++            session.t_out.start()
++            session.readers_started += 1
++            session.t_err.start()
++            session.readers_started += 1
++        except BaseException as exc:
++            session.mark_primary(LaunchStop(f"capture_reader_setup:{type(exc).__name__}"))
++            session.retire_once()
++            raise LaunchStop(f"capture_reader_setup:{type(exc).__name__}") from exc
++
++        deadline = time.monotonic() + seconds
++        try:
++            while True:
++                if session.overflow.is_set():
++                    session.retire_once()
++                    break
++                rc = session.proc.poll()
++                if rc is not None:
++                    session.exit_code = rc
++                    break
++                if time.monotonic() >= deadline:
++                    session.timed_out = True
++                    session.retire_once()
++                    break
++                time.sleep(WAIT_POLL_SECONDS)
++        except BaseException as exc:
++            session.mark_primary(LaunchStop(f"collection:{type(exc).__name__}"))
++            session.retire_once()
++            raise LaunchStop(f"collection:{type(exc).__name__}") from exc
++
++        if not session.retirement_attempted:
++            # Normal exit: one-attempt join path (kill skipped when child already exited).
++            session.retire_once()
++
++        out = session.stdout_sink
++        err = session.stderr_sink
++        assert out is not None and err is not None
++
++        if out.overflow or err.overflow:
++            raise LaunchStop("capture overflow during collection")
++        if session.timed_out:
++            raise LaunchStop("check timeout")
++        if session.retirement_unknown:
++            raise LaunchStop("reader join failure — UNKNOWN disposition")
++        if not session.readers_joined:
++            raise LaunchStop("reader join failure — UNKNOWN disposition")
++        if out.reader_error or err.reader_error:
++            raise LaunchStop("capture reader error — UNKNOWN disposition")
++        if not (out.saw_eof and err.saw_eof):
++            raise LaunchStop("capture reader EOF incomplete — UNKNOWN disposition")
++        if session.exit_code != 0:
++            raise LaunchStop(f"check exited {session.exit_code}")
++        if out.observed != 0 or err.observed != 0:
++            raise LaunchStop("unexpected check stdout or stderr")

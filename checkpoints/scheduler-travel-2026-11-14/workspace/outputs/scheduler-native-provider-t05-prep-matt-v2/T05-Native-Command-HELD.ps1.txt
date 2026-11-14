@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of a future NP-T05-ORDERLY-CLOSE + NP-T05-ABRUPT-TRUNCATION native invocation (v2), for review.
+# Against these prep configs (host launch_ready=false; runner-config launch_ready=false) the operator throws STOP before any child.
+# A launch needs the focused T05 fake PASS, a reviewed staging copy flipping the host and runner gates (changes the launch-config
+# hash below and the payload manifest), Dex's matching EXECUTE acknowledgement and Trish's explicit one-shot approval. Omit -ReceiptPath.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-prep-matt-v2\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 '3B98C20F383C15AC0D6B17B23C8DB2FFF19D5FC2B218CC3CF6611C76F38E319B' -ExpectedDockerConfigSHA256 'D42E376D64697703AAE655EAE11338938D8C6E04A8FF0A0763C35AD41F946518' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-t05-prep-matt-v2\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'

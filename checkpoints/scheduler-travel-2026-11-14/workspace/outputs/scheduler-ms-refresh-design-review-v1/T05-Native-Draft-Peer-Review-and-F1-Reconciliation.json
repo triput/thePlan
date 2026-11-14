@@ -1,0 +1,32 @@
+{
+  "atUtc": "2026-11-14T00:49:18.5892339Z",
+  "peerReview": "227F001E4485F1170ED98F39ED4632148C5F20C6118471D23C86DAB11F54FC51",
+  "peerSidecar": "One exact review-file SHA256 entry; verified",
+  "peerVerdict": "Qualified static acceptance with two contradictory note strings F1",
+  "resolution": "Fresh metadata-only v2; F1 corrected, v1 and all prior packets preserved",
+  "v2Manifest": "BA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1",
+  "v2InputCount": 307,
+  "changedInheritedFiles": [
+    "Reviewed-T05-Client-Cause-Native-Command.ps1.txt",
+    "CURRENT-NATIVE-STAGING-HELD.md",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json"
+  ],
+  "addedFiles": [
+    "Source-Native-Client-Cause-Draft-V1-Input-Manifest.sha256",
+    "Dex-Client-Cause-Native-Staging-Receipt-V2.json"
+  ],
+  "executableChanges": 0,
+  "applicationChanges": 0,
+  "payloadManifestUnchanged": "43EACD30734FE5689022E7BF99C21EA321D064B68D6FDAC0893A461F42D3CCB5",
+  "evidenceAbsent": true,
+  "CAPathAgreement": true,
+  "receiptDefault": "native-provider-host-receipt.jsonl",
+  "receiptOverride": "omitted",
+  "reviewNote": "Matt prose arithmetic PKI30+5+5=45 is a typo; accepted operator contract is30+5+two5=45. No limits changed.",
+  "status": "F1_RESOLVED_NATIVE_STILL_HELD",
+  "fakePrerequisite": "Pending user approval and execution; existing fake card unchanged",
+  "nativeAuthority": "NONE",
+  "endpoint": "unbound"
+}

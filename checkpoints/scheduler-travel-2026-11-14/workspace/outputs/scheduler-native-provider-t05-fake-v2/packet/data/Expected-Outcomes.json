@@ -1,0 +1,224 @@
+{
+  "kind": "finite cases and expected outcomes \u2014 preparation declaration",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "native_cases": [
+    {
+      "case_id": "NP-V-MS-NONEXPIRED",
+      "expected": "PASS",
+      "notes": "no OAuth; TOKEN ROLLBACK ack",
+      "implementation": "IMPLEMENTED_SOURCE"
+    },
+    {
+      "case_id": "NP-V-MS-REFRESH",
+      "expected": "PASS",
+      "notes": "JoinedTLS MS refresh; TOKEN COMMIT",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+      "expected": "PASS",
+      "notes": "tokens remain; import rollback separate",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-V-MS-INVALID",
+      "expected": "PASS",
+      "notes": "TokenRejected after unchanged-unit rollback",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-V-GOOGLE-REFRESH",
+      "expected": "PASS",
+      "notes": "Google owning refresh; not MS proof",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-V-GOOGLE-INVALID",
+      "expected": "PASS",
+      "notes": "Google TokenRejected path",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T06-BEFORE-SEND",
+      "expected": "PASS",
+      "notes": "no token mutation claim",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T06-MALFORMED-ACK",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "UNKNOWN remap",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T06-TRUNCATED-ACK",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "UNKNOWN; locals retained as observed",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T06-OTHER",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "UNKNOWN branch",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T06-PARTIAL",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "UNKNOWN; no replay",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T06-LOST",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "UNKNOWN; disposable DB retained",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T03-VALID",
+      "expected": "PASS",
+      "notes": "handshake + useful app data",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T03-WRONG-CA",
+      "expected": "PASS",
+      "notes": "refuse before useful app data",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T03-WRONG-NAME",
+      "expected": "PASS",
+      "notes": "refuse",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T03-HANDSHAKE-STALL",
+      "expected": "PASS",
+      "notes": "first guard = deadline; real elapsed",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T03-TCP-REFUSAL",
+      "expected": "PASS",
+      "notes": "typed connect failure",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T04-HEADER-STALL",
+      "expected": "PASS",
+      "notes": "header-phase deadline",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T04-BODY-STALL",
+      "expected": "PASS",
+      "notes": "body-phase deadline",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T04-PARTIAL-SEND",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "joined retirement; no retry",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T04-DEADLINE",
+      "expected": "PASS",
+      "notes": "distinct from supervisor kill",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T04-DISCONNECT",
+      "expected": "EXPECTED_UNKNOWN",
+      "notes": "ASGI disconnect \u2260 abrupt provider EOF",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T05-ORDERLY-CLOSE",
+      "expected": "PASS",
+      "observations": [
+        {
+          "name": "orderly_close_delimited_complete_accepted",
+          "expected": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
+        },
+        {
+          "name": "orderly_short_cl_valid_json_prefix_refused",
+          "expected": "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"
+        }
+      ],
+      "notes": "Both observations required; truncated length alone insufficient; peer attempt label not sole orderly-EOF proof; pair production clean_eof under suppress_ragged_eofs=False",
+      "implementation": "AUTHORED_BODY_NOT_IN_LAUNCH_BATCH"
+    },
+    {
+      "case_id": "NP-T05-ABRUPT-TRUNCATION",
+      "expected": "PASS",
+      "notes": "distinct from orderly, malformed body, and ASGI disconnect; pair abrupt peer stimulus with production abrupt receive/framing chain",
+      "implementation": "AUTHORED_BODY_NOT_IN_LAUNCH_BATCH"
+    },
+    {
+      "case_id": "NP-T07-OWNED-SOCKET",
+      "expected": "PASS",
+      "observations_named_individually": [
+        "t07_response_close_after_success",
+        "t07_response_close_after_primary_failure",
+        "t07_transport_close_after_success",
+        "t07_transport_close_after_primary_failure",
+        "t07_both_close_after_success",
+        "t07_open_close",
+        "t07_setblocking"
+      ],
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T07-BOTH-AFTER-FAILURE",
+      "expected": "PASS",
+      "notes": "host-fake PRIMARY-BOTH-CLOSES does not close",
+      "implementation": "HOLD"
+    },
+    {
+      "case_id": "NP-T08-OWNERSHIP",
+      "expected": "PASS",
+      "oracles": [
+        "foreign_check",
+        "foreign_close",
+        "reuse_forbid",
+        "owner_retirement"
+      ],
+      "notes": "immediate STOP on mismatch; T08-NESTED/RESET remain gaps",
+      "implementation": "HOLD"
+    }
+  ],
+  "cf_witness_cases": [
+    {
+      "case_id": "NP-T01-USERINFO-CF",
+      "expected": "PASS",
+      "notes": "refuse-before-send; no native TLS claim"
+    },
+    {
+      "case_id": "NP-T01-FRAGMENT-CF",
+      "expected": "PASS",
+      "notes": "refuse-before-send"
+    },
+    {
+      "case_id": "NP-T01-CONTROL-CHAR-CF",
+      "expected": "PASS",
+      "notes": "refuse-before-send"
+    },
+    {
+      "case_id": "NP-T01-PURPOSE-WRONG-CF",
+      "expected": "PASS",
+      "notes": "refuse-before-send"
+    }
+  ],
+  "packet": "scheduler-native-provider-prep-v2",
+  "implementation_increment": {
+    "implemented_case_ids": [
+      "NP-V-MS-NONEXPIRED"
+    ],
+    "note": "Other cases explicit HOLD in np_runner_entry \u2014 never fabricated PASS"
+  }
+}

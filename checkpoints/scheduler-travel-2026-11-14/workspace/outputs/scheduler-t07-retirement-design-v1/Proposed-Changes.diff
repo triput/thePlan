@@ -1,0 +1,90 @@
+*** UNAPPLIED — documents-only design proposal. Do not apply without Trish source-change authority.
+*** Target tree: scheduler-d2-fake-v1/packet/payload/workspace/apps/api/app/services/
+*** Base pins:
+***   covering_http_transport.py AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8
+***   covering_joined_https.py    C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468
+***   covering_refresh_import.py  C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0
+*** Status: applied=false; executed=false; documents_only=true
+
+diff --git a/app/services/covering_http_transport.py b/app/services/covering_http_transport.py
+--- a/app/services/covering_http_transport.py
++++ b/app/services/covering_http_transport.py
+@@ -122,8 +122,24 @@ class CoveringHTTP:
+                 # Token rotation may have occurred. No retry/replay.
+                 raise CoveringRootOutcomeUnknown() from None
+             raise
+         finally:
+-            if response is not None:
+-                response.close()
+-            transport.close()
++            # Independently owned retirement attempts. A response-close
++            # failure must not skip transport-close. Any cleanup failure
++            # cancels a pending success and replaces typed exchange
++            # outcomes with UNKNOWN while leaving the prior exception in
++            # __context__ (do not use "from None" here).
++            cleanup_failed = False
++            if response is not None:
++                try:
++                    response.close()
++                except BaseException:
++                    cleanup_failed = True
++            try:
++                transport.close()
++            except BaseException:
++                cleanup_failed = True
++            if cleanup_failed:
++                raise CoveringRootOutcomeUnknown()
+ 
+diff --git a/app/services/covering_joined_https.py b/app/services/covering_joined_https.py
+--- a/app/services/covering_joined_https.py
++++ b/app/services/covering_joined_https.py
+@@ -10,6 +10,7 @@ import ssl
+ from threading import get_ident
+ 
+ from app.services.covering_transport_policy import CoveringTransportRefused
++from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
+ 
+ 
+ class JoinedTLS:
+@@ -69,8 +70,16 @@ class JoinedTLS:
+                     self.ready(selectors.EVENT_READ)
+                 except ssl.SSLWantWriteError:
+                     self.ready(selectors.EVENT_WRITE)
+-        except BaseException:
+-            self.close()
+-            raise
++        except BaseException as primary:
++            # Attempt same-owner close once. Do not retry sock.close.
++            # If close fails, surface UNKNOWN with primary as __cause__ and
++            # cleanup as __context__ (explicit; do not use bare "raise ...
++            # from primary", which would suppress cleanup context).
++            try:
++                self.close()
++            except BaseException as cleanup:
++                unknown = CoveringRootOutcomeUnknown()
++                unknown.__cause__ = primary
++                unknown.__context__ = cleanup
++                unknown.__suppress_context__ = False
++                raise unknown
++            raise
+ 
+     def send(self, data):
+         data=memoryview(data)
+diff --git a/app/services/covering_refresh_import.py b/app/services/covering_refresh_import.py
+--- a/app/services/covering_refresh_import.py
++++ b/app/services/covering_refresh_import.py
+@@ -974,6 +974,12 @@ def import_covering_subscription_cache(
+             access_token=access_token,
+             window=window,
+         )
+     except Exception as exc:
++        # Deferred import avoids a top-level cycle with
++        # covering_target_transaction (which imports this module before
++        # defining CoveringRootOutcomeUnknown).
++        from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
++        if isinstance(exc, CoveringRootOutcomeUnknown):
++            raise
+         logger.exception(
+             "covering provider read failed subscription=%s",
+             sub_row.id,
+\n

@@ -1,0 +1,9 @@
+Jim, please take that second read-only pass on wipe/apply/export. The central question is whether a future replan preserves, overwrites, errors on, or recreates each class: surviving unchanged event, surviving hand-edited event, deleted-but-mapped event. Trace deletion ordering, mapping cleanup, transaction boundaries and partial-failure behavior; do not invoke the path. Monday 16/17 is secondary if the saved records can settle it without speculation.
+
+One precision check on eligibility: you say the placer uses deadline_at while the snapshots expose due_at. Please identify the adapter between those fields, if any, before we conclude due_at is actually enforced as a finish-by constraint. 'Does not delay eligibility' is established by your trace; 'constrains completion' needs its own link.
+
+For priority_ups, please include file/line references and current revision in the evidence, and whether the original deployed revision can be recovered from existing records. The producer/schema mismatch plus Julie's matching historical trace is strong evidence for the 500, separate from schedule quality. No fix is authorized yet.
+
+We'll keep busy-input provenance open for Julie's data, and recurring-work intent open for Trish. Missing break configuration is distinct from an ignored constraint. No-replan hold remains.
+
+Dex

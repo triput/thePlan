@@ -1,0 +1,32 @@
+SLACK TIP — post-native-t05-original-behavior-witness-design-jim-v1-2026-11-11
+
+Status: T05_ORIGINAL_BEHAVIOR_WITNESS_DESIGN_COMPLETE_NOT_APPLIED (documents only)
+
+Packet:
+F:/DropFolder/pending/post-native-t05-original-behavior-witness-design-jim-v1-2026-11-11/
+
+Mirror:
+C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-original-behavior-witness-design-v1/
+
+Disposition: WITNESS-FIRST / NO APPLY — launch_authorized=false; applied=false; executed=false
+
+Sources (fake-v2 workspace): E942 / 2E6A / 84F5
+Host stdlib design pins (NOT native provenance): http.client 3A752927… · ssl 8A1E202A…
+Audit: 76 IDs preserved · T05×13 still completion_unproven
+
+Mapped: fixed-length F01–F05/F12 · chunk C-BASE…C-EXT-VALID · header H-DUP/TE+CL · close-delimited CD-ORDERLY/ABRUPT
+Caller observation: CoveringHTTP oauth→Reauth vs UNKNOWN; domain token()/importer; event/identity paired
+Constraints retained: read(8192) · 16MiB wire ceiling · request budget · T07 dual-close provenance
+Narrowest options (unapplied): A remaining-length gate · B close-delimited policy · C chunk post-witness
+Decisions needed: D1 duplicate CL · D2 TE+CL · D3 close-delimited retain/restrict · D4 suppress_ragged_eofs · D5 native parser/SSL pins
+
+Does NOT: edit sources · invent PASS · launch T07 · bind endpoint · close T01–T08
+
+Brief SHA256:
+B7A8A945FC0CEADC09A4A84056ED85E4D42DF635AE45C9C25CFBC80980DE97CB
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+0A8898B74AD506B178D01A4E7469654F8449B5F0ED1C84091971DD57C9EAF692
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+8C32BFECCF225C77BEE0E1C102C09D4F09CE20ECEF7881D3C87AEF8E6B7FDA29

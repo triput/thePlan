@@ -1,0 +1,15 @@
+{
+  "status": "QUALIFIED_ACCEPT",
+  "reviewed_utc": "2026-11-11T21:48:36.0134919Z",
+  "review_artifact_rows_verified": 5,
+  "design_v2_artifact_rows_verified": 6,
+  "review_raw_tip_sha256": "AB3C108DB9C42D7F742ADD3BBEB2182C09C6E8FDB77ACC98CF22575B514B790D",
+  "review_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "qualifications": "Q1-Q8 retained: host/native provenance; finite inventory; distinct kinds; named callers; helper pins; JSON-safe projection; TLS proof limits; no D1/D2 policy adoption",
+  "blockers": [],
+  "authoring_authorized": false,
+  "execution_authorized": false,
+  "next_decision": "Trish workspace-only preparation for six executable roles in two held packets",
+  "endpoint": "unbound"
+}

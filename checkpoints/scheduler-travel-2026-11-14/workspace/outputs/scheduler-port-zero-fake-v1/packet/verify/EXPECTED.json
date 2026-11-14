@@ -1,0 +1,235 @@
+{
+  "kind": "exact-port-original-candidate-oracles",
+  "wire_ids_in_order": [
+    "PORT-443-ABSENT",
+    "PORT-443-EXPLICIT",
+    "PORT-443-ZERO",
+    "PORT-443-OTHER",
+    "PORT-8443-ABSENT",
+    "PORT-8443-EXPLICIT",
+    "PORT-8443-ZERO",
+    "PORT-SOURCE-INVENTORY",
+    "PORT-BAD-PIN"
+  ],
+  "inputs": {
+    "PORT-443-ABSENT": {
+      "predicted_outcome": "PASS",
+      "peer_port": 443,
+      "url": "https://graph.example.test/events",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": null,
+          "configured_port": 443
+        },
+        "candidate": {
+          "outcome": "ACCEPTED",
+          "parsed_port": null,
+          "configured_port": 443
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "ACCEPTED",
+            "parsed_port": null,
+            "configured_port": 443
+          },
+          "candidate": {
+            "outcome": "ACCEPTED",
+            "parsed_port": null,
+            "configured_port": 443
+          }
+        }
+      }
+    },
+    "PORT-443-EXPLICIT": {
+      "predicted_outcome": "PASS",
+      "peer_port": 443,
+      "url": "https://graph.example.test:443/events",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 443,
+          "configured_port": 443
+        },
+        "candidate": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 443,
+          "configured_port": 443
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "ACCEPTED",
+            "parsed_port": 443,
+            "configured_port": 443
+          },
+          "candidate": {
+            "outcome": "ACCEPTED",
+            "parsed_port": 443,
+            "configured_port": 443
+          }
+        }
+      }
+    },
+    "PORT-443-ZERO": {
+      "predicted_outcome": "PASS",
+      "peer_port": 443,
+      "url": "https://graph.example.test:0/events",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 0,
+          "configured_port": 443
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "ACCEPTED",
+            "parsed_port": 0,
+            "configured_port": 443
+          },
+          "candidate": {
+            "outcome": "REFUSED"
+          }
+        }
+      }
+    },
+    "PORT-443-OTHER": {
+      "predicted_outcome": "PASS",
+      "peer_port": 443,
+      "url": "https://graph.example.test:444/events",
+      "observation": {
+        "original": {
+          "outcome": "REFUSED"
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSED"
+          },
+          "candidate": {
+            "outcome": "REFUSED"
+          }
+        }
+      }
+    },
+    "PORT-8443-ABSENT": {
+      "predicted_outcome": "PASS",
+      "peer_port": 8443,
+      "url": "https://graph.example.test/events",
+      "observation": {
+        "original": {
+          "outcome": "REFUSED"
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSED"
+          },
+          "candidate": {
+            "outcome": "REFUSED"
+          }
+        }
+      }
+    },
+    "PORT-8443-EXPLICIT": {
+      "predicted_outcome": "PASS",
+      "peer_port": 8443,
+      "url": "https://graph.example.test:8443/events",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 8443,
+          "configured_port": 8443
+        },
+        "candidate": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 8443,
+          "configured_port": 8443
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "ACCEPTED",
+            "parsed_port": 8443,
+            "configured_port": 8443
+          },
+          "candidate": {
+            "outcome": "ACCEPTED",
+            "parsed_port": 8443,
+            "configured_port": 8443
+          }
+        }
+      }
+    },
+    "PORT-8443-ZERO": {
+      "predicted_outcome": "PASS",
+      "peer_port": 8443,
+      "url": "https://graph.example.test:0/events",
+      "observation": {
+        "original": {
+          "outcome": "REFUSED"
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSED"
+          },
+          "candidate": {
+            "outcome": "REFUSED"
+          }
+        }
+      }
+    },
+    "PORT-SOURCE-INVENTORY": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "changed_files": [
+          "app/services/covering_transport_policy.py"
+        ],
+        "source_count": 468,
+        "one_expression_only": true
+      },
+      "exact_predicate": {
+        "observation": {
+          "changed_files": [
+            "app/services/covering_transport_policy.py"
+          ],
+          "source_count": 468,
+          "one_expression_only": true
+        }
+      }
+    },
+    "PORT-BAD-PIN": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "bad_pin_rejected": true
+      },
+      "exact_predicate": {
+        "observation": {
+          "bad_pin_rejected": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "at_utc": "2026-11-13T03:43:56.3738021Z",
+  "status": "STAGED_HELD_NOT_EXECUTED",
+  "source_preparation_input_manifest_sha256": "73991C344CD8E9F77A16381EC6BA571F1256395E4B0B8A1C95B1D600C9423B28",
+  "packet_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1",
+  "evidence_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "command_sha256": "F39C778C9A20A5CA538CAE8F414768833866B3852367CB1EE53FF115C509A870",
+  "launch_config_sha256": "AA20CE081AAD49F01FDFA397BB8AFADB5ED0E7366409887C1F8A6DB62FB38700",
+  "docker_ops_config_sha256": "D89686D3754AB51632AB9C5F59B41270FCD1A85D0E92A82BF4F4044EBF593436",
+  "packet_input_manifest_sha256": "ED59035114E7921FB0FF4A2B6C3A768FB135686CA87B8C9B97C25670C28E4643",
+  "payload_manifest_sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90",
+  "staging_delta": "Data only:7 ops path strings,2 host paths,2 admission flags and truthful candidate note; all executable/payload bytes unchanged",
+  "path_count_qualification": "Matt handback said8; independent inventory found7 active values. Initial staging guard stopped before any config modification; unchanged copy verified269 entries before metadata refreeze. No target command executed.",
+  "human_launch_authorized": false,
+  "dex_execute_ack_issued": false,
+  "endpoint": "unbound"
+}

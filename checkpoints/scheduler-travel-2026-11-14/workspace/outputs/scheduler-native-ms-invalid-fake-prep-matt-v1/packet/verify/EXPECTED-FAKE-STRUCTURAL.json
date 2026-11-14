@@ -1,0 +1,92 @@
+{
+  "kind": "native-ms-invalid-fake-structural-expected",
+  "packet": "scheduler-native-ms-invalid-fake-prep-matt-v1",
+  "candidate_root": "scheduler-native-provider-ms-invalid-prep-matt-v1",
+  "case_id": "NP-V-MS-INVALID",
+  "requirement_id": "T06-INVALID-GRANT-MICROSOFT",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "SCRIPT-SELECTION",
+    "CLIENT-OAUTH-CLASSIFICATION",
+    "OWNING-REFRESH-UNITS",
+    "PUBLIC-RESULT-CONTRACT",
+    "RUNNER-WIRING",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "transcript", "suite", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "transcript", "suite"],
+    "SCRIPT-SELECTION": ["tenant_path_fix", "only_request_path_changed", "exact_wire", "one_exchange_inventory", "catalog_other_scripts_unchanged"],
+    "CLIENT-OAUTH-CLASSIFICATION": ["invalid_grant_typed", "other_error_unknown", "status_401_unknown", "nonobject_unknown", "malformed_unknown", "truncated_unknown", "eof_after_send_unknown", "send_failure_sets_sent_unknown", "open_failure_before_send_original", "close_failure_after_invalid_grant_unknown", "event_purpose_not_classified", "joined_send_marks_sent_before_socket_send"],
+    "OWNING-REFRESH-UNITS": ["ms_refresh_raises_before_any_write", "adapter_rejected_rollback", "adapter_wrong_terminal_unknown", "adapter_other_exception_propagates"],
+    "PUBLIC-RESULT-CONTRACT": ["preflight_row_shape", "overall_no_op", "overall_failed_distinct", "dispatch_rejected_skips_run_target"],
+    "RUNNER-WIRING": ["default_joined_tls", "observers_saved_before_install", "observers_restored_in_finally", "wrappers_preserve_identity", "oracle_constants_exact", "stops_before_receipt", "single_subscription_seed", "separate_measure_sessions", "mapper_and_implemented"],
+    "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact"],
+    "PRIOR-FAKE-APPLICABILITY": ["t05_units_identical", "refresh_units_identical", "peer_and_seed_unchanged"],
+    "ACTUAL-SOURCE-MUTANTS": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed", "joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed"]
+  },
+  "expected_nested_predicates": 65,
+  "nested_count_breakdown": "SUBJECT-PINS 1 + RUNTIME 7 + DIFF 4 + PRESERVED 3 + SELECTION 5 + CLIENT 12 + UNITS 4 + PUBLIC 4 + WIRING 9 + BATCH 3 + PRIOR 3 + MUTANTS 10 = 65",
+  "check_kinds": {
+    "behavioral_host_parser": "CLIENT-OAUTH-CLASSIFICATION except joined_send_marks_sent_before_socket_send",
+    "behavioral_extracted_units": "OWNING-REFRESH-UNITS; PUBLIC-RESULT-CONTRACT except dispatch_rejected_skips_run_target",
+    "whole_module_fake": "SCRIPT-SELECTION",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; RUNNER-WIRING; joined_send_marks_sent_before_socket_send; dispatch_rejected_skips_run_target",
+    "behavioral_mutants": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed"],
+    "structural_mutants": ["joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed"]
+  },
+  "expected_outcomes": {
+    "invalid_grant_wire": "HTTP/1.1 400 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: 25\\r\\nConnection: close\\r\\n\\r\\n{\"error\":\"invalid_grant\"}",
+    "wire_derivation": "unchanged peer _http_response_bytes (BFB271D7) on the candidate send step; identical to the source script's send step",
+    "request_path": "candidate POST at MS_TOKEN_ENDPOINT_PATH (production tenant path); source was the tenant-less /oauth2/v2.0/token",
+    "host_client": {
+      "complete_400_invalid_grant_object": "CoveringReauthorizationRequired (policy class); gate 1, json 1, transport closed once, sent True",
+      "400_other_error, 401, non-object, malformed, truncated, EOF after send, send failure": "CoveringRootOutcomeUnknown with no chained cause; transport closed once",
+      "send_failure": "FakeTransport.send marks sent=True before raising, mirroring JoinedTLS.send (structural case); result UNKNOWN",
+      "open_failure_with_sent_false": "the exact original exception object propagates; sent False; closed once",
+      "close_failure_after_invalid_grant": "new CoveringRootOutcomeUnknown; primary is the typed reauthorization; transport_close is the close failure",
+      "event_purpose": "the same 400 body under purpose event is returned (no OAuth classification)"
+    },
+    "units": {
+      "get_valid_access_token": "expired account; exactly one token POST at https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token with refresh_token grant; the reauthorization object propagates unchanged; no account attribute write, no flush, no token-field validation, no encrypt, no JSON decode",
+      "token_port": "TokenRejected(CALENDAR_ACCOUNT_DISCONNECTED); terminal called once with commit=False; provider transport entered once; no agent write",
+      "wrong_terminal": "terminal returning COMMIT for commit=False raises CoveringRootOutcomeUnknown",
+      "other_exception": "a non-reauthorization exception propagates unchanged; terminal not called"
+    },
+    "public": {
+      "row": "phase preflight, status preflight_rejected, preflight_code CALENDAR_ACCOUNT_DISCONNECTED, preflight_effects [], cause null, upserted 0",
+      "overall_outcome": "no_op when import_attempted 0; failed when import_attempted 1 and import_ok 0",
+      "dispatch": "type(token) is TokenRejected appends _static_preflight_result(preflight_code=token.code) and continues before connector.run_target"
+    }
+  },
+  "mutant_oracles": {
+    "path_fix_reverted": "selection:tenant path",
+    "transport_accepts_any_400": "client:other error unknown",
+    "send_state_ignored": "client:open failure original",
+    "adapter_except_sets_changed": "units:adapter rejected rollback",
+    "adapter_except_removed": "units:adapter rejected rollback",
+    "joined_marks_sent_after_send": "client:joined send marks sent",
+    "terminal_row_commit": "wiring:oracle constants",
+    "observer_restore_removed": "wiring:observers restored",
+    "counted_request_swallows": "wiring:wrappers preserve identity",
+    "two_subscriptions_seed": "wiring:single subscription seed"
+  },
+  "limits": {
+    "check_seconds": 120,
+    "timeout_retirement_total_seconds": 135,
+    "result_byte_cap": 262144,
+    "capture_byte_cap_per_stream": 65536
+  },
+  "not_proved": "native TLS, the native client exception at runtime, native PostgreSQL ROLLBACK acknowledgement, persisted DB state, the ASGI response, peer or worker retirement, exact coverage_action/scheduling_readiness values",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

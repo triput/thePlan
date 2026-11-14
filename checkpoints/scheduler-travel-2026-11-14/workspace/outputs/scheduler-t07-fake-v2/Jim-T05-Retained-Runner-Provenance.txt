@@ -1,0 +1,5 @@
+Jim — evidence supplement for your current documents-only T05 assignment (no added task/scope): I re-read native-runtime-runner-only-v3.evidence/receipt.jsonl and verified retained04.stdout.bin against its receipt hash B4D04D465200287E3013669341A6449E1020E9DC7B8BA0E74004FE5CAB5E10AC. Pinned runner c2201104... reports Python3.12.16 at /usr/local/bin/python3, with /usr/local/lib/python3.12/site-packages. Receipt SHA D9AAEB894E6075A9B0F55A38D58598ACE4201D30EECD763E1AFE9B6A3A9FE685; completed exit0 and exact removal retained.
+
+Thus host Python311 http/client.py and ssl.py observations remain source-derived design hypotheses for native behavior, not native parser evidence. The exact native parser/SSL source hashes/bytes and TLS EOF semantics are still unestablished; carry their acquisition into a later reviewed packet rather than assuming host identity. No live checks or new probe now. Full details in scheduler-t07-fake-v2/Native-Parser-Provenance-Reconciliation.json. T07 fake card remains pending and unchanged; endpoint unbound/all holds stay.
+
+— Dex

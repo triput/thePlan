@@ -1,0 +1,146 @@
+*** UNAPPLIED — documents-only design proposal. Do not apply without Trish source-change authority.
+*** Successor of v2 tip 9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB (v1 ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A and v2 immutable).
+*** Target tree: scheduler-d2-fake-v1/packet/payload/workspace/apps/api/app/services/
+*** Base pins:
+***   covering_http_transport.py AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8
+***   covering_joined_https.py    C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468
+***   covering_refresh_import.py  C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0
+*** Status: documents_only=true; applied=false; executed=false; d2_one_shot_untouched=true
+*** Primary capture: invocation_primary local in except paths; no sys.exc_info() in finally.
+*** Provenance: new UNKNOWN per cleanup boundary; prior_retirement_provenance append-only; never mutate caller-owned objects.
+
+--- a/app/services/covering_http_transport.py
++++ b/app/services/covering_http_transport.py
+@@ -85,6 +85,8 @@
+               "".join(f"{k}: {v}\r\n" for k,v in request_headers.items())+"\r\n").encode("ascii")+payload
+         transport=self.transport_factory(peer,self.counter.remaining)
+         response=None
++        # This invocation's primary only — never ambient sys.exc_info().
++        invocation_primary=None
+         try:
+             transport.open()
+             transport.send(wire)
+@@ -106,8 +108,12 @@
+                 raise CoveringTransportRefused("JSON object required")
+             if purpose=="oauth" and response.status>=400:
+                 if response.status!=400 or decoded.get("error")!="invalid_grant":
+-                    raise CoveringRootOutcomeUnknown()
+-                raise CoveringReauthorizationRequired()
++                    remapped=CoveringRootOutcomeUnknown()
++                    invocation_primary=remapped
++                    raise remapped
++                remapped=CoveringReauthorizationRequired()
++                invocation_primary=remapped
++                raise remapped
+             # Count returned collection elements across all targets before
+             # passing any collection to importer/canonicalizer.
+             for key in ("items","value"):
+@@ -115,15 +121,52 @@
+                     self.counter.batch(decoded[key])
+             return httpx.Response(response.status,content=bytes(body),
+                 headers=dict(response.getheaders()),request=httpx.Request(method,url))
+-        except CoveringReauthorizationRequired:
++        except CoveringReauthorizationRequired as exc:
++            if invocation_primary is None:
++                invocation_primary=exc
+             raise
+-        except BaseException:
++        except BaseException as exc:
+             if purpose=="oauth" and transport.sent:
+                 # Token rotation may have occurred. No retry/replay.
+-                raise CoveringRootOutcomeUnknown() from None
++                remapped=CoveringRootOutcomeUnknown()
++                invocation_primary=remapped
++                raise remapped from None
++            invocation_primary=exc
+             raise
+         finally:
++            # Independently owned retirement attempts. Retain each cleanup
++            # exception explicitly; do not use sys.exc_info() for primary.
++            response_close_exc=None
++            transport_close_exc=None
+             if response is not None:
+-                response.close()
+-            transport.close()
++                try:
++                    response.close()
++                except BaseException as exc:
++                    response_close_exc=exc
++            try:
++                transport.close()
++            except BaseException as exc:
++                transport_close_exc=exc
++            if response_close_exc is not None or transport_close_exc is not None:
++                # Always raise a NEW UNKNOWN for this cleanup boundary.
++                # Never mutate invocation_primary or any caller-owned object
++                # (including an outer CoveringRootOutcomeUnknown).
++                unknown=CoveringRootOutcomeUnknown()
++                unknown.primary=invocation_primary
++                unknown.response_close=response_close_exc
++                unknown.transport_close=transport_close_exc
++                current=(invocation_primary, response_close_exc, transport_close_exc)
++                prior=[]
++                if isinstance(invocation_primary, CoveringRootOutcomeUnknown):
++                    earlier=getattr(invocation_primary, "retirement_occurrences", None)
++                    if earlier:
++                        prior.extend(earlier)
++                    else:
++                        snap=getattr(invocation_primary, "retirement_provenance", None)
++                        if snap is not None:
++                            prior.append(snap)
++                unknown.prior_retirement_provenance=tuple(prior)
++                unknown.retirement_provenance=current
++                unknown.retirement_occurrences=tuple(prior)+(current,)
++                raise unknown
+ 
+--- a/app/services/covering_joined_https.py
++++ b/app/services/covering_joined_https.py
+@@ -11,6 +11,7 @@
+ from threading import get_ident
+ 
+ from app.services.covering_transport_policy import CoveringTransportRefused
++from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
+ 
+ 
+ class JoinedTLS:
+@@ -69,8 +70,23 @@
+                     self.ready(selectors.EVENT_READ)
+                 except ssl.SSLWantWriteError:
+                     self.ready(selectors.EVENT_WRITE)
+-        except BaseException:
+-            self.close()
++        except BaseException as primary:
++            # Required for T07-R08: close sets closed=True before sock.close.
++            # If sock.close raises, CoveringHTTP.finally transport.close is a
++            # no-op and will not raise. Raise a NEW UNKNOWN; do not mutate
++            # any caller-owned exception object.
++            try:
++                self.close()
++            except BaseException as cleanup:
++                unknown=CoveringRootOutcomeUnknown()
++                unknown.primary=primary
++                unknown.response_close=None
++                unknown.transport_close=cleanup
++                current=(primary, None, cleanup)
++                unknown.prior_retirement_provenance=()
++                unknown.retirement_provenance=current
++                unknown.retirement_occurrences=(current,)
++                raise unknown
+             raise
+ 
+     def send(self, data):
+--- a/app/services/covering_refresh_import.py
++++ b/app/services/covering_refresh_import.py
+@@ -974,6 +974,12 @@
+             window=window,
+         )
+     except Exception as exc:
++        # Deferred import avoids a top-level cycle with
++        # covering_target_transaction (which imports this module before
++        # defining CoveringRootOutcomeUnknown).
++        from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
++        if isinstance(exc, CoveringRootOutcomeUnknown):
++            raise
+         logger.exception(
+             "covering provider read failed subscription=%s",
+             sub_row.id,

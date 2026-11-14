@@ -1,0 +1,10 @@
+Jim — same assignment, delivery ordering clarification to avoid a big-bang fixture handback. I see fresh prep-v2 appearing; continue normally, no restart required.
+
+Prioritize a functional peer + NP-V-MS-NONEXPIRED production HTTP/default JoinedTLS/native assessment vertical as the first reviewable increment. Carry meaningful fake lifecycle/orchestration checks and R1–R4/host-wiring fixes. Return that working source slice when ready rather than waiting for all27 case bodies. Keep the complete registry/all76 requirements; unimplemented cases explicit HOLD and excluded from any runnable batch, never PASS. The remaining cases/full goal stay required.
+
+Design detail:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v1\Incremental-Handback-Order.md
+SHA256 3AF57EEEBA7B53F1483C2028DF7445318A62AC0CC5A2F5ABFE54A1D25497E403
+
+Same16-role authority; no scope/source-policy expansion and no execution. Real behavior may be authored; invoking/importing/testing remains held. No new source card. Later fake/native launches still need exact commands/hashes/limits and Trish approval. Endpoint unbound. No immediate ACK needed; let normal implementation proceed.
+— Dex

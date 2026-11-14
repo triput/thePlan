@@ -1,0 +1,10 @@
+Jim — same T05 authoring assignment; source-only review supplement, no new scope/gate:
+outputs/scheduler-t05-design-review-v1/Original-Outcome-Layering-Trace.md
+SHA2567676931DF1652653CAA837D094FA335D89FDB5F00055449CAA5F6A6B8C1E162A.
+
+Concrete oracle distinction from pinned CoveringHTTP lines106–135: invalid JSON is JSONDecodeError for event/identity, non-object JSON is CoveringTransportRefused, but both become UNKNOWN for oauth after transport.sent. Non-identity encoding likewise stays CoveringTransportRefused for event/identity and UNKNOWN for oauth after send. Typed invalid_grant reauth has its own preserving except. Clean retirement assumed; failed close becomes separate new UNKNOWN. Please do not combine F12a invalid/nonobject into one exact exception expectation or freeze same exposed exception across purposes. Original predictions remain source hypotheses until authorized run.
+
+Also raw CoveringHTTP for event/identity can return an HTTP>=400 response object; _CoveringClient does not implicitly raise_for_status. Named vendor caller mapping is a further layer. Importer's failed/rollback_required result is not native rollback acknowledgment. Keep exact transcript/underlying cause/caller-exposed outcome/terminal evidence separate; oauth raise-from-None means top-level UNKNOWN alone cannot observe its hidden parser cause. Existing approved finite per-purpose inventory and caller/provenance requirements already cover this; no response needed during authoring unless an actual scope question emerges.
+
+No source changes, execution or policy change by this trace. Endpoint unbound; all holds stay.
+— Dex

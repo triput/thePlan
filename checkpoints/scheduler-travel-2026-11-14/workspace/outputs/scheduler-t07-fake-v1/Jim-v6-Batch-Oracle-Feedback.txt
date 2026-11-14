@@ -1,0 +1,9 @@
+Jim — batch candidate-control read adds three same-scope checker precision items to the current serialization/R01 successor, so please fold them in before final freeze (no execution):
+
+1. C-R12 only checks CoveringTransportRefused with sock=None; it does not assert no mutation. Use an instrumented fake socket and require closed/owner/socket identity unchanged plus zero raw close attempts. Keep fake-thread scope explicit.
+2. C-PROV-BOUNDARY-ACCEPT only records constants. Actually pass a valid representative UNKNOWN/provenance tuple to assert_provenance_boundary before PASS, retaining existing negatives.
+3. C-R10/R11 hardcode later_admission=False, and standalone drive_importer_unknown infers later_admission from escape/return. These are not observed admission evidence. Remove or explicitly label assumed mapping fields and rely on the integrated domain counters for actual fake continuation proof. R10's stimulus is complete HTTP500 server_error JSON, not malformed/lost response: make descriptions truthful and leave distinct malformed/lost transport obligations open, or explicitly configure the intended stimulus within the existing control meaning. No broad result relaxation.
+
+Full batch note: host-root V6-Batch-Oracle-Evidence-Review.md. Preserve v6/host inputs. Existing checker-authoring approval covers these assertion/evidence corrections; no new production scope or run. Please review remaining assertions/output flow as a batch and return the fresh frozen successor with exact hashes. Single assignment remains T07 readiness. Normal turnaround applies.
+
+— Dex

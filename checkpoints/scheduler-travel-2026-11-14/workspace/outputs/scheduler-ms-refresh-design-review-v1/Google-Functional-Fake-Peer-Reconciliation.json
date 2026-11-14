@@ -1,0 +1,24 @@
+{
+  "atUtc": "2026-11-14T04:47:55.1460723+00:00",
+  "review": "E7CBD517572CBC673AB363E6FED9809CDD0CE159DE3141B51B5D7DD700BDA75A",
+  "review_verdict": "QUALIFIED_STATIC_ACCEPTANCE_NO_BLOCKERS",
+  "reconciled": true,
+  "staging_manifest": "37BCC9686760DA807707B770D67758654E09ED325949DD960735CA844BDD6DE8",
+  "inputs": 41,
+  "packet_pins": 34,
+  "runtime_pins": 10,
+  "command": "00C77B7D13A4794EFD38DE595FB0FF1AF10B8A0F586D8EBDFD1ED5190858DCFB",
+  "admission": "4801342233DB37970C539392C5811E8638C9AC0F9219EEE56720435F983224A2",
+  "controls": 14,
+  "predicates": 66,
+  "qualifications": [
+    "No syntax/behavior execution yet",
+    "Partial runtime provenance only",
+    "Finite extracted fixture/source properties; real production Google refresh/import/assessment/TLS unproved",
+    "Prep labels retained as provenance",
+    "Machine flags grant no human authority"
+  ],
+  "outputs_absent": true,
+  "human_authority": "NONE",
+  "endpoint": "unbound"
+}

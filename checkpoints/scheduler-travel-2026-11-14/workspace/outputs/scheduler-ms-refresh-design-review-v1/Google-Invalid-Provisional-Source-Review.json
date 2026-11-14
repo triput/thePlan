@@ -1,0 +1,24 @@
+{
+  "remaining": [
+    "Await signed frozen handback and complete diff",
+    "Review focused checker/oracles/mutants and sanitizer-retained evidence",
+    "No static review substitutes for separately authorized fake/native behavior"
+  ],
+  "kind": "PROVISIONAL_GOOGLE_INVALID_SOURCE_REVIEW",
+  "execution": false,
+  "frozenAcceptance": false,
+  "assignmentUnchanged": "5FA59395",
+  "atUtc": "2026-11-14T06:10:53.4894663+00:00",
+  "endpoint": "unbound",
+  "runner": "5852A6D365112CFE0A422F1E23C9F7F995A16CA00A510DDE82EF1E7CCAA66995",
+  "blockingFinding": "None in inspected developing body; not full checker/manifest review",
+  "sourceObserved": [
+    "Actual CoveringReleasePlan/default JoinedTLS/shared ingress budget, one expired Google target",
+    "Exact typed CoveringReauthorizationRequired, one native TOKEN rollback acknowledgment, no parent/import",
+    "Public result fields match actual seven-field CoveringRefreshResultRow serializer",
+    "Not-ready/freshness guards derive from never-covered enabled primary subscription",
+    "Before/after semantic credential,expiry,coverage,events,subscription,persistedownerbusy/revision and unrelated-state comparisons",
+    "Original token_terminal and HTTP constructor restored in finally before success guards",
+    "One retirement_attempted latch; retire-then-observe helper rejects worker errors and checks exact onePOST inventory"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "tip_name": "post-native-t07-retirement-design-jim-v2-2026-11-11",
+  "frozen_at_pacific_date": "2026-11-11",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "d2_one_shot_untouched": true,
+  "supersedes_v1_tip_sha256": "ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A",
+  "assignment_sha256": "28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719",
+  "required_api_pins_match": true,
+  "design_verdict": "NO",
+  "proposed_diff_present": true,
+  "proposed_diff_sha256": "647B412B1EC1FAEDCB1B4A0495CE475380F98085E987DA6C1D24BC14FC57F5B6",
+  "handback_dirs": [
+    "F:/DropFolder/pending/post-native-t07-retirement-design-jim-v2-2026-11-11",
+    "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-retirement-design-v2"
+  ],
+  "one_sentence_recommendation": "No: keep three-file unapplied change \u2014 CoveringHTTP dual-attempt finally with explicit primary/response_close/transport_close provenance, required JoinedTLS.open UNKNOWN for R08 because outer close is a no-op after closed=True, and deferred importer UNKNOWN re-raise.",
+  "dex_feedback_closed": [
+    "R08 JoinedTLS.open required",
+    "explicit dual cleanup provenance",
+    "doc hygiene"
+  ],
+  "artifact_files": {
+    "Caller-Trace.md": "71A68811469B21F4C779F3BC3988747997A17FA117C40E246809A5644D128F0A",
+    "Decisions-vs-Routine.md": "BB82551E091380AB32F5346A57157A2C810DAE53F6E629E28B276A1DD8DEDB5F",
+    "Design-Recommendation.md": "FE61D0FC4E55AF114451CEAAC98E3CA09314A518C2C658B42990045EAFE0B0F9",
+    "HANDBACK.txt": "0173DF1FC70B0E279AB39322CF0A84513C91176DD1F64C485C144B259CDDC021",
+    "INPUT-PINS.json": "5483C415D2D952F5325457AB46C4BF8B34CF95C8C90BC14F6D78D7A8AB7D72B5",
+    "Proof-Inventory.md": "72A06FD818600020689CB89AA69913C026590EC52394ECD2417A3A7033A540BA",
+    "Proposed-Changes.diff": "647B412B1EC1FAEDCB1B4A0495CE475380F98085E987DA6C1D24BC14FC57F5B6",
+    "README.md": "78A31E0777AFADE10AA92D8775E96674CEB845113F28A2DD3B70E47CDC39EBEC",
+    "Scope-and-Limits.md": "84030158F51C757E46457D9BF0774944591782DE94076FC01C4E109FE50C8504",
+    "T07-R01-R12-Reconciliation.md": "831178FB6F0F25B7EB8034F91D0F3CBF7359BCC88581CCBA3112D90043361714"
+  }
+}

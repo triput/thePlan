@@ -1,0 +1,225 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "SERIALIZER-DEFAULT-REGRESSION",
+    "ORDERLY-POSITIVE-SERIALIZATION",
+    "INVALID-MODE-REFUSALS",
+    "CLIENT-COMPLETENESS-VS-DECODE",
+    "OUTCOME-CLASSIFIER",
+    "SUITE-ORDERLY-MAPPING",
+    "RUNNER-WIRING",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutants": {
+        "abrupt_accepts_incomplete_read": "DETECTED",
+        "auto_path_altered": "DETECTED",
+        "close_delimited_appends_length": "DETECTED",
+        "fixed_expectation_swapped": "DETECTED",
+        "framing_conflation": "DETECTED",
+        "orderly_mapping_swapped": "DETECTED",
+        "retirement_removed": "DETECTED",
+        "transfer_encoding_refusal_removed": "DETECTED",
+        "transport_factory_injected": "DETECTED",
+        "wire_framing_predicate_dropped": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "BATCH-CONFIG": {
+      "cases": {
+        "launch_config": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "CLIENT-COMPLETENESS-VS-DECODE": {
+      "cases": {
+        "close_delimited_accepted": "PASS",
+        "complete_invalid_json_decoded": "PASS",
+        "fixed_length_accepted": "PASS",
+        "rebuilt_content_length_trap": "PASS",
+        "short_cl_refused_before_decode": "PASS",
+        "transport_error_propagates_unchanged": "PASS"
+      },
+      "client_model": "AutoLengthHttpxResponse by default: httpx 0.28.1 supplies Content-Length for non-empty rebuilt bytes content; nothing else of httpx modelled",
+      "control_kind": "actual_source_host_parser",
+      "eof_model": "fake b'' after bytes models a client-observed orderly EOF; not native TLS proof",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "peer": "PASS",
+        "runner": "PASS",
+        "runner_config": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "INVALID-MODE-REFUSALS": {
+      "cases": {
+        "auto_with_transfer_encoding": "PASS",
+        "close_delimited_with_content_length": "PASS",
+        "close_delimited_with_transfer_encoding": "PASS",
+        "refusal_precedes_send": "PASS",
+        "unknown_mode": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "ORDERLY-POSITIVE-SERIALIZATION": {
+      "cases": {
+        "exact_bytes": "PASS",
+        "fixed_length_exact_bytes": "PASS",
+        "fixed_length_source_serializer_identical": "PASS",
+        "no_framing_headers": "PASS",
+        "source_serializer_would_append_length": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "OUTCOME-CLASSIFIER": {
+      "cases": {
+        "abrupt_eof_observed": "PASS",
+        "abrupt_other_stops": "PASS",
+        "complete_accept_exact": "PASS",
+        "complete_accept_mismatch_stops": "PASS",
+        "fixed_accept_exact": "PASS",
+        "fixed_accept_mismatch_stops": "PASS",
+        "short_refuse_exact": "PASS",
+        "short_refuse_other_stops": "PASS",
+        "unknown_expectation_stops": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "peer": "PASS",
+        "runner": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "PRIOR-FAKE-APPLICABILITY": {
+      "cases": {
+        "merge_units_identical": "PASS",
+        "peer_class_identical_serializer_changed": "PASS",
+        "transcript_functions_identical": "PASS"
+      },
+      "control_kind": "applicability_map",
+      "not_transferred": [
+        "peer-close fake PRESERVED-OUTSIDE-CHANGE (only _close_connection differs from 5568AF73): no longer true; _http_response_bytes now also differs. Current prerequisite: SERIALIZER-DEFAULT-REGRESSION.",
+        "ms-refresh fake v2 OAUTH-ROUTE-TABLE (executed 5568AF73 _http_response_bytes): serializer changed. Current prerequisite: SERIALIZER-DEFAULT-REGRESSION wire equality for every MS script.",
+        "ms-refresh fake v2 transcript-derived controls: ExchangeStep gained a defaulted field. Current prerequisite: SERIALIZER-DEFAULT-REGRESSION step-field equality plus transcript_functions_identical.",
+        "merge fake ROLE-SELECTION peer row 17EA148E: does not describe this root (peer BFB271D7).",
+        "T05 fake v2 CLIENT close_delimited_accepted (FakeHttpxResponse without the httpx 0.28.1 Content-Length supplement) and changed_script_is_only_delta: superseded. Current prerequisites: the v3 default AutoLengthHttpxResponse cases and catalog_delta_changed_plus_added."
+      ],
+      "observed": "PASS"
+    },
+    "RUNNER-WIRING": {
+      "cases": {
+        "bodies_oracle_then_receipt": "PASS",
+        "default_joined_tls_construction": "PASS",
+        "framing_validated_before_peer_start": "PASS",
+        "mapper_and_implemented": "PASS",
+        "no_rebuilt_header_oracle": "PASS",
+        "orderly_three_observations": "PASS",
+        "retirement_in_finally_before_classification": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "SERIALIZER-DEFAULT-REGRESSION": {
+      "cases": {
+        "catalog_delta_changed_plus_added": "PASS",
+        "catalog_scripts": "PASS",
+        "ms_nonexpired_inventory": "PASS",
+        "ms_refresh_inventory": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "app/covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+        "app/covering_joined_https.py": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+        "app/covering_transport_policy.py": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+        "config/candidate-launch-config.json": "FB7968294F521E6155C70CF7EB2588FCF28791E58F3DCDA88C2D07CD616DCD43",
+        "config/candidate-runner-config.json": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+        "config/source-runner-config.json": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929",
+        "diff/np_provider_peer.py.diff": "12A40E631007C3E8435D1BBB9741243A2CD8ABA841D84C79722FEF1B2D4A16A4",
+        "diff/np_provider_transcript.py.diff": "97DF0CD7E57FFB65949BEFA44D962C70D4E7C3CC5F35C6538D9BE862ABBFD088",
+        "diff/np_runner_entry.py.diff": "F646720F0D2A7271A8699FB5E44A22BE1F3B712F1AC648EDE5C78EB1F34CCC92",
+        "diff/np_suite.py.diff": "A1CD13789A8EDFA4647088060E59BF9E7A6480B8D0DA35F49D4FF625B069C9A6",
+        "diff/runner-config.json.diff": "AA0586060552193ED29DA1647F194B68DC985017F228D41F80402B28792CE72D",
+        "fixture/np_auth_seed.py": "2ADFA3ADCFDA8DB4D9D32EDFC9950AF354CE29ADFA1B5A8162FD5182DC22ED05",
+        "manifest/candidate.txt": "D03EA0D671DF61AB3E66B2E3B96D34B72AC9BDAF6282676A8A1328DEF853B0C5",
+        "manifest/source.txt": "14FA30AD16E719150CA81F07274FF6AC8D3A2D80A065296D9FDB2830E2B00B46",
+        "peer/candidate.py": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+        "peer/source.py": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+        "runner/candidate.py": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E",
+        "runner/source.py": "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C",
+        "suite/candidate.py": "9AED74EE4F00C5F88518A1B246D7B03D5E82C05DDF3596958D5483730C376792",
+        "suite/source.py": "46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D",
+        "transcript/candidate.py": "562F61CDB9DEF3F35A1693E3C9CC13EB63D9F0535F9A0D3C190BF275E78751BF",
+        "transcript/source.py": "0AA3BC093711B7EEBADD1F23A80BF86F2B5AEAB4C1224014537BB051FDDCE52E"
+      }
+    },
+    "SUITE-ORDERLY-MAPPING": {
+      "cases": {
+        "close_delimited_oracle_unmapped": "PASS",
+        "fixed_length_maps_valid_complete_cl": "PASS",
+        "inventory_counts": "PASS",
+        "orderly_declaration_exact": "PASS",
+        "planning_union_unchanged": "PASS"
+      },
+      "control_kind": "whole_module_fake",
+      "observed": "PASS"
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 74,
+  "packet": "scheduler-native-t05-fake-prep-matt-v3",
+  "passed": 14,
+  "prep_is_not_pass": true
+}

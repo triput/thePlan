@@ -1,0 +1,9 @@
+{
+  "kind": "static-invocation-and-preservation-audit",
+  "invocation_parse_errors": 0,
+  "workspace_files_identical_to_native_v9": 234,
+  "changed": [],
+  "missing": [],
+  "python_invoked": false,
+  "executed_verification": false
+}

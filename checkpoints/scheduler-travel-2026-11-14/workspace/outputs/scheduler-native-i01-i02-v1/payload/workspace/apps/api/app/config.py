@@ -1,0 +1,64 @@
+from functools import lru_cache
+import warnings
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_DEV_SESSION_SECRET = "dev-insecure-session-secret-change-me"
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    database_url: str = "postgresql+psycopg://theplan:theplan@localhost:5432/theplan"
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    bootstrap_user_id: str = "00000000-0000-0000-0000-000000000001"
+    bootstrap_user_email: str = "local@localhost"
+    bootstrap_user_display_name: str = "Local User"
+    session_secret: str = _DEV_SESSION_SECRET
+    session_https_only: bool = False
+    session_max_age_seconds: int = 1209600
+    seed_demo_user: bool = True
+    demo_nebula_password: str | None = None
+
+    # Google Calendar (W2a) — prefer secrets JSON file or explicit ID/secret
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+    google_client_secrets_file: str | None = None
+    # T1-4a: path to UTF-8 resolver allowlist (one UUID per line); unset ⇒ deny resolve.
+    free_busy_resolver_allowlist_path: str | None = None
+    token_encryption_key: str | None = None
+    frontend_origin: str = "http://localhost:8080"
+    google_oauth_scopes: str = (
+        "https://www.googleapis.com/auth/calendar.events "
+        "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
+    )
+
+    # Microsoft Calendar / Graph (W3 Slice 2) — ADR-008; confidential client, tenant default common
+    microsoft_client_id: str | None = None
+    microsoft_client_secret: str | None = None
+    microsoft_redirect_uri: str | None = None
+    microsoft_tenant_id: str = "common"
+    microsoft_oauth_scopes: str = "Calendars.ReadWrite offline_access User.Read"
+
+    # W3+ SLM Assist (ADR-010) — OpenAI-compatible; default Ollama
+    assist_base_url: str = "http://127.0.0.1:11434/v1"
+    assist_model: str = "llama3.2"
+    assist_timeout_seconds: float = 60.0
+    assist_enabled: bool = True
+
+    # W2c scheduler. external: Compose scheduler polls schedule_runs.
+    # thread: residual in-process bridge for API-only dev. Do not combine with the scheduler service.
+    schedule_dispatch: str = "external"
+    schedule_poll_seconds: float = 2.0
+
+
+@lru_cache
+def get_settings() -> Settings:
+    settings = Settings()
+    if settings.session_secret == _DEV_SESSION_SECRET:
+        warnings.warn(
+            "Using default SESSION_SECRET; set SESSION_SECRET in production",
+            stacklevel=2,
+        )
+    return settings

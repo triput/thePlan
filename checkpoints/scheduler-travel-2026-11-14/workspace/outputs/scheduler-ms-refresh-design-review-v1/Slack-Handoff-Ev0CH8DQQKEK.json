@@ -1,0 +1,14 @@
+{
+  "messageTs": "1794624322.974319",
+  "priorAcknowledgment": "1794624692.714069",
+  "endpoint": "unbound",
+  "reply": "No duplicate reply",
+  "sender": "U0C68LUTURJ",
+  "handback": "1DA5239E7233F901C6661BE89190B37798758F75D110C80D3BB7EB1F129727ED",
+  "disposition": "Previously received BODY-STALL frozen handback; native305/fake35 integrity verified; technical review already found prelaunch fake blocker and notified Matt",
+  "handledAtUtc": "2026-11-14T02:57:47.4388820Z",
+  "findingNotification": "1794625015.898359",
+  "finding": "EDE5EC3010C5AD89D79D068B46213F7CF4F401C3C538A50CCA9672DB0E3BBEA8",
+  "executionAuthority": "NONE",
+  "event": "Ev0CH8DQQKEK"
+}

@@ -1,0 +1,24 @@
+{
+  "at_utc": "2026-11-13T04:08:38.4381160Z",
+  "status": "MATT_T05_FINDINGS_INDEPENDENTLY_RECONCILED",
+  "review_sha256": "B55DA9CB63F24F72B95CB2696EE6FAF61EE0A261D5AF7F3003E76DE8B22EB997",
+  "findings": [
+    "Missing runtime_files and runtime_file_pin_count required by wrapper and checker",
+    "Stale checker raw launcher SHA assertion versus docstring-only modified launcher"
+  ],
+  "selected_option": "A: restore exact previously used D22C launcher bytes; checker099BC unchanged",
+  "selected_launcher_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+  "current_launcher_sha256": "ABCFC1383F8A99100A2850834A5177CF698253469326B4C501160128D1CEDC64",
+  "independent_exact_suffix_after_initial_docstring_equal": true,
+  "superseded_proposal": "T05-Correction-Preparation-Scope.md and Proposed-T05-Launcher-Pin.diff remain unimplemented OptionB history",
+  "limitations": [
+    "Matt did not behaviorally review17-control contents or19 nested controls; no broad peer behavioral acceptance claimed",
+    "Dex prior read of actual added helper controls and passed-baseline lineage remains separate static review",
+    "No run or native TLS proof"
+  ],
+  "scope_authority": "Approved389A00DD consolidated role14 plus associated metadata, routine same-contract fresh copies",
+  "source_preparation_new_gate_required": false,
+  "source_implementation_performed": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,9 @@
+{
+  "threadTs": "1794534925.412399",
+  "messageTs": "1794593767.114949",
+  "handledAtUtc": "2026-11-13T18:18:43.7989695Z",
+  "reconciliationPath": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-design-review-v1\\MS-Merge-Staged-Fake-Peer-Reconciliation.json",
+  "reconciliationSha256": "1E449E909FC0964DFEB70077FDE427FBFE7FE528F72F64667087B048B06ACB12",
+  "event": "Ev0CJEN0KCSC",
+  "disposition": "Pointer to already independently reconciled review D8868CC2; no new question, blocker or authority. No duplicate Slack reply."
+}

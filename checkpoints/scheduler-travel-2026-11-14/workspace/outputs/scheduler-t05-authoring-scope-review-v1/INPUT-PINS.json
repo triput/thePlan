@@ -1,0 +1,13 @@
+{
+  "kind": "T05 authoring-scope review input pins",
+  "date": "2026-11-11",
+  "documents_only": true,
+  "executed": false,
+  "reconciled_scope_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-design-review-v1\\Reconciled-Authoring-Scope-For-Review.md",
+  "reconciled_scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "t05_v2_tip_sha256": "FA13F24FC0EDE7534D9ED335E04CB2782F56376EC6EBAB61D7F5C206841EF740",
+  "t05_v2_brief_sha256": "80D3298715F5196291B4EAA29DFCFDC14F533DFF0B9F3017234381F3BDE72E02",
+  "t05_v2_proposed_scope_sha256": "C142291EEA4B1B5DDF3F5C8E462372DE2C08B655D9BDF01579C161EB5DF42602",
+  "disposition": "QUALIFIED_ACCEPT",
+  "blocking_count": 0
+}

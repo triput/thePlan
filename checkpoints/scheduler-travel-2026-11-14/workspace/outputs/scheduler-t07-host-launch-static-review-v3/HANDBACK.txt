@@ -1,0 +1,42 @@
+SLACK TIP — post-native-t07-host-launch-static-review-jim-v3-2026-11-11
+
+Status: T07_HOST_LAUNCH_STATIC_REVIEW_COMPLETE_NOT_EXECUTED (static review only; no execution)
+
+Packet:
+F:/DropFolder/pending/post-native-t07-host-launch-static-review-jim-v3-2026-11-11/
+
+Mirror:
+C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-host-launch-static-review-v3/
+
+Disposition: QUALIFIED ACCEPT — launch_authorized=false; executed=false; review_only=true
+
+Host: scheduler-t07-fake-v2
+Accepted v7 TIP: 19A9BE6B465CA7041231846687F85E950ED5AD0CB02C6318C93CA985E2EE63B1
+Check: C8C1915AF1A2A8314BFE2A80B61B1FDA6708F9001C59CB1EC25C9410887BF19F
+OUTER: 403E5EC53B34D41D43FE0A90E00801EC38F1BEC83CC3E9C243093649B5310074
+EXPECTED: E03E597528AEB9251AF39B975EFFCD1EF85C5F777F6D55F37E46BBC98A72A10A
+Sources: E942 / 2E6A / 84F5 (workspace MATCH)
+
+Commands.ps1.txt: 3432F0E35D2D24CCC704423299B656A1BB275705AA95D68B431630649948D10C
+VERIFICATION-ADMISSION.json: 903FFC3D9EE425027FDBBD97EE265E3D3A1AB822D2508819BB2D3C783DD636D2
+Invoke-Verification.ps1: 1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B
+Admission kind: scheduler-t07-one-shot-fake-verification-admission
+
+Pins verified: packet 253/253; runtime 17/17; 0 mismatches; evidence FAKE-T07-RESULT/RECEIPT absent
+Controls: 41 ordered; 31 PASS + 10 PASS_WITNESS expected
+B1/B2/batch linkage (static): CLOSED
+Nominal retirement/capture: 45s (30+5+5+5) consistent across Review-and-Commands / INPUT-MANIFEST / invoke
+
+Blockers: none
+Qualifications: host admission inventory-only for timeouts; runtime pins partial-by-design; malformed/lost transport proofs open (documented); fake native/DB — not full T07/T01–T08; fake-v1/v6 preserved
+
+Does NOT authorize: wrapper launch, Python child, imports/compile/tests, serialization probe, host edits, endpoint bind, Docker/sockets/providers/DB/native, verification PASS claim
+
+Review SHA256:
+247DEA75970B6BA540823FE436AF91A6FFC62296B56D95DB7678C9B5ABDCACE5
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+ED7E3A0B1BCF1191ABB40CFF4DA5D509360D55E0DBA5716FB1C16243DD7ACAE4
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+FDB40B1DB74E57855C6C5023D19FE1E53CEB9C33D696FA68C3CCBADC8DE843E1

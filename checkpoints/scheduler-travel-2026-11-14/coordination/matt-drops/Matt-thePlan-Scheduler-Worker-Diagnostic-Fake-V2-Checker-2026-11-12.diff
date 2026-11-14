@@ -1,0 +1,24 @@
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -971,16 +971,16 @@
+     reraise = "                captured.append(exc)\n            raise\n"
+     mutants = {
+         "replacement_reraise": (lambda: oracle_exception(install_fn((reraise, reraise.replace(
+-            "raise\n", "raise RuntimeError(\"observer\") from exc\n"))))), "exception identity"),
++            "raise\n", "raise RuntimeError(\"observer\") from exc\n")))), "exception identity"),
+         "swallowed": (lambda: oracle_exception(install_fn((reraise, reraise.replace(
+-            "raise\n", "return None\n"))))), "exception swallowed"),
++            "raise\n", "return None\n")))), "exception swallowed"),
+         "no_restore": (lambda: oracle_success(install_fn((
+             "    def restore() -> None:\n        dispatch_module.run_bounded_domain = original\n",
+-            "    def restore() -> None:\n        pass\n")))), "restore identity"),
+-        "unbounded_capture": (lambda: oracle_exception(install_fn(("if not captured:", "if True:")))),
++            "    def restore() -> None:\n        pass\n"))), "restore identity"),
++        "unbounded_capture": (lambda: oracle_exception(install_fn(("if not captured:", "if True:"))),
+                               "bound one"),
+         "chaining_removed": (lambda: oracle_chaining(chaining_source(mutation=(
+-            ") from worker_failure", ")")))), "cause not the captured worker exception"),
++            ") from worker_failure", ")"))), "cause not the captured worker exception"),
+     }
+     results = {name: _expect_detected(name, action, prefix) for name, (action, prefix) in mutants.items()}
+     require(sandbox_clean(), "sandbox restored after mutants")

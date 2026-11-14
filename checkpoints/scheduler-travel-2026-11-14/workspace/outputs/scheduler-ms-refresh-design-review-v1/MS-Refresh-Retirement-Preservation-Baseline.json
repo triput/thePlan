@@ -1,0 +1,32 @@
+{
+  "atUtc": "2026-11-14T00:54:20.1128033Z",
+  "kind": "Dex independent MS-REFRESH source preservation baseline",
+  "sourceManifest": "6144365E0E7F282BABEDF0FDFB454E309112A16D17CE8464CF5335F7AFC5505B",
+  "runner": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1",
+  "sourceFunction": "_run_np_v_ms_refresh",
+  "sourceLines": {
+    "preJoinState": "1658",
+    "selectedHelper": "1824 onward",
+    "credentialReadAndPersistence": "1602 onward",
+    "lateRetirement": "1749 onward",
+    "clientOrder": "1643 onward",
+    "nativeTokenTerminals": "1628 onward"
+  },
+  "preserve": [
+    "Fresh native-session measurement of refreshed access and rotated refresh values; seed values no longer match",
+    "Expiry advances beyond final reference plus30s; coverage afterward all-success",
+    "Exactly TOKEN COMMIT_ACKNOWLEDGED commit_requested=True followed by ROLLBACK_ACKNOWLEDGED commit_requested=False",
+    "Exactly one OAuth request and ordered POST/oauth,GET/identity,GET/identity,GET/event,GET/event",
+    "Final readiness/freshness/all-requested coverage true; no assessment_error; typed scheduling revision",
+    "Private request/response/credential details excluded from public output",
+    "Exact finite token endpoint route, unchanged aliases/canonicalization and wire order",
+    "Default JoinedTLS, common ingress/provider budget identity and real production caller",
+    "Post-join inventory must be new evidence, not cached earlier state",
+    "One bounded retirement attempt; worker-error and unjoined retirement cannot become positive PASS"
+  ],
+  "proofStatus": "SOURCE_EXPECTATIONS_ONLY; no native MS-refresh success established",
+  "allowedDelta": "MS-REFRESH caller barrier/wiring only; helper and other bodies fixed by existing reviewed lineage",
+  "activeTask": "6ED9B65F34F5138A69AD64ADEE2832696EFC39A9297DCF181F936665442C9350",
+  "execution": "NONE",
+  "endpoint": "unbound"
+}

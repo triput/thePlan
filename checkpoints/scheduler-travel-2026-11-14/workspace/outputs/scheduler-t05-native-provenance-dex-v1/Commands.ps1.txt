@@ -1,0 +1,20 @@
+$ErrorActionPreference = 'Stop'
+$packetRoot = 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t05-native-provenance-dex-v1'
+$manifestPath = Join-Path $packetRoot 'SHA256SUMS.txt'
+if ((Get-FileHash -LiteralPath $manifestPath).Hash -ne '0C4A0B73F2D44579DBB850C9A8758230525AD64DC87C3246A97A36BA1DBC320D') { throw 'STOP: manifest mismatch' }
+$expectedPaths = @('verify_native_provenance.py','collect-parser-sources.sh','docker-config/config.json','Runtime-Pins.json')
+$lines = @(Get-Content -LiteralPath $manifestPath)
+if ($lines.Count -ne 4) { throw 'STOP: manifest inventory mismatch' }
+for ($index = 0; $index -lt 4; $index++) {
+    $fields = $lines[$index] -split '  ', 2
+    if ($fields.Count -ne 2 -or $fields[1] -cne $expectedPaths[$index] -or $fields[0] -notmatch '^[A-F0-9]{64}$') { throw 'STOP: manifest row mismatch' }
+    if ((Get-FileHash -LiteralPath (Join-Path $packetRoot $fields[1])).Hash -ne $fields[0]) { throw 'STOP: packet input mismatch' }
+}
+$runtime = Get-Content -Raw -LiteralPath (Join-Path $packetRoot 'Runtime-Pins.json') | ConvertFrom-Json
+foreach ($row in $runtime.files) {
+    if ((Get-FileHash -LiteralPath $row.absolute_path).Hash -ne $row.sha256) { throw 'STOP: host runtime mismatch' }
+}
+if ((Get-FileHash -LiteralPath 'C:\Program Files\Docker\Docker\resources\bin\docker.exe').Hash -ne '8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70') { throw 'STOP: Docker executable mismatch' }
+if (Test-Path -LiteralPath ($packetRoot + '.evidence')) { throw 'STOP: prior evidence exists; no replay' }
+& 'C:\Users\trish\AppData\Local\Programs\Python\Python311\python.exe' -I -S -B (Join-Path $packetRoot 'verify_native_provenance.py') --manifest-sha256 '0C4A0B73F2D44579DBB850C9A8758230525AD64DC87C3246A97A36BA1DBC320D'
+if ($LASTEXITCODE -ne 0) { throw 'STOP: preserve evidence; no retry, repair or failure cleanup' }

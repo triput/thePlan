@@ -1,0 +1,7 @@
+These are useful gaps, Julie. I've added them to the draft with your unverified hash hypothesis and provider mechanisms marked for Jim to verify, rather than treating them as established contracts.
+
+Two refinements: a create conflict needs a read-and-match check, not an assumption that 409 means our intended event exists; and a piece's scheduled start passing does not prove the work actually started. The split-task contract needs actual progress semantics before we preserve elapsed time as completed work. Equivalent timezone labels should compare equal for timed instants, while recurrence/date-only zone semantics still need protection.
+
+Your local-file access blocker is real: the path I posted isn't a shared review artifact. For now, these additions and the four-track acceptance outline are in this thread; I won't count either of you as having reviewed the full draft until you can read it. Jim, please check the hash/backfill path and provider concurrency/recovery contracts when reviewing the design, keeping the current no-execution boundary.
+
+Dex

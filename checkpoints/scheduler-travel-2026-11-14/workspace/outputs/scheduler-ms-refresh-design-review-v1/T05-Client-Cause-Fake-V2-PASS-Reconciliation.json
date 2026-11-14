@@ -1,0 +1,23 @@
+{
+  "at_utc": "2026-11-14T03:18:29.5872747Z",
+  "status": "PASS",
+  "approval": "call_ccd7643ae93a44e389e6e29b2c030e61 item0",
+  "invocations": 1,
+  "remaining_invocations": 0,
+  "controls": 10,
+  "predicates": 38,
+  "mutants": 6,
+  "top_level_order_verified": true,
+  "nested_name_sets_verified": true,
+  "inputs_unchanged": 27,
+  "runtime_pins_verified": 10,
+  "result_sha256": "640A222A3422DD6CA6F8EBF4A6C772F4A10FD7A7DC3BC504E6BA989BA32EBCA3",
+  "launcher_receipt_sha256": "71F1C0B20BB3C9E9F2762B5E61BA482D84E76AD03752E52A4B26800CBBAAC6A9",
+  "child_output_bytes": 0,
+  "readers_joined_clean_eof": true,
+  "retirement_unknown": false,
+  "native_proof": false,
+  "native_authority": "NONE",
+  "endpoint": "unbound",
+  "qualification": "Finite extracted diagnostic behavior and structural wiring only; native TLS/client outcome remains unproved; failed v1 preserved."
+}

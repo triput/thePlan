@@ -1,0 +1,52 @@
+{
+  "policyChange": false,
+  "sourcePins": {
+    "covering_http_transport": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "covering_domain_adapters": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+  },
+  "endpoint": "unbound",
+  "observations": [
+    {
+      "transportBoundary": "CoveringReauthorizationRequired bypasses after-send generic remap",
+      "domainBoundary": "Token adapter catches this typed exception,uses TokenRejected disconnected and requires native ROLLBACK_ACKNOWLEDGED because changed=False",
+      "proofNeeded": "Actual owning Google/Microsoft route and token unit,exact completed acknowledgment,known TOKEN rollback,retirement and retained DB semantic state",
+      "path": "covering_http_transport.py",
+      "notProven": "No native invalid_grant case has run.",
+      "stimulus": "Complete admitted OAuth object response with status400,error invalid_grant",
+      "lines": "352-367"
+    },
+    {
+      "transportBoundary": "New CoveringRootOutcomeUnknown;no replay",
+      "domainBoundary": "Unit/transaction and cleanup boundaries may add provenance;expected app UNKNOWN cannot absorb fixture/retirement UNKNOWN",
+      "proofNeeded": "Distinguish malformed JSON,nonobject JSON,truncated ack,non-invalid_grant error,partial send and lost acknowledgment;sent=True is set before send call,not proof of accepted bytes",
+      "path": "covering_http_transport.py",
+      "notProven": "No native negative case or byte-level send-completion claim from source flag alone.",
+      "stimulus": "Any other OAuth failure after transport.sent=True",
+      "lines": "371-379"
+    },
+    {
+      "transportBoundary": "Original transport exception propagates from this boundary",
+      "domainBoundary": "Enclosing transaction/retirement guards can still yield UNKNOWN;do not infer final public classification from transport branch alone",
+      "proofNeeded": "Exact before-send witness,no invented successful terminal or token mutation/known-root outcome",
+      "path": "covering_http_transport.py",
+      "notProven": "No broader claim that all pre-send failures have a known final root outcome.",
+      "stimulus": "OAuth transport failure with sent=False",
+      "lines": "371-380"
+    },
+    {
+      "transportBoundary": "Owning refresh returns TokenReady",
+      "domainBoundary": "Native hook requires COMMIT_ACKNOWLEDGED when changed;otherwise ROLLBACK_ACKNOWLEDGED",
+      "proofNeeded": "Semantic token persistence/rotation and expiry read through a separate native DB observation,not randomized ciphertext inequality alone",
+      "path": "covering_domain_adapters.py",
+      "notProven": "MS fake finite helper proof does not establish native or Google success.",
+      "stimulus": "Successful refresh changed persisted token fields",
+      "lines": "49-60"
+    }
+  ],
+  "executed": false,
+  "kind": "queued-native-t06-source-oracle-notes",
+  "atUtc": "2026-11-13T18:28:41.4280886Z",
+  "sourceChanges": false,
+  "goalComplete": false,
+  "activeMattAssignment": "Native T05 fixture preparation; this note assigns no extra work"
+}

@@ -1,0 +1,16 @@
+{
+  "kind": "Trish exact one-shot T07 fake-only v2 authorization",
+  "approved_utc": "2026-11-11T21:43:10.1255536Z",
+  "source": "request_user_input_async call_f9aad7589a544d409cf8f0404bd916db item0 explicit authorize",
+  "operator_hashes": {
+    "Commands.ps1.txt": "3432F0E35D2D24CCC704423299B656A1BB275705AA95D68B431630649948D10C",
+    "Invoke-Verification.ps1": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+    "VERIFICATION-ADMISSION.json": "903FFC3D9EE425027FDBBD97EE265E3D3A1AB822D2508819BB2D3C783DD636D2"
+  },
+  "scope": "41 controls; fake dependencies; one outer-launcher-check chain; two capture-reader threads",
+  "limits": "30s child +5s kill/wait +two5s joins;45s nominal excluding outer file/hash and OS latency;64KiB each pipe;256KiB result",
+  "stop": "failure/mismatch/timeout/unexpected output/UNKNOWN; no retries/repairs/extra cleanup",
+  "endpoint": "unbound",
+  "other_holds": "retained",
+  "status": "authorized one attempt; not yet invoked"
+}

@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of the one future native-T05 fixture fake-only invocation (v2), for review.
+# Against this preparation admission (launch_authorized=false), the wrapper refuses before starting any child.
+# A run needs a separately reviewed staging copy that flips both launch_authorized booleans (new admission hash)
+# and Trish's explicit one-shot approval, including bounded termination of the one owned check child.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-t05-fake-prep-matt-v2\packet\Invoke-Fake.ps1' -AdmissionSHA256 'E2D32E860C943A50466F761C765FB4430A042B8A6270F5C4D8091E6F9C13405E'

@@ -1,0 +1,278 @@
+{
+  "wire_count": 41,
+  "wires": [
+    {
+      "wire_id": "F01",
+      "purpose": "event",
+      "path": "wire_transcripts/F01.wire",
+      "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496",
+      "byte_size": 119
+    },
+    {
+      "wire_id": "F02",
+      "path": "wire_transcripts/F02.wire",
+      "sha256": "D58751EE563CB10B622B5B7DCFF646E66CD5A5727D4AF2127E8C8AE147B16240",
+      "byte_size": 119
+    },
+    {
+      "wire_id": "F03-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F03-oauth.wire",
+      "sha256": "7D387AC47BA834A2AA6A94F2733D84F4B3D4AD5C5CAC28D760ACB1C28D0850EF",
+      "byte_size": 152
+    },
+    {
+      "wire_id": "F04-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F04-oauth.wire",
+      "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892",
+      "byte_size": 152
+    },
+    {
+      "wire_id": "F05-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F05-oauth.wire",
+      "sha256": "4A0D644A04EA81B81391391EBFE888FB6517A97F3F3DE01400F89FA7BF60E937",
+      "byte_size": 158
+    },
+    {
+      "wire_id": "F05b-oauth",
+      "purpose": "oauth",
+      "path": "wire_transcripts/F05b-oauth.wire",
+      "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197",
+      "byte_size": 158
+    },
+    {
+      "wire_id": "C-BASE",
+      "path": "wire_transcripts/C-BASE.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+      "byte_size": 106
+    },
+    {
+      "wire_id": "C-EXT-VALID",
+      "path": "wire_transcripts/C-EXT-VALID.wire",
+      "sha256": "219DED98655D8F88E8C1BCD82ECB8B814345F06B3D911E420878BD789B002E93",
+      "byte_size": 116
+    },
+    {
+      "wire_id": "C-DATA-SHORT",
+      "path": "wire_transcripts/C-DATA-SHORT.wire",
+      "sha256": "5AC256FBB532DB764B28016D3BA0ACBC8303552988D2AE61CF699C1E23A2C78D",
+      "byte_size": 101
+    },
+    {
+      "wire_id": "C-SEP-SHORT",
+      "path": "wire_transcripts/C-SEP-SHORT.wire",
+      "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45",
+      "byte_size": 101
+    },
+    {
+      "wire_id": "C-SEP-WRONG",
+      "path": "wire_transcripts/C-SEP-WRONG.wire",
+      "sha256": "9CADE02C4E1A7F2FE4BC52A85003CED404CDD3195B0B7D9C9BC82F321268BA61",
+      "byte_size": 108
+    },
+    {
+      "wire_id": "C-ZERO-ABSENT",
+      "path": "wire_transcripts/C-ZERO-ABSENT.wire",
+      "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45",
+      "byte_size": 101
+    },
+    {
+      "wire_id": "C-TRAILER-EOF",
+      "path": "wire_transcripts/C-TRAILER-EOF.wire",
+      "sha256": "CCE59FBDEDC749AA44F0792D81B630D00B54416D0DCA11F890564E09E7B367EB",
+      "byte_size": 104
+    },
+    {
+      "wire_id": "C-ZERO-NO-CRLF",
+      "path": "wire_transcripts/C-ZERO-NO-CRLF.wire",
+      "sha256": "0D4FEEAFA9AF74C2E40E2A92F1AED638DC4CCC9395708E8939ED48C8A966576B",
+      "byte_size": 102
+    },
+    {
+      "wire_id": "C-TRAILER-LINE-EOF",
+      "path": "wire_transcripts/C-TRAILER-LINE-EOF.wire",
+      "sha256": "B8EEA183024DC1FEDDBBA031FC99CAAAB4DC3AEC279B7171E1D7743B1C590396",
+      "byte_size": 106
+    },
+    {
+      "wire_id": "C-TRAILER-MALFORMED",
+      "path": "wire_transcripts/C-TRAILER-MALFORMED.wire",
+      "sha256": "CC2A5206BDF415A0908D6E12BF2DD0B2E73AA96C4ED2AA7022CF57B90A1390EC",
+      "byte_size": 116
+    },
+    {
+      "wire_id": "H-DUP-IDENTICAL-FIELDS",
+      "path": "wire_transcripts/H-DUP-IDENTICAL-FIELDS.wire",
+      "sha256": "B07F9E56E236B3987AC49DEAFC6FBBDB320CC3F81A8A09ABB0DCB43AB74895C2",
+      "byte_size": 138
+    },
+    {
+      "wire_id": "H-DUP-IDENTICAL-LIST",
+      "path": "wire_transcripts/H-DUP-IDENTICAL-LIST.wire",
+      "sha256": "7CF16642407ED6415E26459667CF7F32DDA394D754105AD184CD433D28BB157B",
+      "byte_size": 122
+    },
+    {
+      "wire_id": "H-CONFLICT-FIELDS-2-3",
+      "path": "wire_transcripts/H-CONFLICT-FIELDS-2-3.wire",
+      "sha256": "004583BC0A6E6847D191184C9781C7E9B74435107983F3B6168609261CF89876",
+      "byte_size": 138
+    },
+    {
+      "wire_id": "H-CONFLICT-FIELDS-3-2",
+      "path": "wire_transcripts/H-CONFLICT-FIELDS-3-2.wire",
+      "sha256": "DA0133D46ADF8E84211DE5DFE350BEC8483B394BDB4E3FC4532BFF8093FFA7BB",
+      "byte_size": 138
+    },
+    {
+      "wire_id": "H-CONFLICT-LIST-2-3",
+      "path": "wire_transcripts/H-CONFLICT-LIST-2-3.wire",
+      "sha256": "4833158B69A4ECAD4A84FA17FDA1AAE30AEA58D10A2B915E32145008F5E49C57",
+      "byte_size": 122
+    },
+    {
+      "wire_id": "H-CONFLICT-LIST-3-2",
+      "path": "wire_transcripts/H-CONFLICT-LIST-3-2.wire",
+      "sha256": "3D1C5DE2067CC5D18234042D9E02140EDADED4171A0C6F5E2D30942391836D64",
+      "byte_size": 122
+    },
+    {
+      "wire_id": "H-DECIMAL-02",
+      "path": "wire_transcripts/H-DECIMAL-02.wire",
+      "sha256": "B9B204433236D92501FA8435DB6543E2039866FBC8DEB41F36CB814CFF50AAEC",
+      "byte_size": 120
+    },
+    {
+      "wire_id": "H-INVALID",
+      "path": "wire_transcripts/H-INVALID.wire",
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0",
+      "byte_size": 120
+    },
+    {
+      "wire_id": "H-TE-CL",
+      "path": "wire_transcripts/H-TE-CL.wire",
+      "sha256": "840D382D9B4A6DB242AE43C92929B522BBE4B48ED2409B17930B7A1AF1477F95",
+      "byte_size": 125
+    },
+    {
+      "wire_id": "H-TE-NONEXACT+CL",
+      "path": "wire_transcripts/H-TE-NONEXACT+CL.wire",
+      "sha256": "0BA91225FDBE946AE8FA17E85BE78C8D68812E5156F7407E8863731670EF512F",
+      "byte_size": 131
+    },
+    {
+      "wire_id": "H-TE-REPEAT",
+      "path": "wire_transcripts/H-TE-REPEAT.wire",
+      "sha256": "39A5ADA6BDC14B99C9ED1B093E3FA187EA7CC6C1085E816CDA4D0328DE36BD05",
+      "byte_size": 134
+    },
+    {
+      "wire_id": "H-TE-LIST",
+      "path": "wire_transcripts/H-TE-LIST.wire",
+      "sha256": "1FBCC0D5A47DAD75486E2C79093D3DE9D1C3291AD6E7F0FB977DCE2172725D91",
+      "byte_size": 115
+    },
+    {
+      "wire_id": "CD-ORDERLY",
+      "close_delimited_note": "orderly_close_notify_not_proven_by_fake",
+      "path": "wire_transcripts/CD-ORDERLY.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA",
+      "byte_size": 100
+    },
+    {
+      "wire_id": "CD-ABRUPT",
+      "close_delimited_note": "abrupt_eof_indistinguishable_under_fake",
+      "path": "wire_transcripts/CD-ABRUPT.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA",
+      "byte_size": 100
+    },
+    {
+      "wire_id": "CD-DEADLINE",
+      "stall_stimulus": true,
+      "path": "wire_transcripts/CD-DEADLINE.wire",
+      "sha256": "E14AAAC69EABB2D765D408611C6D0848F68BDBEFCE86B1C693D7F6E6AC8FA023",
+      "byte_size": 99
+    },
+    {
+      "wire_id": "F06",
+      "path": "wire_transcripts/F06.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+      "byte_size": 106,
+      "alias_of": "C-BASE"
+    },
+    {
+      "wire_id": "F12a-INVALID-JSON-EVENT",
+      "path": "wire_transcripts/F12a-INVALID-JSON-EVENT.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+      "byte_size": 133,
+      "purpose": "event",
+      "stimulus": "invalid_json_syntax"
+    },
+    {
+      "wire_id": "F12a-INVALID-JSON-IDENTITY",
+      "path": "wire_transcripts/F12a-INVALID-JSON-IDENTITY.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+      "byte_size": 133,
+      "purpose": "identity",
+      "stimulus": "invalid_json_syntax"
+    },
+    {
+      "wire_id": "F12a-INVALID-JSON-OAUTH",
+      "path": "wire_transcripts/F12a-INVALID-JSON-OAUTH.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+      "byte_size": 133,
+      "purpose": "oauth",
+      "stimulus": "invalid_json_syntax"
+    },
+    {
+      "wire_id": "F12a-NONOBJECT-EVENT",
+      "path": "wire_transcripts/F12a-NONOBJECT-EVENT.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+      "byte_size": 121,
+      "purpose": "event",
+      "stimulus": "json_non_object"
+    },
+    {
+      "wire_id": "F12a-NONOBJECT-IDENTITY",
+      "path": "wire_transcripts/F12a-NONOBJECT-IDENTITY.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+      "byte_size": 121,
+      "purpose": "identity",
+      "stimulus": "json_non_object"
+    },
+    {
+      "wire_id": "F12a-NONOBJECT-OAUTH",
+      "path": "wire_transcripts/F12a-NONOBJECT-OAUTH.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+      "byte_size": 121,
+      "purpose": "oauth",
+      "stimulus": "json_non_object"
+    },
+    {
+      "wire_id": "F12b-ENCODING-EVENT",
+      "path": "wire_transcripts/F12b-ENCODING-EVENT.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+      "byte_size": 115,
+      "purpose": "event",
+      "stimulus": "non_identity_content_encoding"
+    },
+    {
+      "wire_id": "F12b-ENCODING-IDENTITY",
+      "path": "wire_transcripts/F12b-ENCODING-IDENTITY.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+      "byte_size": 115,
+      "purpose": "identity",
+      "stimulus": "non_identity_content_encoding"
+    },
+    {
+      "wire_id": "F12b-ENCODING-OAUTH",
+      "path": "wire_transcripts/F12b-ENCODING-OAUTH.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+      "byte_size": 115,
+      "purpose": "oauth",
+      "stimulus": "non_identity_content_encoding"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+That gives us a useful feasibility assessment, Jim. Two details for the proposed acceptance checks:
+
+• Equal earliest/latest start is a valid exact-start requirement, provided duration, availability and any finish boundary permit it. Reject contradictory bounds at write; a valid window with no available calendar slot should instead produce an unplaced/conflict result.
+• If latest-start governs only the first slice, say that explicitly in the UI/spec. It means “begin by,” not “finish that day.” Existing minimum-chunk rules still matter so a token opening fragment cannot make the requirement appear meaningfully satisfied.
+
+My recommendation is first-slice semantics for “start no later than,” with finish-by separately controlling completion. Trish can choose that policy. Your code assessment supports feasibility; the end-to-end scope still includes fields, API/CLI/UI, persisted inputs/explanations and regression coverage, beyond the slot comparison itself.
+
+Dex

@@ -1,0 +1,33 @@
+{
+  "kind": "Authorized two-fake sequence completed once each",
+  "atUtc": "2026-11-13T20:14:47.5421888Z",
+  "authorizationSha256": "E347339B821330FD424D30772CA2E91DA7E0E6D4AAB61CF07BF9CBE3089C7830",
+  "peerClose": {
+    "predicates": 35,
+    "result": "911AC7A05F317A54522EE15DE5A33DC264929A1D5FA6B6419F8EF9E4A3079625",
+    "status": "PASS",
+    "receipt": "40D8C7C6365B9CA9B905B5F5E2B04C78B70F87183039F26DC9230DBCBC1797D3",
+    "mutants": 4,
+    "reconciliation": "4A5B51B51C25113E2518D1ABBFAD0A2F247960F0196EC60ED6E22874BCBBA9E1",
+    "controls": 11,
+    "inputs": 18
+  },
+  "T05": {
+    "predicates": 74,
+    "result": "C4771F532ED50FAF8FD40A811317C30DFEC1195F55A8AF02B997328FEDCE80FF",
+    "status": "PASS",
+    "receipt": "A743860BA3447AD49169CE96AD52794625F30EA13ACD22EFF89E4DD47D55BC76",
+    "reconciliation": "C52971E5454A1A590F797D2F6D9658D7CC78DAC149D3B65CC3B54F421FD01ED4",
+    "targetedMutants": 10,
+    "controls": 14,
+    "inputs": 37
+  },
+  "eachInvokedOnce": true,
+  "priorReconciliationBeforeSecondStart": true,
+  "bothZeroOutput": true,
+  "bothCleanReadersAndKnownRetirement": true,
+  "all55InputPinsUnchanged": true,
+  "remainingFakeExecutionAuthority": "NONE",
+  "nativeExecutionAuthority": "NONE",
+  "endpoint": "unbound"
+}

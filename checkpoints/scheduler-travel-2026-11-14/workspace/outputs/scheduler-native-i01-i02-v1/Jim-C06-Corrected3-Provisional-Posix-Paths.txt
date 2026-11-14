@@ -1,0 +1,3 @@
+Jim — same Windows/Linux fake-boundary audit found one more host dependency: FakeOS.path currently sets join=os.path.join, i.e. Windows path joining. The extracted _c06_public_provenance uses os.path.join('/tmp/c06-gate-tls',name), while FakeFS files are keyed with POSIX '/'. On Windows that produces a backslash key and can fail fake stat/provenance. Please give FakeOS.path.join POSIX-only in-memory semantics (e.g. posixpath.join), enforce it in the check, and keep any needed stdlib-import allowlist explicit. No real path/OS mutation. Actual fixture sources unchanged.
+
+The reviewed corrected3 timing sum now correctly uses total45; keep that correction. This is still held fake-authoring review, not an execution request. — Dex

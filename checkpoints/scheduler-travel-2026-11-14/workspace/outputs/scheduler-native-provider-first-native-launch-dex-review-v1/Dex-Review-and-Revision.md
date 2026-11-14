@@ -1,0 +1,11 @@
+# First-native launch candidate review: REVISE
+
+Dex, November12 2026. Reviewed frozen candidate TIP7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F, zero-field preimageE5788AB2348B5EA578E25B2FD7B211F52DDD876202837D419D0BB130413AA313 matches, LF/CR0. All291 declared Input-Manifest entries match current bytes. Twelve compact DropFolder files match workspace equivalents with payload-SHA256SUMS.txt mapped to payload/SHA256SUMS.txt. No execution.
+
+R1 — runner candidate admission flag remains held. host/launch-config.json and host/docker-ops-config.json stage launch_ready=true, but payload/runner-config.json still has launch_ready=false, preserving prior hash72EE396D. np_runner_entry.load_runner_config requires exact True and raises RunnerEntryHeld otherwise, before bootstrap/CA/PKI/case. Thus this is not yet a runnable candidate: an approved native attempt would consume stateful setup only to stop at an already-visible configuration gate.
+
+Narrow correction in a fresh candidate successor under existing workspace lane: stage runner-config launch_ready=true too, with human_launch_authorized=false/launch_authorized=false/executed=false explicitly retained. Preserve all other runner fields, case inventory/empty UNKNOWN, application and fixture executable bytes. Regenerate payload exact-set manifest, its pointer in host launch-config, all external config/command pins, full Input-Manifest, staging receipts, docs and TIP in dependency order. New workspace/evidence/packet labels and their path-dependent pins are routine consequences. Preserve frozen candidate-v1 and all predecessors. No guard removal, invocation or execution authority is added.
+
+The pending fake-v1 packet/card is untouched; PASS prerequisite still unmet. Do not present native execution card until this static blocker is resolved and the prerequisite is independently verified. Do not repair/retry any run: no run occurred, and these are fresh-copy preparation changes only.
+
+Other reviewed facts: fresh host/source paths remain physically acyclic, immutable Docker transport and native-ready runner entry remain unchanged, absolute future command includes independent host and Docker-config pins. Candidate-v1 current flags and all declared pins are internally hash-consistent; R1 is a semantic admission mismatch, not a hash mismatch.

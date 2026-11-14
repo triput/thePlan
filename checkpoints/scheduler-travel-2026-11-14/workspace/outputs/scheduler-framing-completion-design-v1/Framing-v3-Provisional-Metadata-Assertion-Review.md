@@ -1,0 +1,10 @@
+# Provisional framing v3 checker review — metadata versus observed fields
+
+Dex, November11,2026. In-progress source only, not a frozen disposition or executed check. Read checker SHA256 9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698.
+
+Concrete prelaunch issue: assert_match's flat candidate-field whitelist now includes policy_pending. Every ordinary wire path calls assert_match(cid + "/candidate", cand, row["candidate"]) before emit_wire_candidate. run_http_catch's returned cand dictionary has no policy_pending key. F01's candidate metadata has policy_pending=false. The whitelist therefore compares observed.get("policy_pending") == None against False and raises WitnessFailure before any result can complete. emit_wire_candidate adds the label from row only later, so it cannot fix this semantic-assert mismatch.
+
+Keep the accepted-policy label as explicitly frozen metadata, separate from measured runtime fields. Do not compare that label as a runtime observation absent from cand. Preserve strict assertions on the real outcome/exception/close counters and all other actual witnesses, and keep the exact launcher output schema. Do not broadly skip missing observed fields or turn mismatches into PASS. Either exclude policy metadata from the flat runtime predicate or explicitly separate validated metadata from actual observation construction. No application change is indicated by this finding.
+
+This is within the same approved four-role authoring lane; no new Trish source-preparation card is required. Continue the fresh v3 preparation, preserving v1/v2. If the in-progress successor has already corrected this specific mismatch, cite its new checker pin when freezing. No imports/compilation/verification/helper invocation, retries or native run. Endpoint unbound; all execution holds stay.
+— Dex

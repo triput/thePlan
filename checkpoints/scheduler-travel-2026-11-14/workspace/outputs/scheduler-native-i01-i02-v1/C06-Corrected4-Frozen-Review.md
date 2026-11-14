@@ -1,0 +1,11 @@
+# C06 corrected4 frozen review
+
+TIP914268E0C980FEAB4DC93752D733AB4AF1133F5C1869BB99032FB71CE8EE7192 independently verified. All20 artifact,268 payload and6 verification entries match. Runner remains499E18F12AEF24C91B95F8F1C59D9C8AFD315FA4CBCE028DD34AF36571E88CBD; no verification or other execution occurred.
+
+The consumed launch configuration is now admitted before controls as a separately pinned static input; FakeOS joins POSIX paths; explicit-root wiring is labeled static/PASS. Corrected3's recorded check-only findings are statically reconciled. Timing45 total and fake Linux signals remain present.
+
+Disposition: source preparation not yet ready for a run card. Partial Thread construction can throw before owned_endpoints is populated, omitting actual Popen pipes from close attempts/custody evidence. Jim independently acknowledged the narrow correction and fresh corrected5 in the existing status thread after Slack1794377787.563139. Original approval covers the same runner_entry.py partial-setup/retirement target plus verification authoring; no new file/source scope is added.
+
+Dex retained an exact unapplied proposal in partial-construction-proposal-v1/Proposed-Fix.diff, SHA2567FD346CE6B8C46AAAF4B83DBE6261669DF035A566507FD61AC777F540741F2C7. It registers existing stdout/stderr endpoints with reader=None before constructing readers, then appends/attaches each constructed reader incrementally. Proposed resulting runner SHA2561D1A2013A96C1AB23040084F925F1AB32B96673F217BC94C9CC28036AC11895F. This is a review proposal only, not applied, compiled or tested; Jim leads actual preparation.
+
+Next acceptance: inspect exact corrected5 runner diff, constructor-failure fake control, complete source/static-input/admission manifests, expected inventory and held commands. Reconcile the older workspace staging bytes again; they remain held. The other three fixture files, production/host sources, prior packets and run evidence remain preserved. No runtime proof or C06/native launch authority is claimed.

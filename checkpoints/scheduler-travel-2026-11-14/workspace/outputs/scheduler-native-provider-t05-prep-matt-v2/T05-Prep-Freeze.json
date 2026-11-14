@@ -1,0 +1,33 @@
+{
+  "kind": "native-t05-preparation-freeze",
+  "workspace": "scheduler-native-provider-t05-prep-matt-v2",
+  "batch_case_ids": ["NP-T05-ORDERLY-CLOSE", "NP-T05-ABRUPT-TRUNCATION"],
+  "expected_unknown_cases": [],
+  "author": "Matt",
+  "date": "2026-11-13",
+  "supersedes": "scheduler-native-provider-t05-prep-matt-v1 (704A16D157E5BF3E6CD227DA3296E90323237BABF267484CEF4B37A3805C39B0); v2 resolves Dex P1 (F56020E8): framing judged on the exact scripted wire, never on rebuilt httpx headers",
+  "status": "PREPARED_NOT_EXECUTED",
+  "assignment_sha256": "62E314AB62C80BC5EB9214976A097506F23C37B9903EBEE06D9F4B73038F3B84",
+  "design_notes_sha256": "9879751E5E2D0A356D68275A959E9E5B4D7B0946CB0D9BEF1C62EBD648837C5B",
+  "approved_envelope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "copy_source": "scheduler-native-provider-ms-merge-nonexpired-prep-matt-v1",
+  "copy_source_input_manifest_sha256": "22AE4F82885C017B050A76656E40F5425B2A166CC72DBC6029AF9E79EF63CDC7",
+  "changed_files": {
+    "payload/fixture/np_runner_entry.py": {"before": "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C", "after": "EB76303F175E1CDCFA859069CAB9DA3FA2BA245C1275AD2CE72157701B0C100B", "role": 4},
+    "payload/fixture/np_suite.py": {"before": "46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D", "after": "E5C63D9CE7AA3E66784216B0E88D14434F7016E67E6D22931C58504D87209189", "role": 5},
+    "payload/fixture/np_provider_peer.py": {"before": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039", "after": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF", "role": 7},
+    "payload/fixture/np_provider_transcript.py": {"before": "0AA3BC093711B7EEBADD1F23A80BF86F2B5AEAB4C1224014537BB051FDDCE52E", "after": "46455CD603355E30819FBF944ADAC141DDE04D78E28C4F25783681A67A0212D8", "role": 8},
+    "payload/runner-config.json": {"before": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929", "after": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71"},
+    "payload/SHA256SUMS.txt": {"before": "14FA30AD16E719150CA81F07274FF6AC8D3A2D80A065296D9FDB2830E2B00B46", "after": "98BE4F8E216410AEF536CC450E96E6EA505C5E0EDB40C6DD1C14495C7266776E", "entries": 257},
+    "host/launch-config.json": {"after": "3B98C20F383C15AC0D6B17B23C8DB2FFF19D5FC2B218CC3CF6611C76F38E319B"},
+    "host/docker-ops-config.json": {"after": "D42E376D64697703AAE655EAE11338938D8C6E04A8FF0A0763C35AD41F946518"}
+  },
+  "unchanged": {"operator": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6", "docker_transport": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53", "supervisor": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC", "api_files": 234, "roles": [6, 10]},
+  "gates": {"host_launch_ready": false, "candidate_launch_ready_staged": false, "runner_config_launch_ready": false},
+  "companion_fake_packet": "scheduler-native-t05-fake-prep-matt-v2",
+  "evidence_root_exists_at_freeze": false,
+  "executed": false,
+  "execute_ack_exists": false,
+  "endpoint": "unbound",
+  "writer_active": false
+}

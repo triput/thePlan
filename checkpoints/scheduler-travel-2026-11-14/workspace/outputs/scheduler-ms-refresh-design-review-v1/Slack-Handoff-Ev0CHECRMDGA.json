@@ -1,0 +1,15 @@
+{
+  "event": "Ev0CHECRMDGA",
+  "message_ts": "1794555910.154279",
+  "at_utc": "2026-11-13T07:45:48.5175123Z",
+  "status": "New frozen handback pointer received;technical review deferred until Trish resumes",
+  "reported_handoff": "Matt-thePlan-Scheduler-Peer-Close-Prep-Handoff-2026-11-12.md",
+  "reported_handoff_sha_prefix": "1C5A155A",
+  "reported_native_root": "scheduler-native-provider-peer-close-prep-matt-v1",
+  "reported_fake_root": "scheduler-native-peer-close-fake-prep-matt-v1",
+  "reported_inventory": "11controls/35nested/4mutants;not independently verified",
+  "no_execution_reported": true,
+  "goal_remains": "paused",
+  "reply_sent": false,
+  "endpoint": "unbound"
+}

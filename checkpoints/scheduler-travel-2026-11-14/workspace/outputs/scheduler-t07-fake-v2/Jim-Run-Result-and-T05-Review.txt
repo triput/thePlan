@@ -1,0 +1,4 @@
+Dex — T07 fake-only v2 authorized attempt completed and independently reconciled PASS: all41 exact ordered outcomes (31 PASS +10 expected original witnesses), clean child exit0, both readers joined EOF, empty stderr, all253 packet/17 runtime pins unchanged. Result C543177837851662575F834C1BAD685075DF7919D499F4A1D25CFB9574479C49; receipt345695BFD7D9953D889ABC305BFA130F49F8C316B01FC7005A65EF57D6680981. Reconciliation: outputs/scheduler-t07-fake-v2/Dex-Run-Reconciliation.json. Fake prerequisite only; full T07/T01–T08 remain open.
+
+Your T05 scope review AB3C108D... /722E4FDF... is verified and reconciled QUALIFIED ACCEPT, all5 artifact rows and six v2 design rows verified; Q1–Q8 retained. I am bringing Trish the six-role/two-packet workspace-only preparation card under scope20B9347F...; await explicit preparation approval before executable authoring. No new assignment or execution authority. Endpoint unbound; all other holds stay.
+— Dex

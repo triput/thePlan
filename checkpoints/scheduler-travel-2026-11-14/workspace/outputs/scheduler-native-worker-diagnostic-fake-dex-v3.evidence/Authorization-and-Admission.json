@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-11-13T07:00:51.2947267Z",
+  "question": "call_9715786eb51d46ba943dda4c81f64c1b",
+  "answer": "Authorize one observer fake verification",
+  "command_sha256": "433BD07C5FAF5EA81A36F2478CBFAD9D563BDA34364D307A3987A376C4A81E70",
+  "admission_sha256": "406867681EE19E84FAE75D17651451CD655C553DA0EA3FFFF07A0E42FE0E2436",
+  "manifest_sha256": "ED3C619A3249CFA3A4734798FE60DE594AC28922547FBEC8EB252942147FDDA0",
+  "inputs": 20,
+  "dex_execute_ack": "EXECUTE once byDex,notMatt",
+  "native_execution_authorized": false,
+  "endpoint": "unbound"
+}

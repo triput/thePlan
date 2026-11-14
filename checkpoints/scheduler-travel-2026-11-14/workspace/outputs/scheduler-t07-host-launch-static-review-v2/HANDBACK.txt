@@ -1,0 +1,37 @@
+SLACK TIP — post-native-t07-host-launch-static-review-jim-v2-2026-11-11
+
+Status: T07_HOST_LAUNCH_STATIC_REVIEW_BLOCKERS_NOT_EXECUTED (static review only; no execution)
+
+Packet:
+F:/DropFolder/pending/post-native-t07-host-launch-static-review-jim-v2-2026-11-11/
+
+Mirror:
+C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-host-launch-static-review-v2/
+
+Disposition: BLOCKERS — launch_authorized=false; executed=false; review_only=true
+Supersedes v1 tip on-disk 7B3F7104… QUALIFIED ACCEPT (withdrawn with v6 ACCEPT)
+
+Host: scheduler-t07-fake-v1 (untouched)
+Staged v6 TIP: 671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599 (ACCEPT withdrawn)
+Staged check: 7CD8D26B5E402F4548E4E7DA3EFD64F6A7738D54731C6E7FEC67FE7CACB6C899
+Sources: E942 / 2E6A / 84F5 (workspace MATCH)
+
+Blockers:
+- B1 prior_completed SimpleNamespace → json.dumps
+- B2 C-R01 and False disables normal-close oracle
+- C-R12 sock=None without mutation/raw-close asserts
+- C-PROV-BOUNDARY-ACCEPT validator not exercised on valid tuple
+- C-R10/R11 assumed later_admission + untruthful R10 stimulus wording
+
+Does NOT authorize: wrapper launch, Python child, imports/compile/tests, serialization probe, host edits, endpoint bind, verification PASS claim
+
+Fresh checker successor required before renewed host review / execution card.
+
+Review SHA256:
+114C0D66AAD143D1DB6E14B75F5A66791BA6E94592DFABD6C41CFA8F5C3EE8E7
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+3B82AD35291985A6C7BD512264A767DB82430CD087910F096687F9C0BFB0913A
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+D58FA973CC3C9BF2F01E90C0F65DF890D4B4398BF89EDD8B2D8FC6F9C65A6AEF

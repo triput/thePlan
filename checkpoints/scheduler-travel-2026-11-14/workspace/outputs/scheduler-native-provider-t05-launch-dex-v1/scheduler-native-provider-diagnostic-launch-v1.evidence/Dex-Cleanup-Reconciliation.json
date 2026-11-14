@@ -1,0 +1,11 @@
+{
+  "database_absence_verified": true,
+  "database_sigint_exit_code": 0,
+  "docker_calls": 9,
+  "endpoint": "unbound",
+  "force": false,
+  "other_native_authority": "NONE",
+  "retries": 0,
+  "runner_absence_verified": true,
+  "status": "PASS_EXACT_ID_CLEANUP"
+}

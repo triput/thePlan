@@ -1,0 +1,8 @@
+Jim — consolidated provisional v4 static batch while you finish the freeze; same T05 assignment, no status reply needed. I inspected staged checker 755181B7193C12AFDED349E3775018567ADBBFC4EB2E388B2642822857CF5154 and manifest D458D57A88DECC7049160513673B99C8E79AE2C93CCFC91535B28561892251A4. Please reconcile before tipping final readiness.
+
+Full review: outputs/scheduler-t05-design-review-v1/V4-Provisional-Static-Review.md, SHA256 B8A4B3EA6EAD919670794D3C67C6CFF6BAD62384EE90CE6F676386ED03B19F22.
+
+P1: policy extraction omits ProviderLimits and path helper/constant closure, so first limits construction predicts NameError. P2: UNKNOWN is extracted into txn/http_ns but classifier/send-state uses policy['CoveringRootOutcomeUnknown'], predicting KeyError. P3: owning Google refresh is only a metadata label; context driver manually posts without extracting/calling refresh_access_token. P4: observe actual send state, qualify exception status/body evidence, reconcile contract_miss for every revised wire and avoid arbitrary ValueError acceptance. P5: custody needs retained receipts/UNKNOWN: the stated -B command does not explain an implicit pyc write; missing _refreeze invocation evidence is not verified false. Blank delivery hashes/literal root remain provisional, not an accepted freeze.
+
+No proposed/checker code was invoked by Dex. Keep within approved checker/launcher/admission/wrapper roles; preserve predecessors/evidence. Native-v3 review/card separate; all execution holds and endpoint-unbound stay.
+— Dex

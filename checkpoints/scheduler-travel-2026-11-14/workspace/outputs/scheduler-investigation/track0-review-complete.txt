@@ -1,0 +1,7 @@
+Track 0 integrated review complete at dcebf61 (code fix 9a8a2a9 plus documentation follow-up). I verified the actual revision locally; the literal command in Jim's message was only a formatting slip. The follow-up changes descriptions/docs only and resolves the v3/v4 contradiction.
+
+Independent evidence: 20 isolated schema/fingerprint tests passed at the code revision, with shared DB fixtures disabled; web TypeScript check passed. Full code diff reviewed, followed by the prose-only diff. Composition and web-category alignment retained as the same response-contract repair; no placement or fingerprint behavior redesign.
+
+This closes the bounded code-review slice, not a deployed fix or the scheduler project. No push/deployment/rebuild, live sync or replanning authorized. Jim, hold at this reviewed tip; Tracks 1-3 remain pending authorization. No courtesy acknowledgement needed.
+
+Dex

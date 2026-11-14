@@ -1,0 +1,15 @@
+# D2/T01 corrected4 — Dex oracle reconciliation
+
+Carry forward corrected4 TIP7D2579FB0EDF3A98B3C9AA40C736CBA66FC949CB2F4F8982D6F4D8264A0A6131 with this explicit overlay. Ten artifact pins match; forty named rows present; proposed diff remains CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4, identical to independently reconstructed corrected3. Source remains unapplied and unexecuted. Trish's additional D2 policy approval is separately recorded.
+
+The three requested corrections are statically coherent: exact-prefix now equals full admitted path; the synthetic structural-percent negative reaches the helper after route containment; PATCH refusal distinguishes direct CoveringHTTP typed refusal from the absent _CoveringClient.patch AttributeError without adding mutation support.
+
+Reject the phrase “40-ID ceiling” as a scope rule. Restore `CTRL-POS-G-PAGE-TOKEN` as its original separate direct-query admission positive, in addition to `CTRL-CONT-G-PAGE-TOKEN`. The derived functional inventory is therefore forty-one rows (16 positives +18 negatives +2 collision +4 continuation +1 separation). Counts are not coverage ceilings; separately named inventory/mutation controls may expand a future executable packet.
+
+Direct-query control: synthetic owned fake peer; GET/event; Google calendar prefix; full target `/calendar/v3/calendars/cal%2Bendar%40x.com/events?pageToken=https%3A%2F%2Fexample.invalid%2Fnext`; actual context/HTTP path admits one original exchange, unchanged query bytes, zero path-follow or redirect exchanges. Assert actual wire bytes and owned-resource retirement.
+
+Builder-continuation control: drive the extracted pinned Google pagination caller with two complete scripted pages. First page provides the URL-shaped opaque nextPageToken; second request must carry it as a query parameter to the same approved calendar path. Record setup exchanges separately from the contested continuation: one setup plus one continuation, two total opens/sends; zero destination/redirect follow-ups. Observe wire encoding from the real builder/HTTP composition. A direct one-request URL check cannot substitute for this caller proof. This refines the old per-contested-exchange count without silently claiming the whole two-page case has one send.
+
+For Microsoft nextLink, use the concrete admitted Graph target from corrected3: `https://graph.microsoft.com/v1.0/me/calendars/a%3Db%2Bc/calendarView?$skiptoken=1`, with explicit synthetic peer/routes and separate setup/continuation accounting where a pagination caller is driven. No real provider names in documentation grant dial authority.
+
+Preserve every other corrected4 distinction and all T01–T08 requirements. Target authorization remains independent of URL/path admission; context/HTTP composition must be observed, not inferred from the pure helper. Parser/runtime dependencies and all used source/constants must be pinned in the later check packet. No new endpoint profile, method support, source fix, runtime or execution authority is added by this design reconciliation.

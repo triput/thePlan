@@ -1,0 +1,13 @@
+{
+  "at_utc": "2026-11-13T01:26:34.0985210Z",
+  "authorization": "Trish one native-provider v3 launch; success-only exact-ID cleanup; no retry repair failure cleanup",
+  "command_sha256": "3550CC2BE81894722E488F94750823D5C925CE86A5D8EA603A7A009314F8182B",
+  "input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+  "verified_inputs": 265,
+  "host_exe_pins_match": true,
+  "evidence_absent": true,
+  "invocations_before": 0,
+  "native_execution_authorized": true,
+  "other_launches_authorized": false,
+  "endpoint": "unbound"
+}

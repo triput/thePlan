@@ -1,0 +1,426 @@
+{
+  "at_utc": "2026-11-12T20:27:00.2669929Z",
+  "declared_present_workspace_rows": 42,
+  "mismatches": [],
+  "rows": [
+    {
+      "path": "payload/api/app/services/covering_transport_policy.py",
+      "expected_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "workspace_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "workspace_matches": true,
+      "drop_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Assembly-Selected-Source-Manifest.json",
+      "expected_sha256": "D4B54E4D51E607D28ADE15A92C41BF19EC39535BE960310759A4C6CD03EFDDAE",
+      "workspace_sha256": "D4B54E4D51E607D28ADE15A92C41BF19EC39535BE960310759A4C6CD03EFDDAE",
+      "workspace_matches": true,
+      "drop_sha256": "D4B54E4D51E607D28ADE15A92C41BF19EC39535BE960310759A4C6CD03EFDDAE",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Assembly-Selected-Source-Diff.json",
+      "expected_sha256": "33B1D6F7318EFBA207D8FF6A8FDE07C848A3F0ACE83337FE09D83221887087D3",
+      "workspace_sha256": "33B1D6F7318EFBA207D8FF6A8FDE07C848A3F0ACE83337FE09D83221887087D3",
+      "workspace_matches": true,
+      "drop_sha256": "33B1D6F7318EFBA207D8FF6A8FDE07C848A3F0ACE83337FE09D83221887087D3",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "Invoke-Native-Provider.ps1",
+      "expected_sha256": "F5EFF0EE732E46A393D17A2BAC426246414246E66AFF8C22A173AC322303F535",
+      "workspace_sha256": "F5EFF0EE732E46A393D17A2BAC426246414246E66AFF8C22A173AC322303F535",
+      "workspace_matches": true,
+      "drop_sha256": "F5EFF0EE732E46A393D17A2BAC426246414246E66AFF8C22A173AC322303F535",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_supervisor.py",
+      "expected_sha256": "9608283BD71EDA9315332DA5AE3E51D896100EAEE2E1CFD647D5E1C0AB4F0ACC",
+      "workspace_sha256": "9608283BD71EDA9315332DA5AE3E51D896100EAEE2E1CFD647D5E1C0AB4F0ACC",
+      "workspace_matches": true,
+      "drop_sha256": "9608283BD71EDA9315332DA5AE3E51D896100EAEE2E1CFD647D5E1C0AB4F0ACC",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_integrated_runner.py",
+      "expected_sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "workspace_sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "workspace_matches": true,
+      "drop_sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_runner_entry.py",
+      "expected_sha256": "BB101B0461D129C12D587109CB1CE4D466E2141FBB0D383D996FCD0311B1E2BD",
+      "workspace_sha256": "BB101B0461D129C12D587109CB1CE4D466E2141FBB0D383D996FCD0311B1E2BD",
+      "workspace_matches": true,
+      "drop_sha256": "BB101B0461D129C12D587109CB1CE4D466E2141FBB0D383D996FCD0311B1E2BD",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_suite.py",
+      "expected_sha256": "9F944E179CABD9DBA00D0F6DCA1BB9C384B43FBF36D963BC8F3D84C3196BC4D3",
+      "workspace_sha256": "9F944E179CABD9DBA00D0F6DCA1BB9C384B43FBF36D963BC8F3D84C3196BC4D3",
+      "workspace_matches": true,
+      "drop_sha256": "9F944E179CABD9DBA00D0F6DCA1BB9C384B43FBF36D963BC8F3D84C3196BC4D3",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_receipts.py",
+      "expected_sha256": "7467522BCCC5925D9FD0D294769E4C62050EE0C8EA6FD170B077FDBC4AA83FDE",
+      "workspace_sha256": "7467522BCCC5925D9FD0D294769E4C62050EE0C8EA6FD170B077FDBC4AA83FDE",
+      "workspace_matches": true,
+      "drop_sha256": "7467522BCCC5925D9FD0D294769E4C62050EE0C8EA6FD170B077FDBC4AA83FDE",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_provider_peer.py",
+      "expected_sha256": "2D84C771941C0BBBBC4190556E8ED7D66031C8347DCADBF31846CFFFDEAAFF85",
+      "workspace_sha256": "2D84C771941C0BBBBC4190556E8ED7D66031C8347DCADBF31846CFFFDEAAFF85",
+      "workspace_matches": true,
+      "drop_sha256": "2D84C771941C0BBBBC4190556E8ED7D66031C8347DCADBF31846CFFFDEAAFF85",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_provider_transcript.py",
+      "expected_sha256": "AFB4F76ADD18E0CCC361BD5F77DFE19C01CAA11DA5B351B0F0E478C26EB22675",
+      "workspace_sha256": "AFB4F76ADD18E0CCC361BD5F77DFE19C01CAA11DA5B351B0F0E478C26EB22675",
+      "workspace_matches": true,
+      "drop_sha256": "AFB4F76ADD18E0CCC361BD5F77DFE19C01CAA11DA5B351B0F0E478C26EB22675",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_provider_routes.py",
+      "expected_sha256": "80C84A48D8515FB22F3848BA9245002501331434909935D8810E586BC21D5E92",
+      "workspace_sha256": "80C84A48D8515FB22F3848BA9245002501331434909935D8810E586BC21D5E92",
+      "workspace_matches": true,
+      "drop_sha256": "80C84A48D8515FB22F3848BA9245002501331434909935D8810E586BC21D5E92",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_auth_seed.py",
+      "expected_sha256": "8AE12AC3BD06221EEDA1848FA42632246BC78222AC14E8E9B0DAE19F88E818DC",
+      "workspace_sha256": "8AE12AC3BD06221EEDA1848FA42632246BC78222AC14E8E9B0DAE19F88E818DC",
+      "workspace_matches": true,
+      "drop_sha256": "8AE12AC3BD06221EEDA1848FA42632246BC78222AC14E8E9B0DAE19F88E818DC",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/np_alias_seed.py",
+      "expected_sha256": "A370C630B7DD21DE02D00FB3081A0C4ADC4C129A1549180182B7AF79FBCC0AB8",
+      "workspace_sha256": "A370C630B7DD21DE02D00FB3081A0C4ADC4C129A1549180182B7AF79FBCC0AB8",
+      "workspace_matches": true,
+      "drop_sha256": "A370C630B7DD21DE02D00FB3081A0C4ADC4C129A1549180182B7AF79FBCC0AB8",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/prepare-np-provider-tls.sh",
+      "expected_sha256": "F692FA6D0338C3BA5E0CA55CD96A6817B15605F8162BABE66BFDA2800EC3000C",
+      "workspace_sha256": "F692FA6D0338C3BA5E0CA55CD96A6817B15605F8162BABE66BFDA2800EC3000C",
+      "workspace_matches": true,
+      "drop_sha256": "F692FA6D0338C3BA5E0CA55CD96A6817B15605F8162BABE66BFDA2800EC3000C",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "verify/check_native_provider.py",
+      "expected_sha256": "D5F382AFB4C804DF874D1B1F7BED48E70F8C578A9766901EFB06FAB715F75A7B",
+      "workspace_sha256": "D5F382AFB4C804DF874D1B1F7BED48E70F8C578A9766901EFB06FAB715F75A7B",
+      "workspace_matches": true,
+      "drop_sha256": "D5F382AFB4C804DF874D1B1F7BED48E70F8C578A9766901EFB06FAB715F75A7B",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "verify/launch_check.py",
+      "expected_sha256": "25B1AF963C2915190C41D0D9E3380E9555760A7B1C2CA4EACAF78B1CF8950915",
+      "workspace_sha256": "25B1AF963C2915190C41D0D9E3380E9555760A7B1C2CA4EACAF78B1CF8950915",
+      "workspace_matches": true,
+      "drop_sha256": "25B1AF963C2915190C41D0D9E3380E9555760A7B1C2CA4EACAF78B1CF8950915",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "verify/verify_admission.py",
+      "expected_sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "workspace_sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "workspace_matches": true,
+      "drop_sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "Invoke-Fake.ps1",
+      "expected_sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "workspace_sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "workspace_matches": true,
+      "drop_sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/bootstrap-postgres-tls.sh",
+      "expected_sha256": "FE72795D82DB70B16D193CF18D5B732E01FBA24ABA1606A91621D533C0236D16",
+      "workspace_sha256": "FE72795D82DB70B16D193CF18D5B732E01FBA24ABA1606A91621D533C0236D16",
+      "workspace_matches": true,
+      "drop_sha256": "FE72795D82DB70B16D193CF18D5B732E01FBA24ABA1606A91621D533C0236D16",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/database_ready.py",
+      "expected_sha256": "C5171C5236A7B6A03DD781C63E21E697D703C5687B6A6DAB11C363A7C6562F5F",
+      "workspace_sha256": "C5171C5236A7B6A03DD781C63E21E697D703C5687B6A6DAB11C363A7C6562F5F",
+      "workspace_matches": true,
+      "drop_sha256": "C5171C5236A7B6A03DD781C63E21E697D703C5687B6A6DAB11C363A7C6562F5F",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/docker_transport.py",
+      "expected_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "workspace_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "workspace_matches": true,
+      "drop_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/prepare-tls.sh",
+      "expected_sha256": "41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F",
+      "workspace_sha256": "41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F",
+      "workspace_matches": true,
+      "drop_sha256": "41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/gates_ready.py",
+      "expected_sha256": "CF501293D154C9D1DD417F74C0F050A087533F2D7162AB3D3F8BFC3C25493511",
+      "workspace_sha256": "CF501293D154C9D1DD417F74C0F050A087533F2D7162AB3D3F8BFC3C25493511",
+      "workspace_matches": true,
+      "drop_sha256": "CF501293D154C9D1DD417F74C0F050A087533F2D7162AB3D3F8BFC3C25493511",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/gate_pair.py",
+      "expected_sha256": "B597D2D4572716504C46846D2850205CF8401C7FBB2234C02BF96835650DCD2C",
+      "workspace_sha256": "B597D2D4572716504C46846D2850205CF8401C7FBB2234C02BF96835650DCD2C",
+      "workspace_matches": true,
+      "drop_sha256": "B597D2D4572716504C46846D2850205CF8401C7FBB2234C02BF96835650DCD2C",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/fixture/gate_service.py",
+      "expected_sha256": "EDDF4F617803DBC73742EE0233A84CDEBEACDFB280FE2FE33B3C9C79E3019BA3",
+      "workspace_sha256": "EDDF4F617803DBC73742EE0233A84CDEBEACDFB280FE2FE33B3C9C79E3019BA3",
+      "workspace_matches": true,
+      "drop_sha256": "EDDF4F617803DBC73742EE0233A84CDEBEACDFB280FE2FE33B3C9C79E3019BA3",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "Static-Preparation-Receipt.json",
+      "expected_sha256": "D50C862E336AC2390F17222383C8E780707C6A95C27E6F18CD48AA11E3B805F0",
+      "workspace_sha256": "D50C862E336AC2390F17222383C8E780707C6A95C27E6F18CD48AA11E3B805F0",
+      "workspace_matches": true,
+      "drop_sha256": "D50C862E336AC2390F17222383C8E780707C6A95C27E6F18CD48AA11E3B805F0",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "TIP-FREEZE.json",
+      "expected_sha256": "0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D",
+      "workspace_sha256": "0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D",
+      "workspace_matches": true,
+      "drop_sha256": "0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Commands-Held.ps1.txt",
+      "expected_sha256": "DEAFFACB50D90DB6F48ED2C1A747BEB1DB09AE101CB9550D7118344B0F1D1266",
+      "workspace_sha256": "DEAFFACB50D90DB6F48ED2C1A747BEB1DB09AE101CB9550D7118344B0F1D1266",
+      "workspace_matches": true,
+      "drop_sha256": "DEAFFACB50D90DB6F48ED2C1A747BEB1DB09AE101CB9550D7118344B0F1D1266",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Immutable-Helper-Lineage.json",
+      "expected_sha256": "BF2238CBAB946A26A1C5C2501171A6ECF0DFF35AE8EE22A95748F4C29242B17A",
+      "workspace_sha256": "BF2238CBAB946A26A1C5C2501171A6ECF0DFF35AE8EE22A95748F4C29242B17A",
+      "workspace_matches": true,
+      "drop_sha256": "BF2238CBAB946A26A1C5C2501171A6ECF0DFF35AE8EE22A95748F4C29242B17A",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Mutable-Role-Hashes.json",
+      "expected_sha256": "520F0E3115BB8DAA163EEAAEE83A780FD608B673C22B96E82CFD35BB394F6A94",
+      "workspace_sha256": "520F0E3115BB8DAA163EEAAEE83A780FD608B673C22B96E82CFD35BB394F6A94",
+      "workspace_matches": true,
+      "drop_sha256": "520F0E3115BB8DAA163EEAAEE83A780FD608B673C22B96E82CFD35BB394F6A94",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Mutable-Roles.md",
+      "expected_sha256": "3F640A3E966FFBB2AC2FCF8802AD5DEDE45EF757741F30927DFC587C2B4ABEB8",
+      "workspace_sha256": "3F640A3E966FFBB2AC2FCF8802AD5DEDE45EF757741F30927DFC587C2B4ABEB8",
+      "workspace_matches": true,
+      "drop_sha256": "3F640A3E966FFBB2AC2FCF8802AD5DEDE45EF757741F30927DFC587C2B4ABEB8",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Preparation-Review.md",
+      "expected_sha256": "DD4CD4E7435235F871C997E4A8371DF5F85B607F367257ADCC5FA8EC0D1A6A46",
+      "workspace_sha256": "DD4CD4E7435235F871C997E4A8371DF5F85B607F367257ADCC5FA8EC0D1A6A46",
+      "workspace_matches": true,
+      "drop_sha256": "DD4CD4E7435235F871C997E4A8371DF5F85B607F367257ADCC5FA8EC0D1A6A46",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Remaining-Gaps.md",
+      "expected_sha256": "2D43087D8ABD36036EFB22ACEBC2C2C9F33B2B064C3E190F81EC9046B1983590",
+      "workspace_sha256": "2D43087D8ABD36036EFB22ACEBC2C2C9F33B2B064C3E190F81EC9046B1983590",
+      "workspace_matches": true,
+      "drop_sha256": "2D43087D8ABD36036EFB22ACEBC2C2C9F33B2B064C3E190F81EC9046B1983590",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "docs/Workspace-File-Inventory.json",
+      "expected_sha256": "90B35B6D6CCF3209005DA0B6C85C6278780E0FFD17F5D3DDEF5D193FFD717668",
+      "workspace_sha256": "90B35B6D6CCF3209005DA0B6C85C6278780E0FFD17F5D3DDEF5D193FFD717668",
+      "workspace_matches": true,
+      "drop_sha256": "90B35B6D6CCF3209005DA0B6C85C6278780E0FFD17F5D3DDEF5D193FFD717668",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "data/Case-Requirement-Map.json",
+      "expected_sha256": "5E5F93AA6FBA8F03DD0C8968D0EB0A7372F7937278055953FEC6FD795AD2E15B",
+      "workspace_sha256": "5E5F93AA6FBA8F03DD0C8968D0EB0A7372F7937278055953FEC6FD795AD2E15B",
+      "workspace_matches": true,
+      "drop_sha256": "5E5F93AA6FBA8F03DD0C8968D0EB0A7372F7937278055953FEC6FD795AD2E15B",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "data/Expected-Outcomes.json",
+      "expected_sha256": "3EC9BF8391C0E1B07B580B8E2F7D2A3A94E1738746BE8E9918C92A6624662258",
+      "workspace_sha256": "3EC9BF8391C0E1B07B580B8E2F7D2A3A94E1738746BE8E9918C92A6624662258",
+      "workspace_matches": true,
+      "drop_sha256": "3EC9BF8391C0E1B07B580B8E2F7D2A3A94E1738746BE8E9918C92A6624662258",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/launch-config.json",
+      "expected_sha256": "839596CB90D3C878ED6A55C9DD11C3C9BD2B47370EF29B3503D9020D34350040",
+      "workspace_sha256": "839596CB90D3C878ED6A55C9DD11C3C9BD2B47370EF29B3503D9020D34350040",
+      "workspace_matches": true,
+      "drop_sha256": "839596CB90D3C878ED6A55C9DD11C3C9BD2B47370EF29B3503D9020D34350040",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "payload/runner-config.json",
+      "expected_sha256": "2B39C4A5563DDCE6E2883DB9EFB082E7B1C0736572AA0C3FB3FBA51BE4C6A28A",
+      "workspace_sha256": "2B39C4A5563DDCE6E2883DB9EFB082E7B1C0736572AA0C3FB3FBA51BE4C6A28A",
+      "workspace_matches": true,
+      "drop_sha256": "2B39C4A5563DDCE6E2883DB9EFB082E7B1C0736572AA0C3FB3FBA51BE4C6A28A",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "verify/EXPECTED-FAKE-STRUCTURAL.json",
+      "expected_sha256": "1AD1EEC37FA14E0B8193FD396F55E1AB9CCBA11D6518C03A9F7D04E82BD66362",
+      "workspace_sha256": "1AD1EEC37FA14E0B8193FD396F55E1AB9CCBA11D6518C03A9F7D04E82BD66362",
+      "workspace_matches": true,
+      "drop_sha256": "1AD1EEC37FA14E0B8193FD396F55E1AB9CCBA11D6518C03A9F7D04E82BD66362",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "verify/OUTER-ADMISSION.json",
+      "expected_sha256": "DF964F07D6CB5A859BA701BA86A02E0AC4C671283D3099743584D54F0EA09B7B",
+      "workspace_sha256": "DF964F07D6CB5A859BA701BA86A02E0AC4C671283D3099743584D54F0EA09B7B",
+      "workspace_matches": true,
+      "drop_sha256": "DF964F07D6CB5A859BA701BA86A02E0AC4C671283D3099743584D54F0EA09B7B",
+      "drop_present": true,
+      "drop_matches": true
+    },
+    {
+      "path": "verify/VERIFICATION-ADMISSION.json",
+      "expected_sha256": "F6D4604045042276193814865AA0A00046A1F04449316CBDE4889E98BF2EACD9",
+      "workspace_sha256": "F6D4604045042276193814865AA0A00046A1F04449316CBDE4889E98BF2EACD9",
+      "workspace_matches": true,
+      "drop_sha256": "F6D4604045042276193814865AA0A00046A1F04449316CBDE4889E98BF2EACD9",
+      "drop_present": true,
+      "drop_matches": true
+    }
+  ],
+  "immutable_helpers": [
+    {
+      "path": "payload/fixture/bootstrap-postgres-tls.sh",
+      "copy_matches": true,
+      "baseline_matches": true
+    },
+    {
+      "path": "payload/fixture/database_ready.py",
+      "copy_matches": true,
+      "baseline_matches": true
+    },
+    {
+      "path": "payload/fixture/docker_transport.py",
+      "copy_matches": true,
+      "baseline_matches": true
+    },
+    {
+      "path": "payload/fixture/prepare-tls.sh",
+      "copy_matches": true,
+      "baseline_matches": true
+    },
+    {
+      "path": "payload/fixture/gates_ready.py",
+      "copy_matches": true,
+      "baseline_matches": true
+    },
+    {
+      "path": "payload/fixture/gate_pair.py",
+      "copy_matches": true,
+      "baseline_matches": true
+    },
+    {
+      "path": "payload/fixture/gate_service.py",
+      "copy_matches": true,
+      "baseline_matches": true
+    }
+  ],
+  "review_scope": "Raw local and present drop artifacts, plus immutable baseline helper hashes; missing drop counterparts explicitly recorded",
+  "behavior_review": "REVISE already delivered; integrity does not establish functionality",
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

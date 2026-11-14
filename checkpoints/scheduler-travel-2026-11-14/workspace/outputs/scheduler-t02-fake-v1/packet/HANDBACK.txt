@@ -1,0 +1,1 @@
+Dex fresh workspace preparation only. Parent corrected2 TIP 57BE64F8297D6D19911C94D330B0F1062F93AAC5D565DB5F75F6D91E042762BF preserved. H-only executable amendment; exact diff outside packet. Jim static review pending; no tests/imports/check execution. All 20 IDs/outcomes, four production/test candidate hashes and launcher limits preserved. Endpoint unbound and all holds remain.

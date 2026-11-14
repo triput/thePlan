@@ -1,0 +1,116 @@
+{
+  "kind": "static_frozen_v5_admission_pin_review",
+  "at_utc": "2026-11-12T22:23:51.7198234Z",
+  "declared_packet_count": 16,
+  "packet_count": 16,
+  "packet_mismatches": [],
+  "runtime_count": 1,
+  "runtime_mismatches": [],
+  "packet_pins": [
+    {
+      "path": "verify/check_native_provider.py",
+      "expected": "9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48",
+      "actual": "9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48",
+      "match": true
+    },
+    {
+      "path": "verify/launch_check.py",
+      "expected": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "actual": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "match": true
+    },
+    {
+      "path": "verify/verify_admission.py",
+      "expected": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "actual": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "match": true
+    },
+    {
+      "path": "verify/EXPECTED-FAKE-STRUCTURAL.json",
+      "expected": "788710ED1BFD6D4B3BFF496C9AF79DBCFDBA69D6F346754D3A072C2748F7313A",
+      "actual": "788710ED1BFD6D4B3BFF496C9AF79DBCFDBA69D6F346754D3A072C2748F7313A",
+      "match": true
+    },
+    {
+      "path": "Invoke-Fake.ps1",
+      "expected": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "actual": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "match": true
+    },
+    {
+      "path": "Invoke-Native-Provider.ps1",
+      "expected": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+      "actual": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+      "match": true
+    },
+    {
+      "path": "payload/launch-config.json",
+      "expected": "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+      "actual": "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+      "match": true
+    },
+    {
+      "path": "payload/runner-config.json",
+      "expected": "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+      "actual": "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_runner_entry.py",
+      "expected": "6E4BF3F3FD5D750E5925BAF3CA0EF8970933A470F8436E21587EB4A7FFFE4F75",
+      "actual": "6E4BF3F3FD5D750E5925BAF3CA0EF8970933A470F8436E21587EB4A7FFFE4F75",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_provider_peer.py",
+      "expected": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+      "actual": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_supervisor.py",
+      "expected": "057E360A7AEFCF9D3D0246C11D77D8427820BFB7558C6DFF6006D7560BB7AC1D",
+      "actual": "057E360A7AEFCF9D3D0246C11D77D8427820BFB7558C6DFF6006D7560BB7AC1D",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_suite.py",
+      "expected": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "actual": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_receipts.py",
+      "expected": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+      "actual": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_auth_seed.py",
+      "expected": "32DF7D42512E54845E477697C27B63531600E3B04087451EC3E6C10326F285E7",
+      "actual": "32DF7D42512E54845E477697C27B63531600E3B04087451EC3E6C10326F285E7",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_provider_transcript.py",
+      "expected": "A1CA9E410DDA64359F96407B136CC78A58A5FBF43A6C7B9E41DB0552544046AC",
+      "actual": "A1CA9E410DDA64359F96407B136CC78A58A5FBF43A6C7B9E41DB0552544046AC",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/i01_auth_seed.py",
+      "expected": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+      "actual": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+      "match": true
+    }
+  ],
+  "runtime_pins": [
+    {
+      "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "expected": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "actual": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "match": true
+    }
+  ],
+  "executed": false
+}

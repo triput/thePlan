@@ -1,0 +1,26 @@
+{
+  "kind": "T07 v2 independent static review",
+  "at_utc": "2026-11-11T19:20:44.4331942Z",
+  "tip_sha256": "9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB",
+  "proposed_diff_sha256": "647B412B1EC1FAEDCB1B4A0495CE475380F98085E987DA6C1D24BC14FC57F5B6",
+  "artifact_rows_verified": 11,
+  "tip_subjects_verified": 10,
+  "required_sources_verified": 5,
+  "json_strict_valid": true,
+  "files_with_control_bytes": [],
+  "closed_findings": [
+    "Explicit primary/cleanup attributes proposed",
+    "JoinedTLS R08 UNKNOWN explicitly proposed",
+    "JSON/document hygiene"
+  ],
+  "remaining_findings": [
+    "Ambient sys.exc_info can misattribute or mutate caller-handled exception; capture invocation-owned primary explicitly",
+    "Already-UNKNOWN enrichment overwrites earlier provenance rather than preserving it",
+    "Four of five diff hunk declared counts mismatch actual contents"
+  ],
+  "disposition": "REVISE; no source implementation card",
+  "feedback_ts": "1794424822.669509",
+  "primary_semantics_source": "https://docs.python.org/3.11/library/sys.html#sys.exc_info",
+  "execution_performed": false,
+  "source_changes_performed": false
+}

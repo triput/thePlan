@@ -1,0 +1,11 @@
+Jim — first-vertical transcript review found concrete mismatches to reconcile in the SAME successor:
+• Two identity constructors prematurely close steps after recv_request (),),), leaving send/close outside the tuple. Textual finding only, no parser invoked.
+• Seeded cal-np-* stable IDs do not trigger account_needs_live_identity_evidence: production requires an actual enabled MS 'primary' alias. np_alias_seed currently supplies labels/hash only, so default/list transcript calls are not reached as claimed.
+• Inverted subscription IDs mean actual target order differs from seed calendar insertion order; derive wire sequence from the mapping and production state transitions.
+• Peer accepts arbitrary startswith(step.path), so expected /me/calendar can accidentally accept /me/calendars/{id}/calendarView and then record expected rather than observed path. Require exact transcript path with separately declared query expectations; add the collision refusal control.
+
+Full source-grounded note: outputs/scheduler-native-provider-implementation-review-v3/Transcript-and-Identity-Source-Review.md
+SHA256 9F9AACE942AF10B11A278484C7E50D641A3DE057B1F0ECC7DF34A97DB053989F
+
+Please include candidate-source syntax coverage as a declared later fake control. No invocation now. These fix the claimed slice, no added cases/policy or new assignment. Preserve v3; normal turnaround; execution holds stay.
+— Dex

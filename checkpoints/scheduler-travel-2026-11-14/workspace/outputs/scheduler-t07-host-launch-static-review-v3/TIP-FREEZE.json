@@ -1,0 +1,88 @@
+{
+  "packet": "post-native-t07-host-launch-static-review-jim-v3-2026-11-11",
+  "status": "T07_HOST_LAUNCH_STATIC_REVIEW_COMPLETE_NOT_EXECUTED",
+  "disposition": "QUALIFIED_ACCEPT",
+  "disposition_one_liner": "QUALIFIED ACCEPT — launch_authorized=false; executed=false; review_only=true",
+  "author": "Justin",
+  "role": "Jim host launch static review (Justin) for Dex scheduler-t07-fake-v2",
+  "date": "2026-11-11",
+  "byte_semantics": "utf-8 lf",
+  "executed": false,
+  "execution_authorized": false,
+  "launch_authorized": false,
+  "review_only": true,
+  "wrapper_launched": false,
+  "host_packet_mutated": false,
+  "imports_compile_tests": false,
+  "serialization_probe": false,
+  "blocking_count": 0,
+  "host_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2",
+  "outputs_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-host-launch-static-review-v3",
+  "review_sha256": "247DEA75970B6BA540823FE436AF91A6FFC62296B56D95DB7678C9B5ABDCACE5",
+  "tip_sha256": "ED7E3A0B1BCF1191ABB40CFF4DA5D509360D55E0DBA5716FB1C16243DD7ACAE4",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled).",
+  "accepted_v7_tip_sha256": "19A9BE6B465CA7041231846687F85E950ED5AD0CB02C6318C93CA985E2EE63B1",
+  "check_sha256": "C8C1915AF1A2A8314BFE2A80B61B1FDA6708F9001C59CB1EC25C9410887BF19F",
+  "outer_admission_sha256": "403E5EC53B34D41D43FE0A90E00801EC38F1BEC83CC3E9C243093649B5310074",
+  "expected_output_sha256": "E03E597528AEB9251AF39B975EFFCD1EF85C5F777F6D55F37E46BBC98A72A10A",
+  "input_manifest_sha256": "27E8AD93F6D57994087038C735849F69C34FDC1D098D2905029605CD15E09623",
+  "supersedes_host_review_v1_tip": "7B3F7104A489EB5FB8C97B5BB0D3B48E9D13EF935035982128753B25A87F01BB",
+  "supersedes_host_review_v2_tip": "D58FA973CC3C9BF2F01E90C0F65DF890D4B4398BF89EDD8B2D8FC6F9C65A6AEF",
+  "source_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "host_pins": {
+    "Commands.ps1.txt": "3432F0E35D2D24CCC704423299B656A1BB275705AA95D68B431630649948D10C",
+    "VERIFICATION-ADMISSION.json": "903FFC3D9EE425027FDBBD97EE265E3D3A1AB822D2508819BB2D3C783DD636D2",
+    "Invoke-Verification.ps1": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B"
+  },
+  "admission_kind": "scheduler-t07-one-shot-fake-verification-admission",
+  "packet_pins_verified": 253,
+  "runtime_pins_verified": 17,
+  "packet_pins_mismatches": 0,
+  "runtime_pins_mismatches": 0,
+  "evidence_absent": true,
+  "nominal_retirement_capture_seconds": 45,
+  "named_controls": 41,
+  "expected_pass": 31,
+  "expected_pass_witness": 10,
+  "b1_b2_batch_linkage_static": "CLOSED",
+  "wrapper_prior_disposition": "NO_BLOCKER",
+  "open_obligations_documented": [
+    "distinct_malformed_response_transport_proof",
+    "distinct_lost_response_transport_proof"
+  ],
+  "qualifications": [
+    "Host VERIFICATION-ADMISSION.json is pin-inventory only; 45s limits live in Review-and-Commands + INPUT-MANIFEST + invoke_t07_fake.py (consistent 30+5+5+5).",
+    "Runtime pins are an explicit subset, not a complete dependency closure (disclosed).",
+    "Malformed/lost-response transport proofs remain open obligations (documented; out of this 41-control bounded fake).",
+    "Fake native/DB boundaries retained; not full T07 or T01-T08 closure.",
+    "scheduler-t07-fake-v1 / v6 hold packets preserved immutable."
+  ],
+  "blockers": [],
+  "does_not_authorize": [
+    "wrapper launch",
+    "Python child execution",
+    "imports/compile/tests",
+    "serialization probe",
+    "packet/admission/commands edits",
+    "endpoint binding",
+    "Docker/sockets/PKI/providers/DB/native launch",
+    "claiming verification PASS",
+    "closing full T07 or T01-T08"
+  ],
+  "artifact_hashes_list_order": [
+    "HANDBACK.txt",
+    "Jim-Host-Launch-Static-Review.md",
+    "TIP-FREEZE.json"
+  ],
+  "message_context": [
+    "Jim final host launch static review of scheduler-t07-fake-v2",
+    "QUALIFIED ACCEPT; launch_authorized=false",
+    "253/253 packet pins and 17/17 runtime pins hash-verified",
+    "v7 B1/B2/batch linkage statically closed",
+    "Dex to reconcile before Trish execution card"
+  ]
+}

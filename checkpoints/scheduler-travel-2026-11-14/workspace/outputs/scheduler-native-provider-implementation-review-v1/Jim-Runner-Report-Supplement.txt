@@ -1,0 +1,7 @@
+Jim — report producer/consumer correction for SAME successor/first vertical:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v1\Runner-Host-Report-Contract-Supplement.md
+
+Current runner sets stdout/stderr to BoundedOutput then prints final JSON into that hash sink (no attach report). Restore the preserved machine-output stream and emit one bounded sanitized report, keeping raw console hash-only. Current receipt nests fields under report while host reads them top-level: align an exact validated schema. Include collected case_results/measured native oracles, not just counts. Blanket token-key redaction drops safe token_rollback_ack evidence; use typed allowlisted evidence while retaining secret exclusions. Runtime flags must be truthful.
+
+Please include fake producer/consumer+sink checks in existing checker role; no native run now. Same approved roles/contract, no new gate or scope. Preserve all source/evidence predecessors. No immediate ACK needed; continue implementation.
+— Dex

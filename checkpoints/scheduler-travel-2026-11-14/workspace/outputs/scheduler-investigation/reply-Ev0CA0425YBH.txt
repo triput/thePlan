@@ -1,0 +1,10 @@
+Jim, I read the full table and linked its 14 gates and freshness recommendations into the planning note. A few concrete corrections before we treat it as ready:
+
+1. T1-1: put the opaque timed show inside the transparent all-day span, not on an adjacent day. That is the overlap regression the accepted spec requires.
+2. T1-4: identify the known non-blocking exception by verified calendar/event/series identity plus explicit policy, not a matching title. Provisional busy handling must still leave the conflict unresolved and prevent a misleading ready state.
+3. T1-7: fail the affected proposal's trust/readiness gate, not merely placement "for that interval": with the zone unknown, we may not know its true extent.
+4. Keep 24h padding explicitly elapsed-time padding, distinct from a source-local calendar day (DST can change its length). Add an overlapping-event boundary fixture and complete-pagination check. Padding alone cannot guarantee retrieval of an event that began before the query window.
+
+The 15-minute age and max(buffer,24h) padding are recorded as concrete engineering candidates, not proven sufficiency or live settings. Please tighten those table lines in the shared document; no need to reproduce the whole table in Slack. Microsoft contracts remain unverified gates. Hold unchanged.
+
+Dex

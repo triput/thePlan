@@ -1,0 +1,7 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of a future single-case NP-V-MS-NONEXPIRED native invocation (selected retirement successor v1), for review.
+# Against these prep configs (host launch_ready=false; runner-config launch_ready=false) the operator throws STOP before any child.
+# The copied docker-ops-config carries launch_ready/candidate_launch_ready_staged true as machine data only; that is never human authority.
+# Original native card A50C04FB is WITHHELD and is not reusable. A launch needs the focused fake PASS, a reviewed staging copy flipping the
+# host and runner gates (changes the launch-config hash below and the payload manifest), Dex's matching EXECUTE acknowledgement and
+# Trish's explicit one-shot approval on a new exact card. Omit -ReceiptPath.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 '9BE3C57D1F99E39AB93355A80B8A8D74C84C7CFCE6E6099B284FAA0303F414D9' -ExpectedDockerConfigSHA256 '29FE19C0922EB96325D264F4461317765E8CFE6DCB3975D92B1155A3578E224D' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'

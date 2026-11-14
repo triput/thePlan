@@ -1,0 +1,79 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\invoke_route_fake.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v1\\packet\\verify\\invoke_framing_ack_fake.py"
+index 960f43d..a0fe92c 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\invoke_route_fake.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v1\\packet\\verify\\invoke_framing_ack_fake.py"
+@@ -1,7 +1,7 @@
+-"""HELD route-verification supervisor, adapted from the passed T05 launcher.
++"""HELD framing-ack-verification supervisor, adapted from the passed T05 launcher.
+ 
+ Collection, bounded readers, owned-child retirement and exclusive receipt
+-creation are retained. Changes: role/result labels, exact nested route-oracle
++creation are retained. Changes: role/result labels, exact nested framing-ack-oracle
+ admission, removal of irrelevant framing close-counter fields, custody wording.
+ No application/vendor package imports or transport operations in this launcher.
+ 30s child collection + 5s kill/wait + two 5s reader joins = 45s nominal.
+@@ -21,10 +21,10 @@ from pathlib import Path
+ from typing import Any
+ 
+ HERE = Path(__file__).resolve().parent
+-CHECK = HERE / "check_route.py"
+-LAUNCHER = HERE / "invoke_route_fake.py"
+-RESULT = HERE / "FAKE-ROUTE-RESULT.json"
+-RECEIPT = HERE / "FAKE-ROUTE-LAUNCH-RECEIPT.json"
++CHECK = HERE / "check_framing_ack.py"
++LAUNCHER = HERE / "invoke_framing_ack_fake.py"
++RESULT = HERE / "FAKE-FRAMING-ACK-RESULT.json"
++RECEIPT = HERE / "FAKE-FRAMING-ACK-LAUNCH-RECEIPT.json"
+ EXPECTED = HERE / "EXPECTED.json"
+ INPUT_MANIFEST = HERE / "INPUT-MANIFEST.json"
+ PACKET_SUMS = HERE / "PACKET-SHA256SUMS.txt"
+@@ -62,11 +62,11 @@ PINNED_INTERPRETER_SHA256 = (
+ )
+ 
+ # Packet-file pins live in PACKET-SHA256SUMS.txt (launcher compares live bytes).
+-# INTENTIONALLY excludes invoke_route_fake.py — launcher must not
++# INTENTIONALLY excludes invoke_framing_ack_fake.py — launcher must not
+ # self-admit via a co-updated pin of its own final raw bytes (noncircular).
+ # Launcher bytes are admitted by OUTER-ADMISSION.json via admit_outer.py.
+ PACKET_PIN_NAMES = (
+-    "check_route.py",
++    "check_framing_ack.py",
+     "EXPECTED.json",
+     "INPUT-MANIFEST.json",
+ )
+@@ -204,7 +204,7 @@ def validate_result_file(
+     """Refuse PASS from exit0 alone.
+ 
+     Gates: fresh mtime, size before read, well-formed JSON, status PASS,
+-    class FAKE-ROUTE, exact wire IDs *and order*, every
++    class FAKE-FRAMING-ACK, exact wire IDs *and order*, every
+     expected exact_predicate (not broad allowed sets), inventory_error is None,
+     source_hashes_verified True, executed True. Malformed / missing /
+     mismatched inventory → refuse.
+@@ -234,7 +234,7 @@ def validate_result_file(
+         return False, sha256_file(RESULT), "malformed_result", read_bytes
+     if payload.get("status") != "PASS":
+         return False, sha256_file(RESULT), "result_status_not_pass", read_bytes
+-    if payload.get("class") != "FAKE-ROUTE":
++    if payload.get("class") != "FAKE-FRAMING-ACK":
+         return False, sha256_file(RESULT), "result_class_mismatch", read_bytes
+     if payload.get("inventory_error") is not None:
+         return False, sha256_file(RESULT), "inventory_error_present", read_bytes
+@@ -669,7 +669,7 @@ def main() -> int:
+         return _stop_receipt(pin_load_reason or "packet_pins_unavailable", **base_ids)
+ 
+     live_packet = {
+-        "check_route.py": check_sha256,
++        "check_framing_ack.py": check_sha256,
+         "EXPECTED.json": expected_sha256,
+         "INPUT-MANIFEST.json": manifest_sha256,
+     }
+@@ -994,7 +994,7 @@ def main() -> int:
+ 
+     receipt = {
+         "status": status,
+-        "class": "FAKE-ROUTE-LAUNCH",
++        "class": "FAKE-FRAMING-ACK-LAUNCH",
+         "interpreter": str(interpreter),
+         "interpreter_sha256": interpreter_sha256,
+         "pinned_interpreter_sha256": pinned_interpreter,

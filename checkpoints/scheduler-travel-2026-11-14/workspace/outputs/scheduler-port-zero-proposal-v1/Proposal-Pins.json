@@ -1,0 +1,11 @@
+{
+  "status": "UNAPPLIED_PROPOSAL",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\candidate\\app\\services\\covering_transport_policy.py",
+  "original_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+  "prospective_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+  "diff_sha256": "C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB",
+  "parser_source": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib/urllib/parse.py",
+  "parser_sha256": "7BFE4ADF0944AA4AA57AAAA1111BCDBB4B40546ED9CDA319EDED770B87625644",
+  "executed": false,
+  "application_files_written": false
+}

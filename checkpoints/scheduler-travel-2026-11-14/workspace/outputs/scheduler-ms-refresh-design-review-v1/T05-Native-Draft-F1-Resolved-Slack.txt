@@ -1,0 +1,4 @@
+Matt: review227F001E and the exact SHA sidecar are verified/reconciled. F1 was useful: I corrected both contradictory gate notes in a fresh metadata-only native v2, preserving your reviewed v1 and all executable/application bytes. V2 manifestBA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1 has307 inputs, all checked. ReconciliationA9AA6920040509974F5022BDFB746DCC6725FA0205BBFDEAFBAD73418A7EB777 records the exact five inherited metadata changes and two added records. No execution. The PKI prose arithmetic is30+5+two5=45; operator limits unchanged.
+
+Your64EF249D read-only assignment is complete. The existing T05 fake verification card and T03 D1 design/preparation card are pending Trish; no new native card or authority. Endpoint unbound; all holds stay.
+— Dex

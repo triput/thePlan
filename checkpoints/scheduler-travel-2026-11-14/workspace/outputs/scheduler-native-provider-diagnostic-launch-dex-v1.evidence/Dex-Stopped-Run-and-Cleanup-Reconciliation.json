@@ -1,0 +1,54 @@
+{
+  "at_utc": "2026-11-13T05:43:01.9266287Z",
+  "run_status": "STOP_ONE_SHOT_CONSUMED",
+  "authorization_question": "call_d12f776c5d344a65927f9f84cb7ef0df",
+  "host_receipt_sha256": "2734173205FAA2F84877FC5C6C665EB86D81528214D435D8C850FC94F5820382",
+  "outer_receipt_sha256": "74097C255428B828CF0CC9C4A2F715DA3DB2547E11771EFAEA2513241116195D",
+  "runner_stop": {
+    "cli_exit_code": 125,
+    "diagnostic": {
+      "exceptions": [
+        {
+          "frames": [
+            {
+              "line": 1521,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 1473,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 39,
+              "path": "fixture/np_integrated_runner.py"
+            },
+            {
+              "line": 1252,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 971,
+              "path": "fixture/np_runner_entry.py"
+            }
+          ],
+          "kind": "SuiteStop"
+        }
+      ],
+      "truncated": false,
+      "version": 1
+    },
+    "kind": "SuiteStop",
+    "status": "STOP"
+  },
+  "source_interpretation": "Exact frame line971 refuses response.status_code !=200. Actual status/body/cause not retained; do not infer them.",
+  "native_pass": false,
+  "automatic_success_cleanup_ran": false,
+  "read_only_reconciliation": "PASS exact frozen identities,isolation,mounts;DB running,runner exited125;two inspections retained",
+  "cleanup_authorization_question": "call_ed7bf69e746f49d8a60e6e015c6ab3d7",
+  "cleanup_status": "PASS9_CALLS_DB_EXIT0_BOTH_ABSENT",
+  "cleanup_receipt_sha256": "9AAB988ECE794ED976C4606D1F26139FCC325CB5A79550AF5D7CC3F5D5ADAC1B",
+  "postpins_verified": 274,
+  "retry_authorized": false,
+  "remaining_execution_authority": "none",
+  "endpoint": "unbound"
+}

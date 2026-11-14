@@ -1,0 +1,321 @@
+{
+  "kind": "Retirement control-flow evidence reuse with exact source boundaries",
+  "at_utc": "2026-11-12T05:21:31.7586985Z",
+  "result_path": "outputs/scheduler-t07-fake-v2/packet/fake-only-t07-retirement-verification/FAKE-T07-RESULT.json",
+  "result_sha256": "C543177837851662575F834C1BAD685075DF7919D499F4A1D25CFB9574479C49",
+  "start_marker": "        except CoveringReauthorizationRequired as exc:",
+  "end_marker_inclusive": "                raise unknown",
+  "source_lineage": [
+    {
+      "path": "outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_http_transport.py",
+      "whole_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "slice_bytes": 2361,
+      "slice_sha256": "85B2064DC2F6D0FD0A5D0973C924F8C57149247847344357B70A6E1621704072",
+      "excluded_terminal_text": "<LF><LF>"
+    },
+    {
+      "path": "outputs/scheduler-framing-ack-prep-v2/packet/candidate/app/services/covering_http_transport.py",
+      "whole_sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "slice_bytes": 2361,
+      "slice_sha256": "85B2064DC2F6D0FD0A5D0973C924F8C57149247847344357B70A6E1621704072",
+      "excluded_terminal_text": "<LF>"
+    }
+  ],
+  "byte_method": "Exact UTF8 statement region, no source newline normalization. Whole-file terminal LF count differs and is explicitly excluded after final statement.",
+  "reusable_controls": [
+    {
+      "id": "C-R02",
+      "recorded": {
+        "result": "PASS",
+        "detail": "C-R02 provenance",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": null,
+          "response_close": {
+            "class": "FakeResponseCloseError",
+            "packet_label": "EXC-FakeResponseCloseError"
+          },
+          "transport_close": null,
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": null,
+              "response_close": {
+                "class": "FakeResponseCloseError",
+                "packet_label": "EXC-FakeResponseCloseError"
+              },
+              "transport_close": null
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    },
+    {
+      "id": "C-R03",
+      "recorded": {
+        "result": "PASS",
+        "detail": "C-R03 provenance",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": null,
+          "response_close": null,
+          "transport_close": {
+            "class": "FakeTransportCloseError",
+            "packet_label": "EXC-FakeTransportCloseError"
+          },
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": null,
+              "response_close": null,
+              "transport_close": {
+                "class": "FakeTransportCloseError",
+                "packet_label": "EXC-FakeTransportCloseError"
+              }
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    },
+    {
+      "id": "C-R04",
+      "recorded": {
+        "result": "PASS",
+        "detail": "C-R04 provenance",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": {
+            "class": "JSONDecodeError",
+            "packet_label": "EXC-JSONDecodeError"
+          },
+          "response_close": {
+            "class": "FakeResponseCloseError",
+            "packet_label": "EXC-FakeResponseCloseError"
+          },
+          "transport_close": null,
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": {
+                "class": "JSONDecodeError",
+                "packet_label": "EXC-JSONDecodeError"
+              },
+              "response_close": {
+                "class": "FakeResponseCloseError",
+                "packet_label": "EXC-FakeResponseCloseError"
+              },
+              "transport_close": null
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    },
+    {
+      "id": "C-R05",
+      "recorded": {
+        "result": "PASS",
+        "detail": "C-R05 provenance",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": {
+            "class": "JSONDecodeError",
+            "packet_label": "EXC-JSONDecodeError"
+          },
+          "response_close": null,
+          "transport_close": {
+            "class": "FakeTransportCloseError",
+            "packet_label": "EXC-FakeTransportCloseError"
+          },
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": {
+                "class": "JSONDecodeError",
+                "packet_label": "EXC-JSONDecodeError"
+              },
+              "response_close": null,
+              "transport_close": {
+                "class": "FakeTransportCloseError",
+                "packet_label": "EXC-FakeTransportCloseError"
+              }
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    },
+    {
+      "id": "C-R06",
+      "recorded": {
+        "result": "PASS",
+        "detail": "C-R06 provenance",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": null,
+          "response_close": {
+            "class": "FakeResponseCloseError",
+            "packet_label": "EXC-FakeResponseCloseError"
+          },
+          "transport_close": {
+            "class": "FakeTransportCloseError",
+            "packet_label": "EXC-FakeTransportCloseError"
+          },
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": null,
+              "response_close": {
+                "class": "FakeResponseCloseError",
+                "packet_label": "EXC-FakeResponseCloseError"
+              },
+              "transport_close": {
+                "class": "FakeTransportCloseError",
+                "packet_label": "EXC-FakeTransportCloseError"
+              }
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    },
+    {
+      "id": "C-OUT-VE",
+      "recorded": {
+        "result": "PASS",
+        "detail": "ambient ValueError not attributed/mutated",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": null,
+          "response_close": null,
+          "transport_close": {
+            "class": "FakeTransportCloseError",
+            "packet_label": "EXC-FakeTransportCloseError"
+          },
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": null,
+              "response_close": null,
+              "transport_close": {
+                "class": "FakeTransportCloseError",
+                "packet_label": "EXC-FakeTransportCloseError"
+              }
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    },
+    {
+      "id": "C-OUT-UNK",
+      "recorded": {
+        "result": "PASS",
+        "detail": "new UNKNOWN; outer attrs unchanged",
+        "evidence": {
+          "class": "CoveringRootOutcomeUnknown",
+          "primary": null,
+          "response_close": null,
+          "transport_close": {
+            "class": "FakeTransportCloseError",
+            "packet_label": "EXC-FakeTransportCloseError"
+          },
+          "retirement_provenance_len": 3,
+          "prior_count": 0,
+          "occurrence_count": 1,
+          "occurrences": [
+            {
+              "primary": null,
+              "response_close": null,
+              "transport_close": {
+                "class": "FakeTransportCloseError",
+                "packet_label": "EXC-FakeTransportCloseError"
+              }
+            }
+          ],
+          "boundary_fields": [
+            "primary",
+            "response_close",
+            "transport_close",
+            "prior_retirement_provenance",
+            "retirement_provenance",
+            "retirement_occurrences"
+          ],
+          "max_occurrences": 8
+        }
+      }
+    }
+  ],
+  "scope": "Five existing cleanup combinations and ambient-primary isolation were executed with fakes against this identical exception/retirement statement region. No new run or full native close/TLS timing claim.",
+  "still_required": [
+    "Primary plus both close failures with the new framing primary path, not inferred from five existing combinations",
+    "Truthful final assembled source and dependency lineage after each merge",
+    "Actual socket/thread/TLS retirement at its required proof layer",
+    "All accepted T07 requirements remain; this overlay does not close the full family"
+  ],
+  "executed_in_this_review": false,
+  "goal_complete": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,10 @@
+{
+  "startedAtUtc": "2026-11-14T02:01:27.1910569Z",
+  "rawOutputDisclosed": false,
+  "operatorOutcome": "OPERATOR_RETURNED_SUCCESS",
+  "captureBytes": 0,
+  "exitCode": 0,
+  "remainingInvocations": 0,
+  "captureSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "finishedAtUtc": "2026-11-14T02:01:39.5559366Z"
+}

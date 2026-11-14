@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of the one future NP-V-MS-REFRESH fake-only invocation (v2 packet), for review.
+# Against this preparation admission (launch_authorized=false), the wrapper refuses before starting any child.
+# A run needs a separately reviewed staging copy that flips both launch_authorized booleans (new admission hash)
+# and Trish's explicit one-shot approval, including bounded termination of the one owned check child.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-ms-refresh-fake-prep-matt-v2\packet\Invoke-Fake.ps1' -AdmissionSHA256 'A544D39F2A4A010D96190E2146DDDE0AF87EC42DF19C23170E29C273CA3DC79D'

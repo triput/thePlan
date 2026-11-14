@@ -1,0 +1,9 @@
+{
+  "authorization": "Trish corrected Keep cleanup held answer: meant authorize exact-ID cleanup",
+  "scope": "reviewed exact-ID removal/absence; DB SIGINT/exit0/removal/absence",
+  "cleanup_authorized": true,
+  "retries": false,
+  "force": false,
+  "rerun_authorized": false,
+  "at_utc": "2026-11-13T01:34:17.8507232Z"
+}

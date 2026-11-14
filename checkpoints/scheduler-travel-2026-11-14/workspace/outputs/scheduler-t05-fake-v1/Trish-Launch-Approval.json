@@ -1,0 +1,19 @@
+{
+  "kind": "Trish one-shot T05 host-original fake verification authorization",
+  "at_utc": "2026-11-12T02:26:03.3443710Z",
+  "source": "request_user_input_async call_7040308c8d744651be76558b20f6c1ae item0",
+  "answer": "Authorize one T05 fake-only verification (Recommended)",
+  "command_sha256": "ECDF12EA35AFAA8DECAC200D28AE523D12ECDCED47672F1ACF987A4820FC4C94",
+  "admission_sha256": "226331136EA11F8BC25386DC9C5D8BA070D16360366F97E47AA77AC287B33577",
+  "attempts": 1,
+  "controls": 57,
+  "expected_unknown_ids": [
+    "F12a-INVALID-JSON-OAUTH",
+    "F12a-NONOBJECT-OAUTH",
+    "F12b-ENCODING-OAUTH"
+  ],
+  "owned_check_child_retirement_on_timeout_error_overflow": true,
+  "stop": "failure/mismatch/timeout/unexpected output or UNKNOWN",
+  "retries_repairs_extra_cleanup": false,
+  "endpoint": "unbound"
+}

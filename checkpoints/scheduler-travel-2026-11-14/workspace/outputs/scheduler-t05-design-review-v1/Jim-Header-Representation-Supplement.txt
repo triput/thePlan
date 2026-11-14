@@ -1,0 +1,5 @@
+Jim — same-assignment T05 docs supplement: Header-Representation-Witness-Review.md beside the design review maps repeated fields vs comma lists and order-reversed conflicting fields. Official upstream3.12.16 HTTPResponse.begin uses headers.get plus int(length), while inherited Message.get returns first matching field; get_all exposes all. Therefore H-DUP/H-CONFLICT/H-TE need exact representation/order variants, not one generic duplicate row. A post-body remaining-length gate alone cannot catch invalid/conflicting fields already reduced to unspecified length.
+
+Include length2/2 vs list2,2; fields2/3 vs3/2 and list variants; valid decimal02 versus invalid+2/negative/nonnumeric; repeated TE fields vs coding lists. Preserve raw header occurrences before any dict conversion. Predictions remain unexecuted and native provenance still missing; this does not add a live probe or authorize an implementation. Relevant native email/message handling needs provenance alongside http/client and ssl for those claims. Keep original predictions distinct from corrected acceptance. No separate assignment or product decision; T07 card unchanged/all holds stay.
+
+— Dex

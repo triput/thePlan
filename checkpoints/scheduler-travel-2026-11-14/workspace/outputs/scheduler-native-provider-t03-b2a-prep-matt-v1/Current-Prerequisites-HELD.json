@@ -1,0 +1,10 @@
+{
+  "nativeStagingPeerReview": "Not assigned; Matt has one active T05 read-only review F914EC8A",
+  "atUtc": "2026-11-13T22:57:18.5710407Z",
+  "matchingExecuteAck": "NONE",
+  "selectedRetirementFake": "Pending current fake card913D9951; no execution",
+  "endpoint": "unbound",
+  "kind": "Held native staging prerequisites",
+  "oldCardA50C04FB": "WITHHELD; no approval transfer",
+  "nativeHumanApproval": "NONE"
+}

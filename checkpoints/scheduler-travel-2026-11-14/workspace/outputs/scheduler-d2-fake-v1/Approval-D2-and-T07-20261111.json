@@ -1,0 +1,18 @@
+{
+  "at_utc": "2026-11-11T19:46:55.4726385Z",
+  "authority": "Trish in this chat",
+  "exact_user_text": "Approved for both D2 and T07",
+  "d2": {
+    "authorized_attempts": 1,
+    "wrapper_sha256": "B72C1CBCAC9229F47FBB5E7A88462BB3D0C02DC8FA6B3DE163EE8FFECB195CA7",
+    "admission_sha256": "ED2488835774A1510ADAF67A6C17758F4684BF6AF3814D7A6C68C4C275736D3D",
+    "scope": "Reviewed one-shot fake-only verification; stop failure/mismatch/timeout/unexpected output/UNKNOWN; no retries/repairs/extra cleanup"
+  },
+  "t07": {
+    "scope_sha256": "B1481463CA6993C6C4C884485237E5DD2C308B7578A796DE5DE89565BDD46C83",
+    "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+    "scope": "Fresh-copy three-file implementation and held fake-verification authoring only; no execution"
+  },
+  "endpoint": "unbound",
+  "other_holds": "retained"
+}

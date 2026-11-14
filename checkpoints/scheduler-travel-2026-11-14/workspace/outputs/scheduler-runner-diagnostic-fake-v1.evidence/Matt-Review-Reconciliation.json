@@ -1,0 +1,18 @@
+{
+  "at_utc": "2026-11-13T03:04:18.3406026Z",
+  "status": "INDEPENDENT_TRACES_RECONCILED",
+  "matt_findings_sha256": "5AC8CBA5A0F53DD6BCEE02E4F549CF88BB46B33C5CA25F2863036031F3A17D52",
+  "matt_worked_solo": true,
+  "exact_stderr_match": true,
+  "checker_defect": "fallback_removed anchor includes terminal trailing comment excluded by AST extraction",
+  "proposed_diff_sha256": "41E0506D38484A176FB7039C1B0373E62BC97142E87369AECA921E41B48601F0",
+  "prospective_checker_sha256": "BA1C333D5109D38569B6784332B1291B1035EF88737D774D303F34F88D6C4C7A",
+  "inferred_control_progress": "Ordering supports controls1-13 and first mutant completed before failure; no durable result, so no verified PASS count",
+  "qualifications": [
+    "Matt evidence-directory count reflects his read time; Dex subsequently added offline trace/proposal artifacts. Existing receipt hashes remain the authority.",
+    "Matt candidate line numbering differs by one from current rg output; exact pinned bytes and anchor identify the change."
+  ],
+  "source_repair_authorized": false,
+  "execution_authorized": false,
+  "next": "Trish fresh-copy checker-only preparation decision; no rerun"
+}

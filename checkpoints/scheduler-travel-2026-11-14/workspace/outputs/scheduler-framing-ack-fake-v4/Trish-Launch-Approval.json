@@ -1,0 +1,11 @@
+{
+  "question_call": "call_5d9900df08de4a0ca4c63bb8742cb313",
+  "answer": "Authorize one framing verification (Recommended)",
+  "at_utc": "2026-11-12T06:08:30.0353836Z",
+  "command_sha256": "C2D8D18660B734EB3A6FAC9BDFACC1847C86A007C11BC81ECBEFFD1EE11FC66C",
+  "admission_sha256": "4BE04F87B1AD858C05DCA789DEF05B602E80DF33274E7D19A9BB4E985B865D85",
+  "one_shot": true,
+  "retry_authorized": false,
+  "port_run_authorized": false,
+  "endpoint": "unbound"
+}

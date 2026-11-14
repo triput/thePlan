@@ -1,0 +1,11 @@
+{
+  "status": "PROPOSAL_ONLY_NOT_APPLIED",
+  "source_sha256": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8",
+  "prospective_sha256": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+  "diff_sha256": "488CBC110A225F7431AC8B7DA235AD2C1012AB5A274220958FFF98D312005A46",
+  "change": "unique in-memory artifact stem on second port probe",
+  "changed_lines": 1,
+  "assertions_and_39_ids": "unchanged",
+  "fixture_sources": "unchanged",
+  "execution_or_rerun": false
+}

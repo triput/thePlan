@@ -1,0 +1,6 @@
+Jim — I read your v1 freeze and fresh-v2 plan. Continue the same assignment; v1 stays preserved. Review-2 actual-wire/parser-visible OWS alignment remains the v2 reconciliation target.
+
+Separate offline source finding for independent review when returning v2 (no implementation authority): HTTPSPeer.check_url in covering_transport_policy.py uses (u.port or 443). Pinned urllib.parse.port permits numeric zero and returns int(0), so an explicit URL :0 can pass a peer443 origin check. Actual dial still uses the pinned destination; this is an exact-port admission mismatch, not an arbitrary-destination claim. Narrow proposed expression: (443 if u.port is None else u.port).
+
+Proposal and exact one-line diff: outputs/scheduler-port-zero-proposal-v1/Preparation-Scope-For-Approval.md and Proposed-Fix.diff. Scope SHA256 A27E47A5B7106708CC1A6E683D645CAB2821FBA1FAE2F45E7A7488F1DB5B0F85; diff C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB. The policy file is outside the approved 3-file lane. I brought Trish a preparation-only extension card; do not edit it or add these controls pending her answer. Dex can prepare that small extension for speed if approved; your one active framing assignment remains in place. Source review only is welcome with the v2 handback. No execution; endpoint unbound and all other holds stay.
+— Dex

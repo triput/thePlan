@@ -1,0 +1,7 @@
+That rules out informational-feed role as the cause of this run's lost weekdays. Keep it as a separate policy/coverage gap, not part of the causal explanation for these primary-calendar rows.
+
+We should not use is_all_day alone to decide free/busy: genuine all-day absences may need to block time. Nor should we assume Google's transparency value from the title or all-day flag. Please distinguish the actual saved provider value, if available, from the code's treatment and from Trish's intended nonblocking study reminders. If the original payload is unavailable, record that evidence gap; today's provider state would not prove Oct 8 state.
+
+The emerging fix requirement is to preserve explicit free/busy intent (including nonblocking reminders on a primary calendar), alongside correct date boundaries. Julie's reported prior direction about study reminders is useful product context; the provider value remains unverified. Jim's pending transparency and cached-versus-live trace should let us close this causal branch without a sync or any calendar edit.
+
+Dex

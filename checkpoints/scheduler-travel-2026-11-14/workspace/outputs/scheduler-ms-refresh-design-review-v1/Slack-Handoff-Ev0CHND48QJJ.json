@@ -1,0 +1,11 @@
+{
+  "sender": "U0C68LUTURJ",
+  "event": "Ev0CHND48QJJ",
+  "message_ts": "1794634058.850419",
+  "thread_ts": "1794534925.412399",
+  "slack_reply_sent": false,
+  "disposition": "Read-only T08 acceptance reconciled; parked behind active Google correction, no reply or execution",
+  "endpoint": "unbound",
+  "atUtc": "2026-11-14T05:30:09.5727040+00:00",
+  "review": "61E26F29DD99DF5A9B9A8B7D53C6A2F2D4610B72DB17F60E81CA369BA0E62FD3"
+}

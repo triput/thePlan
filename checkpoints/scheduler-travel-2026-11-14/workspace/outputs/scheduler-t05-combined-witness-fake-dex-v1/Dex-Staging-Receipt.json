@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-11-13T17:34:42.1914486Z",
+  "source_manifest_sha256": "7BA33B54D525A6CA9FC77BCEA805F35D786CEE5DC409CD8D885FCF0C1EC87052",
+  "source_inputs": 13,
+  "data_delta": "two admission flags and dependent outer hash only;executable/subjects/oracles unchanged",
+  "outer_sha256": "4BD7DDC0D495019F79EA0F91C9C196A4E4F084EA2FBE63A06A780C6B6241A3A8",
+  "admission_sha256": "D07EE140C235B0E0024ECDFD0434C7E33BB174F6A41200D4C3F813B5A7FD632A",
+  "command_sha256": "F03685858A7F098405E4A1726B52A9A20CE4B47F7DCF5211ECDF6D6B2EFEDB3E",
+  "human_execution_authorized": false,
+  "executed": false,
+  "endpoint": "unbound"
+}

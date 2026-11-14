@@ -1,0 +1,149 @@
+{
+  "packet": "post-native-t07-source-fake-prep-jim-v6-2026-11-11",
+  "kind": "held-fake-only-t07-retirement-harness",
+  "byte_semantics": "utf-8 lf",
+  "execution_authorized": false,
+  "held": true,
+  "launch_ready": false,
+  "executed_in_preparation": false,
+  "parent_packet": "post-native-t07-source-fake-prep-jim-v2-2026-11-11",
+  "supersedes_v1_tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "design_tip_sha256": "94362F46EE6912A9A6F2A7CB64A673E51A2037D145A1FB70721F373FE2B7AA91",
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "scope_sha256": "B1481463CA6993C6C4C884485237E5DD2C308B7578A796DE5DE89565BDD46C83",
+  "source_extraction": {
+    "algorithm": "CRLF-aware AST extract: hash raw pinned bytes; record newline_kind (lf|crlf|mixed|none); decode UTF-8; normalize to LF only for ast.parse; never refuse solely because CR present; required names FAIL CLOSED; synthetic ModuleType in sys.modules; coherent fake deps; no app imports",
+    "sources": {
+      "workspace/apps/api/app/services/covering_transport_policy.py": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "workspace/apps/api/app/services/covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "workspace/apps/api/app/services/covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+      "workspace/apps/api/app/services/covering_target_transaction.py": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "workspace/apps/api/app/services/covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "workspace/apps/api/app/services/covering_role_admission.py": "79A95035953C7280EFD6F48683A80E49422C4C4BEBF39E0E515EA2629860D4BE",
+      "bases/app/services/covering_http_transport.py": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "bases/app/services/covering_joined_https.py": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "bases/app/services/covering_refresh_import.py": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0"
+    },
+    "newline_kinds": {
+      "workspace/apps/api/app/services/covering_transport_policy.py": "lf",
+      "workspace/apps/api/app/services/covering_http_transport.py": "lf",
+      "workspace/apps/api/app/services/covering_joined_https.py": "lf",
+      "workspace/apps/api/app/services/covering_target_transaction.py": "lf",
+      "workspace/apps/api/app/services/covering_refresh_import.py": "lf",
+      "workspace/apps/api/app/services/covering_role_admission.py": "crlf",
+      "bases/app/services/covering_http_transport.py": "lf",
+      "bases/app/services/covering_joined_https.py": "lf",
+      "bases/app/services/covering_refresh_import.py": "crlf"
+    },
+    "extracted_symbols": {
+      "workspace/apps/api/app/services/covering_http_transport.py": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "workspace/apps/api/app/services/covering_joined_https.py": [
+        "JoinedTLS"
+      ],
+      "workspace/apps/api/app/services/covering_refresh_import.py": [
+        "import_covering_subscription_cache.pull_try_except",
+        "prepare_requested_subscription_for_covering.identity_oserror_try"
+      ],
+      "workspace/apps/api/app/services/covering_role_admission.py": [
+        "CoveringRole",
+        "CoveringRoleAdmission"
+      ]
+    }
+  },
+  "stdlib_provenance": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "lib_root": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib",
+    "modules": {
+      "urllib/parse.py": "7BFE4ADF0944AA4AA57AAAA1111BCDBB4B40546ED9CDA319EDED770B87625644",
+      "ipaddress.py": "B7CB21107E90A9922B0AB8F8BA01444823693075B8BB07620B5E80267F46F203",
+      "http/client.py": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+      "json/__init__.py": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7",
+      "dataclasses.py": "EABCB7B9EDB1073172915E871E7773FD44054E2A0AB33D1977C69E653946BA5C",
+      "ast.py": "60CA452CFAC189E51C7C2A582C1240C28FCCD12964221BC8D10462F2EE74DE18",
+      "hashlib.py": "158B8E4D4F5FCECEF24B840AF0BEE5632B27F948C74FAF0810CC598B508E4F97",
+      "io.py": "F54831C68F1D335B8796C5FFDC4296D48DFE6A04150A92B69696585B4C275754",
+      "types.py": "C762D2321A143AA9A7EAEB30F8ED8042C10A3E98E4FA678E4F659E2136BF85B5",
+      "threading.py": "06BCB6BD7EA8BCBBD99703B0A89FE8190800949F0E79ED616862B5234A1E4B9B",
+      "selectors.py": "C33AE11C98B22294D106D21C60F853025EEF0FBE86F4B534D35761DFA0B825CF",
+      "ssl.py": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E",
+      "socket.py": "5AD9B5308644BD64CA7C10B3487C25D1DF8F745E2BC0BA416B3D6F4D4EDE0E10"
+    }
+  },
+  "does_not_import_app": true,
+  "does_not_open_real_sockets": true,
+  "pinned_interpreter": {
+    "path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+  },
+  "held_launcher_limits": {
+    "one_pinned_python_invocation": true,
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5,
+    "reader_join_seconds_each": 5,
+    "capture_stdout_bytes": 65536,
+    "capture_stderr_bytes": 65536,
+    "capture_result_bytes": 262144
+  },
+  "named_expected_controls": [
+    "C-R01",
+    "C-R02",
+    "C-R03",
+    "C-R04",
+    "C-R05",
+    "C-R06",
+    "C-R07",
+    "C-R08",
+    "C-R09",
+    "C-R10",
+    "C-R11",
+    "C-R12",
+    "C-OUT-VE",
+    "C-OUT-UNK",
+    "C-UNK-PULL",
+    "C-CALLER-EVENT",
+    "C-CALLER-OAUTH",
+    "C-CALLER-IDENTITY",
+    "C-NO-LATER-ADMISSION",
+    "C-POS-KNOWN-REAUTH",
+    "C-PROV-BOUNDARY-ACCEPT",
+    "C-PROV-BOUNDARY-REJECT",
+    "O-R02",
+    "O-R03-EV",
+    "O-R04",
+    "O-R05",
+    "O-R06",
+    "O-R08",
+    "O-UNK-PULL",
+    "O-ID-OS",
+    "O-R11",
+    "O-CALLER-EVENT",
+    "M-SKIP-SECOND-CLOSE",
+    "M-AMBIENT-EXC-INFO",
+    "M-MUTATE-OUTER-UNKNOWN",
+    "M-ALLOW-LATER",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "named_expected_control_count": 41,
+  "functional_control_count": 36,
+  "c_out_ve_present": true,
+  "c_out_unk_present": true,
+  "crlf_aware_extract": true,
+  "candidate_resulting_hashes": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "invoke_verification_ps1_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "d2_invoke_verification_ps1_sha256": "B72C1CBCAC9229F47FBB5E7A88462BB3D0C02DC8FA6B3DE163EE8FFECB195CA7",
+  "supersedes_v3_tip_sha256": "A6F1A2C395F8655E676F39B6553DF77BCD125F021DB585F0CFFEEC93440ED89F",
+  "supersedes_v4_tip_sha256": "DA6BCB39A5FB48F9D6449D6992BCBCC3A2EA57F5298E0C015D798642FA348B3D",
+  "supersedes_v5_tip_sha256": "0EF2EFD5AC028D5CCBDADB974C6632F090DF526788467079483D79799B834685"
+}

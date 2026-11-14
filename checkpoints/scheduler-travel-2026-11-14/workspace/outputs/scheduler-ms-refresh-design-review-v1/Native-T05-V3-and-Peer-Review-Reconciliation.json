@@ -1,0 +1,22 @@
+{
+  "kind": "Native T05 v3 review and peer-close v2 review reconciled",
+  "atUtc": "2026-11-13T19:47:50.2513632Z",
+  "event": "Ev0CHNPW4DTK",
+  "handoffSha256": "BD24566348CD2A64F094826C25486F1916B965F496A70DC07A603A31688360EF",
+  "mattPeerReviewSha256": "831FED1E59D25C89600D443F30263D5A35B6E4ABAC0F81D344A9A9872FB90C1C",
+  "reviewSidecarPinsVerified": 17,
+  "nativeInputsVerified": 292,
+  "fakeSourceInputsVerified": 33,
+  "staticAcceptance": "qualified",
+  "staticAdmissionDefect": "Two unescaped Windows paths; original and incomplete copy preserved, exact data correction in fresh v2",
+  "staging": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t05-fake-dex-v2",
+  "stagingInputs": 37,
+  "stagingManifestSha256": "EB3D256C12D245B1EB931BC80FBF632C342DF249FFE816B86F4272C42655D04E",
+  "peerCloseV2": "independently reviewed, unexecuted",
+  "combinedWitness": "PASS 11 controls /40 predicates independently corroborated",
+  "merge": "PASS 9 controls /33 predicates independently corroborated",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound",
+  "blockers": 0,
+  "nativeProof": false
+}

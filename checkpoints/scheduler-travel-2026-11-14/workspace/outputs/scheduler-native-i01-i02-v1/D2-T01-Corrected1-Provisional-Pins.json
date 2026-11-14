@@ -1,0 +1,71 @@
+{
+  "checked_at_utc": "2026-11-11T09:09:06.0730682Z",
+  "mode": "static provisional pin review",
+  "checks": [
+    {
+      "path": "Seam-Inventory.md",
+      "expected": "08ABC99681BBDBA9439343BE583A1DFA92388A37822F096678A6A641B46860D5",
+      "actual": "08ABC99681BBDBA9439343BE583A1DFA92388A37822F096678A6A641B46860D5",
+      "matches": true
+    },
+    {
+      "path": "Proposed-Fix.diff",
+      "expected": "2B7FACFF8A40A032248B669E219EEDA19CE720413048E8FB26008A88E19B2C5B",
+      "actual": "2B7FACFF8A40A032248B669E219EEDA19CE720413048E8FB26008A88E19B2C5B",
+      "matches": true
+    },
+    {
+      "path": "Proposal-Pins.json",
+      "expected": "4EAFCC977F396543A801750846707D1D81616426E70B3E010A84EEEA284271AC",
+      "actual": "4EAFCC977F396543A801750846707D1D81616426E70B3E010A84EEEA284271AC",
+      "matches": true
+    },
+    {
+      "path": "Controls-Plan.md",
+      "expected": "B11CC645C88D67C4781F66F33888B4AAC0A556BD1E0D3D9A5EBFC66DB8D533D9",
+      "actual": "B11CC645C88D67C4781F66F33888B4AAC0A556BD1E0D3D9A5EBFC66DB8D533D9",
+      "matches": true
+    },
+    {
+      "path": "Wire-Path-Outcomes.md",
+      "expected": "CCD608A1F4D11DABCE7FBA218F03158E7D2CCCF01BDD37D3DCEABFDBFAF95E51",
+      "actual": "CCD608A1F4D11DABCE7FBA218F03158E7D2CCCF01BDD37D3DCEABFDBFAF95E51",
+      "matches": true
+    },
+    {
+      "path": "Compatibility-Flags.md",
+      "expected": "190C14CAC198C3F382686CB5E201F7CA6E0B5485F0B22B7BD7EEB3F2EBB66B41",
+      "actual": "190C14CAC198C3F382686CB5E201F7CA6E0B5485F0B22B7BD7EEB3F2EBB66B41",
+      "matches": true
+    },
+    {
+      "path": "Preparation-Scope-Draft.md",
+      "expected": "E20E769311B45D97E29EC8F40624DDF5B9EE6303A602BD628408D620D6AF81AC",
+      "actual": "E20E769311B45D97E29EC8F40624DDF5B9EE6303A602BD628408D620D6AF81AC",
+      "matches": true
+    },
+    {
+      "path": "INPUT-MANIFEST.json",
+      "expected": "574AD66DC3A66AD7E16853A476B8E4706F41B9F653FDF23B3685D7D779F5E7DF",
+      "actual": "574AD66DC3A66AD7E16853A476B8E4706F41B9F653FDF23B3685D7D779F5E7DF",
+      "matches": true
+    },
+    {
+      "path": "HANDBACK.txt",
+      "expected": "D7857A3BD4009B230AF6A9F150562A6A0AA35760C0CA5D9DD6C6C7893C3A416B",
+      "actual": "D7857A3BD4009B230AF6A9F150562A6A0AA35760C0CA5D9DD6C6C7893C3A416B",
+      "matches": true
+    },
+    {
+      "path": "TIP-FREEZE.json",
+      "expected": "481EBDB5F188F5AD84A0A7F1D952C5EC3EB72D64CA6DD2FBA1DC55B2DC73FCFC",
+      "actual": "481EBDB5F188F5AD84A0A7F1D952C5EC3EB72D64CA6DD2FBA1DC55B2DC73FCFC",
+      "matches": true
+    }
+  ],
+  "count": 10,
+  "mismatch_count": 0,
+  "disposition": "Under review; corrected1 frozen grammar still uses literal-segment heuristic; provisional feedback sent at Slack1794388035.048199",
+  "execution": false,
+  "source_applied": false
+}

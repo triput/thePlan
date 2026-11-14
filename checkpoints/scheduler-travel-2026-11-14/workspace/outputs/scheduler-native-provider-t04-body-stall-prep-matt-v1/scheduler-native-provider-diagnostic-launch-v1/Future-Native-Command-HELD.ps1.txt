@@ -1,0 +1,6 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of the one future native diagnostic invocation of this packet, for review.
+# Against these prep configs (host launch_ready=false), the operator throws STOP before starting any child process or Docker command.
+# A real launch needs a reviewed staging change that sets host launch_ready=true (which changes the launch-config hash below),
+# Dex's matching EXECUTE acknowledgement and Trish's explicit one-shot approval of the final exact hashes.
+# Omit -ReceiptPath: the default receipt must derive under the sibling evidence root.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 'A7535D803B7351DFD2B814880698BC7509437C8697D302C77F42EE584E03CE43' -ExpectedDockerConfigSHA256 'B930542A56EA47C3EDA65B04A9C958D8CE67103AE7D92635B8D08E34B80E6508' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'

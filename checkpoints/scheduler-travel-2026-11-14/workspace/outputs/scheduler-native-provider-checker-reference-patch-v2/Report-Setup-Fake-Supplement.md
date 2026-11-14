@@ -1,0 +1,7 @@
+# Superseding checker contribution: report setup dependencies
+
+V2 retains the v1 executable-reference guard and four declared controls. It additionally supplies the two named fake setup dependencies now called by the selected v5 main: admit_isolated_import_bootstrap and prepare_provider_pki_private_dir. The old report-producer environment extracts only RunnerEntryHeld, BoundedOutput and main, so neither setup function exists in that environment. Without explicit fakes, the report test observes NameError before its suite/report boundary. This finding comes from the function calls and environment dictionary, not from a run.
+
+Both new bindings are memory-only no-op/value fakes. They do not admit real imports, create a directory, generate certificates, start children or prove either setup contract. This keeps the existing report-producer/consumer tests within their declared report-boundary scope while Jim authors/tests actual setup separately. If the final selected main changes its named dependencies or argument shape, reconcile this explicit fake environment with that source before freezing.
+
+V1 source/evidence is preserved. V2 is a fresh contribution, not a repair to executed evidence. Regenerate final checker/expected/admission hashes when integrating. No imports, AST calls, compilation, helper invocation or verification occurred during authoring. All execution holds remain in place.

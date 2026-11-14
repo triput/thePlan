@@ -1,0 +1,16 @@
+{
+  "prepared_at_utc": "2026-11-13T05:44:21.7067004Z",
+  "status": "STAGED_HELD_NOT_EXECUTED",
+  "source_manifest_sha256": "266C2904E73ABA7432331570F5AABA6E2434E7B01AC87B59A9C46DD219017CF8",
+  "source_input_count": 21,
+  "packet_pin_count": 18,
+  "runtime_pin_count": 1,
+  "command_sha256": "E7473EEC6A99FDB41FCCC03C88857D6596A0FC1CE138D03648CA98304C044914",
+  "admission_sha256": "EB3CD87D63CC14FB9E2E2C5E16859533FC10FA5D12B300BB63CBF990320C1F50",
+  "outer_admission_sha256": "0CD0706B9CD62B1F8697158547C0DF633DD2BAAD3C140D1BB0BFC6D62CE03645",
+  "checker_sha256": "6F4D83C04640E596A806E19FFCECDA026662CEB51B6B138C3C79EFBDD1FD2971",
+  "subject_oracle_executable_changes": 0,
+  "data_changes": "Two admissions only:machine flags,truthful notes,dependentOUTER pin",
+  "human_execution_authorized": false,
+  "endpoint": "unbound"
+}

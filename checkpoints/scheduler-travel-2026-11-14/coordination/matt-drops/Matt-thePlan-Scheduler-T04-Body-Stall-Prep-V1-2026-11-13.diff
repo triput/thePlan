@@ -1,0 +1,1102 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -62,6 +62,7 @@
+     "NP-V-MS-INVALID",
+     "NP-T05-ORDERLY-CLOSE",
+     "NP-T05-ABRUPT-TRUNCATION",
++    "NP-T04-BODY-STALL",
+ })
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+@@ -2728,6 +2729,791 @@
+     )
+ 
+ 
++# NP-T04-BODY-STALL (Trish-approved design/preparation decision 4F2F3B3F; Dex F465A4E2).
++# Case-specific peer life: admitted 240 s for this case ONLY; every other case keeps
++# PEER_SECONDS_DEFAULT (120). Agreement with runner-config is checked before start.
++T04_BODY_STALL_PEER_SECONDS = 240
++T04_BODY_STALL_PEER_SECONDS_CONFIG_KEY = "t04_body_stall_peer_seconds"
++# Production work allowance mirrored for clock-origin derivation only (budget l.23-24:
++# request = started + 240, work = started + 210 from one `started` value). Never applied.
++T04_BODY_STALL_PRODUCTION_WORK_SECONDS = 210.0
++T04_BODY_STALL_DEADLINE_OUTCOME = (
++    "exception",
++    "CoveringDeadlineExceeded",
++    "app.services.covering_request_budget",
++)
++T04_BODY_STALL_CLIENT_PURPOSES = [("GET", "identity"), ("GET", "identity"), ("GET", "event")]
++T04_BODY_STALL_TOKEN_TERMINAL_ROWS = [
++    {"terminal": "ROLLBACK_ACKNOWLEDGED", "token_rollback_ack": True, "commit_requested": False},
++]
++T04_BODY_STALL_TERMINAL_OBSERVER_ROWS = [
++    {"observer": "CoveringORMConnection.token_terminal", "terminal": None},
++]
++T04_BODY_STALL_PARENT_TERMINAL_ROWS = [
++    {"terminal": "ROLLBACK_ACKNOWLEDGED", "commit_requested": False},
++]
++T04_BODY_STALL_FAILURE_CAUSE = "covering_provider_read_failed"
++T04_BODY_STALL_DEADLINE_CODE = "CALENDAR_REFRESH_DEADLINE_EXCEEDED"
++T04_BODY_STALL_ACTION_SUMMARY = {
++    "requested": 2,
++    "preflight_rejected": 1,
++    "import_attempted": 1,
++    "import_ok": 0,
++    "import_failed": 1,
++}
++T04_BODY_STALL_KNOWN_REFUSAL = "cleanup_deadline_exceeded"
++
++
++def _t04_body_stall_peer_seconds_from_config() -> int:
++    """Admitted case-specific peer life; must equal the frozen constant exactly."""
++    from np_suite import SuiteStop
++
++    data = json.loads((ROOT / RUNNER_CONFIG_NAME).read_text(encoding="utf-8"))
++    value = data.get(T04_BODY_STALL_PEER_SECONDS_CONFIG_KEY)
++    if type(value) is not int or value != T04_BODY_STALL_PEER_SECONDS:
++        raise SuiteStop("t04 body-stall peer seconds disagree with runner-config")
++    if T04_BODY_STALL_PEER_SECONDS == PEER_SECONDS_DEFAULT:
++        raise SuiteStop("t04 body-stall must not reuse the default peer life")
++    return value
++
++
++def _t04_body_stall_exact_query(window_start: datetime, window_end: datetime) -> str:
++    """Exact calendarView wire query for the first event GET, derived from the seed window.
++
++    Fixture derivation (window -> UTC Z strings + $top=100) is cross-checked against the
++    UNCHANGED production builder microsoft_calendar_view_list_params (read-only pinned
++    call, no network); the wire form uses the same urlencode(..., doseq=True) as
++    CoveringHTTP.request. Any disagreement STOPs before the peer starts.
++    """
++    from urllib.parse import urlencode
++
++    from np_suite import SuiteStop
++    from app.services import microsoft_calendar as production_ms
++    from app.services.covering_refresh_window import effective_covering_pull_window
++
++    window = effective_covering_pull_window(window_start, window_end)
++
++    def _utc_z(value: datetime) -> str:
++        if value.tzinfo is None:
++            raise SuiteStop("t04 body-stall window must be timezone-aware")
++        return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
++
++    fixture_params = {
++        "startDateTime": _utc_z(window.effective_start),
++        "endDateTime": _utc_z(window.effective_end),
++        "$top": "100",
++    }
++    production_params = production_ms.microsoft_calendar_view_list_params(
++        time_min=window.effective_start, time_max=window.effective_end
++    )
++    if list(production_params.items()) != list(fixture_params.items()):
++        raise SuiteStop("t04 body-stall query derivation disagrees with production builder")
++    return urlencode(production_params, doseq=True)
++
++
++def _install_t04_parent_and_target_observers(
++    parent_terminals: list[dict[str, Any]],
++    target_runs: list[dict[str, Any]],
++) -> Callable[[], None]:
++    """Observe PARENT finish_root and CoveringTargetTransaction.run for this POST only.
++
++    Same-return/same-exception wrappers: each delegates to the unchanged production
++    method with identical arguments, records finite typed fields, and returns the
++    identical object (or re-raises the identical exception with a bare raise).
++    Production modules are not edited; the returned callable restores both exactly.
++    """
++    from app.services.covering_parent_adapter import CoveringParentAdapter
++    from app.services.covering_target_transaction import CoveringTargetTransaction
++
++    real_finish_root = CoveringParentAdapter.finish_root
++    real_run = CoveringTargetTransaction.run
++
++    def observed_finish_root(self, *, commit):
++        try:
++            outcome = real_finish_root(self, commit=commit)
++        except BaseException as exc:
++            parent_terminals.append(
++                {"raised": type(exc).__name__, "module": type(exc).__module__, "commit_requested": bool(commit)}
++            )
++            raise
++        parent_terminals.append(
++            {
++                "terminal": outcome.name if hasattr(outcome, "name") else str(outcome),
++                "commit_requested": bool(commit),
++            }
++        )
++        return outcome
++
++    def observed_run(self, **kwargs):
++        try:
++            returned = real_run(self, **kwargs)
++        except BaseException as exc:
++            target_runs.append({"raised": type(exc).__name__, "module": type(exc).__module__})
++            raise
++        result, failure = returned
++        target_runs.append(
++            {
++                "subscription_id": str(result.subscription_id),
++                "outcome": result.outcome,
++                "cause": result.cause,
++                "failure_present": failure is not None,
++                "failure_persisted": None if failure is None else bool(failure.persisted),
++                "failure_refused": None if failure is None else bool(failure.refused),
++                "failure_refuse_reason": None if failure is None else failure.refuse_reason,
++                "failure_cause": None if failure is None else failure.cause,
++            }
++        )
++        return returned
++
++    def restore() -> None:
++        CoveringParentAdapter.finish_root = real_finish_root  # type: ignore[method-assign]
++        CoveringTargetTransaction.run = real_run  # type: ignore[method-assign]
++
++    CoveringParentAdapter.finish_root = observed_finish_root  # type: ignore[method-assign]
++    CoveringTargetTransaction.run = observed_run  # type: ignore[method-assign]
++    return restore
++
++
++def _t04_measure_failure_columns(db: Any, *, subscription_ids: list[UUID]) -> dict[str, dict[str, Any]]:
++    """Fresh persisted read of the two failure-recorder columns only (no credentials)."""
++    from app.models import CalendarSubscription
++
++    out: dict[str, dict[str, Any]] = {}
++    for sub_id in subscription_ids:
++        sub = db.get(CalendarSubscription, sub_id)
++        if sub is None:
++            raise RuntimeError("subscription missing for failure-column measurement")
++        out[str(sub_id)] = {
++            "failure_recorded": sub.coverage_last_failure_at is not None,
++            "failure_cause": sub.coverage_last_failure_cause,
++        }
++    return out
++
++
++def _t04_finite_instant(name: str, value: Any) -> float:
++    import math
++
++    from np_suite import SuiteStop
++
++    if type(value) is not float or not math.isfinite(value):
++        raise SuiteStop(f"t04 body-stall instant missing or non-finite:{name}")
++    return value
++
++
++def _t04_body_stall_timing(
++    *,
++    peer_state: dict[str, Any],
++    work_deadline: Any,
++    request_deadline: Any,
++    client_exception_at: Any,
++    response_at: Any,
++    retire_called_at: Any,
++) -> dict[str, Any]:
++    """Finite same-process monotonic predicate (decision 4F2F3B3F); no epsilon.
++
++    P0<B0; W=B0+210<P_dl=P0+240; S_in<W; W<=X_t<T_resp<T_ret<S_out<P_dl; exit retired.
++    B0 is derived as W-210 (one `started` value sets both budget deadlines).
++    """
++    from np_suite import SuiteStop
++
++    p0 = _t04_finite_instant("peer_started_at", peer_state.get("peer_started_at"))
++    p_dl = _t04_finite_instant("peer_deadline_at", peer_state.get("peer_deadline_at"))
++    s_in = _t04_finite_instant("stall_entered_at", peer_state.get("stall_entered_at"))
++    s_out = _t04_finite_instant("stall_exit_at", peer_state.get("stall_exit_at"))
++    w = _t04_finite_instant("work_deadline", work_deadline)
++    r = _t04_finite_instant("request_deadline", request_deadline)
++    x_t = _t04_finite_instant("client_exception_at", client_exception_at)
++    t_resp = _t04_finite_instant("response_at", response_at)
++    t_ret = _t04_finite_instant("retire_called_at", retire_called_at)
++    b0 = w - T04_BODY_STALL_PRODUCTION_WORK_SECONDS
++    reason = peer_state.get("stall_exit_reason")
++    if reason != "retired":
++        raise SuiteStop(f"t04 body-stall exit reason not retired:{reason!r}")
++    if not p0 < b0:
++        raise SuiteStop("t04 timing: peer did not start before the budget")
++    if not w < p_dl:
++        raise SuiteStop("t04 timing: peer deadline not after work deadline")
++    if not s_in < w:
++        raise SuiteStop("t04 timing: stall not entered before work deadline")
++    if not w <= x_t:
++        raise SuiteStop("t04 timing: client exception before work deadline")
++    if not x_t < t_resp < t_ret < s_out < p_dl:
++        raise SuiteStop("t04 timing: post-deadline order violated")
++    return {
++        "clock": "time.monotonic same process",
++        "peer_started_at": p0,
++        "peer_deadline_at": p_dl,
++        "budget_started_at_derived": b0,
++        "work_deadline": w,
++        "request_deadline": r,
++        "stall_entered_at": s_in,
++        "client_exception_at": x_t,
++        "response_at": t_resp,
++        "retire_called_at": t_ret,
++        "stall_exit_at": s_out,
++        "stall_exit_reason": reason,
++        "client_exception_after_work_deadline_seconds": x_t - w,
++        "predicate": "P0<B0;W<P_dl;S_in<W;W<=X_t<T_resp<T_ret<S_out<P_dl;retired",
++    }
++
++
++def _run_np_t04_body_stall() -> dict[str, Any]:
++    """NP-T04-BODY-STALL: production deadline during the first event body read.
++
++    NONEXPIRED two-target lineage through actual covering-refresh ASGI ingress ->
++    CoveringReleasePlan -> ProviderCounter -> CoveringHTTP (default JoinedTLS) with the
++    real monotonic clock and unchanged production 210 work / 240 request / 30 cleanup
++    clocks. Peer: two normal identity exchanges, then calendarView(cal-ms-default) with
++    the exact seed-derived query: valid headers with positive Content-Length, body
++    withheld. Expected: original client CoveringDeadlineExceeded; HTTP 200 failed with
++    target 1 import/failed/covering_provider_read_failed and target 2 preflight
++    CALENDAR_REFRESH_DEADLINE_EXCEEDED; no assessment; one TOKEN rollback (target 1);
++    acknowledged PARENT rollback; recorder persisted or known cleanup refusal.
++    """
++    import inspect
++
++    from np_suite import SuiteStop, check_oracles_immediate, registry_by_id
++    from np_auth_seed import (
++        IDENTITY_DEFAULT_MS_CALENDAR_ID,
++        STABLE_UNRELATED_MS_CALENDAR_ID,
++        assert_plan_still_valid,
++        covering_refresh_body,
++        derive_production_target_calendar_order,
++        fixture_settings,
++        fresh_attempt_plan,
++        identity_list_calendar_ids_for_vertical,
++        inverted_subscription_ids,
++        measure_account_credential_state,
++        measure_subscription_coverage_state,
++        PlanValidityExpired,
++        seed_browser_owner_with_subscriptions,
++        seed_token_plan,
++    )
++    from np_alias_seed import microsoft_primary_alias_seed, sanitized_alias_receipt
++    from np_receipts import case_result_receipt
++    from np_provider_routes import microsoft_graph_route
++    from np_provider_transcript import (
++        T04_BODY_STALL_EXCHANGE_COUNT,
++        ms_body_stall_connection_inventory,
++    )
++    from np_provider_peer import (
++        HEADER_TERMINATOR,
++        SyntheticProviderPeer,
++        PeerMaterial,
++        PeerRetirementUnknown,
++        _http_response_bytes,
++    )
++    from i01_asgi_app import asgi_client, build_i01_asgi_app, install_binding
++    from app.services.covering_release_plan import CoveringReleasePlan
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_http_dispatch import CoveringReleaseBinding
++    from app.services.covering_refresh_import import EFFECT_CANONICALIZE_IDENTITY
++    from app.services.calendar_alias_canonicalize import MS_LEGACY_PRIMARY_ALIAS
++
++    case_id = "NP-T04-BODY-STALL"
++    decl = registry_by_id(include_cf=True)[case_id]
++    peer_seconds = _t04_body_stall_peer_seconds_from_config()
++    plan = fresh_attempt_plan(case_id)
++    t_plan_iso = plan.t_plan.isoformat()
++    token_seed = seed_token_plan(case_id=case_id, provider="microsoft", expired=False)
++    alias = microsoft_primary_alias_seed(case_id=case_id)
++    settings = fixture_settings()
++
++    sig = inspect.signature(CoveringHTTP.__init__)
++    if sig.parameters["transport_factory"].default is not JoinedTLS:
++        raise SuiteStop("production CoveringHTTP default is not JoinedTLS")
++
++    route = microsoft_graph_route()
++    planted = inverted_subscription_ids(case_token=plan.attempt_token)
++    factory = _open_native_setup_factory(settings=settings)
++    schema_receipt = provision_disposable_schema(factory)
++    setup = factory.open_setup_session()
++    try:
++        seed = seed_browser_owner_with_subscriptions(
++            setup,
++            settings=settings,
++            username_prefix="np-t04-body-stall",
++            subscription_count=2,
++            provider="microsoft",
++            expired=False,
++            mark_covering_fresh_at_seed=False,
++            planted_subscription_ids=planted,
++            t_plan=plan.t_plan,
++            plant_microsoft_primary_alias=True,
++        )
++        setup.commit()
++    finally:
++        factory.close(setup)
++
++    assert seed.request_window_start is not None and seed.request_window_end is not None
++    assert seed.t_plan is not None
++    assert_plan_still_valid(seed.t_plan)
++    if len(seed.account_ids) != 1 or len(seed.subscription_ids) != 2:
++        raise SuiteStop("body-stall requires exactly one MS account with two subscriptions")
++    account_id = seed.account_ids[0]
++    if MS_LEGACY_PRIMARY_ALIAS not in seed.calendar_ids:
++        raise SuiteStop("enabled MS primary alias not planted on subscription row")
++    wire_calendar_ids = derive_production_target_calendar_order(
++        subscription_ids=list(seed.subscription_ids),
++        subscription_calendar_map=dict(seed.subscription_calendar_map),
++        primary_alias=MS_LEGACY_PRIMARY_ALIAS,
++        identity_default_calendar_id=IDENTITY_DEFAULT_MS_CALENDAR_ID,
++    )
++    identity_list_ids = identity_list_calendar_ids_for_vertical()
++    if tuple(identity_list_ids) != (IDENTITY_DEFAULT_MS_CALENDAR_ID, STABLE_UNRELATED_MS_CALENDAR_ID):
++        raise SuiteStop("identity list must be (cal-ms-default, cal-np-other)")
++    if tuple(wire_calendar_ids) != (IDENTITY_DEFAULT_MS_CALENDAR_ID, STABLE_UNRELATED_MS_CALENDAR_ID):
++        raise SuiteStop(f"wire calendar order mismatch:{wire_calendar_ids!r}")
++    before_external = dict(seed.subscription_calendar_map)
++    lower_sorted = sorted(seed.subscription_ids, key=str)[0]
++    higher_sorted = sorted(seed.subscription_ids, key=str)[1]
++    if before_external.get(str(lower_sorted)) != MS_LEGACY_PRIMARY_ALIAS:
++        raise SuiteStop("primary alias must sit on LOWER str-sorted subscription id")
++
++    exact_query = _t04_body_stall_exact_query(seed.request_window_start, seed.request_window_end)
++    inventory_scripts = ms_body_stall_connection_inventory(
++        identity_list_calendar_ids=identity_list_ids,
++        stall_calendar_id=wire_calendar_ids[0],
++        exact_query=exact_query,
++    )
++    if len(inventory_scripts) != T04_BODY_STALL_EXCHANGE_COUNT:
++        raise SuiteStop("body-stall inventory is not exactly three exchanges")
++    # Exact peer-side wire bytes: complete responses for exchanges 0-1, head only for 2.
++    full_sends = [
++        _http_response_bytes(step)
++        for script in inventory_scripts[:2]
++        for step in script.steps
++        if step.direction == "send_response"
++    ]
++    stall_sends = [step for step in inventory_scripts[2].steps if step.direction == "send_response"]
++    if len(full_sends) != 2 or len(stall_sends) != 1:
++        raise SuiteStop("body-stall scripts must declare exactly one response each")
++    stall_head, stall_sep, _withheld = _http_response_bytes(stall_sends[0]).partition(HEADER_TERMINATOR)
++    if not stall_sep or b"Content-Length: 12\r\n" not in stall_head + stall_sep:
++        raise SuiteStop("body-stall head must declare the positive Content-Length")
++    expected_bytes_sent = sum(len(item) for item in full_sends) + len(stall_head + stall_sep)
++
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}",
++        route=route,
++        connection_scripts=inventory_scripts,
++        material=PeerMaterial(),
++    )
++    native_terminals: list[dict[str, Any]] = []
++    parent_terminals: list[dict[str, Any]] = []
++    target_runs: list[dict[str, Any]] = []
++    client_inventory: list[dict[str, Any]] = []
++    client_outcomes: list[tuple[str, str, str]] = []
++    client_outcome_times: list[float] = []
++    oauth_requests = 0
++    held_transport: list[Any] = []
++    captured_contexts: list[Any] = []
++    worker_exceptions: list[BaseException] = []
++    restore_worker_observer: Callable[[], None] | None = None
++    restore_target_observers: Callable[[], None] | None = None
++    real_request = None
++    transport = None
++    response_at: float | None = None
++    retirement_done = False
++    retirement_attempted = False
++    primary_failure: BaseException | None = None
++
++    try:
++        assert_plan_still_valid(plan.t_plan)
++        measure_db = factory.open_setup_session()
++        try:
++            credential_before = measure_account_credential_state(
++                measure_db, settings=settings, account_id=account_id, reference_instant=plan.t_plan
++            )
++            coverage_before = measure_subscription_coverage_state(
++                measure_db, subscription_ids=seed.subscription_ids
++            )
++            failure_before = _t04_measure_failure_columns(
++                measure_db, subscription_ids=list(seed.subscription_ids)
++            )
++        finally:
++            factory.close(measure_db)
++        if (
++            credential_before["seed_access_match"] is not True
++            or credential_before["seed_refresh_match"] is not True
++            or credential_before["refreshed_access_match"] is not False
++            or credential_before["rotated_refresh_match"] is not False
++        ):
++            raise SuiteStop("before-state credential does not hold exactly the declared seed values")
++        if coverage_before["any_covering_success"] is not False:
++            raise SuiteStop("before-state already covering-success; fresh seed required")
++        if any(row["failure_recorded"] or row["failure_cause"] is not None for row in failure_before.values()):
++            raise SuiteStop("before-state already carries a failure record; fresh seed required")
++
++        peer.start_background(seconds=peer_seconds)
++
++        release_plan = CoveringReleasePlan(
++            database_profile=_fixture_database_profile(),
++            password_supplier=lambda: "",
++            runtime_pins=_runtime_pins_from_config(),
++            provider_routes=_ms_provider_routes(
++                peer_hostname=route.server_hostname,
++                dial_address=route.dial_address,
++                dial_port=route.dial_port,
++                ca_file=route.ca_path,
++            ),
++            settings=settings,
++        )
++        if type(release_plan) is CoveringReleaseBinding:
++            raise SuiteStop("must install CoveringReleasePlan, not prebuilt binding")
++
++        def on_context(context: Any) -> None:
++            captured_contexts.append(context)
++
++        real_init = CoveringHTTP.__init__
++        _install_token_terminal_observer(native_terminals)
++
++        def capturing_init(self, *args, **kwargs):
++            nonlocal real_request, transport
++            real_init(self, *args, **kwargs)
++            held_transport.append(self)
++            transport = self
++            if self.transport_factory is not JoinedTLS:
++                raise SuiteStop("transport_factory injection refused — require default JoinedTLS")
++            underlying = self.request
++
++            def counted_request(method, url, *, purpose, **kwargs):
++                nonlocal oauth_requests
++                if purpose == "oauth":
++                    oauth_requests += 1
++                client_inventory.append({"method": method, "purpose": purpose})
++                try:
++                    result = underlying(method, url, purpose=purpose, **kwargs)
++                except BaseException as exc:
++                    # Original client outcome BEFORE any caller conversion; same object re-raised.
++                    client_outcome_times.append(monotonic())
++                    client_outcomes.append(("exception", type(exc).__name__, type(exc).__module__))
++                    raise
++                client_outcome_times.append(monotonic())
++                client_outcomes.append(("response", type(result).__name__, type(result).__module__))
++                return result
++
++            real_request = underlying
++            self.request = counted_request  # type: ignore[method-assign]
++
++        CoveringHTTP.__init__ = capturing_init  # type: ignore[method-assign]
++        try:
++            restore_worker_observer = _install_worker_exception_observer(worker_exceptions)
++            restore_target_observers = _install_t04_parent_and_target_observers(parent_terminals, target_runs)
++            # Real monotonic clock — build_i01_asgi_app's ControllableClock(0.0) default is unsuitable.
++            app = build_i01_asgi_app(
++                session_secret=settings.session_secret,
++                clock=monotonic,
++                on_context=on_context,
++            )
++            install_binding(app, release_plan)
++            client = asgi_client(app)
++            body = covering_refresh_body(
++                list(seed.subscription_ids),
++                window_start=seed.request_window_start,
++                window_end=seed.request_window_end,
++                horizon_label="np-t04-body-stall-horizon-v1",
++            )
++            assert_plan_still_valid(seed.t_plan)
++            response = client.post(
++                COVERING_PATH,
++                content=json.dumps(body).encode("utf-8"),
++                headers={"content-type": "application/json"},
++                cookies={"session": seed.cookie},
++            )
++            response_at = monotonic()
++        finally:
++            if restore_target_observers is not None:
++                restore_target_observers()
++                restore_target_observers = None
++            if restore_worker_observer is not None:
++                restore_worker_observer()
++                restore_worker_observer = None
++            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            try:
++                if transport is not None and real_request is not None:
++                    transport.request = real_request
++            except Exception:
++                pass
++
++        if not captured_contexts:
++            raise SuiteStop("ingress on_context did not capture actual request context")
++        ingress_budget = getattr(captured_contexts[0], "budget", None)
++        if ingress_budget is None:
++            raise SuiteStop("captured ingress context missing budget")
++        if len(held_transport) != 1 or type(held_transport[0]) is not CoveringHTTP:
++            raise SuiteStop("worker/POST did not construct exactly one CoveringHTTP")
++        if transport is None:
++            transport = held_transport[0]
++        from app.services.covering_request_budget import CoveringRequestBudget
++
++        counter = getattr(transport, "counter", None)
++        remaining_cb = getattr(counter, "remaining", None) if counter is not None else None
++        if remaining_cb is None:
++            raise SuiteStop("ProviderCounter.remaining missing")
++        if getattr(remaining_cb, "__self__", None) is not ingress_budget:
++            raise SuiteStop("counter.remaining.__self__ is not the captured ingress context.budget")
++        if getattr(remaining_cb, "__func__", None) is not CoveringRequestBudget.work_remaining:
++            raise SuiteStop("counter.remaining.__func__ is not CoveringRequestBudget.work_remaining")
++        # Read-only private deadlines (budget l.23-24); never modified.
++        work_deadline = getattr(ingress_budget, "_work_deadline", None)
++        request_deadline = getattr(ingress_budget, "_request_deadline", None)
++
++        # Original client outcomes and inventory.
++        if oauth_requests != 0:
++            raise SuiteStop("body-stall path must not perform OAuth")
++        purposes = [(row.get("method"), row.get("purpose")) for row in client_inventory]
++        if purposes != T04_BODY_STALL_CLIENT_PURPOSES:
++            raise SuiteStop(f"client request order mismatch:{purposes!r}")
++        if [item[0] for item in client_outcomes[:2]] != ["response", "response"]:
++            raise SuiteStop("identity exchanges did not both return a response")
++        if len(client_outcomes) != 3 or client_outcomes[2] != T04_BODY_STALL_DEADLINE_OUTCOME:
++            raise SuiteStop(f"event client outcome is not the production deadline:{client_outcomes!r}")
++        if len(client_outcome_times) != 3:
++            raise SuiteStop("client outcome instants missing")
++
++        # Public response (exact two-target inventory).
++        if response.status_code != 200:
++            raise SuiteStop(f"covering-refresh status:{response.status_code}")
++        payload = response.json()
++        if not isinstance(payload, dict):
++            raise SuiteStop("covering-refresh response is not a typed object")
++        if payload.get("overall_outcome") != "failed":
++            raise SuiteStop(f"overall_outcome is not failed:{payload.get('overall_outcome')!r}")
++        results = payload.get("results")
++        if not isinstance(results, list) or len(results) != 2:
++            raise SuiteStop("results must list exactly the two requested subscriptions")
++        by_id = {str(row.get("subscription_id")): row for row in results if isinstance(row, dict)}
++        first = by_id.get(str(lower_sorted)) or {}
++        second = by_id.get(str(higher_sorted)) or {}
++        if (
++            first.get("phase") != "import"
++            or first.get("status") != "failed"
++            or first.get("cause") != T04_BODY_STALL_FAILURE_CAUSE
++            or first.get("upserted") != 0
++            or first.get("preflight_code") is not None
++            or list(first.get("preflight_effects") or []) != [EFFECT_CANONICALIZE_IDENTITY]
++        ):
++            raise SuiteStop("target 1 row is not import/failed/covering_provider_read_failed")
++        if (
++            second.get("phase") != "preflight"
++            or second.get("status") != "preflight_rejected"
++            or second.get("preflight_code") != T04_BODY_STALL_DEADLINE_CODE
++            or second.get("cause") is not None
++            or list(second.get("preflight_effects") or []) != []
++        ):
++            raise SuiteStop("target 2 row is not the static deadline preflight refusal")
++        summary = payload.get("action_summary") or {}
++        if {key: summary.get(key) for key in T04_BODY_STALL_ACTION_SUMMARY} != T04_BODY_STALL_ACTION_SUMMARY:
++            raise SuiteStop("action_summary is not requested2/preflight1/attempted1/ok0/failed1")
++        coverage_action = payload.get("coverage_action")
++        readiness = payload.get("scheduling_readiness")
++        if not isinstance(coverage_action, dict) or not isinstance(readiness, dict):
++            raise SuiteStop("coverage_action/scheduling_readiness must be objects")
++        if coverage_action.get("all_requested_covering_ok") is not False:
++            raise SuiteStop("coverage_action must be fail-closed")
++        if readiness.get("assessment_error") != T04_BODY_STALL_DEADLINE_CODE:
++            raise SuiteStop("assessment must be skipped with the deadline readiness code")
++        if payload.get("scheduling_revision_at_end") is not None or payload.get("scheduling_revision_bumped") is not False:
++            raise SuiteStop("no assessment revision may be reported")
++        for banned in ("command", "provider", "mode", "seed_hash", "assessment"):
++            if banned in payload:
++                raise SuiteStop(f"public covering-refresh must not carry private key:{banned}")
++
++        # Native terminals, target transaction and recorder disposition.
++        token_terminals = _actual_token_terminals(native_terminals)
++        observer_rows = [row for row in native_terminals if "observer" in row]
++        if token_terminals != T04_BODY_STALL_TOKEN_TERMINAL_ROWS:
++            raise SuiteStop(f"TOKEN terminal rows mismatch:{token_terminals!r}")
++        if observer_rows != T04_BODY_STALL_TERMINAL_OBSERVER_ROWS:
++            raise SuiteStop("token terminal observer marker missing or duplicated")
++        if parent_terminals != T04_BODY_STALL_PARENT_TERMINAL_ROWS:
++            raise SuiteStop(f"PARENT terminal rows mismatch:{parent_terminals!r}")
++        if len(target_runs) != 1 or "raised" in target_runs[0]:
++            raise SuiteStop(f"exactly one classified target transaction required:{target_runs!r}")
++        run_row = target_runs[0]
++        if (
++            run_row["subscription_id"] != str(lower_sorted)
++            or run_row["outcome"] != "failed"
++            or run_row["cause"] != T04_BODY_STALL_FAILURE_CAUSE
++            or run_row["failure_present"] is not True
++        ):
++            raise SuiteStop("target transaction is not the failed target-1 import")
++        persisted = run_row["failure_persisted"] is True and run_row["failure_refused"] is False
++        known_refusal = (
++            run_row["failure_persisted"] is False
++            and run_row["failure_refused"] is True
++            and run_row["failure_refuse_reason"] == T04_BODY_STALL_KNOWN_REFUSAL
++        )
++        if run_row["failure_cause"] != T04_BODY_STALL_FAILURE_CAUSE or persisted == known_refusal:
++            raise SuiteStop("failure recorder disposition is neither persisted nor known cleanup refusal")
++        failure_disposition = "PERSISTED" if persisted else "CLEANUP_ADMISSION_REFUSED"
++
++        # Persisted after-state from separate sessions.
++        measure_db = factory.open_setup_session()
++        try:
++            credential_after = measure_account_credential_state(
++                measure_db, settings=settings, account_id=account_id, reference_instant=plan.t_plan
++            )
++            coverage_after = measure_subscription_coverage_state(
++                measure_db, subscription_ids=seed.subscription_ids
++            )
++            failure_after = _t04_measure_failure_columns(
++                measure_db, subscription_ids=list(seed.subscription_ids)
++            )
++        finally:
++            factory.close(measure_db)
++        if any(credential_after[key] != credential_before[key] for key in MS_INVALID_CREDENTIAL_SEMANTIC_KEYS):
++            raise SuiteStop("persisted credential semantics or expiry changed")
++        if coverage_after != coverage_before:
++            raise SuiteStop("coverage state changed (rollback must leave both subscriptions unchanged)")
++        expected_failure_after = {
++            str(lower_sorted): (
++                {"failure_recorded": True, "failure_cause": T04_BODY_STALL_FAILURE_CAUSE}
++                if persisted
++                else {"failure_recorded": False, "failure_cause": None}
++            ),
++            str(higher_sorted): {"failure_recorded": False, "failure_cause": None},
++        }
++        if failure_after != expected_failure_after:
++            raise SuiteStop("persisted failure columns disagree with recorder disposition")
++
++        # Retirement barrier BEFORE final peer evidence: one attempt, marked first.
++        assert_plan_still_valid(plan.t_plan)
++        retirement_attempted = True
++        retire_called_at = monotonic()
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        retirement_done = True
++        peer_exchanges = list(peer_state.get("exchange_inventory") or [])
++        if (
++            int(peer_state.get("connection_count_admitted") or 0) != T04_BODY_STALL_EXCHANGE_COUNT
++            or int(peer_state.get("connection_count_served") or 0) != T04_BODY_STALL_EXCHANGE_COUNT
++            or len(peer_exchanges) != T04_BODY_STALL_EXCHANGE_COUNT
++            or [row.get("method") for row in peer_exchanges] != ["GET", "GET", "GET"]
++            or peer_exchanges[2].get("query_verified") is not True
++            or peer_exchanges[2].get("close_mode_observed") != "stall_body"
++            or peer_state.get("response_sent") is not True
++            or peer_state.get("bytes_sent") != expected_bytes_sent
++        ):
++            raise SuiteStop("peer inventory is not two identity exchanges plus one exact body stall")
++        timing = _t04_body_stall_timing(
++            peer_state=peer_state,
++            work_deadline=work_deadline,
++            request_deadline=request_deadline,
++            client_exception_at=client_outcome_times[2],
++            response_at=response_at,
++            retire_called_at=retire_called_at,
++        )
++        if any(
++            t is not threading.main_thread() and t.name.startswith("np-peer-")
++            for t in threading.enumerate()
++        ):
++            raise SuiteStop("unjoined np-peer worker after retirement")
++
++        observations = {"first_guard_body_phase_deadline": "OBSERVED"}
++        check_oracles_immediate(decl, observations)
++        t_check_iso = _iso_now()
++        _ = sanitized_alias_receipt(alias)
++        measured = {
++            "client_outcomes": [list(item) for item in client_outcomes],
++            "client_exchange_inventory": list(client_inventory),
++            "oauth_request_count": oauth_requests,
++            "public_response": {
++                "status": 200,
++                "overall_outcome": "failed",
++                "target_rows": [
++                    {key: first.get(key) for key in ("subscription_id", "phase", "status", "preflight_code", "cause", "upserted", "preflight_effects")},
++                    {key: second.get(key) for key in ("subscription_id", "phase", "status", "preflight_code", "cause", "upserted", "preflight_effects")},
++                ],
++                "action_summary": dict(T04_BODY_STALL_ACTION_SUMMARY),
++                "assessment_skipped_code": readiness.get("assessment_error"),
++            },
++            # Allowlisted typed key (np_receipts) — do not repeat the dropped
++            # token_terminal_rows mistake.
++            "token_terminal_sequence": token_terminals,
++            "parent_terminal_sequence": list(parent_terminals),
++            "target_transaction": dict(run_row),
++            "failure_disposition": failure_disposition,
++            "failure_columns_after": failure_after,
++            "credential_state_before": credential_before,
++            "credential_state_after": credential_after,
++            "coverage_before": coverage_before,
++            "coverage_after": coverage_after,
++            "timing": timing,
++            "peer_seconds_admitted": peer_seconds,
++            "exact_query_bytes": len(exact_query.encode("ascii")),
++            "peer_side_wire_bytes_sent_exact": True,
++            "ingress_budget_same_as_provider": True,
++            "joined_tls_default": True,
++            "label_hash": token_seed.label_hash,
++            "alias_hash": alias.seed_hash,
++            "schema_provisioned": schema_receipt,
++        }
++        return case_result_receipt(
++            case_id=case_id,
++            passed=True,
++            workers_joined=True,
++            expected_unknown=False,
++            executed=True,
++            prep_is_not_pass=True,
++            observations=observations,
++            t_plan_iso=t_plan_iso,
++            t_check_iso=t_check_iso,
++            measured=measured,
++            peer_exchange_inventory=peer_exchanges,
++            resource_disposition={
++                "peer_retired": True,
++                "peer_joined": True,
++                "peer_stall_exit_reason": timing["stall_exit_reason"],
++                "factory_closed": True,
++                "observers_restored": True,
++                "provider_pki_status": (
++                    "GENERATED"
++                    if _PROVIDER_PKI_GENERATE_ONCE_DONE
++                    else ("PREPARED_NOT_GENERATED" if _PROVIDER_PKI_PREPARED else "NOT_PREPARED")
++                ),
++                "provider_pki_generated": _PROVIDER_PKI_GENERATE_ONCE_DONE is True,
++            },
++        )
++    except PlanValidityExpired:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except PeerRetirementUnknown:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise SuiteStop("owned peer retirement UNKNOWN")
++    except CaseBodyHold:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except SuiteStop:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except BaseException as exc:
++        primary_failure = exc
++        raise SuiteStop(f"framework_stop:{case_id}:{type(exc).__name__}") from exc
++    finally:
++        try:
++            if transport is not None and real_request is not None:
++                transport.request = real_request
++        except Exception:
++            pass
++        if (
++            not retirement_attempted
++            and peer._worker is not None
++            and not peer.life.joined
++        ):  # noqa: SLF001
++            retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++                retirement_done = True
++            except PeerRetirementUnknown:
++                if primary_failure is None:
++                    raise SuiteStop("owned peer retirement UNKNOWN on cleanup")
++                raise SuiteStop(
++                    f"owned peer retirement UNKNOWN after primary:{type(primary_failure).__name__}"
++                ) from primary_failure
++
++
+ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+     if case_id == "NP-V-MS-NONEXPIRED":
+         def _run() -> dict[str, Any]:
+@@ -2759,6 +3545,12 @@
+ 
+         _run_t05_abrupt.__name__ = f"run_{case_id}"
+         return _run_t05_abrupt
++    if case_id == "NP-T04-BODY-STALL":
++        def _run_t04_body_stall() -> dict[str, Any]:
++            return _run_np_t04_body_stall()
++
++        _run_t04_body_stall.__name__ = f"run_{case_id}"
++        return _run_t04_body_stall
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 
+--- a/payload/fixture/np_provider_peer.py
++++ b/payload/fixture/np_provider_peer.py
+@@ -52,6 +52,12 @@
+     bytes_received: int = 0
+     bytes_sent: int = 0
+     notes: list[str] = field(default_factory=list)
++    # Finite same-process monotonic instants (decision 4F2F3B3F); None until set.
++    peer_started_at: float | None = None
++    peer_deadline_at: float | None = None
++    stall_entered_at: float | None = None
++    stall_exit_at: float | None = None
++    stall_exit_reason: str | None = None
+ 
+ 
+ @dataclass
+@@ -360,9 +366,8 @@
+         if close_mode == "stall_header":
+             self.life.phase_entered = "stall_header"
+             self.life.close_mode_observed = "stall_header"
+-            while monotonic() < deadline and not self._stop.is_set():
+-                select.select([], [], [], ACCEPT_POLL_SECONDS)
+-            raise PeerLifecycleError("header stall held to deadline")
++            self._hold_stall(deadline=deadline, deadline_message="header stall held to deadline")
++            return
+         wire = _http_response_bytes(step)
+         if close_mode == "stall_body":
+             # Send status/headers only (through first CRLFCRLF), then stall.
+@@ -372,9 +377,8 @@
+             self.life.response_sent = True
+             self.life.phase_entered = "stall_body"
+             self.life.close_mode_observed = "stall_body"
+-            while monotonic() < deadline and not self._stop.is_set():
+-                select.select([], [], [], ACCEPT_POLL_SECONDS)
+-            raise PeerLifecycleError("body stall held to deadline")
++            self._hold_stall(deadline=deadline, deadline_message="body stall held to deadline")
++            return
+         if close_mode == "partial_send_peer":
+             # Peer-side truncated response — not proof of client JoinedTLS partial send.
+             # Observation aid: peer prefix ≠ sender partial-completion proof.
+@@ -384,6 +388,26 @@
+         self.life.response_sent = True
+         self.life.phase_entered = "response_sent"
+ 
++    def _hold_stall(self, *, deadline: float, deadline_message: str) -> None:
++        """Hold a scripted header/body stall (Trish-approved decision 4F2F3B3F).
++
++        Returns cleanly ONLY when the owning runner's stop event (set by
++        retire_owned) ends the stall strictly before the peer deadline; the exit
++        reason is then "retired". Peer-deadline expiry remains an error (reason
++        "deadline") and the unchanged PeerLifecycleError is raised, so the selected
++        retirement helper still refuses it. Finite monotonic instants only.
++        """
++        self.life.stall_entered_at = monotonic()
++        while monotonic() < deadline and not self._stop.is_set():
++            select.select([], [], [], ACCEPT_POLL_SECONDS)
++        exited = monotonic()
++        self.life.stall_exit_at = exited
++        if self._stop.is_set() and exited < deadline:
++            self.life.stall_exit_reason = "retired"
++            return
++        self.life.stall_exit_reason = "deadline"
++        raise PeerLifecycleError(deadline_message)
++
+     def _send_all(self, tls: ssl.SSLSocket, data: bytes, *, deadline: float) -> None:
+         view = memoryview(data)
+         while view:
+@@ -501,7 +525,10 @@
+         """Accept finite Connection:close inventory and run each exchange. Launch-card only."""
+         if type(seconds) is not int or not 1 <= seconds <= 240:
+             raise PeerLifecycleError("explicit peer deadline required")
+-        deadline = monotonic() + seconds
++        started = monotonic()
++        deadline = started + seconds
++        self.life.peer_started_at = started
++        self.life.peer_deadline_at = deadline
+         self._exchange_inventory = []
+         multi = len(self.connection_scripts) > 1
+         try:
+@@ -624,6 +651,11 @@
+             "joined": self.life.joined,
+             "close_mode_observed": self.life.close_mode_observed,
+             "notes": list(self.life.notes),
++            "peer_started_at": self.life.peer_started_at,
++            "peer_deadline_at": self.life.peer_deadline_at,
++            "stall_entered_at": self.life.stall_entered_at,
++            "stall_exit_at": self.life.stall_exit_at,
++            "stall_exit_reason": self.life.stall_exit_reason,
+         }
+ 
+ 
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -331,6 +331,65 @@
+     ) + views
+ 
+ 
++T04_BODY_STALL_EXCHANGE_COUNT = 3
++T04_BODY_STALL_BODY_TEMPLATE = '{"value":[]}'
++
++
++def ms_graph_calendar_view_body_stall_script(*, calendar_id: str, exact_query: str) -> ExchangeScript:
++    """GET /v1.0/me/calendars/{id}/calendarView?{exact_query} — headers only, then body stall.
++
++    The declared request-target carries the exact seed-derived wire query, so the
++    peer refuses any other query bytes. The response head declares a positive
++    Content-Length (len of the empty-page template); the body is withheld and the
++    stall ends only on the owning runner's stop (decision 4F2F3B3F) — a peer
++    deadline remains an error.
++    """
++    if not exact_query or "?" in exact_query or "#" in exact_query:
++        raise RuntimeError("body-stall script requires one exact non-empty wire query")
++    path = f"/v1.0/me/calendars/{calendar_id}/calendarView?{exact_query}"
++    return ExchangeScript(
++        script_id=f"T04-BODY-STALL:MS-GRAPH-CALENDARVIEW:{calendar_id}",
++        purpose="event",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path=path),
++            ExchangeStep(
++                "send_response",
++                status=200,
++                headers=(("Content-Type", "application/json"), ("Content-Length", "PLACEHOLDER")),
++                body_template=T04_BODY_STALL_BODY_TEMPLATE,
++                note="Headers with positive Content-Length only; body withheld (stall_body)",
++            ),
++            ExchangeStep("close", close_mode="stall_body"),
++        ),
++    )
++
++
++def ms_body_stall_connection_inventory(
++    *,
++    identity_list_calendar_ids: tuple[str, ...] | list[str],
++    stall_calendar_id: str,
++    exact_query: str,
++) -> tuple[ExchangeScript, ...]:
++    """Finite inventory for NP-T04-BODY-STALL: exactly three Connection:close exchanges.
++
++    The two unchanged NONEXPIRED identity scripts, then the first event GET
++    (calendarView for the first wire calendar) as a body stall. No fourth
++    connection is scripted: the second target must be refused by the production
++    work deadline before any provider admission.
++    """
++    list_ids = tuple(identity_list_calendar_ids)
++    if len(list_ids) != 2:
++        raise RuntimeError("body-stall inventory requires the two-calendar identity list")
++    scripts = (
++        ms_graph_identity_default_script(),
++        ms_graph_identity_list_script(calendar_ids=list_ids),
++        ms_graph_calendar_view_body_stall_script(calendar_id=stall_calendar_id, exact_query=exact_query),
++    )
++    if len(scripts) != T04_BODY_STALL_EXCHANGE_COUNT:
++        raise RuntimeError("body-stall inventory must contain exactly three exchanges")
++    return scripts
++
++
+ MS_REFRESH_EXCHANGE_COUNT = 5
+ 
+ 
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -481,6 +481,15 @@
+         "must be SSLEOFError or ConnectionResetError, distinct from framing/JSON refusal and ASGI "
+         "disconnect; any other class STOPs; no native PASS until an authorized run"
+     ),
++    "NP-T04-BODY-STALL": (
++        "IMPLEMENTED_SOURCE — separate single-case batch (decision 4F2F3B3F); NONEXPIRED two-target "
++        "lineage, production clocks and real monotonic; peer: two identity exchanges then exact "
++        "seed-query calendarView headers with positive Content-Length and withheld body; original "
++        "client CoveringDeadlineExceeded; HTTP 200 failed (target 1 import/failed, target 2 deadline "
++        "preflight), no assessment, one TOKEN and one PARENT rollback, recorder persisted or known "
++        "cleanup refusal; case-specific 240 s peer with clean retired exit; finite timing predicate; "
++        "launch_ready gate still required; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,7 +1,7 @@
+ {
+   "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-REFRESH"
++    "NP-T04-BODY-STALL"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,
+@@ -26,6 +26,7 @@
+     "attempt_validity_seconds": 600
+   },
+   "peer_seconds": 120,
++  "t04_body_stall_peer_seconds": 240,
+   "peer_retire_join_seconds": 5.0,
+   "provider_pki_gen_seconds": 30,
+   "provider_pki_reap_seconds": 5,
+--- a/host/launch-config.json
++++ b/host/launch-config.json
+@@ -1,12 +1,12 @@
+ {
+   "launch_ready": false,
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "batch_id": "np-v-ms-refresh-single-case",
++  "batch_id": "np-v-t04-body-stall-single-case",
+   "endpoint": "unbound",
+   "endpoint_binding_authorized": false,
+   "port_verification_authorized": false,
+   "case_ids": [
+-    "NP-V-MS-REFRESH"
++    "NP-T04-BODY-STALL"
+   ],
+   "expected_unknown_cases": [],
+   "include_cf_witnesses_separate_batch": true,
+@@ -28,6 +28,7 @@
+   "command_count_cap": 32,
+   "output_byte_cap": 1048576,
+   "peer_seconds": 120,
++  "t04_body_stall_peer_seconds": 240,
+   "peer_retire_join_seconds": 5.0,
+   "provider_pki_retirement_total_seconds": 45,
+   "bounds_note": "Proposed caps from Dex C7B8FD74 reconciliation; product 210/240/30 and 600s plan validity remain distinct. Caps are not observed timings.",
+@@ -50,10 +51,10 @@
+   "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+-  "manifest_sha256": "CC02F38CFBD8542AD49DA8663FE3BCACD8F8712FDD97FE53D5F739A52C0CA687",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
++  "manifest_sha256": "6CFB1DB748CEC474C298CE053CCD0D0446D9B55B54407E02F22FD60C862D7FDA",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+@@ -86,7 +87,7 @@
+   "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": false,
+-  "candidate_note": "Matt native MS-REFRESH retirement-barrier preparation (scheduler-native-provider-ms-refresh-retire-prep-matt-v1) from Matt MS invalid-grant prep v2 (6144365E): single-case batch NP-V-MS-REFRESH, no expected UNKNOWN; only role 4 changed (_run_np_v_ms_refresh marks retirement_attempted then calls the unchanged _retire_selected_peer_then_observe before the existing peer inventory assertions; the later direct retire_owned call removed); routine same-contract fixture correction, no new policy; first_vertical_* fields are historical metadata; gates AS AUTHORED in this prep root: host launch_ready=false, candidate staging false, runner-config launch_ready=false (any staging that flips a gate must restate this note); copied docker-ops machine flags are data only; human authority HELD; prerequisites and exact approval required",
++  "candidate_note": "Matt native T04 BODY-STALL preparation (scheduler-native-provider-t04-body-stall-prep-matt-v1) from MS-REFRESH retire prep v1 (F682D755), Trish-approved design/preparation decision 4F2F3B3F: single-case batch NP-T04-BODY-STALL, no expected UNKNOWN; roles 4 (runner case body + restorable observers), 5 (suite note), 7 (peer clean retired stall exit + finite instants), 8 (exact-query body-stall script) changed; case-specific peer life t04_body_stall_peer_seconds=240 for this case only (other cases keep 120); production 210/240/30 clocks and 600 s plan validity unchanged; first_vertical_* fields are historical metadata; gates AS AUTHORED in this prep root: host launch_ready=false, candidate staging false, runner-config launch_ready=false (any staging that flips a gate must restate this note); copied docker-ops machine flags are data only; human authority HELD; a run needs the focused fake PASS, a reviewed staging copy, its own exact card including the 240 s runtime, and Trish approval",
+   "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+   "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+   "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+--- a/host/docker-ops-config.json
++++ b/host/docker-ops-config.json
+@@ -1,8 +1,8 @@
+ {
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t04-body-stall-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }

@@ -1,0 +1,93 @@
+{
+  "at_utc": "2026-11-12T03:06:47.9370193Z",
+  "event": "Ev0CH44DE8PN",
+  "message": "1794452458.587579",
+  "author": "Justin for Jim",
+  "disposition": "DESIGN_REVIEW_QUALIFIED reconciled with Dex qualifications",
+  "artifacts": [
+    {
+      "name": "HANDBACK.txt",
+      "sha256": "419FBAD94B387FC539C2631C46629692F65566E98A62FD0A802D667575743682"
+    },
+    {
+      "name": "Jim-Framing-Completion-Design-Review.md",
+      "sha256": "EE99F06371829389E43B21A869B32F10EF340C8DD53080F46091EB812E579C7D"
+    },
+    {
+      "name": "TIP-FREEZE.json",
+      "sha256": "D369400E75D30AAB3A343B34397D5B92A2728C0E96D7C4E6F5B7383CDE8F2117"
+    }
+  ],
+  "tip_preimage": "0CCADC479D4EBC270B8D8A353FF93CD5276982D974BF33081CF5CC597B661F0D",
+  "reviewed_inputs": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1\\Original-Behavior-Witness-Summary.md",
+      "sha256": "7384BCF8312902DB60BEDB97B4BDE067BEC6260301AA505FFA8F0E50752CEA6C"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1\\Dex-Run-Reconciliation.json",
+      "sha256": "FC4B39C040131ACB8DD381D4811238C26808DD3A8AE4FB9ABAFAF1EA07143825"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3.evidence\\http-client.py.source",
+      "sha256": "C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3.evidence\\ssl.py.source",
+      "sha256": "0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3.evidence\\email-message.py.source",
+      "sha256": "BA32EFEA2602EA52E73028A2817AFDDCCCCACC4385B9800896556D5C22DB2B90"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-dex-v3-review\\Captured-Native-Source-Boundary-Review.md",
+      "sha256": "18CDE7526B3EC82E0728249800A60E95F76966CB21B8D52D6FDA9AC6B16E570D"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_http_transport.py",
+      "sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_joined_https.py",
+      "sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_transport_policy.py",
+      "sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-design-review-v1\\V4-P4-Host-Parser-Prediction-Trace.md",
+      "sha256": "96D3D93C2EC841D03006E40BECF94AE4ADF708FC6415B47F0D89F7DF13BB9C55"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-design-review-v1\\Upstream-31216-Framing-Reference.md",
+      "sha256": "FE1894B6AC7B60CBD12C94FB663FAE4EE7CBCC36A46DF8685BC0FFEB95BD9E14"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-design-review-v1\\Header-Representation-Witness-Review.md",
+      "sha256": "C4BA19806F7E2D9FA58317429586E6532FB45771E92A70DC2E4112A929CC072D"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-behavior-witness-design-v2\\T05-Original-Behavior-Witness-Design.md",
+      "sha256": "80D3298715F5196291B4EAA29DFCFDC14F533DFF0B9F3017234381F3BDE72E02"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v6\\P4-HOST-PARSER-DISPOSITION.md",
+      "sha256": "C74760C005C2BBB6CF4F93B04A951DC2567D247D82AECA9AAF0C5403C7B1F392"
+    }
+  ],
+  "source_edits": false,
+  "executed": false,
+  "implementation_authorized": false,
+  "endpoint": "unbound",
+  "dex_qualifications": [
+    "A post-loop length check alone cannot establish chunk completion. response.length is itself an implementation attribute; app-only is not coupling-free.",
+    "Reject unbounded reads here to preserve bounded collection; the parser safe-read path is meaningful but not a substitute for current budgets and proof.",
+    "Keep close-delimited positives under the accepted baseline; do not reopen retention as a new Trish decision.",
+    "Do not treat tolerating conflicting lengths as a coequal design direction: require unambiguous framing, with explicit new compatibility restrictions reviewed by Trish.",
+    "Choose a local guarded response subclass plus header inventory as the engineering proposal; source-change and execution approvals remain required.",
+    "Native real TLS EOF distinction still unproved; no TLS option change approved.",
+    "28 design groups are not 28 exact finite stimuli or a replacement for the retained57 wires/full T01-T08 scope."
+  ]
+}

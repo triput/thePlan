@@ -1,0 +1,19 @@
+{
+  "inputsUnchanged": 49,
+  "result": "79F8959D8670C46FCA0755CE9CED6F4560496B4CB5FF2936E12E5199DA6E2AEA",
+  "reportedPredicates": 66,
+  "independentResultReview": "PENDING",
+  "cleanJoinedReaders": true,
+  "receipt": "157600DF62A40B4EAEF74FADB111BB0E4A7B694AAAC914004E7D91DD97F4CC22",
+  "structuralMutants": 3,
+  "scope": "Finite extracted fixture/helper behavior and structural caller restoration; no native210-second timing/TLS/DB/rollback proof",
+  "endpoint": "unbound",
+  "remainingAuthority": 0,
+  "behavioralMutants": 7,
+  "runtimePinsUnchanged": 10,
+  "controls": 13,
+  "mutants": 10,
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+  "reconciliationNote": "Mutant entries are stored under mutants rather than cases; inventories compared against the correct result field. No rerun or evidence changes.",
+  "zeroChildOutput": true
+}

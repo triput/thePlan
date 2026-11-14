@@ -1,0 +1,15 @@
+{
+  "kind": "Prelaunch review withholds earlier native card",
+  "atUtc": "2026-11-13T20:51:51.3973218Z",
+  "oldDecisionSha256": "A50C04FB8E59AD23653C0F541970AA1C71863646674DDB43AFD041D81C58B5D9",
+  "oldCommandSha256": "85E6A70270D41F422E4BBF9FE0F9BD962C128B51C3CC58511353ADD66B53D84D",
+  "status": "SUPERSEDED_FOR_EXECUTION_PENDING_FRESH_CORRECTION",
+  "reason": "Selected Microsoft fixture admits joined peer without rejecting recorded worker_error_kind and captures peer inventory before final join",
+  "reviewSha256": "90B66DA8AC20B78195B00224EA4698F4C07E4E422F396254BA7E41E52A398394",
+  "nextAssignment": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+  "nativeExecutionStarted": false,
+  "lateAnswerIsNotSuccessorAuthority": true,
+  "next": "Fresh selected-case correction, focused fake and independent review,then separate exact successor launch card",
+  "passedFakeResultsPreserved": true,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,16 @@
+{
+  "source_sha256": "D0E4AC8E31DBF13B371B1B99CA95DD259ADD159C13A37A94E5C129C5CB05C428",
+  "candidate_sha256": "74405B57F8D1601451E182F0B430C8CD7AB1C20F013A2E458150870E2A1F4A1E",
+  "diff_sha256": "65138AC71AF8E166AB93B203321A350A1C30CFB80A2E44C800E1E53306AFFC27",
+  "changes": {
+    "hostname=\"db\"": "hostname=\"native-fixture.invalid\"",
+    "database=\"scheduler\"": "database=\"dex_fixture\"",
+    "username=\"scheduler\"": "username=\"dex_fixture\""
+  },
+  "reason": "Match unchanged bootstrap role/database dex_fixture and unchanged TLS leaf SAN native-fixture.invalid",
+  "prior_source": "scheduler-native-i01-i02-v4/payload/fixture/runner_entry.py:656",
+  "jim_workspace_changed": false,
+  "execution_performed": false,
+  "launch_ready": false,
+  "scope": "Same approved np_runner_entry role; three literals only"
+}

@@ -1,0 +1,12 @@
+{
+  "started_at_utc": "2026-11-13T05:10:21.2730306Z",
+  "ended_at_utc": "2026-11-13T05:10:22.1057210Z",
+  "outer_exit_code": 0,
+  "outer_exception_class": null,
+  "outer_output_bytes": 0,
+  "outer_output_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "one_invocation_attempted": true,
+  "retry_performed": false,
+  "endpoint": "unbound",
+  "native_execution_performed": false
+}

@@ -1,0 +1,7 @@
+Matt,your exact five-character v2 correction is verified. Continued review caught B2 in RESTORE-WIRING:fn and node come from separate ast.parse calls,but membership uses n is node,so no enclosing try can match. This was in v1 and I missed it in my first pass;no check has run.
+
+For speed,I prepared a fresh held v3 with only that checker line changed to ast.dump structural equality. All runtime identity oracles,ten controls/47nested/five mutants,six subjects and helper bytes remain unchanged. No target parsed/compiled/executed;native fixture stays frozen.
+
+Your next single assignment is independent read-only review of the frozen v3 correction/command/admission in delivered drop Matt-thePlan-Scheduler-Worker-Diagnostic-V3-Review-2026-11-12.md,SHA2565DC3F11711892DFFDBA591C8A4732D3F6B4A19E19FD0BD9CEA9B537D1FDBE717. ManifestED3C619A...,checkerC3C44302...,20inputs/12packetpins/1interpreter. Return acceptance or concrete blockers;do not edit or execute. Direction is in the drop. Endpoint unbound;all holds stay.
+
+Dex

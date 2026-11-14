@@ -1,0 +1,38 @@
+{
+  "at_utc": "2026-11-13T03:18:58.0416516Z",
+  "status": "PASS_14_OF_14_INDEPENDENTLY_RECONCILED",
+  "invocations": 1,
+  "passed": 14,
+  "failed": 0,
+  "named_nested_predicates": 44,
+  "reported_counting_convention": 51,
+  "mutants_detected": 4,
+  "result_sha256": "48B7C45F1DA355D890229CBF3B63A601502EBFF9D20628C66EFDE0A28DA596A8",
+  "receipt_sha256": "C6E6C34ED6D90308F31F4F3CE63782FD1DECFF8E4164CFB4339A17432519293F",
+  "post_input_pins": 17,
+  "predecessors_unchanged": [
+    {
+      "packet": "scheduler-native-provider-runner-diagnostic-fake-prep-matt-v1",
+      "pins": 14
+    },
+    {
+      "packet": "scheduler-native-provider-runner-diagnostic-fake-prep-matt-v2",
+      "pins": 14
+    },
+    {
+      "packet": "scheduler-runner-diagnostic-fake-v1",
+      "pins": 17
+    },
+    {
+      "packet": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+      "pins": 265
+    }
+  ],
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "readers_joined_eof": true,
+  "runtime_scope": "interpreter-only",
+  "native_proof": false,
+  "authority_consumed": true,
+  "endpoint": "unbound"
+}

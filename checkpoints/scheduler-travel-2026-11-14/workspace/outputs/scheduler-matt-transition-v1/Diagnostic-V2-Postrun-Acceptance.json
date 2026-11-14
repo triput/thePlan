@@ -1,0 +1,97 @@
+{
+  "status": "REVIEW_PLAN_ONLY_NO_EXECUTION",
+  "expected_inventory_sha256": "D6702FE79DA85477C1A7A8B72BC531E19581D2484021B8D2480129A5025DEE32",
+  "top_level_order": [
+    "SUBJECT-PINS",
+    "DIFF-REDERIVATION",
+    "PRODUCER-PRECEDENT-IDENTITY",
+    "DECLARATION-MATCHES-BEHAVIOR",
+    "ORIGINAL-STATUS-KIND-ONLY",
+    "CANDIDATE-HAPPY-PATH",
+    "CAUSE-CONTEXT-CYCLE",
+    "OWNED-FRAME-REJECTIONS",
+    "BOUNDS-AND-TRUNCATION",
+    "DIAGNOSTIC-FALLBACK",
+    "PRIVACY-ENVELOPE",
+    "UNCHANGED-STOP-EXIT",
+    "HOST-VALIDATOR-EXTRACTED",
+    "MUTANT-DETECTION"
+  ],
+  "top_level_count": 14,
+  "nested_case_ids": {
+    "CAUSE-CONTEXT-CYCLE": [
+      "cause",
+      "context_only",
+      "cause_preferred",
+      "cycle"
+    ],
+    "OWNED-FRAME-REJECTIONS": [
+      "path_outside_root",
+      "rel_not_in_manifest",
+      "source_hash_mismatch",
+      "line_zero",
+      "line_past_end",
+      "manifest_lowercase_pin",
+      "manifest_non_canonical_path",
+      "manifest_non_python",
+      "identifier_sanitized"
+    ],
+    "BOUNDS-AND-TRUNCATION": [
+      "exceptions_gt_3",
+      "frames_gt_8",
+      "traceback_walk_gt_128",
+      "envelope_gt_4096"
+    ],
+    "DIAGNOSTIC-FALLBACK": [
+      "manifest_missing",
+      "manifest_row_malformed",
+      "inherited_exotic_fallback_host_refusal_expected"
+    ],
+    "UNCHANGED-STOP-EXIT": [
+      "original:runtime_error",
+      "original:keyboard_interrupt",
+      "original:success_no_stop",
+      "candidate:runtime_error",
+      "candidate:keyboard_interrupt",
+      "candidate:success_no_stop"
+    ],
+    "HOST-VALIDATOR-EXTRACTED": [
+      "accepts_candidate_and_original",
+      "ignores_unowned_attach",
+      "refuses_carriage_return",
+      "refuses_two_lines",
+      "refuses_over_4096",
+      "refuses_duplicate_key",
+      "refuses_primary_kind_mismatch",
+      "refuses_frame_not_owned",
+      "refuses_frame_line_oob",
+      "refuses_version_2",
+      "refuses_four_exceptions",
+      "refuses_nine_frames",
+      "refuses_extra_top_key",
+      "refuses_non_int_exit"
+    ],
+    "MUTANT-DETECTION": [
+      "frame_cap_9",
+      "fallback_removed",
+      "context_ignored",
+      "walk_129"
+    ]
+  },
+  "named_nested_count": 44,
+  "single_predicate_top_controls": 7,
+  "expected_report_nested_predicates": 51,
+  "checks": [
+    "Verify actual fresh v2 command/admission/input/runtime pins before and after one separately authorized invocation.",
+    "Require exact14 ordered top-level controls, observed PASS for each, passed14 failed0 and no failed controls/extras.",
+    "Require each cases/runs/mutants map to match its independent named inventory exactly. Cases/runs values PASS; mutation values DETECTED.",
+    "Require nested_predicates51 under the frozen checker counting convention; do not treat that count as51 independent top-level cases.",
+    "Require result kind and retained v1 checker lineage label as independently reviewed; executed true, native_proof false, endpoint unbound. Human authority is the external approval receipt.",
+    "Require child exit0, zero observed stdout/stderr, no capture/reader error/overflow, joined clean EOF readers, no timeout or retirement UNKNOWN.",
+    "Require exclusive new result/receipt plus retained outer invocation record, no preexisting outputs.",
+    "Verify old failed packet, stopped native baseline and known prior native/cleanup receipt hashes remain unchanged.",
+    "Stop on mismatch/failure/timeout/unexpected output/UNKNOWN. No retry, repair, extra cleanup or inferred native PASS."
+  ],
+  "execution_authorized": false,
+  "qualification": "Reconcile against actual frozen v2 handback before use. No checker/helper invoked to derive this review plan."
+}

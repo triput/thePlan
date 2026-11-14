@@ -1,0 +1,9 @@
+Jim — another small CODE contribution against current in-progress v3 (active workspace untouched). Three fixture profile literals currently disagree with the immutable DB bootstrap/cert: db/scheduler/scheduler vs native-fixture.invalid/dex_fixture/dex_fixture. The original passed runner_entry.py:656 and unchanged bootstrap+prepare-tls show the latter values.
+
+Prepared only those three literal corrections in a separate copy:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-profile-patch-v1\Proposed-Profile.diff
+Diff SHA256 65138AC71AF8E166AB93B203321A350A1C30CFB80A2E44C800E1E53306AFFC27
+Original entry D0E4AC8E…; candidate74405B57F8D1601451E182F0B430C8CD7AB1C20F013A2E458150870E2A1F4A1E.
+
+Adapt limited diff if your source moved; do not overwrite other work. Keep DB CA/passfile/client paths and all isolation unchanged. No bootstrap/helper mutation or new source card needed. Not imported/compiled/tested/invoked; no launch/PASS claim. Same assignment/16 roles. No immediate ACK needed.
+— Dex

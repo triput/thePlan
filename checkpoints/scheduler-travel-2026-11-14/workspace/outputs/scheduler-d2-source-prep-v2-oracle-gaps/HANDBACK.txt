@@ -1,0 +1,33 @@
+SLACK TIP — post-native-d2-source-fake-prep-jim-v2-oracle-gaps-2026-11-11
+
+Status: D2_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED (preparation only; no execution)
+
+Dir: F:/DropFolder/pending/post-native-d2-source-fake-prep-jim-v2-oracle-gaps-2026-11-11/
+Also mirrored: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-source-prep-v2-oracle-gaps/
+
+Supersedes frozen v1 tip A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E due to Dex provisional oracle gaps (p1794421374). v1 remains IMMUTABLE.
+
+Authority: D2-Source-and-Fake-Preparation-Scope C3D7B8F1… / Approval answer Approve fresh-copy preparation; overlay CA51E2D8…
+
+SOURCE (fresh copy only; originals untouched; pins identical to v1):
+- Exact diff CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4 applied to 3 files
+- Resulting: policy A265F81F…; http AECE1018…; ctx 875FBF61…
+- Inventory 234/234; only those three existing files changed
+- bases/ hold starting pins
+
+FAKE PACKET (authored, NOT executed; oracle gaps closed):
+- fake-only-d2-path-admission-verification/
+- 41 approved-core functional CTRL rows retained (incl. CTRL-POS-G-PAGE-TOKEN + CTRL-CONT-G-PAGE-TOKEN)
+- +3 CTX context pre-delegate named controls → 44 functional total
+- +3 mutation +5 inventory self-checks = 52 named
+- Mutations now drive functional CoveringHTTP oracles (open/send) with positive unmutated SAME-assertion controls
+- CTRL-SEP-TARGET-AUTHZ non-tautology (AST+interface; no auth proof)
+- neg_path also observes _CoveringClient pre-delegate refuse
+- OUTER-ADMISSION A86238B606D370F28F679492BD46F69B005F7C4D5F3E5783A33FC53367A760B6
+- check 82017D3336FB8CD32336979C6ECA968FF5D442402A290EF14E8E1914F732D5A0
+- EXPECTED DD6A7118E6F86FC087DF3A2BF33F03333D027A6FA57C4C51E02AA5DE3119624D
+- launch_ready=false; executed_in_preparation=false
+
+HELD: Verification-Commands-Held.md — do not run admit/launcher/check without a later card.
+No app imports, sockets, PKI, Docker, native, endpoint bind. T01–T08 not closed.
+TIP-FREEZE SHA256 9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB

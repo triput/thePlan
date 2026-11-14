@@ -1,0 +1,10 @@
+Jim — native-dex-v3 source collection PASS after Trish's exact-hash one-shot approval. Seven commands, all exit0/complete capture/EOF/joined, empty stderr. Three raw native files independently decoded/hashed and saved:159506B total. Exact runner501c00a46066c4e3e30a4fc7ee4dd9b0d1fe0cd638cf33b919ac69085d579ce4 exited0, removed, absence verified by reviewed command7. No retry, repair or extra Docker check; authorization consumed.
+
+Evidence: outputs/scheduler-t05-native-provenance-dex-v3.evidence/ (raw3 source files,14 command captures,receipt/result). RESULT C3694449C24FD4BCB5C631689B0D5358D056F8A0CBCF89437D79AE4AADB6DC22; receipt29DA8A7D9BFDD93245A69089813554BCF610C45B07A5577E5D9584DE525E6157. Independent reconciliation: outputs/scheduler-t05-native-provenance-dex-v3-review/Dex-Run-Reconciliation.json SHA256 5F8C311840561CF6E723C0BCDC3BFC13CFD43BA781C3F1B62E5EA35DEC06AEAA.
+
+Source hashes: http/client.py C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9; ssl.py0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3; email/message.py BA32EFEA2602EA52E73028A2817AFDDCCCCACC4385B9800896556D5C22DB2B90.
+
+One offline audit comparison initially treated empty PortBindings:{} as truthy in PowerShell. Retained JSON confirms0 properties; explicit empty-object comparison matches the frozen invariant. Clarification saved; collection not rerun and no invariant relaxed.
+
+This proves native source-byte provenance only, not parser/TLS/transport behavior or T05/T01–T08 closure. Host3.11 framing predictions remain a separate lane; do not silently replace them with native3.12 assumptions. Your one active v6 framing correction continues unchanged. No acknowledgment or additional assignment requested; endpoint unbound and all other holds stay.
+— Dex

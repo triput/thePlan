@@ -1,0 +1,7 @@
+{
+  "packet": "scheduler-t05-original-framing-prep-v1",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "endpoint": "unbound",
+  "notes": "Static preflight placeholder; no wrapper or Python child invoked during preparation."
+}

@@ -1,0 +1,13 @@
+{
+  "kind": "workspace_only_one_function_contribution",
+  "executed": false,
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-v3\\payload\\fixture\\np_auth_seed.py",
+  "source_sha256": "094BA73943684DBD310F7BD2F5442DB1BF7DAEFE4B27CA9948C52B207D1D6132",
+  "candidate": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-coverage-patch-v1\\payload\\fixture\\np_auth_seed.py",
+  "candidate_sha256": "9EEF50BCAC923E43F9C7FED767DB541210E185A3B41E58DEEC612E77E5A38C7C",
+  "boundary": "measure_subscription_coverage_state only",
+  "outside_function_unchanged": true,
+  "model_sha256": "0A8B0E20B4F058311CF93322C74BB2C0522C6FFC1E28237A9D7D72C9C10CC6DF",
+  "scope": "Actual mapped coverage fields; missing attributes raise rather than silently default; retain aggregate booleans; no app/schema/transaction changes",
+  "checks_not_run": true
+}

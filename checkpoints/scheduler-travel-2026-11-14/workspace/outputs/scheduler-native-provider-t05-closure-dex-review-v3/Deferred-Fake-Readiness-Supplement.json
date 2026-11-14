@@ -1,0 +1,29 @@
+{
+  "at_utc": "2026-11-13T03:10:17.4117710Z",
+  "status": "PARTIAL_STATIC_REVIEW_NO_EXECUTION",
+  "packet": "outputs/scheduler-native-provider-t05-fake-v1",
+  "input_manifest_sha256": "0B9D31C9FE5EB5B4CB8FF1C57707B2BF03E37107A7F9999B1A196A1F4D4D47DE",
+  "manifest_path_base": "packet/ despite manifest stored in parent",
+  "manifest_entries_verified": 289,
+  "admission_packet_pins_verified": 23,
+  "runtime_pin_source": "direct interpreter_path/interpreter_sha256 fields, not runtime_files inventory",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "reviewed_scope": "T05 focused control and actual selected EOF/reset/refusal helpers; source only",
+  "observations": [
+    "Abrupt observer distinguishes SSLEOFError and reset/abort from generic SSLError/OSError/TimeoutError and clean EOF.",
+    "Extracted fake controls invoke actual observer/admission predicates with fake modules and fake JoinedTLS receive; they cannot establish real TLS closure.",
+    "UNKNOWN refusal is checked before primary unwrapping; partial-start retirement and planning failure/expiry remain explicit controls.",
+    "Some mutation witnesses are separately authored hole demonstrations rather than mutation of the extracted helper; retain that distinction.",
+    "Checker has future annotations enabled; dynamically compiled extracted helpers inherit that flag by default, so missing Any/Callable names in extraction globals are not alone a demonstrated blocker."
+  ],
+  "not_completed": [
+    "Independent full17-control concrete staging peer review",
+    "Exact19 nested control runtime result",
+    "Real orderly versus abrupt native TLS proof",
+    "Final native source merge with approved diagnostic producer"
+  ],
+  "result_exists": false,
+  "execution_authorized": false,
+  "second_assignment_created": false,
+  "endpoint": "unbound"
+}

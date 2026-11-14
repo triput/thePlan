@@ -1,0 +1,21 @@
+{
+  "disposition": "STATIC_PREPARATION_COMPLETE_PENDING_INDEPENDENT_REVIEW",
+  "application_files_per_side": 234,
+  "original_matches_route_candidate": true,
+  "changed_files": [
+    "app/services/covering_transport_policy.py"
+  ],
+  "policy_original_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+  "policy_candidate_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+  "packet_pins_checked": 475,
+  "runtime_pins_checked": 19,
+  "controls_authored": 9,
+  "application_diff_sha256": "C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB",
+  "command_sha256": "A98838452A0E7B6FA5BA504E38F2BA54E05890DFC759D33AE23412F94D87E048",
+  "admission_sha256": "AE502E6BAA2CF8CA33B9E1137E5BB8C5E5FCC14F620239914DB3CAFCE1E86532",
+  "source_parsed_compiled_imported": false,
+  "helpers_invoked": false,
+  "executed": false,
+  "launch_authorized": false,
+  "endpoint": "unbound"
+}

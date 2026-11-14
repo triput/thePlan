@@ -1,0 +1,57 @@
+{
+  "kind": "t05-combined-witness-fake-structural-expected",
+  "packet": "scheduler-t05-combined-witness-fake-prep-matt-v1",
+  "requirement_id": "T05-SHORT-LENGTH-INVALID-JSON",
+  "subject_pins": {
+    "covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "covering_transport_policy.py": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+    "covering_joined_https.py": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+    "payload_SHA256SUMS": "5F94DD7D4FA34BC9FB16273F040AED7FD066CE768DAE26694DF4457B4B04CCD6"
+  },
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "SOURCE-LINEAGE",
+    "RUNTIME-PROVENANCE",
+    "STRUCTURE",
+    "SHORT-VALID-JSON",
+    "SHORT-INVALID-JSON-COMBINED",
+    "COMPLETE-INVALID-JSON",
+    "COMPLETE-VALID-JSON",
+    "LAYER-INDEPENDENCE",
+    "INVENTORY-REJECTION",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "SOURCE-LINEAGE": ["transport_row", "policy_row", "joined_row"],
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "STRUCTURE": ["read_loop_then_gate_then_decode", "guarded_read_short_body_raise", "default_factory_joined_tls", "joined_close_local_only"],
+    "SHORT-VALID-JSON": ["refused_incomplete_read", "decoder_not_invoked", "gate_not_reached", "cleanup_and_counters"],
+    "SHORT-INVALID-JSON-COMBINED": ["refused_incomplete_read", "decoder_not_invoked", "gate_not_reached", "cleanup_and_counters"],
+    "COMPLETE-INVALID-JSON": ["gate_admits", "decoder_invoked_once", "json_decode_error_propagates", "cleanup_and_counters"],
+    "COMPLETE-VALID-JSON": ["typed_response", "exact_bytes_and_headers", "decoder_and_gate_once_in_order", "cleanup_and_counters"],
+    "LAYER-INDEPENDENCE": ["read_guard_bypassed_gate_refuses", "gate_call_removed_read_still_refuses"],
+    "INVENTORY-REJECTION": ["dropped_case_rejected", "reordered_case_rejected", "extra_case_rejected", "exact_inventory_accepted"],
+    "ACTUAL-SOURCE-MUTANTS": ["both_layers_bypassed", "condition_inverted_under_read_bypass", "condition_weakened_under_read_bypass"]
+  },
+  "expected_nested_predicates": 40,
+  "expected_outcomes": {
+    "short_valid_json": {"declared": 20, "body": "{\"value\":[]}", "outcome": "http.client.IncompleteRead(partial=b'', expected=8) raised at _GuardedHTTPResponse.read; json.loads calls 0; completion gate calls 0"},
+    "short_invalid_json_combined": {"declared": 5, "body": "{", "outcome": "http.client.IncompleteRead(partial=b'', expected=4) raised at _GuardedHTTPResponse.read; json.loads calls 0; completion gate calls 0"},
+    "complete_invalid_json": {"declared": 1, "body": "{", "outcome": "completion gate admits (1 call); json.loads called once with b'{'; the exact json.JSONDecodeError (pos 1) raised in json/decoder.py propagates unchanged; not a framing refusal"},
+    "complete_valid_json": {"declared": 12, "body": "{\"value\":[]}", "outcome": "httpx.Response recorder status 200, exact body bytes, Content-Length 12; gate then json once each; items counter 0"},
+    "all_cases_cleanup": "transport opened once and closed once; request wire starts 'GET /v1.0/me/calendars HTTP/1.1'; counter.bytes equals total response bytes; identity page count 1",
+    "layer_read_guard_bypassed": "completion gate alone raises CoveringTransportRefused('incomplete fixed-length body refused') before json.loads",
+    "layer_gate_call_removed": "equivalent mutant on this path: guarded read still raises IncompleteRead; NOT counted as a detection"
+  },
+  "mutant_oracles": {
+    "both_layers_bypassed": "combined witness: decoder invoked",
+    "condition_inverted_under_read_bypass": "gate layer: decoder invoked",
+    "condition_weakened_under_read_bypass": "gate layer: decoder invoked"
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "full_t05_closed": false,
+  "endpoint": "unbound"
+}

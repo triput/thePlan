@@ -1,0 +1,98 @@
+[
+  {
+    "role_key": "1_Invoke-Native-Provider.ps1",
+    "relative_path": "Invoke-Native-Provider.ps1",
+    "sha256": "F5EFF0EE732E46A393D17A2BAC426246414246E66AFF8C22A173AC322303F535",
+    "bytes": 3748
+  },
+  {
+    "role_key": "2_np_supervisor.py",
+    "relative_path": "payload/fixture/np_supervisor.py",
+    "sha256": "9608283BD71EDA9315332DA5AE3E51D896100EAEE2E1CFD647D5E1C0AB4F0ACC",
+    "bytes": 6961
+  },
+  {
+    "role_key": "3_np_integrated_runner.py",
+    "relative_path": "payload/fixture/np_integrated_runner.py",
+    "sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+    "bytes": 3230
+  },
+  {
+    "role_key": "4_np_runner_entry.py",
+    "relative_path": "payload/fixture/np_runner_entry.py",
+    "sha256": "BB101B0461D129C12D587109CB1CE4D466E2141FBB0D383D996FCD0311B1E2BD",
+    "bytes": 4294
+  },
+  {
+    "role_key": "5_np_suite.py",
+    "relative_path": "payload/fixture/np_suite.py",
+    "sha256": "9F944E179CABD9DBA00D0F6DCA1BB9C384B43FBF36D963BC8F3D84C3196BC4D3",
+    "bytes": 13538
+  },
+  {
+    "role_key": "6_np_receipts.py",
+    "relative_path": "payload/fixture/np_receipts.py",
+    "sha256": "7467522BCCC5925D9FD0D294769E4C62050EE0C8EA6FD170B077FDBC4AA83FDE",
+    "bytes": 2688
+  },
+  {
+    "role_key": "7_np_provider_peer.py",
+    "relative_path": "payload/fixture/np_provider_peer.py",
+    "sha256": "2D84C771941C0BBBBC4190556E8ED7D66031C8347DCADBF31846CFFFDEAAFF85",
+    "bytes": 3844
+  },
+  {
+    "role_key": "8_np_provider_transcript.py",
+    "relative_path": "payload/fixture/np_provider_transcript.py",
+    "sha256": "AFB4F76ADD18E0CCC361BD5F77DFE19C01CAA11DA5B351B0F0E478C26EB22675",
+    "bytes": 8933
+  },
+  {
+    "role_key": "9_np_provider_routes.py",
+    "relative_path": "payload/fixture/np_provider_routes.py",
+    "sha256": "80C84A48D8515FB22F3848BA9245002501331434909935D8810E586BC21D5E92",
+    "bytes": 3662
+  },
+  {
+    "role_key": "10_np_auth_seed.py",
+    "relative_path": "payload/fixture/np_auth_seed.py",
+    "sha256": "8AE12AC3BD06221EEDA1848FA42632246BC78222AC14E8E9B0DAE19F88E818DC",
+    "bytes": 5669
+  },
+  {
+    "role_key": "11_np_alias_seed.py",
+    "relative_path": "payload/fixture/np_alias_seed.py",
+    "sha256": "A370C630B7DD21DE02D00FB3081A0C4ADC4C129A1549180182B7AF79FBCC0AB8",
+    "bytes": 1418
+  },
+  {
+    "role_key": "12_prepare-np-provider-tls.sh",
+    "relative_path": "payload/fixture/prepare-np-provider-tls.sh",
+    "sha256": "F692FA6D0338C3BA5E0CA55CD96A6817B15605F8162BABE66BFDA2800EC3000C",
+    "bytes": 3321
+  },
+  {
+    "role_key": "13_check_native_provider.py",
+    "relative_path": "verify/check_native_provider.py",
+    "sha256": "D5F382AFB4C804DF874D1B1F7BED48E70F8C578A9766901EFB06FAB715F75A7B",
+    "bytes": 8758
+  },
+  {
+    "role_key": "14_launch_check.py",
+    "relative_path": "verify/launch_check.py",
+    "sha256": "25B1AF963C2915190C41D0D9E3380E9555760A7B1C2CA4EACAF78B1CF8950915",
+    "bytes": 4577
+  },
+  {
+    "role_key": "15_verify_admission.py",
+    "relative_path": "verify/verify_admission.py",
+    "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+    "bytes": 4360
+  },
+  {
+    "role_key": "16_Invoke-Fake.ps1",
+    "relative_path": "Invoke-Fake.ps1",
+    "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+    "bytes": 3960
+  }
+]

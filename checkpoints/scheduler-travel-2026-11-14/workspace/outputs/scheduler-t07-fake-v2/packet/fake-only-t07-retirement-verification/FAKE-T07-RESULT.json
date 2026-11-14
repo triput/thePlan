@@ -1,0 +1,1205 @@
+{
+  "status": "PASS",
+  "class": "FAKE-T07-RETIREMENT",
+  "executed": true,
+  "executed_in_preparation": false,
+  "source_hashes_verified": true,
+  "inventory_error": null,
+  "named_expected_control_count": 41,
+  "functional_control_count": 36,
+  "control_ids_in_order": [
+    "C-R01",
+    "C-R02",
+    "C-R03",
+    "C-R04",
+    "C-R05",
+    "C-R06",
+    "C-R07",
+    "C-R08",
+    "C-R09",
+    "C-R10",
+    "C-R11",
+    "C-R12",
+    "C-OUT-VE",
+    "C-OUT-UNK",
+    "C-UNK-PULL",
+    "C-CALLER-EVENT",
+    "C-CALLER-OAUTH",
+    "C-CALLER-IDENTITY",
+    "C-NO-LATER-ADMISSION",
+    "C-POS-KNOWN-REAUTH",
+    "C-PROV-BOUNDARY-ACCEPT",
+    "C-PROV-BOUNDARY-REJECT",
+    "O-R02",
+    "O-R03-EV",
+    "O-R04",
+    "O-R05",
+    "O-R06",
+    "O-R08",
+    "O-UNK-PULL",
+    "O-ID-OS",
+    "O-R11",
+    "O-CALLER-EVENT",
+    "M-SKIP-SECOND-CLOSE",
+    "M-AMBIENT-EXC-INFO",
+    "M-MUTATE-OUTER-UNKNOWN",
+    "M-ALLOW-LATER",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "controls": {
+    "C-R01": {
+      "result": "PASS",
+      "detail": "success both closes; valid result; no UNKNOWN",
+      "evidence": {
+        "response_close_calls": 1,
+        "method_close_calls": 1,
+        "status_code": 200,
+        "content_len": 13,
+        "owner_id_proof_limit": "FAKE-OWNER-ID-NOT-THREAD"
+      }
+    },
+    "C-R02": {
+      "result": "PASS",
+      "detail": "C-R02 provenance",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": null,
+        "response_close": {
+          "class": "FakeResponseCloseError",
+          "packet_label": "EXC-FakeResponseCloseError"
+        },
+        "transport_close": null,
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": null,
+            "response_close": {
+              "class": "FakeResponseCloseError",
+              "packet_label": "EXC-FakeResponseCloseError"
+            },
+            "transport_close": null
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-R03": {
+      "result": "PASS",
+      "detail": "C-R03 provenance",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": null,
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": null,
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-R04": {
+      "result": "PASS",
+      "detail": "C-R04 provenance",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": {
+          "class": "JSONDecodeError",
+          "packet_label": "EXC-JSONDecodeError"
+        },
+        "response_close": {
+          "class": "FakeResponseCloseError",
+          "packet_label": "EXC-FakeResponseCloseError"
+        },
+        "transport_close": null,
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": {
+              "class": "JSONDecodeError",
+              "packet_label": "EXC-JSONDecodeError"
+            },
+            "response_close": {
+              "class": "FakeResponseCloseError",
+              "packet_label": "EXC-FakeResponseCloseError"
+            },
+            "transport_close": null
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-R05": {
+      "result": "PASS",
+      "detail": "C-R05 provenance",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": {
+          "class": "JSONDecodeError",
+          "packet_label": "EXC-JSONDecodeError"
+        },
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": {
+              "class": "JSONDecodeError",
+              "packet_label": "EXC-JSONDecodeError"
+            },
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-R06": {
+      "result": "PASS",
+      "detail": "C-R06 provenance",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": null,
+        "response_close": {
+          "class": "FakeResponseCloseError",
+          "packet_label": "EXC-FakeResponseCloseError"
+        },
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": null,
+            "response_close": {
+              "class": "FakeResponseCloseError",
+              "packet_label": "EXC-FakeResponseCloseError"
+            },
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-R07": {
+      "result": "PASS",
+      "detail": "exact setblocking FakeOpenPrimaryError; 1 method/raw close; zero sends",
+      "evidence": {
+        "primary_is_configured_fault": true,
+        "method_close_calls": 1,
+        "raw_sock_close_attempts": 1,
+        "sends": 0,
+        "constructs": 1,
+        "fault_reached": true
+      }
+    },
+    "C-R08": {
+      "result": "PASS",
+      "detail": "JoinedTLS via CoveringHTTP; 2 method closes + exactly 1 raw close",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": {
+          "class": "CoveringTransportRefused",
+          "packet_label": "EXC-CoveringTransportRefused"
+        },
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeSockCloseError",
+          "packet_label": "EXC-FakeSockCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": {
+              "class": "CoveringTransportRefused",
+              "packet_label": "EXC-CoveringTransportRefused"
+            },
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeSockCloseError",
+              "packet_label": "EXC-FakeSockCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8,
+        "method_close_calls": 2,
+        "raw_sock_close_attempts": 1,
+        "fault_reached": true,
+        "owner_id_proof_limit": "FAKE-OWNER-ID-NOT-THREAD"
+      }
+    },
+    "C-R09": {
+      "result": "PASS",
+      "detail": "first close may raise; later same-owner method close no second raw",
+      "evidence": {
+        "method_close_calls": 2,
+        "raw_sock_close_attempts_delta": 1,
+        "second_raw_delta": 0
+      }
+    },
+    "C-R10": {
+      "result": "PASS",
+      "detail": "oauth HTTP 500 server_error JSON + transport cleanup → UNKNOWN",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": {
+          "class": "CoveringRootOutcomeUnknown",
+          "packet_label": "EXC-CoveringRootOutcomeUnknown"
+        },
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": {
+              "class": "CoveringRootOutcomeUnknown",
+              "packet_label": "EXC-CoveringRootOutcomeUnknown"
+            },
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8,
+        "stimulus": "complete_http_500_server_error_json",
+        "malformed_lost_response_obligation": "open_not_this_control",
+        "continuation_proof": "integrated_domain_counters_not_this_control"
+      }
+    },
+    "C-R11": {
+      "result": "PASS",
+      "detail": "invalid_grant + uncertain retirement → UNKNOWN with Reauth primary",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": {
+          "class": "CoveringReauthorizationRequired",
+          "packet_label": "EXC-CoveringReauthorizationRequired"
+        },
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": {
+              "class": "CoveringReauthorizationRequired",
+              "packet_label": "EXC-CoveringReauthorizationRequired"
+            },
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8,
+        "continuation_proof": "integrated_domain_counters_not_this_control",
+        "terminal_ack_proof_limit": "FAKE-TERMINAL-ACK-NOT-PROVIDER"
+      }
+    },
+    "C-R12": {
+      "result": "PASS",
+      "detail": "foreign retirement refused; closed/owner/socket unchanged; zero raw close",
+      "evidence": {
+        "owner_id_proof_limit": "FAKE-OWNER-ID-NOT-THREAD",
+        "fake_thread_scope": "FAKE-OWNER-ID-NOT-THREAD",
+        "closed_unchanged": true,
+        "owner_unchanged": true,
+        "socket_identity_unchanged": true,
+        "raw_close_attempts_delta": 0,
+        "not_merely_sock_none": true
+      }
+    },
+    "C-OUT-VE": {
+      "result": "PASS",
+      "detail": "ambient ValueError not attributed/mutated",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": null,
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": null,
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-OUT-UNK": {
+      "result": "PASS",
+      "detail": "new UNKNOWN; outer attrs unchanged",
+      "evidence": {
+        "class": "CoveringRootOutcomeUnknown",
+        "primary": null,
+        "response_close": null,
+        "transport_close": {
+          "class": "FakeTransportCloseError",
+          "packet_label": "EXC-FakeTransportCloseError"
+        },
+        "retirement_provenance_len": 3,
+        "prior_count": 0,
+        "occurrence_count": 1,
+        "occurrences": [
+          {
+            "primary": null,
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            }
+          }
+        ],
+        "boundary_fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8
+      }
+    },
+    "C-UNK-PULL": {
+      "result": "PASS",
+      "detail": "complete try/except UNKNOWN re-raise",
+      "evidence": {
+        "escaped": true,
+        "raised_class": "CoveringRootOutcomeUnknown",
+        "same_object": true,
+        "returned_outcome": null,
+        "assumed_continuation_from_importer_return": false,
+        "assumed_continuation_label": "low_level_importer_mapping_not_observed_admission",
+        "source_has_unknown_escape": true,
+        "newline_kind": "lf",
+        "source_sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+      }
+    },
+    "C-CALLER-EVENT": {
+      "result": "PASS",
+      "detail": "importer owning try/except → CoveringHTTP; Unknown identity; SUB-1 prior; no later target",
+      "evidence": {
+        "caller_kind": "event",
+        "original": false,
+        "raised_unknown": true,
+        "same_unknown": true,
+        "exchange_unknown_id": 1820668814304,
+        "terminal_unknown_id": 1820668814304,
+        "http_exchange_was_unknown": true,
+        "exchange_raw_class": "CoveringRootOutcomeUnknown",
+        "prior_completed": [
+          {
+            "subscription_id": "SUB-1",
+            "status": "ok",
+            "phase": "import",
+            "outcome": "ok",
+            "FAKE_TRANSACTION_ACKNOWLEDGMENT": "FAKE-NOT-NATIVE-DB-ACK"
+          }
+        ],
+        "prior_completed_count": 1,
+        "prior_completed_sub1_ok": true,
+        "later_roles": [],
+        "later_count": 0,
+        "later_refusals": [
+          [
+            "assessment",
+            "CoveringRootOutcomeUnknown"
+          ]
+        ],
+        "later_assessment_during_domain": false,
+        "later_target_token": false,
+        "later_target_apply": false,
+        "later_target_parent": false,
+        "later_target_admitted": false,
+        "apply_calls": 2,
+        "token_calls": 2,
+        "parent_factory_calls": 2,
+        "used_importer_try_except": true,
+        "used_oauth_adapter": false,
+        "importer_source": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+        "stopped": true,
+        "trace": [
+          [
+            "session_factory",
+            "auth",
+            null
+          ],
+          [
+            "session_factory",
+            "auth",
+            null
+          ],
+          [
+            "session_factory",
+            "token",
+            null
+          ],
+          [
+            "token_port",
+            "SUB-1",
+            "event",
+            1
+          ],
+          [
+            "parent_factory",
+            [
+              "FAKE-OWNER",
+              "FAKE-ACCT-0",
+              "SUB-1"
+            ]
+          ],
+          [
+            "apply_port",
+            "SUB-1",
+            1,
+            "event"
+          ],
+          [
+            "importer_try",
+            "candidate",
+            "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+            "lf"
+          ],
+          [
+            "session_factory",
+            "token",
+            null
+          ],
+          [
+            "token_port",
+            "SUB-2",
+            "event",
+            2
+          ],
+          [
+            "parent_factory",
+            [
+              "FAKE-OWNER",
+              "FAKE-ACCT-1",
+              "SUB-2"
+            ]
+          ],
+          [
+            "apply_port",
+            "SUB-2",
+            2,
+            "event"
+          ],
+          [
+            "importer_try",
+            "candidate",
+            "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+            "lf"
+          ]
+        ],
+        "domain_symbol": "run_bounded_domain",
+        "connector_symbol": "CoveringRoleConnector.run_target",
+        "http_port": "apply/importer",
+        "fake_native_db_boundary": "FAKE-NOT-NATIVE-DB"
+      }
+    },
+    "C-CALLER-OAUTH": {
+      "result": "PASS",
+      "detail": "oauth adapter refresh_access_token → CoveringHTTP; Unknown identity; SUB-1 prior; no later",
+      "evidence": {
+        "caller_kind": "oauth",
+        "original": false,
+        "raised_unknown": true,
+        "same_unknown": true,
+        "exchange_unknown_id": 1820668816896,
+        "terminal_unknown_id": 1820668816896,
+        "http_exchange_was_unknown": true,
+        "exchange_raw_class": "CoveringRootOutcomeUnknown",
+        "prior_completed": [
+          {
+            "subscription_id": "SUB-1",
+            "status": "ok",
+            "phase": "import",
+            "outcome": "ok",
+            "FAKE_TRANSACTION_ACKNOWLEDGMENT": "FAKE-NOT-NATIVE-DB-ACK"
+          }
+        ],
+        "prior_completed_count": 1,
+        "prior_completed_sub1_ok": true,
+        "later_roles": [],
+        "later_count": 0,
+        "later_refusals": [
+          [
+            "assessment",
+            "CoveringRootOutcomeUnknown"
+          ]
+        ],
+        "later_assessment_during_domain": false,
+        "later_target_token": false,
+        "later_target_apply": false,
+        "later_target_parent": false,
+        "later_target_admitted": false,
+        "apply_calls": 1,
+        "token_calls": 2,
+        "parent_factory_calls": 1,
+        "used_importer_try_except": false,
+        "used_oauth_adapter": true,
+        "importer_source": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+        "stopped": true,
+        "trace": [
+          [
+            "session_factory",
+            "auth",
+            null
+          ],
+          [
+            "session_factory",
+            "auth",
+            null
+          ],
+          [
+            "session_factory",
+            "token",
+            null
+          ],
+          [
+            "token_port",
+            "SUB-1",
+            "oauth",
+            1
+          ],
+          [
+            "oauth_adapter",
+            "refresh_access_token",
+            "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/google_calendar.py",
+            "crlf"
+          ],
+          [
+            "parent_factory",
+            [
+              "FAKE-OWNER",
+              "FAKE-ACCT-0",
+              "SUB-1"
+            ]
+          ],
+          [
+            "apply_port",
+            "SUB-1",
+            1,
+            "oauth"
+          ],
+          [
+            "session_factory",
+            "token",
+            null
+          ],
+          [
+            "token_port",
+            "SUB-2",
+            "oauth",
+            2
+          ],
+          [
+            "oauth_adapter",
+            "refresh_access_token",
+            "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/google_calendar.py",
+            "crlf"
+          ]
+        ],
+        "domain_symbol": "run_bounded_domain",
+        "connector_symbol": "CoveringRoleConnector.run_target",
+        "http_port": "token/oauth_adapter",
+        "fake_native_db_boundary": "FAKE-NOT-NATIVE-DB"
+      }
+    },
+    "C-CALLER-IDENTITY": {
+      "result": "PASS",
+      "detail": "identity prepare path + CoveringRoleConnector stop after same UNKNOWN",
+      "evidence": {
+        "caller_kind": "identity",
+        "identity_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+        "prior_results": [
+          "token"
+        ],
+        "later_count": 0,
+        "same_unknown": true,
+        "connector_symbol": "CoveringRoleConnector.run_target"
+      }
+    },
+    "C-NO-LATER-ADMISSION": {
+      "result": "PASS",
+      "detail": "HTTP cleanup Unknown identity; zero later target/ASSESSMENT after fault",
+      "evidence": {
+        "caller_kind": "event",
+        "original": false,
+        "raised_unknown": true,
+        "same_unknown": true,
+        "exchange_unknown_id": 1820668165184,
+        "terminal_unknown_id": 1820668165184,
+        "http_exchange_was_unknown": true,
+        "exchange_raw_class": "CoveringRootOutcomeUnknown",
+        "prior_completed": [
+          {
+            "subscription_id": "SUB-1",
+            "status": "ok",
+            "phase": "import",
+            "outcome": "ok",
+            "FAKE_TRANSACTION_ACKNOWLEDGMENT": "FAKE-NOT-NATIVE-DB-ACK"
+          }
+        ],
+        "prior_completed_count": 1,
+        "prior_completed_sub1_ok": true,
+        "later_roles": [],
+        "later_count": 0,
+        "later_refusals": [
+          [
+            "assessment",
+            "CoveringRootOutcomeUnknown"
+          ]
+        ],
+        "later_assessment_during_domain": false,
+        "later_target_token": false,
+        "later_target_apply": false,
+        "later_target_parent": false,
+        "later_target_admitted": false,
+        "apply_calls": 2,
+        "token_calls": 2,
+        "parent_factory_calls": 2,
+        "used_importer_try_except": true,
+        "used_oauth_adapter": false,
+        "importer_source": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+        "stopped": true,
+        "trace": [
+          [
+            "session_factory",
+            "auth",
+            null
+          ],
+          [
+            "session_factory",
+            "auth",
+            null
+          ],
+          [
+            "session_factory",
+            "token",
+            null
+          ],
+          [
+            "token_port",
+            "SUB-1",
+            "event",
+            1
+          ],
+          [
+            "parent_factory",
+            [
+              "FAKE-OWNER",
+              "FAKE-ACCT-0",
+              "SUB-1"
+            ]
+          ],
+          [
+            "apply_port",
+            "SUB-1",
+            1,
+            "event"
+          ],
+          [
+            "importer_try",
+            "candidate",
+            "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+            "lf"
+          ],
+          [
+            "session_factory",
+            "token",
+            null
+          ],
+          [
+            "token_port",
+            "SUB-2",
+            "event",
+            2
+          ],
+          [
+            "parent_factory",
+            [
+              "FAKE-OWNER",
+              "FAKE-ACCT-1",
+              "SUB-2"
+            ]
+          ],
+          [
+            "apply_port",
+            "SUB-2",
+            2,
+            "event"
+          ],
+          [
+            "importer_try",
+            "candidate",
+            "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+            "lf"
+          ]
+        ],
+        "domain_symbol": "run_bounded_domain",
+        "connector_symbol": "CoveringRoleConnector.run_target",
+        "http_port": "apply/importer",
+        "fake_native_db_boundary": "FAKE-NOT-NATIVE-DB"
+      }
+    },
+    "C-POS-KNOWN-REAUTH": {
+      "result": "PASS",
+      "detail": "invalid_grant alone → Reauth",
+      "evidence": {}
+    },
+    "C-PROV-BOUNDARY-ACCEPT": {
+      "result": "PASS",
+      "detail": "valid UNKNOWN/provenance tuple accepted by assert_provenance_boundary",
+      "evidence": {
+        "fields": [
+          "primary",
+          "response_close",
+          "transport_close",
+          "prior_retirement_provenance",
+          "retirement_provenance",
+          "retirement_occurrences"
+        ],
+        "max_occurrences": 8,
+        "validator_exercised": true,
+        "accepted_shapes": [
+          "absent_occurrences",
+          "single_valid_occurrence_tuple"
+        ]
+      }
+    },
+    "C-PROV-BOUNDARY-REJECT": {
+      "result": "PASS",
+      "detail": "over-count/non-exception/malformed rejected before sanitize",
+      "evidence": {}
+    },
+    "O-R02": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "transport_close_attempted": false,
+        "raised_class": "FakeResponseCloseError",
+        "unknown_raised": false
+      }
+    },
+    "O-R03-EV": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "unknown_raised": false,
+        "escaped_class": "FakeTransportCloseError",
+        "later_admission_risk": true
+      }
+    },
+    "O-R04": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "raised_class": "FakeResponseCloseError",
+        "primary_class_observed": "JSONDecodeError",
+        "context_class_observed": "JSONDecodeError",
+        "cleanup_class_observed": "FakeResponseCloseError",
+        "unknown_with_dual_attrs": false,
+        "has_new_provenance_attrs": false
+      }
+    },
+    "O-R05": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "raised_class": "FakeTransportCloseError",
+        "context_class_observed": "JSONDecodeError",
+        "cleanup_class_observed": "FakeTransportCloseError",
+        "unknown_with_dual_attrs": false,
+        "has_new_provenance_attrs": false
+      }
+    },
+    "O-R06": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "both_closes_attempted": false,
+        "dual_cleanup_objects": false
+      }
+    },
+    "O-R08": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "unknown_raised": false,
+        "raw_cleanup_escapes": true,
+        "http_only_insufficient": true,
+        "raised_class": "FakeSockCloseError",
+        "method_close_calls": 2,
+        "raw_sock_close_attempts": 1
+      }
+    },
+    "O-UNK-PULL": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "escaped": false,
+        "outcome": "failed",
+        "assumed_continuation_from_importer_return": true,
+        "source_has_unknown_escape": false,
+        "newline_kind": "crlf"
+      }
+    },
+    "O-ID-OS": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "maps_oserror_to_preflight": true,
+        "unknown_stop": false,
+        "observed_preflight": {
+          "code": "PREFLIGHT_EVIDENCE_UNAVAILABLE",
+          "provider_identity_list_called": true,
+          "unknown_stop": false
+        },
+        "newline_kind": "lf",
+        "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_refresh_import.py",
+        "except_tuple_includes_OSError": true
+      }
+    },
+    "O-R11": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "unknown_with_reauth_primary": false,
+        "cleanup_may_replace_reauth": true
+      }
+    },
+    "O-CALLER-EVENT": {
+      "result": "PASS_WITNESS",
+      "detail": "original contract-miss",
+      "evidence": {
+        "same_unknown": false,
+        "http_exchange_was_unknown": false,
+        "raised_unknown": false,
+        "later_target_admitted": true,
+        "used_importer_try_except": true,
+        "exchange_raw_class": "FakeTransportCloseError"
+      }
+    },
+    "M-SKIP-SECOND-CLOSE": {
+      "result": "PASS",
+      "detail": "unmutated C-R06 passes; mutant skips transport.close; dual absent",
+      "evidence": {
+        "mutant_detail": "CoveringRootOutcomeUnknown",
+        "proof_limit": "harness-only-in-memory-rebind"
+      }
+    },
+    "M-AMBIENT-EXC-INFO": {
+      "result": "PASS",
+      "detail": "unmutated primary None; mutant ambient attribution detected",
+      "evidence": {
+        "proof_limit": "harness-only-in-memory-rebind"
+      }
+    },
+    "M-MUTATE-OUTER-UNKNOWN": {
+      "result": "PASS",
+      "detail": "unmutated outer intact; mutant mutates caller-owned UNKNOWN",
+      "evidence": {
+        "proof_limit": "harness-only-in-memory-rebind"
+      }
+    },
+    "M-ALLOW-LATER": {
+      "result": "PASS",
+      "detail": "unmutated domain no-later; stop-rebind allows later target via same oracle",
+      "evidence": {
+        "unmutated_later_target": false,
+        "mutant_later_target": false,
+        "mutant_later_count": 1,
+        "unmutated_same_unknown": true,
+        "proof_limit": "harness-only-admission-stop-rebind"
+      }
+    },
+    "H-INVENTORY-ACCEPTS-GOOD": {
+      "result": "PASS",
+      "detail": "complete valid result accepted",
+      "evidence": {}
+    },
+    "H-INVENTORY-REJECTS-MISSING": {
+      "result": "PASS",
+      "detail": "refused:control_ids_order_mismatch",
+      "evidence": {}
+    },
+    "H-INVENTORY-REJECTS-DUPLICATE": {
+      "result": "PASS",
+      "detail": "refused:control_ids_order_mismatch",
+      "evidence": {}
+    },
+    "H-INVENTORY-REJECTS-REORDER": {
+      "result": "PASS",
+      "detail": "refused:control_ids_order_mismatch",
+      "evidence": {}
+    },
+    "H-INVENTORY-REJECTS-ALTERED": {
+      "result": "PASS",
+      "detail": "refused:control_ids_order_mismatch",
+      "evidence": {}
+    }
+  },
+  "extraction_provenance": [
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_transport_policy.py",
+      "source_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "names": [
+        "CoveringTransportRefused",
+        "_one_unquote",
+        "_PATH_INSPECT_STEP_BUDGET",
+        "_refuse_path_admission",
+        "_is_dot_nav",
+        "_has_encoded_slash",
+        "_original_wire_percent_malformed",
+        "_inspect_opaque_id_segment",
+        "_admit_structural_segment",
+        "_opaque_calendar_id_indices",
+        "admit_covering_path",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "module_name": "app.services.covering_transport_policy",
+      "newline_kind": "lf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_target_transaction.py",
+      "source_sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "names": [
+        "RootOutcome",
+        "CoveringRootOutcomeUnknown"
+      ],
+      "module_name": "app.services.covering_target_transaction",
+      "newline_kind": "lf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_role_admission.py",
+      "source_sha256": "79A95035953C7280EFD6F48683A80E49422C4C4BEBF39E0E515EA2629860D4BE",
+      "names": [
+        "CoveringRoleRefused",
+        "CoveringRole",
+        "RoleLease",
+        "CoveringRoleAdmission"
+      ],
+      "module_name": "app.services.covering_role_admission",
+      "newline_kind": "crlf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_joined_https.py",
+      "source_sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+      "names": [
+        "JoinedTLS"
+      ],
+      "module_name": "app.services.covering_joined_https",
+      "newline_kind": "lf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/bases/app/services/covering_joined_https.py",
+      "source_sha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "names": [
+        "JoinedTLS"
+      ],
+      "module_name": "t07_original.covering_joined_https",
+      "newline_kind": "lf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_http_transport.py",
+      "source_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "names": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "module_name": "app.services.covering_http_transport",
+      "newline_kind": "lf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/bases/app/services/covering_http_transport.py",
+      "source_sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "names": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "module_name": "t07_original.covering_http_transport",
+      "newline_kind": "lf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_role_connector.py",
+      "source_sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "names": [
+        "RoleCompletion",
+        "SessionBinding",
+        "ParentBinding",
+        "_RoleParent",
+        "CoveringRoleConnector"
+      ],
+      "module_name": "app.services.covering_role_connector",
+      "newline_kind": "crlf"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-fake-v2/packet/payload/workspace/apps/api/app/services/covering_domain_dispatch.py",
+      "source_sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "names": [
+        "run_bounded_domain"
+      ],
+      "module_name": "app.services.covering_domain_dispatch",
+      "newline_kind": "lf"
+    }
+  ],
+  "c_out_ve_present": true,
+  "c_out_unk_present": true,
+  "crlf_aware_extract": true,
+  "proof_limits": {
+    "fake_owner_id": "FAKE-OWNER-ID-NOT-THREAD",
+    "fake_terminal_ack": "FAKE-TERMINAL-ACK-NOT-PROVIDER",
+    "fake_retirement_result": "FAKE-RETIREMENT-RESULT-NOT-SOCKET",
+    "no_actual_threads_or_sockets": true
+  },
+  "provenance_boundary": {
+    "fields": [
+      "primary",
+      "response_close",
+      "transport_close",
+      "prior_retirement_provenance",
+      "retirement_provenance",
+      "retirement_occurrences"
+    ],
+    "max_occurrences": 8
+  }
+}

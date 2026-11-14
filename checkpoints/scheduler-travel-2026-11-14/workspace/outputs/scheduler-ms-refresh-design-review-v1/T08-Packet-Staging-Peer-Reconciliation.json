@@ -1,0 +1,18 @@
+{
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED_NO_BLOCKERS",
+  "packet_pins": 8,
+  "priority": "PARKED_BEHIND_GOOGLE_CORRECTION",
+  "qualification": "Unexecuted; passed7 literal follows all seven raising controls, no behavior/native proof. Namedfake owner/socket/budget/factory; native wiring structural only. Partial runtime. Native cleanup aggregation and orderly-close qualifications retained.",
+  "atUtc": "2026-11-14T05:30:09.4522516+00:00",
+  "verified_inputs": {
+    "outputs\\scheduler-t08-ownership-fake-prep-dex-v1": 14,
+    "outputs\\scheduler-t08-ownership-fake-dex-v1": 18
+  },
+  "endpoint": "unbound",
+  "review": "61E26F29DD99DF5A9B9A8B7D53C6A2F2D4610B72DB17F60E81CA369BA0E62FD3",
+  "reported_units": 9,
+  "human_authority": "NONE",
+  "controls": 7,
+  "partial_runtime_pins": 6,
+  "actual_source_mutants": 3
+}

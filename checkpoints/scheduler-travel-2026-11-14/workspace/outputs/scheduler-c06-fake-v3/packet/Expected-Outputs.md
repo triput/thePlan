@@ -1,0 +1,1 @@
+HELD expected outcome:39 exact ordered controls matching unchanged EXPECTED-OUTPUT.json; result PASS, executed=true, source_hashes_verified=true, inventory_error=null; child exit0 and both capture readers joined EOF. These are expectations, not observed results. No execution performed.

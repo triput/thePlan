@@ -1,0 +1,14 @@
+{
+  "at_utc": "2026-11-13T17:04:45.7984944Z",
+  "source_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-peer-close-fake-prep-matt-v1",
+  "source_manifest_sha256": "52D24FDDBDD59E00DDCAB8C60E28C36821D3E1870517288CF80E2C337ECC2639",
+  "copied_inputs": 12,
+  "delta": "Only two admission flags and dependent outer hash;all executable/subject/oracle bytes unchanged",
+  "outer_sha256": "9C7024D05FC1D87B2D17619586A33776B73D894CE6B8974B8AC5C28849935ED7",
+  "admission_sha256": "4104D6EBCEB4BB3DC4CFDC17C2905E2BDB4FA56A0B9E30619317DC6462589B9B",
+  "command_sha256": "8B44B8BC0277A70A2E9B739C0DBE0BC840B7F63DB62E89B5DAB8D7C0DDD008C6",
+  "machine_flags_are_human_authority": false,
+  "execution_authorized": false,
+  "executed": false,
+  "endpoint": "unbound"
+}

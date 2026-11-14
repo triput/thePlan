@@ -1,0 +1,16 @@
+{
+  "atUtc": "2026-11-14T04:15:37.4043283Z",
+  "method": "Read-only Computer Use list_windows/get_window/get_window_state via @oai/sky",
+  "window_id": 3610890,
+  "app": "Claude",
+  "task_title_visible": "thePlan work",
+  "visible_status": "Working indicator with Repin/write docs/freeze/parent manifest text; suite/config/manifests/docs in progress, fake packet and handoff still unchecked",
+  "approval_prompt_visible": false,
+  "qualification": "Point-in-time partial app view only; not a subprocess/job handle, definitive liveness guarantee, frozen handback or proof feedback has been incorporated",
+  "input_actions": 0,
+  "window_activated": false,
+  "other_visible_window_content": "Excluded from record",
+  "decision": "Allow normal implementation turnaround; no interruption/reassignment/stall classification or automatic approval",
+  "current_assignment": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "endpoint": "unbound"
+}

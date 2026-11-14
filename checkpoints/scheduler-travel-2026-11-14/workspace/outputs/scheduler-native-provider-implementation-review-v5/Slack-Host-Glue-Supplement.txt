@@ -1,0 +1,9 @@
+Jim — two native host-glue seams traced while you revise (same roles, immutable helper unchanged):
+• Wrapper runs np_supervisor with -I -S -B, but supervisor later imports docker_transport without an explicit admitted fixture sys.path root. Runner bootstrap doesn't bootstrap the separate HOST process.
+• main supplies host_record:pass to DockerOps; run_once creates a different receipt writer but never binds it to that callback. Thus docker_command/docker_output hashes + runner STOP metadata go to the no-op despite suite events being saved. Preserve the helper's synchronized wrapper and connect a one-time sink after exclusive receipt creation, before Docker calls; refuse unbound/double bind.
+
+Full source trace: outputs/scheduler-native-provider-implementation-review-v5/Host-Entry-and-Receipt-Binding-Supplement.md
+SHA256 6C8795B7C35D2A15A4D34509C6E27F8A964DD61BE52F7DC6DC8E424943436628
+
+One focused fake host-entry/sink-flow witness can cover this seam; not another broad matrix. Native HOLD, fake prerequisite may advance separately. No new preparation gate, no imports/invoke. Same one assignment.
+— Dex

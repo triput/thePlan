@@ -1,0 +1,83 @@
+{
+  "kind": "Frozen T05 v5 independent intake and static REVISE",
+  "at_utc": "2026-11-12T01:52:02.1626769Z",
+  "slack_tip": "1794448220.843519",
+  "tip_sha256": "65DC4D694991374976B3F04409622E333DF3E3C656E7957E69B107988D4F15C3",
+  "admission_sha256": "10F552761685DB83B495A65884E9D701DD578AF6D7C637F263333329ADB83461",
+  "artifact_rows_verified": [
+    {
+      "name": "TIP-FREEZE.json",
+      "sha256": "65DC4D694991374976B3F04409622E333DF3E3C656E7957E69B107988D4F15C3"
+    },
+    {
+      "name": "VERIFICATION-ADMISSION.json",
+      "sha256": "10F552761685DB83B495A65884E9D701DD578AF6D7C637F263333329ADB83461"
+    },
+    {
+      "name": "OUTER-ADMISSION.json",
+      "sha256": "3FD582A4C4CC4F6B33A90999D1BFDA42AD96FABEAB6940C8BB1838ECEC7FA9A5"
+    },
+    {
+      "name": "check_t05_framing_original.py",
+      "sha256": "4B6933876E98A0B2A1FF191C26641907CD9B41E50B9C6FD503EB5E9D8AAE4689"
+    },
+    {
+      "name": "invoke_t05_fake.py",
+      "sha256": "A67AD24CE951332A10B85EFB72D25954EFD24B743B6B1C74C0633A8FB7676C1C"
+    },
+    {
+      "name": "admit_outer.py",
+      "sha256": "124371FFAA2F717624BD493F11E2C826F821709D64E409F0BE01B672B0E7DD05"
+    },
+    {
+      "name": "Invoke-Verification.ps1",
+      "sha256": "C068661240FDF2D5AEF03AE66A1932B276FB3CA8EBB079E5EFD44273F3E4DBB2"
+    },
+    {
+      "name": "INPUT-MANIFEST.json",
+      "sha256": "AFE3F85E1DA4B785AE17C52BECBEF4CFB3472DBD0542DF2872EB4054D37743DB"
+    },
+    {
+      "name": "EXPECTED-ORIGINAL.json",
+      "sha256": "06B4CCE298769805D2CB28E2ED53FDB3700674F123D93EBD26BF8F5DDF896F56"
+    },
+    {
+      "name": "PACKET-SHA256SUMS.txt",
+      "sha256": "19A38C016063D90285728DD486B139F62CD176C1CEEB28657581F5C87E7E94E0"
+    },
+    {
+      "name": "CUSTODY-REPORT.md",
+      "sha256": "C051724DB9FEB57EA133A4E6F437FD887010B6165F784997FF81111D82470EF1"
+    },
+    {
+      "name": "P1-P6-DISPOSITION.md",
+      "sha256": "A191C1FFCB31F2C690C0C178F5F4C4E4EF9362DA3C503229D630C92CD88860A6"
+    }
+  ],
+  "packet_pins_verified": 296,
+  "runtime_pins_verified": 19,
+  "wire_ids_verified": 52,
+  "application_files_byte_identical_to_t07": 234,
+  "checker_sha256": "4B6933876E98A0B2A1FF191C26641907CD9B41E50B9C6FD503EB5E9D8AAE4689",
+  "launcher_sha256": "A67AD24CE951332A10B85EFB72D25954EFD24B743B6B1C74C0633A8FB7676C1C",
+  "disposition": "REVISE",
+  "static_closed": [
+    "P1 dependency closure",
+    "P2 UNKNOWN identity",
+    "P3 actual owning caller invocation"
+  ],
+  "partially_improved": [
+    "P4 observed send/status/body",
+    "P5 honest historical UNKNOWN",
+    "P6 result unlink removed"
+  ],
+  "blocking": [
+    "P4 host-parser predictions remain contradicted by pinned source; required finite variants missing",
+    "P6 prior receipt refusal calls overwrite-capable receipt writer"
+  ],
+  "review_note": "V5-Provisional-Static-Review.md 5C536FE2F7339F94BBAB799FBFA846D938923CCC82A7439F61EC6259FAB180F3",
+  "source_execution": false,
+  "imports_compilation_tests_docker": false,
+  "native_v3_card": "Separate, unchanged, pending Trish",
+  "endpoint": "unbound"
+}

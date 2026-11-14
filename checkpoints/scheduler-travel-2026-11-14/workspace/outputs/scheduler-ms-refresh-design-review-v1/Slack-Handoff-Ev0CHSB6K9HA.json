@@ -1,0 +1,13 @@
+{
+  "disposition": "Pointer to already independently reconciled frozen handback4138F3AD and diffB47BDBE3; review FC818982 delivered and posted1794610276.139799; no new question or scope",
+  "endpoint": "unbound",
+  "sender": "U0C68LUTURJ",
+  "replySent": false,
+  "messageTs": "1794609837.851649",
+  "duplicateReplySuppressed": true,
+  "threadTs": "1794534925.412399",
+  "executionAuthority": "NONE",
+  "fakeDecision": "pending one-shot selected-retirement card913D9951",
+  "eventId": "Ev0CHSB6K9HA",
+  "reviewedAtUtc": "2026-11-13T22:52:20.4021045Z"
+}

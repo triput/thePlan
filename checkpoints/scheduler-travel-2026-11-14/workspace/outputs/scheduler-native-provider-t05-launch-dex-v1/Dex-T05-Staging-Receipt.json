@@ -1,0 +1,41 @@
+{
+  "kind": "Fresh native T05 launch staging, human execution HELD",
+  "atUtc": "2026-11-13T20:05:29.0673838Z",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-prep-matt-v3",
+  "sourceInputCount": 292,
+  "sourceManifestSha256": "B773B95E5B15998CEB2A356C7B3F58392CD43BD1F037DB66D4A0914A87A8E59B",
+  "changedSourceInputsBeforeNewReviewMetadata": [
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json"
+  ],
+  "unchangedSourceInputs": 287,
+  "applicationFilesUnchanged": 234,
+  "allExecutableFixtureOperatorAndHelperBytesUnchanged": true,
+  "payloadCount": 257,
+  "payloadManifestSha256": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B",
+  "nestedCount": 269,
+  "nestedManifestSha256": "3C4D775444D00B5277DA05C096092F53E4B1F1995B292D7C638CCE298903747F",
+  "hostConfigSha256": "A9E724563A489498BBA45E7B3E251373BABFAB341BCD91B64A00A7C648538DC3",
+  "dockerOpsConfigSha256": "3455510B25F32334C80508AB141D0432CA14587E5ECC005D8762E22A1EB8095B",
+  "commandSha256": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3",
+  "paths": {
+    "publicCa": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "evidence": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+    "runnerBind": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+    "defaultReceipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl"
+  },
+  "evidenceAbsent": true,
+  "humanExecutionAuthority": "NONE",
+  "pendingPrerequisites": [
+    "corrected peer-close fake v2 unexecuted",
+    "native-T05 fixture fake v2 unexecuted",
+    "independent native staging review",
+    "exact one-shot native launch approval"
+  ],
+  "proofScope": "Direct production transport/default JoinedTLS; not full HTTP ingress/connector composition",
+  "executed": false,
+  "endpoint": "unbound"
+}

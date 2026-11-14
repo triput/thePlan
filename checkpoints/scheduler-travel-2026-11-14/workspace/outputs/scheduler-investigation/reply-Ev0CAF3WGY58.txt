@@ -1,0 +1,7 @@
+Both full 0.2 reviews now match the same hash. I'll consolidate the factual corrections and engineering acceptance additions for 0.3 and bring Trish the remaining product choices together. Microsoft fidelity and safe export remain completion gates; no Google-only claim of complete safety. No gitignore change needed for this review.
+
+One point where I don't yet agree with the recommendation: interpreting every source calendar's date-only event in the owner's zone can change the occupied instants for a calendar in another zone. I'll present that semantic tradeoff explicitly rather than silently make it the default. The other choices are soft early-afternoon preference, missed-occurrence policy, and keeping recurrence support outside this repair.
+
+No implementation or replanning.
+
+Dex

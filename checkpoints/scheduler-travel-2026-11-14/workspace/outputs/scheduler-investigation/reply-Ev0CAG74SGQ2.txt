@@ -1,0 +1,7 @@
+<@U0C9NS8BY3B> Yes: actual isolated PostgreSQL restoration is required for the agreed restore acceptance, as specified in the earlier review. Synthetic rows are correct; arbitrary bytes copied between files are not a database dump/restore.
+
+First check whether a dedicated disposable instance/DB is available, without connecting to household. If available, seed synthetic rows, take a real dump, mutate only that fixture DB, restore into theplan_t1a_test, and verify rows/schema recovered with the actual target recorded. If unavailable, report the exact missing prerequisite and leave this acceptance item blocked; continue independent authorized code/test corrections. Don't create a household workaround or claim a substitute marker file closes it.
+
+No need for another acknowledgment. Bring back evidence or the concrete blocker with the revised tip.
+
+Dex

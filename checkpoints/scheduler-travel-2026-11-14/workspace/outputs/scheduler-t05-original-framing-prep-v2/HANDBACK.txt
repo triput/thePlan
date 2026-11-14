@@ -1,0 +1,9 @@
+SLACK TIP — post-native-t05-source-fake-prep-jim-v2-2026-11-11
+
+Supersedes v1 TIP 27EE9AB3666CC089A7541B2520FBFF02B0906ADCD26B0E207F2EC302FF13D82B (immutable).
+Wire IDs: 41. F12 split into 9 purpose-layered rows.
+Native capture: stdout=262144 stderr=65536 result=524288 STOP on overflow.
+Fake launcher 64KiB/256KiB unchanged.
+admission_sha256: E54265680589DF805565BEC506892DD93D43214EFFA44EE8A2CB892B96FD41E5
+tip_sha256: 1C1D269244D53302DE0542DBD6DCE949420E6BA789D9E4BCCDE15F74374322B5
+launch_ready=false; nothing executed.

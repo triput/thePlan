@@ -1,0 +1,16 @@
+{
+  "questionId": "call_71d6b7c456324f9d95fc0af878ecc11b",
+  "manifestSha256": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "expectedUnknown": [],
+  "successOnlyExactIdCleanup": true,
+  "atUtc": "2026-11-14T00:10:17.6862627Z",
+  "endpoint": "unbound",
+  "failureCleanup": false,
+  "commandSha256": "8031885C1F5ED8256CA7557041BDDCB737D1355D8F6E7D7CE8D194D28E288A59",
+  "invocations": 1,
+  "caseIds": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "answer": "Authorize one NONEXPIRED native checkpoint",
+  "inputs": 301
+}

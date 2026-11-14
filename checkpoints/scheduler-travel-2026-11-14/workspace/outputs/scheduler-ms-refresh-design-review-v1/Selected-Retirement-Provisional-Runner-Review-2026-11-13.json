@@ -1,0 +1,44 @@
+{
+  "helpersTextEqual": true,
+  "applicationBehaviorClaim": false,
+  "atUtc": "2026-11-13T22:37:12.8696589Z",
+  "endpoint": "unbound",
+  "sources": [
+    {
+      "path": "outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "ACD7F4493492DC01406558374E4B2EC46E8CDDA59FAE4FD2195FC0B154006FF1"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D"
+    }
+  ],
+  "frozenAcceptance": false,
+  "findings": [
+    "Both helpers call unchanged retire_owned once, require joined is True and worker_error_kind is None, then obtain sanitized_state",
+    "Both selected callers set retirement_attempted before helper invocation with join_seconds=5.0",
+    "NONEXPIRED diff adds helper, moves existing retirement before final inventory and removes old late retirement; existing client/identity/alias/coverage/assessment assertions remain in diff",
+    "Invalid-grant diff adds helper, moves existing retirement before final inventory and removes old late retirement; typed rejection/rollback/semantic persistence/public outcome assertions remain in diff",
+    "Failure-finally not-attempted guard is retained; no second retirement after helper error"
+  ],
+  "verdict": "No blocker in these provisional runner diffs; whole packet acceptance withheld until signed freeze, exact manifest/code preservation and focused checker review",
+  "executionPerformed": false,
+  "kind": "Provisional selected retirement source-diff review, before frozen handback",
+  "singleAssignment": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+  "parsingOrCompilationPerformed": false,
+  "remaining": [
+    "Reconcile delivered source hashes with these provisional pins",
+    "Review all changed fixture/config files and unchanged application/peer/operator/helper files",
+    "Review focused fake actual extraction, delayed post-join publication and source-mutant detection",
+    "Verify original invalid-grant controls/assertions plus exact updated ordered inventories",
+    "Prepare exact held verification card only after independent reconciliation"
+  ]
+}

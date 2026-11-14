@@ -1,0 +1,15 @@
+{
+  "kind": "T05 native two-role workspace preparation; not executed",
+  "owner": "Dex",
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "adapted_from_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\theplan-next-step-2026-11-06\\calendar-correction-completion-v1\\native-runtime-runner-only-v3\\verify_runtime.py",
+  "adapted_from_sha256": "084CF1E0DF57DECA4A5D99D3DB0176B5FDD41BA8ADFDA19EAE486713D8F61589",
+  "manifest_sha256": "0C4A0B73F2D44579DBB850C9A8758230525AD64DC87C3246A97A36BA1DBC320D",
+  "command_sha256": "A7B663A5E966D89321368AC1695398910878A9550081F96B3EFE7E7B8B61B943",
+  "diff_sha256": "9C12E92163AAFEAEAFC226234CB744C43E375163BE2BE10FC62CCC01988DED90",
+  "execution_performed": false,
+  "imports_compilation_tests": false,
+  "jim_peer_review": "pending",
+  "launch_ready": false,
+  "endpoint": "unbound"
+}

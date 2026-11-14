@@ -1,0 +1,11 @@
+--- a/fake-only-c06-verification/check_c06_runner_tls_fake.py
++++ b/fake-only-c06-verification/check_c06_runner_tls_fake.py
+@@ -1118,7 +1118,7 @@
+ 
+     dual.FakeListener.occupied = True
+     port_err = expect_raise(
+-        lambda: dual.serve_i01_c06_gate(ready=ReadyEvent(), stop=ReadyEvent(), seconds=1, gate_port=15432),
++        lambda: dual.serve_i01_c06_gate(ready=ReadyEvent(), stop=ReadyEvent(), seconds=1, gate_port=15432, artifact_stem="C06-P-PORT-15432"),
+         "occupied gate port",
+     )
+     if dual.C06_GATE_PORT != 15432:

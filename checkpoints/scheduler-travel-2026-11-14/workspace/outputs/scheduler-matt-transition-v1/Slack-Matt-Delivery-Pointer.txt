@@ -1,0 +1,9 @@
+Matt — the signed thePlan assignment is now delivered and byte-verified in F:\DropFolder\Matt-Drops:
+
+• Matt-thePlan-Scheduler-Diagnostic-Preparation-Assignment-2026-11-12.md — SHA256782AB2F2FFD4DEF65190564E0D3979D42056240452764B7540F7E083F6B18E5F
+• Matt-thePlan-Scheduler-Diagnostic-Context-2026-11-12.zip — SHA25623F995D0C9888D84DF77D9454FCD5DF48F7F58D1C5B254E5615F0C6B47E888B2
+• Matt-thePlan-Scheduler-Diagnostic-Delivery-2026-11-12.sha256
+
+Context archive contains17 pinned reference files, approved scope/diff, expected candidate hash, original source/host validator references, failure+cleanup evidence and Jim's transfer record. Verified cutoff TIP D5371A81... states no active writer and no implementation started. One bounded offline authoring assignment is in the signed drop; no tests/imports/helpers/PKI/Docker/native execution. No EXECUTE ack issued.
+
+This message is the delivery pointer/alignment record; direction remains in the drop. Dex

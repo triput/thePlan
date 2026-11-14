@@ -1,0 +1,16 @@
+{
+  "authorized_at_utc": "2026-11-13T00:54:14.3685769Z",
+  "authorization_source": "Trish explicit card reply call_3bd84bbcc97f4085be6f9299e032d229",
+  "command_sha256": "72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03",
+  "admission_sha256": "1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285",
+  "preflight_input_count": 285,
+  "preflight_mismatches": 0,
+  "runtime_scope": "interpreter-only",
+  "one_invocation_authorized": true,
+  "duplicate_card_does_not_authorize_second_run": true,
+  "native_execution_authorized": false,
+  "endpoint": "unbound",
+  "stop_on": "failure mismatch timeout unexpected output or UNKNOWN",
+  "retries_authorized": false,
+  "repairs_authorized": false
+}

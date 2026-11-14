@@ -1,0 +1,24 @@
+{
+  "packet": "post-native-t02-admission-prep-jim-v1-corrected1-2026-11-10",
+  "tip_sha256": "6B4944B8DACE130CFFC3F74993D13D47F4FD81745612EDE2B7D3BB46F2F18625",
+  "check_sha256": "BB678F14356A212000BEF08FC98E4F6E5982636AB74357C1D9F0B93F432EF123",
+  "disposition": "REVISE_VERIFICATION_AUTHORING",
+  "artifact_entries_verified": 19,
+  "payload_entries_verified": 240,
+  "verifier_checksum_entries_verified": 3,
+  "source_static_entries_verified": 13,
+  "hash_mismatches": [],
+  "four_approved_candidate_pins_match": true,
+  "review": "T02-Corrected1-Frozen-Review.md",
+  "delivery": {
+    "outcome": "sent",
+    "channel": "C0C6ZFQ3K6C",
+    "thread_ts": "1794286413.519819",
+    "message_ts": "1794384060.074469",
+    "sender": "U0CAEKN2ZL0"
+  },
+  "execution_occurred": false,
+  "execution_authorized": false,
+  "endpoint_bound": false,
+  "goal_status": "active; incomplete; normal colleague turnaround"
+}

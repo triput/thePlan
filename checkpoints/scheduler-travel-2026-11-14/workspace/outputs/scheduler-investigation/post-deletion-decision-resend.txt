@@ -1,0 +1,10 @@
+Trish authorized this one resend: the previous attempt returned an uncertain delivery result, and I could not confirm it in the thread. If both arrive, treat them as one instruction, not two requests.
+
+Trish has decided: the blocks she deliberately deleted must stay deleted; retire their links once verified. Recorded in Implementation-Plan-2026-10-19.md. Verify the specific owned export and deliberate deletion, preserve audit evidence, and keep unknown mappings, failed-delete tombstones and uncertain outcomes separate. No links have been retired by me.
+
+Julie, please assemble the read-only candidate/verification evidence for that decision from the existing captures; flag anything that cannot be established rather than treating absence alone as proof. No calendar changes or broad mapping cleanup. The verified retirement can be handled through the planned reconciliation checkpoint.
+
+I'm presenting the consolidated sequence and recommending Track 0 as the first bounded coding slice: priority_ups response-schema repair, relevant docs and isolated regression tests. This is a recommendation, not a coding start or deployment authorization. The corrected Track 1 table is reviewed; provider contracts and technical choices remain explicit gates. No replanning.
+
+Dex
+

@@ -1,0 +1,17 @@
+{
+  "status": "OFFLINE_TRACE_EXACT_ERROR_HASH_MATCH",
+  "retained_stderr_bytes": 62,
+  "retained_stderr_sha256": "7E2DBECCFE218E4E9C22754F1AA2948A1C40AAE92025F71BE264775C6309466C",
+  "source_derived_error_line": "STOP: mutant fallback_removed failed for an unrelated reason",
+  "line_ending": "CRLF",
+  "source_derived_error_line_sha256": "7E2DBECCFE218E4E9C22754F1AA2948A1C40AAE92025F71BE264775C6309466C",
+  "checker_sha256": "D4010F1BBA744F65DAB118E8FF384C69BD217427BEC0A7FF690CD1D0D954EBE8",
+  "proposed_diff_sha256": "41E0506D38484A176FB7039C1B0373E62BC97142E87369AECA921E41B48601F0",
+  "prospective_checker_sha256": "BA1C333D5109D38569B6784332B1291B1035EF88737D774D303F34F88D6C4C7A",
+  "ast_get_source_segment_source_sha256": "60CA452CFAC189E51C7C2A582C1240C28FCCD12964221BC8D10462F2EE74DE18",
+  "finding": "Fallback mutation anchor includes the terminal return statement trailing comment. AST source extraction ends at node end_col_offset, so comment is omitted; anchor guard can raise WitnessFailure before the intended FileNotFoundError mutant is exercised. Outer exact error identifies that targeted mutant but not underlying guard message.",
+  "proposed_fix": "Remove only trailing-comment text from fallback mutation anchor; keep return original -> raise mutation, unique-anchor guard, expected FileNotFoundError oracle,14 control IDs, candidate/host/production sources unchanged",
+  "qualification": "Source-supported mechanism; no AST parser/checker execution or raw stream recovery performed. Independent Matt review pending. No source changed.",
+  "execution_authorized": false,
+  "repair_authorized": false
+}

@@ -1,0 +1,8 @@
+{
+  "question_call": "call_b66df08912ce4e8399ea9e7bf60ee8e2",
+  "answer": "Approve narrow preparation (Recommended)",
+  "scope_sha256": "A27E47A5B7106708CC1A6E683D645CAB2821FBA1FAE2F45E7A7488F1DB5B0F85",
+  "diff_sha256": "C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB",
+  "preparation_only": true,
+  "execution_authorized": false
+}

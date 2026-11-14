@@ -1,0 +1,20 @@
+{
+  "atUtc": "2026-11-14T03:19:38.0989108Z",
+  "status": "STATIC_CORRECTION_RECONCILED_PEER_REVIEW_PENDING",
+  "manifest": "33FAEB13697C4D840D7055D1A880EB3B3F967DEF77ECBA5C7A6740CE098E0947",
+  "input_count": 40,
+  "original_inputs_unchanged": 31,
+  "changed_original_inputs": 4,
+  "added_files": 5,
+  "top_control_count": 13,
+  "original_predicates_preserved": 61,
+  "added_lifecycle_predicates": 3,
+  "mutants_preserved": 9,
+  "packet_pins": 32,
+  "runtime_pins": 10,
+  "source_assessment": "Existing Sandbox refuses preexisting module before mutation, owns only its declared module, removes it on normal/exceptional exit without swallowing exceptions. Returned module dictionary persists for extracted functions. Actual dataclass decorators and future annotations preserved.",
+  "limits": "Finite source-only review; no import, AST parsing, compilation, execution or native timing proof",
+  "peer_review": "Queue after Matt T03 handback; preserve single active assignment",
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

@@ -1,0 +1,86 @@
+{
+  "status": "FAIL",
+  "class": "FAKE-D2-PATH-ADMISSION",
+  "executed": true,
+  "executed_in_preparation": false,
+  "held_preparation_only": true,
+  "source_hashes_verified": true,
+  "inventory_error": "ControlFailure:CR bytes forbidden in extraction source: C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-d2-fake-v1\\packet\\payload\\workspace\\apps\\api\\app\\services\\google_calendar.py",
+  "control_ids_in_order": [],
+  "controls": {},
+  "extraction_provenance": [
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/packet/payload/workspace/apps/api/app/services/covering_transport_policy.py",
+      "source_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "names": [
+        "CoveringTransportRefused",
+        "_one_unquote",
+        "_PATH_INSPECT_STEP_BUDGET",
+        "_refuse_path_admission",
+        "_is_dot_nav",
+        "_has_encoded_slash",
+        "_original_wire_percent_malformed",
+        "_inspect_opaque_id_segment",
+        "_admit_structural_segment",
+        "_opaque_calendar_id_indices",
+        "admit_covering_path",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "module_name": "fake_d2_cand_covering_transport_policy"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/packet/payload/workspace/apps/api/app/services/covering_http_transport.py",
+      "source_sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "names": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "module_name": "fake_d2_cand_covering_http_transport"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/packet/payload/workspace/apps/api/app/services/covering_provider_context.py",
+      "source_sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "names": [
+        "_current",
+        "covering_provider_transport",
+        "_CoveringClient",
+        "calendar_client"
+      ],
+      "module_name": "fake_d2_cand_covering_provider_context"
+    }
+  ],
+  "functional_control_count": 44,
+  "approved_core_functional_control_count": 41,
+  "oracle_gap_added_functional_controls": [
+    "CTRL-NEG-CTX-ORD-SLASH",
+    "CTRL-NEG-CTX-ENC-SLASH",
+    "CTRL-NEG-CTX-MALFORM"
+  ],
+  "named_inventory_and_mutation_controls": [
+    "M-PATH-ADMIT-NOOP",
+    "M-HTTP-ALLOW-PATCH",
+    "M-ENCODED-SLASH-BYPASS",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "unresolved_native_obligations": [
+    "real TLS / provider dial — NOT claimed",
+    "endpoint/profile binding — NOT claimed",
+    "target calendar authorization — separate oracle; NOT claimed here",
+    "full provider transport proof — NOT claimed",
+    "T01–T08 closure — NOT claimed (this packet is path-admission fake only)",
+    "DB acknowledgment — NOT claimed"
+  ],
+  "does_not_import_app": true,
+  "launch_ready": false,
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D"
+}

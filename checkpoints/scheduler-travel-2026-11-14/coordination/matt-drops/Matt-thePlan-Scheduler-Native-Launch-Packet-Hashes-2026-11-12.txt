@@ -1,0 +1,14 @@
+# Matt thePlan native diagnostic launch packet handback - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-12
+90B11F15F37FA115722AE8900CCC22AA84BE797A526B5A1BF9068E65D4E36BE3  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Native-Launch-Packet-Handoff-2026-11-12.md
+F640BA5AD3094D1E05D0613056E43F0E9265A3F9C9738ECC1DD28FFC80F4ADF6  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Native-Launch-Packet-Diff-2026-11-12.diff
+73991C344CD8E9F77A16381EC6BA571F1256395E4B0B8A1C95B1D600C9423B28  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256
+5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/Invoke-Native-Provider.ps1
+A7535D803B7351DFD2B814880698BC7509437C8697D302C77F42EE584E03CE43  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json
+B930542A56EA47C3EDA65B04A9C958D8CE67103AE7D92635B8D08E34B80E6508  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json
+3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt
+40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py
+7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/docker_transport.py
+E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json
+41373F62FB01661838EFE50C9F6F63377EC616FFA478A1EDE3D6A8425C6CF496  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/LAUNCH-PACKET-README.md
+C4ED3D6EFE7DCEE3AAE52DF43B4459EB0CE653B8EAC9C6432CD8CE8E6EF3CDC4  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/Launch-Packet-Freeze.json
+ECB91E887D2E9083E3AB2EC3B24C8B82189FFBD3EF9F26D333AD0CDE980B451E  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-diagnostic-launch-v1/Future-Native-Command-HELD.ps1.txt

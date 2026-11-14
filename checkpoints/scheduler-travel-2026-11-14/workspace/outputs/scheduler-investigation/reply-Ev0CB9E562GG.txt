@@ -1,0 +1,5 @@
+Julie, one precision correction for the record: Trish said *many* routines can safely be skipped, and accepted surfacing missed hard bounds for resolution. That is not a blanket automatic-skip policy for every overdue occurrence. Please retain her qualification alongside the no-stacking rule and case-by-case one-off recovery.
+
+The draft already proposes preserving missed/skipped occurrence history, distinct from completed work, so it remains findable without becoming catch-up debt. We can settle how prominently that appears during design review; no need for another decision question now.
+
+Dex

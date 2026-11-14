@@ -1,0 +1,55 @@
+{
+  "status": "STATIC_ADMISSION_REVIEW_NOT_EXECUTED",
+  "outer_subjects": [
+    {
+      "name": "admit_outer.py",
+      "sha256": "F94D4395748C1ECCD7C9D85102AEDC50E31D20C2D46F9759132B19E9587E9E47",
+      "match": true
+    },
+    {
+      "name": "invoke_t02_fake.py",
+      "sha256": "85C829868A1DF683DF69E0652A71002AECF024319CC00E97754AFE0E72D0344F",
+      "match": true
+    },
+    {
+      "name": "check_t02_admission_fake.py",
+      "sha256": "8661A4F1FFDDCB7400E5B80204A3DF5E5AF5444BF2D33AD6DA580B6226957B92",
+      "match": true
+    },
+    {
+      "name": "EXPECTED-OUTPUT.json",
+      "sha256": "719DC6DB04BC870E46FA673C83176C8A9925B00204BAFEAEBFA6F91010721A68",
+      "match": true
+    },
+    {
+      "name": "INPUT-MANIFEST.json",
+      "sha256": "48099B5C94EEC091BA44AF106F3863ED6C3D4AE6C554BC910B2DDBF16FE66C63",
+      "match": true
+    },
+    {
+      "name": "PACKET-SHA256SUMS.txt",
+      "sha256": "445D3F77FDDAA196B6DC85DB3C5056BA424A4D5715330234E69A531FB731FBC3",
+      "match": true
+    }
+  ],
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "interpreter_pin_match": true,
+  "exact_order_matches": true,
+  "control_count": 20,
+  "existing_evidence": [
+    {
+      "path": "FAKE-T02-RESULT.json",
+      "exists": false
+    },
+    {
+      "path": "FAKE-T02-LAUNCH-RECEIPT.json",
+      "exists": false
+    }
+  ],
+  "failures": [],
+  "outer_total_timeout": "none; 45s nominal child collection/retirement excludes outer operations and process/OS latency",
+  "command_sha256": "24DD26B7A06F5C8655AFA69F1D35629184EEF4F91B726A6D2527115A0E41CB3D",
+  "execution_authorized": false,
+  "executed": false
+}

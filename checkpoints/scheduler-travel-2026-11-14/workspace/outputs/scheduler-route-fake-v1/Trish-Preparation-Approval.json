@@ -1,0 +1,9 @@
+{
+  "card": "call_9afb0e0727794cb6a8a4e91034a1d1d7",
+  "answer": "Approve fresh-copy preparation (Recommended)",
+  "scope_sha256": "C13D49108B45D8A4D647904CFA76355767F53E8DD7502D7217C3660EA5CFD8F7",
+  "at_utc": "2026-11-12T02:51:52.5707121Z",
+  "preparation_only": true,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,21 @@
+{
+  "changedSourceFiles": [
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json"
+  ],
+  "independentReview": "PENDING",
+  "authority": "NONE",
+  "endpoint": "unbound",
+  "sameSourceFiles": 305,
+  "inputs": 315,
+  "payloadPins": 257,
+  "executionPerformed": false,
+  "manifest": "E54792D03576DC24542337AF37E26A4214E8C3689881EF07A7C52AD29120704E",
+  "addedFiles": 5,
+  "fakePrerequisite": "PENDING",
+  "status": "DATA_ONLY_NATIVE_STAGING_RECONCILED_NOT_AUTHORIZED",
+  "nestedPins": 269
+}

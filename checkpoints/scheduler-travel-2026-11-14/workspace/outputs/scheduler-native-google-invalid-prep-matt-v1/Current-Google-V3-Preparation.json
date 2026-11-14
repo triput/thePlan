@@ -1,0 +1,13 @@
+{
+  "historical_documents": "All copied old v2/lineage commands and freezes are history, not current authority",
+  "withdrawn_native_command": "6CB658FB508B81A392C209F57F56F5D3F68A7437E3DD91FCBF63C1AA83FDC6C9",
+  "host_gates": false,
+  "status": "PREPARATION_ONLY_TOKEN_OBSERVER_CORRECTED_UNEXECUTED",
+  "correction": "Google case captures and restores original token-terminal callable and confirms identity; helper byte-identical; no other executable/app/peer/API change",
+  "fake_prerequisite": "NEW_CORRECTED_FAKE_REQUIRED",
+  "human_authority": "NONE",
+  "endpoint": "unbound",
+  "source_manifest": "EFC705425F839D4FCC7C04FCEA2840A22FA3262B40B9F270F8951B868E42F35D",
+  "runner": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+  "runner_gate": false
+}

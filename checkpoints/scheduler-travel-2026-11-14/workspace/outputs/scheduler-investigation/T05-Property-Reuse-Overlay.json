@@ -1,0 +1,760 @@
+{
+  "kind": "T05 finite property evidence reuse overlay",
+  "at_utc": "2026-11-13T04:13:28.6901933Z",
+  "result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+  "receipt_sha256": "166BB080CCCD19B80F88703BA3CC16B46142DAEF3904BDAF5D7AA9CF3254E6E6",
+  "source_lineage": [
+    {
+      "relative_path": "app\\services\\covering_http_transport.py",
+      "passed_candidate_sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "current_native_sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "equal": true
+    },
+    {
+      "relative_path": "app\\services\\covering_joined_https.py",
+      "passed_candidate_sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "current_native_sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "equal": true
+    }
+  ],
+  "requirements_retained": 13,
+  "requirements_with_matched_finite_controls": 12,
+  "requirements_closed": 0,
+  "entries": [
+    {
+      "requirement_id": "T05-VALID-COMPLETE-CONTENT-LENGTH",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "F01",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_SUCCESS",
+              "exception_type": null,
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-DECIMAL-02",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_SUCCESS",
+              "exception_type": null,
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-VALID-COMPLETE-CHUNKED",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "C-BASE",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_SUCCESS",
+              "exception_type": null,
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-EXT-VALID",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_SUCCESS",
+              "exception_type": null,
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-TRAILER-VALID",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_SUCCESS",
+              "exception_type": null,
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-SHORT-LENGTH-VALID-JSON",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "F02",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F03-oauth",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_UNKNOWN",
+              "exception_type": "CoveringRootOutcomeUnknown",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F05-oauth",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_UNKNOWN",
+              "exception_type": "CoveringRootOutcomeUnknown",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-SHORT-LENGTH-INVALID-JSON",
+      "property_evidence": "DIRECT_COMBINED_WITNESS_NOT_FOUND",
+      "controls": [],
+      "full_requirement_closed": false,
+      "qualification": "Stored wires with numeric Content-Length exceeding body length contain valid JSON; checker source load_wire does not construct an additional short invalid-JSON wire. Separate malformed complete JSON controls are not the same combined witness. Source-order inference may be considered separately; no direct runtime claim."
+    },
+    {
+      "requirement_id": "T05-CHUNK-EOF",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "C-DATA-SHORT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-SEP-SHORT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-SEP-WRONG",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-ZERO-ABSENT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-TRAILER-EOF",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-ZERO-NO-CRLF",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "C-TRAILER-LINE-EOF",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "IncompleteRead",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-DUPLICATE-CONTENT-LENGTH",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "H-DUP-IDENTICAL-FIELDS",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-DUP-IDENTICAL-LIST",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-DECIMAL-DUP-FIELDS",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-DECIMAL-DUP-LIST",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-CONFLICTING-CONTENT-LENGTH",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "H-CONFLICT-FIELDS-2-3",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-CONFLICT-FIELDS-3-2",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-CONFLICT-LIST-2-3",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-CONFLICT-LIST-3-2",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-TE-CHUNKED-PLUS-CL",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "H-TE-CL",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-TE-NONEXACT-PLUS-CL",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "H-TE-NONEXACT+CL",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_REFUSE",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-TE-REPEAT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-TE-LIST",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-TE-MIXED",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "H-TE-MIXED-CHUNKED-GZIP",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_SUCCESS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-MALFORMED-HEADER",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "H-DEFECT-COLONLESS",
+          "observation": {
+            "observed_outcome": "PASS",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-MALFORMED-JSON",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "F12a-INVALID-JSON-EVENT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "JSONDecodeError",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F12a-INVALID-JSON-IDENTITY",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_PARSER_ERROR",
+            "candidate": {
+              "observed_outcome": "OBSERVED_PARSER_ERROR",
+              "exception_type": "JSONDecodeError",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F12a-INVALID-JSON-OAUTH",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_UNKNOWN",
+            "candidate": {
+              "observed_outcome": "OBSERVED_UNKNOWN",
+              "exception_type": "CoveringRootOutcomeUnknown",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-NONOBJECT",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "F12a-NONOBJECT-EVENT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_REFUSE",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F12a-NONOBJECT-IDENTITY",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_REFUSE",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F12a-NONOBJECT-OAUTH",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_UNKNOWN",
+            "candidate": {
+              "observed_outcome": "OBSERVED_UNKNOWN",
+              "exception_type": "CoveringRootOutcomeUnknown",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    },
+    {
+      "requirement_id": "T05-ENCODING",
+      "property_evidence": "MATCHED_RETAINED_FINITE_HOST_FAKE",
+      "controls": [
+        {
+          "control_id": "F12b-ENCODING-EVENT",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_REFUSE",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F12b-ENCODING-IDENTITY",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_REFUSE",
+            "candidate": {
+              "observed_outcome": "OBSERVED_REFUSE",
+              "exception_type": "CoveringTransportRefused",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        },
+        {
+          "control_id": "F12b-ENCODING-OAUTH",
+          "observation": {
+            "observed_outcome": "PASS",
+            "original_evidence": "T05-IMMUTABLE",
+            "t05_predicted": "OBSERVED_UNKNOWN",
+            "candidate": {
+              "observed_outcome": "OBSERVED_UNKNOWN",
+              "exception_type": "CoveringRootOutcomeUnknown",
+              "response_close_calls": 1,
+              "transport_close_calls": 1,
+              "negative_receive_requested": false,
+              "policy_pending": false
+            }
+          }
+        }
+      ],
+      "full_requirement_closed": false,
+      "qualification": "Exact finite host fake/property evidence only; preserve native parser/TLS/owning-call requalification where required."
+    }
+  ],
+  "cross_layer_limits": [
+    "Host Python3.11 byte-fake HTTP/parser evidence is not native Python3.12 TLS closure",
+    "CD-ABRUPT observed byte-fake success does not prove TLS close_notify behavior; do not reuse it as abrupt-native refusal",
+    "F06 is an accepted chunked input, not the malformed-header refusal witness; use H-DEFECT-COLONLESS",
+    "All76 planning IDs retained in main audit; no extra requirement or execution added"
+  ],
+  "open_gap": "T05-SHORT-LENGTH-INVALID-JSON direct combined witness not found in this retained run",
+  "current_matt_assignment_unchanged": true,
+  "target_execution_performed": false,
+  "endpoint": "unbound"
+}

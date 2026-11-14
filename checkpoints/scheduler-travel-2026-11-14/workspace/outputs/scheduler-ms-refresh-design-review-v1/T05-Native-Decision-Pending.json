@@ -1,0 +1,23 @@
+{
+  "invocations": 1,
+  "atUtc": "2026-11-13T23:06:53.5983292Z",
+  "successOnlyExactIdCleanupRequested": true,
+  "caseIds": [
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION"
+  ],
+  "otherNativeRuns": "HELD",
+  "endpoint": "unbound",
+  "expectedUnknown": [],
+  "status": "CONSUMED_ONCE_STOP_FAILURE_CLEANUP_COMPLETE",
+  "oldNativeCardA50C04FB": "WITHHELD",
+  "command": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3",
+  "kind": "Pending one-shot native T05 decision",
+  "decisionBrief": "D6B942D089B64C35108447EE9536C2E3EEADB6C5413ABCF2AABB9EF1EF25B30A",
+  "humanExecutionAuthority": "CONSUMED",
+  "manifest": "417BEA58FD10956DF9B33778672CD2197E548BD5E2ABD9F53C6B1EF0BAF1596F",
+  "peerReviewReconciliation": "611959EC59584D7CDFC289D09A563692613C29530CDFEDC62DA402635701173C",
+  "questionId": "call_b2af9b2b853c4cfc873ad3f5f707a33c",
+  "hostReceipt": "A80D7DF9EE786DBD1CB522A9DC5C644F8A52103A85DB78A68A212F32A40162AB",
+  "failureCleanup": "Separate approved nine-step cleanupPASS7EE13401"
+}

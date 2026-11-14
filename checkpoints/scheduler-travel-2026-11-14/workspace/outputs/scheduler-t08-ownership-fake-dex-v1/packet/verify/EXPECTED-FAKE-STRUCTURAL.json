@@ -1,0 +1,22 @@
+{
+  "kind": "t08-ownership-fake-expected",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "FOREIGN-CHECK",
+    "FOREIGN-CLOSE",
+    "OWNER-USE-CLOSE",
+    "SAME-INSTANCE-REUSE",
+    "NATIVE-WIRING-STRUCTURAL",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "mutant_ids_in_order": [
+    "foreign_check_guard",
+    "foreign_close_guard",
+    "reuse_guard"
+  ],
+  "reported_predicates": 9,
+  "count_basis": "Six non-mutant controls plus three actual-source mutant oracles",
+  "native_proof": false,
+  "executed": false,
+  "not_proved": "Actual native case body, real foreign thread/socket/TLS, failure retirement or provider integration"
+}

@@ -1,0 +1,35 @@
+{
+  "cleanup": {
+    "databaseExit": 0,
+    "containers": [
+      {
+        "id": "e9800cdeb37b0e956b5b20416b8578f04dcc32077a1ca0dac62a9688116082a5",
+        "role": "database"
+      },
+      {
+        "id": "a7e8363c6413b41478c71aba0a7ce54ae3c198391bf30dbab3e8ab8dd560809b",
+        "role": "runner"
+      }
+    ],
+    "absenceChecks": 2,
+    "complete": true,
+    "commands": 22
+  },
+  "receipt": "ED28319B513A53A1F4CC6D370E6504453C30DDBCE3768C8F2A863263426BAD62",
+  "oauthRequests": 1,
+  "parentImports": 0,
+  "persistedCredentialsCoverageOwnerUnchanged": true,
+  "tokenRollbackAcknowledged": true,
+  "remainingAuthority": 0,
+  "eventImports": 0,
+  "independentResultReview": "PENDING",
+  "inputsUnchanged": 318,
+  "limitations": "One synthetic known rejection through production path;not refresh success,not live activation or fullT06/goalclosure",
+  "typedReauthorization": true,
+  "unrelatedUnchanged": true,
+  "finalAssessment": "completed_not_ready_at_unchanged_revision1",
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+  "endpoint": "unbound",
+  "case": "NP-V-GOOGLE-INVALID",
+  "publicOutcome": "no_op/preflight_rejected/CALENDAR_ACCOUNT_DISCONNECTED"
+}

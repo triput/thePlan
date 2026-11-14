@@ -1,0 +1,40 @@
+{
+  "atUtc": "2026-11-14T04:11:56.1027701Z",
+  "status": "AUTHOR_SOURCE_REVIEW_COMPLETE_INDEPENDENT_REVIEW_STILL_REQUIRED",
+  "candidate": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C",
+  "not_a_syntax_check": true,
+  "reviewed_paths": [
+    {
+      "result": "Owner detects exact results/socket/descriptor mismatch; case STOP, owner local retirement then one peer retirement",
+      "trigger": "Foreign check or close unexpectedly succeeds/changes state"
+    },
+    {
+      "result": "Join latch prevents second attempt; finally marks retirementUNKNOWN, owner closes and peer retirement still attempted; no PASS or detach claim",
+      "trigger": "Foreign worker stays alive after5second join"
+    },
+    {
+      "result": "Primary propagates; one ownerclose if not already attempted, one peer retirement; cleanup failure becomes UNKNOWN chained from primary",
+      "trigger": "Owner open/send/receive fails"
+    },
+    {
+      "result": "Explicit retirementUNKNOWN; no second ownerclose attempt; peer retirement still attempted",
+      "trigger": "Owner close raises or descriptor notclosed"
+    },
+    {
+      "result": "Case STOP; peer retirement occurs; source uses actual unmodified transport with no new socket injection",
+      "trigger": "Same-instance reuse unexpectedly succeeds"
+    },
+    {
+      "result": "Retirement latch prevents retry; no positive return",
+      "trigger": "Peer retirement helper raises or records workererror"
+    },
+    {
+      "result": "Exact finite wire, foreignworker joined, ownerdescriptor-1, reuse refused and one peer exchange/cleanjoin precede typed case receipt",
+      "trigger": "Normal completion"
+    }
+  ],
+  "proof_boundary": "Native case must use actual constructor owner and a real foreign thread/socket; no get_ident replacement or transport factory injection. Exact-wire read verifies owner resource survived foreign refusals; it is not HTTP framing/EOF/JSON proof.",
+  "remaining": "Independent reviewer, full packet assembly, focused finite fake/source controls, exact approved runs and cleanup. No machine launch readiness or execution authority exists in this source-only draft.",
+  "matt_assignment_unchanged": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "endpoint": "unbound"
+}

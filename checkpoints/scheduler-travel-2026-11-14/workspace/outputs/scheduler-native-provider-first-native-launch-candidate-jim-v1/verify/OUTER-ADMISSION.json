@@ -1,0 +1,18 @@
+{
+    "kind":  "scheduler-native-provider-fake-outer-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "check_seconds":  120,
+    "pins":  {
+                 "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                 "launch_check_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                 "check_native_provider_sha256":  "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+                 "expected_fake_structural_sha256":  "C7FAF873C0F62CA86D07089B68906D2CF8AC8B405EC28B9F1C42AE8541612428"
+             },
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_note":  "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No verification_admission_sha256 back-reference (Dex F2).",
+    "note":  "Concrete reviewed pins authored for later launch-card flip; preparation does not authorize invocation (launch_authorized=false). Dex R1/R2 D3B6FAD3 + launcher-retirement 30FEEDFF + receipt-patch D8D77976 folded."
+}

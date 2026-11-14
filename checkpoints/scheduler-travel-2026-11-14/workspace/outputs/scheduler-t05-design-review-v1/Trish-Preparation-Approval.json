@@ -1,0 +1,16 @@
+{
+  "approved_utc": "2026-11-11T21:49:48.9454393Z",
+  "source": "Trish response call_00d22443fd314acb848895819d055d8a item0",
+  "answer": "Approve T05 workspace-only preparation (Recommended)",
+  "scope_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-design-review-v1\\Reconciled-Authoring-Scope-For-Review.md",
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "review_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "required_qualifications": "Q1-Q8",
+  "owner": "Jim implementation; Dex design/review/integration",
+  "authorized": "Fresh-copy preparation only; six executable roles plus pinned immutable helpers; two separately held packets",
+  "execution_authorized": false,
+  "application_policy_changes_authorized": false,
+  "endpoint": "unbound",
+  "other_holds": "retained",
+  "historical_note": "Frozen scope references pending T07 launch. That launch subsequently passed; no change to T05 preparation scope or execution authority."
+}

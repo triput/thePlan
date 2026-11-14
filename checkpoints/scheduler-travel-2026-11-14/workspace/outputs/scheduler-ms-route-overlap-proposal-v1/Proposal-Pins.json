@@ -1,0 +1,26 @@
+{
+  "kind": "Unapplied two-file routing proposal; source-only predictions",
+  "at_utc": "2026-11-12T01:01:43.5402223Z",
+  "sources": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_provider_context.py",
+      "original_sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "prospective_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "changed_lines": 1,
+      "prospective_file_written": false
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_http_transport.py",
+      "original_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "prospective_sha256": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F",
+      "changed_lines": 1,
+      "prospective_file_written": false
+    }
+  ],
+  "diff_sha256": "535FB0A3AFA576EB739042BDD72B707218E42D13D278E8C007B87083DC66D5A6",
+  "implementation_authorized": false,
+  "execution_authorized": false,
+  "peer_review": "pending after current T05 handback; not a new assignment",
+  "authoring_note": "Two initial document-authoring attempts stopped on literal-count guards before artifact writes: Split overload and an overbroad purpose predicate occurring twice. Final proposal targets only the route condition; counter admission condition unchanged. No source or proposed code invoked.",
+  "endpoint": "unbound"
+}

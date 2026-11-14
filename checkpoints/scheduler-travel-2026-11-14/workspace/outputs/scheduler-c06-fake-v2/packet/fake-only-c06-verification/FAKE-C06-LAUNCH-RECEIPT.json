@@ -1,0 +1,163 @@
+{
+  "status": "FAIL",
+  "class": "FAKE-C06-LAUNCH",
+  "interpreter": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "pinned_interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "interpreter_pin_matched": true,
+  "check_script": "check_c06_runner_tls_fake.py",
+  "check_sha256": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8",
+  "launcher_sha256": "CD515342D88D4E7C47D97DC32C3BE1AA4AC2A5D5A8282BC52B727FE465BD597E",
+  "launcher_self_pin_compared": false,
+  "expected_output_sha256": "3F71306E0CB5698E6A5E7D906AEE149EF2128252225D7D2E97F1DE5B90132931",
+  "input_manifest_sha256": "2175053A1F14E5CE0DEBF675D8DCFD691A1D1725C1BF68F43D254C60BB4FDAB5",
+  "packet_pins": {
+    "check_c06_runner_tls_fake.py": "C59C547453A76ACF7C4F10B8A0E1576134AB24A978EE5CC8018D25E1EF775DF8",
+    "EXPECTED-OUTPUT.json": "3F71306E0CB5698E6A5E7D906AEE149EF2128252225D7D2E97F1DE5B90132931",
+    "INPUT-MANIFEST.json": "2175053A1F14E5CE0DEBF675D8DCFD691A1D1725C1BF68F43D254C60BB4FDAB5"
+  },
+  "expected_control_ids_in_order": [
+    "C06_N_PREEXIST",
+    "C06_N_NONEMPTY",
+    "C06_N_UID",
+    "C06_N_MODE",
+    "C06_N_TRUST_SAME_CA",
+    "C06_N_TRUST_PARENT_DB_CA",
+    "C06_N_TRUST_BACKEND_GATE_CA",
+    "C06_N_ROOT_FIXTURE_TLS",
+    "C06_N_ORDER_C06_BEFORE_N06",
+    "C06_N_GEN_REFUSE",
+    "C06_N_GEN_TIMEOUT",
+    "C06_N_CAP",
+    "C06_N_SHELL_ONLY_KILL",
+    "C06_N_GROUP_LEADER_EXITED_DESCENDANT_ALIVE",
+    "C06_N_GROUP_SIGTERM_IGNORED",
+    "C06_N_READER_JOIN",
+    "C06_N_LATE_READER_ERROR",
+    "C06_N_PIPE_UNRETIRED_UNDER_LIVE_READER",
+    "C06_N_BOUNDED_CAP_EVIDENCE",
+    "C06_N_PARTIAL_START_RETIRE",
+    "C06_N_PARTIAL_CONSTRUCT_RETIRE",
+    "C06_N_PRIMARY_PRESERVE",
+    "C06_N_DUAL_FAULT_PRIMARY",
+    "C06_N_SHARED_DEADLINE",
+    "C06_N_OBSERVED_VS_RETAINED",
+    "C06_P_DISTINCT_CA",
+    "C06_P_HOOK_ORDER",
+    "C06_P_SYNTHETIC_MODULE",
+    "C06_P_MAP_SEPARATE",
+    "C06_P_UNKNOWN_INVENTORY",
+    "C06_P_PORT_15432",
+    "C06_P_ABS_BINARIES",
+    "C06_P_RECIPE_LITERALS",
+    "C06_P_LAUNCH_READY_FALSE",
+    "C06_N_WRONG_READY_ROOT",
+    "C06_P_CHILD_ENV_PATH",
+    "C06_P_SUITE_CA_EVIDENCE",
+    "C06_P_EXPLICIT_ROOT_WIRING",
+    "C06_P_BUDGETS_UNCHANGED"
+  ],
+  "pin_enforcement": {
+    "interpreter": "launcher_pre_admission_hardcoded_pin",
+    "launcher_self": "outer_OUTER-ADMISSION_via_admit_outer_not_self",
+    "check_script": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "expected_output_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "input_manifest_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "fixture_source_hashes": "check_script_verify_source_hashes",
+    "control_inventory": "check_script_enforce_expected_inventory_and_launcher_result_gate",
+    "ordered_contract": "EXPECTED.controls key order == EXPECTED.control_ids_in_order == result.control_ids_in_order == result.controls key order"
+  },
+  "cwd": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v2\\packet\\fake-only-c06-verification",
+  "timeout_seconds": 30,
+  "timeout_enforced_by": "invoke_c06_fake._collect_bounded.poll_wait_interrupt_on_overflow",
+  "timeout_retirement_limits": {
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5.0,
+    "reader_join_seconds_each": 5.0,
+    "wait_poll_seconds": 0.05,
+    "total_disclosed_seconds": 45.0,
+    "no_retry": true,
+    "overflow_interrupt": "kill child on observed capture overflow; do not wait out full child_wait while readers drain"
+  },
+  "timed_out": false,
+  "returncode": 1,
+  "launcher_exit_code": 1,
+  "elapsed_seconds": 0.392,
+  "child_pid": 205220,
+  "child_executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "child_argv": [
+    "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v2\\packet\\fake-only-c06-verification\\check_c06_runner_tls_fake.py"
+  ],
+  "child_start_timestamp": 1794380832.9824302,
+  "child_custody": {
+    "pid": 205220,
+    "executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v2\\packet\\fake-only-c06-verification\\check_c06_runner_tls_fake.py"
+    ],
+    "start_timestamp": 1794380832.9824302,
+    "authority": "receipt_preparation_only; no process_enumeration; no_retry; no_fallback; no_new_cleanup_authority"
+  },
+  "isolation": {
+    "required_flags": [
+      "-I",
+      "-S",
+      "-B"
+    ],
+    "parent_flags_verified": true,
+    "parent_flag_evidence": {
+      "-I": "sys.flags.isolated",
+      "-S": "sys.flags.no_site",
+      "-B": "sys.flags.dont_write_bytecode"
+    },
+    "child_argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-c06-fake-v2\\packet\\fake-only-c06-verification\\check_c06_runner_tls_fake.py"
+    ],
+    "child_flags_verified": true
+  },
+  "capture_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "bounded pipe readers during collection (chunked); over-limit → interrupt child + STOP disclosed as capture_stop_reason; reader still-live/incomplete/error → UNKNOWN; process exit alone does not imply reader EOF; not post-hoc-only after unbounded communicate; result size gate before read_bytes"
+  },
+  "retained_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "clip_utf8_tails_for_receipt_disclosure_only; capture admission is separate and during-collection; stale result unlinked pre-admission"
+  },
+  "stdout_tail": "{\"status\": \"STOP\", \"class\": \"FAKE-C06-RUNNER-TLS\", \"kind\": \"ControlFailure\", \"detail\": \"expected 'occupied gate port' in FileExistsError:'/tmp/c06-gate-tls/I01-C06.result.json'\", \"executed\": true, \"held\": false, \"source_hashes_verified\": false, \"inventory_error\": \"expected 'occupied gate port' in FileExistsError:'/tmp/c06-gate-tls/I01-C06.result.json'\"}\r\n",
+  "stderr_tail": "",
+  "stdout_raw_bytes": 357,
+  "stderr_raw_bytes": 0,
+  "result_path": "FAKE-C06-RESULT.json",
+  "result_present": true,
+  "result_sha256": "0BEB20E2113BF668E00D17810B26F65E056EA8015EFDC932DF7166407E9FF6E3",
+  "result_read_bytes": 384,
+  "result_gate_ok": false,
+  "result_gate_reason": "result_status_not_pass",
+  "capture_stop_reason": null,
+  "interrupt_reason": null,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "primary_error": null,
+  "secondary_termination_evidence": null,
+  "executed_in_preparation": false
+}

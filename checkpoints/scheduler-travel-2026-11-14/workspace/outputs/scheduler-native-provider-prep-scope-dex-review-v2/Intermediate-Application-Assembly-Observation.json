@@ -1,0 +1,16 @@
+{
+  "at_utc": "2026-11-12T20:18:41.2748161Z",
+  "kind": "Intermediate application assembly inspection, not frozen handback",
+  "selected_file_count": 234,
+  "observed_file_count": 234,
+  "matching_rows": 234,
+  "mismatches": [],
+  "selected_source_map_sha256": "857141512AADF6F90F1CA8F92547A777E3D5FE943671495512FA18CEA7CBA296",
+  "application_assembly_observed": true,
+  "fixture_reviewed": false,
+  "packet_frozen": false,
+  "launch_ready": false,
+  "execution_performed": false,
+  "limits": "Application hashes observed during authoring; reverify against final frozen manifest before any launch claim",
+  "endpoint": "unbound"
+}

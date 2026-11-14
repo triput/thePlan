@@ -1,0 +1,114 @@
+{
+  "at_utc": "2026-11-13T07:20:59.5118055Z",
+  "status": "STOP_ONE_SHOT_CONSUMED",
+  "authorization_question": "call_181bbe0859224ff7b548cb1719e8b6fc",
+  "host_receipt_sha256": "1180A5B8516E16B7FFAFE0F0E5F73E02F4C29F7D289C558D0C35C4372D22F745",
+  "outer_receipt_sha256": "D3D2BA48EFEEB05BD8478F8B064472DE782FC9FB9C7DF126759BC9DF96F0A183",
+  "runner_stop": {
+    "cli_exit_code": 125,
+    "diagnostic": {
+      "exceptions": [
+        {
+          "frames": [
+            {
+              "line": 1562,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 1514,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 39,
+              "path": "fixture/np_integrated_runner.py"
+            },
+            {
+              "line": 1293,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 981,
+              "path": "fixture/np_runner_entry.py"
+            }
+          ],
+          "kind": "SuiteStop"
+        },
+        {
+          "frames": [
+            {
+              "line": 59,
+              "path": "api/app/services/covering_http_dispatch.py"
+            },
+            {
+              "line": 39,
+              "path": "api/app/services/covering_http_dispatch.py"
+            },
+            {
+              "line": 1254,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 234,
+              "path": "api/app/services/covering_domain_dispatch.py"
+            },
+            {
+              "line": 204,
+              "path": "api/app/services/covering_role_connector.py"
+            }
+          ],
+          "kind": "CoveringRootOutcomeUnknown"
+        },
+        {
+          "frames": [
+            {
+              "line": 198,
+              "path": "api/app/services/calendar_alias_canonicalize.py"
+            },
+            {
+              "line": 708,
+              "path": "api/app/services/microsoft_calendar.py"
+            },
+            {
+              "line": 663,
+              "path": "api/app/services/microsoft_calendar.py"
+            },
+            {
+              "line": 43,
+              "path": "api/app/services/covering_provider_context.py"
+            },
+            {
+              "line": 41,
+              "path": "api/app/services/covering_provider_context.py"
+            },
+            {
+              "line": 898,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 332,
+              "path": "api/app/services/covering_http_transport.py"
+            },
+            {
+              "line": 56,
+              "path": "api/app/services/covering_joined_https.py"
+            }
+          ],
+          "kind": "CoveringTransportRefused"
+        }
+      ],
+      "truncated": true,
+      "version": 1
+    },
+    "kind": "SuiteStop",
+    "status": "STOP"
+  },
+  "source_interpretation": "Third captured exception CoveringTransportRefused at covering_joined_https.py56:socket SO_ERROR nonzero after readiness;connection establishment refused. Exact errno/message and any deeper cause unretained. Truncated chain,not native PASS.",
+  "postpins": 283,
+  "read_only_reconciliation": "PASS2calls exact identity/isolation/mount checks;DB running,runner exited125",
+  "readonly_receipt_sha256": "2D08CD8DAEF39FF18BD445635210DEB0567CE90C178C352B1DEC16D36D1D0520",
+  "database_id": "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c",
+  "runner_id": "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818",
+  "cleanup_authorized": false,
+  "native_pass": false,
+  "endpoint": "unbound"
+}

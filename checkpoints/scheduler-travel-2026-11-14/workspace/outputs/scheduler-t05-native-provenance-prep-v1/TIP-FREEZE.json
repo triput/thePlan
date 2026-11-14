@@ -1,0 +1,11 @@
+{
+  "packet": "scheduler-t05-native-provenance-prep-v1",
+  "parent_tip": "post-native-t05-source-fake-prep-jim-v1-2026-11-11",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "executables": {
+    "collect-parser-sources.sh": "BFE5164A3007B529936E6369C7B1E1E0D37E502F752AF187BF34EC5220364A9D",
+    "verify_native_provenance.py": "B975AB5FC7C4BE8C41AC1D8E0F53A7DA6CD989CC4B23661712586F0C379B49C4"
+  }
+}

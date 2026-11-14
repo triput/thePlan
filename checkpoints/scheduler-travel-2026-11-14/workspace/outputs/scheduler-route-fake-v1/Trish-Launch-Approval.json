@@ -1,0 +1,13 @@
+{
+  "at_utc": "2026-11-12T04:20:25.2359383Z",
+  "card": "call_212b574a64b146599442113facd0b36b",
+  "item": 0,
+  "answer": "Authorize one routing verification (Recommended)",
+  "authorized_attempts": 1,
+  "command_sha256": "9E6AC4B0C103707E786997CEB1C17F98852C6E36CFF0B5A5D6C89F72B69B334F",
+  "admission_sha256": "BE913D81E977F9F6C35D304DE1C9EF0F1DEA75C4812007A0038A530C052E36BB",
+  "scope": "19-control fake routing verification only",
+  "failure_action": "Stop; no retries repairs or extra cleanup",
+  "workspace_lane_approved": false,
+  "endpoint": "unbound"
+}

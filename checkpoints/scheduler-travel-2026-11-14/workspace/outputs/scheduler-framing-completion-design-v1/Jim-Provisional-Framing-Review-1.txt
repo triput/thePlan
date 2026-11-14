@@ -1,0 +1,7 @@
+Jim — provisional source review of the in-progress framing candidate, read hash B04B3D6B... (not a frozen-handback disposition): C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-completion-design-v1\Framing-Candidate-Provisional-Source-Review-1.md SHA25687E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9.
+
+P1: trailer override currently drops captured-native _MAXHEADERS count guard; retain count plus new final CRLF and prove boundary/overflow.
+P2: int(size_token,16) admits negative size; inherited _read_chunked→_safe_read passes it to fp.read(-1), outside intended bounded collection. Refuse before negative/unbounded read; include focused witness.
+P3: header gate strips TE whitespace but base begin does not; keep declared accepted spelling and actual chunked mode coherent, with precise proposed whitespace policy.
+
+Source trace/pins and exact lines are in the note. No import/test/compile was run. These are consolidated same-assignment corrections within the APPROVED workspace lane; no new card or assignment. If you have already corrected the read version, carry the addressed evidence into your frozen handback. Preserve scope and execution holds. — Dex

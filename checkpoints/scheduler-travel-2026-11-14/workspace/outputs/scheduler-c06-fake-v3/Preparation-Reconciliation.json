@@ -1,0 +1,42 @@
+{
+  "status": "PREPARATION_STATIC_RECONCILED_EXECUTION_HELD",
+  "functional_changed_lines": 1,
+  "check_sha256": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+  "manifests": [
+    {
+      "file": "ARTIFACT-HASHES.txt",
+      "entries": 20,
+      "mismatches": []
+    },
+    {
+      "file": "payload\\SHA256SUMS.txt",
+      "entries": 268,
+      "mismatches": []
+    },
+    {
+      "file": "fake-only-c06-verification\\PACKET-SHA256SUMS.txt",
+      "entries": 6,
+      "mismatches": []
+    }
+  ],
+  "payload_files": 269,
+  "payload_unchanged": true,
+  "supervisors_unchanged": true,
+  "all_consumed_pins_match": true,
+  "expected_controls": 39,
+  "failed_evidence": [
+    {
+      "run": "scheduler-c06-fake-v1",
+      "unchanged": true
+    },
+    {
+      "run": "scheduler-c06-fake-v2",
+      "unchanged": true
+    }
+  ],
+  "command_sha256": "BD8093D0F1F5D5068312013D2FD1EE6AE15435520B0DB22178F1BAEBF8109A00",
+  "input_manifest_sha256": "80261CE0A8BA2302CBAC4F6FCDD3CDF2A53C1BA0A67D03A2AC56263D5344D96A",
+  "tests_or_rerun": 0,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

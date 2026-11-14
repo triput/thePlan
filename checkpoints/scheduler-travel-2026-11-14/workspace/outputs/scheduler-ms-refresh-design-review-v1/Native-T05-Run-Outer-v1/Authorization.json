@@ -1,0 +1,17 @@
+{
+  "questionId": "call_b2af9b2b853c4cfc873ad3f5f707a33c",
+  "caseIds": [
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION"
+  ],
+  "successOnlyExactIdCleanup": true,
+  "expectedUnknown": [],
+  "verifiedInputs": 297,
+  "allowedInvocations": 1,
+  "manifestSha256": "417BEA58FD10956DF9B33778672CD2197E548BD5E2ABD9F53C6B1EF0BAF1596F",
+  "atUtc": "2026-11-13T23:31:08.7514030Z",
+  "failureCleanup": false,
+  "commandSha256": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3",
+  "answer": "Authorize one native T05 run",
+  "endpoint": "unbound"
+}

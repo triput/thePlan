@@ -1,0 +1,17 @@
+{
+  "status": "PROVISIONAL_IN_PROGRESS_NOT_FROZEN",
+  "at_utc": "2026-11-12T05:28:40.4568101Z",
+  "check_sha256": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
+  "expected_sha256": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+  "control_count": 73,
+  "top_level_empty_or_missing_predicate": [],
+  "top_level_non_PASS_outcome": [],
+  "exact_ids_in_order": true,
+  "outer_subject_mismatches_at_read": [],
+  "caller_labels": "Explicit direct HTTP replay plus historical immutable original, candidate owning-caller proof still open",
+  "unresolved": "Metadata-versus-observation flat assertion finding sent1794461191.979929; concrete Commands and final pin freeze still under preparation",
+  "execution_performed": false,
+  "launch_ready": false,
+  "goal_complete": false,
+  "endpoint": "unbound"
+}

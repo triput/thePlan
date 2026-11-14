@@ -1,0 +1,59 @@
+{
+  "atUtc": "2026-11-14T02:26:43.6244075Z",
+  "scope": "Independent source trace for exact BODY-STALL seeded alias/rollback evidence",
+  "baseline": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+  "pins": [
+    {
+      "relativePath": "api/app/services/covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+    },
+    {
+      "relativePath": "api/app/services/calendar_alias_canonicalize.py",
+      "sha256": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F"
+    },
+    {
+      "relativePath": "api/app/services/covering_refresh_failure.py",
+      "sha256": "DCDF16ACF79F05D2EEB54CE1D4E6F4ED23F0D136E15571B444050EAD8B931920"
+    },
+    {
+      "relativePath": "api/app/services/covering_refresh_locks.py",
+      "sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69"
+    },
+    {
+      "relativePath": "api/app/services/covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A"
+    }
+  ],
+  "sourceFacts": [
+    {
+      "fact": "Requested external-ID rewrite produces canonicalize_identity effect. Durable failure attempt snapshot is captured BEFORE prepare/alias mutation. Provider read failure carries prepared effects with rollback_required/needs_failure_unit.",
+      "file": "covering_refresh_import.py",
+      "lines": "95,297-304,876,911-918,985-997"
+    },
+    {
+      "fact": "Alias key rewrite and coverage/cursor invalidation occur inside the caller parent transaction; nested savepoint commit is not an outer native COMMIT.",
+      "file": "calendar_alias_canonicalize.py",
+      "lines": "424-445"
+    },
+    {
+      "fact": "Failed import completes PARENT rollback, retires parent, then admits a separate failure recorder or returns known cleanup_deadline_exceeded refusal.",
+      "file": "covering_target_transaction.py",
+      "lines": "112-156"
+    },
+    {
+      "fact": "Recorder compares original durable generation/identity snapshot against post-rollback state. Failure persistence writes failure fields and may force a new scheduling revision in its own transaction.",
+      "file": "covering_refresh_failure.py",
+      "lines": "95-122,313-353"
+    }
+  ],
+  "conditionalExpectations": [
+    "For the unchanged lower-ID primary alias seed, first attempted preflight_effects should be exactly [canonicalize_identity], derived from actual requested-only rewrite.",
+    "After acknowledged parent rollback, durable target external ID should be the original primary rather than cal-ms-default; the event request used the transient canonical ID. A positive NONEXPIRED after-state assertion cannot be copied unchanged.",
+    "Original pre-prepare snapshot means normal rollback alone is not a superseded_identity refusal. Keep overwrite refusal STOP for the fresh unchanged seed.",
+    "Recorder may persist failure metadata/revision after parent rollback; public no-assessment endRevisionNone/bumpedFalse does not establish durable scheduling revision unchanged.",
+    "If known recorder-admission refusal occurs, no recorder write should be inferred. Measure separate exact before/after states."
+  ],
+  "qualifications": "Source-supported conditional expectations, not native observations; verify actual seeded constants and future disposition. No changed production code or new execution.",
+  "activeMattAssignment": "F465A4E25C77BB4D0C9256E56A48F9AA1FDBB7185D9C8FA8A2282B4D2DBEF196",
+  "endpoint": "unbound"
+}

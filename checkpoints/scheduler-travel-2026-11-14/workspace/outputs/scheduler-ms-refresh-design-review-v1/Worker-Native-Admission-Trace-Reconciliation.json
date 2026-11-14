@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-13T07:12:28.1255137Z",
+  "status": "STATIC_ADMISSION_TRACE_RECONCILED",
+  "host_and_runner_batch": "NP-V-MS-NONEXPIRED only",
+  "expected_unknown": [],
+  "host_case_source": "np_supervisor.py305-306 config into Plan;228-234 report equality",
+  "runner_case_source": "np_runner_entry.py1488,1500-1502 exact selected registry;np_integrated_runner.py26-31 exact registry and expected UNKNOWN",
+  "cf_metadata": "include_cf_witnesses_separate_batch retained as planning metadata;not read by the traced invocation;CF IDs not selected",
+  "operator_admission": "Invoke-Native-Provider.ps163-94 external config/executable/manifest admission and existing-evidence refusal;135-148 default receipt and supervisor invocation",
+  "new_evidence_absent": true,
+  "machine_flags_are_human_authority": false,
+  "native_execution_authorized": false,
+  "next": "Independent Matt review followed by exact Trish card;no execution",
+  "endpoint": "unbound"
+}

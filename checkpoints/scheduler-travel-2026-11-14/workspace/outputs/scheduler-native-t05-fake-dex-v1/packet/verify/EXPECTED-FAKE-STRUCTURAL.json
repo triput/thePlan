@@ -1,0 +1,95 @@
+{
+  "kind": "native-t05-fake-structural-expected",
+  "packet": "scheduler-native-t05-fake-prep-matt-v3",
+  "candidate_root": "scheduler-native-provider-t05-prep-matt-v3",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "SERIALIZER-DEFAULT-REGRESSION",
+    "ORDERLY-POSITIVE-SERIALIZATION",
+    "INVALID-MODE-REFUSALS",
+    "CLIENT-COMPLETENESS-VS-DECODE",
+    "OUTCOME-CLASSIFIER",
+    "SUITE-ORDERLY-MAPPING",
+    "RUNNER-WIRING",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "peer", "transcript", "suite", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "peer", "transcript", "suite"],
+    "SERIALIZER-DEFAULT-REGRESSION": ["catalog_scripts", "ms_nonexpired_inventory", "ms_refresh_inventory", "catalog_delta_changed_plus_added"],
+    "ORDERLY-POSITIVE-SERIALIZATION": ["exact_bytes", "no_framing_headers", "source_serializer_would_append_length", "fixed_length_exact_bytes", "fixed_length_source_serializer_identical"],
+    "INVALID-MODE-REFUSALS": ["unknown_mode", "close_delimited_with_content_length", "auto_with_transfer_encoding", "close_delimited_with_transfer_encoding", "refusal_precedes_send"],
+    "CLIENT-COMPLETENESS-VS-DECODE": ["close_delimited_accepted", "fixed_length_accepted", "short_cl_refused_before_decode", "complete_invalid_json_decoded", "transport_error_propagates_unchanged", "rebuilt_content_length_trap"],
+    "OUTCOME-CLASSIFIER": ["complete_accept_exact", "complete_accept_mismatch_stops", "fixed_accept_exact", "fixed_accept_mismatch_stops", "short_refuse_exact", "short_refuse_other_stops", "abrupt_eof_observed", "abrupt_other_stops", "unknown_expectation_stops"],
+    "SUITE-ORDERLY-MAPPING": ["inventory_counts", "planning_union_unchanged", "close_delimited_oracle_unmapped", "fixed_length_maps_valid_complete_cl", "orderly_declaration_exact"],
+    "RUNNER-WIRING": ["default_joined_tls_construction", "framing_validated_before_peer_start", "retirement_in_finally_before_classification", "bodies_oracle_then_receipt", "orderly_three_observations", "mapper_and_implemented", "no_rebuilt_header_oracle"],
+    "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact"],
+    "PRIOR-FAKE-APPLICABILITY": ["peer_class_identical_serializer_changed", "merge_units_identical", "transcript_functions_identical"],
+    "ACTUAL-SOURCE-MUTANTS": ["close_delimited_appends_length", "transfer_encoding_refusal_removed", "auto_path_altered", "abrupt_accepts_incomplete_read", "transport_factory_injected", "retirement_removed", "wire_framing_predicate_dropped", "framing_conflation", "orderly_mapping_swapped", "fixed_expectation_swapped"]
+  },
+  "expected_nested_predicates": 74,
+  "expected_outcomes": {
+    "close_delimited_wire": "HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nConnection: close\\r\\n\\r\\n{}",
+    "fixed_length_wire": "HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: 2\\r\\nConnection: close\\r\\n\\r\\n{}",
+    "default_auto_wire": "byte-identical to the source serializer for every send step of finite_script_catalog (except the changed T05 close-delimited script; the added fixed-length script is also source-serializer identical), ms_nonexpired_connection_inventory and ms_refresh_connection_inventory",
+    "catalog_delta": "changed [T05-ORDERLY-CLOSE-DELIMITED-COMPLETE]; added [T05-ORDERLY-FIXED-LENGTH-COMPLETE] immediately after it",
+    "invalid_modes": "unknown mode, close_delimited+Content-Length, any Transfer-Encoding -> PeerLifecycleError before _send_all",
+    "client_model": "default AutoLengthHttpxResponse: httpx 0.28.1 supplies Content-Length for non-empty rebuilt bytes content; nothing else of httpx modelled",
+    "host_client": {
+      "close_delimited_complete": "200, content b'{}', rebuilt Content-Length 2 (httpx adaptation), no TE; scripted wire has no CL/TE; gate then json once",
+      "fixed_length_complete": "200, content b'{}', Content-Length 2; scripted-wire framing exact_content_length; ACCEPTED only under fixed_length_accept, STOP under complete_accept",
+      "short_cl_valid_json": "http.client.IncompleteRead(partial=b'', expected=18) at guarded read; json 0; gate 0",
+      "close_delimited_invalid_json": "json.JSONDecodeError from the real decoder; json 1; gate 1; not framing",
+      "transport_error": "injected transport error object propagates unchanged; json 0; gate 0",
+      "rebuilt_content_length_trap": "close-delimited result with rebuilt Content-Length 2 is ACCEPTED via scripted-wire framing close_delimited (and STOPs under fixed_length_accept); a wire that really adds Content-Length classifies exact_content_length and STOPs under complete_accept"
+    },
+    "classifier": {
+      "complete_accept": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY only for (response, 200, True, 'close_delimited')",
+      "fixed_length_accept": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY only for (response, 200, True, 'exact_content_length')",
+      "short_cl_refuse": "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY only for (exception, IncompleteRead, http.client)",
+      "abrupt_distinct": "OBSERVED only for (exception, SSLEOFError, ssl) or (exception, ConnectionResetError, builtins)",
+      "otherwise": "SuiteStop"
+    },
+    "suite_mapping": {
+      "counts": "27 native + 4 CF = 31 declarations, same case_id order as source",
+      "planning_union": "union of case and oracle planning IDs identical to source",
+      "orderly_case_planning_ids": ["T05-VALID-COMPLETE-CONTENT-LENGTH", "T05-SHORT-LENGTH-VALID-JSON"],
+      "orderly_oracles": [
+        ["orderly_close_delimited_complete_accepted", [], "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"],
+        ["orderly_fixed_length_complete_accepted", ["T05-VALID-COMPLETE-CONTENT-LENGTH"], "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"],
+        ["orderly_short_cl_valid_json_prefix_refused", ["T05-SHORT-LENGTH-VALID-JSON"], "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"]
+      ],
+      "valid_complete_cl_holder": "only the ORDERLY fixed-length oracle",
+      "other_declarations": "field-for-field identical to source"
+    },
+    "orderly_observations": [
+      ["orderly_close_delimited_complete_script", "complete_accept"],
+      ["orderly_fixed_length_complete_script", "fixed_length_accept"],
+      ["orderly_short_cl_valid_json_refuse_script", "short_cl_refuse"]
+    ]
+  },
+  "mutant_oracles": {
+    "close_delimited_appends_length": "close delimited:exact bytes",
+    "transfer_encoding_refusal_removed": "invalid mode:auto_with_transfer_encoding",
+    "auto_path_altered": "default regression:catalog_scripts:wire",
+    "abrupt_accepts_incomplete_read": "classifier:abrupt_other_stops",
+    "transport_factory_injected": "wiring:default_joined_tls_construction",
+    "retirement_removed": "wiring:retirement_in_finally_before_classification",
+    "wire_framing_predicate_dropped": "client:rebuilt trap negative",
+    "framing_conflation": "client:fixed length accepted",
+    "orderly_mapping_swapped": "mapping:close_delimited_oracle_unmapped",
+    "fixed_expectation_swapped": "wiring:orderly_three_observations"
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "full_t05_closed": false,
+  "endpoint": "unbound"
+}

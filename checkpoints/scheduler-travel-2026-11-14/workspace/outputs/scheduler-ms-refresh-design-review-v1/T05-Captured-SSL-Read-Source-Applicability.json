@@ -1,0 +1,23 @@
+{
+  "capturedSslSha256": "0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3",
+  "kind": "Dex captured native SSL source applicability,offline only",
+  "relationToFailure": "The confirmed diagnostic loss at client catch2068-2069 and classification2090 still prevents identifying the actual native outcome. Captured Python SSL source does not fill that gap.",
+  "limits": [
+    "Native _ssl C implementation/OpenSSL runtime behavior is outside these captured Python source bytes",
+    "No actual socket flag,returned bytes or client exception class retained for this failed attempt",
+    "This is source reasoning only,not proof the false flag caused or prevented any native EOF outcome",
+    "No basis to weaken TLS strictness or widen expected native exception classes from this read"
+  ],
+  "sourceEdits": false,
+  "atUtc": "2026-11-13T23:53:29.3597588Z",
+  "executed": false,
+  "endpoint": "unbound",
+  "sourceFacts": [
+    "Captured SSLSocket.recv line1238 delegates to read while _sslobj exists",
+    "Captured read line1107 delegates to _sslobj.read; it suppresses SSL_ERROR_EOF only when suppress_ragged_eofs is true,otherwise reraises",
+    "Frozen JoinedTLS.open line61-62 explicitly passes suppress_ragged_eofs=False",
+    "Captured SSLSocket.shutdown line1300 clears that server object _sslobj and invokes raw socket shutdown; this is distinct from unwrap",
+    "Frozen peer abrupt path attempts SO_LINGER0 then SHUT_RDWR and close,with OSError suppression; source note is not measured TCP close behavior"
+  ],
+  "capturedSslPath": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/ssl.py.source"
+}

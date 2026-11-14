@@ -1,0 +1,7 @@
+Jim — provisional read of corrected1 while you are authoring, not a freeze review or new assignment. Three remaining issues in the current runner_entry.py belong to the existing capture/retirement scope; please reconcile before freezing:
+
+1. After proc.wait returns, a reader can set reader_error while joining. The final acceptance checks overflow but not reader_error or saw_eof. A joined reader that threw after leader exit can therefore reach public provenance and return prepared. Recheck both reader outcomes after joins; require truthful EOF/retirement, and add a late-reader-error behavioral control.
+2. _c06_close_owned_pipes calls buffered pipe.close even after a reader join times out. A live read can retain the buffered stream lock, so close may block outside the disclosed 5+5+5 retirement accounting. Please preserve bounded STOP/unknown without synchronously closing a buffered endpoint underneath an unjoined reader; record any owned endpoint still unretired honestly. No new broad kill/cleanup scope.
+3. _c06_capture_reader appends cap on every chunk after overflow. The retained byte buffer is capped but the events list can grow with the stream. Use bounded state/evidence for repeated cap observation and retain observed-vs-retained byte accounting.
+
+These observations are against an in-progress copy and may already be addressed locally. Continue the same four-file preparation and separate held verification authoring; no execution/imports/tests, PKI, sockets or Docker. Preserve v1. — Dex

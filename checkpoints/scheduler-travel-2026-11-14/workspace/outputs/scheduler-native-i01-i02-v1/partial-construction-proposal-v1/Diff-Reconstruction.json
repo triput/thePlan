@@ -1,0 +1,10 @@
+{
+  "status": "STATIC_TEXT_RECONSTRUCTION_MATCH",
+  "old_lines": 713,
+  "new_lines": 716,
+  "old_sha256": "499E18F12AEF24C91B95F8F1C59D9C8AFD315FA4CBCE028DD34AF36571E88CBD",
+  "new_sha256": "1D1A2013A96C1AB23040084F925F1AB32B96673F217BC94C9CC28036AC11895F",
+  "source_unchanged": true,
+  "source_applied": false,
+  "python_import_compile_or_run": false
+}

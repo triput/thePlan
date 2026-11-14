@@ -1,0 +1,11 @@
+--- original/payload/fixture/np_runner_entry.py
++++ candidate/payload/fixture/np_runner_entry.py
+@@ -2266,7 +2266,7 @@
+             },
+             "oauth_request_count": oauth_requests,
+             "client_outcomes": [list(item) for item in client_outcomes],
+-            "token_terminal_rows": token_terminals,
++            "token_terminal_sequence": token_terminals,
+             "run_target_calls": len(run_target_calls),
+             "peer_side_wire_bytes_sent_exact": True,
+             "label_hash": token_seed.label_hash,

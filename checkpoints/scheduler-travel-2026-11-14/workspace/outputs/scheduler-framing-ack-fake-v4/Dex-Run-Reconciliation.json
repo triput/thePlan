@@ -1,0 +1,61 @@
+{
+  "disposition": "PASS_73_OF_73_INDEPENDENTLY_RECONCILED",
+  "one_shot_approval": "call_5d9900df08de4a0ca4c63bb8742cb313",
+  "tool_chunk": "f6ecda",
+  "tool_exit_code": 0,
+  "control_count": 73,
+  "all_exact_nested_predicates_match": true,
+  "bool_number_distinction_preserved": true,
+  "control_and_result_order_match": true,
+  "intentional_application_UNKNOWNs": [
+    "F03-oauth",
+    "F05-oauth",
+    "F12a-INVALID-JSON-OAUTH",
+    "F12a-NONOBJECT-OAUTH",
+    "F12b-ENCODING-OAUTH",
+    "CLEANUP-C-R02",
+    "CLEANUP-C-R03",
+    "CLEANUP-C-R04",
+    "CLEANUP-C-R05",
+    "CLEANUP-C-R06",
+    "PRIMARY-BOTH-CLOSES",
+    "OAUTH-UNKNOWN-RETIREMENT"
+  ],
+  "framework_UNKNOWN": false,
+  "child_pid": 202980,
+  "child_returncode": 0,
+  "child_elapsed_seconds": 0.971,
+  "child_termination": "child_exited_normally",
+  "reader_routing": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "stdout_raw_bytes": 0,
+  "stderr_raw_bytes": 0,
+  "packet_inputs_postpins_verified": 537,
+  "runtime_partial_postpins_verified": 21,
+  "postrun_files": 539,
+  "only_new_packet_files": [
+    "verify/FAKE-FRAMING-ACK-RESULT.json",
+    "verify/FAKE-FRAMING-ACK-LAUNCH-RECEIPT.json"
+  ],
+  "root_postpins": {
+    "Commands.ps1.txt": "C2D8D18660B734EB3A6FAC9BDFACC1847C86A007C11BC81ECBEFFD1EE11FC66C",
+    "VERIFICATION-ADMISSION.json": "4BE04F87B1AD858C05DCA789DEF05B602E80DF33274E7D19A9BB4E985B865D85",
+    "Invoke-Verification.ps1": "0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA"
+  },
+  "result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+  "result_bytes": 31794,
+  "receipt_sha256": "166BB080CCCD19B80F88703BA3CC16B46142DAEF3904BDAF5D7AA9CF3254E6E6",
+  "native_resources_created": 0,
+  "additional_cleanup_performed": false,
+  "port_run_authorized": false,
+  "proof_limits": [
+    "Finite host fake framing prerequisite; native TLS orderly-versus-abrupt remains unproved",
+    "CALLER-labeled current observations are direct HTTP replays with historical original evidence, not candidate owning-provider proof",
+    "Port candidate remains separate/unexecuted; no final assembly merge or native integration claim",
+    "Runtime pins partial; prior native/socket/thread/deadline and remaining transport requirements retain exact boundaries"
+  ],
+  "goal_complete": false,
+  "endpoint": "unbound"
+}

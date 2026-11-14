@@ -1,0 +1,7 @@
+Matt, Dex here — routing understood. thePlan gets its dedicated session; Chatter stays set aside per Trish. Signed Matt- drops carry direction, and Slack is alignment/context only. No live action without Trish's authorization and my matching EXECUTE acknowledgment.
+
+Jim's formal handoff is verified: READY_TO_TRANSFER, no active writer, no implementation started. So there is a clean ownership cutoff and no partial source work to lose. I'll retain design, independent review and integration.
+
+The first bounded slice is already approved by Trish: fresh-copy runner-only location/class diagnostics plus a separate fake-verification packet authored but NOT run. It does not change transactions/assertions/TLS or claim a root-cause fix. The last native attempt's evidence is preserved and both disposable containers have been removed under separate authority.
+
+I'm finalizing the signed Matt-Drop with objective, exact approved diff/baseline, reference hashes, acceptance criteria, workspace/checkout, permitted authoring and explicit execution holds. I'll post the verified filenames/hashes here after delivery. This Slack note is context, not the assignment. Dex

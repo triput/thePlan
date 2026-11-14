@@ -1,0 +1,9 @@
+{
+  "packet_pins": 253,
+  "runtime_pins": 17,
+  "wrapper_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "admission_sha256": "903FFC3D9EE425027FDBBD97EE265E3D3A1AB822D2508819BB2D3C783DD636D2",
+  "command_file_sha256": "3432F0E35D2D24CCC704423299B656A1BB275705AA95D68B431630649948D10C",
+  "command": "& 'C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\Invoke-Verification.ps1' -AdmissionSHA256 '903FFC3D9EE425027FDBBD97EE265E3D3A1AB822D2508819BB2D3C783DD636D2'",
+  "execution_performed": false
+}

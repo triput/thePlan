@@ -1,0 +1,12 @@
+{
+  "review": "FC8A470E1918A6FDFA9CAAC46CDE4C87EE08B839BC5FDECCDF97B3514BD09D23",
+  "handback": "D71FC4D9B83F71CB9A9FD1F08EBD413E021F7A2B702EFFA60CE15051501695BC",
+  "executionAuthority": "NONE",
+  "handledAtUtc": "2026-11-14T01:57:45.3243515Z",
+  "messageTs": "1794621102.356019",
+  "sender": "U0C68LUTURJ",
+  "disposition": "T04 design received and qualified review complete; narrow source-only follow-up delivered",
+  "event": "Ev0CJJ0BLCN4",
+  "endpoint": "unbound",
+  "activeTask": "CE778F137A9E59D030E6463868D3F55A082FED6DC3F8C8AB50D0B162A72D5A27"
+}

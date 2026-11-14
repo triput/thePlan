@@ -1,0 +1,14 @@
+{
+  "kind": "Offline finite-observation audit comparison clarification",
+  "at_utc": "2026-11-12T02:33:53.0646094Z",
+  "initial_tool_chunk": "a7c07a",
+  "initial_stop": "independent status/body mismatch F01",
+  "actual_status": 200,
+  "expected_status": 200,
+  "actual_type": "System.Int64",
+  "expected_type": "System.Int32",
+  "cause": "CLR Object.Equals requires same numeric type; JSON and PowerShell integer values were equal. Compare validated numeric values, retain null/type safeguards.",
+  "result_unchanged": true,
+  "collection_rerun": false,
+  "source_oracle_repairs": false
+}

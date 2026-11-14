@@ -1,0 +1,22 @@
+{
+  "kind": "Held native staging prerequisites (current overlay, metadata v2)",
+  "date": "2026-11-13",
+  "selectedRetirementFake": {
+    "status": "PASS",
+    "scope": "finite fake: 13 controls / 85 reported predicates; seven behavioral and seven structural mutants detected; independent of native proof",
+    "packet": "outputs/scheduler-ms-selected-retirement-fake-dex-v1",
+    "result_sha256": "A8CDBF04FD2D7FC5A76A7234B54F99322FC3FCD5B75A8455CA5CD3B22C85A4DF",
+    "launch_receipt_sha256": "F0C9A127D4FA47ED0301BBD0D11116450C8BD5EECC2CA031D99D16228220AE2A",
+    "dex_reconciliation_sha256": "6004BED4293F8E3801B82EF75415427872ABCFB6520F53B756B4AF6E57C6481F",
+    "receipt_facts": "exit 0, zero stdout/stderr, retirement_unknown false",
+    "staged_inputs_unchanged": 49,
+    "invocations_remaining": 0
+  },
+  "nativeProof": "NONE",
+  "matchingExecuteAck": "NONE",
+  "nativeHumanApproval": "NONE",
+  "oldCardA50C04FB": "WITHHELD; no approval transfer",
+  "next": "Dex independent reconciliation of this metadata v2 before any exact native card",
+  "history": "Copied Current-Prerequisites-HELD.json, Dex-Retirement-Native-Staging-Receipt.json (defaultReceipt receipt.jsonl is wrong), NONEXPIRED-Retirement-Native-Review-and-Commands.md, Reviewed-NONEXPIRED-Retirement-Native-Command.ps1.txt and every older command/freeze/review are history, never current invocation instructions.",
+  "endpoint": "unbound"
+}

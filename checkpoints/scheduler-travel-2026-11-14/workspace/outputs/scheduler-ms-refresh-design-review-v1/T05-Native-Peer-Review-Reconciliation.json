@@ -1,0 +1,51 @@
+{
+  "reportCapSource": {
+    "lengthCheckLine": 2483,
+    "path": "payload/fixture/np_runner_entry.py",
+    "constantLine": 36
+  },
+  "evidenceAbsent": true,
+  "checks": [
+    {
+      "manifest": "Input-Manifest.sha256",
+      "count": 297,
+      "sha256": "417BEA58FD10956DF9B33778672CD2197E548BD5E2ABD9F53C6B1EF0BAF1596F"
+    },
+    {
+      "manifest": "scheduler-native-provider-diagnostic-launch-v1\\Input-Manifest.sha256",
+      "count": 269,
+      "sha256": "3C4D775444D00B5277DA05C096092F53E4B1F1995B292D7C638CCE298903747F"
+    },
+    {
+      "manifest": "scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+      "count": 257,
+      "sha256": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B"
+    }
+  ],
+  "atUtc": "2026-11-13T23:01:54.2825975Z",
+  "unresolvedBlockers": [],
+  "reviewSidecarPins": 19,
+  "executionPerformed": false,
+  "prerequisites": {
+    "matchingExecuteAck": "NONE",
+    "nativeT05Fixture": "PASS14/74 host-parser/fake fixture",
+    "nativeStagingPeerReview": "Reconciled qualified acceptance",
+    "humanLaunchApproval": "NONE",
+    "peerClose": "PASS11/35 finite fake"
+  },
+  "qualifications": [
+    "Direct production transport proof, not HTTP ingress/connector/native assessment composition",
+    "Only complete fixed-length and short valid-JSON prefix mapping; close-delimited supplementary; no full T05 closure",
+    "Fixed-length success label does not prove client read close_notify",
+    "Exact abrupt class set only; no automatic widening",
+    "500s nominal peer sum is not whole-batch wall bound; runner600 watchdog expiry UNKNOWN",
+    "Inherited CLI kill does not wait or prove daemon cancellation",
+    "Matt did not retrace separate report cap; Dex traced runner OUTPUT_BYTE_CAP=1048576 and encoded payload length check before machine_stdout.write, plus unchanged command capture enforcement in docker_transport",
+    "PeerRetirementUnknown from finally remains a fail-closed exception through main STOP producer; no change needed"
+  ],
+  "status": "QUALIFIED_STATIC_ACCEPTANCE",
+  "endpoint": "unbound",
+  "reviewSha256": "92BF519C1E15D153921C1D7C303DA484246403860B35B35D7A410F3FFC1A391F",
+  "exePinsMatch": true,
+  "kind": "Dex reconciliation of Matt native T05 staging review"
+}

@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "kind": "T05-NATIVE-SOURCE-PROVENANCE",
+  "image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "container_id": "501c00a46066c4e3e30a4fc7ee4dd9b0d1fe0cd638cf33b919ac69085d579ce4",
+  "removed_and_absent": true,
+  "commands": 7,
+  "sources": [
+    {
+      "path": "/usr/local/lib/python3.12/http/client.py",
+      "bytes": 59574,
+      "sha256": "C2C0694155837D72FC710A4138E5D1E53AE1A652B117A2E23A5B1B0DB527A0F9"
+    },
+    {
+      "path": "/usr/local/lib/python3.12/ssl.py",
+      "bytes": 51536,
+      "sha256": "0061D6EF21088283498491064B79605B5C26C35DFF527AC850A417994D580AD3"
+    },
+    {
+      "path": "/usr/local/lib/python3.12/email/message.py",
+      "bytes": 48396,
+      "sha256": "BA32EFEA2602EA52E73028A2817AFDDCCCCACC4385B9800896556D5C22DB2B90"
+    }
+  ],
+  "behavior_proven": false
+}

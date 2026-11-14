@@ -1,0 +1,23 @@
+{
+  "observed_at_utc": "2026-11-13T02:19:32.7753029Z",
+  "status": "PROVISIONAL_STATIC_INVENTORY_NOT_FROZEN_ACCEPTANCE",
+  "baseline_files": 258,
+  "candidate_files": 258,
+  "changed": [
+    {
+      "path": "SHA256SUMS.txt",
+      "change": "bytes",
+      "baseline_sha256": "336576063E21ECB1718D2C89DF715E570B6A45FD7EA51ECBCA71EA533F24C06D",
+      "candidate_sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90"
+    },
+    {
+      "path": "fixture\\np_runner_entry.py",
+      "change": "bytes",
+      "baseline_sha256": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+      "candidate_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F"
+    }
+  ],
+  "extra": [],
+  "execution_performed": false,
+  "limitation": "Current authoring snapshot only; full manifests, checker and frozen handback require later independent review"
+}

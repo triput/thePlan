@@ -1,0 +1,68 @@
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -331,6 +331,65 @@
+     ) + views
+ 
+ 
++T04_BODY_STALL_EXCHANGE_COUNT = 3
++T04_BODY_STALL_BODY_TEMPLATE = '{"value":[]}'
++
++
++def ms_graph_calendar_view_body_stall_script(*, calendar_id: str, exact_query: str) -> ExchangeScript:
++    """GET /v1.0/me/calendars/{id}/calendarView?{exact_query} — headers only, then body stall.
++
++    The declared request-target carries the exact seed-derived wire query, so the
++    peer refuses any other query bytes. The response head declares a positive
++    Content-Length (len of the empty-page template); the body is withheld and the
++    stall ends only on the owning runner's stop (decision 4F2F3B3F) — a peer
++    deadline remains an error.
++    """
++    if not exact_query or "?" in exact_query or "#" in exact_query:
++        raise RuntimeError("body-stall script requires one exact non-empty wire query")
++    path = f"/v1.0/me/calendars/{calendar_id}/calendarView?{exact_query}"
++    return ExchangeScript(
++        script_id=f"T04-BODY-STALL:MS-GRAPH-CALENDARVIEW:{calendar_id}",
++        purpose="event",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path=path),
++            ExchangeStep(
++                "send_response",
++                status=200,
++                headers=(("Content-Type", "application/json"), ("Content-Length", "PLACEHOLDER")),
++                body_template=T04_BODY_STALL_BODY_TEMPLATE,
++                note="Headers with positive Content-Length only; body withheld (stall_body)",
++            ),
++            ExchangeStep("close", close_mode="stall_body"),
++        ),
++    )
++
++
++def ms_body_stall_connection_inventory(
++    *,
++    identity_list_calendar_ids: tuple[str, ...] | list[str],
++    stall_calendar_id: str,
++    exact_query: str,
++) -> tuple[ExchangeScript, ...]:
++    """Finite inventory for NP-T04-BODY-STALL: exactly three Connection:close exchanges.
++
++    The two unchanged NONEXPIRED identity scripts, then the first event GET
++    (calendarView for the first wire calendar) as a body stall. No fourth
++    connection is scripted: the second target must be refused by the production
++    work deadline before any provider admission.
++    """
++    list_ids = tuple(identity_list_calendar_ids)
++    if len(list_ids) != 2:
++        raise RuntimeError("body-stall inventory requires the two-calendar identity list")
++    scripts = (
++        ms_graph_identity_default_script(),
++        ms_graph_identity_list_script(calendar_ids=list_ids),
++        ms_graph_calendar_view_body_stall_script(calendar_id=stall_calendar_id, exact_query=exact_query),
++    )
++    if len(scripts) != T04_BODY_STALL_EXCHANGE_COUNT:
++        raise RuntimeError("body-stall inventory must contain exactly three exchanges")
++    return scripts
++
++
+ MS_REFRESH_EXCHANGE_COUNT = 5
+ 
+ 

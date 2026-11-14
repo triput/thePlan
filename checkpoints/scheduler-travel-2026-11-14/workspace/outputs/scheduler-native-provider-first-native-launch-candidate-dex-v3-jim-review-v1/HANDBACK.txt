@@ -1,0 +1,38 @@
+HANDBACK -- post-native-provider-first-native-candidate-dex-v3-jim-review-2026-11-12
+
+Status: JIM_INDEPENDENT_STATIC_REVIEW_COMPLETE_NOT_EXECUTED
+Disposition: QUALIFIED ACCEPT
+
+Packet roots:
+- Review workspace: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-first-native-launch-candidate-dex-v3-jim-review-v1/
+- Reviewed staging packet (untouched): C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-first-native-launch-candidate-dex-v3/
+- Baseline jim-v2 tip on-disk (untouched): 34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440
+- DropFolder: F:/DropFolder/pending/post-native-provider-first-native-candidate-dex-v3-jim-review-2026-11-12/
+
+FLAGS: executed=false; human_launch_authorized=false; host_and_runner_launch_ready=true; prep_is_not_pass=true; endpoint=unbound; slack_tip=false; waiting_on_trish=false; native_held=true
+
+Claims verified:
+- Command/operator/host launch-config/docker-ops/manifest/CLI-config/Input-Manifest hashes MATCH.
+- Input-Manifest 265 entries; SHA256 26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF.
+- Payload pins 257 exact; original 256 payload files unchanged vs jim-v2; only add docker-config/config.json E3566B3A…; SHA256SUMS updated.
+- docker_config directory key present and correctly typed for DockerOps._cmd; no silent helper/API/fixture drift.
+- Operator equal after packet-path rename; runner-config launch_ready=true unchanged E132A138….
+- Absolute Reviewed-Command; evidence path …candidate-dex-v3.evidence absent; authority HELD.
+- Fake PASS 88805F6E…/8AA3F9E9… fulfilled prerequisite only — does not prove native.
+- Supplemental audit: 22 success Docker commands / 32 cap / exact-ID success cleanup only. T05 not folded.
+
+Qualifications (non-blocking):
+- This review is not the Trish execution card.
+- Image presence and port-443 unverified until authorized run.
+- ExpectedDockerConfig* params admit docker-ops JSON; CLI directory is inner docker_config key.
+- Postrun independent reconciliation required after any future authorized invoke.
+
+REVISE blockers: none.
+
+Confirm: no invoke / Docker / PKI / sockets / imports-to-run. Dex v3 and predecessors not mutated. Not waiting on Trish. No Slack tip from this seat.
+
+Primary artifacts:
+- Jim-Review-and-Disposition.md SHA256: 0CA7480EAA41200F79725DC053988FFAFBB2FD6D3B136E99DBEB526A117B2338
+- Hash-Reconciliation.json SHA256: AD8AA4FA063E5F427D333D8D61DE2D081D0886EB04C7B831A8BDEF8C4D8B1AE4
+- TIP-FREEZE tip_sha256 (preimage): 10357BE174039866C47A85DF52849284E88633E9206849136208276C27F4A4A1
+- TIP-FREEZE.json on-disk SHA256: 8D13014CCE0502F40E44C4D6491672A84B23211D1C6F37184122FAA4DB6C8DBB

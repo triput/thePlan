@@ -1,0 +1,11 @@
+{
+  "kind": "unexecuted_fake_checker_contribution",
+  "script_sha256": "2FF4B8A03567A72A4D875721463CF6ED9EC74F50556CE9AB9C2F23AA3E1EF4F4",
+  "source_sha256": "9EEF50BCAC923E43F9C7FED767DB541210E185A3B41E58DEEC612E77E5A38C7C",
+  "declared_control_count": 7,
+  "scope": "Extracted measurement helper with only fake mapped-field rows; missing row/attribute refusal; two actual-definition mutants",
+  "executed": false,
+  "compiled": false,
+  "launch_authorized": false,
+  "requires": "Integration into complete admitted packet, independent review, exact commands/runtime pins and user launch approval"
+}

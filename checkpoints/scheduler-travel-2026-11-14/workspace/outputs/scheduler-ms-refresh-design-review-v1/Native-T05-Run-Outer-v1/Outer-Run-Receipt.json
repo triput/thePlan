@@ -1,0 +1,12 @@
+{
+  "remainingInvocations": 0,
+  "finishedAtUtc": "2026-11-13T23:32:06.1300107Z",
+  "outerFailure": "System.Management.Automation.RuntimeException",
+  "endpoint": "unbound",
+  "rawOuterRetained": false,
+  "exitCode": 1,
+  "startedAtUtc": "2026-11-13T23:31:56.0985106Z",
+  "outerBytes": 485,
+  "failureCleanupAuthorized": false,
+  "outerSha256": "9DB7056CD2770E1CB329ED3648995125771272ED9FA4AF66E8E6926E14B87A3D"
+}

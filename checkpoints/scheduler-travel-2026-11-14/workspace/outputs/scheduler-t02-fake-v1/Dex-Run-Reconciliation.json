@@ -1,0 +1,39 @@
+{
+  "status": "PASS_INDEPENDENTLY_RECONCILED",
+  "approved_attempts": 1,
+  "executed_attempts": 1,
+  "retries": 0,
+  "authorization": "call_2efd39b0ea8a46b595fa892539d853ad/0",
+  "command_sha256": "24DD26B7A06F5C8655AFA69F1D35629184EEF4F91B726A6D2527115A0E41CB3D",
+  "result_sha256": "15C20693D238479D5971AA3630DC08DC7155BFD5D1C9C7C94483A13A682F0FB6",
+  "receipt_sha256": "ED53C957413D615AD54C56FEB7BF9EA265B32C2E19E8DD1BF38440F127FA6A70",
+  "control_count": 20,
+  "ids_and_outcomes_exact": true,
+  "post_run_pin_checks": {
+    "ARTIFACT-HASHES.txt": 19,
+    "payload\\SHA256SUMS.txt": 240,
+    "fake-only-t02-admission-verification\\PACKET-SHA256SUMS.txt": 3,
+    "source_static": 13
+  },
+  "mismatches": [],
+  "child_pid": 110016,
+  "child_exit_code": 0,
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "elapsed_child_seconds": 0.2,
+  "stdout_bytes": 54,
+  "stderr_bytes": 0,
+  "result_bytes": 10111,
+  "timed_out": false,
+  "primary_error": null,
+  "capture_stop_reason": null,
+  "result_gate_ok": true,
+  "native_resources_created": 0,
+  "additional_cleanup": 0,
+  "endpoint": "unbound",
+  "scope": "fake-only admission/mutation/composition/order proof; no real provider/TLS/SQL/native assessment claim"
+}

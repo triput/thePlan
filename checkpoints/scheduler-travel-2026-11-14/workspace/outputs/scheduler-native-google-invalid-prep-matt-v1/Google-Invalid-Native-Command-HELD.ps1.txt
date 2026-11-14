@@ -1,0 +1,6 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of a future NP-V-GOOGLE-INVALID native invocation (preparation v1), for review.
+# Against these prep configs (host launch_ready=false; runner-config launch_ready=false) the operator throws STOP before any child.
+# The copied docker-ops-config carries machine launch flags as data only; that is never human authority.
+# A launch needs the focused fake PASS, a reviewed staging copy flipping the host and runner gates (changes the launch-config hash below
+# and the payload manifest), Dex's matching EXECUTE acknowledgement and Trish's explicit one-shot approval. Omit -ReceiptPath.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-google-invalid-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 '180E9A4C1A347CA1CB1F61DCD919C7B13520C8D9B1C97727E79C8E8791F029AC' -ExpectedDockerConfigSHA256 '7725A15403FDBE699869FB105A0F543B0C28F70D4353D5DFEF615A0BC2A8315E' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-google-invalid-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'

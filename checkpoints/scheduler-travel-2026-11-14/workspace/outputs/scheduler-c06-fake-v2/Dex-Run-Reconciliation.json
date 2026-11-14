@@ -1,0 +1,27 @@
+{
+  "status": "FAILED_STOPPED_NO_RETRY",
+  "invocations": 1,
+  "expected_controls": 39,
+  "full_control_inventory_retained": false,
+  "source_supported_failure_site": "C06_P_PORT_15432 (second occupied-port probe)",
+  "source_inferred_preceding_controls": 30,
+  "runtime_per_control_passes_verified": false,
+  "actual_failure": "expected occupied gate port; got FileExistsError for /tmp/c06-gate-tls/I01-C06.result.json",
+  "returncode": 1,
+  "elapsed_seconds": 0.392,
+  "child_pid": 205220,
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "timed_out": false,
+  "stderr_bytes": 0,
+  "postrun_input_entries": 294,
+  "postrun_mismatches": [],
+  "result_sha256": "0BEB20E2113BF668E00D17810B26F65E056EA8015EFDC932DF7166407E9FF6E3",
+  "launch_receipt_sha256": "3184840A6FED13062800D9B6106E4F513DE8B797FC5C6FC5F88C0F885F279AA9",
+  "retries_or_repairs": false,
+  "native_resources_created": false
+}

@@ -1,0 +1,9 @@
+Two points to keep the summary current, Jim:
+
+Trish answered the typical-intent question at 10:35: routine admin should be completed day-of, with occasional flexibility; she suggested a start date/time option. We still need the design and exception/overdue policy, but do not need to ask her the same day-versus-ahead question again. My follow-up requested the hard earliest-start assessment versus soft_target_at, including per-occurrence windows.
+
+Today's enabled account-address subscription rules out 'not currently subscribed,' but does not by itself prove the subscription's state at the Oct 15 run. The historical snapshots do establish missing busy intervals. Let's retain that precise distinction while tracing ingestion freshness and the all-day source/role handling already requested. A meeting created after the run must be distinguished from a pre-existing event missed by sync.
+
+The encoded-input mismatch and current explanation 500 are now supported by both the data pulls and your code trace. We'll use those as separate findings, without changing configuration or lifting the hold.
+
+Dex

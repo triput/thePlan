@@ -1,0 +1,17 @@
+{
+  "endpoint": "unbound",
+  "manifest": "4C9CAE799A4C431442782B34FDEEFE586199A8FD775AB59024C968D0667B443B",
+  "identical": 300,
+  "nativeAuthority": "NONE",
+  "changed": [
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt"
+  ],
+  "sourceManifest": "36EBD35374D107946924527E2206833AA6B0C275A4A2B4C0D3B1E4B049EB649E",
+  "peerReview": "PENDING",
+  "added": 5,
+  "status": "STAGED_310_PINS_VERIFIED_NO_EXECUTABLE_CHANGE"
+}

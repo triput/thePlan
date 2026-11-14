@@ -1,0 +1,61 @@
+{
+  "packet": "post-native-t05-original-behavior-witness-design-jim-v2-2026-11-11",
+  "status": "T05_ORIGINAL_BEHAVIOR_WITNESS_DESIGN_V2_COMPLETE_NOT_APPLIED",
+  "disposition": "WITNESS_FIRST_NO_APPLY",
+  "disposition_one_liner": "WITNESS-FIRST / NO APPLY -- ORIGINAL predictions separated from CORRECTED acceptance; authoring scope proposed; no source edits",
+  "author": "Justin",
+  "role": "Jim T05 documents-only REVISE successor",
+  "date": "2026-11-11",
+  "byte_semantics": "utf-8 lf",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "execution_authorized": false,
+  "launch_authorized": false,
+  "source_fixture_edits": false,
+  "tip_sha256": "0C9E3E47EC2440BB8FB8D2B2DC69467C216BA1DAEFC90231D86B251A031A03B0",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled).",
+  "supersedes_v1_tip_sha256": "8C32BFECCF225C77BEE0E1C102C09D4F09CE20ECEF7881D3C87AEF8E6B7FDA29",
+  "brief_sha256": "80D3298715F5196291B4EAA29DFCFDC14F533DFF0B9F3017234381F3BDE72E02",
+  "authoring_scope_sha256": "C142291EEA4B1B5DDF3F5C8E462372DE2C08B655D9BDF01579C161EB5DF42602",
+  "input_pins_sha256": "3EEBB0C90A26281287818DD57F1DDE464E650F8BFFBC3ABCA66F57C7D846A5C2",
+  "dex_reconciliation_sha256": "91BED21C966B146B7D3C108D4E0568DF6036D5C23F83005C3FF06759199C2917",
+  "revisions_closed": [
+    "original_vs_corrected_columns",
+    "covering_provider_transport_google_routing",
+    "close_delimited_baseline_retained",
+    "D1_D2_concrete_recommendations",
+    "D4_D5_technical_evidence_gates_not_product_votes",
+    "proposed_authoring_scope_document",
+    "header_representation_variants_folded",
+    "markdown_control_chars_sanitized"
+  ],
+  "recommendations": {
+    "D1_identical_CL": "refuse when raw inventory shows more than one Content-Length field",
+    "D2_TE_plus_CL": "refuse TE+CL coexistence before body collection",
+    "D3_close_delimited": "retain support as baseline; reject-all not adopted"
+  },
+  "gates_not_product_votes": [
+    "D4_suppress_ragged_eofs_source_hold",
+    "D5_native_parser_provenance_launch_gate"
+  ],
+  "related_t07_host_v3_tip": "FDB40B1DB74E57855C6C5023D19FE1E53CEB9C33D696FA68C3CCBADC8DE843E1",
+  "handback_dirs": [
+    "F:/DropFolder/pending/post-native-t05-original-behavior-witness-design-jim-v2-2026-11-11",
+    "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-original-behavior-witness-design-v2"
+  ],
+  "artifact_hashes_list_order": [
+    "HANDBACK.txt",
+    "INPUT-PINS.json",
+    "Proposed-Authoring-Scope.md",
+    "README.md",
+    "T05-Original-Behavior-Witness-Design.md",
+    "TIP-FREEZE.json"
+  ],
+  "message_context": [
+    "T05 docs-only REVISE successor v2",
+    "ORIGINAL vs CORRECTED columns",
+    "authoring scope proposed; no executable authoring",
+    "D1/D2 recommendations; D3 baseline; D4/D5 gates"
+  ]
+}

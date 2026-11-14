@@ -1,0 +1,59 @@
+{
+  "endpoint": "unbound",
+  "humanApproval": "PENDING",
+  "atUtc": "2026-11-13T18:50:17.7821551Z",
+  "kind": "consolidation-of-three-existing-unanswered-fake-decisions",
+  "nativeExecutionAuthorized": false,
+  "stopBeforeNextOnAnyFailure": true,
+  "runs": [
+    {
+      "root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-peer-close-fake-dex-v1",
+      "runtimePins": 1,
+      "commandFile": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-peer-close-fake-dex-v1\\Reviewed-Peer-Close-Command.ps1.txt",
+      "packetPins": 9,
+      "name": "peer-close",
+      "executed": false,
+      "admissionSha256": "4104D6EBCEB4BB3DC4CFDC17C2905E2BDB4FA56A0B9E30619317DC6462589B9B",
+      "actualCommand": "& 'C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-peer-close-fake-dex-v1\\packet\\Invoke-Fake.ps1' -AdmissionSHA256 '4104D6EBCEB4BB3DC4CFDC17C2905E2BDB4FA56A0B9E30619317DC6462589B9B'",
+      "controls": 11,
+      "inputs": 16,
+      "predicates": 35,
+      "inputManifestSha256": "4D03B98A82592DA8A5E4B822985895A112CC0222245387AA4C5F4BDC7E92B1E8",
+      "commandSha256": "8B44B8BC0277A70A2E9B739C0DBE0BC840B7F63DB62E89B5DAB8D7C0DDD008C6",
+      "oneShotConsumed": false
+    },
+    {
+      "root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-combined-witness-fake-dex-v1",
+      "runtimePins": 10,
+      "commandFile": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-combined-witness-fake-dex-v1\\Reviewed-T05-Combined-Command.ps1.txt",
+      "packetPins": 10,
+      "name": "T05-combined-witness",
+      "executed": false,
+      "admissionSha256": "D07EE140C235B0E0024ECDFD0434C7E33BB174F6A41200D4C3F813B5A7FD632A",
+      "actualCommand": "& 'C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-combined-witness-fake-dex-v1\\packet\\Invoke-Fake.ps1' -AdmissionSHA256 'D07EE140C235B0E0024ECDFD0434C7E33BB174F6A41200D4C3F813B5A7FD632A'",
+      "controls": 11,
+      "inputs": 17,
+      "predicates": 40,
+      "inputManifestSha256": "299A509F255FDB492B9E8C9B50A1F84E2220951C25FDC42AB049C1D7254C0776",
+      "commandSha256": "F03685858A7F098405E4A1726B52A9A20CE4B47F7DCF5211ECDF6D6B2EFEDB3E",
+      "oneShotConsumed": false
+    },
+    {
+      "root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-merge-fake-dex-v1",
+      "runtimePins": 1,
+      "commandFile": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-merge-fake-dex-v1\\Reviewed-MS-Merge-Command.ps1.txt",
+      "packetPins": 21,
+      "name": "MS-refresh-merge",
+      "executed": false,
+      "admissionSha256": "095A2084B5709B6FADAE08F7CB250E4E27A1C6CFF37C705D3C237D74C92E3A22",
+      "actualCommand": "& 'C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-merge-fake-dex-v1\\packet\\Invoke-Fake.ps1' -AdmissionSHA256 '095A2084B5709B6FADAE08F7CB250E4E27A1C6CFF37C705D3C237D74C92E3A22'",
+      "controls": 9,
+      "inputs": 28,
+      "predicates": 33,
+      "inputManifestSha256": "D18DF620242F99E4E1E87354EDDBA30CBD56671FFA6BD2BF4B919B048F0DAD8C",
+      "commandSha256": "6BA1FE71F745CC503C05EE80C01FA65E684D5573A2A116D9D46E9A7FECF5CE11",
+      "oneShotConsumed": false
+    }
+  ],
+  "newRunsAdded": 0
+}

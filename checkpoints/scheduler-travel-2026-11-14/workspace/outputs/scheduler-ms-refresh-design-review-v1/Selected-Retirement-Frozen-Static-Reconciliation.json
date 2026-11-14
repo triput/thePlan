@@ -1,0 +1,40 @@
+{
+  "partialRuntimePins": 10,
+  "parentInputPins": {
+    "invalid": 297,
+    "fake": 45,
+    "nonexpired": 291
+  },
+  "sourceEdited": false,
+  "sidecarPins": 32,
+  "status": "qualified static acceptance for fake-only staging; no execution",
+  "executionPerformed": false,
+  "endpoint": "unbound",
+  "remainingExecutionAuthority": "NONE",
+  "qualifications": [
+    "Python syntax and behavior unexecuted; no fake PASS yet",
+    "Whole actual covering policy/HTTP transport code is loaded in an isolated fake namespace; host http.client imports socket/ssl but no sockets or SSL contexts constructed",
+    "No native TLS, PostgreSQL terminal, credential persistence or ASGI proof",
+    "Seven behavioral and seven structural targeted mutants, not fourteen independent behavioral defects",
+    "Inherited MS-REFRESH retirement gap stays open; other unselected bodies not certified",
+    "Only metadata admission booleans/pins change in launch staging; source packet and all predecessors preserved",
+    "No execution authority transfers from old withheld native card A50C04FB or late Approved"
+  ],
+  "core": [
+    "Both frozen runners match the provisional paired source review pins",
+    "Shared helper makes one unchanged bounded retirement call, requires joined is True and worker_error_kind is None, then reads sanitized_state",
+    "Both callers mark attempted before the call; original failure-finally guards remain; no repeat after helper raise",
+    "Invalid payload delta is one runner; NONEXPIRED delta is runner plus launch_ready-only runner config; 234 API files and peers preserved in both payload maps",
+    "Existing client/terminal/credential/expiry/coverage/public/assertion scope preserved by exact source diff",
+    "Helper behavior uses extracted actual helper; named fake publishes final inventory during join; exact call order and exception identity checked",
+    "Selected-body wiring and no-second-retirement controls are structural; the full native caller is not executed by the fake",
+    "Two new behavioral mutants remove worker-error guard and move snapshot before join; two structural mutants move caller snapshot early or add retirement",
+    "All original nested case IDs retained; 13 controls,84 explicitly named nested entries plus SUBJECT-PINS singleton =85 reported predicates",
+    "Same immutable wrapper/outer/launcher lineage; admissions false; packet and ten partial runtime pins independently reverified"
+  ],
+  "handoffSha256": "4138F3AD03C929FBC87392DBC9E4F9357F64C120F9A47B2619ECEC7F6A322B66",
+  "kind": "Dex independent frozen handback static reconciliation",
+  "packetPins": 41,
+  "nestedPinsEach": 269,
+  "atUtc": "2026-11-13T22:47:44.4432713Z"
+}

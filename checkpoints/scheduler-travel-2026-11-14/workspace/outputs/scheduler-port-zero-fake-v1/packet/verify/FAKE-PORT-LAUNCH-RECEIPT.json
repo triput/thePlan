@@ -1,0 +1,135 @@
+{
+  "status": "PASS",
+  "class": "FAKE-PORT-LAUNCH",
+  "interpreter": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "pinned_interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "interpreter_pin_matched": true,
+  "check_script": "check_port.py",
+  "check_sha256": "F087B5C18958CDB1CAA8B13880E8A74243AF16CF7D6F05FC1289E6F6CCD7B0FB",
+  "launcher_sha256": "A9F251AB10808B793733E753FE73EE9CE0C8E3C10BB2A72C14A2E043208D0075",
+  "launcher_self_pin_compared": false,
+  "expected_output_sha256": "9DE15817D28AF59EED5F5451A68B1EBB2DFF37ECB876D991963F74C912F6829B",
+  "input_manifest_sha256": "D5162AD6DFFD6779B7B21C5C0FAB5FAB9F82DB9DF450A5611A08449F5933B449",
+  "packet_pins": {
+    "check_port.py": "F087B5C18958CDB1CAA8B13880E8A74243AF16CF7D6F05FC1289E6F6CCD7B0FB",
+    "EXPECTED.json": "9DE15817D28AF59EED5F5451A68B1EBB2DFF37ECB876D991963F74C912F6829B",
+    "INPUT-MANIFEST.json": "D5162AD6DFFD6779B7B21C5C0FAB5FAB9F82DB9DF450A5611A08449F5933B449"
+  },
+  "expected_wire_ids_in_order": [
+    "PORT-443-ABSENT",
+    "PORT-443-EXPLICIT",
+    "PORT-443-ZERO",
+    "PORT-443-OTHER",
+    "PORT-8443-ABSENT",
+    "PORT-8443-EXPLICIT",
+    "PORT-8443-ZERO",
+    "PORT-SOURCE-INVENTORY",
+    "PORT-BAD-PIN"
+  ],
+  "pin_enforcement": {
+    "interpreter": "launcher_pre_admission_hardcoded_pin",
+    "launcher_self": "outer_OUTER-ADMISSION_via_admit_outer_not_self",
+    "check_script": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "expected_output_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "input_manifest_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "fixture_source_hashes": "check_script_verify_source_hashes",
+    "control_inventory": "check_script_enforce_expected_inventory_and_launcher_result_gate",
+    "ordered_contract": "EXPECTED.inputs key order == EXPECTED.wire_ids_in_order == result.wire_ids_in_order == result.inputs key order"
+  },
+  "cwd": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-port-zero-fake-v1\\packet\\verify",
+  "timeout_seconds": 30,
+  "timeout_enforced_by": "invoke_port_fake._collect_bounded.poll_wait_interrupt_on_overflow",
+  "timeout_routing_limits": {
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5.0,
+    "reader_join_seconds_each": 5.0,
+    "wait_poll_seconds": 0.05,
+    "total_disclosed_seconds": 45.0,
+    "no_retry": true,
+    "overflow_interrupt": "kill child on observed capture overflow; do not wait out full child_wait while readers drain"
+  },
+  "timed_out": false,
+  "returncode": 0,
+  "launcher_exit_code": 0,
+  "elapsed_seconds": 0.406,
+  "child_pid": 68456,
+  "child_executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "child_argv": [
+    "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-port-zero-fake-v1\\packet\\verify\\check_port.py"
+  ],
+  "child_start_timestamp": 1794514443.109548,
+  "child_custody": {
+    "pid": 68456,
+    "executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-port-zero-fake-v1\\packet\\verify\\check_port.py"
+    ],
+    "start_timestamp": 1794514443.109548,
+    "authority": "owned_check_child_custody; no process_enumeration; no_retry; no_fallback; no_new_cleanup_authority"
+  },
+  "isolation": {
+    "required_flags": [
+      "-I",
+      "-S",
+      "-B"
+    ],
+    "parent_flags_verified": true,
+    "parent_flag_evidence": {
+      "-I": "sys.flags.isolated",
+      "-S": "sys.flags.no_site",
+      "-B": "sys.flags.dont_write_bytecode"
+    },
+    "child_argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-port-zero-fake-v1\\packet\\verify\\check_port.py"
+    ],
+    "child_flags_verified": true
+  },
+  "capture_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "bounded pipe readers during collection (chunked); over-limit → interrupt child + STOP disclosed as capture_stop_reason; reader still-live/incomplete/error → UNKNOWN; process exit alone does not imply reader EOF; not post-hoc-only after unbounded communicate; result size gate before read_bytes"
+  },
+  "retained_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "clip_utf8_tails_for_receipt_disclosure_only; capture admission is separate and during-collection; preexisting result/receipt STOP without write/overwrite (P6); newly owned receipts use exclusive create (O_CREAT|O_EXCL)"
+  },
+  "stdout_tail": "",
+  "stderr_tail": "",
+  "stdout_raw_bytes": 0,
+  "stderr_raw_bytes": 0,
+  "result_path": "FAKE-PORT-RESULT.json",
+  "result_present": true,
+  "result_sha256": "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548",
+  "result_read_bytes": 2890,
+  "result_gate_ok": true,
+  "result_gate_reason": null,
+  "capture_stop_reason": null,
+  "interrupt_reason": null,
+  "reader_routing": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "primary_error": null,
+  "secondary_termination_evidence": null,
+  "executed_in_preparation": false,
+  "receipt_write_mode": "exclusive_create_O_EXCL",
+  "p6_no_overwrite": true
+}

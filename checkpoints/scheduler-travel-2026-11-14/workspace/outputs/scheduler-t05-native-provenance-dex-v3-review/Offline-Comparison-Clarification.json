@@ -1,0 +1,12 @@
+{
+  "kind": "Offline receipt comparison clarification",
+  "at_utc": "2026-11-12T02:02:37.2747578Z",
+  "initial_tool_chunk": "37947b",
+  "initial_stop": "inspection isolation mismatch",
+  "retained_inspection": "03.stdout.bin",
+  "explanation": "PowerShell treated empty PortBindings PSCustomObject as truthy; retained JSON property count is0. Frozen Python check treats empty dict as empty. Explicit property-count comparison preserves the reviewed invariant.",
+  "port_binding_properties": 0,
+  "collection_rerun": false,
+  "new_docker_commands": 0,
+  "packet_or_resource_changes": false
+}

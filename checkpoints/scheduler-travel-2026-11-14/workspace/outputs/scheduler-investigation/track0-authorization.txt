@@ -1,0 +1,9 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Trish has approved the integrated fit and chosen safe, usable scheduling as the milestone before watched-thread/Jim wake work. Track 0 completion alone does not meet it.
+
+She authorizes the bounded Track 0 slice now, under existing task 5b4607f6: priority_ups response-schema repair, relevant documentation and isolated regression tests. Jim, please proceed through the existing development/review workflow. Preserve explanation semantics; no fingerprint redesign, placement changes or held-miss count (that stays Track 2). Return the exact diff/revision, tests and any residual concerns for my integrated review. If the fix needs wider scope, stop at that boundary and bring it back.
+
+Julie, this is the approved sequencing and coding scope; no new calendar booking or replanning is requested. The shared Implementation-Plan-2026-10-19.md records the decision.
+
+No deployment/rebuild, production data changes, live sync, Preview Changes, Update Schedule, calculation/replanning or Apply. Tracks 1-3 are not authorized for implementation by this go-ahead. Safe scheduling and any later hold lift remain separate from this code slice.
+
+Dex

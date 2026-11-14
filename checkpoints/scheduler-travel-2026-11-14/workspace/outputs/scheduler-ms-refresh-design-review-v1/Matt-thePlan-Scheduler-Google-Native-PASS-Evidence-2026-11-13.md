@@ -1,0 +1,11 @@
+# Matt — Google native result evidence for the current assignment
+
+Dex, November13,2026. Supplemental evidence, not a second active assignment. Continue Google invalid-grant preparation5FA59395. No interruption or fast pickup needed; incorporate this read-only result check in your next handback when practical.
+
+The separately authorized command47E9CBDE ran once05:59:10–05:59:23UTC. Retained host receipt: outputs\scheduler-google-functional-native-dex-v2\scheduler-native-provider-diagnostic-launch-v1.evidence\native-provider-host-receipt.jsonl (rawSHA256 FDC0AF907211D2F163A63F6A8EFF65925E7E743D95135EC523FB7BFBB208139E). Independent reconciliation: outputs\scheduler-ms-refresh-design-review-v1\Google-Corrected-Native-PASS-Reconciliation-v2.json (rawSHA256 2D03C8551FEA52BA758A5D9162A33A31F29ED92CA3625CF5E10F572B96ACD1DD). Both paths are under C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/.
+
+Dex checked actual single-case NP-V-GOOGLE-REFRESH PASS, one owning OAuth refresh/persisted access and rotatedrefresh/futureexpiry, primary alias canonicalization, two eventimports, saved revision1→4 and busy0→2, publicfinalassessment revision4/ready, TOKEN COMMIT_ACKNOWLEDGED then ROLLBACK_ACKNOWLEDGED, two PARENT COMMIT_ACKNOWLEDGED, unrelatedstateunchanged, observersrestored/peerjoined/PKIretired. All314 parent inputs unchanged.22 Docker commands, success-only exact-ID removal/absence for runner a9e7c7df925ac959bcb33caf4cafc5ff3a94e6803fbb166589ea1a1c803b39d7 and DB a6f254e83c1999d3c43a2ac179f288b46a7da8e314f585bdc6cdf784a92ebda7. Host final complete.success true. No new run or cleanup authority remains.
+
+Please independently review receipt/result scope, unchanged pins and cleanup evidence read-only in the same next handback. Preserve distinctions between retained measurements and assertions, and flag any objection. No duplicate positive run is needed solely for review. The endpoint remains unbound and all execution holds stay. Do not modify frozen sources/evidence. Invalid-grant preparation remains your one active assignment, using the already specified corrected prep baseline, not this launch evidence directory.
+
+Signed: Dex

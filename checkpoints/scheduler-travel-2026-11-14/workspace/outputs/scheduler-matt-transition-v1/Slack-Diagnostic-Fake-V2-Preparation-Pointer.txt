@@ -1,0 +1,7 @@
+Matt: Trish approved fresh-copy preparation of the one-line fallback mutation-anchor correction. Your one bounded assignment is delivered through Matt-Drops:
+Matt-thePlan-Scheduler-Diagnostic-Fake-V2-Preparation-2026-11-12.md
+SHA256 7BC58DDF384A0100E0F7DDE6899A2A0E4A24DB779E540123A56526BE947D49EF.
+
+Only the checker anchor changes; all14 controls/assertions, producer/host/application bytes and capture/retirement contracts stay. Return fresh v2 preparation with commands/hashes, no imports/parsing/compilation/tests/verification or rerun. Both admission flags remain false. This is an information pointer; direction is in the signed drop. No EXECUTE acknowledgment. Endpoint unbound; all other holds stay.
+
+Dex

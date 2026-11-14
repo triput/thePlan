@@ -1,0 +1,855 @@
+{
+  "atUtc": "2026-11-13T21:56:37.643737-08:00",
+  "previousGoalTurn": "PROGRESS: T08 independent native result acceptance reconciled",
+  "currentGoalTurn": "PROGRESS: approved BODY correctedfakePASS13/66/10,49inputs/10runtimeunchanged,zerooutput/cleanretirement;result andovernightholddelivered;safe stoppingpoint reached",
+  "singleActiveMattAssignment": "847C3457C0780AA6D7EAE7C230D6C568D3F8CA4EC106AEEBA9D89BE6D7D50669",
+  "reviewSha256": "90B66DA8AC20B78195B00224EA4698F4C07E4E422F396254BA7E41E52A398394",
+  "oldNativeDecisionStatus": "A50C04FB WITHHELD/superseded for execution",
+  "remainingExecutionAuthority": "NONE",
+  "metadataObserver": {
+    "outcome": "observation window complete; not evidence of Matt termination",
+    "completedAtUtc": "2026-11-13T21:23:50.108196Z",
+    "status": "terminal exit 0",
+    "sessionId": 88208
+  },
+  "normalPickupAndImplementationTimeAllowed": true,
+  "blockedCounter": 0,
+  "goalComplete": false,
+  "endpoint": "unbound",
+  "visibleMattWindow": {
+    "app": "Claude",
+    "result": "Accessibility insufficient; screenshot did not expose task; no status inference or app input",
+    "windowId": 3610890,
+    "verifiedLiveJob": false,
+    "inputActions": 0
+  },
+  "pickupClarificationPending": false,
+  "noProgressBasis": "Normal external review turnaround remains available; no terminal task state observed. Existing cards are pending, not denied. No reason to restart, duplicate assignment or mark stalled.",
+  "pickupCheck": {
+    "sent": true,
+    "noRetryOrDuplicateAssignment": true,
+    "taskUnchanged": true,
+    "allowNormalTurnaround": true,
+    "messageTs": "1794605756.773799",
+    "normalTenMinuteWindowAllowed": true
+  },
+  "authenticationHandoffPending": false,
+  "goalStatusDecision": "active confirmed by get_goal",
+  "userConfirmedMattSignedInAndPickingUp": true,
+  "pickupConfirmed": {
+    "deliverables": [
+      "invalid-grant v2 native",
+      "NONEXPIRED selected-case native",
+      "focused fake"
+    ],
+    "contract": "unjoined raises PeerRetirementUnknown; joined has independent worker_error_kind",
+    "basis": "Trish supplied current Matt pickup report"
+  },
+  "queuedT03SourceReadiness": {
+    "sha256": "0A0510EFE55E77C90AB57C12F7A2062B25DB824AE6B2917598177D333826E8FB",
+    "executed": false,
+    "path": "outputs\\scheduler-investigation\\Queued-T03-Source-Readiness-2026-11-13.json",
+    "notAnAssignment": true
+  },
+  "currentPreparationObservation": {
+    "acceptance": "PROVISIONAL_ONLY; no frozen handback, no manifest acceptance, no behavior proof",
+    "newSourceAtUtc": "2026-11-13T22:30:11.0735237Z",
+    "nonexpiredRoot": "outputs/scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1",
+    "invalidRoot": "outputs/scheduler-native-provider-ms-invalid-prep-matt-v2",
+    "nativeExecution": false,
+    "fakeExecution": false,
+    "invalidHelper": "_retire_selected_peer_then_observe",
+    "observed": "one retirement call; joined is True; worker_error_kind is None; sanitized_state afterward; caller marks retirement_attempted before call"
+  },
+  "provisionalRunnerReview": {
+    "sha256": "5CA84D5CFD428270B9293D8773BF77961E1BDE9CC9B771866C086D6A0DF49AF7",
+    "path": "outputs/scheduler-ms-refresh-design-review-v1/Selected-Retirement-Provisional-Runner-Review-2026-11-13.json",
+    "notFrozenAcceptance": true
+  },
+  "focusedFakePreparation": {
+    "observedMtimeUtc": "2026-11-13T22:42:41.4339515Z",
+    "root": "outputs/scheduler-native-ms-selected-retire-fake-prep-matt-v1",
+    "status": "authoring in progress; no signed freeze or execution",
+    "notProcessLivenessProof": true
+  },
+  "pendingDecision": {
+    "manifest": "F94FE06950460E6FA557C1419AE7922029777EE610ED2B82DE9D81C9D800CA2F",
+    "admission": "5B8F8B830B17A0F4E2037D3C0E9AEE903207D71C43DCECC51B82D81D2563D044",
+    "authority": "CONSUMED",
+    "scope": "ONE T05 client-cause diagnostic fake verification",
+    "command": "08709F146A56F54F021AD6FA7F11C6660C8AA4D8C5D50845EFFD5FEFCC3918C2",
+    "status": "T05_FAKE_STOP_ONESHOT_CONSUMED"
+  },
+  "assignmentScope": "Approved T03B2a fixture/fakepacket preparation from passedNONEXPIREDv2, peer/routes/PKIimmutable",
+  "selectedRetirementFake": {
+    "remainingAuthority": "NONE",
+    "invocations": 1,
+    "controls": 13,
+    "reconciliation": "6004BED4293F8E3801B82EF75415427872ABCFB6520F53B756B4AF6E57C6481F",
+    "predicates": 85,
+    "result": "A8CDBF04FD2D7FC5A76A7234B54F99322FC3FCD5B75A8455CA5CD3B22C85A4DF",
+    "status": "PASS"
+  },
+  "nativeT05Review": {
+    "currentDecision": "outputs\\scheduler-ms-refresh-design-review-v1\\T05-Native-Launch-Decision-Ready.md",
+    "humanApproval": "NONE",
+    "decisionSha256": "D6B942D089B64C35108447EE9536C2E3EEADB6C5413ABCF2AABB9EF1EF25B30A",
+    "review": "92BF519C1E15D153921C1D7C303DA484246403860B35B35D7A410F3FFC1A391F",
+    "reconciliation": "611959EC59584D7CDFC289D09A563692613C29530CDFEDC62DA402635701173C",
+    "status": "Qualified static acceptance reconciled"
+  },
+  "nonexpiredNativeDraft": {
+    "manifest": "8422879804F61EED8CD7A0C84DA6A4428EBA38A891B15F0DB2E4393CA7D9E3A6",
+    "root": "outputs/scheduler-native-ms-nonexpired-retirement-launch-dex-v1",
+    "execution": false,
+    "status": "HELD draft preserved; metadata default receipt filename wrong, fresh Matt v2 requested"
+  },
+  "genuineImpasseEstablished": false,
+  "normalTurnaroundBasis": "T03coding task21BBE5B7 delivered03:05:49Z; normal pickup/implementation time allowed",
+  "nonexpiredV2Observation": {
+    "notProcessLivenessProof": true,
+    "frozenAcceptance": false,
+    "root": "outputs/scheduler-native-ms-nonexpired-retirement-launch-matt-v2",
+    "firstObservedMtimeUtc": "2026-11-13T23:18:28.4724273Z"
+  },
+  "nonexpiredNativeV2": {
+    "nativeProof": true,
+    "launchCard": "Approved call_71d6b7c456324f9d95fc0af878ecc11b; one invocation consumed",
+    "command": "8031885C1F5ED8256CA7557041BDDCB737D1355D8F6E7D7CE8D194D28E288A59",
+    "manifest": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+    "reconciliation": "D55E1FC0C26E51D5E4269B332C1292174D9821390120840AA5344D50214A0BA5",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "successReconciliation": "DF17A59EEBDCDDF58845D26B1AD3D03F75AC9C9D2479FAC58258024E9C125837",
+    "cleanup": "Both exact containers removed and absence verified"
+  },
+  "nativeT05Run": {
+    "runner": "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6",
+    "status": "STOP_ONE_SHOT_CONSUMED",
+    "actualClientOutcome": "unretained",
+    "hostReceipt": "A80D7DF9EE786DBD1CB522A9DC5C644F8A52103A85DB78A68A212F32A40162AB",
+    "database": "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857",
+    "cleanup": "COMPLETED under separate exact-ID approval; nine commands,both absent,DBexit0",
+    "nativeProof": "NOT_ESTABLISHED",
+    "reconciliation": "9EC623F5ADCCD24A78A6EA352FF41B46F1F17299A0963C910E2D5DA02DF377C0",
+    "readOnly": "9E42358153883026493B533E16168519D1FE9489BED9542F61443FDB9AA33B79",
+    "questionId": "call_b2af9b2b853c4cfc873ad3f5f707a33c"
+  },
+  "nativeT05Cleanup": {
+    "authority": "CONSUMED",
+    "questionId": "call_d4159e7001e541b895b5479436dc6c23",
+    "status": "PASS_EXACT_ID_CLEANUP",
+    "receipt": "A89F94862E857B4DE3919B31D09F01E08CD2CAE45E2219AAA1DB1B92BC1A9BF9",
+    "commands": 9,
+    "unchangedInputs": 297,
+    "reconciliation": "7EE1340169EBC8E8C425778CF97A532996588B1F8F5255521E95D409F485BFF2"
+  },
+  "t03Design": {
+    "status": "Qualified source-only design retained; implementation parked",
+    "execution": "NONE",
+    "reconciliation": "C3957BEADE33F20CE68AC5A253CDCCE824ECC4C6B11A1B9E8F94D3E0315B691F",
+    "sidecarPins": 16
+  },
+  "independentT05SourceNotes": {
+    "newExecution": false,
+    "sourceChanges": false,
+    "outcomeLoss": "622D5E2F71ACE48DA7A53453E4BDBEE6B684AA16A6C6BB7839662CDEE8277479",
+    "capturedSsl": "CD75D94A5DF440065A88785082E6804143B38263044A558BCC0CB4AAFB0C3102",
+    "nativeCause": "UNPROVED"
+  },
+  "t05DiagnosticPreparation": {
+    "taskSha256": "9F9FF48EA0389381B238D3FD4784354BF963A1176F67E63DE2FD59D732E3D511",
+    "execution": "HELD",
+    "traceReview": "1E9CA9555854FEF2747F1185BDCFB411BEBC1E3ADFDDF6D9CEA303C62F16F09D",
+    "delivered": true,
+    "provisionalReview": "6157B2A6C3188FA97DC520452738B2B564CABF34AF04CDCB77D50E5658CA8C7B",
+    "signedHandback": "99A5D4253911DC524AA8D5A4AF435D7281A1347EA2C63AE4136D6C4B0580F357",
+    "acceptance": "Qualified frozen static acceptance",
+    "review": "EF4CA28FCF676767B49CE7189F2B5B3904EC87308E5D10D044DDCB7ECDC8F367"
+  },
+  "nonexpiredRequirementReuseOverlay": "FE4C18C564115884E2E824BA18C1B4D0C69DEC4EC6960914222240BB50E948E8",
+  "completedMattAssignment": "30FB15919CBAF7694E87B6AED7CEB9B445B15658938CA0EA612F64A5D6F1253A",
+  "t05PeerReview": "019612FC3EB4CF8BDAD2F2439F7C5CAD2B245B1510E55848D595D4E8BBB1B30C",
+  "pendingT03D1": {
+    "decision": "D46E6CF8642F21730CC5FBAB4C95BD917A5103305201D5DFF3E9BAB3381DFFE9",
+    "executionAuthority": "NONE",
+    "status": "APPROVED_PREPARATION_ACTIVE"
+  },
+  "nativeT05ClientCauseDraft": {
+    "inputs": 307,
+    "nativeAuthority": "NONE",
+    "root": "outputs/scheduler-native-provider-t05-client-cause-launch-dex-v2",
+    "status": "F1 RESOLVED; native remains held",
+    "fakePrerequisite": "PENDING",
+    "command": "862B9C6504B31E2E0027C45C870CDA58CAA020B3545DFC6B01DC86D0B8537211",
+    "manifest": "BA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1",
+    "peerReviewReconciliation": "A9AA6920040509974F5022BDFB746DCC6725FA0205BBFDEAFBAD73418A7EB777"
+  },
+  "turnClassification": "PROGRESS",
+  "msRefreshRetirementProvisional": "53FC0BEBB51FE2CB9E960A8E610A9A2212FBA0D72153B5ABD7979B4B352010BC",
+  "pendingMSRefreshFake": {
+    "manifest": "157C6863BA157298E910439D9FF71B8E4F8124B665A7331AFF54918B13EF6CCF",
+    "review": "2B03F0D4C779F3F57E66D38E309DABF63009EE29B70F3414E34F03CB23D18980",
+    "admission": "DE4C94308F1E44FD72E56086F6F9EF4E93FF938B5AD59DA8739D411F635E5F1A",
+    "authority": "CONSUMED",
+    "status": "PASS_ONE_SHOT_CONSUMED",
+    "command": "7B617AC019D5AD2D5AD5BD02DDC3258073F8897B80EE1AC4AD45DEE128D7BAC2"
+  },
+  "msRefreshRetirementPreparation": {
+    "predicates": 41,
+    "handback": "13A388F0ABD3A6A2351A4374856CE1107AC3C81F8BE6AD77722518A881A4BCFB",
+    "fakeManifest": "E85D5C920E574E0D431C8341D2764087E0E9E1BD743675C12170A85F9D9D0959",
+    "nativeManifest": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+    "controls": 10,
+    "execution": "NONE"
+  },
+  "msRefreshNativeDraft": {
+    "fakePrerequisite": "PASS10/41 exactrunner1A95E834",
+    "manifest": "836328A51EF0207A1A4F83F360F4A9A42B33A2F8C82FE5DFEE6382519ED5C937",
+    "nativeCard": "PRESENTED_PENDING",
+    "root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-refresh-retirement-launch-dex-v1",
+    "humanAuthority": "NONE",
+    "command": "BB179615F4426EB806636AEB4549D3985419A35F7EC35C22BC194A06A9AF467B",
+    "inputs": 305,
+    "peerReview": "C0885C1286ACC2CBB824980198F149022E76E5BF98E39DFCFD41C0A8244012E6",
+    "status": "Qualified static acceptance; focused fake/native authority held"
+  },
+  "msRefreshFakePeerReview": "0F792559592FFDCC5C4BF59D55A2BDC6ABDA0879B58F225671DCDD91C0C99432",
+  "batchCompatibility": "0427EC48C86D086AC62ED1D6B2085AF8349BCD1A1663B72E7BE729715852CFBF",
+  "msInvalidNativeDraft": {
+    "humanAuthority": "Approved once, invoked and consumed",
+    "peerReview": "86C8501E89CDDF1A8CBE541104A28C461C3B81A23F81B83C71C482A692808BAF",
+    "prerequisite": "Selected-retirement fake13/85 PASS6004BED4 at recorded scope",
+    "inputs": 301,
+    "root": "outputs\\scheduler-native-ms-invalid-retirement-launch-dex-v1",
+    "source": "6144365E0E7F282BABEDF0FDFB454E309112A16D17CE8464CF5335F7AFC5505B",
+    "command": "CC02480C4BB104E03DC95D85EDF9C30BF7DDB1D302F475B2F87A365C08D2C1DA",
+    "nativeCard": "CONSUMED",
+    "manifest": "C0BCB2E1563388391F7560F3B6D8AE5495690D3F527D019CE1EE62F8E43E8B47"
+  },
+  "pendingMSInvalidNative": {
+    "command": "CC02480C4BB104E03DC95D85EDF9C30BF7DDB1D302F475B2F87A365C08D2C1DA",
+    "authority": "CONSUMED",
+    "manifest": "C0BCB2E1563388391F7560F3B6D8AE5495690D3F527D019CE1EE62F8E43E8B47",
+    "status": "APPROVED_EXECUTED_ONCE_CONSUMED",
+    "review": "A192BB4A80540C4E5F9288A6552DAED3800ED7D4759E76E0837CD80CA76D2F2D"
+  },
+  "nextAction": "Dexfresh BODY-STALL checker module-registration correction; MattT03preparation; nativeMSrefresh andcorrectedT05fake cards pending",
+  "t04IndependentSourceReview": "F774FC3F25BB50A66E68D206A6736080154A9A819B8C8EC8C7B74FC3A40F7F56",
+  "t04DesignReview": "FC8A470E1918A6FDFA9CAAC46CDE4C87EE08B839BC5FDECCDF97B3514BD09D23",
+  "t04OAuthTokenTrace": "678CF7D8C92F801D55FE70D613EF9A9559F53BAE76FE359416ABDC2EECBB6C48",
+  "msInvalidNativeRun": {
+    "tokenTerminal": "Exact row assertions passed but detailed measured row filtered; fullT06 not closed",
+    "cleanup": "Both exact IDs absent, DBexit0 through verified supervisor guards",
+    "reconciliation": "BA01CEF3DA4A2D02D5C353AEBCBA7C3AFEACF88A636D5F8D7FEB755A2F61E63D",
+    "postInputs": 301,
+    "hostReceipt": "4BF457AA0364B2A3B38C982C7207607166923A37CE6C301CAC4B0E488150D9CC",
+    "remainingInvocations": 0,
+    "status": "PASS_WITH_RETENTION_QUALIFICATION",
+    "peerCorroborated": true,
+    "exactRequirement": "Satisfied at reviewed native checkpoint scope with assertion/direct-retention qualifications; not fullT06"
+  },
+  "msInvalidEvidenceOverlay": "3979709E1F807C5E04ED0822759161323B0B98D43B30118ED2B1012C3DA860A3",
+  "msInvalidReceiptProposal": "5108D706DBC5A9F3D8A081D9FD74B1FB2F9DF5E1F9790CC78006F9FEA7AF634F",
+  "t04CaseLimitAndClockReview": "1C9BE5E13F33D295C41973B8AA8681C7A424469AD8DE3AF5EFA8D398DFBD6F8E",
+  "t04BodyAddendumReview": "927246F388D9EF9586F38DFD6B8E7D2FE554B4149900E6590825B3CE76227913",
+  "pendingBodyStallDesign": {
+    "scope": "Clean stall retirement operation; proposed240peer for new BODY-STALL case only; preparation under existing lane",
+    "decision": "4F2F3B3F7BC5C274445865BB1B3B5B87C359A436BEC70F1F1406BC6A9C38804B",
+    "executionAuthority": "NONE",
+    "status": "APPROVED_PREPARATION_ONLY",
+    "question": "call_b68dab97a4e64e769191fe47929f0bb7"
+  },
+  "t08ContextPropertyReuse": "6A3498F24FEF0E849DBD31C6A81CC20A37EF799E68E152E87CCE6B92B4A4C5B1",
+  "msInvalidNativePeerReview": "43A87AA6C54D2A04856E7A5B322BE08E3DBD7D5893AA4BAA00EB69B70E1A7E18",
+  "t04AliasRollbackSourceReview": "31822D2C43544691B14BDF517BBF37DA1C03B1701DAD9D682518F21B5BE8A613",
+  "t08NativeOwnershipSourceDesign": "0EA93349EF90919B10465EAB371C257A3D9D579949A851747B0ACD42D9D793BF",
+  "bodyStallPreparationObservation": {
+    "status": "Workspace root exists; source not frozen or accepted; no process-liveness inference",
+    "notRuntimeProof": true,
+    "fakeRootExists": false,
+    "nativeRoot": "outputs/scheduler-native-provider-t04-body-stall-prep-matt-v1"
+  },
+  "t05ClientCauseFakeStop": {
+    "retirementKnown": true,
+    "remainingInvocations": 0,
+    "launchReceipt": "0E7722BDAF90EC143822CB8D8B9EC6DFCB8177403C55DE96431675E1A6433D09",
+    "resultPresent": false,
+    "reconciliation": "8267E110F8A89AC80B0BF3F49196D5C93B94EA6B4B220743DD01A0468118F403",
+    "diagnosis": "Checker type(name,...) receives status int200"
+  },
+  "msRefreshRetirementFakeResult": {
+    "result": "C689B48C1F470219F8166C535C0174C47DFBD90C546B1AC2A5502B283353A79C",
+    "predicates": 41,
+    "remainingInvocations": 0,
+    "status": "PASS",
+    "controls": 10,
+    "reconciliation": "46209D1C43F8DDAAA7A84799456DD5C718589620AE0C1156EC2B7A165096CD5C"
+  },
+  "pendingMSRefreshNative": {
+    "status": "PARKED_BY_GOOGLE_FIRST_PRODUCT_DIRECTION",
+    "authority": "NONE",
+    "manifest": "836328A51EF0207A1A4F83F360F4A9A42B33A2F8C82FE5DFEE6382519ED5C937",
+    "command": "BB179615F4426EB806636AEB4549D3985419A35F7EC35C22BC194A06A9AF467B",
+    "decision": "E6B1FB67A5694EF40E36CB74D76B669540549742A2493DA78EE2ADCE3D25DEAF"
+  },
+  "bodyStallFrozenHandback": {
+    "nativeInputs": 305,
+    "fakeInputs": 35,
+    "status": "STATIC_REVIEW_IN_PROGRESS_FAKE_MODULE_REGISTRATION_BLOCKER",
+    "notBehaviorProof": true,
+    "fakeManifest": "37F978FDDCCC7326059E457977B22583558668CBBB3C1381FD489586D11B8BC0",
+    "handback": "1DA5239E7233F901C6661BE89190B37798758F75D110C80D3BB7EB1F129727ED",
+    "nativeManifest": "8212DAA6D03F6BE904C2F9524B9FDF25B61AB714812CFCBA8E7B6856FA83322D",
+    "finding": "EDE5EC3010C5AD89D79D068B46213F7CF4F401C3C538A50CCA9672DB0E3BBEA8"
+  },
+  "t05CheckerV2": {
+    "checker": "8B364EDEF6CE203EEE95A494303B77912EF2205F8319DCA817280B56CCB12D18",
+    "humanAuthority": "CONSUMED_ONE_INVOCATION_NO_RETRY",
+    "manifest": "E0822D160D11592E72ED58233B86F70662FD20479B6704B0593985268C65BA52",
+    "admission": "D9E0305630642B01B8C02A82C71EAC687E6709F8C5EBD0ED5BBF848622CC222F",
+    "status": "PASS10_CONTROLS_38_PREDICATES",
+    "inputs": 27,
+    "root": "outputs/scheduler-native-t05-client-cause-fake-dex-v2",
+    "command": "32908BA50D15FEB19CC4FCB97997629B2AA00E1A0C3EC9694BFA5C714EFE7F33",
+    "peerReview": "129A7419E713F2CAFC878D003CA09D41A538434346CB537A4065334D395194CF",
+    "decision": "A830406059BED3F081FDA1B82762BEB756D1D6ABBF4AAC60D6D91CAC0A880F50",
+    "result": "640A222A3422DD6CA6F8EBF4A6C772F4A10FD7A7DC3BC504E6BA989BA32EBCA3",
+    "reconciliation": "309425B8F04925175D0633A12CB041A88492AFF8EE0F973DFFFE7C95019C0411"
+  },
+  "bodyStallNativeSourceBoundary": {
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-design-review-v1\\Body-Stall-Native-Source-Boundary-Reconciliation.json",
+    "sha256": "77A32D0D87070F642BEB00035C8BEFA64EC65FF4F63AD3135E4E694511346D8F",
+    "runtime_proof": false
+  },
+  "pendingT05DiagnosticNative": {
+    "status": "CONSUMED_STOP_NO_RETRY",
+    "decision": "13126B98381D6CA96CB4CD71CAF72A8B33EAC0A4B3ABB19B03F4DC8510D0DEB7",
+    "command": "862B9C6504B31E2E0027C45C870CDA58CAA020B3545DFC6B01DC86D0B8537211",
+    "manifest": "BA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1",
+    "authority": "CONSUMED"
+  },
+  "t05NativeDiagnosticStop": {
+    "receipt": "174E1BE136693014C7B9F5F1E885342604BF50FC52B0B9BAB83412EC6CC9EB13",
+    "cleanup_request": "F637AE28DA4CC086828FC377817F0525D6AA2C306DD242E59EBF5BA9A98E4FA2",
+    "cleanup": "COMPLETE_BOTH_ABSENT_DBEXIT0",
+    "client_exception": "BrokenPipeError",
+    "diagnostic_truncated": true,
+    "cleanup_receipt": "D944C6A1D6C3637C016A69CA7236697DF786974544C1FD3FF069432A918ABC6E"
+  },
+  "t03FrozenIntake": {
+    "handback": "735AD771579CCD07AB79D99358E3218D7C06F46C69186FB052C37CF1C5206C29",
+    "execution": "NONE",
+    "fake_manifest": "33BB7CC5F57E2E23823941E3E2E4383C29A276AD72D7305032FE165D38711C6C",
+    "native_manifest": "898FAF785D34D9C187E1253C155AAD4F26F689662B395DA381E23BE118CE99EE",
+    "technical_review": "PENDING"
+  },
+  "privateBetaQualityBar": {
+    "recordedAtUtc": "2026-11-14T03:38:59.303009Z",
+    "retain": "Consequential correctness, data integrity, ownership/deadlines/cleanup and explicit holds",
+    "defer": "Form/presentation, cosmetic labels, speculative compatibility and duplicate proof",
+    "noImplicitWaiver": true,
+    "direction": "Trish: function first, appropriate quality; private beta for her, not public release"
+  },
+  "providerPriority": {
+    "secondary": "Microsoft",
+    "nextFunctionalCheckpoint": "Google production import through native final assessment",
+    "reason": "Trish primary calendar; explicit current instruction",
+    "executionAuthorityAdded": "NONE",
+    "nextAfterCurrentMattReview": "Select bounded Google-first preparation task",
+    "primary": "Google",
+    "atUtc": "2026-11-14T03:40:00.2457994Z",
+    "microsoftDisposition": "Parked until Google doing its job, per explicit Trish followup"
+  },
+  "queuedGoogleFirstPreparation": {
+    "path": "outputs/scheduler-ms-refresh-design-review-v1/Matt-thePlan-Scheduler-Google-First-Vertical-Preparation-2026-11-13.md",
+    "status": "FROZEN_V2_PREPARATION_RECONCILED",
+    "focus": "Google token refresh + primary identity + nonempty event import + native assessment",
+    "case": "NP-V-GOOGLE-REFRESH",
+    "authority": "PREPARATION_ONLY_ON_RELEASE_WITHIN_STANDING_LANE",
+    "sha256": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+    "active": false
+  },
+  "t03FakeResult": {
+    "atUtc": "2026-11-14T03:48:12.8808948Z",
+    "status": "PASS",
+    "approval": "call_51866bf0cd3549ee9edac5f2632073f9 item0",
+    "controls": 11,
+    "predicates": 47,
+    "behavioral_mutants_detected": 8,
+    "inputs_unchanged": 35,
+    "partial_runtime_pins": 10,
+    "result_sha256": "167F78DCE0B09FBFF671A683CEB3142092C9973CC83CDAAD85719C0B82990216",
+    "launcher_receipt_sha256": "F77B242E13495FCF02A781A60D70179E9E2414631945073D8BB464478AEF0E84",
+    "child_output_bytes": 0,
+    "readers_joined_clean_eof": true,
+    "retirement_unknown": false,
+    "remaining_invocations": 0,
+    "scope": "Extracted fixture helper/caller with fake dependencies, actual routes/transcript/serializer and unchanged sanitizer; structural preservation/config/retention",
+    "not_proved": "Real TLS/certificate refusal, peer class hypothesis, native T03 or fullGooglefunctionalpath",
+    "endpoint": "unbound"
+  },
+  "pendingT03Native": {
+    "manifest": "0768C7C71ADE8DDD3FB2812075DA38E6C7A2679E4221F2148C9837D24FC07BE7",
+    "human_authority": "NONE",
+    "command": "FC28D13832FC583D4BD0158978192114F4E8AEC15CE29B4234A35DAE064BC1CB",
+    "case_ids": [
+      "NP-T03-VALID",
+      "NP-T03-WRONG-CA",
+      "NP-T03-WRONG-NAME"
+    ],
+    "status": "PENDING_EXACT_APPROVAL",
+    "decision": "E402C2E19A2A25006AC87356483E3E716B64C2257E9E2B535560489D5F237644"
+  },
+  "bodyCheckerT05PolicyPeerReconciliation": "84D1E9EC930E020EAF3942F916607AA9176C9DBFA486E0219D73BF6B439F26BF",
+  "pendingBodyStallFake": {
+    "command": "2A9D65D014DBB68C698E9FDB33A410FE60534753CF7B1B1DE4D31AFB81895FA0",
+    "status": "PENDING_EXACT_USER_APPROVAL",
+    "decision": "304293475EB0CC13AF7879B4AD9498B9FC15295430877F4D71B9B34A7B420373",
+    "manifest": "33FAEB13697C4D840D7055D1A880EB3B3F967DEF77ECBA5C7A6740CE098E0947",
+    "authority": "NONE"
+  },
+  "pendingT05AbruptPolicy": {
+    "status": "PENDING_POLICY_APPROVAL",
+    "recommendation": "Exact BrokenPipe/builtins only with actual owned-code-identity receive/body-read stage proof",
+    "execution": "NONE",
+    "decision": "9C6A206DE82B76D291FEB5C1899BAFFA28A2AA1EFCCC651B3DAC1F4E4DB7DCD3",
+    "source_implementation": "HELD_FOR_POLICY"
+  },
+  "googleProvisionalReview": {
+    "feedback": "55B75EA006FB0B4A4B7920CA86C3FFF7EE20F92B71D84F1EB5CC1AA2F8FF26C1",
+    "finding": "Primary seed role and alias/identity route absent from written version",
+    "not_process_liveness_proof": true,
+    "active_assignment_unchanged": true,
+    "status": "MATT_ACKNOWLEDGED_CORRECTIONS_FRESH_V2_AUTHORING",
+    "snapshot_bytes": 99815,
+    "snapshot_mtime": "2026-11-14T04:02:50.9034225Z",
+    "ack_message": "1794630112.936439",
+    "v1_disposition": "Preservedpartial not final or behaviorproof",
+    "v2_intake": "AWAIT_FROZEN_SIGNED_HANDBACK_NORMAL_TURNAROUND"
+  },
+  "t08OwnershipSourceDraft": {
+    "status": "SOURCE_ONLY_UNREVIEWED_UNEXECUTED",
+    "root": "outputs/scheduler-t08-ownership-source-dex-v1",
+    "manifest": "BECDF211A8F10705A4DABCE6D150B66AA42AC266F5BFA248815A0CE3C1D6D08F",
+    "not_runnable_packet": true,
+    "runner": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C",
+    "execution_authority": "NONE"
+  },
+  "t08OwnershipPrepared": {
+    "inputs": 305,
+    "execution": "NONE",
+    "status": "PREPARATION_ONLY_INDEPENDENT_REVIEW_AND_FAKE_NEEDED",
+    "changed_baseline": [
+      "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+      "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+      "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json",
+      "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py",
+      "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py",
+      "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt",
+      "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256"
+    ],
+    "manifest": "36EBD35374D107946924527E2206833AA6B0C275A4A2B4C0D3B1E4B049EB649E",
+    "root": "outputs/scheduler-native-t08-ownership-prep-dex-v1",
+    "unchanged_baseline": 294,
+    "unchanged_api_files": 234
+  },
+  "googleV2FrozenHandback": {
+    "api_unchanged": 234,
+    "native_inputs": 305,
+    "handback": "503414C843A76B5BA1DAF2D774804AAE3F9B84969523CC181EEAED391AEED8BA",
+    "fake_manifest": "D626F1C2D9DA9045F68AC19E8B6269FAED82A09A650037ECA04DC7392079931F",
+    "fake_inputs": 37,
+    "status": "PREPARATION_RECONCILED_NOT_EXECUTED",
+    "native_manifest": "EFC705425F839D4FCC7C04FCEA2840A22FA3262B40B9F270F8951B868E42F35D"
+  },
+  "googleFakeStaging": {
+    "runtime_pins": 10,
+    "packet_pins": 34,
+    "active_assignment": "COMPLETE",
+    "root": "outputs/scheduler-google-functional-fake-dex-v1",
+    "admission": "4801342233DB37970C539392C5811E8638C9AC0F9219EEE56720435F983224A2",
+    "status": "PASS_RECONCILED_AUTHORITY_CONSUMED",
+    "human_authority": "NONE",
+    "command": "00C77B7D13A4794EFD38DE595FB0FF1AF10B8A0F586D8EBDFD1ED5190858DCFB",
+    "inputs": 41,
+    "manifest": "37BCC9686760DA807707B770D67758654E09ED325949DD960735CA844BDD6DE8",
+    "peer_review": "E7CBD517572CBC673AB363E6FED9809CDD0CE159DE3141B51B5D7DD700BDA75A"
+  },
+  "googleNativeStaging": {
+    "status": "WITHHELD_PRELAUNCH_TOKEN_OBSERVER_RESTORATION_DEFECT",
+    "changed_vs_source": [
+      "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+      "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+      "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+      "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt",
+      "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json"
+    ],
+    "manifest": "441B3ACA895143588E4D89545D46DC618899166DC0FE86B0C89ADD535F7337CC",
+    "payload_inputs": 257,
+    "human_authority": "NONE",
+    "evidence_root_absent": true,
+    "root": "outputs/scheduler-google-functional-native-dex-v1",
+    "executables_unchanged": true,
+    "inputs": 310,
+    "command": "6CB658FB508B81A392C209F57F56F5D3F68A7437E3DD91FCBF63C1AA83FDC6C9",
+    "payload_manifest": "53A82F1B12B330DE715320717141A536675DF3996576DCAE18E112F3AC4CE096",
+    "matt_assignment_unchanged": "COMPLETE",
+    "path_agreement": "VERIFIED_STATIC_ONLY",
+    "nested_inputs": 269,
+    "peer_review": "BB175B53D630337E150DCE22279C41C511A25295250A4C2254C2984E9271E860",
+    "decision": "677BA50574297F5A2E81D8CB7839CE6F8E5C46D305AD0285DB77920E292A252F",
+    "withdrawn_command": "6CB658FB508B81A392C209F57F56F5D3F68A7437E3DD91FCBF63C1AA83FDC6C9",
+    "reason": "Google case calls _install_token_terminal_observer but does not restore CoveringORMConnection.token_terminal. Receipt observers_restored=True is too broad; existing fake restoration check only covers parent/worker/HTTP constructor."
+  },
+  "t08OwnershipFakeSource": {
+    "execution": "NONE",
+    "root": "outputs/scheduler-t08-ownership-fake-source-dex-v3",
+    "manifest": "DF7C0DE38D159A2989F18345316ED52655B2ADDCCC5B8F37409818C3E0EB9F23",
+    "human_authority": "NONE",
+    "status": "SOURCE_ACCEPTED_WITH_QUALIFICATIONS_NOT_NATIVE_PROOF",
+    "controls": 7,
+    "source_review": "4C8B135D28542CC04596B233BAF86031CBAD02BB4FCECC625256AE21830951CB",
+    "mutants": 3,
+    "checker": "6BE2B15B2F22BBE03C16CFB538C5CFC55709DF2FCDF882E00790E7FC71787642",
+    "review": "09DBCD057B5887F78D057580287DEE094B4B516391C823546C37D5BAE7EDB3C9"
+  },
+  "googleFakeResult": {
+    "remaining_authority": 0,
+    "child_output_bytes": 0,
+    "status": "PASS",
+    "receipt": "DDCB2BB4E7ACAD5A387A1DED2FD9B541703019CC6BB5F0283849F58EED3227D1",
+    "controls": 14,
+    "result": "792C2468B7A659EA288CA8005D5386418748B45AC983FF82B3D9CBD84AB26C68",
+    "readers_joined_clean_eof": true,
+    "predicates": 66,
+    "mutants": 10,
+    "runtime_unchanged": 10,
+    "native_proof": false,
+    "inputs_unchanged": 41
+  },
+  "t08OwnershipFakePacket": {
+    "partial_runtime_pins": 6,
+    "checker": "9A8146CB83828326017D2081B820CF8EB250A2F45BE109D4D8F897656E39D179",
+    "packet_pins": 8,
+    "admission": "8754AC3588CC1AEC9B54DDF48D76CA8F9D08A37DD3BA8C0670B55FD9B79FE82A",
+    "source_packet_manifest": "B768B3AFE3292846E091D5DBAF3CE4D71CF45CEBF1FB6398960C846CE0C5964D",
+    "manifest": "E8E6708979F4D119ED512D491DB1E710D6D0E3318F2E3A3070B6ADBA0948672F",
+    "inputs": 18,
+    "human_authority": "CONSUMED_ONE_INVOCATION_NO_RETRY",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED_AWAIT_PEER_RESULT_REVIEW",
+    "command": "0CDC2C7D46C5C93784D0E5268A7258C898134FAFBDFE5AD2868EEB3E8F405261",
+    "root": "outputs/scheduler-t08-ownership-fake-dex-v1",
+    "peer_review": "61E26F29DD99DF5A9B9A8B7D53C6A2F2D4610B72DB17F60E81CA369BA0E62FD3",
+    "pendingDecisionIdentity": "Exact command0CDC2C7D/admission8754AC35,one invocation; no authority until explicit answer"
+  },
+  "googleCorrectedNativePreparation": {
+    "manifest": "FC1DC3CBE454E10E755A5505B9B3FF69A9FAEFB63B9509C7A9203C531058B6D4",
+    "human_authority": "NONE",
+    "root": "outputs/scheduler-native-google-refresh-prep-dex-v3",
+    "runner": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+    "inputs": 309,
+    "diff": "61BFE88B62B7FAED82E60109EB62FBB062D8D9EF6EE178FD3594517D5B483872",
+    "status": "PEER_ACCEPTED_QUALIFIED_NEW_FAKE_PASS_REQUIRED",
+    "review": "333AA4A6D9F2DF37967E6597523B4CFBCE6F629829C85881BA650FE7E27F9A22"
+  },
+  "googleCorrectedFakeStaging": {
+    "human_authority": "NONE",
+    "mutants": 11,
+    "controls": 14,
+    "manifest": "5F1357503CF9A50968AF5E0AA8B1F7575860374CBF37E99BA0728B7ED15623DE",
+    "root": "outputs/scheduler-google-functional-fake-dex-v2",
+    "inputs": 43,
+    "reported_predicates": 67,
+    "checker": "7AAC1F30C8F9075F2A3A9311654020C2AE69F4990CC48A7B4AD0A7F5FAC0C8A4",
+    "status": "PASS_RECONCILED_AUTHORITY_CONSUMED",
+    "admission": "F29AD9CBAC2E6667D28557C2B03CE171F70A8897FB312614F4180D4658A87766",
+    "command": "6D641185B82A50AEDBC093F08AAA8A29B8706C819D2DB312251D96A919AEBD58",
+    "review": "333AA4A6D9F2DF37967E6597523B4CFBCE6F629829C85881BA650FE7E27F9A22"
+  },
+  "googleCorrectedNativeStaging": {
+    "command": "47E9CBDEA1261D275DD84538BBF8FE62A665FD6F47F7A51015458DFA3E08F8BE",
+    "payload_manifest": "F895B85B351FC189A179F025FE4581C6BAB89C10D2E02D61B5F64EE7C2B3E3A9",
+    "status": "PEER_RECONCILED_READY_FOR_NEW_NATIVE_APPROVAL",
+    "root": "outputs/scheduler-google-functional-native-dex-v2",
+    "host_config": "E0671B328F96151AB9B867BE961D06CC78465B543996536F5CDC1DD23829BF6F",
+    "inputs": 314,
+    "docker_config": "3B1C477271370E80A108D50BBE135C874377056ECE5FD1233C5FDCC28355CAD2",
+    "nested_manifest": "9463A9D2517B1F16EFF2810B61481D0A994B6F047354A310A368ED36620BD30D",
+    "human_authority": "NONE",
+    "manifest": "66909DED6CBC6683C18DA8876A1EC0AD07641FF1100F24258D1E8E01CF62C888",
+    "staging_executable_changes": "NONE",
+    "evidence_absent": true,
+    "peer_review": "595B17D1BC3ECE46CB24B2B0877DCAC83308975F6B721A948A7661D1ACD01EF6",
+    "decision": "outputs/scheduler-ms-refresh-design-review-v1/Corrected-Google-Native-V2-Launch-Decision-Ready.md"
+  },
+  "googleCorrectedFakeResult": {
+    "controls": 14,
+    "inputs_unchanged": 43,
+    "remaining_authority": 0,
+    "token_restore_mutant": "DETECTED",
+    "mutants": 11,
+    "readers_joined_clean_eof": true,
+    "reported_predicates": 67,
+    "result": "CFD4FECFBAD2F5AD98868AA676C5CC71CAB4100B55C3A95418521306EA362CC6",
+    "receipt": "7F2084B19AA80A8533D2252991FDC01334FFEF65DC81490267A84FCE073016DC",
+    "runtime_unchanged": 10,
+    "child_output_bytes": 0,
+    "native_proof": false
+  },
+  "githubCheckpointRequest": {
+    "branch": "checkpoint/scheduler-google-native-2026-11-13",
+    "sourceAssembly": "Review required: frozen workspace candidates are separate from repository working changes",
+    "status": "PUSHED_REMOTE_HEAD_VERIFIED",
+    "scope": "Commit Scheduler work and push to GitHub; inspect and separate unrelated changes and exclude credentials/temporary run files",
+    "repository": "F:\\Code Repo\\ThePlan",
+    "timing": "Next good stopping point",
+    "requestedBy": "Trish",
+    "approval": "Explicit user authorization for commits and GitHub push; all execution and activation holds remain",
+    "remote": "origin https://github.com/triput/thePlan.git",
+    "commit": "a6787721d393bff4951d70bbc2857dab3f07cd94",
+    "files": 319,
+    "repositoryVisibility": "PUBLIC_VERIFIED_GITHUB_CONNECTOR",
+    "autoReview": "Initial push rejected; exact public payload decision now pending. No push performed.",
+    "url": "https://github.com/triput/thePlan/tree/checkpoint/scheduler-google-native-2026-11-13"
+  },
+  "googleCorrectedNativeResult": {
+    "revision_before": 1,
+    "inputs_unchanged": 314,
+    "parent_terminals": [
+      {
+        "commit_requested": true,
+        "terminal": "COMMIT_ACKNOWLEDGED"
+      },
+      {
+        "commit_requested": true,
+        "terminal": "COMMIT_ACKNOWLEDGED"
+      }
+    ],
+    "endpoint": "unbound",
+    "busy_before": 0,
+    "busy_after": 2,
+    "token_terminals": [
+      {
+        "commit_requested": true,
+        "terminal": "COMMIT_ACKNOWLEDGED",
+        "token_rollback_ack": false
+      },
+      {
+        "commit_requested": false,
+        "terminal": "ROLLBACK_ACKNOWLEDGED",
+        "token_rollback_ack": true
+      }
+    ],
+    "atUtc": "2026-11-13T22:01:43.0491467-08:00",
+    "scheduling_ready": true,
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "unrelated_unchanged": true,
+    "cleanup": "SUCCESS_ONLY_22_COMMANDS_BOTH_REMOVED_ABSENCE_VERIFIED_BY_HOST",
+    "receipt": "FDC0AF907211D2F163A63F6A8EFF65925E7E743D95135EC523FB7BFBB208139E",
+    "retirement": "JOINED_OBSERVERS_RESTORED_PKI_RETIRED",
+    "remaining_authority": 0,
+    "imports": 2,
+    "revision_after": 4,
+    "case": "NP-V-GOOGLE-REFRESH",
+    "oauth": 1,
+    "limitations": "Synthetic Google native integration; no live activation, planning Preview/Apply, full transport closure or goal completion"
+  },
+  "googleInvalidPreparation": {
+    "status": "CHECKER_REVISE_BEFORE_ANY_RUN",
+    "handoff": "687CB81591170149DADF39A0D2B7F936BAAF9915FE4B6553AEB01C5292A083DE",
+    "execution": "NONE",
+    "finding": "Google-Invalid-Fake-CRLF-Prelaunch-Finding.json",
+    "nativeInputs": 313,
+    "sourceSubjectBytesUnchanged": true,
+    "fakeInputs": 37
+  },
+  "googleInvalidNativeStaging": {
+    "root": "outputs\\scheduler-google-invalid-native-dex-v1",
+    "humanAuthority": "NONE",
+    "command": "51137AA5E76929B2F24EC0B98B331C876D6704FC55EE2BA8B1AFA06A7C2D34D0",
+    "manifest": "0C68B57E87582B165E25AC016C28AD62FE026B7E758F3F560E8F3527CEFECD43",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED_AWAIT_RESULT_PEER",
+    "inputs": 318
+  },
+  "standingDownForUPS": {
+    "executionHoldsStay": true,
+    "status": "USER_EXPLICITLY_RESUMED"
+  },
+  "googleInvalidFakeStaging": {
+    "command": "BB01C997BC42D30C0451405AF8CC4C25458D491492ECF7FFAD1CAC8C72B5FBFB",
+    "root": "outputs/scheduler-google-invalid-fake-dex-v2",
+    "admission": "9EA996F6ED4C45EB86DEE445174950C1109F6E927B91D118CFA6C1CD87F47462",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "inputs": 41,
+    "humanAuthority": "NONE",
+    "manifest": "E6CCE63B8E080A0FD0582FCA11664D4DF94999E491751F92FA7C505BFD8F8A32"
+  },
+  "t08NativeStaging": {
+    "authority": "NONE",
+    "inputs": 310,
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED_AWAIT_PEER_RESULT",
+    "manifest": "4C9CAE799A4C431442782B34FDEEFE586199A8FD775AB59024C968D0667B443B",
+    "command": "EA3968FB090E7AEA13CDDE1D6AB4EC3E2DA2A79DA33DEDE3B939FAB0557E115F",
+    "root": "outputs/scheduler-t08-ownership-native-dex-v1",
+    "review": "5B10347936C40119426F76B4268E481CB2950F365A980EC160B2E95F49857944"
+  },
+  "googleInvalidFakeResult": {
+    "endpoint": "unbound",
+    "receipt": "C559ADCBC817E784AD4EFF16DDEE6843DE31E94F58A4314CBA45BCA3E5A7934C",
+    "inputsUnchanged": 41,
+    "structuralMutants": 7,
+    "controls": 10,
+    "cleanJoinedReaders": true,
+    "nativeProof": false,
+    "remainingAuthority": 0,
+    "reportedPredicates": 47,
+    "zeroChildOutput": true,
+    "mutants": 9,
+    "behavioralMutants": 2,
+    "partialRuntimePinsUnchanged": 9,
+    "result": "A9F192630ABD62C6E498FCC2E53F9032462578195812BD70AA2873CAB0EDED74",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED"
+  },
+  "bodyStallFakeResult": {
+    "nativeDeadlineProof": false,
+    "inputsUnchanged": 40,
+    "scope": "Extracted peer/transcript/query/timing/observer and structural wiring with fake dependencies; no real210s elapsed proof",
+    "mutants": 9,
+    "behavioralMutants": 7,
+    "runtimePinsUnchanged": 10,
+    "zeroChildOutput": true,
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "controls": 13,
+    "structuralMutants": 2,
+    "cleanJoinedReaders": true,
+    "endpoint": "unbound",
+    "result": "2EFD098F02E05862D2987A8F6D355DB6CFE8260C49790FC3AEF1A7593EB510BA",
+    "remainingAuthority": 0,
+    "reportedPredicates": 64,
+    "receipt": "AF6399D8698AC46ECD453B6C2CB1495A4526184136F9F10ABF280F09FCE5EB3D"
+  },
+  "googleInvalidNativeResult": {
+    "cleanup": {
+      "databaseExit": 0,
+      "containers": [
+        {
+          "id": "e9800cdeb37b0e956b5b20416b8578f04dcc32077a1ca0dac62a9688116082a5",
+          "role": "database"
+        },
+        {
+          "id": "a7e8363c6413b41478c71aba0a7ce54ae3c198391bf30dbab3e8ab8dd560809b",
+          "role": "runner"
+        }
+      ],
+      "absenceChecks": 2,
+      "complete": true,
+      "commands": 22
+    },
+    "receipt": "ED28319B513A53A1F4CC6D370E6504453C30DDBCE3768C8F2A863263426BAD62",
+    "oauthRequests": 1,
+    "parentImports": 0,
+    "persistedCredentialsCoverageOwnerUnchanged": true,
+    "tokenRollbackAcknowledged": true,
+    "remainingAuthority": 0,
+    "eventImports": 0,
+    "independentResultReview": "QUALIFIED_ACCEPTED",
+    "inputsUnchanged": 318,
+    "limitations": "One synthetic known rejection through production path;not refresh success,not live activation or fullT06/goalclosure",
+    "typedReauthorization": true,
+    "unrelatedUnchanged": true,
+    "finalAssessment": "completed_not_ready_at_unchanged_revision1",
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "endpoint": "unbound",
+    "case": "NP-V-GOOGLE-INVALID",
+    "publicOutcome": "no_op/preflight_rejected/CALENDAR_ACCOUNT_DISCONNECTED"
+  },
+  "bodyStallNativePreparation": {
+    "predicates": 66,
+    "nativeManifest": "8BFB54075B6A8BAEF10FC591F7CD6B4B2D0381B11E9056C375CB8F2AF09B5853",
+    "controls": 13,
+    "fakeManifest": "EBB3BED606B5F9824FA6CFEC905E7A0FE0F098F7D932637D52499529DEB8BCD0",
+    "mutants": 10,
+    "authority": "NONE",
+    "status": "FAKE_STAGING_ACCEPTED_EXACT_DECISION_PENDING_NATIVE_REVIEW_ACTIVE",
+    "sourceReview": "78C7AEA6BB4617860924B3124D34D76F2D3E4968FD036B8DF696913BC070FFBB",
+    "stagedFakeManifest": "0DB0A2FAD54E9630F9266141943A36A9DD8D1D59E5AC10C01CD71D381456DED9",
+    "stagedNativeManifest": "E54792D03576DC24542337AF37E26A4214E8C3689881EF07A7C52AD29120704E",
+    "stagedNativeCommand": "05CD344D85AC388D3640815B717A365D079072DC68C7006E86C0465939B5852F",
+    "stagedNativeInputs": 315,
+    "stagedNativeReview": "ACTIVE_847C3457"
+  },
+  "t08NativeResult": {
+    "remainingAuthority": 0,
+    "cleanup": {
+      "complete": true,
+      "absenceChecks": 2,
+      "databaseExit": 0,
+      "commands": 22,
+      "containers": [
+        {
+          "id": "1bc707c578fcfec90af13c18bbf04c300ae7e96bcd1c1b43f19a234537341dd1",
+          "role": "database"
+        },
+        {
+          "id": "0b53280b35337fc554f65926732392531d803eb1f8eb547e78c17cd053cf07b1",
+          "role": "runner"
+        }
+      ]
+    },
+    "reuseRefused": true,
+    "ownerSocketRetired": true,
+    "ownerSocketUnchangedAfterForeign": true,
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+    "case": "NP-T08-OWNERSHIP",
+    "inputsUnchanged": 310,
+    "ownerExchangeBytes": 91,
+    "foreignJoinAttempts": 1,
+    "realForeignThreadUseAndCloseRefused": true,
+    "peerJoinedNoWorkerError": true,
+    "independentResultReview": "QUALIFIED_ACCEPTED_C2443B80",
+    "scope": "Direct productionJoinedTLS realthread/socket ownership,exactfinitewire,retirement;no HTTPframing/OAuth/ingress/assessmentclaim",
+    "endpoint": "unbound"
+  },
+  "t03PositiveTLSReuse": "7816F042573475607FFD0FDB5723F69F1E09807CE6070B9CF03B39D7305CD090",
+  "queuedNativeBodyReview": {
+    "path": "outputs/scheduler-ms-refresh-design-review-v1/QUEUED-Matt-BODY-Native-V2-Staging-Review.md",
+    "activeAssignment": false,
+    "delivered": false,
+    "sha256": "2B65998DC660DDAF0F165D440690B6744313D453529EA08835090746D9937E4B"
+  },
+  "googleOAuthFailurePublicTrace": {
+    "sha256": "515D8B00F98ECB8258CEF724C492CE67621466DC4BF0D583CF9260D684384E3C",
+    "nativeProof": false,
+    "sourceOnly": true,
+    "path": "outputs/scheduler-investigation/Google-OAuth-Failure-Public-Outcome-Trace-2026-11-13.json",
+    "assignmentIssued": false
+  },
+  "bodyStallCorrectedFakeResult": {
+    "inputsUnchanged": 49,
+    "result": "79F8959D8670C46FCA0755CE9CED6F4560496B4CB5FF2936E12E5199DA6E2AEA",
+    "reportedPredicates": 66,
+    "independentResultReview": "PENDING",
+    "cleanJoinedReaders": true,
+    "receipt": "157600DF62A40B4EAEF74FADB111BB0E4A7B694AAAC914004E7D91DD97F4CC22",
+    "structuralMutants": 3,
+    "scope": "Finite extracted fixture/helper behavior and structural caller restoration; no native210-second timing/TLS/DB/rollback proof",
+    "endpoint": "unbound",
+    "remainingAuthority": 0,
+    "behavioralMutants": 7,
+    "runtimePinsUnchanged": 10,
+    "controls": 13,
+    "mutants": 10,
+    "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+    "reconciliationNote": "Mutant entries are stored under mutants rather than cases; inventories compared against the correct result field. No rerun or evidence changes.",
+    "zeroChildOutput": true
+  },
+  "overnightHold": {
+    "nativeAuthority": "NONE",
+    "safeStoppingPointReached": true,
+    "resumeNeedsExplicitUserRequest": true,
+    "mattNotice": "B1816C1B9DFB9780FF4BB71EA9451420D539DA1729B89429149CDBD01D42C075",
+    "noOwnedExecutionLive": true,
+    "requestedBy": "Trish"
+  }
+}

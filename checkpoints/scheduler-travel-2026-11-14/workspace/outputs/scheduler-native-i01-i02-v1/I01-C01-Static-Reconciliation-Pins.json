@@ -1,0 +1,30 @@
+[
+  {
+    "relative_path": "fixture\\i01_i02_suite.py",
+    "sha256": "EA776814DBD6924A689BAAC00C36E9AEE50B01F635AFB25B733D40796E4BC229"
+  },
+  {
+    "relative_path": "fixture\\i01_asgi_app.py",
+    "sha256": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B"
+  },
+  {
+    "relative_path": "fixture\\i01_covering_http_alias.py",
+    "sha256": "F90182C0BE5C3024B40782178120262F5D940794CF4C6A99BAE21DD655440EAD"
+  },
+  {
+    "relative_path": "workspace\\apps\\api\\app\\services\\covering_release_plan.py",
+    "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826"
+  },
+  {
+    "relative_path": "workspace\\apps\\api\\app\\services\\covering_http_dispatch.py",
+    "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+  },
+  {
+    "relative_path": "workspace\\apps\\api\\app\\services\\covering_domain_dispatch.py",
+    "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+  },
+  {
+    "relative_path": "workspace\\apps\\api\\app\\api\\routes\\calendar.py",
+    "sha256": "23DC03967DE3919610DE84AF6CF651E221DA9444C4A82FB43A0DB8FBA8A120BA"
+  }
+]

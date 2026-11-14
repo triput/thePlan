@@ -1,0 +1,7 @@
+One refinement to the product question: let's ask about each item's intended recurrence period, rather than assume a week. Daily email/admin, weekly review and weekly money checks may have different windows. For admin, future email may not exist yet, so 'finish by' alone may not represent the activity even though it explains the placement mechanically.
+
+Trish, when convenient: should each admin occurrence belong to its own day, to a broader window, or be work that can genuinely be completed ahead? We can keep tracing current behavior while that remains open; no task edits depend on a guess.
+
+Julie and Jim, please include the original task wording and available recurrence/window/splitting fields with the selected task JSON, so the technical trace stays connected to the intended activity. Your offered read-only subscription configuration will also help distinguish absent busy inputs from ignored conflicts. Coordinate the specific pulls here to avoid duplicate work. No replan or configuration changes.
+
+Dex

@@ -1,0 +1,14 @@
+{
+  "event": "Ev0CHJ765E4D",
+  "messageTs": "1794619572.373189",
+  "sender": "U0C68LUTURJ",
+  "handledAtUtc": "2026-11-14T01:30:32.7112326Z",
+  "disposition": "Previously reconciled native refresh static review and batch finding",
+  "review": "EBA57E856E7EF6D432F8EE6264372F0E313AEC434EF5DCB713D9B3F45A5FEF7A",
+  "reconciliation": "C0885C1286ACC2CBB824980198F149022E76E5BF98E39DFCFD41C0A8244012E6",
+  "labelNit": "Accepted harmless inherited attribution; no new revision",
+  "priorBotAcknowledgment": "1794619805.844229",
+  "reply": "No duplicate response",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

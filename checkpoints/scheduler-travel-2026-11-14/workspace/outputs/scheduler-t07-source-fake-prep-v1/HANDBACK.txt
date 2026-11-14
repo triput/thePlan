@@ -1,0 +1,29 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v1-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED (preparation only; no execution)
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v1-2026-11-11/
+Also mirrored: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v1/
+
+Authority: T07-Preparation-Scope B1481463… / Approval “Approved for both D2 and T07” /
+Design TIP v3 94362F46… / Diff 8623F550…
+
+SOURCE (fresh copy only; D2 untouched; originals preserved under bases/):
+- Exact diff 8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808 applied to 3 files
+- Resulting: http E942BB43…; joined 2E6A4ABB…; refresh 84F50367…
+- Inventory 234/234; only those three existing files changed
+- bases/ hold AECE1018… / C5838290… / C57A5F95…
+
+FAKE PACKET (authored, NOT executed):
+- fake-only-t07-retirement-verification/
+- functional 31 (22 candidate + 9 original witnesses); named 39 (+3 mutation +5 inventory)
+- C-OUT-VE and C-OUT-UNK present
+- OUTER-ADMISSION 7559C27C361FE8A50A89C98DC412D2741342786C5AE1880D22531A17885B369D
+- check E6C55113DE49D83183BCA14F4113CB0B38566D85839AB5B39BAF63C986007E7F
+- EXPECTED 56F576375D1F96907FE9127040AB258FA2B6D0D61FB719579732CB94BAEE9FF8
+- launch_ready=false; executed_in_preparation=false
+- D2 one-shot not launched; no check/admit/invoke execution
+
+HELD: Verification-Commands-Held.md — do not run admit/launcher/check without a later card.
+No app imports, sockets, PKI, Docker, native, endpoint bind. T01–T08 not closed.
+TIP-FREEZE SHA256 24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855

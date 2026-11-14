@@ -1,0 +1,19 @@
+{
+    "kind":  "scheduler-native-provider-fake-outer-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-native-google-refresh-fake-prep-matt-v1",
+    "interpreter_path":  "C:\Users\trish\AppData\Local\Programs\Python\Python311\python.exe",
+    "check_seconds":  120,
+    "pins":  {
+                 "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                 "launch_check_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                 "check_native_provider_sha256":  "972C6196BDA2D396492A1461EE9E0DB0D8A324BA984D42AE7E9C6638484C00D0",
+                 "expected_fake_structural_sha256":  "F163D9B3F2132790207D161CE19C14E732E3DBD4BB8C09D232E43C97F7EC4915"
+             },
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_note":  "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+    "note":  "Matt native Google refresh fake prep v1 (Dex CEBD83C3; NP-V-GOOGLE-REFRESH only). launch_check.py, verify_admission.py and Invoke-Fake.ps1 are byte-identical to the reviewed roles. launch_authorized=false; preparation does not authorize invocation."
+}

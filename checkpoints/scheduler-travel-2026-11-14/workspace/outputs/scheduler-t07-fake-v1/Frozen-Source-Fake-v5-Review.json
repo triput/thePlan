@@ -1,0 +1,25 @@
+{
+  "kind": "Frozen T07 source/fake v5 independent static reconciliation",
+  "date": "2026-11-11",
+  "tip_sha256": "0EF2EFD5AC028D5CCBDADB974C6632F090DF526788467079483D79799B834685",
+  "check_sha256": "7B618658315D001119BF6BC9CFF6DAB714ED9267E8F67D84EA61FB69F04E1155",
+  "artifact_manifest_rows_verified": 15,
+  "artifact_manifest_mismatches": [],
+  "accepted_payload_files_compared": 238,
+  "payload_differences_from_host_staged_accepted_snapshot": [],
+  "improvements": [
+    "Actual HTTP cleanup exception propagates into actual connector/domain with exchange-terminal identity comparison",
+    "Third target beyond faulting target has unconditional admission counters",
+    "Separate token/apply fault location and original/candidate witness selection",
+    "Continuation mutation now drives the same domain helper"
+  ],
+  "remaining": [
+    "Ports.apply and token call HTTP directly, bypassing owning event importer and OAuth adapter exception handling; does not exercise the approved importer UNKNOWN rethrow in the integrated witness",
+    "R07 still allows UNKNOWN with weak primary-class/construction predicate rather than exact injected primary and successful outer cleanup oracle"
+  ],
+  "disposition": "REVISE within existing authoring approval; preserve frozen v5 and prepare successor",
+  "feedback_already_delivered": ["1794429291.942659", "1794429755.346519"],
+  "execution_performed": false,
+  "launch_ready": false,
+  "source_diff_reapproval_required": false
+}

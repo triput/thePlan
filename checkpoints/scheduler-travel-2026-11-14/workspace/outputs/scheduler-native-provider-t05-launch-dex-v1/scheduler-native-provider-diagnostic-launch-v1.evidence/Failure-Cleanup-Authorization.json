@@ -1,0 +1,15 @@
+{
+  "runner": "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6",
+  "otherRunAuthority": "NONE",
+  "sharedSeconds": 300,
+  "database": "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857",
+  "questionId": "call_d4159e7001e541b895b5479436dc6c23",
+  "retry": false,
+  "commands": 9,
+  "atUtc": "2026-11-13T23:43:01.0682957Z",
+  "force": false,
+  "requestSha256": "8B0CD9131DE877ACB98A50CB61335E00E23EE08D13575AC25CB1A1505F6D693A",
+  "perCommandSeconds": 30,
+  "endpoint": "unbound",
+  "answer": "Authorize exact-ID cleanup"
+}

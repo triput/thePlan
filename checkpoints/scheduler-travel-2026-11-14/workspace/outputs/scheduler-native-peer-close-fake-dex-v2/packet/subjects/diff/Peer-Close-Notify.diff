@@ -1,0 +1,11 @@
+--- a/payload/fixture/np_provider_peer.py
++++ b/payload/fixture/np_provider_peer.py
+@@ -391,7 +391,7 @@
+             # Orderly TLS close_notify via unwrap; distinct from abrupt stream drop.
+             try:
+                 tls.unwrap()
+-            except ssl.SSLError:
++            except OSError:
+                 # Still mark attempted orderly path; abrupt fallback is separately scripted.
+                 self.life.notes.append("close_notify_unwrap_ssl_error")
+             finally:

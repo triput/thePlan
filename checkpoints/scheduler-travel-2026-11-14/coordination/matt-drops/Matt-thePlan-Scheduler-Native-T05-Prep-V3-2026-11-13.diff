@@ -1,0 +1,507 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -56,7 +56,12 @@
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-V-MS-REFRESH"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({
++    "NP-V-MS-NONEXPIRED",
++    "NP-V-MS-REFRESH",
++    "NP-T05-ORDERLY-CLOSE",
++    "NP-T05-ABRUPT-TRUNCATION",
++})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -1907,6 +1912,293 @@
+     native_terminals.append({"observer": "CoveringORMConnection.token_terminal", "terminal": None})
+ 
+ 
++# T05 finite client-outcome classes (exact class name, defining module). Anything
++# else fails closed as a STOP; nothing is assumed from host-only fake behavior.
++T05_SHORT_CL_REFUSAL_CLASS = ("IncompleteRead", "http.client")
++T05_ABRUPT_CLIENT_CLASSES = frozenset({("SSLEOFError", "ssl"), ("ConnectionResetError", "builtins")})
++# Finite classification of the exact scripted response wire (never the rebuilt API headers).
++T05_SCRIPTED_WIRE_FRAMINGS = ("close_delimited", "exact_content_length", "other")
++
++
++def _t05_classify_client_outcome(expectation: str, outcome: Any) -> str:
++    """Finite T05 classification of one observed native client outcome.
++
++    outcome is ("response", status, body_exact, scripted_wire_framing) or
++    ("exception", class_name, class_module), where scripted_wire_framing is one of
++    T05_SCRIPTED_WIRE_FRAMINGS. Only the exact expected shape maps to an oracle
++    label; every other outcome raises SuiteStop (fail closed).
++    """
++    from np_suite import SuiteStop
++
++    kind = outcome[0] if isinstance(outcome, tuple) and outcome else None
++    if expectation == "complete_accept":
++        if kind == "response" and outcome[1:] == (200, True, "close_delimited"):
++            return "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
++        raise SuiteStop("t05 close-delimited positive not accepted exactly")
++    if expectation == "fixed_length_accept":
++        if kind == "response" and outcome[1:] == (200, True, "exact_content_length"):
++            return "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
++        raise SuiteStop("t05 exact fixed-length positive not accepted exactly")
++    if expectation == "short_cl_refuse":
++        if kind == "exception" and tuple(outcome[1:]) == T05_SHORT_CL_REFUSAL_CLASS:
++            return "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"
++        raise SuiteStop("t05 short-length prefix not refused by framing completeness")
++    if expectation == "abrupt_distinct":
++        if kind == "exception" and tuple(outcome[1:]) in T05_ABRUPT_CLIENT_CLASSES:
++            return "OBSERVED"
++        raise SuiteStop("t05 abrupt truncation not classified as transport EOF")
++    raise SuiteStop("t05 unknown expectation")
++
++
++def _t05_scripted_wire_framing(scripted_wire: bytes, expected_body: bytes) -> str:
++    """Finite framing class of the exact scripted response wire.
++
++    "close_delimited": no Content-Length and no Transfer-Encoding header line.
++    "exact_content_length": exactly one Content-Length line whose ASCII-digit value
++    equals len(expected_body), no Transfer-Encoding, and the wire body after the
++    header terminator is exactly expected_body. Anything else is "other".
++    """
++    head, sep, wire_body = scripted_wire.partition(b"\r\n\r\n")
++    if not sep:
++        return "other"
++    lines = head.split(b"\r\n")[1:]
++    names = [line.partition(b":")[0].strip().lower() for line in lines]
++    if b"transfer-encoding" in names:
++        return "other"
++    lengths = [
++        line.partition(b":")[2].strip()
++        for line, name in zip(lines, names)
++        if name == b"content-length"
++    ]
++    if not lengths:
++        return "close_delimited"
++    if (
++        len(lengths) == 1
++        and lengths[0].isdigit()
++        and int(lengths[0]) == len(expected_body)
++        and wire_body == expected_body
++    ):
++        return "exact_content_length"
++    return "other"
++
++
++def _t05_response_outcome(
++    status: int, content: bytes, expected_body: bytes, scripted_wire: bytes
++) -> tuple[Any, ...]:
++    """Client-observed status/body plus framing class of the exact scripted wire.
++
++    The httpx.Response that CoveringHTTP returns is rebuilt by production code and
++    httpx 0.28.1 supplies Content-Length for non-empty bytes content, so its headers
++    are NOT the wire headers. Framing is judged on the exact scripted bytes (the
++    peer's sent byte count is separately required to equal their length); the
++    client side contributes only its status and exact body.
++    """
++    scripted_wire_framing = _t05_scripted_wire_framing(scripted_wire, expected_body)
++    return ("response", status, content == expected_body, scripted_wire_framing)
++
++
++def _t05_observe(case_id: str, script: Any, expectation: str) -> dict[str, Any]:
++    """One finite T05 exchange through the production contracts.
++
++    CoveringRequestBudget -> ProviderCounter(approved_provider_limits(),
++    budget.work_remaining) -> CoveringHTTP with its DEFAULT JoinedTLS transport
++    (the covering_release_plan.for_request construction), against the synthetic
++    peer on numeric loopback :443 with verify-full. The response framing is
++    validated before the peer starts; the peer is retired and joined before any
++    classification, so an unjoined peer is a STOP whatever the client observed.
++    No request/response body, header value, credential or error message is kept.
++    """
++    from np_suite import SuiteStop
++    from np_provider_routes import google_api_route
++    from np_provider_peer import (
++        PeerLifecycleError,
++        PeerMaterial,
++        SyntheticProviderPeer,
++        _http_response_bytes,
++    )
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_request_budget import CoveringRequestBudget
++    from app.services.covering_transport_policy import (
++        HTTPSPeer,
++        ProviderCounter,
++        approved_provider_limits,
++    )
++
++    sends = [step for step in script.steps if step.direction == "send_response"]
++    requests = [step for step in script.steps if step.direction == "recv_request"]
++    closes = [step for step in script.steps if step.direction == "close"]
++    if len(sends) != 1 or len(requests) != 1 or len(closes) != 1:
++        raise SuiteStop("t05 script must be exactly one request, one response, one close")
++    try:
++        expected_wire = _http_response_bytes(sends[0])
++    except PeerLifecycleError:
++        raise SuiteStop("t05 response framing configuration refused before send") from None
++    route = google_api_route()
++    routes = (
++        (
++            HTTPSPeer(
++                hostname=route.server_hostname,
++                address=route.dial_address,
++                port=route.dial_port,
++                ca_file=route.ca_path,
++            ),
++            "/calendar/v3/calendars/",
++            "event",
++        ),
++    )
++    budget = CoveringRequestBudget()
++    counter = ProviderCounter(approved_provider_limits(), budget.work_remaining)
++    http = CoveringHTTP(counter=counter, routes=routes)
++    if http.transport_factory is not JoinedTLS:
++        raise SuiteStop("t05 requires the default JoinedTLS transport")
++    url = f"https://{route.url_host}{requests[0].path}"
++    expected_body = (sends[0].body_template or "").encode("utf-8")
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}-{script.script_id}",
++        route=route,
++        script=script,
++        material=PeerMaterial(),
++    )
++    outcome: Any = None
++    try:
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++        try:
++            response = http.request("GET", url, purpose="event")
++        except Exception as exc:
++            outcome = ("exception", type(exc).__name__, type(exc).__module__)
++        else:
++            # Never read response.headers here: production rebuilds the API object
++            # (httpx 0.28.1 adds Content-Length for non-empty bytes content).
++            outcome = _t05_response_outcome(
++                response.status_code, response.content, expected_body, expected_wire
++            )
++    finally:
++        retirement = peer.retire_owned(join_seconds=5.0)
++    if retirement.get("joined") is not True or retirement.get("worker_error_kind") is not None:
++        raise SuiteStop("t05 peer worker retirement not clean")
++    state = peer.sanitized_state()
++    if (
++        state["connection_count_admitted"] != 1
++        or state["connection_count_served"] != 1
++        or state["request_received"] is not True
++        or state["response_sent"] is not True
++        or state["close_mode_observed"] != closes[0].close_mode
++        or state["bytes_sent"] != len(expected_wire)
++    ):
++        raise SuiteStop("t05 peer exchange inventory mismatch")
++    label = _t05_classify_client_outcome(expectation, outcome)
++    measured = {
++        "script_id": script.script_id,
++        "expectation": expectation,
++        "client_outcome_kind": outcome[0],
++        "client_outcome_class": outcome[1] if outcome[0] == "exception" else None,
++        "response_status": outcome[1] if outcome[0] == "response" else None,
++        "body_exact": outcome[2] if outcome[0] == "response" else None,
++        "scripted_wire_framing": outcome[3] if outcome[0] == "response" else None,
++        "peer_side_wire_bytes_sent_exact": True,
++        "peer_close_mode": state["close_mode_observed"],
++        "default_joined_tls": True,
++    }
++    return {
++        "label": label,
++        "measured": measured,
++        "inventory": list(state["exchange_inventory"]),
++        "retirement": retirement,
++    }
++
++
++def _run_np_t05_orderly_close() -> dict[str, Any]:
++    """NP-T05-ORDERLY-CLOSE: three separate observations after orderly close_notify.
++
++    (a) supplementary complete close-delimited response accepted (exact body; the
++    scripted wire has no CL/TE);
++    (b) complete exact fixed-length response accepted (exact body; the scripted
++    wire has one Content-Length equal to the body, no TE);
++    (c) valid-JSON prefix shorter than Content-Length refused by the framing
++    completeness path (IncompleteRead) before JSON decoding.
++    Each observation owns, retires and joins its own peer, sequentially.
++    """
++    from np_suite import check_oracles_immediate, registry_by_id
++    from np_auth_seed import assert_plan_still_valid, fresh_attempt_plan
++    from np_provider_transcript import (
++        orderly_close_delimited_complete_script,
++        orderly_fixed_length_complete_script,
++        orderly_short_cl_valid_json_refuse_script,
++    )
++    from np_receipts import case_result_receipt
++
++    case_id = "NP-T05-ORDERLY-CLOSE"
++    decl = registry_by_id(include_cf=True)[case_id]
++    plan = fresh_attempt_plan(case_id)
++    assert_plan_still_valid(plan.t_plan)
++    complete = _t05_observe(case_id, orderly_close_delimited_complete_script(), "complete_accept")
++    fixed = _t05_observe(case_id, orderly_fixed_length_complete_script(), "fixed_length_accept")
++    short = _t05_observe(case_id, orderly_short_cl_valid_json_refuse_script(), "short_cl_refuse")
++    observations = {
++        "orderly_close_delimited_complete_accepted": complete["label"],
++        "orderly_fixed_length_complete_accepted": fixed["label"],
++        "orderly_short_cl_valid_json_prefix_refused": short["label"],
++    }
++    check_oracles_immediate(decl, observations)
++    t_check_iso = _iso_now()
++    assert_plan_still_valid(plan.t_plan)
++    return case_result_receipt(
++        case_id=case_id,
++        passed=True,
++        workers_joined=True,
++        expected_unknown=False,
++        observations=observations,
++        t_plan_iso=plan.t_plan.isoformat(),
++        t_check_iso=t_check_iso,
++        measured={
++            "close_delimited_complete": complete["measured"],
++            "fixed_length_complete": fixed["measured"],
++            "short_cl_valid_json": short["measured"],
++        },
++        peer_exchange_inventory=complete["inventory"] + fixed["inventory"] + short["inventory"],
++        resource_disposition={
++            "peer_retirements": [complete["retirement"], fixed["retirement"], short["retirement"]]
++        },
++    )
++
++
++def _run_np_t05_abrupt_truncation() -> dict[str, Any]:
++    """NP-T05-ABRUPT-TRUNCATION: abrupt TLS drop without close_notify mid-body.
++
++    The observed native client outcome must be a transport EOF class (SSLEOFError
++    under suppress_ragged_eofs=False, or ConnectionResetError from the peer's
++    SO_LINGER-0 close), distinct from framing refusal (IncompleteRead), JSON
++    decoding failure and ASGI disconnect. Any other class is a STOP.
++    """
++    from np_suite import check_oracles_immediate, registry_by_id
++    from np_auth_seed import assert_plan_still_valid, fresh_attempt_plan
++    from np_provider_transcript import abrupt_truncation_script
++    from np_receipts import case_result_receipt
++
++    case_id = "NP-T05-ABRUPT-TRUNCATION"
++    decl = registry_by_id(include_cf=True)[case_id]
++    plan = fresh_attempt_plan(case_id)
++    assert_plan_still_valid(plan.t_plan)
++    abrupt = _t05_observe(case_id, abrupt_truncation_script(), "abrupt_distinct")
++    observations = {"classified_distinct_from_malformed_and_asgi_disconnect": abrupt["label"]}
++    check_oracles_immediate(decl, observations)
++    t_check_iso = _iso_now()
++    assert_plan_still_valid(plan.t_plan)
++    return case_result_receipt(
++        case_id=case_id,
++        passed=True,
++        workers_joined=True,
++        expected_unknown=False,
++        observations=observations,
++        t_plan_iso=plan.t_plan.isoformat(),
++        t_check_iso=t_check_iso,
++        measured={"abrupt_truncation": abrupt["measured"]},
++        peer_exchange_inventory=abrupt["inventory"],
++        resource_disposition={"peer_retirements": [abrupt["retirement"]]},
++    )
++
++
+ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+     if case_id == "NP-V-MS-NONEXPIRED":
+         def _run() -> dict[str, Any]:
+@@ -1920,6 +2212,18 @@
+ 
+         _run_refresh.__name__ = f"run_{case_id}"
+         return _run_refresh
++    if case_id == "NP-T05-ORDERLY-CLOSE":
++        def _run_t05_orderly() -> dict[str, Any]:
++            return _run_np_t05_orderly_close()
++
++        _run_t05_orderly.__name__ = f"run_{case_id}"
++        return _run_t05_orderly
++    if case_id == "NP-T05-ABRUPT-TRUNCATION":
++        def _run_t05_abrupt() -> dict[str, Any]:
++            return _run_np_t05_abrupt_truncation()
++
++        _run_t05_abrupt.__name__ = f"run_{case_id}"
++        return _run_t05_abrupt
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 
+--- a/payload/fixture/np_provider_peer.py
++++ b/payload/fixture/np_provider_peer.py
+@@ -85,7 +85,26 @@
+     return context
+ 
+ 
++RESPONSE_FRAMING_MODES = ("auto", "close_delimited")
++
++
+ def _http_response_bytes(step: ExchangeStep) -> bytes:
++    # Explicit framing selection; refusals happen here, before _send_response sends anything.
++    framing = getattr(step, "framing", "auto")
++    if framing not in RESPONSE_FRAMING_MODES:
++        raise PeerLifecycleError("unsupported response framing mode")
++    if any(name.lower() == "transfer-encoding" for name, _ in step.headers):
++        raise PeerLifecycleError("fixture serializer does not emit Transfer-Encoding")
++    if framing == "close_delimited":
++        if any(name.lower() == "content-length" for name, _ in step.headers):
++            raise PeerLifecycleError("close-delimited response must not declare Content-Length")
++        delimited_lines = [f"HTTP/1.1 {int(step.status or 200)} OK"]
++        for name, value in step.headers:
++            delimited_lines.append(f"{name}: {value}")
++        delimited_lines.append("Connection: close")
++        delimited_lines.append("")
++        delimited_head = ("\r\n".join(delimited_lines) + "\r\n").encode("ascii")
++        return delimited_head + (step.body_template or "").encode("utf-8")
+     body = (step.body_template or "").encode("utf-8")
+     headers = list(step.headers)
+     has_cl = any(name.lower() == "content-length" for name, _ in headers)
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -47,6 +47,13 @@
+     "normal",
+ ]
+ 
++# Explicit response framing selection for the fixture serializer.
++# "auto" (default) keeps the historical serializer exactly: Content-Length is
++# appended when absent and a "PLACEHOLDER" value is rewritten. "close_delimited"
++# sends neither Content-Length nor Transfer-Encoding; the body ends at connection
++# close. Unknown modes and inconsistent header sets are refused before sending.
++ResponseFraming = Literal["auto", "close_delimited"]
++
+ 
+ @dataclass(frozen=True)
+ class ExchangeStep:
+@@ -58,6 +65,7 @@
+     body_template: str | None = None
+     close_mode: CloseMode | None = None
+     note: str = ""
++    framing: ResponseFraming = "auto"
+ 
+ 
+ @dataclass(frozen=True)
+@@ -152,7 +160,11 @@
+ 
+ 
+ def orderly_close_delimited_complete_script() -> ExchangeScript:
+-    """Observation (a): complete close-delimited accepted after orderly close_notify."""
++    """Observation (a): complete close-delimited accepted after orderly close_notify.
++
++    No Content-Length and no Transfer-Encoding: the body is delimited only by the
++    peer's orderly TLS close (close_notify), so the client must read to EOF.
++    """
+     return ExchangeScript(
+         script_id="T05-ORDERLY-CLOSE-DELIMITED-COMPLETE",
+         purpose="orderly_close_delimited_complete_accepted",
+@@ -161,9 +173,33 @@
+             ExchangeStep(
+                 "send_response",
+                 status=200,
++                headers=(("Content-Type", "application/json"),),
++                body_template="{}",
++                note="Close-delimited: no Content-Length/Transfer-Encoding; complete body ends at orderly close",
++                framing="close_delimited",
++            ),
++            ExchangeStep("close", close_mode="orderly_close_notify"),
++        ),
++    )
++
++
++def orderly_fixed_length_complete_script() -> ExchangeScript:
++    """Observation (c): complete exact fixed-length accepted after orderly close_notify.
++
++    Content-Length equals the exact body length (2 for "{}") and no Transfer-Encoding;
++    the complete body precedes the peer's orderly TLS close (close_notify).
++    """
++    return ExchangeScript(
++        script_id="T05-ORDERLY-FIXED-LENGTH-COMPLETE",
++        purpose="orderly_fixed_length_complete_accepted",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path="/calendar/v3/calendars/primary/events"),
++            ExchangeStep(
++                "send_response",
++                status=200,
+                 headers=(("Content-Type", "application/json"), ("Content-Length", "2")),
+                 body_template="{}",
+-                note="Exact Content-Length match; complete body",
++                note="Exact fixed length: Content-Length 2 equals the complete body; no Transfer-Encoding",
+             ),
+             ExchangeStep("close", close_mode="orderly_close_notify"),
+         ),
+@@ -423,6 +459,7 @@
+         google_token_invalid_grant_script(),
+         ms_graph_events_empty_script(),
+         orderly_close_delimited_complete_script(),
++        orderly_fixed_length_complete_script(),
+         orderly_short_cl_valid_json_refuse_script(),
+         abrupt_truncation_script(),
+         *stall_scripts(),
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -222,12 +222,17 @@
+     ),
+     CaseDecl(
+         "NP-T05-ORDERLY-CLOSE",
+-        ("T05-SHORT-LENGTH-VALID-JSON",),
++        ("T05-VALID-COMPLETE-CONTENT-LENGTH", "T05-SHORT-LENGTH-VALID-JSON"),
+         "B5",
+-        "Orderly close_notify with close-delimited and short-CL completeness requal",
++        "Orderly close_notify with close-delimited, exact fixed-length and short-CL completeness requal",
+         (
+             Oracle(
+                 name="orderly_close_delimited_complete_accepted",
++                planning_ids=(),
++                expected="ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
++            ),
++            Oracle(
++                name="orderly_fixed_length_complete_accepted",
+                 planning_ids=("T05-VALID-COMPLETE-CONTENT-LENGTH",),
+                 expected="ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
+             ),
+@@ -238,9 +243,11 @@
+             ),
+         ),
+         notes=(
+-            "Separate named observations required: (a) complete close-delimited "
+-            "accepted after orderly close_notify AND (b) valid-JSON prefix shorter "
+-            "than Content-Length refused after orderly close_notify. Abrupt TLS distinct."
++            "Separate named observations required: (a) supplementary complete "
++            "close-delimited accepted after orderly close_notify (no planning ID), "
++            "(b) complete exact fixed-length (Content-Length equals body) accepted after "
++            "orderly close_notify (T05-VALID-COMPLETE-CONTENT-LENGTH only) AND (c) valid-JSON "
++            "prefix shorter than Content-Length refused after orderly close_notify. Abrupt TLS distinct."
+         ),
+     ),
+     CaseDecl(
+@@ -453,6 +460,19 @@
+         "peer exchanges, semantic persisted-credential proof; launch_ready gate still "
+         "required; no native PASS until an authorized run"
+     ),
++    "NP-T05-ORDERLY-CLOSE": (
++        "IMPLEMENTED_SOURCE — production Counter/CoveringHTTP/default JoinedTLS; three separate "
++        "sequential owned-peer observations after orderly close_notify: supplementary close-delimited "
++        "complete accepted (exact body; scripted wire has no CL/TE), exact fixed-length complete "
++        "accepted (exact body; scripted wire Content-Length equals body, no TE) and short-CL "
++        "valid-JSON prefix refused (IncompleteRead); peer retired/joined before classification; "
++        "no native PASS until an authorized run"
++    ),
++    "NP-T05-ABRUPT-TRUNCATION": (
++        "IMPLEMENTED_SOURCE — abrupt TLS drop without close_notify mid-body; observed client class "
++        "must be SSLEOFError or ConnectionResetError, distinct from framing/JSON refusal and ASGI "
++        "disconnect; any other class STOPs; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,7 +1,8 @@
+ {
+   "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-NONEXPIRED"
++    "NP-T05-ORDERLY-CLOSE",
++    "NP-T05-ABRUPT-TRUNCATION"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,

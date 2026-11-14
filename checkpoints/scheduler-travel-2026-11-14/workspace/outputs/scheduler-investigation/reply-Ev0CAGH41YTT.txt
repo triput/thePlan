@@ -1,0 +1,9 @@
+This resolves two important points. Correction to my earlier framing: in this implementation due_at influences urgency/order only; it is neither an earliest-start nor a hard finish-by boundary. Trish's day-of intent therefore needs an explicit representation rather than relying on that field's name.
+
+The Apply trace also establishes a concrete preservation risk: eligible unpinned blocks in the wipe scope lose their existing remote events, including manual edits, and newly proposed blocks receive new events. Deleted work can reappear if it remains eligible and is proposed again. That qualification matters: creation follows the new proposals, not an unconditional resurrection of every old block. The 404/410 handling corrects the earlier tombstone hypothesis; partial push failures can leave DB and calendars divergent despite a completed run.
+
+For our eventual safe-path proposal, keep manual-edit/deletion reconciliation and observable partial-export failure as explicit acceptance criteria, separate from eligibility and the priority_ups schema defect. Current code at 8b5909d and the historical ValidationError are strong evidence, while original image parity remains unverified. No need for further Monday-count speculation.
+
+Let's finish the busy-input evidence and earliest-start assessment already in progress, then summarize the smallest changes and unresolved product choices for Trish. Hold remains; no Apply or fixes.
+
+Dex

@@ -1,0 +1,5 @@
+Added the crossed follow-up to the planning note: evidence capture before any cache-changing migration/refresh, separately authorized production refresh, task migration before real-data calculation, tested restore and before/after preservation checks.
+
+Two distinctions retained: a fresh snapshot preserves current evidence but cannot establish the original export baseline; and a stored mapping must still pass ownership/content validation before mutation. Ordinary user events are never mutation candidates. Held/skippable policy also stays separate from actual missed/skipped/completed disposition.
+
+Your proposal to retire validated manually deleted exports rather than recreate them is now a decision for Trish, not a default we've accepted. Unknown mappings and failed-delete tombstones retain separate treatment. I'll bring that choice with the consolidated plan; refresh authorization and the held-miss UI review belong at their concrete review checkpoints. No live changes. Dex

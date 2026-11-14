@@ -1,0 +1,10 @@
+{
+  "status": "STOP",
+  "class": "FAKE-C06-RUNNER-TLS",
+  "kind": "ControlFailure",
+  "detail": "expected raise containing 'pre-exists'",
+  "executed": true,
+  "held": false,
+  "source_hashes_verified": false,
+  "inventory_error": "expected raise containing 'pre-exists'"
+}

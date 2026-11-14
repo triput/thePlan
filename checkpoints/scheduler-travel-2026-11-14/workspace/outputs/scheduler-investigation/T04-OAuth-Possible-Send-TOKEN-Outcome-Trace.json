@@ -1,0 +1,109 @@
+{
+  "atUtc": "2026-11-14T01:59:13.2212405Z",
+  "scope": "Source-only Microsoft OAuth possible-send failure through TOKEN and public dispatch; no execution or requirement closure",
+  "sourceManifest": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+  "pins": [
+    {
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_joined_https.py"
+    },
+    {
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_transport.py"
+    },
+    {
+      "sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_provider_context.py"
+    },
+    {
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\microsoft_calendar.py"
+    },
+    {
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh_import.py"
+    },
+    {
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_adapters.py"
+    },
+    {
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_role_connector.py"
+    },
+    {
+      "sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_native_orm_factory.py"
+    },
+    {
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_dispatch.py"
+    },
+    {
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_dispatch.py"
+    }
+  ],
+  "sourceFacts": [
+    {
+      "lines": "91-106",
+      "fact": "sent is set before socket.send; a later send failure establishes attempted-send uncertainty, not accepted/transmitted byte count",
+      "file": "covering_joined_https.py"
+    },
+    {
+      "lines": "328-415",
+      "fact": "OAuth failure after transport.sent becomes new CoveringRootOutcomeUnknown; response and transport close independently; retirement failure also raises new UNKNOWN",
+      "file": "covering_http_transport.py"
+    },
+    {
+      "lines": "11-53",
+      "fact": "Installed covering context routes calendar_client through _CoveringClient to purpose-specific transport; ordinary calls outside context retain httpx.Client",
+      "file": "covering_provider_context.py"
+    },
+    {
+      "lines": "294-316,1234-1269",
+      "fact": "Refresh POST must return and token fields validate before credential assignments and db.flush; an escaping request exception bypasses those subsequent assignments",
+      "file": "microsoft_calendar.py"
+    },
+    {
+      "lines": "30-61",
+      "fact": "TOKEN invokes refresh under covering_provider_transport; catches only CoveringReauthorizationRequired; UNKNOWN bypasses changed/result and terminal(commit=changed)",
+      "file": "covering_domain_adapters.py"
+    },
+    {
+      "lines": "75-90,201-225",
+      "fact": "_classified_role only defers ApiError and CoveringSubscriptionNotEligible for known retirement; UNKNOWN escapes TOKEN without entering target import",
+      "file": "covering_domain_dispatch.py"
+    },
+    {
+      "lines": "119-150",
+      "fact": "After role begin, escaping BaseException stops admission, attempts quarantine once and raises new UNKNOWN; ordinary close_known path is bypassed",
+      "file": "covering_role_connector.py"
+    },
+    {
+      "lines": "474-491",
+      "fact": "quarantine cuts off frontend and retires driver; close_known is the distinct path that would issue/validate rollback if no terminal. Quarantine is not an acknowledged rollback witness",
+      "file": "covering_native_orm_factory.py"
+    },
+    {
+      "lines": "58-73",
+      "fact": "Joined worker maps escaping root UNKNOWN to ApiError503/CALENDAR_REFRESH_OUTCOME_UNKNOWN, no automatic retry instruction",
+      "file": "covering_http_dispatch.py"
+    }
+  ],
+  "conditionalConclusions": [
+    "If an actual Microsoft OAuth request fails after attempted send under the installed covering context, source leads to TOKEN quarantine and sanitized503 UNKNOWN, not typed invalid-grant rejection or known rollback.",
+    "No import or next target should be reached after this escaping TOKEN failure. Runtime must prove exact admission/exchange counts and resource retirement.",
+    "Current client code does not execute post-refresh credential assignment after the escaping request exception; this is source control-flow evidence, not a database-state observation and not proof of provider token nonrotation."
+  ],
+  "unproved": [
+    "Actual short socket acceptance/transmitted prefix under nativeTLS",
+    "Actual native client error class and peer abort/RST effect",
+    "Known joined quarantine retirement and lock release under that stimulus",
+    "Persisted credential semantics after actual native attempt",
+    "Any partial-send family completion"
+  ],
+  "nextAction": "Use this source trace when later designing PARTIAL-SEND evidence; do not replace the active Matt BODY-STALL addendum or authorize execution",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

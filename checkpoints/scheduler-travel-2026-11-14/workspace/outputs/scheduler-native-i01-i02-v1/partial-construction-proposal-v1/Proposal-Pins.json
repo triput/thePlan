@@ -1,0 +1,10 @@
+{
+  "status": "PROPOSAL_ONLY_NOT_APPLIED_NOT_EXECUTED",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v2\\payload\\fixture\\runner_entry.py",
+  "source_sha256": "499E18F12AEF24C91B95F8F1C59D9C8AFD315FA4CBCE028DD34AF36571E88CBD",
+  "prospective_sha256": "1D1A2013A96C1AB23040084F925F1AB32B96673F217BC94C9CC28036AC11895F",
+  "diff_sha256": "7FD346CE6B8C46AAAF4B83DBE6261669DF035A566507FD61AC777F540741F2C7",
+  "scope": "register existing owned pipes before reader construction; track each constructed reader incrementally",
+  "imports_or_tests": 0,
+  "applied": false
+}

@@ -1,0 +1,47 @@
+{
+  "packet": "scheduler-t07-source-fake-prep-v4 / post-native-t07-source-fake-prep-jim-v4-2026-11-11",
+  "at_utc": "2026-11-11T20:33:21.050136+00:00",
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "supersedes_v1_tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "supersedes_v2_tip_sha256": "5875AC0D7942EA5F10B5CFAA811112BF0C9E1C7E7EB65CEF41B716265AD795F3",
+  "supersedes_v3_tip_sha256": "A6F1A2C395F8655E676F39B6553DF77BCD125F021DB585F0CFFEEC93440ED89F",
+  "base_file_count": 234,
+  "resulting_file_count": 234,
+  "changed_existing_files": 3,
+  "sources_re_diffed": false,
+  "copied_from_v3_payload": true,
+  "targets": [
+    {
+      "path": "app/services/covering_http_transport.py",
+      "resulting_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD"
+    },
+    {
+      "path": "app/services/covering_joined_https.py",
+      "resulting_sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+    },
+    {
+      "path": "app/services/covering_refresh_import.py",
+      "resulting_sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+    }
+  ],
+  "d2_one_shot_launched": false,
+  "execution_authorized": false,
+  "executed": false,
+  "invoke_verification_ps1_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "wrapper_static_disposition": "NO_BLOCKER",
+  "check_sha256": "89D508531A4D2273148451F688F8410C9BC034711A301AB0CB58AACFC44F7114",
+  "expected_sha256": "260B57B41DEB9C49F743E3483D9483C238A09CCED1DEBCC16A7B3B6C8BDA99C1",
+  "outer_admission_sha256": "ABDDD76B321E69CB194096C978A3FA48104BD0A525C0C888D82EFB11350A02C5",
+  "payload_sha256sums_sha256": "31743D610D254D5F8149063E3C02FD1DBF2063A1B7831E2F2AD92B5853160183",
+  "payload_api_pin_rows": 234,
+  "payload_bases_pin_rows": 3,
+  "source_changes_in_payload_sums": false,
+  "check_logic_changed": true,
+  "sources_changed": false,
+  "named_controls_total": 40,
+  "functional_control_rows": 32,
+  "dex_blockers_closed": [
+    "p1794428147",
+    "p1794428226"
+  ]
+}

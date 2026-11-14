@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T03:44:49.7119354Z",
+  "status": "PREPARED_NOT_EXECUTED",
+  "source_manifest": "33BB7CC5F57E2E23823941E3E2E4383C29A276AD72D7305032FE165D38711C6C",
+  "source_native_manifest": "898FAF785D34D9C187E1253C155AAD4F26F689662B395DA381E23BE118CE99EE",
+  "checker": "DADF50D08D466D1A3D321C5E4C819C748F5364B4B13DE849BCADFDAC90234A32",
+  "controls": 11,
+  "predicates": 47,
+  "behavioral_mutants": 8,
+  "packet_pins": 29,
+  "runtime_pins": 10,
+  "admission_sha256": "79972A42811BAA4C320C49EB96EDCD0C98FC813831C709ABE80B1A66B7E9F8C4",
+  "command_sha256": "282ED9FB5311A6119F6EAAD2E7C03D272E91FECE64A0A9EDBC4B790040DDF7A5",
+  "changes": "Only readiness booleans, OUTER explanatory note and derived pins; no checker/subject/expected/helper changes",
+  "review": "Dex read full native diff and checker, helper/peer source, trust dimensions, fake namespace ownership, exact mutants and limits; no static blocker found",
+  "not_proved": "Syntax/behavior unexecuted; no actual native certificate/TLS/refusal-class proof",
+  "endpoint": "unbound",
+  "human_authority": "NONE"
+}

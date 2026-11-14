@@ -1,0 +1,21 @@
+{
+  "disposition": "QUALIFIED_ACCEPT_RECONCILED",
+  "peer_tip_on_disk": "8D13014CCE0502F40E44C4D6491672A84B23211D1C6F37184122FAA4DB6C8DBB",
+  "peer_preimage_valid": true,
+  "peer_mirror_files_verified": 4,
+  "packet_input_pins_reverified": 265,
+  "peer_review_sha256": "0CA7480EAA41200F79725DC053988FFAFBB2FD6D3B136E99DBEB526A117B2338",
+  "command_sha256": "3550CC2BE81894722E488F94750823D5C925CE86A5D8EA603A7A009314F8182B",
+  "input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+  "unresolved_static_blockers": [],
+  "qualifications": [
+    "Jim QUALIFIED ACCEPT is not Trish execution authorization",
+    "image presence and port-443 unverified until authorized run",
+    "ExpectedDockerConfig operator params admit docker-ops JSON; CLI directory is inner docker_config key",
+    "fake PASS fulfilled but does not prove native entry/operator",
+    "postrun independent reconciliation still required after any future authorized invoke"
+  ],
+  "native_execution_authorized": false,
+  "executed": false,
+  "endpoint": "unbound"
+}

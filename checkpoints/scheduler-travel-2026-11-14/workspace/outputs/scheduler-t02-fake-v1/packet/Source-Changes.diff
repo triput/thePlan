@@ -1,0 +1,778 @@
+--- a/app/services/covering_transport_policy.py
++++ b/app/services/covering_transport_policy.py
+@@ -1,107 +1,121 @@
+-"""Covering-only response bounds and HTTPS destination validation.
+-
+-No default limits or profile: caller must supply the reviewed policy. Pure
+-validation/counters; never reads credentials, resolves DNS or creates sockets.
+-"""
+-from dataclasses import dataclass
+-from ipaddress import ip_address
+-from urllib.parse import urlsplit
+-from app.services.covering_request_budget import CoveringDeadlineExceeded
+-
+-
+-class CoveringTransportRefused(Exception):
+-    pass
+-
+-
+-class CoveringReauthorizationRequired(Exception):
+-    """Complete OAuth invalid_grant response; no successful rotation reported."""
+-
+-
+-@dataclass(frozen=True)
+-class ProviderLimits:
+-    event_pages: int
+-    identity_pages: int
+-    items: int
+-    response_bytes: int
+-
+-    def __post_init__(self):
+-        if any(type(v) is not int or v <= 0 for v in
+-               (self.event_pages,self.identity_pages,self.items,self.response_bytes)):
+-            raise ValueError("invalid covering limits")
+-
+-
+-@dataclass(frozen=True)
+-class HTTPSPeer:
+-    hostname: str
+-    address: str
+-    port: int
+-    ca_file: str
+-
+-    def __post_init__(self):
+-        ip_address(self.address)  # Numeric address only, never runtime DNS.
+-        if (not self.hostname or any(c in self.hostname for c in "/:@\\ \r\n")
+-                or type(self.port) is not int or not 1 <= self.port <= 65535
+-                or not self.ca_file):
+-            raise ValueError("invalid HTTPS peer")
+-
+-    def check_url(self, url):
+-        try:
+-            u=urlsplit(url)
+-            valid=(u.scheme=="https" and u.hostname==self.hostname
+-                   and (u.port or 443)==self.port and not u.username
+-                   and not u.password and not u.fragment
+-                   and not any(ord(c)<32 or ord(c)==127 for c in url))
+-        except ValueError:
+-            valid=False
+-        if not valid:
+-            raise CoveringTransportRefused("provider origin refused")
+-        return u
+-
+-
+-class ProviderCounter:
+-    def __init__(self, limits, remaining):
+-        self.limits=limits
+-        self.remaining=remaining
+-        self.pages={"event":0,"identity":0}
+-        self.items=0
+-        self.bytes=0
+-        self.stopped=False
+-
+-    def check(self):
+-        if self.stopped:
+-            raise CoveringTransportRefused("provider admission stopped")
+-        self.remaining()
+-
+-    def refuse(self):
+-        self.stopped=True
+-        raise CoveringTransportRefused("provider response limit exceeded")
+-
+-    def page(self, kind):
+-        self.check()
+-        if kind not in self.pages:
+-            raise CoveringTransportRefused("invalid page class")
+-        maximum=self.limits.event_pages if kind=="event" else self.limits.identity_pages
+-        if self.pages[kind]>=maximum:
+-            self.refuse()
+-        self.pages[kind]+=1
+-
+-    def body(self, count):
+-        self.check()
+-        if type(count) is not int or count<0:
+-            self.refuse()
+-        if count>self.limits.response_bytes-self.bytes:
+-            self.refuse()
+-        self.bytes+=count
+-
+-    def batch(self, items):
+-        self.check()
+-        if not isinstance(items,list) or len(items)>self.limits.items-self.items:
+-            self.refuse()
+-        self.items+=len(items)
+-        return items
+-
+-
+-def approved_provider_limits():
+-    # Trish approved these cumulative request-wide ceilings on 2026-11-09.
+-    return ProviderLimits(20, 10, 10_000, 16 * 1024 * 1024)
+-
++"""Covering-only response bounds and HTTPS destination validation.
++
++No default limits or profile: caller must supply the reviewed policy. Pure
++validation/counters; never reads credentials, resolves DNS or creates sockets.
++"""
++from dataclasses import dataclass
++from ipaddress import ip_address
++from urllib.parse import urlsplit
++from app.services.covering_request_budget import CoveringDeadlineExceeded
++
++
++class CoveringTransportRefused(Exception):
++    pass
++
++
++class CoveringReauthorizationRequired(Exception):
++    """Complete OAuth invalid_grant response; no successful rotation reported."""
++
++
++@dataclass(frozen=True)
++class ProviderLimits:
++    event_pages: int
++    identity_pages: int
++    items: int
++    response_bytes: int
++
++    def __post_init__(self):
++        if any(type(v) is not int or v <= 0 for v in
++               (self.event_pages,self.identity_pages,self.items,self.response_bytes)):
++            raise ValueError("invalid covering limits")
++
++
++@dataclass(frozen=True)
++class HTTPSPeer:
++    hostname: str
++    address: str
++    port: int
++    ca_file: str
++
++    def __post_init__(self):
++        ip_address(self.address)  # Numeric address only, never runtime DNS.
++        if (not self.hostname or any(c in self.hostname for c in "/:@\\ \r\n")
++                or type(self.port) is not int or not 1 <= self.port <= 65535
++                or not self.ca_file):
++            raise ValueError("invalid HTTPS peer")
++
++    def check_url(self, url):
++        try:
++            u=urlsplit(url)
++            valid=(u.scheme=="https" and u.hostname==self.hostname
++                   and (u.port or 443)==self.port and not u.username
++                   and not u.password and not u.fragment
++                   and not any(ord(c)<32 or ord(c)==127 for c in url))
++        except ValueError:
++            valid=False
++        if not valid:
++            raise CoveringTransportRefused("provider origin refused")
++        return u
++
++
++class ProviderCounter:
++    def __init__(self, limits, remaining):
++        self.limits=limits
++        self.remaining=remaining
++        self.pages={"event":0,"identity":0}
++        self.items=0
++        self.bytes=0
++        self.stopped=False
++
++    @property
++    def admission_exhausted(self):
++        # Equality stops new exchanges, not the already-admitted response.
++        return (self.stopped
++                or self.pages["event"] >= self.limits.event_pages
++                or self.pages["identity"] >= self.limits.identity_pages
++                or self.items >= self.limits.items
++                or self.bytes >= self.limits.response_bytes)
++
++    def admit(self):
++        self.check()
++        if self.admission_exhausted:
++            self.refuse()
++
++    def check(self):
++        if self.stopped:
++            raise CoveringTransportRefused("provider admission stopped")
++        self.remaining()
++
++    def refuse(self):
++        self.stopped=True
++        raise CoveringTransportRefused("provider response limit exceeded")
++
++    def page(self, kind):
++        self.admit()
++        if kind not in self.pages:
++            raise CoveringTransportRefused("invalid page class")
++        maximum=self.limits.event_pages if kind=="event" else self.limits.identity_pages
++        if self.pages[kind]>=maximum:
++            self.refuse()
++        self.pages[kind]+=1
++
++    def body(self, count):
++        self.check()
++        if type(count) is not int or count<0:
++            self.refuse()
++        if count>self.limits.response_bytes-self.bytes:
++            self.refuse()
++        self.bytes+=count
++
++    def batch(self, items):
++        self.check()
++        if not isinstance(items,list) or len(items)>self.limits.items-self.items:
++            self.refuse()
++        self.items+=len(items)
++        return items
++
++
++def approved_provider_limits():
++    # Trish approved these cumulative request-wide ceilings on 2026-11-09.
++    return ProviderLimits(20, 10, 10_000, 16 * 1024 * 1024)
++
+--- a/app/services/covering_http_transport.py
++++ b/app/services/covering_http_transport.py
+@@ -1,128 +1,128 @@
+-"""Covering HTTP/1 JSON exchange over a joined, bounded TLS transport."""
+-import http.client
+-import io
+-import json
+-from urllib.parse import urlencode
+-import httpx
+-
+-from app.services.covering_joined_https import JoinedTLS
+-from app.services.covering_transport_policy import CoveringTransportRefused, CoveringReauthorizationRequired
+-from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
+-
+-
+-class _Reader(io.RawIOBase):
+-    def __init__(self, transport, counter):
+-        self.transport=transport
+-        self.counter=counter
+-    def readable(self):
+-        return True
+-    def readinto(self, buffer):
+-        left=self.counter.limits.response_bytes-self.counter.bytes
+-        data=self.transport.receive(min(len(buffer),8192,left+1))
+-        self.counter.body(len(data))
+-        buffer[:len(data)]=data
+-        return len(data)
+-
+-
+-class _SocketView:
+-    def __init__(self, transport, counter):
+-        self.transport=transport
+-        self.counter=counter
+-    def makefile(self, *args, **kwargs):
+-        return io.BufferedReader(_Reader(self.transport,self.counter),buffer_size=8192)
+-
+-
+-class CoveringHTTP:
+-    def __init__(self, *, counter, routes, transport_factory=JoinedTLS):
+-        # routes maps exact reviewed origin/path prefix and purpose to peer.
+-        # No ambient proxy, default client, DNS fallback or credentials.
+-        self.counter=counter
+-        self.routes=tuple(routes)
+-        self.transport_factory=transport_factory
+-
+-    def request(self, method, url, *, purpose, headers=None, params=None, data=None):
+-        if method not in ("GET","POST") or (method=="POST")!=(purpose=="oauth"):
+-            raise CoveringTransportRefused("method/purpose refused")
+-        matched=None
+-        for peer,prefix,kind in self.routes:
+-            if kind!=purpose:
+-                continue
+-            try:
+-                parsed=peer.check_url(url)
+-            except CoveringTransportRefused:
+-                continue
+-            if parsed.path==prefix or (purpose!="oauth" and parsed.path.startswith(prefix.rstrip("/")+"/")):
+-                matched=(peer,parsed)
+-                break
+-        if matched is None:
+-            raise CoveringTransportRefused("provider route refused")
+-        peer,parsed=matched
+-        if purpose!="oauth":
+-            self.counter.page(purpose)
+-        else:
+-            self.counter.check()
+-        path=parsed.path or "/"
+-        query=parsed.query
+-        if params:
+-            query += ("&" if query else "")+urlencode(params,doseq=True)
+-        if query:
+-            path+="?"+query
+-        payload=urlencode(data or {}).encode("ascii") if method=="POST" else b""
+-        request_headers={"Host":peer.hostname if peer.port==443 else f"{peer.hostname}:{peer.port}",
+-                         "Connection":"close","Accept":"application/json",
+-                         "Accept-Encoding":"identity"}
+-        for key,value in (headers or {}).items():
+-            if key.lower() not in ("authorization","prefer","accept"):
+-                raise CoveringTransportRefused("unexpected request header")
+-            request_headers[key]=value
+-        if method=="POST":
+-            request_headers.update({"Content-Type":"application/x-www-form-urlencoded",
+-                                    "Content-Length":str(len(payload))})
+-        if any("\r" in str(v) or "\n" in str(v) for v in request_headers.values()):
+-            raise CoveringTransportRefused("header injection refused")
+-        wire=(f"{method} {path} HTTP/1.1\r\n"+
+-              "".join(f"{k}: {v}\r\n" for k,v in request_headers.items())+"\r\n").encode("ascii")+payload
+-        transport=self.transport_factory(peer,self.counter.remaining)
+-        response=None
+-        try:
+-            transport.open()
+-            transport.send(wire)
+-            response=http.client.HTTPResponse(_SocketView(transport,self.counter))
+-            response.begin()
+-            if 300<=response.status<400:
+-                raise CoveringTransportRefused("redirect refused")
+-            if response.getheader("Content-Encoding","identity").lower()!="identity":
+-                raise CoveringTransportRefused("encoded response refused")
+-            body=bytearray()
+-            while True:
+-                self.counter.check()
+-                part=response.read(8192)
+-                if not part:
+-                    break
+-                body.extend(part)
+-            decoded=json.loads(body)
+-            if not isinstance(decoded,dict):
+-                raise CoveringTransportRefused("JSON object required")
+-            if purpose=="oauth" and response.status>=400:
+-                if response.status!=400 or decoded.get("error")!="invalid_grant":
+-                    raise CoveringRootOutcomeUnknown()
+-                raise CoveringReauthorizationRequired()
+-            # Count returned collection elements across all targets before
+-            # passing any collection to importer/canonicalizer.
+-            for key in ("items","value"):
+-                if key in decoded:
+-                    self.counter.batch(decoded[key])
+-            return httpx.Response(response.status,content=bytes(body),
+-                headers=dict(response.getheaders()),request=httpx.Request(method,url))
+-        except CoveringReauthorizationRequired:
+-            raise
+-        except BaseException:
+-            if purpose=="oauth" and transport.sent:
+-                # Token rotation may have occurred. No retry/replay.
+-                raise CoveringRootOutcomeUnknown() from None
+-            raise
+-        finally:
+-            if response is not None:
+-                response.close()
+-            transport.close()
+-
++"""Covering HTTP/1 JSON exchange over a joined, bounded TLS transport."""
++import http.client
++import io
++import json
++from urllib.parse import urlencode
++import httpx
++
++from app.services.covering_joined_https import JoinedTLS
++from app.services.covering_transport_policy import CoveringTransportRefused, CoveringReauthorizationRequired
++from app.services.covering_target_transaction import CoveringRootOutcomeUnknown
++
++
++class _Reader(io.RawIOBase):
++    def __init__(self, transport, counter):
++        self.transport=transport
++        self.counter=counter
++    def readable(self):
++        return True
++    def readinto(self, buffer):
++        left=self.counter.limits.response_bytes-self.counter.bytes
++        data=self.transport.receive(min(len(buffer),8192,left+1))
++        self.counter.body(len(data))
++        buffer[:len(data)]=data
++        return len(data)
++
++
++class _SocketView:
++    def __init__(self, transport, counter):
++        self.transport=transport
++        self.counter=counter
++    def makefile(self, *args, **kwargs):
++        return io.BufferedReader(_Reader(self.transport,self.counter),buffer_size=8192)
++
++
++class CoveringHTTP:
++    def __init__(self, *, counter, routes, transport_factory=JoinedTLS):
++        # routes maps exact reviewed origin/path prefix and purpose to peer.
++        # No ambient proxy, default client, DNS fallback or credentials.
++        self.counter=counter
++        self.routes=tuple(routes)
++        self.transport_factory=transport_factory
++
++    def request(self, method, url, *, purpose, headers=None, params=None, data=None):
++        if method not in ("GET","POST") or (method=="POST")!=(purpose=="oauth"):
++            raise CoveringTransportRefused("method/purpose refused")
++        matched=None
++        for peer,prefix,kind in self.routes:
++            if kind!=purpose:
++                continue
++            try:
++                parsed=peer.check_url(url)
++            except CoveringTransportRefused:
++                continue
++            if parsed.path==prefix or (purpose!="oauth" and parsed.path.startswith(prefix.rstrip("/")+"/")):
++                matched=(peer,parsed)
++                break
++        if matched is None:
++            raise CoveringTransportRefused("provider route refused")
++        peer,parsed=matched
++        if purpose!="oauth":
++            self.counter.page(purpose)
++        else:
++            self.counter.admit()
++        path=parsed.path or "/"
++        query=parsed.query
++        if params:
++            query += ("&" if query else "")+urlencode(params,doseq=True)
++        if query:
++            path+="?"+query
++        payload=urlencode(data or {}).encode("ascii") if method=="POST" else b""
++        request_headers={"Host":peer.hostname if peer.port==443 else f"{peer.hostname}:{peer.port}",
++                         "Connection":"close","Accept":"application/json",
++                         "Accept-Encoding":"identity"}
++        for key,value in (headers or {}).items():
++            if key.lower() not in ("authorization","prefer","accept"):
++                raise CoveringTransportRefused("unexpected request header")
++            request_headers[key]=value
++        if method=="POST":
++            request_headers.update({"Content-Type":"application/x-www-form-urlencoded",
++                                    "Content-Length":str(len(payload))})
++        if any("\r" in str(v) or "\n" in str(v) for v in request_headers.values()):
++            raise CoveringTransportRefused("header injection refused")
++        wire=(f"{method} {path} HTTP/1.1\r\n"+
++              "".join(f"{k}: {v}\r\n" for k,v in request_headers.items())+"\r\n").encode("ascii")+payload
++        transport=self.transport_factory(peer,self.counter.remaining)
++        response=None
++        try:
++            transport.open()
++            transport.send(wire)
++            response=http.client.HTTPResponse(_SocketView(transport,self.counter))
++            response.begin()
++            if 300<=response.status<400:
++                raise CoveringTransportRefused("redirect refused")
++            if response.getheader("Content-Encoding","identity").lower()!="identity":
++                raise CoveringTransportRefused("encoded response refused")
++            body=bytearray()
++            while True:
++                self.counter.check()
++                part=response.read(8192)
++                if not part:
++                    break
++                body.extend(part)
++            decoded=json.loads(body)
++            if not isinstance(decoded,dict):
++                raise CoveringTransportRefused("JSON object required")
++            if purpose=="oauth" and response.status>=400:
++                if response.status!=400 or decoded.get("error")!="invalid_grant":
++                    raise CoveringRootOutcomeUnknown()
++                raise CoveringReauthorizationRequired()
++            # Count returned collection elements across all targets before
++            # passing any collection to importer/canonicalizer.
++            for key in ("items","value"):
++                if key in decoded:
++                    self.counter.batch(decoded[key])
++            return httpx.Response(response.status,content=bytes(body),
++                headers=dict(response.getheaders()),request=httpx.Request(method,url))
++        except CoveringReauthorizationRequired:
++            raise
++        except BaseException:
++            if purpose=="oauth" and transport.sent:
++                # Token rotation may have occurred. No retry/replay.
++                raise CoveringRootOutcomeUnknown() from None
++            raise
++        finally:
++            if response is not None:
++                response.close()
++            transport.close()
++
+--- a/app/services/covering_domain_adapters.py
++++ b/app/services/covering_domain_adapters.py
+@@ -1,76 +1,76 @@
+-"""Concrete covering token/lock/apply adapters. Construction does not bind."""
+-from app.models import CalendarAccount, CalendarSubscription
+-from app.services.covering_domain_dispatch import CoveringDomainPorts, TokenReady, TokenRejected
+-from app.services.covering_refresh_import import (
+-    _refresh_provider_access_token, covering_import_eligibility_code,
+-    import_covering_subscription_cache,
+-)
+-from app.services.covering_refresh_locks import covering_unit_locks
+-from app.services.covering_provider_context import covering_provider_transport
+-from app.services.covering_target_transaction import CoveringRootOutcomeUnknown, RootOutcome
+-from app.services.agent_auth_context import resolve_session_agent_credential
+-from app.services.agent_credentials import assert_agent_write_still_authorized
+-from app.services.covering_transport_policy import CoveringReauthorizationRequired
+-from app.services.covering_refresh_import import PREFLIGHT_ACCOUNT_DISCONNECTED
+-
+-
+-def make_domain_ports(*, settings, transport):
+-    def locks(db,target,remaining):
+-        return covering_unit_locks(db,owner_id=target.owner_id,account_id=target.account_id,
+-            subscription_id=target.subscription_id,remaining=remaining)
+-
+-    def pair(db,target):
+-        account=db.query(CalendarAccount).filter(CalendarAccount.id==target.account_id).populate_existing().one()
+-        sub=db.query(CalendarSubscription).filter(CalendarSubscription.id==target.subscription_id).populate_existing().one_or_none()
+-        if account.owner_id!=target.owner_id or (sub is not None and
+-                (sub.owner_id!=target.owner_id or sub.calendar_account_id!=target.account_id)):
+-            raise CoveringRootOutcomeUnknown()
+-        return account,sub
+-
+-    def token(db,target,remaining):
+-        if transport.counter.stopped:
+-            return TokenRejected("CALENDAR_REFRESH_PROVIDER_LIMIT_EXCEEDED")
+-        terminal=db.info.get("covering_token_terminal")
+-        if not callable(terminal):
+-            raise CoveringRootOutcomeUnknown()
+-        with locks(db,target,remaining):
+-            remaining()
+-            account,sub=pair(db,target)
+-            code=covering_import_eligibility_code(account,sub,check_missing_credentials=True)
+-            if code is not None:
+-                result=TokenRejected(code)
+-                changed=False
+-            else:
+-                before=(account.access_token_enc,account.refresh_token_enc,account.token_expires_at)
+-                try:
+-                    with covering_provider_transport(transport):
+-                        access=_refresh_provider_access_token(db,settings=settings,account=account)
+-                    changed=before!=(account.access_token_enc,account.refresh_token_enc,account.token_expires_at)
+-                    result=TokenReady(access)
+-                except CoveringReauthorizationRequired:
+-                    changed=False
+-                    result=TokenRejected(PREFLIGHT_ACCOUNT_DISCONNECTED)
+-            credential=resolve_session_agent_credential(db)
+-            if changed and credential is not None:
+-                assert_agent_write_still_authorized(db,credential)
+-            # Native factory owns this hook: exact terminal evidence, no duplicate
+-            # terminal from close_known, and no ordinary ORM commit fallback.
+-            expected=RootOutcome.COMMIT_ACKNOWLEDGED if changed else RootOutcome.ROLLBACK_ACKNOWLEDGED
+-            if terminal(commit=changed,remaining=remaining) is not expected:
+-                raise CoveringRootOutcomeUnknown()
+-        return result
+-
+-    def apply(db,target,token,window,receipt,adapter,now,remaining):
+-        if db.info.get("covering_native_flush_bound") is not adapter:
+-            raise CoveringRootOutcomeUnknown()
+-        remaining()
+-        account,sub=pair(db,target)
+-        if sub is None:
+-            raise CoveringRootOutcomeUnknown()
+-        with covering_provider_transport(transport):
+-            return import_covering_subscription_cache(db,settings=settings,account=account,
+-                subscription=sub,access_token=token.access_token,
+-                window_start=window.effective_start,window_end=window.effective_end,
+-                lock_receipt=receipt,now=now)
+-    return CoveringDomainPorts(token,locks,apply)
+-
++"""Concrete covering token/lock/apply adapters. Construction does not bind."""
++from app.models import CalendarAccount, CalendarSubscription
++from app.services.covering_domain_dispatch import CoveringDomainPorts, TokenReady, TokenRejected
++from app.services.covering_refresh_import import (
++    _refresh_provider_access_token, covering_import_eligibility_code,
++    import_covering_subscription_cache,
++)
++from app.services.covering_refresh_locks import covering_unit_locks
++from app.services.covering_provider_context import covering_provider_transport
++from app.services.covering_target_transaction import CoveringRootOutcomeUnknown, RootOutcome
++from app.services.agent_auth_context import resolve_session_agent_credential
++from app.services.agent_credentials import assert_agent_write_still_authorized
++from app.services.covering_transport_policy import CoveringReauthorizationRequired
++from app.services.covering_refresh_import import PREFLIGHT_ACCOUNT_DISCONNECTED
++
++
++def make_domain_ports(*, settings, transport):
++    def locks(db,target,remaining):
++        return covering_unit_locks(db,owner_id=target.owner_id,account_id=target.account_id,
++            subscription_id=target.subscription_id,remaining=remaining)
++
++    def pair(db,target):
++        account=db.query(CalendarAccount).filter(CalendarAccount.id==target.account_id).populate_existing().one()
++        sub=db.query(CalendarSubscription).filter(CalendarSubscription.id==target.subscription_id).populate_existing().one_or_none()
++        if account.owner_id!=target.owner_id or (sub is not None and
++                (sub.owner_id!=target.owner_id or sub.calendar_account_id!=target.account_id)):
++            raise CoveringRootOutcomeUnknown()
++        return account,sub
++
++    def token(db,target,remaining):
++        if transport.counter.admission_exhausted:
++            return TokenRejected("CALENDAR_REFRESH_PROVIDER_LIMIT_EXCEEDED")
++        terminal=db.info.get("covering_token_terminal")
++        if not callable(terminal):
++            raise CoveringRootOutcomeUnknown()
++        with locks(db,target,remaining):
++            remaining()
++            account,sub=pair(db,target)
++            code=covering_import_eligibility_code(account,sub,check_missing_credentials=True)
++            if code is not None:
++                result=TokenRejected(code)
++                changed=False
++            else:
++                before=(account.access_token_enc,account.refresh_token_enc,account.token_expires_at)
++                try:
++                    with covering_provider_transport(transport):
++                        access=_refresh_provider_access_token(db,settings=settings,account=account)
++                    changed=before!=(account.access_token_enc,account.refresh_token_enc,account.token_expires_at)
++                    result=TokenReady(access)
++                except CoveringReauthorizationRequired:
++                    changed=False
++                    result=TokenRejected(PREFLIGHT_ACCOUNT_DISCONNECTED)
++            credential=resolve_session_agent_credential(db)
++            if changed and credential is not None:
++                assert_agent_write_still_authorized(db,credential)
++            # Native factory owns this hook: exact terminal evidence, no duplicate
++            # terminal from close_known, and no ordinary ORM commit fallback.
++            expected=RootOutcome.COMMIT_ACKNOWLEDGED if changed else RootOutcome.ROLLBACK_ACKNOWLEDGED
++            if terminal(commit=changed,remaining=remaining) is not expected:
++                raise CoveringRootOutcomeUnknown()
++        return result
++
++    def apply(db,target,token,window,receipt,adapter,now,remaining):
++        if db.info.get("covering_native_flush_bound") is not adapter:
++            raise CoveringRootOutcomeUnknown()
++        remaining()
++        account,sub=pair(db,target)
++        if sub is None:
++            raise CoveringRootOutcomeUnknown()
++        with covering_provider_transport(transport):
++            return import_covering_subscription_cache(db,settings=settings,account=account,
++                subscription=sub,access_token=token.access_token,
++                window_start=window.effective_start,window_end=window.effective_end,
++                lock_receipt=receipt,now=now)
++    return CoveringDomainPorts(token,locks,apply)
++
+--- a/tests/test_covering_transport_policy.py
++++ b/tests/test_covering_transport_policy.py
+@@ -1,65 +1,65 @@
+-"""Prepared transport policy cases. No real DNS, sockets, TLS or database."""
+-import pytest
+-from app.services.covering_transport_policy import (
+-    HTTPSPeer, ProviderCounter, ProviderLimits, CoveringTransportRefused,
+-    approved_provider_limits,
+-)
+-
+-
+-def test_request_limits_are_cumulative_across_targets():
+-    c=ProviderCounter(ProviderLimits(2,1,3,10),lambda:100)
+-    c.page("event"); c.batch([1,2]); c.body(4)
+-    c.page("event"); c.batch([3]); c.body(6)
+-    with pytest.raises(CoveringTransportRefused):
+-        c.page("event")
+-    assert c.stopped
+-    with pytest.raises(CoveringTransportRefused):
+-        c.page("identity")
+-
+-
+-def test_byte_overflow_is_rejected_before_buffer_growth():
+-    c=ProviderCounter(ProviderLimits(2,2,3,4),lambda:100)
+-    c.body(4)
+-    with pytest.raises(CoveringTransportRefused):
+-        c.body(1)
+-    assert c.bytes==4 and c.stopped
+-
+-
+-def test_item_overflow_does_not_admit_partial_batch():
+-    c=ProviderCounter(ProviderLimits(2,2,3,4),lambda:100)
+-    c.batch([1,2])
+-    with pytest.raises(CoveringTransportRefused):
+-        c.batch([3,4])
+-    assert c.items==2 and c.stopped
+-
+-
+-@pytest.mark.parametrize("url", [
+-    "http://graph.example.test/v1/events",
+-    "https://foreign.example.test/v1/events",
+-    "https://graph.example.test:444/v1/events",
+-    "https://user@graph.example.test/v1/events",
+-    "https://graph.example.test/v1/events#fragment",
+-])
+-def test_unapproved_origin_refused(url):
+-    peer=HTTPSPeer("graph.example.test","192.0.2.1",443,"synthetic-ca.pem")
+-    with pytest.raises(CoveringTransportRefused):
+-        peer.check_url(url)
+-
+-
+-def test_numeric_dial_address_required():
+-    with pytest.raises(ValueError):
+-        HTTPSPeer("graph.example.test","resolve-me.example.test",443,"synthetic-ca.pem")
+-
+-
+-def test_approved_limits_exact():
+-    assert approved_provider_limits()==ProviderLimits(20,10,10_000,16*1024*1024)
+-
+-
+-def test_provider_limit_preflight_needs_no_token_terminal():
+-    from types import SimpleNamespace
+-    from app.services.covering_domain_adapters import make_domain_ports
+-    transport=SimpleNamespace(counter=SimpleNamespace(stopped=True))
+-    ports=make_domain_ports(settings=None,transport=transport)
+-    result=ports.token(SimpleNamespace(info={}),object(),lambda:100)
+-    assert result.code=="CALENDAR_REFRESH_PROVIDER_LIMIT_EXCEEDED"
+-
++"""Prepared transport policy cases. No real DNS, sockets, TLS or database."""
++import pytest
++from app.services.covering_transport_policy import (
++    HTTPSPeer, ProviderCounter, ProviderLimits, CoveringTransportRefused,
++    approved_provider_limits,
++)
++
++
++def test_request_limits_are_cumulative_across_targets():
++    c=ProviderCounter(ProviderLimits(2,1,3,10),lambda:100)
++    c.page("event"); c.batch([1,2]); c.body(4)
++    c.page("event"); c.batch([3]); c.body(6)
++    with pytest.raises(CoveringTransportRefused):
++        c.page("event")
++    assert c.stopped
++    with pytest.raises(CoveringTransportRefused):
++        c.page("identity")
++
++
++def test_byte_overflow_is_rejected_before_buffer_growth():
++    c=ProviderCounter(ProviderLimits(2,2,3,4),lambda:100)
++    c.body(4)
++    with pytest.raises(CoveringTransportRefused):
++        c.body(1)
++    assert c.bytes==4 and c.stopped
++
++
++def test_item_overflow_does_not_admit_partial_batch():
++    c=ProviderCounter(ProviderLimits(2,2,3,4),lambda:100)
++    c.batch([1,2])
++    with pytest.raises(CoveringTransportRefused):
++        c.batch([3,4])
++    assert c.items==2 and c.stopped
++
++
++@pytest.mark.parametrize("url", [
++    "http://graph.example.test/v1/events",
++    "https://foreign.example.test/v1/events",
++    "https://graph.example.test:444/v1/events",
++    "https://user@graph.example.test/v1/events",
++    "https://graph.example.test/v1/events#fragment",
++])
++def test_unapproved_origin_refused(url):
++    peer=HTTPSPeer("graph.example.test","192.0.2.1",443,"synthetic-ca.pem")
++    with pytest.raises(CoveringTransportRefused):
++        peer.check_url(url)
++
++
++def test_numeric_dial_address_required():
++    with pytest.raises(ValueError):
++        HTTPSPeer("graph.example.test","resolve-me.example.test",443,"synthetic-ca.pem")
++
++
++def test_approved_limits_exact():
++    assert approved_provider_limits()==ProviderLimits(20,10,10_000,16*1024*1024)
++
++
++def test_provider_limit_preflight_needs_no_token_terminal():
++    from types import SimpleNamespace
++    from app.services.covering_domain_adapters import make_domain_ports
++    transport=SimpleNamespace(counter=SimpleNamespace(admission_exhausted=True))
++    ports=make_domain_ports(settings=None,transport=transport)
++    result=ports.token(SimpleNamespace(info={}),object(),lambda:100)
++    assert result.code=="CALENDAR_REFRESH_PROVIDER_LIMIT_EXCEEDED"
++

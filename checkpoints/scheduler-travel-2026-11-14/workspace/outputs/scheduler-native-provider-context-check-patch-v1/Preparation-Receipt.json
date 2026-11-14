@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-12T21:03:10.3902044Z",
+  "scope": "One approved named checker role; separate fresh-copy source contribution",
+  "original_sha256": "2F048873B9C0B3049B0EE8FCED9586585B43A065029968998C7CF1357FB9A11C",
+  "candidate_sha256": "2A2D5729B171C5FDED493976813922FD44CB3D2624F8077F08C05E81D2F83565",
+  "diff_sha256": "08851E2DB251F7A5AA0BF47B2CD52277CE187688E3B42330FA55474FB8A98A26",
+  "changes": [
+    "Handle literal Assign and AnnAssign registry declarations with exact unique ID/order",
+    "Locate dual oracle names under exact CaseDecl AST rather than anywhere in source",
+    "Extract actual raw-pinned _current assignment and covering_provider_transport function, not a copied model",
+    "Use independent Context per positive/mutant probe; reject omitted nest guard and finally reset"
+  ],
+  "jim_workspace_changed": false,
+  "imports_compilation_tests_executed": false,
+  "launch_ready": false,
+  "remaining": [
+    "Jim must reconcile new exact output predicates and full checker/runtime pins",
+    "Other current checker shape-only or metadata-evidence controls are not behavioral proof",
+    "First native ASGI case and native/TLS properties remain unverified"
+  ]
+}

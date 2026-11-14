@@ -1,0 +1,2203 @@
+{
+  "class": "FAKE-FRAMING-ACK-EXPECTED",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "executed_in_preparation": false,
+  "policy_compatibility": "ACCEPTED_HEADER_COMPATIBILITY_POLICY",
+  "wire_count": 73,
+  "wire_ids_in_order": [
+    "F01",
+    "F02",
+    "F03-oauth",
+    "F04-oauth",
+    "F05-oauth",
+    "F05b-oauth",
+    "C-BASE",
+    "C-EXT-VALID",
+    "C-TRAILER-VALID",
+    "C-DATA-SHORT",
+    "C-SEP-SHORT",
+    "C-SEP-WRONG",
+    "C-ZERO-ABSENT",
+    "C-TRAILER-EOF",
+    "C-ZERO-NO-CRLF",
+    "C-TRAILER-LINE-EOF",
+    "C-TRAILER-MALFORMED",
+    "F12a-INVALID-JSON-EVENT",
+    "F12a-INVALID-JSON-IDENTITY",
+    "F12a-INVALID-JSON-OAUTH",
+    "F12a-NONOBJECT-EVENT",
+    "F12a-NONOBJECT-IDENTITY",
+    "F12a-NONOBJECT-OAUTH",
+    "F12b-ENCODING-EVENT",
+    "F12b-ENCODING-IDENTITY",
+    "F12b-ENCODING-OAUTH",
+    "CALLER-CLIENT-EVENT-F01",
+    "CALLER-CLIENT-OAUTH-F04",
+    "CALLER-CLIENT-OAUTH-F05b",
+    "CALLER-REFRESH-TOKEN-F04",
+    "H-DUP-IDENTICAL-FIELDS",
+    "H-DUP-IDENTICAL-LIST",
+    "H-CONFLICT-FIELDS-2-3",
+    "H-CONFLICT-FIELDS-3-2",
+    "H-CONFLICT-LIST-2-3",
+    "H-CONFLICT-LIST-3-2",
+    "H-DECIMAL-02",
+    "H-DECIMAL-DUP-FIELDS",
+    "H-DECIMAL-DUP-LIST",
+    "H-INVALID",
+    "H-INVALID-PLUS",
+    "H-INVALID-NEG",
+    "H-INVALID-EMPTY",
+    "H-INVALID-NONDEC",
+    "H-INVALID-DECIMAL-EQ",
+    "H-DECIMAL-EQ-DUP-FIELDS",
+    "H-DECIMAL-EQ-DUP-LIST",
+    "H-TE-CL",
+    "H-TE-NONEXACT+CL",
+    "H-TE-REPEAT",
+    "H-TE-LIST",
+    "H-TE-MIXED",
+    "H-TE-MIXED-CHUNKED-GZIP",
+    "CD-ORDERLY",
+    "CD-ABRUPT",
+    "CD-DEADLINE",
+    "F06",
+    "H-DEFECT-COLONLESS",
+    "C-NEG-SIZE",
+    "C-TRAILER-COUNT-100",
+    "C-TRAILER-COUNT-101",
+    "H-TE-WS-TRAIL",
+    "H-TE-WS-LEAD",
+    "TLS-OPTION-FORWARD",
+    "CLEANUP-C-R02",
+    "CLEANUP-C-R03",
+    "CLEANUP-C-R04",
+    "CLEANUP-C-R05",
+    "CLEANUP-C-R06",
+    "EXCESS-ITEM-BYTE",
+    "PRIMARY-BOTH-CLOSES",
+    "OAUTH-UNKNOWN-RETIREMENT",
+    "SOURCE-INVENTORY"
+  ],
+  "inputs": {
+    "F01": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "F02": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "F03-oauth": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "F04-oauth": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": "CoveringReauthorizationRequired",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": "CoveringReauthorizationRequired",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "F05-oauth": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "F05b-oauth": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-BASE": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-EXT-VALID": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-TRAILER-VALID": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-DATA-SHORT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "C-SEP-SHORT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "C-SEP-WRONG": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-ZERO-ABSENT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "C-TRAILER-EOF": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-ZERO-NO-CRLF": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-TRAILER-LINE-EOF": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "IncompleteRead",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "C-TRAILER-MALFORMED": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "F12a-INVALID-JSON-EVENT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "JSONDecodeError",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "JSONDecodeError",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "F12a-INVALID-JSON-IDENTITY": {
+      "kind": "wire",
+      "purpose": "identity",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "JSONDecodeError",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "JSONDecodeError",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "F12a-INVALID-JSON-OAUTH": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_UNKNOWN",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_UNKNOWN"
+      }
+    },
+    "F12a-NONOBJECT-EVENT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_REFUSE"
+      }
+    },
+    "F12a-NONOBJECT-IDENTITY": {
+      "kind": "wire",
+      "purpose": "identity",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_REFUSE"
+      }
+    },
+    "F12a-NONOBJECT-OAUTH": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_UNKNOWN",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_UNKNOWN"
+      }
+    },
+    "F12b-ENCODING-EVENT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_REFUSE"
+      }
+    },
+    "F12b-ENCODING-IDENTITY": {
+      "kind": "wire",
+      "purpose": "identity",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_REFUSE"
+      }
+    },
+    "F12b-ENCODING-OAUTH": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_UNKNOWN",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_UNKNOWN"
+      }
+    },
+    "CALLER-CLIENT-EVENT-F01": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
+      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
+      "historical_original_distinct_from_candidate": true,
+      "transcript_ref": "F01",
+      "historical_original_observation_boundary": "calendar_client under covering_provider_transport",
+      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "CALLER-CLIENT-OAUTH-F04": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": "CoveringReauthorizationRequired",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
+      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
+      "historical_original_distinct_from_candidate": true,
+      "transcript_ref": "F04-oauth",
+      "historical_original_observation_boundary": "calendar_client under covering_provider_transport",
+      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": "CoveringReauthorizationRequired",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "CALLER-CLIENT-OAUTH-F05b": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
+      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
+      "historical_original_distinct_from_candidate": true,
+      "transcript_ref": "F05b-oauth",
+      "historical_original_observation_boundary": "calendar_client under covering_provider_transport",
+      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "CALLER-REFRESH-TOKEN-F04": {
+      "kind": "wire",
+      "purpose": "oauth",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": "CoveringReauthorizationRequired",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "proof_class": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+      "candidate_exercises": "CoveringHTTP.request via run_http_catch - NOT _CoveringClient / refresh_access_token",
+      "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
+      "historical_original_distinct_from_candidate": true,
+      "transcript_ref": "F04-oauth",
+      "historical_original_observation_boundary": "google_calendar.refresh_access_token",
+      "historical_original_owning_caller": "google_calendar.refresh_access_token",
+      "note": "Candidate observation is direct HTTP replay of the aliased transcript under CoveringHTTP.request. Immutable T05 original caller evidence remains distinct historical proof; reusing the CALLER id alone does not manufacture new owning-caller evidence. Owning-caller obligation preserved.",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": "CoveringReauthorizationRequired",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DUP-IDENTICAL-FIELDS": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DUP-IDENTICAL-LIST": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-CONFLICT-FIELDS-2-3": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-CONFLICT-FIELDS-3-2": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-CONFLICT-LIST-2-3": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-CONFLICT-LIST-3-2": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DECIMAL-02": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DECIMAL-DUP-FIELDS": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DECIMAL-DUP-LIST": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-INVALID": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-INVALID-PLUS": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-INVALID-NEG": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-INVALID-EMPTY": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-INVALID-NONDEC": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-INVALID-DECIMAL-EQ": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DECIMAL-EQ-DUP-FIELDS": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DECIMAL-EQ-DUP-LIST": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-TE-CL": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-TE-NONEXACT+CL": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_REFUSE"
+      }
+    },
+    "H-TE-REPEAT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-TE-LIST": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "H-TE-MIXED": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "H-TE-MIXED-CHUNKED-GZIP": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "CD-ORDERLY": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "CD-ABRUPT": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "CD-DEADLINE": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "RemoteDisconnected",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "RemoteDisconnected",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_PARSER_ERROR"
+      }
+    },
+    "F06": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": true,
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted_outcome": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        },
+        "original_evidence": "T05-IMMUTABLE",
+        "t05_predicted": "OBSERVED_SUCCESS"
+      }
+    },
+    "H-DEFECT-COLONLESS": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": false,
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "note": "malformed-header defect stimulus",
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        }
+      }
+    },
+    "C-NEG-SIZE": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": false,
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "note": "P2 negative chunk size refuse before read(-1)",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        }
+      }
+    },
+    "C-TRAILER-COUNT-100": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": false,
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "note": "P1 trailer count boundary exact 100",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        }
+      }
+    },
+    "C-TRAILER-COUNT-101": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": false,
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "HTTPException",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "note": "P1 trailer count overflow 101",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_PARSER_ERROR",
+          "exception_type": "HTTPException",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        }
+      }
+    },
+    "H-TE-WS-TRAIL": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": false,
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "note": "P3 / Review-2: trailing SP remains parser-visible; raw_te.lower()!=\"chunked\"; REFUSE. Trailing OWS not stripped by Compat32.header_source_parse.",
+      "header_policy_cite": {
+        "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+        "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_REFUSE",
+          "exception_type": "CoveringTransportRefused",
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        }
+      }
+    },
+    "H-TE-WS-LEAD": {
+      "kind": "wire",
+      "purpose": "event",
+      "compare_original_to_t05": false,
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      },
+      "note": "Review-2 wire oracle: Compat32.header_source_parse lstrips leading SP/HTAB after colon; get_all sees parser-visible \"chunked\" (not literal wire). Actual HTTPResponse path with LEADING field OWS \u21d2 chunked positive / PASS. Helper Message(\" chunked\") \u2260 wire outcome. No raw-header interception.",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "candidate": {
+          "observed_outcome": "OBSERVED_SUCCESS",
+          "exception_type": null,
+          "response_close_calls": 1,
+          "transport_close_calls": 1,
+          "negative_receive_requested": false,
+          "policy_pending": false
+        }
+      }
+    },
+    "TLS-OPTION-FORWARD": {
+      "kind": "tls_option",
+      "exact_predicate": {
+        "observation": {
+          "suppress_ragged_eofs_forwarded_false": true,
+          "wrap_exception_propagated": true,
+          "native_tls_proven": false
+        }
+      },
+      "predicted_outcome": "PASS"
+    },
+    "CLEANUP-C-R02": {
+      "kind": "cleanup_combo",
+      "combo": "C-R02",
+      "wire_id": "F01",
+      "candidate": {
+        "exact_predicate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown"
+        }
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "lineage": "T07-fake-v2 C-R02..C-R06"
+        }
+      }
+    },
+    "CLEANUP-C-R03": {
+      "kind": "cleanup_combo",
+      "combo": "C-R03",
+      "wire_id": "F01",
+      "candidate": {
+        "exact_predicate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown"
+        }
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "lineage": "T07-fake-v2 C-R02..C-R06"
+        }
+      }
+    },
+    "CLEANUP-C-R04": {
+      "kind": "cleanup_combo",
+      "combo": "C-R04",
+      "wire_id": "F01",
+      "candidate": {
+        "exact_predicate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown"
+        }
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "lineage": "T07-fake-v2 C-R02..C-R06"
+        }
+      }
+    },
+    "CLEANUP-C-R05": {
+      "kind": "cleanup_combo",
+      "combo": "C-R05",
+      "wire_id": "F01",
+      "candidate": {
+        "exact_predicate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown"
+        }
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "lineage": "T07-fake-v2 C-R02..C-R06"
+        }
+      }
+    },
+    "CLEANUP-C-R06": {
+      "kind": "cleanup_combo",
+      "combo": "C-R06",
+      "wire_id": "F01",
+      "candidate": {
+        "exact_predicate": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown"
+        }
+      },
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "lineage": "T07-fake-v2 C-R02..C-R06"
+        }
+      }
+    },
+    "EXCESS-ITEM-BYTE": {
+      "kind": "excess",
+      "exact_predicate": {
+        "observation": {
+          "byte_excess_outcome": "OBSERVED_REFUSE",
+          "byte_excess_exception": "CoveringTransportRefused",
+          "item_excess_outcome": "OBSERVED_REFUSE",
+          "item_excess_exception": "CoveringTransportRefused"
+        }
+      },
+      "predicted_outcome": "PASS"
+    },
+    "PRIMARY-BOTH-CLOSES": {
+      "kind": "primary_both_closes",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "three_roles_present": true,
+          "response_close_role": "FakeResponseCloseError",
+          "transport_close_role": "FakeTransportCloseError"
+        }
+      },
+      "predicted_outcome": "PASS"
+    },
+    "OAUTH-UNKNOWN-RETIREMENT": {
+      "kind": "oauth_retirement",
+      "exact_predicate": {
+        "observation": {
+          "observed_outcome": "OBSERVED_UNKNOWN",
+          "exception_type": "CoveringRootOutcomeUnknown",
+          "transport_sent_observed": true
+        }
+      },
+      "predicted_outcome": "PASS"
+    },
+    "SOURCE-INVENTORY": {
+      "kind": "inventory",
+      "predicted_outcome": "PASS",
+      "exact_predicate": {
+        "changed_files": [
+          "app/services/covering_http_transport.py",
+          "app/services/covering_joined_https.py"
+        ],
+        "source_count": 468,
+        "dex_p1_p2_p3_addressed": true,
+        "provisional_review_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+        "staged_read_hash_B04B3D6B_superseded_by": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+        "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
+        "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0"
+      }
+    }
+  },
+  "dex_provisional_review": {
+    "path_review_1": "outputs/scheduler-framing-completion-design-v1/Framing-Candidate-Provisional-Source-Review-1.md",
+    "sha256_review_1": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+    "path_review_2": "outputs/scheduler-framing-completion-design-v1/Framing-Candidate-Provisional-Source-Review-2.md",
+    "sha256_review_2": "4BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E",
+    "staged_read_hash": "B04B3D6B77562EDFA24CD6F6D8B3225E3D149004F64E9279A08B397E56883078",
+    "candidate_after_p1_p2_p3": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "candidate_unchanged_v2": true,
+    "p1": "trailer _MAXHEADERS count retained + final CRLF; boundary 100 / overflow 101",
+    "p2": "unsigned hex chunk-size admission; negative refuse before read(-1)",
+    "p3": "TE gate raw lower==chunked no strip, coherent with begin()/response.chunked; CL SP/HTAB OWS only. Wire LEADING TE OWS \u2192 parser-visible chunked \u2192 PASS; TRAILING TE OWS \u2192 refuse. get_all = parser-visible, not literal wire.",
+    "review_2_disposition": "OWS oracle/docs corrected in prep-v2; app candidate hash retained; no raw-header interception; no execute.",
+    "prep_v3": "result-oracle schema + CALLER labels + noncircular OUTER admission; candidate 29CBD53C/76017776 retained; header policy APPROVED cites AEAE5343/1C932F1A"
+  },
+  "changed_accepted_refused_spellings": {
+    "newly_refused_framing": [
+      "F02",
+      "F03-oauth",
+      "F05-oauth",
+      "C-SEP-WRONG",
+      "C-TRAILER-EOF",
+      "C-ZERO-NO-CRLF",
+      "C-TRAILER-LINE-EOF",
+      "C-NEG-SIZE",
+      "C-TRAILER-COUNT-101"
+    ],
+    "preserved_accepted_positives": [
+      "F01",
+      "F04-oauth",
+      "F05b-oauth",
+      "C-BASE",
+      "C-EXT-VALID",
+      "C-TRAILER-VALID",
+      "H-DECIMAL-02",
+      "CD-ORDERLY",
+      "CD-ABRUPT",
+      "F06",
+      "C-TRAILER-COUNT-100",
+      "H-TE-WS-LEAD"
+    ],
+    "preserved_oauth_unknowns": [
+      "F12a-INVALID-JSON-OAUTH",
+      "F12a-NONOBJECT-OAUTH",
+      "F12b-ENCODING-OAUTH"
+    ],
+    "newly_refused_under_approved_header_policy": [
+      "H-DUP-IDENTICAL-FIELDS",
+      "H-DUP-IDENTICAL-LIST",
+      "H-CONFLICT-FIELDS-2-3",
+      "H-CONFLICT-FIELDS-3-2",
+      "H-CONFLICT-LIST-2-3",
+      "H-CONFLICT-LIST-3-2",
+      "H-DECIMAL-DUP-FIELDS",
+      "H-DECIMAL-DUP-LIST",
+      "H-DECIMAL-EQ-DUP-FIELDS",
+      "H-DECIMAL-EQ-DUP-LIST",
+      "H-INVALID",
+      "H-INVALID-PLUS",
+      "H-INVALID-NEG",
+      "H-INVALID-EMPTY",
+      "H-INVALID-NONDEC",
+      "H-INVALID-DECIMAL-EQ",
+      "H-TE-CL",
+      "H-TE-REPEAT",
+      "H-TE-LIST",
+      "H-TE-MIXED",
+      "H-TE-MIXED-CHUNKED-GZIP",
+      "H-TE-NONEXACT+CL",
+      "H-TE-WS-TRAIL",
+      "H-DEFECT-COLONLESS",
+      "C-TRAILER-MALFORMED"
+    ]
+  },
+  "header_policy": {
+    "status": "APPROVED",
+    "decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+    "approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
+    "decision_path": "outputs/scheduler-framing-completion-design-v1/Header-Compatibility-Decision-For-Review.md",
+    "approval_path": "outputs/scheduler-framing-completion-design-v1/Trish-Header-Policy-Approval.json",
+    "note": "Leading wire TE OWS accepted (parser-visible chunked); trailing TE OWS refused. No new trailer/extension grammar beyond stated checks. OAuth UNKNOWN/counter/retirement preserved. Native orderly-vs-abrupt TLS remains unproved."
+  },
+  "dex_revise_audit": {
+    "path": "outputs/scheduler-framing-completion-design-v1/Framing-v2-Static-Admission-Audit.json",
+    "sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
+    "status": "addressed_in_prep_v3"
+  }
+}

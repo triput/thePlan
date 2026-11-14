@@ -1,0 +1,90 @@
+{
+  "kind": "SuiteStop_offline_evidence_vs_hypotheses",
+  "decision": "QUALIFIED_TRACE",
+  "native_pass": false,
+  "executed_this_seat": false,
+  "packet_mutated": false,
+  "evidence_mutated": false,
+  "endpoint": "unbound",
+  "launch_retry_authority": false,
+  "evidence_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence",
+  "packet_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3",
+  "attributed_facts": [
+    {
+      "id": "receipt_sha_match",
+      "fact": "native-provider-host-receipt.jsonl on-disk SHA256 matches FC3822C3A1CA0DBD7F6903BDACB0E6F32E2553381044841B1B72AB3B73F63D6D",
+      "support": ["native-provider-host-receipt.jsonl", "Dex-Stopped-Run-Reconciliation.json.receipt_sha256"]
+    },
+    {
+      "id": "attach_protocol",
+      "fact": "Host attempt used attach_protocol=np_provider_no_n06_n07_default; ProviderDockerOps.run_attached with reuse_legacy_gate_protocol=False issues only docker start --attach",
+      "support": ["receipt.attempt", "np_supervisor.py:124-137", "np_supervisor.py:203", "np_supervisor.py:347"]
+    },
+    {
+      "id": "runner_stop_record",
+      "fact": "Host recorded runner_stop {cli_exit_code:125, diagnostic_unavailable:true, kind:SuiteStop, status:STOP} via _record_runner_stop on {status,kind}-only envelope",
+      "support": ["receipt.runner_stop", "docker_transport.py:54-123", "docker_transport.py:181-183"]
+    },
+    {
+      "id": "stop_envelope_bytes",
+      "fact": "UTF-8 {\"kind\": \"SuiteStop\", \"status\": \"STOP\"}\\n is exactly 40 bytes and SHA256 49a5093c39e74f793c10d9fd2d54f18774dbded638dce3ba6d83ee6c50ae399b; matches receipt docker_output.stderr_sha256",
+      "support": ["receipt.docker_output after attach", "np_runner_entry.py:1455-1466"]
+    },
+    {
+      "id": "no_report",
+      "fact": "Empty stdout (e3b0c442…) proves success report was never written; report path is only after run_suite returns",
+      "support": ["receipt.docker_output.stdout_sha256", "np_runner_entry.py:1424-1452"]
+    },
+    {
+      "id": "kind_suitestop",
+      "fact": "STOP kind SuiteStop means exception class reaching __main__ was SuiteStop, not RunnerEntryHeld or bare RuntimeError from integrated mismatches",
+      "support": ["receipt.runner_stop.kind", "np_suite.py:357", "np_runner_entry.py:64", "np_runner_entry.py:1458-1465"]
+    },
+    {
+      "id": "exit_125_intentional",
+      "fact": "cli_exit_code 125 is runner intentional STOP exit; container StartedAt!=FinishedAt (~5s) rules out daemon 125-before-start",
+      "support": ["runner-read-only-inspection.json State", "np_runner_entry.py:1465"]
+    },
+    {
+      "id": "host_stopped_runtimeerror",
+      "fact": "After runner_stop, docker_transport raises RuntimeError('Docker exit/stderr failure'); outer stopped event records kind RuntimeError with cleanup gated and retry false",
+      "support": ["receipt.stopped", "docker_transport.py:181-183"]
+    },
+    {
+      "id": "db_still_running",
+      "fact": "Database container remained running; success_cleanup_ran false; failure_cleanup_authorized false",
+      "support": ["Dex-Stopped-Run-Reconciliation.json", "database-read-only-inspection.json"]
+    },
+    {
+      "id": "no_pass_events",
+      "fact": "Receipt has no provider_attach_report and no suite_pass after attach failure",
+      "support": ["native-provider-host-receipt.jsonl"]
+    }
+  ],
+  "non_attributed_hypotheses": [
+    {
+      "id": "which_suitestop_site",
+      "hypothesis": "A specific raise SuiteStop(...) site (message/path/line) in NP-V-MS-NONEXPIRED case body, oracle, peer-retirement, or framework_stop wrap",
+      "status": "NOT_ATTRIBUTED",
+      "reason": "STOP envelope carries status+kind only; diagnostic_unavailable=true; expanding beyond hashed 40-byte identity is forbidden on this seat"
+    },
+    {
+      "id": "case_phase",
+      "hypothesis": "Failure phase was pre-peer vs covering-refresh vs retirement",
+      "status": "NOT_ATTRIBUTED",
+      "reason": "No diagnostic frames, no report case_results, no console retention on STOP"
+    },
+    {
+      "id": "invented_root_cause",
+      "hypothesis": "Any single preferred root cause among the many SuiteStop raise sites",
+      "status": "REFUSED",
+      "reason": "Would invent attribution beyond evidence"
+    }
+  ],
+  "narrowest_next_step": {
+    "kind": "docs_design_only",
+    "proposal": "Trish-gated failure-evidence design card to optionally admit bounded STOP diagnostic frames (owned .py path+line only; schema already sketched in docker_transport._record_runner_stop)",
+    "why_not_static_site_map_alone": "A static NP-V-MS-NONEXPIRED SuiteStop site map is useful inventory but cannot select which site produced this envelope",
+    "why_not_rerun_or_repair": "Launch authority consumed; endpoint unbound; no retry authority; failed packet and evidence must remain frozen; failure cleanup is Trish's separate card"
+  }
+}

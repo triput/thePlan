@@ -1,0 +1,13 @@
+{
+  "status": "CLEANUP_COMPLETE_INDEPENDENTLY_RECONCILED",
+  "receipt_sha256": "2FB901B4AE779B73A36345EDF71A580A8401E03C4A3BA31C736D9348DE60E8DB",
+  "docker_commands": 9,
+  "both_exact_ids_absent": true,
+  "database_SIGINT_exit_code": 0,
+  "all_capture_workers_joined": true,
+  "force": false,
+  "retry": false,
+  "native_rerun_authorized": false,
+  "failed_run_evidence_preserved": true,
+  "endpoint": "unbound"
+}

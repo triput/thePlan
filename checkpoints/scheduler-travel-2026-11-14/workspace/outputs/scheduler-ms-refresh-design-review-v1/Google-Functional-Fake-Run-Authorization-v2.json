@@ -1,0 +1,10 @@
+{
+  "status": "CONSUMED_FOR_THIS_ATTEMPT_NO_RETRY",
+  "invocations_authorized": 1,
+  "admission_sha256": "F29AD9CBAC2E6667D28557C2B03CE171F70A8897FB312614F4180D4658A87766",
+  "user_authorization": "Authorize one corrected Google fake verification",
+  "invocations_remaining": 0,
+  "atUtc": "2026-11-14T05:37:49.2527159+00:00",
+  "command_sha256": "6D641185B82A50AEDBC093F08AAA8A29B8706C819D2DB312251D96A919AEBD58",
+  "manifest_sha256": "5F1357503CF9A50968AF5E0AA8B1F7575860374CBF37E99BA0728B7ED15623DE"
+}

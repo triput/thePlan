@@ -1,0 +1,37 @@
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -145,6 +145,34 @@
+     )
+ 
+ 
++T03_GET_PATH = "/calendar/v3/calendars/primary/events"
++T03_VALID_BODY = "{}"
++
++
++def t03_valid_fixed_length_get_script() -> ExchangeScript:
++    """NP-T03 B2a finite GET (decision D46E6CF8): complete fixed-length "{}" + orderly close.
++
++    VALID serves it to completion. WRONG-CA and WRONG-NAME reuse the same script; the
++    client refuses the certificate inside JoinedTLS.open, so the peer must never reach
++    recv_request (refusal before any useful application data).
++    """
++    return ExchangeScript(
++        script_id="T03-B2A-FIXED-LENGTH-GET",
++        purpose="t03_b2a_fixed_length_get",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path=T03_GET_PATH),
++            ExchangeStep(
++                "send_response",
++                status=200,
++                headers=(("Content-Type", "application/json"), ("Content-Length", "PLACEHOLDER")),
++                body_template=T03_VALID_BODY,
++                note="Complete fixed-length body; Content-Length equals body length",
++            ),
++            ExchangeStep("close", close_mode="orderly_close_notify"),
++        ),
++    )
++
++
+ def ms_graph_identity_default_script() -> ExchangeScript:
+     """GET /v1.0/me/calendar — identity purpose (not event)."""
+     return ExchangeScript(

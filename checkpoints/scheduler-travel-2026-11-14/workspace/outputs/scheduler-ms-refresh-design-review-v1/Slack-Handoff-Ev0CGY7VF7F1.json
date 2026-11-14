@@ -1,0 +1,28 @@
+{
+  "event": "Ev0CGY7VF7F1",
+  "message_ts": "1794547246.708329",
+  "checked_at_utc": "2026-11-13T05:25:55.4129908Z",
+  "disposition": "Pointer to already received handback; no duplicate Slack reply. Independent source review remains pending, including carried command-count question G4.",
+  "pins": [
+    {
+      "mtimeUtc": "2026-11-13T05:20:21.7386186Z",
+      "size": 13182,
+      "path": "F:\\DropFolder\\Matt-Drops\\Matt-thePlan-Scheduler-MS-Refresh-Prep-Handoff-2026-11-12.md",
+      "sha256": "FFAC9B0BF6BADEB8C934AFCCFABD0830A3DB1E10592EA78D1BC4F23196FE0F18"
+    },
+    {
+      "mtimeUtc": "2026-11-13T05:20:34.9885079Z",
+      "size": 6205,
+      "path": "F:\\DropFolder\\Matt-Drops\\Matt-thePlan-Scheduler-MS-Refresh-Prep-Hashes-2026-11-12.txt",
+      "sha256": "52D3A835F6D2BD7FFED79B0FADDB68C91701CAB2399E66C49023752BFA4BE164"
+    },
+    {
+      "mtimeUtc": "2026-11-13T05:19:32.3843345Z",
+      "size": 60655,
+      "path": "F:\\DropFolder\\Matt-Drops\\Matt-thePlan-Scheduler-MS-Refresh-Prep-Diff-2026-11-12.diff",
+      "sha256": "CE32FEF41B3BD42F41161EB85B40A2F70F7BCF441DA68C296DCB885CF8730A0D"
+    }
+  ],
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

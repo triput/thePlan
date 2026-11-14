@@ -1,0 +1,82 @@
+{
+  "kind": "native-provider-fake-structural-expected",
+  "native_case_ids": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-V-MS-REFRESH",
+    "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+    "NP-V-MS-INVALID",
+    "NP-V-GOOGLE-REFRESH",
+    "NP-V-GOOGLE-INVALID",
+    "NP-T06-BEFORE-SEND",
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME",
+    "NP-T03-HANDSHAKE-STALL",
+    "NP-T03-TCP-REFUSAL",
+    "NP-T04-HEADER-STALL",
+    "NP-T04-BODY-STALL",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DEADLINE",
+    "NP-T04-DISCONNECT",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION",
+    "NP-T07-OWNED-SOCKET",
+    "NP-T07-BOTH-AFTER-FAILURE",
+    "NP-T08-OWNERSHIP"
+  ],
+  "cf_witness_case_ids": [
+    "NP-T01-USERINFO-CF",
+    "NP-T01-FRAGMENT-CF",
+    "NP-T01-CONTROL-CHAR-CF",
+    "NP-T01-PURPOSE-WRONG-CF"
+  ],
+  "native_count": 27,
+  "cf_count": 4,
+  "planning_ids_retained": 76,
+  "np_t05_orderly_observations": [
+    {
+      "name": "orderly_close_delimited_complete_accepted",
+      "expected": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
+    },
+    {
+      "name": "orderly_short_cl_valid_json_prefix_refused",
+      "expected": "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"
+    }
+  ],
+  "focused_witnesses": {
+    "T02_EXCESS_ITEM_BYTE_HOST_FAKE": {
+      "framing_result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+      "item_excess_outcome": "OBSERVED_REFUSE",
+      "byte_excess_outcome": "OBSERVED_REFUSE",
+      "exception": "CoveringTransportRefused",
+      "closes_native_t02_full_goal": false,
+      "planning_ids": [
+        "T02-ITEMS-OVERFLOW",
+        "T02-BYTES-OVERFLOW"
+      ]
+    },
+    "T08_NESTED_FOCUSED": {
+      "disposition": "GAP_OR_FOCUSED_FAKE",
+      "planning_id": "T08-NESTED",
+      "note": "ContextVar nesting; may remain non-TLS if pure context"
+    },
+    "T08_RESET_FOCUSED": {
+      "disposition": "GAP_OR_FOCUSED_FAKE",
+      "planning_id": "T08-RESET",
+      "note": "ContextVar reset; focused fake witness when needed"
+    },
+    "T07_PRIMARY_BOTH_CLOSES_HOST_FAKE": {
+      "framing_control": "PRIMARY-BOTH-CLOSES",
+      "observed_outcome": "OBSERVED_UNKNOWN",
+      "closes_native_NP_T07_BOTH_AFTER_FAILURE": false,
+      "note": "Host-fake only; native NP-T07-BOTH-AFTER-FAILURE retained"
+    }
+  },
+  "no_57_case_native_repetition": true,
+  "executed": false
+}

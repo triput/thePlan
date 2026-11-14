@@ -1,0 +1,32 @@
+{
+  "atUtc": "2026-11-14T03:21:12.2972229Z",
+  "status": "SOURCE_BOUNDARY_RECONCILED_NOT_RUNTIME_PROOF",
+  "source_manifest": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+  "candidate_manifest": "8212DAA6D03F6BE904C2F9524B9FDF25B61AB714812CFCBA8E7B6856FA83322D",
+  "baseline_inputs_verified": 301,
+  "candidate_inputs_verified": 305,
+  "unchanged_inputs": 292,
+  "api_files_identical": 234,
+  "changed_inputs": 9,
+  "added_inputs": 4,
+  "changed_executable_roles": [
+    "4 runner: additive body-stall helpers/case/map",
+    "5 suite: implementation note only",
+    "7 peer: finite timestamps and owner-stop stall retirement",
+    "8 transcript: new three-exchange body-stall script"
+  ],
+  "other_changes": "Three held configurations plus nested/payload manifest repins; four added metadata/provenance/held-command files",
+  "immutable_helpers": "All remaining baseline manifest-listed files byte-identical, including host helpers, receipt sanitizer, PKI recipe and application",
+  "peer_review": "Native peer expiry remains error; clean return requires owner stop strictly before expiry. Header and body script paths share this accepted rule. Added lifecycle state is fixture-only; existing production clocks unchanged.",
+  "runner_review": "Existing implemented bodies retained; runner diff adds case ID, new dedicated helper/case block and case mapper. No modifications to earlier case assertions in diff.",
+  "configuration": "Host and runner remain held; only NP-T04-BODY-STALL selected; default peer120 preserved and new case-specific240 recorded. Runtime240 requires its later exact launch approval.",
+  "remaining": [
+    "Focused fake successor peer review and authorized execution",
+    "Independent complete native packet review and staging",
+    "Exact native launch decision with240-second peer allowance",
+    "Actual production deadline/native rollback/retirement proof"
+  ],
+  "no_execution": true,
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

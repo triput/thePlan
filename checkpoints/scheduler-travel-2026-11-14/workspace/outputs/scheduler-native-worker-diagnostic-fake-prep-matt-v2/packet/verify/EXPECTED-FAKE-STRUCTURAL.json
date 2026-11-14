@@ -1,0 +1,38 @@
+{
+  "kind": "worker-observer-diagnostic-fake-structural-expected",
+  "packet": "scheduler-native-worker-diagnostic-fake-prep-matt-v1",
+  "candidate_runner_sha256": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+  "source_runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+  "host_validator_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+  "production_dispatch_sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+  "production_role_connector_sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+  "diff_sha256": "2023F97B5695BF690F50186C56B4DD3FCFF1A2BAFB3CA637B1051F400F3F2468",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "PRODUCTION-BOUNDARY-STRUCTURE",
+    "OBSERVER-SUCCESS-IDENTITY",
+    "OBSERVER-EXCEPTION-IDENTITY",
+    "RESTORE-WIRING",
+    "CHAINING-WIRING",
+    "PRODUCER-HOST-END-TO-END",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "PRESERVED-OUTSIDE-CHANGE": ["top_level_nodes_identical", "stop_payload_identical", "main_guard_identical", "diff_purely_additive"],
+    "PRODUCTION-BOUNDARY-STRUCTURE": ["worker_global_lookup", "module_level_import", "connector_from_none_conversions", "dispatch_maps_unknown_to_503", "observer_targets_dispatch_global"],
+    "OBSERVER-SUCCESS-IDENTITY": ["installed", "result_identity", "argument_identity", "nothing_captured", "restore_identity", "restore_idempotent", "sandbox_restored"],
+    "OBSERVER-EXCEPTION-IDENTITY": ["exception_identity", "captured_identity", "chain_unchanged", "base_exception_reraised", "bound_one", "restore_identity", "no_formatting", "sandbox_restored"],
+    "RESTORE-WIRING": ["locals_initialized", "install_first_in_try", "restore_first_in_finally", "single_install_call", "restore_block_behavior", "chaining_after_restore"],
+    "CHAINING-WIRING": ["chained_cause", "first_captured_only", "unchained_fallback", "status_200_no_raise", "fallback_raise_unchanged"],
+    "PRODUCER-HOST-END-TO-END": ["real_chain_through_observer", "owned_production_frames", "unowned_frames_dropped", "deeper_chain_capped", "privacy_envelope"],
+    "ACTUAL-SOURCE-MUTANTS": ["replacement_reraise", "swallowed", "no_restore", "unbounded_capture", "chaining_removed"]
+  },
+  "expected_nested_predicates": 47,
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

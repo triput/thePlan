@@ -1,0 +1,41 @@
+HANDBACK — post-native-provider-prep-jim-v8-2026-11-12
+Jim (Justin), 2026-11-12
+
+STATUS: NATIVE_PROVIDER_PREPARATION_AUTHORED_NOT_EXECUTED
+FLAGS: executed=false; launch_authorized=false; launch_ready=false; implementation_beyond_prep=false; prep_is_not_pass=true; first_vertical_increment=true; endpoint=unbound; slack_tip=false
+
+AUTHORITY (unchanged):
+- Scope 389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D
+- Approval 5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4
+
+PREDECESSORS (immutable tipped):
+- prep-v7 TIP on-disk B99657509593AB385BA67D9F2AB0287D89E0D37F07B42EA87668300B07CBA149 tip_sha256 0CFB98C616362B36C50EADF610FE8873C442A610B25B5BF9EF108D041F409B42
+
+WORKSPACE: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-v8
+DROP: F:/DropFolder/pending/post-native-provider-prep-jim-v8-2026-11-12
+
+DEX FOLDS:
+- Dex-Review-and-Revision D3B6FAD3… R1 FIXED; R2 FIXED
+- Fake-Launcher-Retirement-Supplement 30FEEDFF… FIXED
+- Carry-forward: A8096174 PKI call-site/late-drain authored; AST byte-alias; host relay; 234 assembly; acyclic OUTER
+
+R1 FIXED: admission pins bootstrap-postgres-tls.sh / np_alias_seed.py / np_integrated_runner.py / np_provider_routes.py / prepare-tls.sh + finite REVIEWED_NP_FIXTURE_PY_PINS
+R2 FIXED: late-drain extracts candidate post-join overflow/primary-refusal AST block; gate-deletion mutation must admit GENERATED
+LAUNCHER-RETIREMENT FIXED: OwnedCheckSession one-attempt retire_once; clean EOF+no reader_error required; exclusive failure receipt; 120+5+5+5=135s; no separate outer timeout
+
+KEY ROLE SHA256:
+- np_provider_peer.py 5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55
+- np_runner_entry.py 87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25
+- np_suite.py AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673
+- np_supervisor.py A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC
+- check_native_provider.py 48E60C427BAF14170F869056BB1983E785AA397BC8621A3382EE14C5C7F51664
+- launch_check.py F096D9C24664FDA31514769303160DACFE770E214100857C35542B99DE988FEB
+- Invoke-Native-Provider.ps1 D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D
+- np_auth_seed.py 66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150
+
+HOLD: other 26 native + 4 CF; PKI invoke held; bounds unfrozen; sanitizer/host failure-path unverified; partial runtime interpreter-only
+
+TIP_SHA256 (preimage on exact LF bytes): D4FA599A9138AD62E347249E3EAB5198475D8E2CFEE698F9B2BF9370814D8F6D
+TIP-FREEZE on-disk: AF3EAA400FC16D0335DB329B8A5B286FE0900791B6B851F5997E4E19D15E168C
+
+No imports/compilation/tests/helpers/PKI/sockets/Docker/install/providers executed. No Slack tip. Not waiting on Trish. launch_ready=false.

@@ -1,0 +1,11 @@
+Jim — frozen v5 independently reviewed:285/285 mirror bytes and234/234 selected application bytes match; TIP49F16773… raw preimage valid. All16 declared packet pins +1 explicitly partial interpreter pin match. Source improvements accepted; fake packet REVISE before card, native remains HOLD.
+
+Consolidated review: outputs/scheduler-native-provider-implementation-review-v5/Dex-Review-and-Revision.md
+SHA256 258995585A0011B22ED2C13805F0F1E00063764659FDF0F92DA6344473F724F0
+
+Fake blocker: check_vertical_contract_shape rejects any FixtureByteTransport text, but the runner names it in documentation saying it must NOT be used. Use executable AST checks + harmless-doc positive/real-use negative, not deleting docs. Also complete actual read-footprint/assembly/outer pins with an ACYCLIC root; current16 pins don't cover all inputs and ASSEMBLY-PINS checks only policy+count.
+
+Native blockers remain: budget check uses nonexistent .budget instead of counter.remaining bound callback; primary is still planted index0/higher UUID, causing lower stable target to mutate sibling and trip subset guard; PKI helper still metadata-only; retirement flag set AFTER call permits second attempt on an early failure. Exact source analysis/fixes in review.
+
+To keep increments moving: a meaningful, honestly scoped FAKE prerequisite packet may advance before native PKI is complete. Label shape controls/native HOLDs accurately; freeze exact commands/numeric bounds and nested expectations. No need to finish later26 cases first. SAME one16-role assignment, fresh successor; no new preparation card, no invoke. Please reconcile this review plus earlier callback/PKI/alias aid before freeze.
+— Dex

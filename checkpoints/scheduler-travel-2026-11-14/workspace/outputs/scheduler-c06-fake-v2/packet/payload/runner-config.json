@@ -1,0 +1,72 @@
+{
+  "launch_ready": true,
+  "case_ids": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08",
+    "ASSESSMENT_SQL",
+    "I01-C01",
+    "I01-C02",
+    "I01-C03",
+    "I01-C04",
+    "I01-C05",
+    "I01-C06",
+    "I01-C06-MAP",
+    "I01-C07A",
+    "I01-C07B",
+    "I01-C08",
+    "I01-C09",
+    "I01-C10",
+    "I02-C01"
+  ],
+  "expected_unknown_cases": [
+    "N06",
+    "N07",
+    "I01-C06"
+  ],
+  "runner_seconds": 600,
+  "assessment_case_ids": [
+    "test_a01_healthy_requested_and_all_enabled",
+    "test_a02_requested_ok_all_enabled_blocked_by_unrequested_stale",
+    "test_a03_other_owner_rows_cannot_contaminate",
+    "test_a04_coverage_gates[missing_success]",
+    "test_a04_coverage_gates[stale_age]",
+    "test_a04_coverage_gates[window_missing]",
+    "test_a04_coverage_gates[window_short]",
+    "test_a04_coverage_gates[pages_incomplete]",
+    "test_a04_coverage_gates[generation_mismatch]",
+    "test_a04_coverage_gates[microsoft_ms_view]",
+    "test_a05_newer_sidecar_failure_blocks_equal_protects",
+    "test_a06_identity_map_cannot_conceal_deleted_requested",
+    "test_a07_owner_lock_returns_locked_revision_not_mixed",
+    "test_a08_busy_policy_enrichment_and_horizon_filtering",
+    "test_a09_pending_writes_refused_and_terminal_sanitization",
+    "test_a10_public_response_preserves_targets_and_assessment"
+  ],
+  "unresolved": [],
+  "python": [
+    3,
+    12,
+    16
+  ],
+  "site_directories": [
+    "/usr/local/lib/python3.12/site-packages"
+  ],
+  "runtime_pins": {
+    "python": [
+      3,
+      12,
+      16
+    ],
+    "psycopg": "3.2.13",
+    "sqlalchemy": "2.0.51",
+    "pq_implementation": "binary",
+    "pq_runtime": 170006,
+    "pq_build": 170006
+  }
+}

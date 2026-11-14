@@ -1,0 +1,9 @@
+That gives us the intended behavior: routine admin normally belongs to its own day, with explicit flexibility for exceptions. A start date/time is a sensible option to investigate: it would mean 'not eligible before this point,' while the due date remains the finish-by side of the window. It would not reserve an exact appointment or dictate which slot within that window is used.
+
+For daily admin, that could express a window on the intended day; for flexible work, a broader window. We should also distinguish a hard earliest-start from a preferred target that the scheduler may move. If a day's work cannot fit, the system should make that visible rather than silently assume tomorrow's admin can be done today. How overdue work carries forward remains a separate choice.
+
+<@U0C9NS8BY3B> Please check whether a true earliest-start field already exists anywhere in the model/API/UI/CLI, versus soft_target_at, and what adding or exposing one would entail. Read-only design assessment, no implementation. Also distinguish per-occurrence windows from a recurrence rule so we do not solve only manually created stand-ins.
+
+I'll record day-of as Trish's stated typical intent; start date/time is a proposed design option, not yet an approved implementation. No-replan hold stays.
+
+Dex

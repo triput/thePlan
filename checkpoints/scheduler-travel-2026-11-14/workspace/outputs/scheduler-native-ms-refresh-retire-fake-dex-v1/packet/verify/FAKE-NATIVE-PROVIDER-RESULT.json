@@ -1,0 +1,164 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "RETIREMENT-HELPER",
+    "REFRESH-BARRIER-WIRING",
+    "REFRESH-ASSERTIONS-PRESERVED",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutant_kinds": {
+        "attempt_guard_missing": "structural",
+        "body_pre_join_snapshot": "structural",
+        "body_second_retirement": "structural",
+        "helper_ignored": "structural",
+        "helper_pre_join_snapshot": "behavioral",
+        "worker_error_guard_removed": "behavioral",
+        "worker_error_truthiness": "behavioral"
+      },
+      "mutants": {
+        "attempt_guard_missing": "DETECTED",
+        "body_pre_join_snapshot": "DETECTED",
+        "body_second_retirement": "DETECTED",
+        "helper_ignored": "DETECTED",
+        "helper_pre_join_snapshot": "DETECTED",
+        "worker_error_guard_removed": "DETECTED",
+        "worker_error_truthiness": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "BATCH-CONFIG": {
+      "cases": {
+        "docker_ops_root_rename_only": "PASS",
+        "evidence_ca_readonly_bind_agreement": "PASS",
+        "launch_config": "PASS",
+        "nested_delta_exact": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "runner": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "helper_byte_identical": "PASS",
+        "runner": "PASS"
+      },
+      "control_kind": "structural_source",
+      "helper_sha256": "3AC0895BA0C2913FCC09E7955ECFF778C01B334A714CE7D3330FD5F52F6511F3",
+      "observed": "PASS"
+    },
+    "PRIOR-FAKE-APPLICABILITY": {
+      "cases": {
+        "dependencies_unchanged_and_interface_literal": "PASS",
+        "selected_fake_helper_scope_maps": "PASS"
+      },
+      "control_kind": "applicability_map",
+      "not_transferred": [
+        "Selected-retirement fake PASS 13/85 (Dex staging scheduler-ms-selected-retirement-fake-dex-v1, result A8CDBF04FD2D7FC5A76A7234B54F99322FC3FCD5B75A8455CA5CD3B22C85A4DF) verified the helper in this exact source runner (4CBF198E) and the MS-INVALID/NONEXPIRED body barriers; its MS-INVALID/NONEXPIRED body checks do not transfer to _run_np_v_ms_refresh, which is re-checked structurally here.",
+        "Prior MS-REFRESH fakes covered the unchanged refresh units (token/transport/terminal/persistence) at their recorded scopes; nothing here re-establishes them, and no native refresh or T06 closure is claimed."
+      ],
+      "observed": "PASS"
+    },
+    "REFRESH-ASSERTIONS-PRESERVED": {
+      "cases": {
+        "body_delta_exact": "PASS",
+        "handlers_finally_and_setup_identical": "PASS",
+        "suite_stop_messages_preserved": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS",
+      "removed_message_note": "the removed late 'peer worker unjoined' check is subsumed by the helper's joined-is-True requirement (message 'selected peer worker unjoined - UNKNOWN'); the helper also adds the worker_error_kind-is-None requirement"
+    },
+    "REFRESH-BARRIER-WIRING": {
+      "cases": {
+        "attempt_marked_before_helper": "PASS",
+        "helper_called_once": "PASS",
+        "no_second_retirement": "PASS",
+        "post_join_state_only": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS",
+      "scope_note": "structural evidence of order and guards in _run_np_v_ms_refresh; not a behavioral run of the case"
+    },
+    "RETIREMENT-HELPER": {
+      "cases": {
+        "empty_error_refused_distinct_from_none": "PASS",
+        "joined_no_error_post_join_state": "PASS",
+        "other_exception_same_object": "PASS",
+        "retirement_unknown_same_object": "PASS",
+        "single_attempt_all_paths": "PASS",
+        "unjoined_refused": "PASS",
+        "worker_error_refused": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "config/candidate-docker-ops-config.json": "9455026A775EF769C71D960A71ADEBC623BDC01299844C08B5F69F0C90130F1D",
+        "config/candidate-launch-config.json": "09C9D618DC0177FACD8E29A35DEDEEAFF637424D0C447C939B4834EC07EB7ED5",
+        "config/candidate-runner-config.json": "D4C8BDBD83C3C5D0F76564C5E5BB6B5962CBBEBA4D3D3C3618E55DC8C693A88A",
+        "config/source-docker-ops-config.json": "BC6F33B2928E429512628A5D402020018490B251A9D3A2C7CB7237095D81F605",
+        "config/source-launch-config.json": "4584428948A544473C1F7ABF7E9AD87DBAFCDBB0828C987820C9CE2BE1C14098",
+        "config/source-runner-config.json": "10106B8278033FC0DBC83D5841446F2D2B7476960C90DB654AF4AAF25549E004",
+        "diff/np_runner_entry.py.diff": "425F23FC3AD1991C993D60D7D69AEDB8C62619737F4E5A6B8F2AA434A90EEF5B",
+        "diff/runner-config.json.diff": "4BCEFF6B8F376F5C6837B1F11B4107A09C042544ABE4599A7D840405CFC23EF0",
+        "fixture/np_provider_peer.py": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+        "manifest/candidate-nested.txt": "C83A5E9E324C77465F03C3EEE371AEF7A16917FCD8335B943AFF98E2FAD7AB5B",
+        "manifest/candidate.txt": "CC02F38CFBD8542AD49DA8663FE3BCACD8F8712FDD97FE53D5F739A52C0CA687",
+        "manifest/source-nested.txt": "545C6BDD6A9E99850ECA62F0779D58052BE7A57BBA661B154FD4DBFC6F54153E",
+        "manifest/source.txt": "D9F14FF142C972F886C9BA066E292B09E24BED4C51DD98F9DCAFDEB0632BC868",
+        "runner/candidate.py": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+        "runner/source.py": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 41,
+  "packet": "scheduler-native-ms-refresh-retire-fake-prep-matt-v1",
+  "passed": 10,
+  "prep_is_not_pass": true
+}

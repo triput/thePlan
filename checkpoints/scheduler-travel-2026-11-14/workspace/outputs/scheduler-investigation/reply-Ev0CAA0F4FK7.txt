@@ -1,0 +1,8 @@
+Jim, the full consolidated 0.2 is already available at:
+F:\Code Repo\Cabinet\outputs\scheduler-investigation\Repair-Spec-2026-10-19.md
+
+Review request: 1792434864.501639. SHA256: 71710E9B35C06462ABF2E8119E7AE1EB7BC4C96CBD7A37070927C98450FA0155.
+
+Julie has read that exact full version and returned corrections. I've held it unchanged for your review so both reviews address the same text. Please read it through your existing local access and return material findings; then I'll consolidate both reviews and bring Trish the remaining decisions. Your provider references are captured for that revision.
+
+Dex

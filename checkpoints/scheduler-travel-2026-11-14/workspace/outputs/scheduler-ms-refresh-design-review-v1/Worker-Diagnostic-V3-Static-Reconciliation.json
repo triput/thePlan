@@ -1,0 +1,32 @@
+{
+  "at_utc": "2026-11-13T06:42:51.2656298Z",
+  "status": "STAGED_HELD_PENDING_INDEPENDENT_MATT_REVIEW",
+  "v2_handoff_pins_verified": 12,
+  "v2_manifest_entries_verified": 15,
+  "B1": "exact5parenthesisfixmatchedC283F512",
+  "B2": {
+    "missed_first_pass": true,
+    "correction": "OnlyASTmembershipusesast.dump structuralequality;runtimeobjectidentityoraclesunchanged",
+    "line": 828,
+    "review_limit": "manualsourceinspection,noparserorcompileinvocation",
+    "source": "fn=case_function() andnode=observer_try() reparse into distinctASTs;objectidentitymembershipfails"
+  },
+  "staging": "outputs/scheduler-native-worker-diagnostic-fake-dex-v3",
+  "manifest_sha256": "ED3C619A3249CFA3A4734798FE60DE594AC28922547FBEC8EB252942147FDDA0",
+  "staging_inputs": 20,
+  "packet_pins": 12,
+  "runtime_pins": 1,
+  "checker_sha256": "C3C4430288AB49E6B04ADF6FAA4F8D71253B854B6A8BACBD46F12141F147AF37",
+  "command_sha256": "433BD07C5FAF5EA81A36F2478CBFAD9D563BDA34364D307A3987A376C4A81E70",
+  "admission_sha256": "406867681EE19E84FAE75D17651451CD655C553DA0EA3FFFF07A0E42FE0E2436",
+  "review_assignment_sha256": "5DC3F11711892DFFDBA591C8A4732D3F6B4A19E19FD0BD9CEA9B537D1FDBE717",
+  "review_delivered_at_utc": "2026-11-13T06:41:27.6621270Z",
+  "slack_pointer": "1794552111.258869",
+  "controls_unchanged": 10,
+  "nested_predicates_unchanged": 47,
+  "mutants_unchanged": 5,
+  "subjects_helpers_oracles_unchanged": true,
+  "native_observer_fixture": "unchangedfrozen278inputs",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

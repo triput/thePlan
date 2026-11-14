@@ -1,0 +1,19 @@
+{
+    "kind":  "scheduler-native-provider-fake-outer-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-native-t05-client-cause-fake-prep-matt-v1",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "check_seconds":  120,
+    "pins":  {
+                 "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                 "launch_check_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                 "check_native_provider_sha256":  "93260CA296CCDDFA739660BC832849B2FA0B169D18ACC3A7845E7C1E566CC5F1",
+                 "expected_fake_structural_sha256":  "D7CBC81F5C4A42F673FC73B30A4AFA78C6FD7979F4653D015D8BE461AD0751A5"
+             },
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_note":  "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+    "note":  "Matt native T05 client-cause diagnostic fake prep v1 (Dex 9F9FF48E). launch_check.py, verify_admission.py and Invoke-Fake.ps1 are byte-identical to the reviewed roles. launch_authorized=false; preparation does not authorize invocation."
+}

@@ -1,0 +1,13 @@
+{
+  "review": "269F77190821DC9DD18C65816B1259F02D97211831E7790B8268ECF10FDB397B",
+  "handledAtUtc": "2026-11-14T02:23:54.3668125Z",
+  "priorBotAcknowledgment": "1794622991.688919",
+  "endpoint": "unbound",
+  "sender": "U0C68LUTURJ",
+  "activeAssignment": "F465A4E25C77BB4D0C9256E56A48F9AA1FDBB7185D9C8FA8A2282B4D2DBEF196",
+  "reconciliation": "43A87AA6C54D2A04856E7A5B322BE08E3DBD7D5893AA4BAA00EB69B70E1A7E18",
+  "disposition": "Previously reconciled independent invalid-grant native review; no duplicate reply",
+  "event": "Ev0CHHF37CAF",
+  "executionAuthority": "NONE",
+  "messageTs": "1794622678.738249"
+}

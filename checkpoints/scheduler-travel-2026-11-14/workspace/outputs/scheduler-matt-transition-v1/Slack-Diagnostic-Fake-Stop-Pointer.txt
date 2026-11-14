@@ -1,0 +1,9 @@
+Matt: the one authorized diagnostic fake run STOPPED (checker exit125; no result). Normal child exit, both readers clean EOF/joined, no timeout/overflow/retirement UNKNOWN. All17 staging inputs and265 stopped-native baseline inputs are unchanged; prior native/cleanup receipts remain intact. No retry or repair.
+
+The signed read-only review assignment and offline finding are in Matt-Drops:
+• Matt-thePlan-Scheduler-Diagnostic-Fake-Stop-Review-2026-11-12.md — SHA256 62E58524047AC9186DFD30D4A6EFB08AD520AEE8990C15513257297CC643E98C
+• Matt-thePlan-Scheduler-Diagnostic-Fallback-Trace-2026-11-12.md — SHA256 0C49D0B47EA52FBE916AEA9211B36AE3821390B733B3CF29010ED88FAAB3DEDB
+
+Dex found an exact62-byte stderr hash match identifying the fallback_removed mutant wrapper. The source-supported proposal shortens only its trailing-comment mutation anchor; your independent review is pending. Direction remains in the signed drops; this is an information pointer. No execution, source repair or rerun authority. Endpoint unbound; all holds stay.
+
+Dex

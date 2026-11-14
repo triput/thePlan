@@ -1,0 +1,46 @@
+{
+  "packet": "post-native-t05-authoring-scope-review-jim-v1-2026-11-11",
+  "status": "T05_AUTHORING_SCOPE_REVIEW_COMPLETE_NOT_APPLIED",
+  "disposition": "QUALIFIED_ACCEPT",
+  "disposition_one_liner": "QUALIFIED ACCEPT -- prep-card ready; launch_authorized=false; no authoring performed",
+  "author": "Justin",
+  "role": "Jim documents-only review of Reconciled-Authoring-Scope-For-Review.md",
+  "date": "2026-11-11",
+  "byte_semantics": "utf-8 lf",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "launch_authorized": false,
+  "blocking_count": 0,
+  "tip_sha256": "82BB6B633F89BB1E81558A7A2B6F296137A0C3EB194B0FD1BE1BD324888E45C9",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled).",
+  "review_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "reconciled_scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "t05_v2_tip_sha256": "FA13F24FC0EDE7534D9ED335E04CB2782F56376EC6EBAB61D7F5C206841EF740",
+  "qualifications": [
+    "Q1_host_parser_not_native",
+    "Q2_finite_transcript_inventory",
+    "Q3_distinct_kind_evidence_names",
+    "Q4_named_caller_entrypoints",
+    "Q5_immutable_helper_copy_pins",
+    "Q6_json_safe_projection",
+    "Q7_close_delimited_separately_gated",
+    "Q8_D1_D2_not_adopted_in_original_task"
+  ],
+  "handback_dirs": [
+    "F:/DropFolder/pending/post-native-t05-authoring-scope-review-jim-v1-2026-11-11",
+    "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-authoring-scope-review-v1"
+  ],
+  "artifact_hashes_list_order": [
+    "HANDBACK.txt",
+    "INPUT-PINS.json",
+    "Jim-T05-Authoring-Scope-Review.md",
+    "README.md",
+    "TIP-FREEZE.json"
+  ],
+  "message_context": [
+    "T05 authoring-scope QUALIFIED ACCEPT",
+    "six executable roles sufficient under Q1-Q8",
+    "no authoring/execution; T07 untouched"
+  ]
+}

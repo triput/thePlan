@@ -1,0 +1,80 @@
+{
+  "atUtc": "2026-11-14T04:02:36.7967369Z",
+  "kind": "GOOGLE_FUNCTIONAL_REVIEW_REUSE_MAP_NOT_EXECUTION",
+  "source_baseline": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "critical_shared_contracts": [
+    {
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "path": "app/services/covering_target_transaction.py"
+    },
+    {
+      "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "path": "app/services/covering_release_plan.py"
+    },
+    {
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "path": "app/services/covering_role_connector.py"
+    },
+    {
+      "sha256": "79A95035953C7280EFD6F48683A80E49422C4C4BEBF39E0E515EA2629860D4BE",
+      "path": "app/services/covering_role_admission.py"
+    },
+    {
+      "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975",
+      "path": "app/services/covering_request_budget.py"
+    },
+    {
+      "sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69",
+      "path": "app/services/covering_refresh_locks.py"
+    },
+    {
+      "sha256": "1EF89808EB5FD7162304D7CEEC87A2FE46F255388DB66A1C6987E55EBC108CCE",
+      "path": "app/services/covering_native_terminal.py"
+    },
+    {
+      "sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229",
+      "path": "app/services/covering_native_orm_factory.py"
+    },
+    {
+      "sha256": "681497FCDB625249E5BAF4771D6F9AEB60324691F228EFEA1F78CE0C491D46B6",
+      "path": "app/services/covering_native_checkout.py"
+    },
+    {
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "path": "app/services/covering_domain_dispatch.py"
+    },
+    {
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "path": "app/services/covering_domain_adapters.py"
+    },
+    {
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+      "path": "app/services/covering_http_dispatch.py"
+    },
+    {
+      "sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D",
+      "path": "app/api/middleware/covering_ingress.py"
+    }
+  ],
+  "critical_count": 13,
+  "prior_integration_reconciliation": "4A4F2B8DD1B8A2CC131698BB8A15EB5D8859EEBBE00ACF439BDD522B2E853202",
+  "reuse": "Retain existing I01/I02 actual owner-lock/native-assessment/lost-ack/disconnect and v9 SQL evidence at their original runtime/source scope. Do not repeat their full suite solely for provider-priority change if frozen Google packet preserves critical source and helper lineage.",
+  "new_google_evidence_required": [
+    "Actual expired Google owning token accessor and semantic persistence with acknowledged native TOKEN outcome",
+    "Actual Google primary identity and nonempty event import through HTTP/ReleasePlan/defaultJoinedTLS and native DB",
+    "Expected events persisted with owner/account/calendar/UTC/busy semantics and unrelated data unchanged",
+    "Before/after immovable busy signature changes from nonempty Google data, independent of readiness boolean",
+    "Imported owner scheduling revision and final assessment/public readiness revision coherent after native known role retirement",
+    "Same ingress request budget across provider counter and native connector, exact finite exchange sequence and joined/no-worker-error retirement"
+  ],
+  "source_stage_review": [
+    "covering_refresh_import.py commits revision only after actual busy/trust change through commit_covering_revision_if_required",
+    "covering_domain_dispatch.py invokes ASSESSMENT role and _assemble_final_assessment after targets if not exhausted",
+    "covering_refresh.py _assemble_final_assessment requires clean session, locks owner, reads revision, expires identity map and builds requested freshness/readiness under that lock"
+  ],
+  "minimum_new_native_focus": "One useful nonempty Google refresh/import/assessment witness; do not add another full generic lock/SQL suite by default",
+  "qualification": "Reuse does not prove new Google branch, changed transport code, exact current runtime behavior or live activation. Recheck critical hashes against frozen Google handback before applying this map. Provisional root existence is not accepted source or process liveness.",
+  "matt_assignment": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "source_or_execution_change": false,
+  "endpoint": "unbound"
+}

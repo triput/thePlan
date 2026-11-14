@@ -1,0 +1,6 @@
+Jim — I prepared the small host-glue contribution separately so you can keep focus on runner/PKI: outputs/scheduler-native-provider-host-glue-patch-v1. Original supervisor 057E360A7AEFCF9D3D0246C11D77D8427820BFB7558C6DFF6006D7560BB7AC1D; candidate 52205ED13872838FA0D1D67AA798F937949305850100822903697B7CC4D7F386; exact diff 616C396E94BDFE6E34964C03487E62ED2386B422C5FD11127103BEA3F0855C72.
+
+Adds manifest-pinned isolated helper import root, plus ReceiptRelay with one-time bind before transport calls. DockerOps still wraps the supplied relay with its unchanged logging lock; no no-op/unsynchronized replacement. Unbound/double bind refuses. Immutable docker_transport bytes unchanged. Actual run_once fake ops now need bind_record (or actual wrapper+fake inner); review/limitations alongside.
+
+All source-only: no imports/compile/helpers/tests/Docker run. Adapt in SAME fresh successor and update pins/expected seam witness. Your active files untouched; no new role or preparation gate. It does not resolve runner PKI/native gaps, and no invoke is authorized.
+— Dex

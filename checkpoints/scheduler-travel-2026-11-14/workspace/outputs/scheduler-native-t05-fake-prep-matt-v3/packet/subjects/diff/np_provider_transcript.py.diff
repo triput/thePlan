@@ -1,0 +1,80 @@
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -47,6 +47,13 @@
+     "normal",
+ ]
+ 
++# Explicit response framing selection for the fixture serializer.
++# "auto" (default) keeps the historical serializer exactly: Content-Length is
++# appended when absent and a "PLACEHOLDER" value is rewritten. "close_delimited"
++# sends neither Content-Length nor Transfer-Encoding; the body ends at connection
++# close. Unknown modes and inconsistent header sets are refused before sending.
++ResponseFraming = Literal["auto", "close_delimited"]
++
+ 
+ @dataclass(frozen=True)
+ class ExchangeStep:
+@@ -58,6 +65,7 @@
+     body_template: str | None = None
+     close_mode: CloseMode | None = None
+     note: str = ""
++    framing: ResponseFraming = "auto"
+ 
+ 
+ @dataclass(frozen=True)
+@@ -152,7 +160,11 @@
+ 
+ 
+ def orderly_close_delimited_complete_script() -> ExchangeScript:
+-    """Observation (a): complete close-delimited accepted after orderly close_notify."""
++    """Observation (a): complete close-delimited accepted after orderly close_notify.
++
++    No Content-Length and no Transfer-Encoding: the body is delimited only by the
++    peer's orderly TLS close (close_notify), so the client must read to EOF.
++    """
+     return ExchangeScript(
+         script_id="T05-ORDERLY-CLOSE-DELIMITED-COMPLETE",
+         purpose="orderly_close_delimited_complete_accepted",
+@@ -161,9 +173,33 @@
+             ExchangeStep(
+                 "send_response",
+                 status=200,
++                headers=(("Content-Type", "application/json"),),
++                body_template="{}",
++                note="Close-delimited: no Content-Length/Transfer-Encoding; complete body ends at orderly close",
++                framing="close_delimited",
++            ),
++            ExchangeStep("close", close_mode="orderly_close_notify"),
++        ),
++    )
++
++
++def orderly_fixed_length_complete_script() -> ExchangeScript:
++    """Observation (c): complete exact fixed-length accepted after orderly close_notify.
++
++    Content-Length equals the exact body length (2 for "{}") and no Transfer-Encoding;
++    the complete body precedes the peer's orderly TLS close (close_notify).
++    """
++    return ExchangeScript(
++        script_id="T05-ORDERLY-FIXED-LENGTH-COMPLETE",
++        purpose="orderly_fixed_length_complete_accepted",
++        steps=(
++            ExchangeStep("recv_request", method="GET", path="/calendar/v3/calendars/primary/events"),
++            ExchangeStep(
++                "send_response",
++                status=200,
+                 headers=(("Content-Type", "application/json"), ("Content-Length", "2")),
+                 body_template="{}",
+-                note="Exact Content-Length match; complete body",
++                note="Exact fixed length: Content-Length 2 equals the complete body; no Transfer-Encoding",
+             ),
+             ExchangeStep("close", close_mode="orderly_close_notify"),
+         ),
+@@ -423,6 +459,7 @@
+         google_token_invalid_grant_script(),
+         ms_graph_events_empty_script(),
+         orderly_close_delimited_complete_script(),
++        orderly_fixed_length_complete_script(),
+         orderly_short_cl_valid_json_refuse_script(),
+         abrupt_truncation_script(),
+         *stall_scripts(),

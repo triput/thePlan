@@ -1,0 +1,29 @@
+{
+  "kind": "T07 host wrapper admission static review",
+  "date": "2026-11-11",
+  "wrapper": "Invoke-Verification.ps1",
+  "wrapper_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "guards_observed": [
+    "Caller supplies reviewed admission SHA256; raw admission bytes checked before interpretation",
+    "Exact T07 admission kind required",
+    "Nonempty count-consistent packet and runtime pin inventories",
+    "Packet paths resolved under packet root; escaped and duplicate normalized paths refused",
+    "Runtime paths absolute and unique; each explicit file hash checked",
+    "Selected interpreter must be in runtime inventory",
+    "Existing result or launch receipt refuses replay/overwrite before Python launch",
+    "Python uses isolated -I -S -B invocation of pinned outer admission",
+    "Nonzero exit stops without retry, repair, fallback or added cleanup",
+    "Working directory restored in finally"
+  ],
+  "scope_limitations": [
+    "Static reading only; no wrapper negative-control execution performed",
+    "Runtime pins cover explicitly listed files, not every imported module/binary dependency",
+    "Manifest/hash checks are admission-time checks, not an immutable filesystem or atomic snapshot claim",
+    "Final checker/outer/control inventory and complete final packet still need reconciliation before launch card",
+    "No VERIFICATION-ADMISSION.json has been staged; wrapper must remain held"
+  ],
+  "execution_performed": false,
+  "launch_ready": false,
+  "changes_made_to_wrapper": false,
+  "additional_static_wrapper_blocker_found": false
+}

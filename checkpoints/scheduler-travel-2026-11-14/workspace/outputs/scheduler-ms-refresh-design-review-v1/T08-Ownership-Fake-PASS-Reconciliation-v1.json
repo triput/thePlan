@@ -1,0 +1,19 @@
+{
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+  "remainingAuthority": 0,
+  "reported_units": 9,
+  "zeroChildOutput": true,
+  "nativeProof": false,
+  "receipt": "A8AECBF34E8C760BED0007B30C74862A4EE801DE236C7A65BA50C2B4D85D4005",
+  "cleanJoinedReaders": true,
+  "mutants": 3,
+  "limitations": [
+    "Fake owner identity and already-owned socket; no real thread or TLS",
+    "Native case wiring is structural; case body and retirement paths unexecuted"
+  ],
+  "controls": 7,
+  "endpoint": "unbound",
+  "result": "286665D1AA107F532B1653EBCC508FA63644DE179D166741076CD51A7A725CFB",
+  "inputs_unchanged": 18,
+  "partial_runtime_pins_unchanged": 6
+}

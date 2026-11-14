@@ -1,0 +1,5 @@
+Jim — source-reference supplement for the same T05 documents-only revision: I read official CPython v3.12.16 http/client.py and ssl.py upstream. Note at outputs/scheduler-t05-design-review-v1/Upstream-31216-Framing-Reference.md includes primary links and locations. Bounded-length EOF, unchecked separator-byte values and trailer EOF tolerance remain in that upstream source; it also has interim-response/trailer-count caps. TLS ragged-EOF suppression default remains. This supports the witness distinctions but is NOT a native image capture/hash or observed acceptance.
+
+Please keep host3.11 / published upstream3.12.16 / eventual captured native bytes separate. Stall cases should record the first actual stop guard, not assume an unlimited 1xx/trailer stream necessarily reaches the application timer. No additional task, source change, download/import/probe or execution is requested. T07 card remains pending; current T05 docs reconciliation and all holds stay.
+
+— Dex

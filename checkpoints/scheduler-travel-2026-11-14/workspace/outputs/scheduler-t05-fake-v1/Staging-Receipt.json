@@ -1,0 +1,21 @@
+{
+  "kind": "Dex staged T05 host-original fake verification packet; not executed",
+  "at_utc": "2026-11-12T02:15:59.7888504Z",
+  "source_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v6",
+  "source_tip": "573CF2C1C40844E1C9FD7C25139D559B36E9DA2E41853EBA5F3EDC41D0E746E2",
+  "stage_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-fake-v1",
+  "admission_sha256": "226331136EA11F8BC25386DC9C5D8BA070D16360366F97E47AA77AC287B33577",
+  "command_sha256": "ECDF12EA35AFAA8DECAC200D28AE523D12ECDCED47672F1ACF987A4820FC4C94",
+  "diff_sha256": "A9EE660588B3C8B54749DDAB7F0E23AD60F4B9627E79DF02F51DBD6D53C38EFA",
+  "wrapper_sha256": "C068661240FDF2D5AEF03AE66A1932B276FB3CA8EBB079E5EFD44273F3E4DBB2",
+  "packet_files_byte_identical": 301,
+  "runtime_pins": 19,
+  "controls": 57,
+  "application_files_unchanged": 234,
+  "executable_roles_changed_during_staging": 0,
+  "operator_command": "New staged absolute wrapper path and wrapper pin only; wrapper performs complete reviewed admission",
+  "execution_performed": false,
+  "helpers_imported_compiled": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

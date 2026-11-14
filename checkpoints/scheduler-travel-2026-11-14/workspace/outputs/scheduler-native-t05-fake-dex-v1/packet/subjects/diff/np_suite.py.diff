@@ -1,0 +1,57 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -222,12 +222,17 @@
+     ),
+     CaseDecl(
+         "NP-T05-ORDERLY-CLOSE",
+-        ("T05-SHORT-LENGTH-VALID-JSON",),
++        ("T05-VALID-COMPLETE-CONTENT-LENGTH", "T05-SHORT-LENGTH-VALID-JSON"),
+         "B5",
+-        "Orderly close_notify with close-delimited and short-CL completeness requal",
++        "Orderly close_notify with close-delimited, exact fixed-length and short-CL completeness requal",
+         (
+             Oracle(
+                 name="orderly_close_delimited_complete_accepted",
++                planning_ids=(),
++                expected="ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
++            ),
++            Oracle(
++                name="orderly_fixed_length_complete_accepted",
+                 planning_ids=("T05-VALID-COMPLETE-CONTENT-LENGTH",),
+                 expected="ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY",
+             ),
+@@ -238,9 +243,11 @@
+             ),
+         ),
+         notes=(
+-            "Separate named observations required: (a) complete close-delimited "
+-            "accepted after orderly close_notify AND (b) valid-JSON prefix shorter "
+-            "than Content-Length refused after orderly close_notify. Abrupt TLS distinct."
++            "Separate named observations required: (a) supplementary complete "
++            "close-delimited accepted after orderly close_notify (no planning ID), "
++            "(b) complete exact fixed-length (Content-Length equals body) accepted after "
++            "orderly close_notify (T05-VALID-COMPLETE-CONTENT-LENGTH only) AND (c) valid-JSON "
++            "prefix shorter than Content-Length refused after orderly close_notify. Abrupt TLS distinct."
+         ),
+     ),
+     CaseDecl(
+@@ -453,6 +460,19 @@
+         "peer exchanges, semantic persisted-credential proof; launch_ready gate still "
+         "required; no native PASS until an authorized run"
+     ),
++    "NP-T05-ORDERLY-CLOSE": (
++        "IMPLEMENTED_SOURCE — production Counter/CoveringHTTP/default JoinedTLS; three separate "
++        "sequential owned-peer observations after orderly close_notify: supplementary close-delimited "
++        "complete accepted (exact body; scripted wire has no CL/TE), exact fixed-length complete "
++        "accepted (exact body; scripted wire Content-Length equals body, no TE) and short-CL "
++        "valid-JSON prefix refused (IncompleteRead); peer retired/joined before classification; "
++        "no native PASS until an authorized run"
++    ),
++    "NP-T05-ABRUPT-TRUNCATION": (
++        "IMPLEMENTED_SOURCE — abrupt TLS drop without close_notify mid-body; observed client class "
++        "must be SSLEOFError or ConnectionResetError, distinct from framing/JSON refusal and ASGI "
++        "disconnect; any other class STOPs; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 

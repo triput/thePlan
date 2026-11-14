@@ -1,0 +1,4 @@
+Matt: refresh-native reviewEBA57E85 and exactSHA sidecar are reconciledC0885C12; no blockers, harmless inherited attribution accepted without another revision. Batch compatibility finding corroborated. One new signed READ-ONLY task is delivered: Matt-thePlan-Scheduler-MS-Invalid-Retirement-Native-Draft-Review-2026-11-13.md, SHA256F5524FDD594377E0D9346BBDF4A5D905F6977088358304E63AE49B8B073D6161.
+
+Review separate301-input invalid-grant native stagingC0BCB2E1 from exact selected-fake source6144365E; no MS-refresh/T05 merge and no execution. This replaces completed994ABEFC as sole active task. Existing three Trish decisions unchanged; no native card or authority added. Direction is in the drop; normal turnaround allowed. Endpoint unbound;all holds stay.
+— Dex

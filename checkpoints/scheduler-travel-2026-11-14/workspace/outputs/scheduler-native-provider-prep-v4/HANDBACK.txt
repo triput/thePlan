@@ -1,0 +1,40 @@
+HANDBACK — post-native-provider-prep-jim-v4-2026-11-12
+Jim (Justin), 2026-11-12
+
+STATUS: NATIVE_PROVIDER_PREPARATION_AUTHORED_NOT_EXECUTED
+FLAGS: executed=false; launch_authorized=false; launch_ready=false; implementation_beyond_prep=false; prep_is_not_pass=true; first_vertical_increment=true; endpoint=unbound; slack_tip=false
+
+AUTHORITY (unchanged):
+- Scope 389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D
+- Approval 5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4
+
+PREDECESSORS (immutable tipped):
+- prep-v1 TIP on-disk 0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D
+- prep-v2 TIP on-disk 9C49E0B84B36F7B53FADC79490FCEF3AB2CE093FA6F6B6A8E16F40243BEDD38D
+- prep-v3 TIP on-disk 06C46CB3547C70247021885D463D9F642FE580534577919B964A56F745DC11A4
+
+WORKSPACE: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-v4
+DROP: F:\DropFolder\pending\post-native-provider-prep-jim-v4-2026-11-12
+
+DEX FOLDS (adapted):
+- Report boundary AA2494B2… → machine channel + STOP class-only + executed observed
+- Checker C996C5F2… → 15 controls folded; pins reconciled to final v4
+- Profile 65138AC7… → native-fixture.invalid / dex_fixture / dex_fixture
+
+FIRST VERTICAL:
+- NP-V-MS-NONEXPIRED: Settings + covering-refresh + i01_asgi_app + default JoinedTLS
+- Peer: TLS lifecycle + exact path inventory + stop+close-before-join retirement
+- Other 26 native cases + CF witnesses: explicit HOLD
+
+KEY ROLE SHA256:
+- np_provider_peer.py EF35BB8E5E2B0FE96EE324FF24AFE548EABD8AB935D392DF71B2A967A7E7DED6
+- np_runner_entry.py D7BFB12B6B9C4F6C481DE44A4BCBA3B2918519EEB81D44A71DE17312E7584FA7
+- np_suite.py AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673
+- np_supervisor.py 28248F6E9BC67362AB22B66BAB7756BF5F61D6727C4808A4A2F0B8587A4FD81F
+- check_native_provider.py 7195572674D2F3792E1A92741E38FE405A51FA3E05A3BC0D94533F908EA2B15C
+- Invoke-Native-Provider.ps1 D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D
+
+TIP_SHA256 (preimage on exact LF bytes): 7AE4E26B84205B28BA7E25158C8C80B17D76A3AB5C8B44B58E45F9CD3667414B
+TIP-FREEZE on-disk: FC27FF88427A3EC0705547D2ACBF1A183F230F6B2AAA75A3582993D83C31A896
+
+No imports/compilation/tests/helpers/PKI/sockets/Docker/install/providers executed. No Slack tip.

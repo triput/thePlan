@@ -1,0 +1,27 @@
+{
+  "decision": "Approved additional D2 path compatibility restrictions",
+  "question_item_id": "[\"request_user_input_async\",\"call_e51b99c665c74ac69f16ff69e776598e\",0]",
+  "answer": "Approve policy restrictions (Recommended)",
+  "at_utc": "2026-11-11T18:04:23.9376561Z",
+  "scope": "Policy only",
+  "decode_transitions_max": 8,
+  "utf8": "strict",
+  "refuse": [
+    "malformed original percent escapes",
+    "percent-encoded structural tokens",
+    "empty and trailing path segments",
+    "deeper than eight decode transitions"
+  ],
+  "preserve": [
+    "valid encoded Unicode",
+    "encoded plus/@/=",
+    "internal non-navigation dots",
+    "benign literal percent",
+    "opaque query tokens"
+  ],
+  "brief_sha256": "EF6D4E0B5B2CAFFA87C7F2CBE264B1EA46413F9DE0BBD7C9CD4CD061724CDE6F",
+  "implementation_authorized": false,
+  "execution_authorized": false,
+  "endpoint": "unbound",
+  "all_other_holds_retained": true
+}

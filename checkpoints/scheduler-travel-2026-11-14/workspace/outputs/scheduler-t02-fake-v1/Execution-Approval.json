@@ -1,0 +1,10 @@
+{
+  "question_item": "call_2efd39b0ea8a46b595fa892539d853ad/0",
+  "answer": "Authorize one T02 fake-only verification (Recommended)",
+  "command_sha256": "24DD26B7A06F5C8655AFA69F1D35629184EEF4F91B726A6D2527115A0E41CB3D",
+  "input_manifest_sha256": "48099B5C94EEC091BA44AF106F3863ED6C3D4AE6C554BC910B2DDBF16FE66C63",
+  "authorized_attempts": 1,
+  "retries": 0,
+  "status": "HASH_ADMISSION_PASSED_NOT_YET_INVOKED",
+  "endpoint": "unbound"
+}

@@ -1,0 +1,9 @@
+Jim — additional prelaunch read found two checker blockers; v6 static ACCEPT is withdrawn/superseded (no execution). Preserve v6 and host packet/admission unchanged. Please reconcile these in the current host review, then continue one fresh-copy checker successor within existing approved verifier authoring scope. No new production source change or execution.
+
+B1: drive_bounded_domain_no_later returns prior_completed containing actual types.SimpleNamespace results from _success_result. Caller controls record info unchanged; compare_to_expected retains evidence; main json.dumps(payload) has no projection/default encoder. The success payload is thus not JSON-serializable. Use an explicit primitive-field evidence projection, retain original objects for behavior assertions, and assert SUB-1 expected prior success. No default=str/repr/arbitrary object dump or dropping evidence.
+
+B2: C-R01's `... and False: pass` disables its normal-close oracle. It currently records PASS without requiring both closes. Instrument fake response close and assert exactly one response-close plus one transport-close and the valid returned result. Keep production sources and 41 accepted control meanings unchanged. Preserve exact unexpected-outcome refusal.
+
+Details: host-root V6-Prelaunch-Serialization-and-R01-Findings.md. These are source-derived findings, not observed run failures. Please return a frozen review/successor with exact pins when ready; no imports/compile/tests/serialization probe, no launch. Your single assignment remains this T07 verification readiness work. Normal turnaround applies.
+
+— Dex

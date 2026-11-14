@@ -1,0 +1,88 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "packet_file_pin_count": 16,
+  "packet_files": [
+    {
+      "sha256": "CA8704D6589DCC3A1D24204B23F0AF94EEDC7BB6894768F0E760660A84C95837",
+      "relative_path": "verify/check_native_provider.py"
+    },
+    {
+      "sha256": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "relative_path": "verify/launch_check.py"
+    },
+    {
+      "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "relative_path": "verify/verify_admission.py"
+    },
+    {
+      "sha256": "9706DB220D35801424B45BA4CBDA68976FDDF489469A775B8BA1AF9610E2BCCD",
+      "relative_path": "verify/EXPECTED-FAKE-STRUCTURAL.json"
+    },
+    {
+      "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "relative_path": "Invoke-Fake.ps1"
+    },
+    {
+      "sha256": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+      "relative_path": "Invoke-Native-Provider.ps1"
+    },
+    {
+      "sha256": "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+      "relative_path": "payload/launch-config.json"
+    },
+    {
+      "sha256": "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+      "relative_path": "payload/runner-config.json"
+    },
+    {
+      "sha256": "BA914A73EC225B596ACAB2F5B2FAB5446D0E97DD60EAC9BF980AEF88B0D62063",
+      "relative_path": "payload/fixture/np_runner_entry.py"
+    },
+    {
+      "sha256": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+      "relative_path": "payload/fixture/np_provider_peer.py"
+    },
+    {
+      "sha256": "5258596B6F01E2D0325B9ECE39423257148B0310C4CD7FD7E018CE32D515030C",
+      "relative_path": "payload/fixture/np_supervisor.py"
+    },
+    {
+      "sha256": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "relative_path": "payload/fixture/np_suite.py"
+    },
+    {
+      "sha256": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+      "relative_path": "payload/fixture/np_receipts.py"
+    },
+    {
+      "sha256": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+      "relative_path": "payload/fixture/np_auth_seed.py"
+    },
+    {
+      "sha256": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3",
+      "relative_path": "payload/fixture/np_provider_transcript.py"
+    },
+    {
+      "sha256": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+      "relative_path": "payload/fixture/i01_auth_seed.py"
+    }
+  ],
+  "runtime_file_pin_count": 1,
+  "runtime_files": [
+    {
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "note": "partial runtime scope \u2014 reviewed interpreter only; packet pins separate"
+    }
+  ],
+  "result_byte_cap": 262144,
+  "capture_byte_cap": 65536,
+  "reader_join_seconds": 5,
+  "post_kill_wait_seconds": 5,
+  "note": "Complete concrete pins authored with wrapper-compatible relative_path/absolute_path; launch_authorized=false until later verification card. Do not invoke under prep."
+}

@@ -1,0 +1,17 @@
+{
+  "executionAuthorized": false,
+  "sourceFiles": 24,
+  "executed": false,
+  "changedAdmissionData": [
+    "packet/verify/VERIFICATION-ADMISSION.json",
+    "packet/verify/OUTER-ADMISSION.json"
+  ],
+  "admissionSha256": "095A2084B5709B6FADAE08F7CB250E4E27A1C6CFF37C705D3C237D74C92E3A22",
+  "outerSha256": "E315184D2B50C9B3084F2664C2DAB558B6B0BC1C106ED553D63D011421087801",
+  "commandSha256": "6BA1FE71F745CC503C05EE80C01FA65E684D5573A2A116D9D46E9A7FECF5CE11",
+  "preparedAtUtc": "2026-11-13T18:07:15.9803089Z",
+  "sourceManifestSha256": "9290909CB2CD59825A4A1D26DC76DCB050882FC0863030D97F0BA09781FC3672",
+  "admittedPacketPins": 21,
+  "runtimePins": 1,
+  "unchangedSourceFiles": 22
+}

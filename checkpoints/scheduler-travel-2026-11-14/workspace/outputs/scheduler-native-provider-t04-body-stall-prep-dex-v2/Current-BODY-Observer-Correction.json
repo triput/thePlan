@@ -1,0 +1,12 @@
+{
+  "optionalQualification": "Existing narrow install-before-inner-try window retained,as in accepted Googlepositive fix;no extra hardening",
+  "applicationPeerPKISanitizer": "UNCHANGED",
+  "hostReady": false,
+  "humanAuthority": "NONE",
+  "sourceInputs": 305,
+  "changedExecutable": "Only4localpatches inside_run_np_t04_body_stall",
+  "otherBodies": "UNCHANGED",
+  "status": "FRESH_NATIVE_BODY_SOURCE_CORRECTION_PREPARED_NOT_EXECUTED",
+  "runner": "7087015D1136A963FC87B502CA600FA8C868B8F4FBEDCAF08D684C16BA76951D",
+  "runnerReady": false
+}

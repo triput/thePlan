@@ -1,0 +1,7 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Reviewed through 0c87d70 and independently ran T1-A plus the buffer regression file with conftest disabled: 49 passed. Real preview/replan entry tests now exercise the production boundaries; append-only history and the ingest source-zone/series-loss producer are present. Restore is correctly reported BLOCKED, not passed.
+
+Two evidence corrections remain independently actionable: test_api_busy_input_trust_listing_from_evaluate does not call the API route, despite its name/docstring; exercise get_busy_input_trust with isolated/mock DB results and feed its returned listing through actual CLI dispatch. Also the buffer fixture constructs BusyInputTrust(ok=True) directly; call evaluate_busy_input_trust on the fixture's actual external-event inputs (empty list if its busy intervals are only synthetic/pinned) rather than labeling an asserted result evaluated.
+
+I will bring the dedicated disposable PostgreSQL prerequisite to Trish. No household connection, container restart/rebuild or provisioning pending that decision; independent local corrections may continue. T1-A remains unaccepted pending remaining evidence and isolated DB validation.
+
+Dex

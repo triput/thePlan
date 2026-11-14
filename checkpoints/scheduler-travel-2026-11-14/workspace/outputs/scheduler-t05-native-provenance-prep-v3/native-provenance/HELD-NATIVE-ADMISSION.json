@@ -1,0 +1,8 @@
+{
+  "kind": "scheduler-t05-native-parser-provenance-admission",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "capture_limits_sha256": "1EEFFC451ADDCB4DC8C25D133CD6D6DF5D89A2D1F6ADD0076C71BE3C5A453D81",
+  "collect_script_sha256": "AB470286DE23F0443B62FED8A3626A291E7351456958D0BD12F420995F5469F2"
+}

@@ -1,0 +1,79 @@
+{
+  "kind": "Immutable helper lineage for native-provider prep-v3",
+  "at_utc": "2026-11-12T20:55:54.5211002Z",
+  "helpers": [
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/bootstrap-postgres-tls.sh",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\bootstrap-postgres-tls.sh",
+      "sha256": "FE72795D82DB70B16D193CF18D5B732E01FBA24ABA1606A91621D533C0236D16",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/database_ready.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\database_ready.py",
+      "sha256": "C5171C5236A7B6A03DD781C63E21E697D703C5687B6A6DAB11C363A7C6562F5F",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/docker_transport.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\docker_transport.py",
+      "sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/prepare-tls.sh",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\prepare-tls.sh",
+      "sha256": "41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/gates_ready.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\gates_ready.py",
+      "sha256": "CF501293D154C9D1DD417F74C0F050A087533F2D7162AB3D3F8BFC3C25493511",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/gate_pair.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\gate_pair.py",
+      "sha256": "B597D2D4572716504C46846D2850205CF8401C7FBB2234C02BF96835650DCD2C",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/gate_service.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\gate_service.py",
+      "sha256": "EDDF4F617803DBC73742EE0233A84CDEBEACDFB280FE2FE33B3C9C79E3019BA3",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/i01_asgi_app.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\i01_asgi_app.py",
+      "sha256": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    },
+    {
+      "role": "immutable_helper_reuse",
+      "relative_path": "payload/fixture/assessment_binding.py",
+      "source_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v4\\payload\\fixture\\assessment_binding.py",
+      "sha256": "7ADB68C485BF2D472100CB7288E0A957EF0128CD78DEC0F2B88A2A9CB84C262B",
+      "mutated": false,
+      "lineage": "scheduler-native-i01-i02-v4/payload/fixture"
+    }
+  ],
+  "note": "Copied unchanged. Host Docker ownership only via docker_transport on host supervisor path. Never mount Docker socket into runner. i01_asgi_app + assessment_binding reused for first vertical ASGI/seed factory; FixtureByteTransport alias NOT installed for JoinedTLS claim."
+}

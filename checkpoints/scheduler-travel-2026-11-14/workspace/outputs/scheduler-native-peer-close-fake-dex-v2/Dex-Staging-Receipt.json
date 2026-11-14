@@ -1,0 +1,18 @@
+{
+  "outerSha256": "577A2B81048E18838FC656387705D16685BDA29AA26DA33CEE073205214B3F2D",
+  "admissionSha256": "95B8BF6A3D61C4F7D2F7FD490B7B0A71232941D6FBBA7162B19326F3DDBA246C",
+  "checkerSha256": "C629FB252CF71423D639247E303CDC5CB41073E92905C0FE7895CD8A8F883C69",
+  "executed": false,
+  "sourceCodeDiff": "one checker marker literal8spaces->4spaces",
+  "executionAuthorized": false,
+  "sourceManifestSha256": "4D03B98A82592DA8A5E4B822985895A112CC0222245387AA4C5F4BDC7E92B1E8",
+  "endpoint": "unbound",
+  "sourceSubjectsUnchanged": true,
+  "sourceRoot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-peer-close-fake-dex-v1",
+  "offlineTraceSha256": "C680C96447B99D1A283479706A1E280B4C86ECC5192FCB4AA3E0BBEEDBF132DD",
+  "commandSha256": "A39C65DE2F44328545FF646B3F623CF4F26F8783E3C228B490A7EBD615F3EFD0",
+  "expectedInventoryUnchanged": true,
+  "independentReview": "PENDING",
+  "atUtc": "2026-11-13T19:11:38.1977325Z",
+  "stoppedReceiptSha256": "6515D73A5C28174EE0F6CC72ECA3EF9DE2BC0471D4969B2EEDCF221AB82DEE47"
+}

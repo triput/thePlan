@@ -1,0 +1,128 @@
+{
+  "status": "PASS",
+  "class": "FAKE-PORT",
+  "executed": true,
+  "source_hashes_verified": true,
+  "inventory_error": null,
+  "wire_ids_in_order": [
+    "PORT-443-ABSENT",
+    "PORT-443-EXPLICIT",
+    "PORT-443-ZERO",
+    "PORT-443-OTHER",
+    "PORT-8443-ABSENT",
+    "PORT-8443-EXPLICIT",
+    "PORT-8443-ZERO",
+    "PORT-SOURCE-INVENTORY",
+    "PORT-BAD-PIN"
+  ],
+  "inputs": {
+    "PORT-443-ABSENT": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": null,
+          "configured_port": 443
+        },
+        "candidate": {
+          "outcome": "ACCEPTED",
+          "parsed_port": null,
+          "configured_port": 443
+        }
+      }
+    },
+    "PORT-443-EXPLICIT": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 443,
+          "configured_port": 443
+        },
+        "candidate": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 443,
+          "configured_port": 443
+        }
+      }
+    },
+    "PORT-443-ZERO": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 0,
+          "configured_port": 443
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      }
+    },
+    "PORT-443-OTHER": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSED"
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      }
+    },
+    "PORT-8443-ABSENT": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSED"
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      }
+    },
+    "PORT-8443-EXPLICIT": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 8443,
+          "configured_port": 8443
+        },
+        "candidate": {
+          "outcome": "ACCEPTED",
+          "parsed_port": 8443,
+          "configured_port": 8443
+        }
+      }
+    },
+    "PORT-8443-ZERO": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSED"
+        },
+        "candidate": {
+          "outcome": "REFUSED"
+        }
+      }
+    },
+    "PORT-SOURCE-INVENTORY": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "changed_files": [
+          "app/services/covering_transport_policy.py"
+        ],
+        "source_count": 468,
+        "one_expression_only": true
+      }
+    },
+    "PORT-BAD-PIN": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "bad_pin_rejected": true
+      }
+    }
+  },
+  "limits": "source-extracted origin validator only; no dial/TLS/native proof"
+}

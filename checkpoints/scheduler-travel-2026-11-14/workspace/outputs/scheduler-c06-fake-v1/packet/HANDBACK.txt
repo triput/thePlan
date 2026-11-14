@@ -1,0 +1,21 @@
+SLACK TIP — post-native-c06-runner-tls-prep-jim-v1-corrected5-2026-11-10
+
+Status: C06_RUNNER_TLS_PREP_CORRECTED5_COMPLETE_NOT_EXECUTED (source/packet preparation only; not executed)
+
+Packet:
+F:/DropFolder/pending/post-native-c06-runner-tls-prep-jim-v1-corrected5-2026-11-10/
+
+Tesla/Jim fresh-copy from tipped corrected4 (TIP 914268E0… UNCHANGED), corrected3 (TIP D6260E99… UNCHANGED), corrected2 (TIP 91E699ED… UNCHANGED), corrected1 (TIP 2F9D3EDA… UNCHANGED), and v1 (TIP 046D670A… UNCHANGED). Dex p1794377787: register owned pipes immediately after Popen before Thread constructors. Held fake-only verification with pinned admit_outer; not run. launch_ready=false.
+
+Targets:
+prepare-c06-runner-tls.sh F1868F913BFBA3841331B397242566938DAF7C2047CACDD5031611B62D60E6DA (unchanged)
+runner_entry.py 2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E
+i01_c06_dual_peer.py A636DE72ACB709AAD01EE036DD5EF070CE74F77A0DEC06865EBDCAE3D91B8C52 (unchanged)
+i01_i02_suite.py B3986FB351493C85DD4BE53137D3A1C93978A4567C0E02692819CCEEC54ACFA8 (unchanged)
+
+Closures: owned stdout/stderr endpoints registered after Popen (reader=None, started=False); readers constructed/attached incrementally then started; close helper still accepts reader=None and attempts each non-live owned endpoint once; fake second-constructor throw expects two pipe close attempts, one constructed/zero started, primary preserved, STOP. Retained corrected4: launch-config pin B94DEFE32…, POSIX join, static ready-root, 45s total, fake Linux signal.
+
+Does NOT authorize: cert-gen, Docker, imports, tests, check invoke, bash -n, sockets, launch_ready true, native launch, blocker close, v1/corrected1/corrected2/corrected3/corrected4/22/corrected7/blocked mutation.
+
+MANIFEST-SELF / TIP-FREEZE SHA256:
+5F8D87526F9D2C114C2B81A0D06D3ED2A5CEBC7E2DC97A562225C9C2FB23C602

@@ -1,0 +1,43 @@
+{
+  "packet": "scheduler-d2-source-prep-v4-ms-context / post-native-d2-source-fake-prep-jim-v4-ms-context-2026-11-11",
+  "at_utc": "2026-11-11T19:00:00+00:00",
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "base_inventory_sha256": "8E84BB7DFE9058F49CB725284CB0544A57CAACCE1EC36B99CCAD7403766C1347",
+  "base_file_count": 234,
+  "resulting_file_count": 234,
+  "changed_existing_files": 3,
+  "targets": [
+    {
+      "path": "app/services/covering_transport_policy.py",
+      "starting_sha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "resulting_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "applied": true,
+      "in_fresh_copy_only": true
+    },
+    {
+      "path": "app/services/covering_http_transport.py",
+      "starting_sha256": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "resulting_sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "applied": true,
+      "in_fresh_copy_only": true
+    },
+    {
+      "path": "app/services/covering_provider_context.py",
+      "starting_sha256": "8A40B635467D3BB3CD12E57F96521ACF7AEEF7D4A7661DB9157AC7FED9802D9F",
+      "resulting_sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "applied": true,
+      "in_fresh_copy_only": true
+    }
+  ],
+  "unexpected_changes": [],
+  "original_t02_sources_mutated": false,
+  "execution_authorized": false,
+  "executed": false,
+  "imports_of_app": 0,
+  "tests_run": 0,
+  "endpoint": "unbound",
+  "supersedes_frozen_v3_tip_sha256": "A9415BB75B5B46CF774ABC239813815D015E0EDE07D46E53268E94C15DFB4BE8",
+  "predecessor_frozen_v2_tip_sha256": "9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB",
+  "predecessor_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "check_only_note": "Fake packet check-only successor; source payload pins unchanged from v1/v2/v3"
+}

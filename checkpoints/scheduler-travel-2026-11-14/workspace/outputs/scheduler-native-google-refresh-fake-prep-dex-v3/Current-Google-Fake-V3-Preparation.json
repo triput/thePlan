@@ -1,0 +1,18 @@
+{
+  "status": "FRESH_CORRECTION_PREPARATION_ONLY_UNEXECUTED",
+  "mutants": 11,
+  "source_fake_manifest": "D626F1C2D9DA9045F68AC19E8B6269FAED82A09A650037ECA04DC7392079931F",
+  "prior_assertions_preserved": true,
+  "reported_predicates": 67,
+  "historical_documents": "Copied Launch-Decision is old v2 preparation; current v3 freeze/command authoritative at preparation scope only",
+  "expected": "F08E96E7C2AB8397F42306BCC9E331B247735A732AF68CFB4A29EF16D2F6222C",
+  "launch_authorized": false,
+  "native_manifest": "FC1DC3CBE454E10E755A5505B9B3FF69A9FAEFB63B9509C7A9203C531058B6D4",
+  "endpoint": "unbound",
+  "behavioral_mutants": 6,
+  "native_runner": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+  "structural_mutants": 5,
+  "admission": "CDA573DED1B1418DE49AFD2759525C4A36461432C7F9C88E704D77DCA6C8A6DE",
+  "checker": "7AAC1F30C8F9075F2A3A9311654020C2AE69F4990CC48A7B4AD0A7F5FAC0C8A4",
+  "controls": 14
+}

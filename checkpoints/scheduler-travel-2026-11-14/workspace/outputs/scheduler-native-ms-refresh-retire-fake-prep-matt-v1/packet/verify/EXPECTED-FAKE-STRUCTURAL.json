@@ -1,0 +1,59 @@
+{
+  "kind": "native-ms-refresh-retire-fake-structural-expected",
+  "packet": "scheduler-native-ms-refresh-retire-fake-prep-matt-v1",
+  "candidate_root": "scheduler-native-provider-ms-refresh-retire-prep-matt-v1",
+  "assignment": "Dex 6ED9B65F MS-REFRESH retirement-barrier preparation (routine same-contract fixture correction; no new policy)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "RETIREMENT-HELPER",
+    "REFRESH-BARRIER-WIRING",
+    "REFRESH-ASSERTIONS-PRESERVED",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "helper_byte_identical"],
+    "RETIREMENT-HELPER": ["joined_no_error_post_join_state", "worker_error_refused", "empty_error_refused_distinct_from_none", "unjoined_refused", "retirement_unknown_same_object", "other_exception_same_object", "single_attempt_all_paths"],
+    "REFRESH-BARRIER-WIRING": ["helper_called_once", "attempt_marked_before_helper", "no_second_retirement", "post_join_state_only"],
+    "REFRESH-ASSERTIONS-PRESERVED": ["body_delta_exact", "handlers_finally_and_setup_identical", "suite_stop_messages_preserved"],
+    "BATCH-CONFIG": ["runner_config", "launch_config", "docker_ops_root_rename_only", "evidence_ca_readonly_bind_agreement", "payload_delta_exact", "nested_delta_exact"],
+    "PRIOR-FAKE-APPLICABILITY": ["selected_fake_helper_scope_maps", "dependencies_unchanged_and_interface_literal"],
+    "ACTUAL-SOURCE-MUTANTS": ["worker_error_guard_removed", "worker_error_truthiness", "helper_pre_join_snapshot", "body_pre_join_snapshot", "body_second_retirement", "attempt_guard_missing", "helper_ignored"]
+  },
+  "expected_nested_predicates": 41,
+  "nested_count_breakdown": "SUBJECT-PINS 1 + RUNTIME 7 + DIFF 2 + PRESERVED 2 + HELPER 7 + BARRIER 4 + ASSERTIONS 3 + BATCH 6 + PRIOR 2 + MUTANTS 7 = 41",
+  "check_kinds": {
+    "behavioral_extracted": "RETIREMENT-HELPER (the extracted byte-identical _retire_selected_peer_then_observe with a named fake peer that publishes its final exchange row during the bounded join; named fake np_suite.SuiteStop)",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; REFRESH-BARRIER-WIRING; REFRESH-ASSERTIONS-PRESERVED (not a behavioral run of _run_np_v_ms_refresh)",
+    "behavioral_mutants": ["worker_error_guard_removed", "worker_error_truthiness", "helper_pre_join_snapshot"],
+    "structural_mutants": ["body_pre_join_snapshot", "body_second_retirement", "attempt_guard_missing", "helper_ignored"]
+  },
+  "expected_outcomes": {
+    "helper": "joined True and worker_error_kind None returns (retirement, post-join state) with calls exactly [retire 5.0, state] and the row published during join visible; a non-None worker error (including the empty string) or joined not True raises the named SuiteStop after exactly one retire and no state read; PeerRetirementUnknown and any other retire exception propagate as the same object; exactly one retire attempt on every path",
+    "barrier": "in the main try of _run_np_v_ms_refresh: exactly one helper call, immediately preceded by retirement_attempted = True and followed by retirement_done = True; no retire_owned or sanitized_state call in the main body; exactly one retire_owned in finally, guarded by retirement_attempted; every peer_state read after the barrier; barrier before check_oracles_immediate and the passing case_result_receipt",
+    "assertions": "main body equals source with the pre-join snapshot replaced in place by the 3-statement barrier and the 4-statement late retirement block removed; setup outside the main try, all handlers, orelse and finally identical; SuiteStop messages equal source minus only 'peer worker unjoined - UNKNOWN' (subsumed by the helper's joined check)",
+    "batch": "runner-config case_ids [NP-V-MS-REFRESH], no expected UNKNOWN, gates false, other keys equal; launch-config gates false, batch np-v-ms-refresh-single-case, payload pin, own-root paths, truthful gate note, other keys equal; docker-ops differs only by the 7-path root rename; receipt directory, public CA directory and runner read-only /public-ca bind agree; payload delta exactly 2 rows, nested delta exactly 5 rows"
+  },
+  "mutant_oracles": {
+    "worker_error_guard_removed": "retire:worker error refused",
+    "worker_error_truthiness": "retire:empty error refused",
+    "helper_pre_join_snapshot": "retire:post-join state",
+    "body_pre_join_snapshot": "barrier:post-join state only",
+    "body_second_retirement": "barrier:no second retirement",
+    "attempt_guard_missing": "barrier:attempt marked before helper",
+    "helper_ignored": "barrier:helper called once"
+  },
+  "limits": {"check_seconds": 120, "timeout_retirement_total_seconds": 135, "result_byte_cap": 262144, "capture_byte_cap_per_stream": 65536},
+  "not_proved": "native refresh; T06 closure; peer retirement timing or worker scheduling; native TLS/database/provider behavior; any behavior of the whole MS-REFRESH case",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

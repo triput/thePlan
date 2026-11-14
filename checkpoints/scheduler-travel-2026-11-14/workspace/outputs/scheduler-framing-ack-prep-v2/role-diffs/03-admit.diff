@@ -1,0 +1,41 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\admit_outer.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v1\\packet\\verify\\admit_outer.py"
+index c3d7119..c89c832 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\admit_outer.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v1\\packet\\verify\\admit_outer.py"
+@@ -1,4 +1,4 @@
+-"""HELD noncircular hash admission for one separately authorized route check.
++"""HELD noncircular hash admission for one separately authorized framing-ack check.
+ 
+ The root operator wrapper checks the complete packet/runtime inventory before
+ Python starts. This entry checks its own bytes and five other subjects against
+@@ -20,7 +20,7 @@ from typing import Any
+ HERE = Path(__file__).resolve().parent
+ OUTER_ADMISSION = HERE / "OUTER-ADMISSION.json"
+ ADMIT_OUTER = HERE / "admit_outer.py"
+-LAUNCHER = HERE / "invoke_route_fake.py"
++LAUNCHER = HERE / "invoke_framing_ack_fake.py"
+ REQUIRED_ISOLATION_FLAGS = ("-I", "-S", "-B")
+ 
+ 
+@@ -86,8 +86,8 @@ def main() -> int:
+ 
+     required_subjects = (
+         "admit_outer.py",
+-        "invoke_route_fake.py",
+-        "check_route.py",
++        "invoke_framing_ack_fake.py",
++        "check_framing_ack.py",
+         "EXPECTED.json",
+         "INPUT-MANIFEST.json",
+         "PACKET-SHA256SUMS.txt",
+@@ -110,8 +110,8 @@ def main() -> int:
+ 
+     path_map = {
+         "admit_outer.py": ADMIT_OUTER,
+-        "invoke_route_fake.py": LAUNCHER,
+-        "check_route.py": HERE / "check_route.py",
++        "invoke_framing_ack_fake.py": LAUNCHER,
++        "check_framing_ack.py": HERE / "check_framing_ack.py",
+         "EXPECTED.json": HERE / "EXPECTED.json",
+         "INPUT-MANIFEST.json": HERE / "INPUT-MANIFEST.json",
+         "PACKET-SHA256SUMS.txt": HERE / "PACKET-SHA256SUMS.txt",

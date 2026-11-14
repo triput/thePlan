@@ -1,0 +1,26 @@
+{
+  "at_utc": "2026-11-13T17:11:50.4083712Z",
+  "status": "STATIC_STAGING_INTEGRITY_AND_PATH_AGREEMENT_PASS",
+  "manifest_counts": [
+    287,
+    269,
+    257
+  ],
+  "source_data_only_changes": [
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json"
+  ],
+  "code_changes_from_Matt_prep": 0,
+  "unchanged_API_files": 234,
+  "path_agreement": true,
+  "new_evidence_absent": true,
+  "batch": "NP-V-MS-NONEXPIRED",
+  "expected_unknown": [],
+  "native_execution_authorized": false,
+  "fake_result": "PENDING_APPROVAL_NOT_RUN",
+  "independent_native_review": "AssignedMattE3B95D48,pending",
+  "endpoint": "unbound"
+}

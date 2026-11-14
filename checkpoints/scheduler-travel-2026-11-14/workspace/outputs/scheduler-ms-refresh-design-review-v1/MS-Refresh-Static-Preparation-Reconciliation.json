@@ -1,0 +1,34 @@
+{
+  "checked_at_utc": "2026-11-13T05:30:03.7999767Z",
+  "status": "ONE_STATIC_FAKE_CHECKER_BLOCKER_RETURNED_FOR_FRESH_REVISION",
+  "handoff_pins_verified": 27,
+  "fixture_manifest_entries_verified": 278,
+  "fake_manifest_entries_verified": 21,
+  "original_manifest_entries_verified": 274,
+  "application_files_unchanged": 234,
+  "source_entry_differences": 10,
+  "B1": {
+    "subject_sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+    "file": "packet/verify/check_native_provider.py",
+    "predicate": "require(b\"\\r\" not in data, ...)",
+    "bare_CR": 0,
+    "subject": "subjects/production/microsoft_calendar.py",
+    "correction": "Permit CRLF pairs in a fresh fake packet; still reject bare CR; retain original raw source and provenance",
+    "CRLF_pairs": 2252
+  },
+  "G4": {
+    "runner_creation_execution": 4,
+    "database_setup_readiness": 7,
+    "success_cleanup": 9,
+    "source_derived_success_docker_calls": 22,
+    "runtime_image_admission": 2,
+    "live_proof": false,
+    "hard_cap": 32
+  },
+  "review_drop_sha256": "F565FDE32F03199335DB635F8C49C71D427D52759828EEA59990AAB48ABEF92C",
+  "reply_ts": "1794547758.767129",
+  "source_authority": "Approved389A00DD envelope same-assignment fresh-copy correction; no new preparation gate",
+  "execution_authorized": false,
+  "native_diagnostic_pending": true,
+  "endpoint": "unbound"
+}

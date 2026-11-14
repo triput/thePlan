@@ -1,0 +1,10 @@
+{
+  "question": "call_9fe24ed97d1a4017b5d4fd7eb44b318a item0",
+  "maximumInvocations": 1,
+  "manifest": "F94FE06950460E6FA557C1419AE7922029777EE610ED2B82DE9D81C9D800CA2F",
+  "scope": "Fake-only exact reviewed command; temporary owned-file lifecycle included; no native authority",
+  "atUtc": "2026-11-14T02:34:26.6530959Z",
+  "ack": "Dex EXECUTE ONCE",
+  "admission": "5B8F8B830B17A0F4E2037D3C0E9AEE903207D71C43DCECC51B82D81D2563D044",
+  "command": "08709F146A56F54F021AD6FA7F11C6660C8AA4D8C5D50845EFFD5FEFCC3918C2"
+}

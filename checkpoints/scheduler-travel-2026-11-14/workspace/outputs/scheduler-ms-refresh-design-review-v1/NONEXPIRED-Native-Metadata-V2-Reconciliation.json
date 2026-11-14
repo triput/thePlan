@@ -1,0 +1,33 @@
+{
+  "reviewed": [
+    "Exactly host paths,Docker paths and dependent nested manifest differ from predecessor",
+    "Host and Docker raw text equal predecessor after root-name substitution; CRLF preserved",
+    "All fixture/operator/helper/API/payload bytes unchanged",
+    "Current default receipt exactly matches immutable operator native-provider-host-receipt.jsonl",
+    "Evidence,CA output and bind agree; new evidence absent; optional receipt override absent",
+    "Human flags false; single NONEXPIRED batch/no expected UNKNOWN",
+    "Selected-retirement fakePASS13/85 retains exact corrected runner applicability; no native proof transfer"
+  ],
+  "docker": "5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76",
+  "sidecarPins": 20,
+  "host": "03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE; exact native decision not yet presented",
+  "payloadUnchanged": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A",
+  "atUtc": "2026-11-13T23:27:22.9323920Z",
+  "command": "8031885C1F5ED8256CA7557041BDDCB737D1355D8F6E7D7CE8D194D28E288A59",
+  "handoff": "1F54B01BB0B60DB7BA099D22793B7C645515B86CD0F5E2B5A924C6D3457E3081",
+  "manifest": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "endpoint": "unbound",
+  "kind": "Dex independent NONEXPIRED metadata v2 reconciliation",
+  "qualifications": [
+    "Intermediate diff inventory at23556bytes predates frozen12224byte diff, had null hash and was not an accepted freeze",
+    "Old copied receipt remains wrong and is historical; only V2 current receipt/review/command/prerequisite overlay are current",
+    "No native image/port/DB/TLS proof",
+    "No execution authority; T05 decision remains separate and pending"
+  ],
+  "nativeExecution": false,
+  "predecessorInputsPreserved": 296,
+  "parentInputs": 301,
+  "payloadInputs": 257,
+  "nestedInputs": 269
+}

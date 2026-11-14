@@ -1,0 +1,27 @@
+{
+  "status": "FAILED_STOPPED_NO_RETRY",
+  "invocations": 1,
+  "expected_controls": 39,
+  "completed_controls": 0,
+  "first_control": "C06_N_PREEXIST",
+  "actual_failure": "expected raise containing 'pre-exists'",
+  "launcher_returncode": 1,
+  "timed_out": false,
+  "child_pid": 85680,
+  "child_termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "elapsed_seconds": 0.431,
+  "capture_stop_reason": null,
+  "stderr_bytes": 0,
+  "rehash_entries": 294,
+  "rehash_mismatches": [],
+  "result_sha256": "AC8B604A486391B10FDA9528768FB72EFB93A34CA689E17B94A9657A2B2354BB",
+  "launch_receipt_sha256": "F9C17AC5D206AAFEC11A14D3405C099611FC206D4C5D614BEC893AD7F406A05A",
+  "original_tip_unchanged": true,
+  "repairs_or_rerun": false,
+  "native_resources_created": false
+}

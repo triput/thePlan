@@ -1,0 +1,17 @@
+{
+  "endpoint": "unbound",
+  "receipt": "C559ADCBC817E784AD4EFF16DDEE6843DE31E94F58A4314CBA45BCA3E5A7934C",
+  "inputsUnchanged": 41,
+  "structuralMutants": 7,
+  "controls": 10,
+  "cleanJoinedReaders": true,
+  "nativeProof": false,
+  "remainingAuthority": 0,
+  "reportedPredicates": 47,
+  "zeroChildOutput": true,
+  "mutants": 9,
+  "behavioralMutants": 2,
+  "partialRuntimePinsUnchanged": 9,
+  "result": "A9F192630ABD62C6E498FCC2E53F9032462578195812BD70AA2873CAB0EDED74",
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED"
+}

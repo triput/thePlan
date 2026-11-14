@@ -1,0 +1,154 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "CHAIN-HELPER",
+    "OBSERVE-WIRING",
+    "STOP-PRODUCER-AND-VALIDATOR",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutant_kinds": {
+        "capture_dropped": "structural",
+        "cause_dropped": "behavioral",
+        "chain_before_retirement": "structural",
+        "none_fallback_chained": "behavioral",
+        "producer_exports_message": "behavioral",
+        "wrong_cause": "behavioral"
+      },
+      "mutants": {
+        "capture_dropped": "DETECTED",
+        "cause_dropped": "DETECTED",
+        "chain_before_retirement": "DETECTED",
+        "none_fallback_chained": "DETECTED",
+        "producer_exports_message": "DETECTED",
+        "wrong_cause": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "BATCH-CONFIG": {
+      "cases": {
+        "launch_config": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "CHAIN-HELPER": {
+      "cases": {
+        "admitted_label_unchanged": "PASS",
+        "client_exception_not_mutated": "PASS",
+        "none_fallback": "PASS",
+        "refused_same_guard_and_cause": "PASS",
+        "unexpected_exception_identity": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "runner": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "OBSERVE-WIRING": {
+      "cases": {
+        "capture_in_client_handler_only": "PASS",
+        "chain_after_retirement_and_inventory": "PASS",
+        "classifier_call_replaced_once": "PASS",
+        "client_exc_init_none": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "runner": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "PRIOR-FAKE-APPLICABILITY": {
+      "cases": {
+        "peer_transcript_suite_unchanged": "PASS",
+        "t05_units_identical_except_observe": "PASS"
+      },
+      "control_kind": "applicability_map",
+      "not_transferred": [
+        "T05 fixture fake v2 PASS 14/74 (C4771F53): its finite properties apply to the unchanged T05 units listed here; its _t05_observe wiring checks do not transfer to the changed _t05_observe, re-checked structurally here.",
+        "No native T05 class or EOF behavior is established; the failed run's client outcome remains unretained."
+      ],
+      "observed": "PASS"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "STOP-PRODUCER-AND-VALIDATOR": {
+      "cases": {
+        "chain_exact_kinds_and_owned_frames": "PASS",
+        "cleanup_unknown_preserved": "PASS",
+        "diagnostic_fallback": "PASS",
+        "non_owned_frames_dropped": "PASS",
+        "overflow_truncation_and_bounds": "PASS",
+        "secret_markers_absent": "PASS",
+        "suppressed_context_followed": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "semantics_note": "the unchanged producer follows __cause__ else __context__, so a suppressed context is still exported as a kind/location entry; this is the existing producer behavior"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "config/candidate-launch-config.json": "39AAEE8BA9A18BBB27AEA471CE1329F069C955CEFCE3AC35184804B230CA560E",
+        "config/candidate-runner-config.json": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+        "config/source-launch-config.json": "A9E724563A489498BBA45E7B3E251373BABFAB341BCD91B64A00A7C648538DC3",
+        "config/source-runner-config.json": "9E45F6B686B9E34E455BCDC6154AB8E80A6E2F780D8134A380F15EBC135B706B",
+        "diff/np_runner_entry.py.diff": "3818CF6A705C5297AF97C307E217C7944B5E046A84F18B11C2B3591B6BDD42AC",
+        "diff/runner-config.json.diff": "E16FF22B457597464DD191B67F8DE24C8B612BB585946AC8493C0A6E03203026",
+        "fixture/docker_transport.py": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+        "manifest/candidate.txt": "4076B0D21601C31B8688586B241EB42A2E6B0026EE87D307A042CD01F570D2A6",
+        "manifest/source.txt": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B",
+        "runner/candidate.py": "1AEDEE93B1076D104E05700833548AE11B9AB4751E232E591FB615AAD72961BB",
+        "runner/source.py": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 38,
+  "packet": "scheduler-native-t05-client-cause-fake-prep-matt-v1",
+  "passed": 10,
+  "prep_is_not_pass": true
+}

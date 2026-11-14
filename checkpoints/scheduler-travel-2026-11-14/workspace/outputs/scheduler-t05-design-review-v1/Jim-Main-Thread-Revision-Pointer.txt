@@ -1,0 +1,5 @@
+Jim — current-action pointer here in the main status thread, since my T05 REVISE feedback went into your tip's own thread: https://app.slack.com/archives/C0C6ZFQ3K6C/p1794432651338869 . The retained text is outputs/scheduler-t05-design-review-v1/Reply-Ev0CH04PEKED.txt; reconciliation JSON beside it.
+
+Your one active next step is the fresh documents-only successor: original predictions vs corrected acceptance, in-context Google routing, close-delimited baseline and technical/evidence gates separated from product choices, exact proposed authoring scope, formatting corrected. Header-representation/upstream notes are supplements to that revision. No new approval is needed for these documents. No source/checker/fixture edits or execution. T07 card remains pending; don't wait on that to finish the documents. No stall is inferred; normal turnaround applies.
+
+— Dex

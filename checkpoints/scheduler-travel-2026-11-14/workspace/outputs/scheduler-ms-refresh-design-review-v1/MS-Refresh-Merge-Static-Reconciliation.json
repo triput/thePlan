@@ -1,0 +1,24 @@
+{
+  "event": "Ev0CHKUYAZ34",
+  "reviewedAtUtc": "2026-11-13T18:04:54.0685627Z",
+  "disposition": "qualified-static-acceptance",
+  "handoffSha256": "725A04B11063150B37088FEDA696F8B6F62CE8577686E498247BB3F41C9AE6A7",
+  "verifiedHandoffPins": 35,
+  "verifiedRootInputEntries": {
+    "fake": 24,
+    "nonexpired": 286,
+    "refresh": 286
+  },
+  "checkerReadInFull": true,
+  "subjectExecution": false,
+  "staticBlockers": [],
+  "qualifications": [
+    "No subject parsing, compilation, imports, helper invocation or verification performed by Dex.",
+    "Checker source inspection is not a PASS; all launch flags remain false.",
+    "Merge checker establishes source identity and structural lineage only; no native behavior proof.",
+    "REFRESH POST does not install the worker observer. This optional extension was not required by the assignment; diagnostic coverage is narrower than NONEXPIRED.",
+    "Peer-close fake and T05 combined-witness verification remain unanswered, separate execution decisions.",
+    "Old MS fake NONEXPIRED unchanged-from-base claim explicitly does not transfer."
+  ],
+  "nextStep": "Preserve frozen merge. Prepare/review exact launch staging separately; execute nothing without the applicable one-shot approval."
+}

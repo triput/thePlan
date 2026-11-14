@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-13T04:37:36.0382175Z",
+  "status": "V3_EXACT_CORRECTION_INDEPENDENTLY_RECONCILED",
+  "source_inputs": 289,
+  "handoff_pins": 13,
+  "admitted_packet_pins": 23,
+  "runtime_pins": 1,
+  "source_manifest_sha256": "DD108B3D1E957DBF0E66657F1A5A2FC034B3AE78CAC4A73FC8C38AE621B3EEC5",
+  "checker_sha256": "BF5E28A98C2533C967FF1DD51EDE63D9F50885627B656937D9CE7DFAE24D7F64",
+  "exact_one_line_proposal_matches": true,
+  "changed_packet_files": [
+    "verify\\check_native_provider.py",
+    "verify\\OUTER-ADMISSION.json",
+    "verify\\VERIFICATION-ADMISSION.json"
+  ],
+  "all_other_subject_bytes_unchanged": true,
+  "b3_objection_resolved": "Exact proposed constructor recognition; actual suite untouched",
+  "hygiene_notes_deferred": true,
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

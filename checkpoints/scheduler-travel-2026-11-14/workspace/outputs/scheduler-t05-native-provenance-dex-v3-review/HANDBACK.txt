@@ -1,0 +1,37 @@
+SLACK TIP — post-native-t05-native-provenance-dex-v3-static-review-jim-v1-2026-11-11
+
+Status: T05_NATIVE_PROVENANCE_STATIC_REVIEW_COMPLETE_NOT_EXECUTED (static review only; no execution)
+
+Packet:
+F:/DropFolder/pending/post-native-t05-native-provenance-dex-v3-static-review-jim-v1-2026-11-11/
+
+Host: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-native-provenance-dex-v3/
+
+Disposition: QUALIFIED ACCEPT — launch_authorized=false; executed=false; review_only=true
+
+Dex pins (MATCH):
+Manifest SHA256SUMS.txt: 4F2BAECBEBA79A4E5BFF6D2A6A04CB658DF8775BCE91F368BE6152260BE1AC37
+Commands.ps1.txt: 501FAB56FC51F8C8B147EE0B7F29FED8B3F2D95AD7C793FE691953D407C83C55
+Supervisor verify_native_provenance.py: 6A5746C7513FEB438C3465FDA1A7F44B50208E90DE19F43D78294E6AEC760B9A
+Proposed-New-Files.diff: 43486A343480644E8C755CF5B880893C6431DCA8367CEE725BB0801C8A89D289
+
+Continuity note: 9708406AAB6E222A5FA4425FDA75BCBF0B054E462305E1FBFABAA063AFD2F379 (MATCH)
+v2 pre-removal manifest continuity gap: CLOSED (admitted pairs retained; manifest rehashed to approved pin before cleanup; compare admitted pairs)
+
+Packet files reviewed: 12/12 hash-verified; runtime pins 25/25 MATCH; Docker.exe pin MATCH (hash only)
+Collector + Runtime-Pins byte-identical to immutable v2; PACKET label/root coherent to dex-v3
+Evidence absent; peer launch_ready=false
+
+Blockers: none
+Qualifications: runtime pins partial-by-design; Healthcheck/mount-Source projection notes; peer_review pending; source-bytes-only proof boundary (not parser/transport; not full T05/T01–T08)
+
+Does NOT authorize: launch, Docker, helper import/compile/invoke, packet edits, endpoint bind, failure cleanup, collection PASS claim
+
+Review SHA256:
+AEBBF88EBE30091340AE2E45AC538D967A21D12CEBC43D766F91EF7BCC9D896C
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+B91B2F084C88081A2018AC391736C81CD4A727C006C5BE27067CF081F5D088D1
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+9F9592DD4D938A6AB052F2A85A060A21CB6B808ABF9D5D449D9A75BFE49876DD

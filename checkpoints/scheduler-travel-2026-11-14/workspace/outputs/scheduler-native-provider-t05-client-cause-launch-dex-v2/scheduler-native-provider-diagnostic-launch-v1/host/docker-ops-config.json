@@ -1,0 +1,169 @@
+{
+  "packet": "scheduler-native-provider-diagnostic-launch-v1",
+  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+  "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+  "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+  "suite_seconds": 900,
+  "runner_seconds": 600,
+  "command_count_cap": 32,
+  "output_byte_cap": 1048576,
+  "database_python": "/usr/bin/python3",
+  "database_runtime_pins": {
+    "python": [
+      3,
+      12,
+      16
+    ],
+    "postgres": "postgres (PostgreSQL) 16.13",
+    "openssl": "OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)"
+  },
+  "runner_runtime_pins": {
+    "python": [
+      3,
+      12,
+      16
+    ],
+    "psycopg": "3.2.13",
+    "sqlalchemy": "2.0.51",
+    "pq_implementation": "binary",
+    "pq_runtime": 170006,
+    "pq_build": 170006
+  },
+  "image_provenance": "Native-Runtime-Lineage-Reference.json retained; no live inspect during prep",
+  "static_success_docker_command_count_authored": 22,
+  "command_count_cap_note": "32 is hard admission cap; static success path remains 22 after native-ready layout/entry changes (host hashing is not a Docker command)",
+  "roles": {
+    "database": {
+      "image": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+      "image_volumes": {
+        "/var/lib/postgresql/data": {}
+      },
+      "user": "postgres",
+      "entrypoint": "/bin/sh",
+      "argv": [
+        "/packet/fixture/bootstrap-postgres-tls.sh"
+      ],
+      "readonly_binds": [
+        [
+          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+          "/packet"
+        ]
+      ],
+      "tmpfs": {
+        "/var/lib/postgresql/data": "rw,nosuid,nodev,noexec,size=256m,mode=1777",
+        "/fixture-tls": "rw,nosuid,nodev,noexec,size=16m,mode=1777",
+        "/tmp": "rw,nosuid,nodev,noexec,size=64m,mode=1777"
+      },
+      "host_config_projection": {
+        "Privileged": false,
+        "ReadonlyRootfs": true,
+        "PublishAllPorts": false,
+        "PortBindings": {},
+        "CapAdd": null,
+        "Devices": [],
+        "DeviceRequests": null,
+        "Memory": 1073741824,
+        "MemorySwap": 1073741824,
+        "NanoCpus": 1000000000,
+        "PidsLimit": 64,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "NetworkMode": "none",
+        "Tmpfs": {
+          "/var/lib/postgresql/data": "rw,nosuid,nodev,noexec,size=256m,mode=1777",
+          "/fixture-tls": "rw,nosuid,nodev,noexec,size=16m,mode=1777",
+          "/tmp": "rw,nosuid,nodev,noexec,size=64m,mode=1777"
+        }
+      },
+      "mount_projection": [
+        [
+          "bind",
+          "/packet",
+          false
+        ]
+      ]
+    },
+    "runner": {
+      "image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+      "image_volumes": null,
+      "user": "65534:65534",
+      "entrypoint": "/usr/local/bin/python3",
+      "argv": [
+        "-I",
+        "-S",
+        "-B",
+        "/packet/fixture/np_runner_entry.py"
+      ],
+      "readonly_binds": [
+        [
+          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+          "/packet"
+        ],
+        [
+          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+          "/public-ca"
+        ]
+      ],
+      "tmpfs": {
+        "/tmp": "rw,nosuid,nodev,noexec,size=128m,mode=1777"
+      },
+      "host_config_projection": {
+        "Privileged": false,
+        "ReadonlyRootfs": true,
+        "PublishAllPorts": false,
+        "PortBindings": {},
+        "CapAdd": null,
+        "Devices": [],
+        "DeviceRequests": null,
+        "Memory": 1073741824,
+        "MemorySwap": 1073741824,
+        "NanoCpus": 1000000000,
+        "PidsLimit": 64,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "NetworkMode": "container:<exact-created-database-ID>",
+        "Tmpfs": {
+          "/tmp": "rw,nosuid,nodev,noexec,size=128m,mode=1777"
+        }
+      },
+      "mount_projection": [
+        [
+          "bind",
+          "/packet",
+          false
+        ],
+        [
+          "bind",
+          "/public-ca",
+          false
+        ]
+      ]
+    }
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": true,
+  "prep_is_not_pass": true,
+  "human_launch_authorized": false,
+  "candidate_launch_ready_staged": true,
+  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-launch-dex-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+}

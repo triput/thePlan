@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-12T20:21:51.8618053Z",
+  "status": "Provisional in-progress implementation finding, not frozen acceptance review",
+  "inputs": [
+    {
+      "name": "np_provider_peer.py",
+      "observed_sha256": "2D84C771941C0BBBBC4190556E8ED7D66031C8347DCADBF31846CFFFDEAAFF85",
+      "snapshot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-scope-dex-review-v2\\Provisional-np_provider_peer.py.txt"
+    },
+    {
+      "name": "np_runner_entry.py",
+      "observed_sha256": "BB101B0461D129C12D587109CB1CE4D466E2141FBB0D383D996FCD0311B1E2BD",
+      "snapshot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-scope-dex-review-v2\\Provisional-np_runner_entry.py.txt"
+    }
+  ],
+  "finding": "Peer contains declaration/state methods only; runner build_registry_from_suite generates unconditional RunnerEntryHeld bodies and main always refuses. Required native behavior is not yet implemented.",
+  "required_action": "Under existing approved16-role authoring scope, implement real peer/TLS lifecycle and actual production/native case bodies; do not invoke them. Keep external launch gate and launch_ready=false until separately reviewed.",
+  "new_authority": false,
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

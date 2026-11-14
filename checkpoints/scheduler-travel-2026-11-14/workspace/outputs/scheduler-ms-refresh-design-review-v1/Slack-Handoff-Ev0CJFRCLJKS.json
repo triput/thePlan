@@ -1,0 +1,13 @@
+{
+  "event": "Ev0CJFRCLJKS",
+  "messageTs": "1794600814.365599",
+  "threadTs": "1794534925.412399",
+  "atUtc": "2026-11-13T20:20:31.8787703Z",
+  "status": "Design reconciled, qualified fixture preparation assigned under existing lane",
+  "handoff": "74F493D8CA5B52B8CCCF6A5DF4A89DDE15972E3982D4E248508988909A56B8DA",
+  "reconciliation": "49742EEE2190974AA5D97B09AA3BA7A255291B27EE4410483074F613AC1661CF",
+  "nextAssignment": "66D016138E4B51CBA41BCCB7B7A091E754F57D225E1729EE6B829F30B08EEA54",
+  "replyTs": "1794601221.187519",
+  "execution": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,111 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "packet_file_pin_count": 23,
+  "packet_files": [
+    {
+      "sha256": "099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F",
+      "relative_path": "verify/check_native_provider.py"
+    },
+    {
+      "sha256": "ABCFC1383F8A99100A2850834A5177CF698253469326B4C501160128D1CEDC64",
+      "relative_path": "verify/launch_check.py"
+    },
+    {
+      "sha256": "08975D02774BEA7A794F6420F9FFC4DE0BB5E3F2DB53A41716A894C5F48C6B49",
+      "relative_path": "verify/verify_admission.py"
+    },
+    {
+      "sha256": "080268BCCCCB63EB47A96A59F5EB4454575D98AA73A1B796FEAF640F1F0B260A",
+      "relative_path": "verify/EXPECTED-FAKE-STRUCTURAL.json"
+    },
+    {
+      "sha256": "243D5B4B73D387ADDA4DC1EBA5E91E4A35A2C97D62AAD565A7B2E69FB14EEDAC",
+      "relative_path": "verify/OUTER-ADMISSION.json"
+    },
+    {
+      "sha256": "9AE55D26604174AB84B71C841E9DB3C777D41E014CF56E6FCC7E3037843F2653",
+      "relative_path": "Invoke-Fake.ps1"
+    },
+    {
+      "sha256": "C4A883E8175F7AB40977CA482F78838C61C269E7CB46F5235FCDAD9E3C18A9AC",
+      "relative_path": "Invoke-Native-Provider.ps1"
+    },
+    {
+      "sha256": "A7932F5906B386E5672556124FC1216B8A82EF687B3A26C4973F1D293B0183C1",
+      "relative_path": "host/launch-config.json"
+    },
+    {
+      "sha256": "5A54F37CAD7A470CF2CCC2CC121818953E24848C19026C7EBC9D02114B10043D",
+      "relative_path": "payload/runner-config.json"
+    },
+    {
+      "sha256": "9C0F85733287BDCF4F526AB52F5685E7BC10CB1C4CC349818D8B0AC001B07E70",
+      "relative_path": "payload/fixture/np_runner_entry.py"
+    },
+    {
+      "sha256": "4EEAB1E7F789AB4918B36466A50F29E09F84E6FA48A87C0C942ECD599E097D17",
+      "relative_path": "payload/fixture/np_provider_peer.py"
+    },
+    {
+      "sha256": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+      "relative_path": "payload/fixture/np_supervisor.py"
+    },
+    {
+      "sha256": "617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562",
+      "relative_path": "payload/fixture/np_suite.py"
+    },
+    {
+      "sha256": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+      "relative_path": "payload/fixture/np_receipts.py"
+    },
+    {
+      "sha256": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+      "relative_path": "payload/fixture/np_auth_seed.py"
+    },
+    {
+      "sha256": "46327DF0A848672FFBCA85772C0EA764D370BDF7B487EFAE36831F451A6915D4",
+      "relative_path": "payload/fixture/np_provider_transcript.py"
+    },
+    {
+      "sha256": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+      "relative_path": "payload/fixture/i01_auth_seed.py"
+    },
+    {
+      "sha256": "D4B54E4D51E607D28ADE15A92C41BF19EC39535BE960310759A4C6CD03EFDDAE",
+      "relative_path": "docs/Assembly-Selected-Source-Manifest.json"
+    },
+    {
+      "sha256": "FE72795D82DB70B16D193CF18D5B732E01FBA24ABA1606A91621D533C0236D16",
+      "relative_path": "payload/fixture/bootstrap-postgres-tls.sh"
+    },
+    {
+      "sha256": "309CE658479FFD665408B6EAABF318258AF402D29F23C0C3F9BD99E5FDA003AD",
+      "relative_path": "payload/fixture/np_alias_seed.py"
+    },
+    {
+      "sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "relative_path": "payload/fixture/np_integrated_runner.py"
+    },
+    {
+      "sha256": "9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA",
+      "relative_path": "payload/fixture/np_provider_routes.py"
+    },
+    {
+      "sha256": "41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F",
+      "relative_path": "payload/fixture/prepare-tls.sh"
+    }
+  ],
+  "outer_admission_relative_path": "verify/OUTER-ADMISSION.json",
+  "t05_closure_focused": true,
+  "dex_r1_r5_fixed": true,
+  "r2_finite_eof_reset_taxonomy": true,
+  "launch_batch_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "note": "Derived T05 v3 fake launch candidate; refreshed subject pins and staged flags do not authorize execution; all native flags remain false."
+}

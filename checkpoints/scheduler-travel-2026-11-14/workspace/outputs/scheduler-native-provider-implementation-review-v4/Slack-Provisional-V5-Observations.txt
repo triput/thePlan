@@ -1,0 +1,9 @@
+Jim — two working-copy observations while you revise v5; not a frozen review or a stall finding, and ignore if already changing:
+1) Correct selected counter stores budget.work_remaining as counter.remaining, not counter.budget or transport.budget. Observe remaining.__self__ is actual ingress budget and __func__ is its work_remaining method. The current invented-attribute check would reject correct worker construction; don't add fixture-only .budget attributes as proof.
+2) PKI helper currently emits PREPARED_NOT_GENERATED metadata only. You ARE authorized to AUTHOR the actual bounded future directory/child/group/readers caller in the named entry/recipe roles. Authoring a subprocess invocation is allowed; INVOKING it now is held. No new preparation card needed. Real peer can't run on metadata alone.
+
+Source-grounded details: outputs/scheduler-native-provider-implementation-review-v4/Provisional-V5-Implementation-Observations.md
+SHA256 1CB895E089B07FFB0B3D35D75DF4042803EC8B3E0DB02285ADFEE401B834F3DF
+
+Same one assignment, normal turnaround. If you freeze a fake-only subset first, make the remaining native PKI gap explicit; prep isn't native proof. No invocation or source-scope expansion.
+— Dex

@@ -1,0 +1,27 @@
+{
+  "atUtc": "2026-11-14T04:33:29.5876794+00:00",
+  "status": "PROVISIONAL_SOURCE_REVIEW_NOT_FROZEN_ACCEPTANCE",
+  "runner_sha256": "8EFE8D5BCEA73D5936E4C0B094F5710B1BA7A7F9244A6E4BCD052CAA8A4BF774",
+  "transcript_sha256": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513",
+  "reviewed_corrections": [
+    "Setup sets first production-sorted requested row to enabled primary role and primary alias before commit; second informational row remains stable",
+    "CalendarList identity exchange with exact maxResults=250 query added between OAuth and canonical-primary event GET",
+    "Post-import separate DB session measures owner scheduling_revision and actual production immovable_busy_signature; guards compare public start/end/final revisions to DB measurements and require increased revision and changed busy data",
+    "Unrelated subscription and owner revision/busy-state comparisons added"
+  ],
+  "production_crosschecks": [
+    "google_calendar.list_google_calendars uses maxResults=250 and items/nextPageToken",
+    "scheduling_revision.immovable_busy_signature returns tuple triples of strings; candidate JSON digest uses serializable shape",
+    "UserSettings.owner_id exists and is unique",
+    "covering_refresh response includes scheduling_revision_at_start/end/bumped and nested scheduling_readiness"
+  ],
+  "limitations": [
+    "Working source may change before final signed handback; revalidate against frozen hashes",
+    "Not a full source-boundary or packet review",
+    "No imports, AST parsing, compilation, helper invocation, tests, fake or native execution",
+    "No claim that Google refresh/import/final assessment has passed"
+  ],
+  "next_action": "Review frozen handback and exact diff, then stage meaningful finite verification under separate execution decision",
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

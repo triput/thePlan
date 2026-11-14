@@ -1,0 +1,45 @@
+{
+    "kind":  "scheduler-native-provider-one-shot-fake-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-native-peer-close-fake-prep-matt-v1",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "packet_file_pin_count":  9,
+    "packet_files":  [
+                         {"sha256":  "CE60B3D3E46E7E41EFD712A9E19CDC672605A36DF45C5B0A7B1C4CC9784F7184", "relative_path":  "verify/check_native_provider.py"},
+                         {"sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07", "relative_path":  "verify/launch_check.py"},
+                         {"sha256":  "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB", "relative_path":  "verify/verify_admission.py"},
+                         {"sha256":  "780456E21BF45BC378D3A1053842042BF9344F628E839F6488C57D991A0402C5", "relative_path":  "verify/EXPECTED-FAKE-STRUCTURAL.json"},
+                         {"sha256":  "6AE4337BC592F308CED8EA5655B54269847BD5121D6F4FDB1D3D17E0ADCBF35D", "relative_path":  "verify/OUTER-ADMISSION.json"},
+                         {"sha256":  "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7", "relative_path":  "Invoke-Fake.ps1"},
+                         {"sha256":  "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55", "relative_path":  "subjects/source/np_provider_peer.py"},
+                         {"sha256":  "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039", "relative_path":  "subjects/candidate/np_provider_peer.py"},
+                         {"sha256":  "023303AC81AC8F3F3460CBDE9E2AFAFFB4A3EA85D97FE547AD5C78E60B54B30D", "relative_path":  "subjects/diff/Peer-Close-Notify.diff"}
+                     ],
+    "runtime_file_pin_count":  1,
+    "runtime_files":  [
+                          {
+                              "absolute_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+                              "sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                              "note":  "partial runtime scope: reviewed interpreter executable only; not a standard-library/DLL/environment lock"
+                          }
+                      ],
+    "result_byte_cap":  262144,
+    "capture_byte_cap":  65536,
+    "reader_join_seconds":  5,
+    "post_kill_wait_seconds":  5,
+    "check_seconds_budget":  120,
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_root":  "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+    "exclusive_evidence":  ["verify/FAKE-NATIVE-PROVIDER-RESULT.json", "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"],
+    "successor_reference":  {
+        "workspace":  "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-prep-matt-v1",
+        "peer_sha256":  "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+        "runner_sha256":  "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+        "launch_config_sha256":  "5CC778375B6E30FD3EF44957423F33A02F6B9AC47641BAC7DE9D6B3AFBE33DD7"
+    },
+    "note":  "Matt peer close_notify correction fake prep v1. Complete concrete pins; launch_authorized=false. Do not invoke under preparation. A later run needs the reviewed hashes, Trish's explicit one-shot approval (including authority to terminate the one owned check child on error/timeout/overflow), and flipping both launch_authorized booleans as a reviewed staging change."
+}

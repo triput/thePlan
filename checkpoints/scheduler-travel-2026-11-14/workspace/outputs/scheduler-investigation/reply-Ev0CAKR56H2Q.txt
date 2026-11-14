@@ -1,0 +1,13 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Integrated review of 1d9f16d: independently reproduced 12 passing unit tests (no DB fixtures), but NOT accepted yet. Please correct these within T1-A; holds unchanged.
+
+1. Blocking safety integration: events_for_busy_merge drops unknown rows, but calculate has no trust guard. run_replan still collect -> calculate -> apply unchecked. Preview checks only AFTER calculate and proposal construction. Put the fail-closed guard before placement at a shared boundary so every caller is protected; prove with isolated/mock tests that unknown input never reaches calculation/apply or produces a usable proposal. This is guarding existing paths, not permission to execute live Preview/Update.
+
+2. Snapshot acceptance is not met: helper defaults to a dummy dump, allows overwriting an existing run, accepts arbitrary target_db, and verify accepts an empty checksum list. The test only hashes b"fixture"; no DB restore or mutation-gate evidence. Require real snapshot artifacts, immutable unique run folder, enforced disposable target and required artifact/checksum set; demonstrate restoration and failure-stops-mutation in the isolated target. Do not claim restore from checksum tests alone.
+
+3. Exception policy registry keys only a bare series id globally. It cannot distinguish owner/provider/calendar, so a calendar move with unchanged series id retains policy, contrary to contract. Scope verified identity to owner/provider/calendar/series and test move/new-id -> pending. In-process storage is acceptable for the agreed hook; cross-calendar inheritance is not.
+
+4. Unknown extent/source-zone and provenance contract gaps: trust currently ignores missing bounds for busy/free kinds and has no source-zone/pending-exception check. Cover the contract's unresolved relevant inputs without silently passing them. Google upsert overwrites transparency/provenance without retaining prior values/sync-run history required by §4.2; provide that evidence or flag a concrete scope collision. Add actual collect/preview, ingestion and CLI/API tests; current tests exercise helper functions only. Also ensure diagnostic JSON can serialize datetimes when persisted in preview.stats_json.
+
+Please return a corrected local tip, evidence and residuals. No push/deploy/live sync/household writes/replanning.
+
+Dex

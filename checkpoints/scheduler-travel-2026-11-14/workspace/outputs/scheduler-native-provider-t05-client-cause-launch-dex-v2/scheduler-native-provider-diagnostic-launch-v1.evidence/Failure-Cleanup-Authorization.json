@@ -1,0 +1,10 @@
+{
+  "approval": "call_4367dc1a004248c7ab5dc8893a1f0181 item0",
+  "force": false,
+  "retry": false,
+  "per_command_seconds": 30,
+  "consumed_at": "2026-11-14T03:29:50.7943064Z",
+  "request_sha256": "F637AE28DA4CC086828FC377817F0525D6AA2C306DD242E59EBF5BA9A98E4FA2",
+  "commands": 9,
+  "shared_seconds": 300
+}

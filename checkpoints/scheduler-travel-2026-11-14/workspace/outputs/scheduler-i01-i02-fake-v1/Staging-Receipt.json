@@ -1,0 +1,10 @@
+{
+  "kind": "static-review-staging",
+  "source": "F:\\DropFolder\\pending\\post-native-I01-I02-fixture-prep-jim-v1-REVISE2-corrected7-2026-11-10",
+  "destination": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet",
+  "tip_sha256": "6D19C5963C3CF2F1FBADDAE64AE0BE039D32C2C419A4EDCAB940E6314EB5084E",
+  "files_verified": 286,
+  "mismatches": [],
+  "executed": false,
+  "timestamp_utc": "2026-11-11T03:36:58.7984853Z"
+}

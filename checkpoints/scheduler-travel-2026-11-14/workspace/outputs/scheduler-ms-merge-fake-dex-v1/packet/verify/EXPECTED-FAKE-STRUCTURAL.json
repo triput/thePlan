@@ -1,0 +1,44 @@
+{
+  "kind": "ms-merge-fake-structural-expected",
+  "packet": "scheduler-ms-merge-fake-prep-matt-v1",
+  "merged_runner_sha256": "F7CFD3E6BA0107B3482766C3A8FA505C5BADD287DF843FACAEA2E79CFFE5385C",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "MERGE-REDERIVATION",
+    "OBSERVER-PRESERVED",
+    "REFRESH-PRESERVED",
+    "TOP-LEVEL-PARTITION",
+    "ROLE-SELECTION",
+    "BATCH-SEPARATION",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "MERGE-REDERIVATION": ["obs_from_base", "ms_from_base", "obs_onto_ms", "ms_onto_obs"],
+    "OBSERVER-PRESERVED": ["_install_worker_exception_observer", "_run_np_v_ms_nonexpired", "stop_payload", "main_guard"],
+    "REFRESH-PRESERVED": ["_ms_refresh_provider_routes", "_require_production_ms_token_path", "_actual_token_terminals", "_run_np_v_ms_refresh", "_make_implemented_case", "IMPLEMENTED_CASE_IDS"],
+    "TOP-LEVEL-PARTITION": ["vs_observer", "vs_ms"],
+    "ROLE-SELECTION": ["n_rows", "f_rows", "peer_is_corrected", "api_rows_unchanged"],
+    "BATCH-SEPARATION": ["nonexpired_runner_config", "refresh_runner_config", "nonexpired_launch_config", "refresh_launch_config", "sums_differ_only_runner_config"],
+    "PRIOR-FAKE-APPLICABILITY": ["peer_close_fake_subject", "worker_fake_subject", "ms_fake_subjects_with_nonexpired_excluded"],
+    "ACTUAL-SOURCE-MUTANTS": ["observer_install_removed", "refresh_mapper_branch_disabled", "implemented_ids_reverted", "peer_row_reverted"]
+  },
+  "expected_nested_predicates": 33,
+  "applicability_map": {
+    "worker_observer_fake_PASS_10_47": "applies to merged units _install_worker_exception_observer, _run_np_v_ms_nonexpired (incl. restore wiring and non-200 chaining), stop_payload, __main__: text-identical to 341074AE",
+    "peer_close_fake_held": "applies to merged peer 17EA148E byte-identically (that fake has not run; its decision is still pending)",
+    "ms_refresh_fake_v2_PASS_10": "applies to roles 5/6/8/10 (byte-identical), refresh units and mapper/IMPLEMENTED (text-identical to CC4D49E7), and the peer helper _http_response_bytes (unchanged by the one-line peer fix)",
+    "not_transferred": "ms-refresh fake v2 case np_runner_entry.py:_run_np_v_ms_nonexpired (unchanged-from-40A1BA8E) no longer holds; covered instead by the worker-observer fake via text identity"
+  },
+  "mutant_oracles": {
+    "observer_install_removed": "observer preserved:_run_np_v_ms_nonexpired",
+    "refresh_mapper_branch_disabled": "refresh preserved:_make_implemented_case",
+    "implemented_ids_reverted": "refresh preserved:implemented",
+    "peer_row_reverted": "role selection:n_rows:fixture/np_provider_peer.py"
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,1185 @@
+{
+  "kind": "Property-matched evidence reuse overlay; not a scope reduction",
+  "at_utc": "2026-11-12T03:19:07.1412678Z",
+  "planning_ids_preserved": 76,
+  "original_audit_sha256": "4F9EF71E97270B13FC0162515FB87A31ECCE5798F3A4A1416E56E5DF03D34F29",
+  "verified_result_bytes": [
+    {
+      "path": "outputs\\scheduler-t02-fake-v1\\packet\\fake-only-t02-admission-verification\\FAKE-T02-RESULT.json",
+      "sha256": "15C20693D238479D5971AA3630DC08DC7155BFD5D1C9C7C94483A13A682F0FB6"
+    },
+    {
+      "path": "outputs\\scheduler-t07-fake-v2\\packet\\fake-only-t07-retirement-verification\\FAKE-T07-RESULT.json",
+      "sha256": "C543177837851662575F834C1BAD685075DF7919D499F4A1D25CFB9574479C49"
+    },
+    {
+      "path": "outputs\\scheduler-t05-fake-v1\\packet\\fake-only-t05-framing-verification\\FAKE-T05-RESULT.json",
+      "sha256": "D29D4CFDDE2B6EA3A7D2A99366A7211AA4FE58C34EC66FF7C6A8945F4525BCFC"
+    },
+    {
+      "path": "outputs\\scheduler-d2-fake-v2\\packet\\fake-only-d2-path-admission-verification\\FAKE-D2-RESULT.json",
+      "sha256": "2FB80F2C50BBC1302EA71728EC899EAD665660D69B6CE970FF13D10791BF3CCD"
+    }
+  ],
+  "counter_source_lineage": [
+    {
+      "path": "outputs\\scheduler-t02-fake-v1\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_transport_policy.py",
+      "whole_file_sha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "slice": "exact UTF8 text from class ProviderCounter: through EOF, no newline normalization",
+      "slice_bytes": 1956,
+      "slice_sha256": "AB83F678DA12BC1ED176083E9A775F948CA526759776A5D9560B444353A0A665"
+    },
+    {
+      "path": "outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_transport_policy.py",
+      "whole_file_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "slice": "exact UTF8 text from class ProviderCounter: through EOF, no newline normalization",
+      "slice_bytes": 1956,
+      "slice_sha256": "AB83F678DA12BC1ED176083E9A775F948CA526759776A5D9560B444353A0A665"
+    },
+    {
+      "path": "outputs\\scheduler-route-fake-v1\\packet\\candidate\\app\\services\\covering_transport_policy.py",
+      "whole_file_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "slice": "exact UTF8 text from class ProviderCounter: through EOF, no newline normalization",
+      "slice_bytes": 1956,
+      "slice_sha256": "AB83F678DA12BC1ED176083E9A775F948CA526759776A5D9560B444353A0A665"
+    }
+  ],
+  "entries": [
+    {
+      "id": "T01-ORIGIN-FOREIGN-HOST",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-ORIGIN-FOREIGN-PORT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-ORIGIN-USERINFO",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-ORIGIN-FRAGMENT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-ORIGIN-CONTROL-CHAR",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PURPOSE-WRONG",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PURPOSE-AMBIGUOUS",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-CONTINUATION-REDIRECT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-CONTINUATION-GOOGLE-PAGE-TOKEN",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-CONTINUATION-MS-NEXTLINK",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-POSITIVE-EXACT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-POSITIVE-CHILD",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-PREFIX-BOUNDARY",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-DOT-SEGMENT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-DOT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-SEP",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-GOOGLE",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-MICROSOFT",
+      "family": "T01",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Map exact pre-send route/path/origin assertions; fake control flow can establish refusal before allocation. Native/TLS is required for actual transport claims, not every pure path spelling.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-EVENT-PAGES-BOUNDARY",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-CEILING-MINUS-ONE-ADMITS",
+          "outcome": "PASS",
+          "recorded_detail": "approved ceilings: count N-1 admits Nth event/identity page"
+        },
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-EVENT-BOUNDARY",
+          "outcome": "PASS",
+          "recorded_detail": "approved event ceiling 20: 20 admit, 21st refuses"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-EVENT-PAGES-OVERFLOW",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-EVENT-BOUNDARY",
+          "outcome": "PASS",
+          "recorded_detail": "approved event ceiling 20: 20 admit, 21st refuses"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-BOUNDARY",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-CEILING-MINUS-ONE-ADMITS",
+          "outcome": "PASS",
+          "recorded_detail": "approved ceilings: count N-1 admits Nth event/identity page"
+        },
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+          "outcome": "PASS",
+          "recorded_detail": "approved identity ceiling 10: 10 admit, 11th refuses"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-IDENTITY-PAGES-OVERFLOW",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+          "outcome": "PASS",
+          "recorded_detail": "approved identity ceiling 10: 10 admit, 11th refuses"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-ITEMS-BOUNDARY",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-ITEMS-N-MINUS-ONE",
+          "outcome": "PASS",
+          "recorded_detail": "INJECTED_COUNTER_STATE items=9999; approved items ceiling N-1 admits Nth"
+        },
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES",
+          "outcome": "PASS",
+          "recorded_detail": "INJECTED_COUNTER_STATE items=10000 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-ITEMS-OVERFLOW",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "direct_data_overrun_not_established_by_N_minus_one_and_new_admission_tests",
+      "existing_controls": [],
+      "limitation": "No inferential substitution: admitting the final item/byte and refusing a new exchange at equality do not prove batch/body rejects excess data within an already-admitted response.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-BYTES-BOUNDARY",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-BYTES-N-MINUS-ONE",
+          "outcome": "PASS",
+          "recorded_detail": "INJECTED_COUNTER_STATE bytes=16777215; approved 16MiB N-1 admits Nth byte"
+        },
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES",
+          "outcome": "PASS",
+          "recorded_detail": "INJECTED_COUNTER_STATE bytes=16777216 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']; does not interrupt W-FINAL-RESPONSE-COMPLETES"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-BYTES-OVERFLOW",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "direct_data_overrun_not_established_by_N_minus_one_and_new_admission_tests",
+      "existing_controls": [],
+      "limitation": "No inferential substitution: admitting the final item/byte and refusing a new exchange at equality do not prove batch/body rejects excess data within an already-admitted response.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-EVENT-PAGES",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-CROSS-PURPOSE-PAGE",
+          "outcome": "PASS_WITNESS",
+          "recorded_detail": "original admits identity at event equality; candidate refuses"
+        },
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-OAUTH-AT-EQUALITY",
+          "outcome": "PASS_WITNESS",
+          "recorded_detail": "original check()-only admits OAuth at equality; candidate admit refuses pre-construct"
+        },
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-TOKEN-AT-EQUALITY",
+          "outcome": "PASS_WITNESS",
+          "recorded_detail": "candidate LIMIT_EXCEEDED at equality with zero db.info.get lookups; original hit AdmissionPassedSentinel count=1 location=db.info.get:covering_token_terminal"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-IDENTITY-PAGES",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+          "outcome": "PASS",
+          "recorded_detail": "approved identity ceiling 10: 10 admit, 11th refuses"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-ITEMS",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES",
+          "outcome": "PASS",
+          "recorded_detail": "INJECTED_COUNTER_STATE items=10000 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T02-EQUALITY-WITNESS-BYTES",
+      "family": "T02",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_counter_or_admission_evidence_reusable_at_recorded_scope",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t02-fake-v1",
+          "id": "W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES",
+          "outcome": "PASS",
+          "recorded_detail": "INJECTED_COUNTER_STATE bytes=16777216 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']; does not interrupt W-FINAL-RESPONSE-COMPLETES"
+        }
+      ],
+      "limitation": "Counter/admission logic and exact observed limits, with documented injected item/byte states. Not final native DB/transport composition. Identity-page boundary alone does not prove every cross-purpose equality variant.",
+      "next_evidence_action": "Preserve final shared-counter and ordered-result/native-ack composition; check data-overrun gaps separately from new-admission equality.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CONTENT-LENGTH",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-VALID-COMPLETE-CHUNKED",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-SHORT-LENGTH-VALID-JSON",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-SHORT-LENGTH-INVALID-JSON",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-CHUNK-EOF",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-DUPLICATE-CONTENT-LENGTH",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-CONFLICTING-CONTENT-LENGTH",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-TE-CHUNKED-PLUS-CL",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-TE-NONEXACT-PLUS-CL",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-MALFORMED-HEADER",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-MALFORMED-JSON",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-NONOBJECT",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T05-ENCODING",
+      "family": "T05",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Fix observed incomplete-framing classifications; retain valid positives and3 known expected OAuth UNKNOWNs. Freeze any new compatibility restriction explicitly.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-BEFORE-SEND",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-MALFORMED-ACK",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-TRUNCATED-ACK",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-INVALID-GRANT-GOOGLE",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-INVALID-GRANT-MICROSOFT",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-OTHER-ERROR",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-SUCCESS-GOOGLE",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-SUCCESS-MICROSOFT",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R02",
+          "outcome": "PASS",
+          "evidence": {
+            "class": "CoveringRootOutcomeUnknown",
+            "primary": null,
+            "response_close": {
+              "class": "FakeResponseCloseError",
+              "packet_label": "EXC-FakeResponseCloseError"
+            },
+            "transport_close": null,
+            "retirement_provenance_len": 3,
+            "prior_count": 0,
+            "occurrence_count": 1,
+            "occurrences": [
+              {
+                "primary": null,
+                "response_close": {
+                  "class": "FakeResponseCloseError",
+                  "packet_label": "EXC-FakeResponseCloseError"
+                },
+                "transport_close": null
+              }
+            ],
+            "boundary_fields": [
+              "primary",
+              "response_close",
+              "transport_close",
+              "prior_retirement_provenance",
+              "retirement_provenance",
+              "retirement_occurrences"
+            ],
+            "max_occurrences": 8
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-RESPONSE-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R04",
+          "outcome": "PASS",
+          "evidence": {
+            "class": "CoveringRootOutcomeUnknown",
+            "primary": {
+              "class": "JSONDecodeError",
+              "packet_label": "EXC-JSONDecodeError"
+            },
+            "response_close": {
+              "class": "FakeResponseCloseError",
+              "packet_label": "EXC-FakeResponseCloseError"
+            },
+            "transport_close": null,
+            "retirement_provenance_len": 3,
+            "prior_count": 0,
+            "occurrence_count": 1,
+            "occurrences": [
+              {
+                "primary": {
+                  "class": "JSONDecodeError",
+                  "packet_label": "EXC-JSONDecodeError"
+                },
+                "response_close": {
+                  "class": "FakeResponseCloseError",
+                  "packet_label": "EXC-FakeResponseCloseError"
+                },
+                "transport_close": null
+              }
+            ],
+            "boundary_fields": [
+              "primary",
+              "response_close",
+              "transport_close",
+              "prior_retirement_provenance",
+              "retirement_provenance",
+              "retirement_occurrences"
+            ],
+            "max_occurrences": 8
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R03",
+          "outcome": "PASS",
+          "evidence": {
+            "class": "CoveringRootOutcomeUnknown",
+            "primary": null,
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            },
+            "retirement_provenance_len": 3,
+            "prior_count": 0,
+            "occurrence_count": 1,
+            "occurrences": [
+              {
+                "primary": null,
+                "response_close": null,
+                "transport_close": {
+                  "class": "FakeTransportCloseError",
+                  "packet_label": "EXC-FakeTransportCloseError"
+                }
+              }
+            ],
+            "boundary_fields": [
+              "primary",
+              "response_close",
+              "transport_close",
+              "prior_retirement_provenance",
+              "retirement_provenance",
+              "retirement_occurrences"
+            ],
+            "max_occurrences": 8
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-TRANSPORT-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R05",
+          "outcome": "PASS",
+          "evidence": {
+            "class": "CoveringRootOutcomeUnknown",
+            "primary": {
+              "class": "JSONDecodeError",
+              "packet_label": "EXC-JSONDecodeError"
+            },
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            },
+            "retirement_provenance_len": 3,
+            "prior_count": 0,
+            "occurrence_count": 1,
+            "occurrences": [
+              {
+                "primary": {
+                  "class": "JSONDecodeError",
+                  "packet_label": "EXC-JSONDecodeError"
+                },
+                "response_close": null,
+                "transport_close": {
+                  "class": "FakeTransportCloseError",
+                  "packet_label": "EXC-FakeTransportCloseError"
+                }
+              }
+            ],
+            "boundary_fields": [
+              "primary",
+              "response_close",
+              "transport_close",
+              "prior_retirement_provenance",
+              "retirement_provenance",
+              "retirement_occurrences"
+            ],
+            "max_occurrences": 8
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-SUCCESS",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R06",
+          "outcome": "PASS",
+          "evidence": {
+            "class": "CoveringRootOutcomeUnknown",
+            "primary": null,
+            "response_close": {
+              "class": "FakeResponseCloseError",
+              "packet_label": "EXC-FakeResponseCloseError"
+            },
+            "transport_close": {
+              "class": "FakeTransportCloseError",
+              "packet_label": "EXC-FakeTransportCloseError"
+            },
+            "retirement_provenance_len": 3,
+            "prior_count": 0,
+            "occurrence_count": 1,
+            "occurrences": [
+              {
+                "primary": null,
+                "response_close": {
+                  "class": "FakeResponseCloseError",
+                  "packet_label": "EXC-FakeResponseCloseError"
+                },
+                "transport_close": {
+                  "class": "FakeTransportCloseError",
+                  "packet_label": "EXC-FakeTransportCloseError"
+                }
+              }
+            ],
+            "boundary_fields": [
+              "primary",
+              "response_close",
+              "transport_close",
+              "prior_retirement_provenance",
+              "retirement_provenance",
+              "retirement_occurrences"
+            ],
+            "max_occurrences": 8
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-BOTH-CLOSE-AFTER-PRIMARY-FAILURE",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "missing_explicit_combined_branch",
+      "existing_controls": [],
+      "limitation": "C-R06 primary is null. Separate C-R04 and C-R05 do not prove the combined branch.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T08-NESTED",
+      "family": "T08",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Separate real ContextVar nesting/reset proof from actual thread/socket ownership. Fake owner IDs are not real threads.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T08-RESET",
+      "family": "T08",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Separate real ContextVar nesting/reset proof from actual thread/socket ownership. Fake owner IDs are not real threads.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T03-VALID",
+      "family": "T03",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real local JoinedTLS handshake/trust/hostname/connect/stall evidence still required.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T03-WRONG-CA",
+      "family": "T03",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real local JoinedTLS handshake/trust/hostname/connect/stall evidence still required.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T03-WRONG-NAME",
+      "family": "T03",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real local JoinedTLS handshake/trust/hostname/connect/stall evidence still required.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T03-HANDSHAKE-STALL",
+      "family": "T03",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real local JoinedTLS handshake/trust/hostname/connect/stall evidence still required.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T03-TCP-REFUSAL",
+      "family": "T03",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real local JoinedTLS handshake/trust/hostname/connect/stall evidence still required.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T04-HEADER-STALL",
+      "family": "T04",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real I/O/timing/partial-send/disconnect evidence at required shared budget; identify actual first guard and joined retirement.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T04-BODY-STALL",
+      "family": "T04",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real I/O/timing/partial-send/disconnect evidence at required shared budget; identify actual first guard and joined retirement.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T04-PARTIAL-SEND",
+      "family": "T04",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real I/O/timing/partial-send/disconnect evidence at required shared budget; identify actual first guard and joined retirement.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T04-DEADLINE",
+      "family": "T04",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real I/O/timing/partial-send/disconnect evidence at required shared budget; identify actual first guard and joined retirement.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T04-DISCONNECT",
+      "family": "T04",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Real I/O/timing/partial-send/disconnect evidence at required shared budget; identify actual first guard and joined retirement.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-PARTIAL-SEND",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T06-LOST-ACK",
+      "family": "T06",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Link transport send/ack classification to owning Google/Microsoft and appropriate native token-terminal effects; no replay on uncertainty.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-OPEN-CLOSE",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R08",
+          "outcome": "PASS",
+          "evidence": {
+            "class": "CoveringRootOutcomeUnknown",
+            "primary": {
+              "class": "CoveringTransportRefused",
+              "packet_label": "EXC-CoveringTransportRefused"
+            },
+            "response_close": null,
+            "transport_close": {
+              "class": "FakeSockCloseError",
+              "packet_label": "EXC-FakeSockCloseError"
+            },
+            "retirement_provenance_len": 3,
+            "prior_count": 0,
+            "occurrence_count": 1,
+            "occurrences": [
+              {
+                "primary": {
+                  "class": "CoveringTransportRefused",
+                  "packet_label": "EXC-CoveringTransportRefused"
+                },
+                "response_close": null,
+                "transport_close": {
+                  "class": "FakeSockCloseError",
+                  "packet_label": "EXC-FakeSockCloseError"
+                }
+              }
+            ],
+            "boundary_fields": [
+              "primary",
+              "response_close",
+              "transport_close",
+              "prior_retirement_provenance",
+              "retirement_provenance",
+              "retirement_occurrences"
+            ],
+            "max_occurrences": 8,
+            "method_close_calls": 2,
+            "raw_sock_close_attempts": 1,
+            "fault_reached": true,
+            "owner_id_proof_limit": "FAKE-OWNER-ID-NOT-THREAD"
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T07-SETBLOCKING",
+      "family": "T07",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "existing_cleanup_control_flow_evidence_at_T07_snapshot",
+      "existing_controls": [
+        {
+          "packet": "scheduler-t07-fake-v2",
+          "id": "C-R07",
+          "outcome": "PASS",
+          "evidence": {
+            "primary_is_configured_fault": true,
+            "method_close_calls": 1,
+            "raw_sock_close_attempts": 1,
+            "sends": 0,
+            "constructs": 1,
+            "fault_reached": true
+          }
+        }
+      ],
+      "limitation": "Actual extracted owning control flow with injected faults proves this branch at recorded scope. Real socket retirement and final assembled-source exception/caller paths are separate claims. No demand to repeat every injected exception using a real socket is inferred.",
+      "next_evidence_action": "Reuse exact logical cleanup/provenance evidence where lineage applies; verify real owned retirement in native transport cases. Add missing primary-plus-both-closes branch.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T08-FOREIGN-THREAD",
+      "family": "T08",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Separate real ContextVar nesting/reset proof from actual thread/socket ownership. Fake owner IDs are not real threads.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T08-FOREIGN-CLOSE",
+      "family": "T08",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Separate real ContextVar nesting/reset proof from actual thread/socket ownership. Fake owner IDs are not real threads.",
+      "full_goal_completion_claim": false
+    },
+    {
+      "id": "T08-REUSE",
+      "family": "T08",
+      "original_full_scope_status": "completion_unproven",
+      "component_evidence_state": "no_direct_component_claim_in_this_pass",
+      "existing_controls": [],
+      "limitation": "Retain original requirement; no completion claim from this evidence-reuse pass.",
+      "next_evidence_action": "Separate real ContextVar nesting/reset proof from actual thread/socket ownership. Fake owner IDs are not real threads.",
+      "full_goal_completion_claim": false
+    }
+  ],
+  "native_final_assembly_still_required": true,
+  "all_goal_requirements_retained": true,
+  "execution_authorized": false,
+  "new_execution_performed": false,
+  "goal_complete": false,
+  "endpoint": "unbound"
+}

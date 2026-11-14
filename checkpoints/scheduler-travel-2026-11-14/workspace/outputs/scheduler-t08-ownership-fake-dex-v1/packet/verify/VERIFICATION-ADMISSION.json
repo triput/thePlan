@@ -1,0 +1,96 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-t08-ownership-fake-prep-dex-v1",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "packet_file_pin_count": 8,
+  "packet_files": [
+    {
+      "relative_path": "Invoke-Fake.ps1",
+      "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7"
+    },
+    {
+      "relative_path": "subjects/covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+    },
+    {
+      "relative_path": "subjects/np_runner_entry.py",
+      "sha256": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C"
+    },
+    {
+      "relative_path": "verify/check_native_provider.py",
+      "sha256": "9A8146CB83828326017D2081B820CF8EB250A2F45BE109D4D8F897656E39D179"
+    },
+    {
+      "relative_path": "verify/EXPECTED-FAKE-STRUCTURAL.json",
+      "sha256": "3B66FBB3DBFFC510BF8351B1F2C55FDD19FE5A5B0132623E0A3F674E97494EA9"
+    },
+    {
+      "relative_path": "verify/launch_check.py",
+      "sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07"
+    },
+    {
+      "relative_path": "verify/OUTER-ADMISSION.json",
+      "sha256": "3B10C2F2E6B8D85CE83585C1FFAAE2E943FF7CE76889495BE697D7C529B7D300"
+    },
+    {
+      "relative_path": "verify/verify_admission.py",
+      "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB"
+    }
+  ],
+  "runtime_file_pin_count": 6,
+  "runtime_files": [
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "note": "interpreter executable"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python311.dll",
+      "sha256": "0817A2A657A24C0D5FBB60DF56960F42FC66B3039D522EC952DAB83E2D869364",
+      "note": "interpreter core incl. built-in _json accelerator"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py",
+      "sha256": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7",
+      "note": "json.loads/dumps for transcript bodies, digests and configs"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\decoder.py",
+      "sha256": "B719FBCFCEBD2B174F076E71292E22B1A17D9E258DBE896C768325383BAD4F80",
+      "note": "JSONDecodeError and raw_decode"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\scanner.py",
+      "sha256": "9841566FB17315EBDD40A1CA9CB214F02CDE7171B187D4DC821C80120EA853C3",
+      "note": "scanner selection"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ast.py",
+      "sha256": "60CA452CFAC189E51C7C2A582C1240C28FCCD12964221BC8D10462F2EE74DE18",
+      "note": "structural location and unparse"
+    }
+  ],
+  "runtime_scope_note": "Partial six-file interpreter/DLL,JSON and AST provenance only. hashlib/types/pathlib and other stdlib/extension/environment bytes remain unpinned. Actual production module is not imported.",
+  "result_byte_cap": 262144,
+  "capture_byte_cap": 65536,
+  "reader_join_seconds": 5,
+  "post_kill_wait_seconds": 5,
+  "check_seconds_budget": 120,
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_root": "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+  "exclusive_evidence": [
+    "verify/FAKE-NATIVE-PROVIDER-RESULT.json",
+    "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"
+  ],
+  "successor_reference": {
+    "workspace": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t08-ownership-prep-dex-v1",
+    "runner_sha256": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C",
+    "joined_tls_sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+  },
+  "note": "Dex T08 staged packet: machine flags are scaffolding; no human authority. Source v3 and fresh generic-result packaging require independent review and exact one-shot approval. Use only this staging root Reviewed-T08-Ownership-Fake-Command.ps1.txt."
+}

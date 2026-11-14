@@ -1,0 +1,238 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "TRANSCRIPT-SCRIPTS",
+    "ROUTES-AND-QUERY",
+    "CREDENTIAL-MEASUREMENT",
+    "EVENT-MEASUREMENT",
+    "IDENTITY-AND-OWNER-MEASUREMENT",
+    "PARENT-OBSERVER",
+    "CASE-WIRING",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutant_kinds": {
+        "calendar_list_primary_flag_dropped": "behavioral",
+        "event_sort_dropped": "behavioral",
+        "parent_exception_swallowed": "behavioral",
+        "query_param_changed": "behavioral",
+        "refresh_token_omitted": "behavioral",
+        "revision_equality_dropped": "structural",
+        "rotated_compared_to_access": "behavioral",
+        "second_retirement": "structural",
+        "token_key_unallowlisted": "structural_with_actual_sanitizer",
+        "token_restore_dropped": "structural",
+        "unrelated_events_check_dropped": "structural"
+      },
+      "mutants": {
+        "calendar_list_primary_flag_dropped": "DETECTED",
+        "event_sort_dropped": "DETECTED",
+        "parent_exception_swallowed": "DETECTED",
+        "query_param_changed": "DETECTED",
+        "refresh_token_omitted": "DETECTED",
+        "revision_equality_dropped": "DETECTED",
+        "rotated_compared_to_access": "DETECTED",
+        "second_retirement": "DETECTED",
+        "token_key_unallowlisted": "DETECTED",
+        "token_restore_dropped": "DETECTED",
+        "unrelated_events_check_dropped": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "CASE-WIRING": {
+      "cases": {
+        "case_mapping_exact": "PASS",
+        "free_names_resolve": "PASS",
+        "observers_restored_in_finally": "PASS",
+        "oracle_names_equal_declarations": "PASS",
+        "peer_inventory_guard_exact": "PASS",
+        "primary_planted_in_setup_only": "PASS",
+        "production_ingress_and_default_tls": "PASS",
+        "revision_and_identity_guards_exact": "PASS",
+        "seed_arguments_match_signature": "PASS",
+        "sequences_and_summary_literal": "PASS",
+        "single_retirement_paths": "PASS",
+        "unrelated_and_semantic_guards_exact": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS",
+      "scope_note": "structural only: the case body is not executed"
+    },
+    "CONFIG-AND-IMMUTABLES": {
+      "cases": {
+        "api_peer_seed_sanitizer_immutable": "PASS",
+        "docker_ops_root_rename_only": "PASS",
+        "launch_config": "PASS",
+        "nested_delta_exact": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "CREDENTIAL-MEASUREMENT": {
+      "cases": {
+        "naive_utc_absent_and_missing_account": "PASS",
+        "no_plaintext_or_ciphertext_emitted": "PASS",
+        "refreshed_state_each_field_independent": "PASS",
+        "seed_literals_match_auth_seed": "PASS",
+        "seed_state": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "scope_note": "ORM session and token_crypto are named fakes; production encryption and persistence are not exercised"
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "runner": "PASS",
+        "runner_config": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "EVENT-MEASUREMENT": {
+      "cases": {
+        "account_filter_and_sort": "PASS",
+        "utc_normalization_flags_and_expected_form": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "scope_note": "the ORM query is a named fake; production import mapping (provenance, zone flags) is a disclosed source inference, not proved here"
+    },
+    "IDENTITY-AND-OWNER-MEASUREMENT": {
+      "cases": {
+        "alias_literal_and_signature_match_production": "PASS",
+        "owner_revision_and_busy_digest": "PASS",
+        "subscription_rows_typed_sorted": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake_and_structural",
+      "observed": "PASS",
+      "scope_note": "ORM and immovable_busy_signature are named fakes; production canonicalization and revision bumps are source-derived inferences, not proved here"
+    },
+    "PARENT-OBSERVER": {
+      "cases": {
+        "installed_then_restored_identity": "PASS",
+        "same_exception_recorded": "PASS",
+        "same_return_recorded": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "scope_note": "the adapter is a named fake; the native PARENT sequence is a source-derived expectation"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "reused_helpers_byte_identical": "PASS",
+        "runner": "PASS",
+        "transcript_and_suite": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "RECEIPT-RETENTION": {
+      "cases": {
+        "every_emitted_key_survives": "PASS",
+        "typed_evidence_survives_disclosed_drops": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake_and_structural",
+      "disclosure": "token_commit_not_ms_proof is enforced in memory only; its evidence is retained under the allowlisted token_terminal key",
+      "observed": "PASS"
+    },
+    "ROUTES-AND-QUERY": {
+      "cases": {
+        "calendar_list_query_mirrors_production": "PASS",
+        "exact_query_literal_with_microseconds": "PASS",
+        "offset_input_normalized_to_utc": "PASS",
+        "params_mirror_production_source": "PASS",
+        "routes_oauth_identity_event_exact": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "scope_note": "CoveringHTTP's own urlencode(doseq=True) is not executed; the wire form is a disclosed source inference also enforced natively by the peer's exact query check"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "unpinned_runtime_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "unpinned_runtime_modules": [
+        "urllib.parse",
+        "datetime",
+        "dataclasses",
+        "typing",
+        "enum",
+        "uuid",
+        "hashlib"
+      ]
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "app/calendar_alias_canonicalize.py": "A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F",
+        "app/covering_refresh_window.py": "7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0",
+        "app/export_baseline.py": "39EB4E58DE2096F951383F70CDD814F82970FA65A640B9E26E5BA50DF94A2347",
+        "app/google_calendar.py": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+        "app/scheduling_revision.py": "4A3CBAA0F4A7CF386A37CC26FEEB0D36BE020A07A7C844D7BC70758BB2C831B6",
+        "config/candidate-docker-ops-config.json": "71CC87C42C2941001383D8126EAE48BA75B56EA18F4BA1A2791AF4D593FD2F8D",
+        "config/candidate-launch-config.json": "AF09151FDBD7734CA3613CF627FFD2CF808F805A8B9F0F35E4A69BF6FF6B7977",
+        "config/candidate-runner-config.json": "95278DF6B3756F39B5D45CF24C96B3435B20394D3A951FAD95DE5FB76095E7ED",
+        "config/source-docker-ops-config.json": "5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76",
+        "config/source-launch-config.json": "03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9",
+        "config/source-runner-config.json": "8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029",
+        "diff/np_provider_transcript.py.diff": "58E8E04543595568C405B735C62722E0D3FA7C736472C7F9B0C600A837367DBE",
+        "diff/np_runner_entry.py.diff": "83646AF6D934C820DB01A57972FBB5B885A51FDE92F5FABF7322317B4A847E4A",
+        "diff/np_suite.py.diff": "147EC5A0B6F560D9B8DCB64A0DB856CE6C18C7A6940360E1F3F03970D7E1530B",
+        "diff/runner-config.json.diff": "7D48720399CFAE7274BB72911E335181CD6713061FA950CC75A2E1C087CC9AA3",
+        "fixture/np_auth_seed.py": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+        "fixture/np_provider_peer.py": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+        "fixture/np_receipts.py": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+        "manifest/candidate-nested.txt": "FD3AB617FB33D6DDA89A9179929EA6A6FA743C0C115D2B76C104D40B7361B174",
+        "manifest/candidate.txt": "001B0B8B9B4D71F23D0EDC61B652B2EED866B6B3F10381A9F139DFEDBD7DD1E4",
+        "manifest/source-nested.txt": "DA1D9A157E8F6BCB6512923126D2E76104E9D48CE39E27F40B687B5388C08BB8",
+        "manifest/source.txt": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A",
+        "runner/candidate.py": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+        "runner/source.py": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D",
+        "suite/candidate.py": "E028812B852C73A1183D609803A450AB41B42CCDE44B4DEE4441EEDB21EA7D1A",
+        "suite/source.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+        "transcript/candidate.py": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513",
+        "transcript/source.py": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3"
+      }
+    },
+    "TRANSCRIPT-SCRIPTS": {
+      "cases": {
+        "busy_event_shape_and_refusals": "PASS",
+        "calendar_list_one_primary_exact": "PASS",
+        "events_path_query_exact": "PASS",
+        "inventory_exact_four_ordered": "PASS",
+        "peer_exact_query_semantics_present": "PASS",
+        "token_body_and_framing": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 67,
+  "packet": "scheduler-native-google-refresh-fake-prep-dex-v3",
+  "passed": 14,
+  "prep_is_not_pass": true
+}

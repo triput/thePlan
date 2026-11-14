@@ -1,0 +1,34 @@
+SLACK TIP — post-native-d2-source-fake-prep-jim-v4-ms-context-2026-11-11
+
+Status: D2_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED (preparation only; no execution)
+
+Dir: F:/DropFolder/pending/post-native-d2-source-fake-prep-jim-v4-ms-context-2026-11-11/
+Also mirrored: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-source-prep-v4-ms-context/
+
+Supersedes frozen v3 tip A9415BB75B5B46CF774ABC239813815D015E0EDE07D46E53268E94C15DFB4BE8.
+Check-only successor: drive CTRL-POS-MS-VIEW / CTRL-POS-MS-DELTA-COMPAT through run_client_get (covering_provider_transport → calendar_client → _CoveringClient → CoveringHTTP), not bare run_http_get (Dex p1794422580).
+v1 tip A91964DA…, v2 tip 9794FE5B…, and v3 tip A9415BB7… remain IMMUTABLE.
+
+Authority: D2-Source-and-Fake-Preparation-Scope C3D7B8F1… / Approval answer Approve fresh-copy preparation; overlay CA51E2D8…
+
+SOURCE (fresh copy only; originals untouched; pins identical to v1/v2/v3):
+- Exact diff CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4 applied to 3 files
+- Resulting: policy A265F81F…; http AECE1018…; ctx 875FBF61…
+- Inventory 234/234; only those three existing files changed
+- bases/ hold starting pins
+
+FAKE PACKET (authored, NOT executed; check-only MS context composition):
+- fake-only-d2-path-admission-verification/
+- 41 approved-core functional CTRL rows retained (incl. CTRL-POS-G-PAGE-TOKEN + CTRL-CONT-G-PAGE-TOKEN)
+- +3 CTX context pre-delegate named controls → 44 functional total
+- +3 mutation +5 inventory self-checks = 52 named (no new IDs; MS VIEW/DELTA composition only)
+- MS VIEW/DELTA: extracted GRAPH_BASE + _calendar_view_url/_calendar_view_delta_url(raw a=b+c); builder → context/client → CoveringHTTP; wire carries a%3Db%2Bc
+- DUP-SAME-PURPOSE / pos_get request-line / v2 oracle gaps retained from v3
+- OUTER-ADMISSION B8D14DAB5127362165E7D87B4BBFA32DC9EAC7175A621C97EB97B69F0457354D
+- check CAAECE741F12F632FFC97207D47BEA6340EBFD62CB20AE86EE84C389BD73C4CB
+- EXPECTED 381536B156A37EE5C3F7A1FABBC0F0C2942FE97BBC68B68F67550BF715C368FC
+- launch_ready=false; executed_in_preparation=false
+
+HELD: Verification-Commands-Held.md — do not run admit/launcher/check without a later card.
+No app imports, sockets, PKI, Docker, native, endpoint bind. T01–T08 not closed.
+TIP-FREEZE SHA256 3FC58EF9A45A40C5147C26040B49896DE396531EE55FC0059BC3F034874A6064

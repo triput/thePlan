@@ -1,0 +1,14 @@
+{
+  "status": "REVISE",
+  "event": "Ev0CHSS8H76C",
+  "tip_sha256": "1C1D269244D53302DE0542DBD6DCE949420E6BA789D9E4BCCDE15F74374322B5",
+  "admission_sha256": "E54265680589DF805565BEC506892DD93D43214EFFA44EE8A2CB892B96FD41E5",
+  "packet_pin_count": 289,
+  "runtime_pin_count": 4,
+  "pin_mismatches": [],
+  "accepted_progress": "F12 purpose split and native sizing declarations; not accepted for launch",
+  "unresolved": "B1-B8 static finding groups from Initial-Preparation-Static-Findings.json still apply; native supervisor remains descriptor-only, extraction module wiring unchanged, exact outcome/caller coverage and custody not reconciled",
+  "execution_performed": false,
+  "source_changes_authorized": "Same existing six-role fresh-copy preparation scope only",
+  "launch_ready": false
+}

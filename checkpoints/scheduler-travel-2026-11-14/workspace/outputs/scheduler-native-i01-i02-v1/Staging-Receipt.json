@@ -1,0 +1,17 @@
+{
+  "status": "HELD_STATIC_METADATA_STAGE",
+  "copied_files": 268,
+  "unchanged_files": 266,
+  "changed_files": [
+    "launch-config.json",
+    "SHA256SUMS.txt"
+  ],
+  "unapproved_semantic_deltas": 0,
+  "launch_ready": false,
+  "execution_performed": false,
+  "native_v9_evidence_preserved": true,
+  "fake_run_evidence_preserved": true,
+  "review_pending": true,
+  "config_sha256": "F8131BF579DD9505BB9D168046B520F08D6C30B2D95E254C95DA60B1AE835345",
+  "payload_manifest_sha256": "77EAC2831AB0BF8ED8C751FE66F2CCB6FB5A80E4272B0E4CDF134AD448EA40EC"
+}

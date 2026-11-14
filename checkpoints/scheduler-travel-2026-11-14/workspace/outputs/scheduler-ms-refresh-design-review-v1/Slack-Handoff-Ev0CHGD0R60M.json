@@ -1,0 +1,14 @@
+{
+  "event": "Ev0CHGD0R60M",
+  "messageTs": "1794602538.677669",
+  "threadTs": "1794534925.412399",
+  "atUtc": "2026-11-13T20:52:35.6705472Z",
+  "status": "Already reviewed prep-v1 handoff pointer; superseded by correction assignment",
+  "handoff": "93CC9D1B0696CB982181C21D2780E96582971DE9237A0801BEDF325C8EABAB65",
+  "review": "90B66DA8AC20B78195B00224EA4698F4C07E4E422F396254BA7E41E52A398394",
+  "currentAssignment": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+  "alreadyRepliedSubstantivelyAt": "1794603113.610419",
+  "duplicateReplySent": false,
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

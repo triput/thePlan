@@ -1,0 +1,41 @@
+{
+  "at_utc": "2026-11-13T05:49:18.8160528Z",
+  "status": "PASS10_OF10_INDEPENDENTLY_RECONCILED",
+  "ordered_controls": 10,
+  "preserved_text_identity_cases": 24,
+  "semantic_fake_cases": 11,
+  "actual_source_mutants_detected": 4,
+  "reported_nested_predicates": 46,
+  "scope": "finite helper/source proof,not nativeOAuthTLSDB or fullrefreshbody",
+  "child_elapsed_seconds": 0.719,
+  "child_stream_bytes": 0,
+  "clean_joined_readers": true,
+  "postpins": [
+    {
+      "verified": 25,
+      "root": "outputs\\scheduler-ms-refresh-fake-dex-v2"
+    },
+    {
+      "verified": 21,
+      "root": "outputs\\scheduler-ms-refresh-fake-prep-matt-v2"
+    },
+    {
+      "verified": 21,
+      "root": "outputs\\scheduler-ms-refresh-fake-prep-matt-v1"
+    },
+    {
+      "verified": 278,
+      "root": "outputs\\scheduler-ms-refresh-prep-matt-v1"
+    },
+    {
+      "verified": 274,
+      "root": "outputs\\scheduler-native-provider-diagnostic-launch-dex-v1"
+    }
+  ],
+  "result_sha256": "3CDC86B70EBCD143540335954A45E638E9452CC24996013F3C46C08C954D4F88",
+  "receipt_sha256": "5F437940AE37594976BF960B419ACFD57692EC93F372CF7520E8A2154E20F58B",
+  "read_only_review_note": "Initial PowerShell Properties.Count expression was a collection projection; corrected explicit array count. Target run unchanged and not repeated.",
+  "one_shot_authority": "consumed;no retry/rerun",
+  "native_requirement_ids_closed": [],
+  "endpoint": "unbound"
+}

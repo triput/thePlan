@@ -1,0 +1,5 @@
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -872 +872 @@
+-                      ("return original  # Diagnostic failure must not replace the primary kind.", "raise"))
++                      ("return original", "raise"))

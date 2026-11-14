@@ -1,0 +1,206 @@
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\packet\verify\check_framing_ack.py
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\packet\verify\check_framing_ack.py
+@@ -16,6 +16,11 @@
+ Result rows emit predicted_outcome dialect "PASS" at top level (launcher
+ gate) with nested OBSERVED_* candidate/observation fields. exact_predicate
+ mirrors emitted entry keys for validate_result_file.
++
++policy_pending is frozen accepted-policy metadata on EXPECTED candidate rows
++and is stamped into launcher emit via emit_wire_candidate; it is excluded
++from assert_match's flat runtime observation whitelist (absent from
++run_http_catch cand).
+ 
+ No live sockets/TLS/PKI/providers. executed preparation = false.
+ """
+@@ -643,7 +648,10 @@
+ def assert_match(control_id: str, observed: dict[str, Any], expected_row: dict[str, Any]) -> None:
+     pred = expected_row.get("exact_predicate")
+     if not isinstance(pred, dict):
+-        # Flat candidate predicate (wire rows): ignore metadata keys.
++        # Flat candidate predicate (wire rows): only measured runtime fields.
++        # policy_pending is frozen accepted-policy metadata on EXPECTED rows /
++        # emit_wire_candidate output — not present on run_http_catch cand, so it
++        # must not enter this runtime observation whitelist.
+         pred = {
+             k: v
+             for k, v in expected_row.items()
+@@ -667,7 +675,6 @@
+                 "item_excess_exception",
+                 "transport_sent_observed",
+                 "lineage",
+-                "policy_pending",
+             }
+         }
+     for key, want in pred.items():
+@@ -697,7 +704,12 @@
+ 
+ 
+ def emit_wire_candidate(cand: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
+-    """Stable candidate observation shape for launcher exact_predicate.candidate."""
++    """Stable candidate observation shape for launcher exact_predicate.candidate.
++
++    Runtime outcome/exception/close counters come from measured cand.
++    policy_pending is frozen accepted-policy metadata copied from the EXPECTED
++    row (not asserted against cand; absent from run_http_catch observation).
++    """
+     return {
+         "observed_outcome": cand["observed_outcome"],
+         "exception_type": cand["exception_type"],
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\packet\verify\OUTER-ADMISSION.json
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\packet\verify\OUTER-ADMISSION.json
+@@ -5,12 +5,12 @@
+     "subjects": {
+       "admit_outer.py": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF",
+       "invoke_framing_ack_fake.py": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F",
+-      "check_framing_ack.py": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
++      "check_framing_ack.py": "44210460FB238B31B9D07A2015E21337C11504F985A83F9E7CEBE9775D9A1201",
+       "EXPECTED.json": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+       "INPUT-MANIFEST.json": "0A44D9AF50D37388FA0537F0F88930539C1A03F2C157F2502DE45713E51BAFD3",
+-      "PACKET-SHA256SUMS.txt": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9"
++      "PACKET-SHA256SUMS.txt": "BF506033CAD23BD19F0B1AEE7210CCD9640CF0419CBB79B7FFE272A291840F12"
+     }
+   },
+   "execution_authorized": false,
+-  "note": "Preparation only. Future exact-hash launch approval required. REVISE AEF66204 addressed; header policy AEAE5343/1C932F1A approved; P1/P2/P3 retained."
++  "note": "Preparation only. Future exact-hash launch approval required. REVISE AEF66204 carried; Dex provisional p1794461191 policy_pending runtime-assert separation; header policy AEAE5343/1C932F1A approved; P1/P2/P3 retained."
+ }
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\packet\verify\PACKET-SHA256SUMS.txt
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\packet\verify\PACKET-SHA256SUMS.txt
+@@ -1,3 +1,3 @@
+-9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698  check_framing_ack.py
++44210460FB238B31B9D07A2015E21337C11504F985A83F9E7CEBE9775D9A1201  check_framing_ack.py
+ 08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2  EXPECTED.json
+ 0A44D9AF50D37388FA0537F0F88930539C1A03F2C157F2502DE45713E51BAFD3  INPUT-MANIFEST.json
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\docs\Implementation-Decisions.md
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\docs\Implementation-Decisions.md
+@@ -1,38 +1,38 @@
+-# Framing-ack implementation decisions (Jim/Justin) — prep v3
++# Framing-ack implementation decisions (Jim/Justin) — prep v4
+ 
+ executed=false; launch_authorized=false; endpoint=unbound. Prep is NOT a PASS.
+ 
+-Successor of prep v2 (immutable TIP `569CA4F5…`) under Dex REVISE audit `AEF66204…` (p1794459957). Immutable v1 TIP `FA211E1D…` also preserved (not rewritten).
++Successor of prep v3 (immutable TIP `BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209`) under Dex provisional checker finding p1794461191 on tipped check `9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698`. Immutable v1 TIP `FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4` / v2 TIP `569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697` / v3 TIP `BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209` preserved (not rewritten).
+ 
+ ## Application
+ - covering_http_transport.py: covering-local `_GuardedHTTPResponse` + before-decode `_admit_framing_headers` / `_admit_fixed_length_complete`. Retains 8192 collection loop.
+ - covering_joined_https.py: exact `suppress_ragged_eofs=False` at covering-only wrap_socket (prospective 76017776…).
+ - covering_provider_context.py: UNCHANGED (route fix preserved).
+-- Candidate HTTP hash **retained** from v1/v2: `29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368`.
++- Candidate HTTP hash **retained** from v1/v2/v3: `29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368`.
+ - Candidate TLS hash **retained**: `760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427`.
+ - Private parser coupling disclosed to host http.client 3A752927… and captured native C2C06941…; requalify on upgrade.
+ - Port-zero packet **not** merged; `covering_transport_policy.py` A265F81F… UNCHANGED.
++- **No application change in v4.**
+ 
+ ## Header compatibility — APPROVED (cite, not policy-pending)
+ - Decision: `Header-Compatibility-Decision-For-Review.md` SHA256 `AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0`
+ - Approval: `Trish-Header-Policy-Approval.json` SHA256 `1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059`
+ - Contract labels cite the above. Leading-wire TE OWS → parser-visible `chunked` → **pass** (`H-TE-WS-LEAD`). Trailing TE OWS remains parser-visible → **refuse** (`H-TE-WS-TRAIL`). Valid ordinary positives retained. No new trailer/extension grammar beyond stated checks. OAuth UNKNOWN/counter/retirement contracts preserved.
+-- `policy_pending` on oracle candidate observations is **false** under the approved policy (semantic refuse/accept outcomes unchanged).
++- `policy_pending` on oracle candidate observations remains **false** under the approved policy (semantic refuse/accept outcomes unchanged).
+ 
+-## Dex REVISE (AEF66204…) — addressed in v3
+-1. **Outer admission noncircular chain** — regenerate OUTER subjects + PACKET-SHA256SUMS + INPUT-MANIFEST consistency after final code/data freeze (EXPECTED/check/etc.). Preserve v1/v2 tipped packets.
+-2. **Exact result oracle schema** — every EXPECTED.inputs row now has top-level `predicted_outcome: "PASS"` (launcher compares to result `observed_outcome`) and nonempty top-level `exact_predicate` mirroring emitted entry keys. Nested candidate/observation fields retain `OBSERVED_*` dialect. Launcher `validate_result_file` strictness retained (no exit0/wildcard/broad allowed).
+-3. **CALLER proof labels** — CALLER-* rows use the same direct CoveringHTTP `run_http_catch` path as wire controls (not `_CoveringClient` / `refresh_access_token`). Labeled `direct_http_replay_plus_matched_immutable_original_caller_evidence`; historical T05 originals remain distinct; owning-caller obligation preserved/unproved in-candidate. No new evidence from ID reuse alone.
++## Dex provisional checker finding (p1794461191) — addressed in v4
++- **Finding:** `assert_match` flat candidate-field whitelist included `policy_pending`. Wire path calls `assert_match(cid+"/candidate", cand, row["candidate"])` **before** `emit_wire_candidate`. `run_http_catch` cand has no `policy_pending` key; EXPECTED candidate metadata has `policy_pending=false` → `observed.get("policy_pending")` is None vs False → WitnessFailure before result completes.
++- **Fix (check only):** exclude `policy_pending` from `assert_match` flat runtime observation whitelist. Keep accepted-policy label as explicitly frozen **metadata** on EXPECTED rows; `emit_wire_candidate` still stamps it into launcher output from the row (exact launcher schema preserved). Do **not** assert that metadata against measured cand. Strict assertions retained on real outcome/exception/close counters and all other actual witnesses. No broad skip of missing observed fields; mismatches still FAIL.
++
++## Dex REVISE (AEF66204…) — carried forward from v3
++1. **Outer admission noncircular chain** — regenerate OUTER subjects + PACKET-SHA256SUMS after final code/data freeze (EXPECTED unchanged; check/PACKET/OUTER updated). Preserve v1/v2/v3 tipped packets.
++2. **Exact result oracle schema** — every EXPECTED.inputs row has top-level `predicted_outcome: "PASS"` + nonempty top-level `exact_predicate` (unchanged from v3; EXPECTED hash retained `08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2`).
++3. **CALLER proof labels** — `direct_http_replay_plus_matched_immutable_original_caller_evidence`; owning-caller obligation preserved/unproved in-candidate.
+ 4. **Concrete Commands-Held** — exact wrapper/admission hashes after freeze (held; not invoked).
+ 
+ ## Dex provisional reviews (carried)
+ ### Review-1 (87E24D1A…) — P1–P3 gate — addressed in v1 candidate (retained)
+-- P1: trailer `_MAXHEADERS` count + final CRLF (C-TRAILER-COUNT-100/101).
+-- P2: unsigned hex chunk size; C-NEG-SIZE refuse before read(-1).
+-- P3 gate: TE `raw_te.lower() == "chunked"` with NO strip; CL SP/HTAB-only `_ows_strip`.
+-
+ ### Review-2 (4BA86BAB…) — OWS wire-oracle truth — retained from v2
+-- Leading wire TE OWS → PASS; trailing → REFUSE. Helper `Message(' chunked')` ≠ wire outcome.
+ 
+ ## Verification
+ - Four roles only. Reuse 57 T05 wires + RESULT D29D4CFD… as immutable original evidence.
+@@ -40,12 +40,12 @@
+ - Limits proposal: 30+5+5+5=45s; 64KiB/stream; 256KiB result; 2 readers; STOP/no-overwrite/UNKNOWN/no-retry; outer exclusions disclosed.
+ 
+ ## Independent static note — port-zero (NO implementation authority)
+-Unchanged from v2. Outside lane; no edit applied. See `docs/Port-Zero-Static-Source-Note.md`.
++Unchanged from v2/v3. Outside lane; no edit applied. See `docs/Port-Zero-Static-Source-Note.md`.
+ 
+ ## Blockers / qualifications
+ - Native orderly vs abrupt TLS EOF unproved (byte fakes ≠ close_notify).
+ - Host characterization ≠ native runtime proof.
+ - Port-zero fix awaits Trish preparation-extension approval; outside this framing lane.
+ - Owning-caller proof obligation remains (CALLER rows are direct HTTP replay only).
+-- Immutable v1 TIP `FA211E1D…` / v2 TIP `569CA4F5…` / candidate `29CBD53C…` preserved (not rewritten).
++- Immutable v1 TIP `FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4` / v2 TIP `569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697` / v3 TIP `BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209` / candidate `29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368` preserved (not rewritten).
+ - Prep is not PASS; no execute/import/compile/helper invocation performed in authoring.
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\Commands-Held.ps1.txt
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\Commands-Held.ps1.txt
+@@ -1,5 +1,5 @@
+ # HELD framing-ack invocation (DO NOT RUN without Trish exact-hash one-shot approval)
+-# packet: post-native-framing-ack-source-fake-prep-jim-v3-2026-11-11
++# packet: post-native-framing-ack-source-fake-prep-jim-v4-2026-11-11
+ # executed=false; launch_authorized=false; endpoint=unbound; prep_is_not_pass=true
+ 
+ $ErrorActionPreference = 'Stop'
+@@ -7,13 +7,13 @@
+ 
+ # Frozen exact hashes (authoring freeze — not a launch authorization)
+ $WrapperSHA256     = '0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA'
+-$AdmissionSHA256   = '1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC'
+-$OuterAdmissionSHA256 = 'F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6'
++$AdmissionSHA256   = '0994AD2F70EE910E2FE2B14753FDC563C70E789513421A3DEE7D09DFCA97FD39'
++$OuterAdmissionSHA256 = '38A37E4C736BD40B05222170776CD057B74DCEE7B017D85B989FB43995117AE4'
+ $AdmitOuterSHA256  = '26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF'
+ $InvokeSHA256      = '7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F'
+-$CheckSHA256       = '9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698'
++$CheckSHA256       = '44210460FB238B31B9D07A2015E21337C11504F985A83F9E7CEBE9775D9A1201'
+ $ExpectedSHA256    = '08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2'
+-$PacketSumsSHA256  = '0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9'
++$PacketSumsSHA256  = 'BF506033CAD23BD19F0B1AEE7210CCD9640CF0419CBB79B7FFE272A291840F12'
+ $CandidateHttpSHA256 = '29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368'
+ $CandidateTlsSHA256  = '760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427'
+ 
+--- a/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v3\VERIFICATION-ADMISSION.json
++++ b/C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v4\VERIFICATION-ADMISSION.json
+@@ -8,7 +8,7 @@
+   "packet_files": [
+     {
+       "relative_path": "verify/check_framing_ack.py",
+-      "sha256": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698"
++      "sha256": "44210460FB238B31B9D07A2015E21337C11504F985A83F9E7CEBE9775D9A1201"
+     },
+     {
+       "relative_path": "verify/invoke_framing_ack_fake.py",
+@@ -28,11 +28,11 @@
+     },
+     {
+       "relative_path": "verify/PACKET-SHA256SUMS.txt",
+-      "sha256": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9"
++      "sha256": "BF506033CAD23BD19F0B1AEE7210CCD9640CF0419CBB79B7FFE272A291840F12"
+     },
+     {
+       "relative_path": "verify/OUTER-ADMISSION.json",
+-      "sha256": "F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6"
++      "sha256": "38A37E4C736BD40B05222170776CD057B74DCEE7B017D85B989FB43995117AE4"
+     },
+     {
+       "relative_path": "verify/EXPECTED-ORIGINAL-T05-IMMUTABLE.json",
+@@ -339,8 +339,9 @@
+     "stop_no_overwrite": true,
+     "no_retry": true
+   },
+-  "prep_version": "v3",
++  "prep_version": "v4",
+   "dex_revise_audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
+   "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+-  "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
++  "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
++  "dex_provisional_checker_finding": "p1794461191 policy_pending excluded from assert_match flat runtime whitelist; retained as frozen metadata on EXPECTED + emit_wire_candidate"
+ }

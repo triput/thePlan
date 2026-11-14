@@ -1,0 +1,13 @@
+{
+  "event": "Ev0CJHRL1JQY",
+  "messageTs": "1794618966.472769",
+  "sender": "U0C68LUTURJ",
+  "handledAtUtc": "2026-11-14T01:18:13.9883156Z",
+  "disposition": "Previously reconciled fake-staging review; authorship qualification retained",
+  "review": "4556CE9EE37E5557315532203D2B38FE40A5439B0BCD0BD813BB364597B592A1",
+  "reconciliation": "0F792559592FFDCC5C4BF59D55A2BDC6ABDA0879B58F225671DCDD91C0C99432",
+  "priorBotAcknowledgment": "1794619072.858989",
+  "reply": "No duplicate response",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

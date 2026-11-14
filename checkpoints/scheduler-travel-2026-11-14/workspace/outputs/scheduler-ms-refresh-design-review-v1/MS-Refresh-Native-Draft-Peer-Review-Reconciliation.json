@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T01:28:39.7807665Z",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED",
+  "peerReview": "EBA57E856E7EF6D432F8EE6264372F0E313AEC434EF5DCB713D9B3F45A5FEF7A",
+  "sidecarEntries": 1,
+  "completedTask": "994ABEFC7A5296716D6AB44594E6F75093FE7423D42C2D45BC777E1A94A8ADDD",
+  "parentManifest": "836328A51EF0207A1A4F83F360F4A9A42B33A2F8C82FE5DFEE6382519ED5C937",
+  "parentInputs": 305,
+  "nestedInputs": 269,
+  "payloadInputs": 257,
+  "staticBlockers": 0,
+  "labelNitDisposition": "Accepted inherited Matt-preparation attribution in candidate_note; current staging docs and exact hashes identify Dex staging. No behavioral/authority contradiction, no extra revision required.",
+  "authorshipQualification": "Matt authored role4/source configuration; review corroborates Dex staging against authored prep, not independent behavior execution",
+  "PKIQualification": "Peer prose30+5+5=45 is arithmetic typo; unchanged current contract30+5+two5=45 applies",
+  "batchFindingCorroborated": "0427EC48C86D086AC62ED1D6B2085AF8349BCD1A1663B72E7BE729715852CFBF",
+  "nativeReadiness": "HELD: focused retirement fake PASS plus separate new exact native card required",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

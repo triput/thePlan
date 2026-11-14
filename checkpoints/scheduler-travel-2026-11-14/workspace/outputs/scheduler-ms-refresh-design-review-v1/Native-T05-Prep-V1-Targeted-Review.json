@@ -1,0 +1,31 @@
+{
+  "atUtc": "2026-11-13T18:46:21.2566546Z",
+  "fakeParentInputsVerified": 31,
+  "nativeParentInputsVerified": 290,
+  "handoffPinsVerified": 26,
+  "newTrishPreparationGateRequired": false,
+  "reviewScope": "Targeted native source/serializer/transcript/report review and critical fake response/completeness/classifier/wiring/mutant path. Full final checker review deferred until revisions.",
+  "handoff": "F:\\DropFolder\\Matt-Drops\\Matt-thePlan-Scheduler-Native-T05-Prep-Handoff-2026-11-13.md",
+  "handoffSha256": "7C520BA74BBC2607542FC32ADE8AA6BEF2E8652E1E8F6CA4E547A53FB56D8966",
+  "findings": [
+    {
+      "kind": "fixture-oracle-false-refusal",
+      "id": "B1",
+      "remedy": "Use exact sent/scripted wire framing plus client result,not rebuilt response headers,with an actual-source predicate/wiring witness that includes adapted response Content-Length.",
+      "basis": "Native _t05_observe checks rebuilt httpx.Response headers,while matching0.28.1source auto-populates Content-Length on nonempty content. FakeHttpxResponse merely stores headers and client-completeness control repeats absence check,so current fake cannot expose this adaptation."
+    },
+    {
+      "kind": "requirement-evidence-mismatch",
+      "decision": "D1 option2: add separate complete fixed-length positive;keep supplementary close-delimited positive and negative/abrupt distinctions;correct precise planning-ID mapping without changing31case IDs or dropping76requirements.",
+      "id": "B2",
+      "basis": "Close-delimited positive maps to T05-VALID-COMPLETE-CONTENT-LENGTH although it supplies neither Content-Length nor that proof."
+    }
+  ],
+  "authority": "Existing consolidated authoring scope389A00DD includes these fixture/check/data roles;fresh same-contract correction,not production/policy expansion.",
+  "D2": "Retain exact fail-closed EOF class set;future different result STOPs with retained evidence,no automatic widening/retry/repair.",
+  "verdict": "REVISE_FRESH_COPY_BEFORE_STAGING",
+  "executionPerformed": false,
+  "event": "Ev0CHNFEE55F",
+  "launchCardWithheld": true,
+  "endpoint": "unbound"
+}

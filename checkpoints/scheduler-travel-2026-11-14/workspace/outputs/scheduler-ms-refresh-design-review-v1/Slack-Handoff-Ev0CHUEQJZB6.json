@@ -1,0 +1,10 @@
+{
+  "disposition": "DUPLICATE_OF_RECONCILED_HANDOFF",
+  "review": "5B10347936C40119426F76B4268E481CB2950F365A980EC160B2E95F49857944",
+  "channel": "C0C6ZFQ3K6C",
+  "messageTs": "1794640781.410099",
+  "eventId": "Ev0CHUEQJZB6",
+  "priorEvent": "Ev0CHJGR044T",
+  "verifiedAtUtc": "2026-11-14T07:36:05.2313254Z",
+  "slackReply": "NONE"
+}

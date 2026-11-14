@@ -1,0 +1,37 @@
+{
+  "status": "NATIVE_DELTA_BOUNDARY_RECONCILED",
+  "endpoint": "unbound",
+  "apiUnchanged": 234,
+  "sourceManifest": "FC1DC3CBE454E10E755A5505B9B3FF69A9FAEFB63B9509C7A9203C531058B6D4",
+  "changed": [
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt"
+  ],
+  "sourceInputs": 309,
+  "identical": 302,
+  "executionAuthority": "NONE",
+  "launchConfigChangedKeys": [
+    "batch_id",
+    "case_ids",
+    "manifest_sha256",
+    "docker_ops_config_path",
+    "receipt_directory",
+    "implementation_increment",
+    "candidate_note"
+  ],
+  "added": [
+    "Google-Invalid-Native-Command-HELD.ps1.txt",
+    "Google-Invalid-Prep-Freeze.json",
+    "GOOGLE-INVALID-PREP-README.md",
+    "Source-Google-V3-Input-Manifest.sha256"
+  ],
+  "checkerStatus": "REVISE_CRLF_BEFORE_RUN",
+  "candidateInputs": 313,
+  "candidateManifest": "D9B3B2C08901E729FC0EBD3397FE11EB608CE56BE50416A0A6C0F8A0112D8533",
+  "handoff": "687CB81591170149DADF39A0D2B7F936BAAF9915FE4B6553AEB01C5292A083DE"
+}

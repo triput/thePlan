@@ -1,0 +1,541 @@
+{
+  "kind": "T01 property-matched route reuse; all18 requirements preserved",
+  "at_utc": "2026-11-12T05:11:42.3700137Z",
+  "prior_goal_turn": "progress: framing compatibility approved and recorded",
+  "route_result_sha256": "4466CEBD189A0D316C456217ECD9FFCFC8F142D5F7EC58091E32CA6916AF23BC",
+  "route_checker_sha256": "133DE7AF16632640AA43B2C38AEF0D0202B5B203B14B001012664A72D97B2537",
+  "route_reconciliation_sha256": "F5FC51185F547F2F91EEEDA76A9A1F67C464E84D68E096FA498F0C153686727E",
+  "pre_transport_slice_markers": "class CoveringHTTP: through immediately before transport factory construction; exact UTF8, no normalization",
+  "source_lineage": [
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_http_transport.py",
+      "whole_sha256": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F",
+      "slice_bytes": 2541,
+      "slice_sha256": "BE1731D95EB2ECF26FE126C0097E516D34E82F5369CCA6BDCD75DF68F41B3738"
+    },
+    {
+      "path": "outputs/scheduler-framing-ack-prep-v2/packet/candidate/app/services/covering_http_transport.py",
+      "whole_sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "slice_bytes": 2541,
+      "slice_sha256": "BE1731D95EB2ECF26FE126C0097E516D34E82F5369CCA6BDCD75DF68F41B3738"
+    }
+  ],
+  "scope": "Frozen route evidence supports unchanged pretransport decisions. This does not claim a new run or candidate framing/native behavior.",
+  "requirement_count": 18,
+  "entries": [
+    {
+      "id": "T01-ORIGIN-FOREIGN-HOST",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-ORIGIN-FOREIGN-PORT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "Nine-control port-zero correction packet is prepared, not executed. Its new policy candidate is not native/final assembled proof.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-ORIGIN-USERINFO",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-ORIGIN-FRAGMENT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-ORIGIN-CONTROL-CHAR",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PURPOSE-WRONG",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PURPOSE-AMBIGUOUS",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-EQUAL-PATH-CONFLICT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "candidate": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        }
+      ],
+      "component_scope": "Exact equal-path identity/event conflict refuses before send for frozen selected configuration; not every possible route topology.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-CONTINUATION-REDIRECT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-CONTINUATION-GOOGLE-PAGE-TOKEN",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-GOOGLE-LIST",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 2,
+              "event": 0,
+              "sends": 2
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 2,
+              "event": 0,
+              "sends": 2
+            }
+          }
+        },
+        {
+          "id": "ROUTE-GOOGLE-EVENT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 2,
+              "sends": 2
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 2,
+              "sends": 2
+            }
+          }
+        }
+      ],
+      "component_scope": "Actual extracted list/paginate owning methods preserve the tested opaque token through two memory exchanges. No native TLS or foreign continuation claim.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-CONTINUATION-MS-NEXTLINK",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-MS-LIST-CONTINUATION-ABS",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 2,
+              "event": 0,
+              "sends": 2
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 2,
+              "event": 0,
+              "sends": 2
+            }
+          }
+        },
+        {
+          "id": "ROUTE-MS-LIST-CONTINUATION-ROOT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 2,
+              "event": 0,
+              "sends": 2
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 2,
+              "event": 0,
+              "sends": 2
+            }
+          }
+        },
+        {
+          "id": "ROUTE-MS-EVENT-CONTINUATION",
+          "recorded_observation": {
+            "original": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 2,
+              "sends": 2
+            }
+          }
+        }
+      ],
+      "component_scope": "Actual extracted list/calendarView callers preserve tested same-path absolute/root links and query tokens. Unlisted descendant identity links intentionally refuse; other shapes unproved.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-POSITIVE-EXACT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-MS-LIST",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            }
+          }
+        },
+        {
+          "id": "ROUTE-MS-DEFAULT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            }
+          }
+        },
+        {
+          "id": "ROUTE-MS-EVENT-OVERLAP",
+          "recorded_observation": {
+            "original": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 1,
+              "sends": 1
+            }
+          }
+        },
+        {
+          "id": "ROUTE-OAUTH-EXACT",
+          "recorded_observation": {
+            "original": {
+              "google": {
+                "exact": {
+                  "outcome": "OK",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 1
+                },
+                "descendant": {
+                  "outcome": "REFUSE",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 0
+                }
+              },
+              "ms": {
+                "exact": {
+                  "outcome": "OK",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 1
+                },
+                "descendant": {
+                  "outcome": "REFUSE",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 0
+                }
+              }
+            },
+            "candidate": {
+              "google": {
+                "exact": {
+                  "outcome": "OK",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 1
+                },
+                "descendant": {
+                  "outcome": "REFUSE",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 0
+                }
+              },
+              "ms": {
+                "exact": {
+                  "outcome": "OK",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 1
+                },
+                "descendant": {
+                  "outcome": "REFUSE",
+                  "identity": 0,
+                  "event": 0,
+                  "sends": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "component_scope": "Selected exact identity/event/OAuth classifier positives, including actual MS default caller. Direct OAuth classification is not actual token refresh/persistence proof.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-POSITIVE-CHILD",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-EVENT-DESCENDANT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 1,
+              "sends": 1
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 1,
+              "sends": 1
+            }
+          }
+        },
+        {
+          "id": "ROUTE-IDENTITY-DESCENDANT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            },
+            "candidate": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        },
+        {
+          "id": "ROUTE-HTTP-IDENTITY-DESCENDANT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            },
+            "candidate": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        }
+      ],
+      "component_scope": "Event descendant admitted; unlisted identity descendant refused under accepted routing policy. Does not authorize identity descendants generally.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-PREFIX-BOUNDARY",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-DOT-SEGMENT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-D2-PRESERVATION",
+          "recorded_observation": {
+            "original": {
+              "traversal": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "encoded_slash": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "unicode": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 1,
+                "sends": 1
+              }
+            },
+            "candidate": {
+              "traversal": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "encoded_slash": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "unicode": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 1,
+                "sends": 1
+              }
+            }
+          }
+        }
+      ],
+      "component_scope": "Selected literal traversal path refuses at zero sends; broader D2 forms retain their separate 52-control proof.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-DOT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-SEP",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-D2-PRESERVATION",
+          "recorded_observation": {
+            "original": {
+              "traversal": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "encoded_slash": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "unicode": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 1,
+                "sends": 1
+              }
+            },
+            "candidate": {
+              "traversal": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "encoded_slash": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              },
+              "unicode": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 1,
+                "sends": 1
+              }
+            }
+          }
+        }
+      ],
+      "component_scope": "Selected encoded-slash path refuses at zero sends; not all encoded paths or every Unicode representation.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-GOOGLE",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [
+        {
+          "id": "ROUTE-GOOGLE-EVENT",
+          "recorded_observation": {
+            "original": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 2,
+              "sends": 2
+            },
+            "candidate": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 2,
+              "sends": 2
+            }
+          }
+        }
+      ],
+      "component_scope": "Actual Google URL builder percent-encodes cal+endar@x.com and actual event pagination succeeds in the frozen byte-fake case. No Microsoft encoded-ID claim.",
+      "full_requirement_closed": false
+    },
+    {
+      "id": "T01-PATH-ENCODED-ID-MICROSOFT",
+      "original_full_scope_status": "completion_unproven",
+      "reusable_route_controls": [],
+      "component_scope": "No new property completion claim from this route mapping; preserve original requirement and prior D2 evidence at its exact scope.",
+      "full_requirement_closed": false
+    }
+  ],
+  "source_scope_limit": "Refresh lineage for each final assembled successor, including approved port correction; preserve all full-scope obligations",
+  "execution_performed": false,
+  "goal_complete": false,
+  "endpoint": "unbound"
+}

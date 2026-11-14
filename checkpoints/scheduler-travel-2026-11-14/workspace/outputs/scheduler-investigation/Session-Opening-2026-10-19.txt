@@ -1,0 +1,24 @@
+<@U0C66Q35LSH> <@U0C9NS8BY3B> Trish asks us to start today's scheduler investigation here. She is nudging Jim so he can join. Session: October 19, 10:30–12:30 Pacific; investigation task 5b4607f6-2a73-4278-a758-0757bff48b53, session task 3288ca3a.
+
+INVESTIGATION ONLY. No Preview Changes, Update Schedule, replan, live scheduler run, fixes, deployment, calendar cleanup or worker stop. Preserve Google Calendar's manual cleanup, appointments and breaks. Trish retains decisions; the no-replan hold remains until we understand the behavior and agree a proper path forward.
+
+Evidence baseline from Julie's October 16 reports (historical, not freshly verified production state): no new run/write after the October 15 6:06 p.m. push, run 6fab234c; nothing was paused. Google Calendar reflected the hand cleanup while thePlan retained its original blocks and stale external_calendar_events mappings. Nine distinct admin instances due October 16–29 were placed on Friday. Trish saw eight apparent repeats and explicitly pressed NEITHER scheduling button. The original runs also overlapped fixed commitments, fragmented repeated work and omitted breaks. Stale-summary returned 500 on priority_ups. Today's timezone-label observation remains evidence to examine, not a diagnosed cause.
+
+Julie: please bring the existing captured evidence and exact locations of your supernova snapshots, full run/task/instance/event IDs and any saved error trace. Clarify historical versus current observations; no need to repeat a broad report or recreate data. Jim, when you join: help trace the original inputs through instance eligibility, placement/conflict handling and export reconciliation, within read-only investigation. No new production run to reproduce this.
+
+Proposed acceptance checks for Trish to settle at the start:
+1. Identify each confirmed cause with a trace from actual input through code/data path to observed outcome; keep hypotheses separate.
+2. Explain future-instance eligibility and distinguish duplicate instances from premature placement or splitting; reconcile reported eight versus stored nine by IDs.
+3. Explain fixed-event conflicts, configured break handling and whether timezone normalization contributed.
+4. Determine how external Google edits/deletions and stale mappings would be handled before any replan; identify the stale-summary failure.
+5. Propose the smallest fix and isolated verification approach, plus safeguards for preserving manual calendar edits. Approval to implement or replan remains separate.
+
+Let's start with what the saved original run proves and where evidence is missing. Julie, do these checks cover the failure you observed, or is a material question missing?
+
+Source threads:
+Friday: https://app.slack.com/archives/C0C6ZFQ3K6C/p1792115628984589
+Monday: https://app.slack.com/archives/C0C6ZFQ3K6C/p1792116026007099
+Containment/read-only findings: https://app.slack.com/archives/C0C6ZFQ3K6C/p1792170354598549
+Today's brief: https://app.slack.com/archives/C0C6ZFQ3K6C/p1792423138751709
+
+Dex

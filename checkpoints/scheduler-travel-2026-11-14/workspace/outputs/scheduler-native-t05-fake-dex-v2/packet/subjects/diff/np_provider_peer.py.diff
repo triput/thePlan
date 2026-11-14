@@ -1,0 +1,29 @@
+--- a/payload/fixture/np_provider_peer.py
++++ b/payload/fixture/np_provider_peer.py
+@@ -85,7 +85,26 @@
+     return context
+ 
+ 
++RESPONSE_FRAMING_MODES = ("auto", "close_delimited")
++
++
+ def _http_response_bytes(step: ExchangeStep) -> bytes:
++    # Explicit framing selection; refusals happen here, before _send_response sends anything.
++    framing = getattr(step, "framing", "auto")
++    if framing not in RESPONSE_FRAMING_MODES:
++        raise PeerLifecycleError("unsupported response framing mode")
++    if any(name.lower() == "transfer-encoding" for name, _ in step.headers):
++        raise PeerLifecycleError("fixture serializer does not emit Transfer-Encoding")
++    if framing == "close_delimited":
++        if any(name.lower() == "content-length" for name, _ in step.headers):
++            raise PeerLifecycleError("close-delimited response must not declare Content-Length")
++        delimited_lines = [f"HTTP/1.1 {int(step.status or 200)} OK"]
++        for name, value in step.headers:
++            delimited_lines.append(f"{name}: {value}")
++        delimited_lines.append("Connection: close")
++        delimited_lines.append("")
++        delimited_head = ("\r\n".join(delimited_lines) + "\r\n").encode("ascii")
++        return delimited_head + (step.body_template or "").encode("utf-8")
+     body = (step.body_template or "").encode("utf-8")
+     headers = list(step.headers)
+     has_cl = any(name.lower() == "content-length" for name, _ in headers)

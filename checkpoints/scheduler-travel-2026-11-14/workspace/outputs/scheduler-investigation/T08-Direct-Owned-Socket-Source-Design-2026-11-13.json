@@ -1,0 +1,70 @@
+{
+  "atUtc": "2026-11-14T02:30:16.6263485Z",
+  "kind": "SOURCE_SUPPORTED_T08_NATIVE_OWNERSHIP_DESIGN_NOT_ASSIGNED",
+  "scope": "Real ownership/socket lifecycle for exactly T08-FOREIGN-THREAD,T08-FOREIGN-CLOSE,T08-REUSE; does not substitute for HTTP/native assessment or provider-context coverage",
+  "sourcePins": [
+    {
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "file": "api/app/services/covering_joined_https.py"
+    },
+    {
+      "sha256": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+      "file": "fixture/np_provider_peer.py"
+    },
+    {
+      "sha256": "BEDCCFD3C3E8F776C4EC0B3379F863E976C73AF350DD6AE8B308518AB4A47735",
+      "file": "fixture/np_provider_transcript.py"
+    },
+    {
+      "sha256": "DAB88CB352189411EED6A2181417CB813D592406598D89192FF307E9081205A1",
+      "file": "fixture/np_suite.py"
+    }
+  ],
+  "sourceFacts": [
+    {
+      "file": "covering_joined_https.py",
+      "fact": "Constructor captures actual thread owner. check refuses foreign or closed before budget. close checks actual owner before changing closed/socket state, and owner close does not require remaining work. open rejects existing socket reuse before new socket creation.",
+      "lines": "16-42,91-127"
+    },
+    {
+      "file": "np_suite.py",
+      "fact": "Already declared NP-T08-OWNERSHIP covers foreign_check,foreign_close,reuse_forbid,owner_retirement as separately named immediate oracles.",
+      "lines": "292-304"
+    },
+    {
+      "file": "np_provider_peer.py",
+      "fact": "Existing normal close and finite120second peer start/retire are available; one finite request/response script needs no new peer operation.",
+      "lines": "405-448,500-564"
+    },
+    {
+      "file": "np_runner_entry.py",
+      "fact": "Existing T05 direct transport fixture already supplies native PKI, pinned numeric loopback443 and production transport contracts without provisioning application schema. Schema create_all constraint on vertical bodies does not apply automatically to a new direct ownership body.",
+      "lines": "2529-2618"
+    }
+  ],
+  "candidateSequence": [
+    "Start one existing normal-close positive syntheticHTTPS script with120second life and real certificate/name verification, real monotonic budget. No fakeget_ident, substituteTLS socket, transport-factory injection or monkeypatch of production guards.",
+    "Owner thread constructs actual unmodified JoinedTLS, opens real owned TLS socket and snapshots closedFalse/socket identity and live descriptor.",
+    "Start ONE owned foreign thread performing check and close, each requiring exact CoveringTransportRefused and no state change. Join within an explicitly proposed5seconds; unexpected exception, success, missing observation or alive worker STOPs. No foreign send/receive network attempt required by registry foreign_check oracle.",
+    "Owner sends one exact harmless fixtureGET and reads the exact finite scripted response bytes through JoinedTLS; this verifies the refused foreign close left the owner resource usable. This is not an HTTP-framing or OAuth classification claim.",
+    "Owner closes locally; require closedTrue and actual socket descriptor closed. Attempt reuse.open on same instance must refuse before second dial. Require exactly one accepted/served peer exchange, one refusal for each planned negative control, no retries/replay.",
+    "Retire peer once using unchanged joined/no-worker-error helper and record all four named oracles/resource state. Preserve owned-worker and peer retirement on every failure; unjoined remainsUNKNOWN/STOP, never detach or force."
+  ],
+  "limits": "Future exact card must disclose added owned foreign-thread5second join, peer120+5join, PKI45nominal and existing600runner/900suite/32Docker/1MiBper-command/report caps. No invocation or limit approval now.",
+  "schemaAndReuse": "No new application-schema provisioning is needed for direct ownership contract. Keep no ordinary-client fallback/context nesting/reset proof separate: reusable context-property reconciliation6A3498F2 avoids duplicate pure ContextVar tests.",
+  "authoringRolesIfLaterAssigned": [
+    "4 np_runner_entry.py new single case body",
+    "5 np_suite.py implementation note/oracle mapping",
+    "8 np_provider_transcript.py finite existing-mode script/data if needed",
+    "13 checker focused finite structural/fake/oracle controls"
+  ],
+  "explicitHolds": [
+    "No source implementation is assigned by this proposal",
+    "No threads,sockets,PKI,imports,AST,compilation,test,Docker or DB execution",
+    "No current Matt assignment change",
+    "No T03D1 import or new worker-error tolerance",
+    "No family/fullgoal closure"
+  ],
+  "activeMattAssignment": "F465A4E25C77BB4D0C9256E56A48F9AA1FDBB7185D9C8FA8A2282B4D2DBEF196",
+  "endpoint": "unbound"
+}

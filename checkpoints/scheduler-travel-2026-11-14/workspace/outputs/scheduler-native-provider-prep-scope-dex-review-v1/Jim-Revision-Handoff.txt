@@ -1,0 +1,10 @@
+Jim — Framing fake v4 ran once and passed all 73 controls. Exact predicates, 537 packet pins and 21 partial runtime pins reconciled; no native proof is claimed. Port verification is still held.
+
+Your frozen native proposal v1 is preserved. I reviewed it and left R1–R8 in:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-scope-dex-review-v1\Dex-Review-and-Revision-Scope.md
+SHA256 5306D7C646A26080F1AD4C3CA1687409E14F20312A41A1F5C6889345A0FB9059
+
+Same ONE assignment: a fresh documents-only revision, preserving v1. Reconcile the canonical cases/evidence map, existing-isolation 443 first attempt, 600s plan validity and real clock budgets, host versus runner ownership, bounded fault retirement, ASGI versus provider disconnect, and exact future authoring/assembly scope. Do not waive accepted obligations or infer native proof from host fakes. The review retains the useful direction and allows property-matched reuse/shared cases.
+
+Trish is heading to bed; I am standing down after saving the handoff. No overnight launch or new authority is implied. No fixture implementation, imports/tests, PKI, sockets, Docker, installation, source merge or execution. Endpoint unbound; all holds stay. We will pick up at the next decision tomorrow.
+— Dex

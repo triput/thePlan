@@ -1,0 +1,12 @@
+{
+  "event_id": "Ev0CGA9XA84F",
+  "message_ts": "1794388629.388509",
+  "thread_ts": "1794388629.388509",
+  "reported_packet": "F:\\DropFolder\\pending\\post-native-d2-t01-source-prep-proposal-jim-v1-corrected3-2026-11-11",
+  "reported_tip_sha256": "19E999AF6419BFA49C7DC9EDEEBB162F3BCE9793333EC62DD858E54F8C8FE5AE",
+  "reported_diff_unchanged_from_corrected2": true,
+  "reported_control_count": 40,
+  "disposition": "Receipt only; packet contents and hashes not reviewed. Defer substantive review until Trish resumes paused goal.",
+  "goal_resumed": false,
+  "execution": false
+}

@@ -1,0 +1,38 @@
+{
+    "kind":  "static-preparation-receipt",
+    "packet":  "post-native-provider-prep-jim-v9-2026-11-12",
+    "executed":  false,
+    "launch_authorized":  false,
+    "launch_ready":  false,
+    "prep_is_not_pass":  true,
+    "first_vertical_increment":  true,
+    "endpoint":  "unbound",
+    "tip_sha256":  "636E628B4D564CC7AE1C2540192D9033DF56E259106628C36676FE7F840DBB82",
+    "tip_on_disk_sha256":  "6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188",
+    "scope_sha256":  "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+    "approval_sha256":  "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4",
+    "dex_r1_r2_review_sha256":  "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+    "dex_launcher_retirement_sha256":  "30FEEDFF468B3851D3630E73C8BB688D290E4639845A29A377B089DB6534BF27",
+    "dex_launcher_receipt_patch_sha256":  "D8D779767E9CB2046B836EF91C59989837467DCFFDF695EC7AE0E4C5509A2F13",
+    "dex_launcher_receipt_candidate_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "key_role_sha256":  {
+                            "np_suite.py":  "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+                            "np_runner_entry.py":  "87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25",
+                            "Invoke-Native-Provider.ps1":  "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+                            "np_supervisor.py":  "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+                            "check_native_provider.py":  "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+                            "launch_check.py":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                            "np_auth_seed.py":  "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+                            "np_provider_peer.py":  "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55"
+                        },
+    "verification_admission_sha256":  "E55A43F78688D48D7C9A8D5D5F8BEDDF9184A29F6668551504ED65852879E38D",
+    "mutable_role_hashes_sha256":  "78A4588486B0AC98129CC95D13E672689B4C8EF818332AF468F882481F001F3D",
+    "confirmations":  {
+                          "late_drain_extracted_candidate_gate":  true,
+                          "checker_read_fixture_admission_pins":  true,
+                          "launcher_retirement_30FEEDFF":  true,
+                          "launcher_receipt_stream_admission_D8D77976":  true,
+                          "timeout_retirement_total_seconds":  135,
+                          "separate_outer_timeout":  false
+                      }
+}

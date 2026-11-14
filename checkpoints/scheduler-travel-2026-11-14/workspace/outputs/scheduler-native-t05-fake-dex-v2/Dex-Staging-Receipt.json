@@ -1,0 +1,39 @@
+{
+  "kind": "Dex T05 v3 static review and corrected staging",
+  "atUtc": "2026-11-13T19:47:04.0866508Z",
+  "sourceManifest": "090D0758E9F20CF99EE17A934BE0BD3BB3A8F14DB01403A57C8D1FA6F22DD117",
+  "sourceInputs": 33,
+  "sourceNativeInputsVerified": 292,
+  "sourceHandoffPinsVerified": 26,
+  "reviewVerdict": "Qualified static acceptance; admission path escaping corrected in fresh data copy",
+  "changedDataOnly": [
+    "packet/verify/VERIFICATION-ADMISSION.json",
+    "packet/verify/OUTER-ADMISSION.json"
+  ],
+  "pathCorrections": [
+    "interpreter_path JSON escaping",
+    "successor_reference.workspace JSON escaping"
+  ],
+  "packetPins": 28,
+  "partialRuntimePins": 10,
+  "controls": 14,
+  "nestedPredicates": 74,
+  "targetedMutants": 10,
+  "checkerExecuted": false,
+  "humanExecutionAuthority": "NONE",
+  "nativeLaunchHeld": true,
+  "endpoint": "unbound",
+  "admissionSha256": "97DC6603A7749889CE0723AB41CCDF2AE0CF268C1D7C65F1759CFC22B7BF49C0",
+  "outerSha256": "1C57C545A9519697801ED8BE3D476E77AFC27D43983418BFECB8D74A2FB7E6DD",
+  "commandSha256": "0FBE49FCA90945B4D2565C6BC3767E51A5CFAE5F262F2FA183F70A5A59691B7A",
+  "peerReviewPinsVerified": 17,
+  "peerReviewSha256": "831FED1E59D25C89600D443F30263D5A35B6E4ABAC0F81D344A9A9872FB90C1C",
+  "qualifications": [
+    "Fixed-length positive proves body completeness; outcome label does not prove client consumed TLS close_notify.",
+    "Close-delimited observation is supplementary and unmapped; only exact fixed-length maps VALID-COMPLETE-CL.",
+    "Ten targeted mutants include structural construction/retirement checks, not ten behavioral defect detections.",
+    "No syntax or behavior execution; host-parser fake properties are not native TLS proof.",
+    "Native four-peer 500s nominal peer allotment is not a strict wall-clock bound; runner/suite supervision remain required.",
+    "Inherited false-authority notes and earlier commands are history; booleans true are staging data only."
+  ]
+}

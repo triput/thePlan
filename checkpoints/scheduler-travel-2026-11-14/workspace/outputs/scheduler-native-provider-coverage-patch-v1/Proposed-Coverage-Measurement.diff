@@ -1,0 +1,36 @@
+--- a/payload/fixture/np_auth_seed.py
++++ b/payload/fixture/np_auth_seed.py
+@@ -358,21 +358,22 @@
+             {
+                 "subscription_id": str(sub.id),
+-                "covering_generation": getattr(sub, "covering_generation", None),
+-                "covering_window_start": (
+-                    sub.covering_window_start.isoformat()
+-                    if getattr(sub, "covering_window_start", None) is not None
++                "coverage_active_generation": sub.coverage_active_generation,
++                "coverage_success_generation": sub.coverage_success_generation,
++                "coverage_window_start": (
++                    sub.coverage_window_start.isoformat()
++                    if sub.coverage_window_start is not None
+                     else None
+                 ),
+-                "covering_window_end": (
+-                    sub.covering_window_end.isoformat()
+-                    if getattr(sub, "covering_window_end", None) is not None
++                "coverage_window_end": (
++                    sub.coverage_window_end.isoformat()
++                    if sub.coverage_window_end is not None
+                     else None
+                 ),
+-                "last_covering_success_at": (
+-                    sub.last_covering_success_at.isoformat()
+-                    if getattr(sub, "last_covering_success_at", None) is not None
++                "coverage_success_at": (
++                    sub.coverage_success_at.isoformat()
++                    if sub.coverage_success_at is not None
+                     else None
+                 ),
+-                "has_covering_success": getattr(sub, "last_covering_success_at", None) is not None,
++                "has_covering_success": sub.coverage_success_at is not None,
+             }
+         )

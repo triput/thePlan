@@ -1,0 +1,9 @@
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,5 +1,5 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "case_ids": [
+     "NP-V-MS-NONEXPIRED"
+   ],

@@ -1,0 +1,5 @@
+--- a/verify/check_native_provider.py
++++ b/verify/check_native_provider.py
+@@ -2552 +2552 @@
+-    if launcher_pin != "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07":
++    if launcher_pin != "ABCFC1383F8A99100A2850834A5177CF698253469326B4C501160128D1CEDC64":

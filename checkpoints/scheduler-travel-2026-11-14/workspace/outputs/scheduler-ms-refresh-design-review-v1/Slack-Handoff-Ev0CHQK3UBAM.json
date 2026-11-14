@@ -1,0 +1,12 @@
+{
+  "eventId": "Ev0CHQK3UBAM",
+  "nativeAuthority": "NONE",
+  "duplicateReplySuppressed": true,
+  "endpoint": "unbound",
+  "messageTs": "1794610644.417069",
+  "sender": "U0C68LUTURJ",
+  "reviewedAtUtc": "2026-11-13T23:06:25.5995281Z",
+  "slackReplySent": false,
+  "threadTs": "1794534925.412399",
+  "disposition": "Pointer to native T05 review92BF519C already independently reconciled611959EC; no new question or finding. Exact native T05 decision E05EC250 remains pending Trish. Review acknowledgment and next assignment already posted1794611128.072769."
+}

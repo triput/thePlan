@@ -1,0 +1,9 @@
+{
+  "event": "Ev0CHNFEE55F",
+  "reviewSha256": "1D3C6CC6B54451E8A85D51E42DCC0A75A5E9C15F25B071F5EB1C8393369098D5",
+  "messageTs": "1794595367.174009",
+  "status": "Review completed REVISE;fresh-copy correction assigned within existing authoring lane;no execution",
+  "handledAtUtc": "2026-11-13T18:48:24.8626335Z",
+  "threadTs": "1794534925.412399",
+  "revisionDropSha256": "8893E2425DE0F3C67CFC5F68550525A729CEDB1D2E1D038593A60388B69A56F8"
+}

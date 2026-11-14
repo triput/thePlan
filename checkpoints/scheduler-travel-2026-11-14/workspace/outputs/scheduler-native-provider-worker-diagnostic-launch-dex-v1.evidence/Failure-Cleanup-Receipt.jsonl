@@ -1,0 +1,24 @@
+{"data": ["container", "inspect", "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818"], "event": "docker_command"}
+{"data": {"bytes": 8529, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "76d791c62b5041ed42f04d9a12e29a448d1ba053dbbab46e8c234f59bdfff9ec", "workers_joined": true}, "event": "docker_output"}
+{"data": {"exit_code": 125, "id": "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818", "role": "runner", "status": "exited"}, "event": "identity_pass"}
+{"data": ["container", "rm", "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "9c9acd2af0f80d03fa6ec232257b6576650eb52c0ed92c7d9aece06aa87d4c26", "workers_joined": true}, "event": "docker_output"}
+{"data": ["ps", "-a", "--no-trunc", "--filter", "id=fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818", "--format", "{{.ID}}"], "event": "docker_command"}
+{"data": {"bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "workers_joined": true}, "event": "docker_output"}
+{"data": {"absence_verified": true, "id": "fa60bb508fe07186d55ba86e3ab3674b4a2af4e853bedc307613177179386818", "role": "runner"}, "event": "removed"}
+{"data": ["container", "inspect", "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c"], "event": "docker_command"}
+{"data": {"bytes": 8764, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "9af69ab9872496664705f401e0935b0cac531f3184933f66709d3b62b1f92713", "workers_joined": true}, "event": "docker_output"}
+{"data": {"exit_code": 0, "id": "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c", "role": "database", "status": "running"}, "event": "identity_pass"}
+{"data": ["kill", "--signal=SIGINT", "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "7c0fe398d36edad618956663e4d07279d8dd0b647ae343ce3004dc229e436497", "workers_joined": true}, "event": "docker_output"}
+{"data": ["wait", "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c"], "event": "docker_command"}
+{"data": {"bytes": 2, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa", "workers_joined": true}, "event": "docker_output"}
+{"data": ["container", "inspect", "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c"], "event": "docker_command"}
+{"data": {"bytes": 8608, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "6f17e6c28d84ae7eff365e99bb83ea840748d9dc6c598363991c29cbd9436ade", "workers_joined": true}, "event": "docker_output"}
+{"data": {"exit_code": 0, "id": "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c", "role": "database", "status": "exited"}, "event": "identity_pass"}
+{"data": ["container", "rm", "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c"], "event": "docker_command"}
+{"data": {"bytes": 65, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "7c0fe398d36edad618956663e4d07279d8dd0b647ae343ce3004dc229e436497", "workers_joined": true}, "event": "docker_output"}
+{"data": ["ps", "-a", "--no-trunc", "--filter", "id=1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c", "--format", "{{.ID}}"], "event": "docker_command"}
+{"data": {"bytes": 0, "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "workers_joined": true}, "event": "docker_output"}
+{"data": {"absence_verified": true, "id": "1b7f0e807a0a4064d62468fc9474fa58f5de64b49530e1aa7ce8241f7d5f086c", "role": "database"}, "event": "removed"}
+{"data": {"both_absent": true, "calls": 9, "database_exit": 0, "retry": false}, "event": "cleanup_complete"}

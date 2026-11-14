@@ -1,0 +1,141 @@
+{
+  "kind": "Derived prelaunch expected-UNKNOWN index, not an override",
+  "expected_file_sha256": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+  "count": 12,
+  "controls": [
+    {
+      "id": "F03-oauth",
+      "path": "candidate.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    {
+      "id": "F05-oauth",
+      "path": "candidate.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    {
+      "id": "F12a-INVALID-JSON-OAUTH",
+      "path": "candidate.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    {
+      "id": "F12a-NONOBJECT-OAUTH",
+      "path": "candidate.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    {
+      "id": "F12b-ENCODING-OAUTH",
+      "path": "candidate.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    {
+      "id": "CLEANUP-C-R02",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    {
+      "id": "CLEANUP-C-R03",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    {
+      "id": "CLEANUP-C-R04",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    {
+      "id": "CLEANUP-C-R05",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    {
+      "id": "CLEANUP-C-R06",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    {
+      "id": "PRIMARY-BOTH-CLOSES",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "three_roles_present": true,
+        "response_close_role": "FakeResponseCloseError",
+        "transport_close_role": "FakeTransportCloseError"
+      }
+    },
+    {
+      "id": "OAUTH-UNKNOWN-RETIREMENT",
+      "path": "observation.observed_outcome",
+      "exact_required_observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "transport_sent_observed": true
+      }
+    }
+  ],
+  "scope": "These12 declared application fault controls expect nested OBSERVED_UNKNOWN while the check control passes only if its exact frozen predicate matches. No new allowed outcome is introduced.",
+  "framework_boundary": "Any launcher/child/capture/reader/retirement UNKNOWN, mismatch, timeout, unexpected output or unexpected observation stops. Named application UNKNOWN outcomes do not authorize framework UNKNOWN, automatic repair, retry or continuation after failure.",
+  "not_proven": [
+    "Native TLS close_notify versus abrupt closure",
+    "Candidate actual owning-call path for CALLER-labeled direct HTTP replays",
+    "Real provider/credentials or native persistence from byte fakes"
+  ],
+  "executed": false,
+  "launch_authorized": false,
+  "endpoint": "unbound"
+}

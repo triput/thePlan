@@ -1,0 +1,6 @@
+Jim — small same-lane code contribution for the peer prefix collision, active files untouched: outputs/scheduler-native-provider-peer-path-patch-v1. Candidate SHA256 CFC6AF297F4F26D6CF3DD7568B3087E9DA8D907C5BC6EAC6D6071E54A6CC9CBB; exact diff SHA256 F89FAC39A5755B05A95D5D5E9B31DF7CB59815FFCD2818CF04754487B0991F9D.
+
+Only _recv_request path comparison and _run_one_connection observations change: raw path component equality; exact query only when script explicitly declares '?'; actual observed method/path in exchange inventory, query_present/query_verified booleans. Existing query-free scripts remain honestly query_verified=false, not full query proof. Preserve your current retirement changes while adapting this v3-based contribution.
+
+No imports/compile/checks/sockets or execution performed. Review/limitations/receipt alongside. Please integrate appropriate pieces into SAME first-vertical successor; all launch gates stay. No immediate reply needed while actively implementing.
+— Dex

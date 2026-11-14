@@ -1,0 +1,79 @@
+{
+  "remainingInvocations": 0,
+  "postFrozenInputPins": 297,
+  "hostReceiptSha256": "A80D7DF9EE786DBD1CB522A9DC5C644F8A52103A85DB78A68A212F32A40162AB",
+  "dockerCommands": 12,
+  "status": "STOP_ONE_SHOT_CONSUMED",
+  "states": {
+    "runner": {
+      "status": "exited",
+      "id": "eb569ce806a81e9ba0a0309dda75f1e8f30810a7845a4d8a7d95db33c851a7d6",
+      "exitCode": 125
+    },
+    "database": {
+      "id": "2c15f1c0ae065a0e5a8b728c28920c3143aa379c76b3691e1d1f9b03d200a857",
+      "status": "running"
+    }
+  },
+  "sourceGuard": {
+    "earlierCase": "No retained case PASS/observations, despite source path reaching second case",
+    "path": "fixture/np_runner_entry.py",
+    "observedClientOutcome": "NOT_RETAINED; do not infer actual class or body",
+    "line": 1949,
+    "meaning": "Abrupt truncation outcome did not satisfy exact expected transport EOF predicate"
+  },
+  "runnerStop": {
+    "cli_exit_code": 125,
+    "diagnostic": {
+      "exceptions": [
+        {
+          "frames": [
+            {
+              "line": 2492,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 2444,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 39,
+              "path": "fixture/np_integrated_runner.py"
+            },
+            {
+              "line": 2223,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 2183,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 2090,
+              "path": "fixture/np_runner_entry.py"
+            },
+            {
+              "line": 1949,
+              "path": "fixture/np_runner_entry.py"
+            }
+          ],
+          "kind": "SuiteStop"
+        }
+      ],
+      "truncated": false,
+      "version": 1
+    },
+    "kind": "SuiteStop",
+    "status": "STOP"
+  },
+  "hostReceiptBytes": 8249,
+  "automaticCleanup": false,
+  "readOnlyReconciliation": "9E42358153883026493B533E16168519D1FE9489BED9542F61443FDB9AA33B79",
+  "failureCleanupAuthority": "NONE",
+  "questionId": "call_b2af9b2b853c4cfc873ad3f5f707a33c",
+  "atUtc": "2026-11-13T23:35:43.7962273Z",
+  "kind": "Dex stopped native T05 run reconciliation",
+  "endpoint": "unbound",
+  "otherNativeRuns": "HELD",
+  "nativeT05Proof": "NOT_ESTABLISHED"
+}

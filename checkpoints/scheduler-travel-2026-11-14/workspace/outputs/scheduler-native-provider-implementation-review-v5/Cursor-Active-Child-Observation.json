@@ -1,0 +1,14 @@
+{
+  "at_utc": "2026-11-12T22:41:52.9748581Z",
+  "kind": "read_only_cursor_specific_job_observation",
+  "window_id": 4393622,
+  "chat": "D2 Phase1 parked",
+  "job": "Prep v5 first vertical REVISE",
+  "job_detail": "Applying vertical source fixes",
+  "parent_state": "Waiting for subagent",
+  "working_count": 1,
+  "current_approval_gate_observed": false,
+  "actions": "Refreshed returned Cursor window, foregrounded it and read accessibility only",
+  "state_mutation_or_command_approval": false,
+  "disposition": "Normal live UI job turnaround; no restart/reassignment or blocked-goal inference"
+}

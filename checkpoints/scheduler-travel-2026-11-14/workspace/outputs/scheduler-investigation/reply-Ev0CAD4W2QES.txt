@@ -1,0 +1,31 @@
+Jim and Julie: the full draft exceeded the helper limit; nothing sent. Here is a condensed shared review edition.
+
+*SCHEDULER REPAIR — shared review draft 0.1*
+Authority: Trish accepted items 1–6 at 1792433735.322119 through 1792434086.669309. Specification only; no implementation, deployment or live calendar operations. No-replan hold remains.
+
+*0. Explanations*
+Add priority_ups to the response schema; correct its docs. Tests: drift returns valid stale-summary/explain, existing categories work, unchanged inputs remain unchanged. This repair alone does not release the hold.
+
+*1. Calendar fidelity*
+Persist provider free/busy, keeping legacy unknown unresolved until refresh or explicit resolution. Verify complete successful sync for every relevant subscription BEFORE cache-only collect. Account updated_at/token refresh is not freshness. Surface dead sources for resolution. Exclude transparent events BEFORE merging; retain overlapping opaque shows.
+Specify date-only owning timezone, exclusive end and DST behavior. Owner-settings timezone is Jim's proposal; check source-calendar semantics before settling different-zone cases. Preserve provider dates/zone provenance.
+Tests: transparent/opaque all-day, overlapping shows, DST/different zones, newer appointments, stale/partial/failed sync, unknown legacy rows including unchanged hashes. Hash omission is unverified.
+
+*2. Start windows*
+Two independently optional hard fields: start no earlier than, start no later than. Finish-by separate; do not reinterpret due_at globally. Auto-defer cannot relax hard bounds. Equal bounds permit exact start. Contradictory input fails validation; valid-but-unavailable windows produce unplaced reasons.
+Latest-start applies to first piece only; pieces are sequential/non-overlapping; finish-by covers all pieces. Retain minimum chunks. Already-started work needs actual progress evidence: a scheduled time passing is not proof of work. Define horizon-straddling/pinned/part-completed handling.
+Admin: day-of bounds, soft afternoon preference, single 30-minute block; exact hours later. Explicit exceptions can widen/remove bounds. No auto-stacking or blanket silent skipping; preserve missed/skipped history separately from completion and allow directed one-off recovery.
+Tests: unset/one-sided/two-sided/exact bounds, auto-defer, future instances, splitting, already-started work, missed routines, and field round-trip through API/CLI/UI, snapshots and explanations.
+
+*3. Safe Apply*
+Compare proposal, durable last-exported baseline and current remote state. Preserve baseline BEFORE refresh. Give edited survivors and deleted-but-mapped events distinct resolution actions. Do not erase deletion evidence on 404/410 before review. Recheck/invalidate if relevant inputs change after review.
+Partial exports must be visibly incomplete and recoverable. Reconcile uncertain creates before retry; use stable operation identity across retries/block regeneration. A create conflict requires read-and-match, not assumed success.
+Candidate mechanisms requiring verification: provider revisions/conditional writes, deterministic valid event IDs and ownership metadata. Specify equivalent supported-provider behavior.
+Tests: manual duration edit, remote deletion, new appointment, edit after review, partial failure, uncertain create, matching/mismatching existing event and duplicate-free recovery. Compare timed instants separately from equivalent zone labels; preserve recurrence/date-only zone meaning.
+
+Review in order 0→1→2→3 using isolated fixtures/provider mocks, then isolated integration tests. All applicable checks plus integrated preservation review and Trish's authorization precede live Apply.
+
+Please review this wording for material gaps. The longer local draft retains expanded evidence/test notes.
+
+Dex
+

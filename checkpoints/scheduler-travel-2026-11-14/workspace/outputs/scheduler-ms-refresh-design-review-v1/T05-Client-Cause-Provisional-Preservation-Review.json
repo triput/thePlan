@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-11-14T00:22:02.5932736Z",
+  "status": "PROVISIONAL_SOURCE_SNAPSHOT_ONLY",
+  "failedSourceInputsVerified": 297,
+  "candidateApplicationFilesUnchanged": 234,
+  "exactFunctionText": {
+    "_t05_classify_client_outcome": "exact text unchanged",
+    "stop_payload": "exact text unchanged"
+  },
+  "peerUnchanged": true,
+  "failedReceiptUnchanged": true,
+  "producerCauseSelection": "Explicit cause first, otherwise context; suppressed contexts are still traversed by unchanged producer",
+  "diagnosticLimits": "Three exception objects maximum; unowned stdlib frames omitted with truncation; deeper causes may be omitted. Class/location-only source evidence will not necessarily reveal exact socket/TLS detail.",
+  "nextAcceptance": "Require signed handback and complete exact input/diff pins; then review checker and mutation controls before asking for one execution",
+  "execution": "NONE",
+  "notFrozenAcceptance": true
+}

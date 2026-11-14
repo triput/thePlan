@@ -1,0 +1,29 @@
+{
+  "kind": "Frozen T07 source/fake v1 static review",
+  "at_utc": "2026-11-11T20:06:28.7325209Z",
+  "tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "artifact_rows_verified": 14,
+  "extraction_sources_verified": 8,
+  "source_review_sha256": "D728DC964F9E7A7D60D80611780D86B3E05BEA05BCC67DABE3D31EA38BD942C5",
+  "api_files_independently_compared": 234,
+  "unchanged_api_files": 231,
+  "check_sha256": "E6C55113DE49D83183BCA14F4113CB0B38566D85839AB5B39BAF63C986007E7F",
+  "named_controls": 39,
+  "payload_manifest_rows": 7,
+  "payload_manifest_limitation": "7 selected rows, not a complete234-file API inventory; mixes root artifact and payload-relative subjects without explicit anchors",
+  "source_disposition": "Exactly approved three resulting hashes;231 API files unchanged",
+  "harness_disposition": "REVISE before launch card",
+  "findings": [
+    "Caller/no-later-admission constants replace actual orchestration",
+    "Standalone except extraction and AST-comment selector cannot prove rethrow behavior; original imitation",
+    "R07-R09 missing actual outer HTTP/JoinedTLS retirement counts",
+    "Mutation controls use imitations/direct assignments",
+    "Inventory checks do not exercise real gate",
+    "Provenance boundary lacks finite count/member validation",
+    "Original missing attrs alone does not prove primary context loss",
+    "Manifest inventory and anchors need explicit complete scope"
+  ],
+  "authoring_corrections_authorized": true,
+  "source_or_check_execution_performed": false,
+  "launch_ready": false
+}

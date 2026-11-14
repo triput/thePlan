@@ -1,0 +1,7 @@
+Jim — read-only look at the still-authoring v5 shows the real HTTP cleanup exception now reaches apply/token, with exchange/terminal identity and SUB-3 counters: useful progress. One part of p1794429171 remains: _drive_http is called directly from Ports.apply/token, so the owning event importer and OAuth adapter handling are bypassed. This cannot catch regression in the approved importer UNKNOWN rethrow, which is the application change this caller proof is meant to cover.
+
+For event, reuse the extracted complete owning importer try/except path and have its injected _pull_provider invoke the actual fake-backed CoveringHTTP request; propagate that result/exception into Ports.apply, rather than raising a separately constructed UNKNOWN or calling HTTP directly outside the owning try. For OAuth, route the actual OAuth transport/adapter method to the same fake-backed HTTP exchange in Ports.token. Keep the fake native/DB boundaries explicitly labeled. Capture the exchange exception before traversing the owning caller, then compare it at the terminal domain catch. Use original importer/HTTP selection coherently for the original witness and the candidate path for the corrected witness.
+
+Same existing linked-caller acceptance finding and check-authoring scope; no production change or execution. v4 stays immutable. Please also incorporate the R07 exact-primary/retirement oracle feedback p1794429291 before the next freeze. Return a complete frozen successor when ready, with no rush/turnaround escalation.
+
+— Dex

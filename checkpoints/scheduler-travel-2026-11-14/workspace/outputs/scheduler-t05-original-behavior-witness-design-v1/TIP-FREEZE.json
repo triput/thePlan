@@ -1,0 +1,67 @@
+{
+  "packet": "post-native-t05-original-behavior-witness-design-jim-v1-2026-11-11",
+  "status": "T05_ORIGINAL_BEHAVIOR_WITNESS_DESIGN_COMPLETE_NOT_APPLIED",
+  "disposition": "WITNESS_FIRST_NO_APPLY",
+  "disposition_one_liner": "WITNESS-FIRST / NO APPLY — map original fixed-length/chunk/trailer/close-delimited witnesses; no source edits; no PASS invented",
+  "author": "Justin",
+  "role": "Jim T05 documents-only original-behavior witness/design prep",
+  "date": "2026-11-11",
+  "byte_semantics": "utf-8 lf",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "execution_authorized": false,
+  "launch_authorized": false,
+  "imports_compile_tests": false,
+  "source_fixture_edits": false,
+  "tip_sha256": "0A8898B74AD506B178D01A4E7469654F8449B5F0ED1C84091971DD57C9EAF692",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled).",
+  "brief_sha256": "B7A8A945FC0CEADC09A4A84056ED85E4D42DF635AE45C9C25CFBC80980DE97CB",
+  "input_pins_sha256": "A0CEF10FB1639F8471225C041743AEF6A38514D6937011CDE8498D8F8FDB0E3F",
+  "accepted_t07_source_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "transport_audit_candidate_count": 76,
+  "t05_planning_ids": 13,
+  "decisions_required": [
+    "D1_duplicate_identical_content_length",
+    "D2_te_plus_cl",
+    "D3_close_delimited_policy",
+    "D4_suppress_ragged_eofs",
+    "D5_native_parser_ssl_provenance"
+  ],
+  "narrowest_options": [
+    "A_fixed_length_remaining_gate",
+    "B_close_delimited_policy_branch",
+    "C_chunk_completeness_post_witness"
+  ],
+  "hard_constraints": [
+    "no_unbounded_reads",
+    "no_silent_reject_close_delimited",
+    "no_silent_reject_chunk_extensions_or_valid_trailers",
+    "no_invented_PASS",
+    "preserve_16MiB_wire_byte_ceiling",
+    "preserve_request_budget_deadlines",
+    "preserve_T07_retirement_provenance"
+  ],
+  "related_t07_host_v3_tip": "FDB40B1DB74E57855C6C5023D19FE1E53CEB9C33D696FA68C3CCBADC8DE843E1",
+  "handback_dirs": [
+    "F:/DropFolder/pending/post-native-t05-original-behavior-witness-design-jim-v1-2026-11-11",
+    "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-original-behavior-witness-design-v1"
+  ],
+  "artifact_hashes_list_order": [
+    "HANDBACK.txt",
+    "INPUT-PINS.json",
+    "README.md",
+    "T05-Original-Behavior-Witness-Design.md",
+    "TIP-FREEZE.json"
+  ],
+  "message_context": [
+    "T05 documents-only original-behavior witness/design prep",
+    "WITNESS-FIRST / NO APPLY",
+    "76-ID audit preserved; T05 expansions mapped",
+    "Decisions D1-D5 surfaced; no source edits"
+  ]
+}

@@ -1,0 +1,8 @@
+Captured in the shared planning draft:
+F:\Code Repo\Cabinet\outputs\scheduler-investigation\Implementation-Plan-2026-10-19.md
+
+The two separate migration checkpoints are useful: task changes after Track 2 fields, calendar reconciliation under Track 3, each separately authorized. Your held-miss list/state and summary count are recorded as the UI proposal, pending checking the actual surface. One scope clarification: Track 0 stays the small explanation-schema repair; the new held-miss count arrives with Track 2, using that repaired surface.
+
+The plan preserves in-place task IDs/history/progress, no remote writes during task migration, isolated diffs, evidence limits and startup safety. Jim's acceptance table is the remaining input for the Track 1 portion. No acknowledgement needed; flag only a material correction. Hold unchanged.
+
+Dex

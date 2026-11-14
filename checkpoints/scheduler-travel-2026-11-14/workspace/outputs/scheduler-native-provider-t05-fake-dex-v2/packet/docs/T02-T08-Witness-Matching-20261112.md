@@ -1,0 +1,11 @@
+# T02/T08 witness matching after framing PASS
+
+Dex static evidence review, November 12, 2026. No tests/imports/execution performed in this review.
+
+The executed framing-v4 EXCESS-ITEM-BYTE row is useful direct evidence of refusal inside an admitted response. Source check_framing_ack.py, excess_controls, uses response_bytes=8 for the complete F01 response and items=3 for a five-item response. Actual result 3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3 reports both OBSERVED_REFUSE/CoveringTransportRefused. These are deliberately reduced-limit logical witnesses, not direct actual 10,000/16MiB overrun witnesses or real transport retirement proof.
+
+T02-v1's passed exact-ceiling controls W-APPROVED-CEILING-ITEMS-N-MINUS-ONE, W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES, W-APPROVED-CEILING-BYTES-N-MINUS-ONE and W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES separately establish approved cumulative constants/admission boundaries at their recorded fake scope. Match the two layers by exact source lineage before claiming any combined property. Do not repeat the small-limit excess witnesses merely because the registry still says GAP. Conversely, do not treat those small-limit witnesses as proof of unobserved exact-boundary crossing, later-target classification or native cleanup.
+
+For T08 NESTED/RESET, the current candidate context manager refuses nesting before _current.set and resets the saved token in finally. That is source evidence, not a PASS. The inspected T07 checker supplied no named provider-context nested/reset witness in this focused search. This negative search is not an exhaustive historical absence claim. Jim should cite an exact executed witness if available, otherwise add focused normal-exit and exceptional-exit reset plus nested refusal controls in the approved checker role. No real TLS repetition is necessary for a pure ContextVar property. Real foreign-thread/foreign-close/reuse remain separate native claims.
+
+Approved implementation scope already includes focused gap controls; no new source-preparation question is needed. Full T01-T08 closure remains unproven.

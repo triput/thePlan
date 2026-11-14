@@ -1,0 +1,40 @@
+HANDBACK -- post-native-provider-prep-scope-jim-v1-2026-11-11
+
+Status: NATIVE_PROVIDER_IMPLEMENTATION_SCOPE_PROPOSAL_COMPLETE_NOT_IMPLEMENTED (documents only)
+
+Packet roots:
+- Prep/docs: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-prep-scope-jim-v1/
+- DropFolder: F:/DropFolder/pending/post-native-provider-prep-scope-jim-v1-2026-11-11/
+
+Disposition: DESIGN_SCOPE_PROPOSAL / QUALIFIED_FOR_DEX_REVIEW
+executed=false; launch_authorized=false; implementation_authorized=false; prep_is_not_pass=true
+endpoint=unbound
+No Slack tip from this seat.
+
+Assignment verified:
+Jim-Native-Provider-Preparation-Scope-Assignment.md
+SHA256 6800E75B876D549CD1468B8E6B93D2F04EF36C986AC650D45C5A0EDB7F728113
+
+Scope freeze (coding perspective for Dex):
+- Exact prospective np_* fixture/recipe/runner/supervisor files + roles; I01/I02 lineage; 76-ID table with REUSE/HOLD/GAP/NATIVE.
+- No new JoinedTLS injection seam (release plan default).
+- Vertical: production HTTP/dispatch/connector/JoinedTLS + synthetic provider TLS + native TOKEN/IMPORT + changed assessment.
+- Distinctions: nonexpired vs Google/MS owning refresh; alias vs routes; token commit vs import rollback.
+- 25 native executable cases; not 76 automatic runs; no fake witness for real socket/TLS/timing/thread claims.
+- Topology: vendor origin/port unchanged + 127.0.0.1:443 + verify-full; :443 nonroot unproved — alternatives A/B/C/D with recommend A; stop on bind failure.
+- Serial batches B1-B5; production 210/240/30 where claimed; I01 600/900 not authority; STOP no retry/repair/auto failure cleanup.
+- Trish source-preparation card wording drafted (proposal text only; no approval ask now).
+- Framing-fake-v4 and port cards remain with Trish — unexecuted; not PASS.
+
+Unresolved (see Decisions-and-Open-Questions.md): D1 framing reconcile; D2 port reconcile; D3 final assembled hashes; D4 :443 topology; D5 prep card; D6 T08 packaging; D7 launch packaging; D8 launch freeze; D9 T02 overrun; D10 peer mechanism.
+
+Confirmation: no fixture/application/check/helper source authoring; no imports/compilation/tests; no PKI/sockets/Docker/providers/credentials; no installation/build; no source edits; no port/framing merge; no execution/endpoint binding.
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+2ED4F5DC6E97B54DAF6F06D51DD47975B7D3861241F453CEC4CBB54625958BDA
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+531BFBDE267872AFA3DC58C0294ECFE3270F01650D5DA52D5D1F900A5A45C130
+
+Implementation-Scope-Proposal.md SHA256:
+126AC17B31B14C3D2AF5864ABB9830666A42F6C7A2F453F152521AF52431555C

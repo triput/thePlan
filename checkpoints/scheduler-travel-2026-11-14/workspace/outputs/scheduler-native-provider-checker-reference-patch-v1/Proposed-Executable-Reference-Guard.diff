@@ -1,0 +1,210 @@
+--- a/verify/check_native_provider.py
++++ b/verify/check_native_provider.py
+@@ -1019,81 +1019,126 @@
+-    }
+-
+-
+-def check_vertical_contract_shape() -> dict[str, Any]:
+-    """NP-V-MS-NONEXPIRED must use Settings + covering-refresh + ASGI (C340C47B)."""
+-    runner = (FIXTURE / "np_runner_entry.py").read_text(encoding="utf-8")
+-    auth = (FIXTURE / "np_auth_seed.py").read_text(encoding="utf-8")
+-    routes = (FIXTURE / "np_provider_routes.py").read_text(encoding="utf-8")
+-    bootstrap = (FIXTURE / "bootstrap-postgres-tls.sh").read_text(encoding="utf-8")
+-    prepare_tls = (FIXTURE / "prepare-tls.sh").read_text(encoding="utf-8")
+-    if "app.core.config" in runner or "from app.core.config" in auth:
+-        raise WitnessFailure("vertical must not use app.core.config")
+-    if "app.config" not in runner and "fixture_settings" not in runner:
+-        raise WitnessFailure("vertical missing app.config.Settings / fixture_settings")
+-    if "fixture_settings" not in auth:
+-        raise WitnessFailure("np_auth_seed missing fixture_settings")
+-    if "/api/v1/calendar/covering-refresh" not in runner and "COVERING_PATH" not in runner:
+-        raise WitnessFailure("covering-refresh path missing")
+-    if "subscription_ids" not in auth or "window_start" not in auth:
+-        raise WitnessFailure("covering_refresh_body fields missing")
+-    if "seed_browser_owner_with_subscriptions" not in runner:
+-        raise WitnessFailure("vertical must persist browser owner/subscriptions via auth seed")
+-    if "measure_subscription_coverage_state" not in runner:
+-        raise WitnessFailure("vertical must measure persisted before/after coverage state")
+-    if "build_i01_asgi_app" not in runner or "asgi_client" not in runner:
+-        raise WitnessFailure("i01_asgi_app ASGI pattern missing")
+-    if "install_covering_http_alias" in runner or "FixtureByteTransport" in runner:
+-        raise WitnessFailure("byte-transport alias must stay out of JoinedTLS claim")
+-    if '"identity"' not in runner or "calendarView" not in (FIXTURE / "np_provider_transcript.py").read_text(encoding="utf-8"):
+-        raise WitnessFailure("MS identity vs event route classification missing")
+-    if 'hostname="native-fixture.invalid"' not in runner:
+-        raise WitnessFailure("DB profile hostname must be native-fixture.invalid")
+-    if 'database="dex_fixture"' not in runner or 'username="dex_fixture"' not in runner:
+-        raise WitnessFailure("DB profile database/username must be dex_fixture")
+-    if "native-fixture.invalid" not in prepare_tls:
+-        raise WitnessFailure("prepare-tls hostname pin missing")
+-    if "dex_fixture" not in bootstrap:
+-        raise WitnessFailure("bootstrap dex_fixture pin missing")
+-    if 'hostname="db"' in runner or 'database="scheduler"' in runner:
+-        raise WitnessFailure("product db/scheduler literals must not remain in fixture profile")
+-    if "/tmp/np-provider-tls" not in routes:
+-        raise WitnessFailure("provider CA must live under /tmp/np-provider-tls")
+-    if "serve_wrong_name_leaf" not in routes:
+-        raise WitnessFailure("wrong-name must flip serve leaf, not client hostname")
+-    if '"/v1.0/me/calendars/", "event"' not in runner and "'/v1.0/me/calendars/', 'event'" not in runner:
+-        raise WitnessFailure("event route must use trailing-slash prefix to avoid list ambiguity")
+-    if "connection_scripts" not in (FIXTURE / "np_provider_peer.py").read_text(encoding="utf-8"):
+-        raise WitnessFailure("peer missing multi Connection:close inventory")
+-    asgi_helper = FIXTURE / "i01_asgi_app.py"
+-    if not asgi_helper.is_file():
+-        raise WitnessFailure("immutable i01_asgi_app helper missing")
+-    if not (FIXTURE / "i01_auth_seed.py").is_file():
+-        raise WitnessFailure("immutable i01_auth_seed dependency missing")
+-    if "admit_isolated_import_bootstrap" not in runner:
+-        raise WitnessFailure("isolated import bootstrap missing")
+-    if "provision_disposable_schema" not in runner or "create_all" not in runner:
+-        raise WitnessFailure("disposable schema/provisioning before seed missing")
+-    if "prepare_provider_pki_private_dir" not in runner:
+-        raise WitnessFailure("bounded provider-PKI recipe caller missing")
+-    if "install_binding(app, release_plan)" not in runner and "install_binding(app, binding)" in runner:
+-        raise WitnessFailure("must install actual CoveringReleasePlan, not prebuilt binding")
+-    if "clock=monotonic" not in runner:
+-        raise WitnessFailure("ASGI builder must receive real monotonic clock")
+-    if "on_context=" not in runner:
+-        raise WitnessFailure("ingress on_context capture missing")
+-    if "plant_microsoft_primary_alias=True" not in runner:
+-        raise WitnessFailure("enabled MS primary alias seed missing")
+-    if "derive_production_target_calendar_order" not in runner and "derive_production_target_calendar_order" not in auth:
+-        raise WitnessFailure("wire sequence must derive from subscription→calendar mapping")
+-    if "coverage_window_start" not in auth or "covering_window_start" in auth:
+-        raise WitnessFailure("coverage measurement must use mapped coverage_* fields")
+-    if "coverage_success_at" not in auth or "last_covering_success_at" in auth:
+-        raise WitnessFailure("coverage_success_at mapped field missing / invented attr present")
+-    return {
+-        "settings_module": "app.config.Settings",
+-        "covering_path": "/api/v1/calendar/covering-refresh",
+-        "asgi_helper": "i01_asgi_app",
+-        "byte_transport_alias_in_joined_tls_claim": False,
+-        "provider_ca": "/tmp/np-provider-tls",
+-        "wrong_name_leaf_not_client_hostname": True,
+-        "release_plan_installed": True,
++    }
++
++
++def _assert_no_byte_transport_references(source: str) -> None:
++    """Inspect syntax references, ignoring comments and documentation strings.
++
++    This is a finite selected-source inventory guard, not an obfuscation detector
++    or evidence of native execution. Pinned source review remains required.
++    """
++    forbidden = {"FixtureByteTransport", "install_covering_http_alias"}
++    tree = ast.parse(source, filename="runner-byte-alias-inventory")
++    for node in ast.walk(tree):
++        names: tuple[str, ...] = ()
++        if isinstance(node, ast.Name):
++            names = (node.id,)
++        elif isinstance(node, ast.Attribute):
++            names = (node.attr,)
++        elif isinstance(node, ast.alias):
++            names = (node.name.rsplit(".", 1)[-1],)
++        elif isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
++            names = (node.name,)
++        if any(name in forbidden for name in names):
++            raise WitnessFailure("executable byte-transport reference in JoinedTLS claim")
++
++
++def _check_byte_alias_reference_oracle() -> tuple[str, ...]:
++    """The same guard must admit documentation and reject actual use."""
++    _assert_no_byte_transport_references(
++        '\"\"\"No FixtureByteTransport or install_covering_http_alias is used.\"\"\"\n'
++        '# FixtureByteTransport is deliberately excluded.\n'
++        'def run():\n    return "FixtureByteTransport is documentation"\n'
++    )
++    controls = ["BYTE-ALIAS-DOCUMENTATION-ACCEPTED"]
++    for control_id, source in (
++        ("BYTE-ALIAS-IMPORT-REFUSED", "from fixture_bytes import FixtureByteTransport as Local\n"),
++        ("BYTE-ALIAS-CALL-REFUSED", "transport = FixtureByteTransport()\n"),
++        ("BYTE-ALIAS-INSTALL-REFUSED", "fixture.install_covering_http_alias()\n"),
++    ):
++        try:
++            _assert_no_byte_transport_references(source)
++        except WitnessFailure:
++            controls.append(control_id)
++        else:
++            raise WitnessFailure(f"byte-alias oracle failed to reject:{control_id}")
++    return tuple(controls)
++
++
++def check_vertical_contract_shape() -> dict[str, Any]:
++    """NP-V-MS-NONEXPIRED must use Settings + covering-refresh + ASGI (C340C47B)."""
++    runner = (FIXTURE / "np_runner_entry.py").read_text(encoding="utf-8")
++    auth = (FIXTURE / "np_auth_seed.py").read_text(encoding="utf-8")
++    routes = (FIXTURE / "np_provider_routes.py").read_text(encoding="utf-8")
++    bootstrap = (FIXTURE / "bootstrap-postgres-tls.sh").read_text(encoding="utf-8")
++    prepare_tls = (FIXTURE / "prepare-tls.sh").read_text(encoding="utf-8")
++    if "app.core.config" in runner or "from app.core.config" in auth:
++        raise WitnessFailure("vertical must not use app.core.config")
++    if "app.config" not in runner and "fixture_settings" not in runner:
++        raise WitnessFailure("vertical missing app.config.Settings / fixture_settings")
++    if "fixture_settings" not in auth:
++        raise WitnessFailure("np_auth_seed missing fixture_settings")
++    if "/api/v1/calendar/covering-refresh" not in runner and "COVERING_PATH" not in runner:
++        raise WitnessFailure("covering-refresh path missing")
++    if "subscription_ids" not in auth or "window_start" not in auth:
++        raise WitnessFailure("covering_refresh_body fields missing")
++    if "seed_browser_owner_with_subscriptions" not in runner:
++        raise WitnessFailure("vertical must persist browser owner/subscriptions via auth seed")
++    if "measure_subscription_coverage_state" not in runner:
++        raise WitnessFailure("vertical must measure persisted before/after coverage state")
++    if "build_i01_asgi_app" not in runner or "asgi_client" not in runner:
++        raise WitnessFailure("i01_asgi_app ASGI pattern missing")
++    _assert_no_byte_transport_references(runner)
++    byte_alias_control_ids = _check_byte_alias_reference_oracle()
++    if '"identity"' not in runner or "calendarView" not in (FIXTURE / "np_provider_transcript.py").read_text(encoding="utf-8"):
++        raise WitnessFailure("MS identity vs event route classification missing")
++    if 'hostname="native-fixture.invalid"' not in runner:
++        raise WitnessFailure("DB profile hostname must be native-fixture.invalid")
++    if 'database="dex_fixture"' not in runner or 'username="dex_fixture"' not in runner:
++        raise WitnessFailure("DB profile database/username must be dex_fixture")
++    if "native-fixture.invalid" not in prepare_tls:
++        raise WitnessFailure("prepare-tls hostname pin missing")
++    if "dex_fixture" not in bootstrap:
++        raise WitnessFailure("bootstrap dex_fixture pin missing")
++    if 'hostname="db"' in runner or 'database="scheduler"' in runner:
++        raise WitnessFailure("product db/scheduler literals must not remain in fixture profile")
++    if "/tmp/np-provider-tls" not in routes:
++        raise WitnessFailure("provider CA must live under /tmp/np-provider-tls")
++    if "serve_wrong_name_leaf" not in routes:
++        raise WitnessFailure("wrong-name must flip serve leaf, not client hostname")
++    if '"/v1.0/me/calendars/", "event"' not in runner and "'/v1.0/me/calendars/', 'event'" not in runner:
++        raise WitnessFailure("event route must use trailing-slash prefix to avoid list ambiguity")
++    if "connection_scripts" not in (FIXTURE / "np_provider_peer.py").read_text(encoding="utf-8"):
++        raise WitnessFailure("peer missing multi Connection:close inventory")
++    asgi_helper = FIXTURE / "i01_asgi_app.py"
++    if not asgi_helper.is_file():
++        raise WitnessFailure("immutable i01_asgi_app helper missing")
++    if not (FIXTURE / "i01_auth_seed.py").is_file():
++        raise WitnessFailure("immutable i01_auth_seed dependency missing")
++    if "admit_isolated_import_bootstrap" not in runner:
++        raise WitnessFailure("isolated import bootstrap missing")
++    if "provision_disposable_schema" not in runner or "create_all" not in runner:
++        raise WitnessFailure("disposable schema/provisioning before seed missing")
++    if "prepare_provider_pki_private_dir" not in runner:
++        raise WitnessFailure("bounded provider-PKI recipe caller missing")
++    if "install_binding(app, release_plan)" not in runner and "install_binding(app, binding)" in runner:
++        raise WitnessFailure("must install actual CoveringReleasePlan, not prebuilt binding")
++    if "clock=monotonic" not in runner:
++        raise WitnessFailure("ASGI builder must receive real monotonic clock")
++    if "on_context=" not in runner:
++        raise WitnessFailure("ingress on_context capture missing")
++    if "plant_microsoft_primary_alias=True" not in runner:
++        raise WitnessFailure("enabled MS primary alias seed missing")
++    if "derive_production_target_calendar_order" not in runner and "derive_production_target_calendar_order" not in auth:
++        raise WitnessFailure("wire sequence must derive from subscription→calendar mapping")
++    if "coverage_window_start" not in auth or "covering_window_start" in auth:
++        raise WitnessFailure("coverage measurement must use mapped coverage_* fields")
++    if "coverage_success_at" not in auth or "last_covering_success_at" in auth:
++        raise WitnessFailure("coverage_success_at mapped field missing / invented attr present")
++    return {
++        "settings_module": "app.config.Settings",
++        "covering_path": "/api/v1/calendar/covering-refresh",
++        "asgi_helper": "i01_asgi_app",
++        "byte_transport_alias_in_joined_tls_claim": False,
++        "byte_alias_reference_control_ids": list(byte_alias_control_ids),
++        "provider_ca": "/tmp/np-provider-tls",
++        "wrong_name_leaf_not_client_hostname": True,
++        "release_plan_installed": True,

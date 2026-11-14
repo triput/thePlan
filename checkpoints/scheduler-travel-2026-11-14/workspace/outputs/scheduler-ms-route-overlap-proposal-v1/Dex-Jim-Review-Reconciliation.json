@@ -1,0 +1,62 @@
+{
+  "at_utc": "2026-11-12T02:47:32.4423575Z",
+  "event": "Ev0CH251E3HP",
+  "message": "1794450748.730949",
+  "author": "Justin under Jim",
+  "disposition": "QUALIFIED_ACCEPT",
+  "artifact_rows": [
+    {
+      "name": "HANDBACK.txt",
+      "sha256": "C84633B5DAEFA3202BDFFA84364EFD306DCDD621298B6C66D3F059E397304AB6"
+    },
+    {
+      "name": "Jim-MS-Route-Overlap-Static-Review.md",
+      "sha256": "53C510AFBD70A9147B6A8AFD4C1FFABC56E19457907EED23DFCC7E8BDA168D79"
+    },
+    {
+      "name": "TIP-FREEZE.json",
+      "sha256": "3B44D47D3595E714CBC2F61BD8C2E2D5B5911D685742BF9831B5F6345975BB98"
+    }
+  ],
+  "tip_preimage_sha256": "B28A004F2815C48E43FF6A119A845F54C1677754D88D4A7CB1023BF31CD02AF1",
+  "reviewed_inputs": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-route-overlap-proposal-v1\\Proposed-Fix.diff",
+      "sha256": "535FB0A3AFA576EB739042BDD72B707218E42D13D278E8C007B87083DC66D5A6"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-route-overlap-proposal-v1\\Design-and-Control-Plan.md",
+      "sha256": "CEB833BCCE044D32BAA3FC9C0379FE19C314BF53972FB9B0E1F90C7BE0A4EF40"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-route-overlap-proposal-v1\\Proposal-Pins.json",
+      "sha256": "04DD93776AF3F185487BEAE40FCFC9E675B165D1715E27F8CE97DEC04582D8D6"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-investigation\\Microsoft-Identity-Event-Route-Overlap-Trace.md",
+      "sha256": "DD37AA1C58857F3EBD413AC455ECF9C349122ABAFC7C2C9839E05FE4B10B7FB7"
+    }
+  ],
+  "sources": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_provider_context.py",
+      "original_sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "prospective_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "candidate_written": false
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t07-fake-v2\\packet\\payload\\workspace\\apps\\api\\app\\services\\covering_http_transport.py",
+      "original_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "prospective_sha256": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F",
+      "candidate_written": false
+    }
+  ],
+  "blockers": [],
+  "qualifications": [
+    "Static review only; no dynamic route proof",
+    "Distinct descendant identity continuation refused unless explicitly listed; external shapes UNKNOWN",
+    "Workspace targets only; bases divergence preserved",
+    "No implementation or execution authorized"
+  ],
+  "endpoint": "unbound"
+}

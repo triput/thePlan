@@ -1,0 +1,5 @@
+--- a/packet/verify/check_native_provider.py
++++ b/packet/verify/check_native_provider.py
+@@ -828,1 +828,1 @@
+-    outer = _single([s for s in fn.body if isinstance(s, ast.Try) and any(n is node for n in ast.walk(s))],
++    outer = _single([s for s in fn.body if isinstance(s, ast.Try) and any(ast.dump(n) == ast.dump(node) for n in ast.walk(s))],

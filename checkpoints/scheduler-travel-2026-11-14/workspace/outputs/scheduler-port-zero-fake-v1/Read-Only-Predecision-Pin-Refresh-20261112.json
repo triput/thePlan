@@ -1,0 +1,11 @@
+{
+  "at_utc": "2026-11-12T20:12:43.8441190Z",
+  "packet_pins_verified": 475,
+  "partial_runtime_pins_verified": 19,
+  "command_sha256": "A98838452A0E7B6FA5BA504E38F2BA54E05890DFC759D33AE23412F94D87E048",
+  "admission_sha256": "AE502E6BAA2CF8CA33B9E1137E5BB8C5E5FCC14F620239914DB3CAFCE1E86532",
+  "invocations": 0,
+  "execution_authorized": false,
+  "disposition": "Unchanged pending one-shot decision; read-only pins refreshed",
+  "endpoint": "unbound"
+}

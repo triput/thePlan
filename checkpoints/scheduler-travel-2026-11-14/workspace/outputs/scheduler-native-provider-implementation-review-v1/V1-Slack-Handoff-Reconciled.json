@@ -1,0 +1,13 @@
+{
+  "event_id": "Ev0CHBNDHHCH",
+  "message_ts": "1794515086.338309",
+  "packet_tip_prefix": "0AA4C081",
+  "disposition": "Same frozen v1 already independently reviewed from local artifacts; no duplicate reply",
+  "review_sha256": "0AFFC524A99B0D47F21F1942FB4EF89C5D4E02D289BA8EB0442F3EC59E15F666",
+  "review_delivery_ts": "1794515047.734459",
+  "host_wiring_supplement_delivery_ts": "1794515130.657459",
+  "same_one_assignment": "Fresh successor correcting R1-R4 and host wiring under approved16-role lane",
+  "port_status": "PASS9/9 supersedes handback stale port-unverified statement",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

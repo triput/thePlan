@@ -1,0 +1,26 @@
+{
+  "packet": "post-native-I01-I02-fake-only-behavioral-harness-v1-revise2-corrected7",
+  "class": "FAKE-BEHAVIORAL-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_fake_behavioral.py do not embed their own final raw-byte hashes; operator verifies this file's published hash before invoke; empty pin literals refuse",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pin_layers": [
+    "1_operator_OUTER-ADMISSION_hash",
+    "2_admit_outer_subject_pins",
+    "3_launcher_interpreter_and_packet_pins_excluding_self",
+    "4_check_fixture_sources_and_inventory"
+  ],
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "A5BC16C076AA3CB9BD4B8E36C3895FEFF58E028DEE28532B1CCBD90A25E8A97B",
+      "invoke_fake_behavioral.py": "B03C3458A453F863DD6AB7C6E21E56800A84F8E4B763582BC441B59D9BFA48F6",
+      "check_i01_i02_fake_behavioral.py": "B8542F0C336E593C780A0DC062C4AB26A78F2534B9DC3A68FE71D4424A89973E",
+      "EXPECTED-OUTPUT.json": "BF179EA6657391E3DFBFCC5AF7F9D0ED1D42E884DA712C625D95563C1666DB6A",
+      "INPUT-MANIFEST.json": "91F29BA6A7A5531A4528508B9E668E3CADFADEB796C73416DB561EBB08CCD617",
+      "PACKET-SHA256SUMS.txt": "7A87A4E1E06498B668B53BB1BF11872488BBF71B3892A0D2D6BA2A297D510ECA"
+    }
+  }
+}

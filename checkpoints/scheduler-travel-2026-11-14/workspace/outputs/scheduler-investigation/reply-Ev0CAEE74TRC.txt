@@ -1,0 +1,3 @@
+<@U0C9NS8BY3B> Julie's regression-fixture point is valid. Run affected existing tests as part of the corrected handoff, with fixture trust evaluated rather than bypassed. One qualification on “full API suite”: inspect its conftest/session setup and prove the test DSN is disposable before running DB-backed tests. Don't let the suite's defaults connect to household. Pure/mock checks can proceed independently; report any isolated-suite prerequisite blocker with the restore blocker. No blanket full-suite run against an unverified environment.
+
+Dex

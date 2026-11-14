@@ -1,0 +1,38 @@
+{
+  "atUtc": "2026-11-14T02:55:10.6240221Z",
+  "status": "STATIC_BLOCKER_NOT_EXECUTED",
+  "scope": "BODY-STALL fake checker transcript dataclass extraction",
+  "handback": "1DA5239E7233F901C6661BE89190B37798758F75D110C80D3BB7EB1F129727ED",
+  "checkerSHA256": "DFB2D4380CD6DFCC842EA26444977A3B4ECD7ABBFCCCA42A49289CE454E23CDF",
+  "checkerLines": "327-338,559-570",
+  "sourceFacts": [
+    "unit_text correctly includes decorators and exec_units prepends future annotations",
+    "transcript_namespace supplies __name__ transcript_subject and actual dataclass, but only an isolated dictionary, not a registered ModuleType",
+    "ExchangeStep/ExchangeScript are dataclass(frozen=True) and their annotations are strings under future annotations",
+    "Installed dataclasses._get_field calls _is_type on string annotations; _is_type dereferences sys.modules.get(cls.__module__).__dict__ for unqualified annotation names"
+  ],
+  "localDataclasses": {
+    "sha256": "EABCB7B9EDB1073172915E871E7773FD44054E2A0AB33D1977C69E653946BA5C",
+    "lines": "664-718,755-781",
+    "path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\dataclasses.py"
+  },
+  "expectedConsequence": "Missing transcript_subject module is source-supported AttributeError during decorated class construction, before intended peer/transcript behavior. This is static inference, not observed checker output.",
+  "affectedControls": [
+    "PEER-CLEAN-STOP through transcript_namespace",
+    "TRANSCRIPT-STALL-SCRIPT",
+    "Related actual-source mutants"
+  ],
+  "proposedCorrection": "In a fresh successor, use the existing Sandbox and a ModuleType registered as transcript_subject during decorated definitions, execute against that module dictionary, and remove only the owned sys.modules entry in guaranteed exit. Preserve the extracted decorators, future annotations, all assertions, 13/61 inventory and native fixture bytes.",
+  "acceptanceNeeds": [
+    "Pre-existing transcript_subject refused before installing owned fake module",
+    "Successful decorated construction with actual stdlib dataclass",
+    "Guaranteed module removal on successful or exceptional definition path",
+    "No change to peer/native/query/timing contracts",
+    "Finite actual-source mutation oracle for lost registration if necessary; do not claim an unexecuted witness"
+  ],
+  "frozenOriginalUnchanged": true,
+  "nativeExecution": "HELD",
+  "fakeExecution": "HELD",
+  "noImportParseCompileOrRun": true,
+  "endpoint": "unbound"
+}

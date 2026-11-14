@@ -1,0 +1,124 @@
+{
+    "kind":  "scheduler-native-provider-one-shot-fake-admission",
+    "launch_authorized":  false,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "packet_file_pin_count":  23,
+    "packet_files":  [
+                         {
+                             "sha256":  "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+                             "relative_path":  "verify/check_native_provider.py"
+                         },
+                         {
+                             "sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                             "relative_path":  "verify/launch_check.py"
+                         },
+                         {
+                             "sha256":  "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+                             "relative_path":  "verify/verify_admission.py"
+                         },
+                         {
+                             "sha256":  "C7FAF873C0F62CA86D07089B68906D2CF8AC8B405EC28B9F1C42AE8541612428",
+                             "relative_path":  "verify/EXPECTED-FAKE-STRUCTURAL.json"
+                         },
+                         {
+                             "sha256":  "1E40F71BBC74AEEA36794EE5488689135506B2C5C68AC8259FA780383103566E",
+                             "relative_path":  "verify/OUTER-ADMISSION.json"
+                         },
+                         {
+                             "sha256":  "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+                             "relative_path":  "Invoke-Fake.ps1"
+                         },
+                         {
+                             "sha256":  "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+                             "relative_path":  "Invoke-Native-Provider.ps1"
+                         },
+                         {
+                             "sha256":  "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+                             "relative_path":  "payload/launch-config.json"
+                         },
+                         {
+                             "sha256":  "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+                             "relative_path":  "payload/runner-config.json"
+                         },
+                         {
+                             "sha256":  "87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25",
+                             "relative_path":  "payload/fixture/np_runner_entry.py"
+                         },
+                         {
+                             "sha256":  "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+                             "relative_path":  "payload/fixture/np_provider_peer.py"
+                         },
+                         {
+                             "sha256":  "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+                             "relative_path":  "payload/fixture/np_supervisor.py"
+                         },
+                         {
+                             "sha256":  "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+                             "relative_path":  "payload/fixture/np_suite.py"
+                         },
+                         {
+                             "sha256":  "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+                             "relative_path":  "payload/fixture/np_receipts.py"
+                         },
+                         {
+                             "sha256":  "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+                             "relative_path":  "payload/fixture/np_auth_seed.py"
+                         },
+                         {
+                             "sha256":  "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3",
+                             "relative_path":  "payload/fixture/np_provider_transcript.py"
+                         },
+                         {
+                             "sha256":  "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+                             "relative_path":  "payload/fixture/i01_auth_seed.py"
+                         },
+                         {
+                             "sha256":  "D4B54E4D51E607D28ADE15A92C41BF19EC39535BE960310759A4C6CD03EFDDAE",
+                             "relative_path":  "docs/Assembly-Selected-Source-Manifest.json"
+                         },
+                         {
+                             "sha256":  "FE72795D82DB70B16D193CF18D5B732E01FBA24ABA1606A91621D533C0236D16",
+                             "relative_path":  "payload/fixture/bootstrap-postgres-tls.sh"
+                         },
+                         {
+                             "sha256":  "309CE658479FFD665408B6EAABF318258AF402D29F23C0C3F9BD99E5FDA003AD",
+                             "relative_path":  "payload/fixture/np_alias_seed.py"
+                         },
+                         {
+                             "sha256":  "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+                             "relative_path":  "payload/fixture/np_integrated_runner.py"
+                         },
+                         {
+                             "sha256":  "9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA",
+                             "relative_path":  "payload/fixture/np_provider_routes.py"
+                         },
+                         {
+                             "sha256":  "41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F",
+                             "relative_path":  "payload/fixture/prepare-tls.sh"
+                         }
+                     ],
+    "runtime_file_pin_count":  1,
+    "runtime_files":  [
+                          {
+                              "absolute_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+                              "sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                              "note":  "partial runtime scope — reviewed interpreter only; packet pins separate"
+                          }
+                      ],
+    "result_byte_cap":  262144,
+    "capture_byte_cap":  65536,
+    "reader_join_seconds":  5,
+    "post_kill_wait_seconds":  5,
+    "check_seconds_budget":  120,
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_root":  "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+    "dex_r1_r2_review_sha256":  "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+    "dex_launcher_retirement_sha256":  "30FEEDFF468B3851D3630E73C8BB688D290E4639845A29A377B089DB6534BF27",
+    "dex_launcher_receipt_patch_sha256":  "D8D779767E9CB2046B836EF91C59989837467DCFFDF695EC7AE0E4C5509A2F13",
+    "dex_launcher_receipt_candidate_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "note":  "Complete concrete pins; R1 five checker-read fixtures; R2 extracted late-drain; launcher retirement 30FEEDFF; receipt-patch D8D77976 (candidate D22C37). launch_authorized=false. Do not invoke under prep."
+}

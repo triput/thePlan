@@ -1,0 +1,3 @@
+# Matt thePlan worker-observer native admission review findings - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-12
+7335772A55C3BF3321193398FD8048FA33CBF13BFFB007BFCDE1D14C4DED1C51  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-Worker-Native-Admission-Review-Findings-2026-11-12.md
+BCF86CA7E187A4D84CE6713F315A3E0103B94967B472762B2CC6B28F614E205F  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1/Input-Manifest.sha256

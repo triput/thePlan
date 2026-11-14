@@ -1,0 +1,91 @@
+{
+  "reviewer": "Dex",
+  "at_utc": "2026-11-11T09:00:36.3413559Z",
+  "jim_tip": "19B981D39173E46E486086A5B95640D7F7EBFEAE82ED6C3688C12E5F0036F687",
+  "checks": [
+    {
+      "kind": "artifact",
+      "path": "Jim-Offline-Peer-Review.md",
+      "expected": "2666024D7A9EA1F16178AD43E7388CAF51752EADC073829E957906D336191F75",
+      "actual": "2666024D7A9EA1F16178AD43E7388CAF51752EADC073829E957906D336191F75",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "Findings.json",
+      "expected": "0773E53323010836E7AB9E586230D830AA46A4992FBEC2ED9E4D24D516537DA4",
+      "actual": "0773E53323010836E7AB9E586230D830AA46A4992FBEC2ED9E4D24D516537DA4",
+      "matches": true
+    },
+    {
+      "kind": "artifact",
+      "path": "TIP-FREEZE.json",
+      "expected": "19B981D39173E46E486086A5B95640D7F7EBFEAE82ED6C3688C12E5F0036F687",
+      "actual": "19B981D39173E46E486086A5B95640D7F7EBFEAE82ED6C3688C12E5F0036F687",
+      "matches": true
+    },
+    {
+      "kind": "subject",
+      "path": "outputs\\scheduler-native-i01-i02-v4.evidence\\receipt.jsonl",
+      "expected": "31ADF9FE65D6898728356B7F2AF8428BA505A57F94FEFB4D10BFDA4E6985C5E6",
+      "actual": "31ADF9FE65D6898728356B7F2AF8428BA505A57F94FEFB4D10BFDA4E6985C5E6",
+      "matches": true
+    },
+    {
+      "kind": "subject",
+      "path": "outputs\\scheduler-native-i01-i02-v4.evidence\\commands.jsonl",
+      "expected": "9E04C9BF921FB705252C6D8F0FEA7E04CF392378E429A182551C38799B3146D3",
+      "actual": "9E04C9BF921FB705252C6D8F0FEA7E04CF392378E429A182551C38799B3146D3",
+      "matches": true
+    },
+    {
+      "kind": "subject",
+      "path": "outputs\\scheduler-native-i01-i02-v4\\Final-Review.json",
+      "expected": "7FA67CC558E9A2AE23F126AFEDA8DBF409FE6D10AA9D04080DFF1097C7C09766",
+      "actual": "7FA67CC558E9A2AE23F126AFEDA8DBF409FE6D10AA9D04080DFF1097C7C09766",
+      "matches": true
+    },
+    {
+      "kind": "subject",
+      "path": "outputs\\scheduler-native-i01-i02-v4\\payload\\SHA256SUMS.txt",
+      "expected": "642C489AA4FA3B21E5F7C23540267C550186FE771B5F69476A7B0298DF88E4F3",
+      "actual": "642C489AA4FA3B21E5F7C23540267C550186FE771B5F69476A7B0298DF88E4F3",
+      "matches": true
+    },
+    {
+      "kind": "oracle",
+      "path": "C09-Disconnect-Oracle-Review.md",
+      "expected": "2BBB4F2486FC5D7E77CF6072432070EF68066BDF72F2BF87A18F5B9004E54897",
+      "actual": "2BBB4F2486FC5D7E77CF6072432070EF68066BDF72F2BF87A18F5B9004E54897",
+      "matches": true
+    },
+    {
+      "kind": "oracle",
+      "path": "HTTP-Framing-Oracle.md",
+      "expected": "DC6820B1E3F9423DE626A6EF44FC20674042AE4CE60573C20C09BBC166CF41EE",
+      "actual": "DC6820B1E3F9423DE626A6EF44FC20674042AE4CE60573C20C09BBC166CF41EE",
+      "matches": true
+    },
+    {
+      "kind": "oracle",
+      "path": "I02-Assessment-Oracle-Pins.json",
+      "expected": "5229A1447938FD275F9AB1B0506548DB0CFAAA00CFC679A5AA494A00FEDBBFC4",
+      "actual": "5229A1447938FD275F9AB1B0506548DB0CFAAA00CFC679A5AA494A00FEDBBFC4",
+      "matches": true
+    },
+    {
+      "kind": "oracle",
+      "path": "I02-Assessment-Oracle-Review.md",
+      "expected": "2FD3B75340565580EEC6E684EFDA143217F3AA2D1C9113F92230A7FAD725EB60",
+      "actual": "2FD3B75340565580EEC6E684EFDA143217F3AA2D1C9113F92230A7FAD725EB60",
+      "matches": true
+    }
+  ],
+  "mismatch_count": 0,
+  "findings_read": true,
+  "original_journals_previously_independently_reconciled": true,
+  "disposition": "Accepted qualified offline peer review; no unsupported claims or blocking findings",
+  "remaining": "Synthetic provider HTTPS T01-T08; D2 proposal revision required",
+  "execution": false,
+  "endpoint": "unbound"
+}

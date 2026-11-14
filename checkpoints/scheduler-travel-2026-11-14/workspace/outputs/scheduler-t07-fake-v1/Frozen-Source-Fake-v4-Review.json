@@ -1,0 +1,30 @@
+{
+  "kind": "T07 frozen v4 independent static reconciliation",
+  "date": "2026-11-11",
+  "tip_sha256": "DA6BCB39A5FB48F9D6449D6992BCBCC3A2EA57F5298E0C015D798642FA348B3D",
+  "artifact_manifest_rows_verified": 15,
+  "artifact_manifest_mismatches": [],
+  "check_sha256": "89D508531A4D2273148451F688F8410C9BC034711A301AB0CB58AACFC44F7114",
+  "named_controls_declared": 40,
+  "functional_rows_declared": 32,
+  "disposition": "REVISE: actual HTTP-to-caller-to-domain fault linkage and precise R07 oracle remain open",
+  "improvements": [
+    "Actual connector and domain extraction replaces prior handwritten connector handler",
+    "Socket faults applied after reset",
+    "R08 requires two method closes and one raw close",
+    "Separate outer-object and continuation mutation controls"
+  ],
+  "remaining": [
+    "Domain creates separate UNKNOWN rather than propagating HTTP cleanup fault through actual event or OAuth caller",
+    "OAuth label still faults apply instead of token path",
+    "Third target needed beyond faulting target to observe no later domain admission",
+    "R07 allows unrelated UNKNOWN alternative and weak primary/cleanup oracle"
+  ],
+  "dependency_scope_review": "V4-Extraction-Boundary-Review.md; no additional obvious missing top-level name found by static reading, not execution proof",
+  "feedback_slack": ["1794429171.629589", "1794429291.942659"],
+  "colleague_acknowledgment": "Jim confirmed v4 immutable and a fresh linked-caller successor in authoring",
+  "execution_performed": false,
+  "launch_ready": false,
+  "source_authority_expanded": false,
+  "next_action": "Review genuinely frozen successor under existing authoring approval; no repeated preparation card"
+}

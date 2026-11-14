@@ -1,0 +1,32 @@
+{
+  "atUtc": "2026-11-14T02:08:57.0217339Z",
+  "kind": "T04 fixture preparation source constraints, not execution",
+  "baseline": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+  "facts": [
+    {
+      "fact": "Every current peer start passes hardcoded PEER_SECONDS_DEFAULT120. Merely setting runner-config.peer_seconds235 does not change the current body runtime.",
+      "reviewRequirement": "A new BODY-STALL body must explicitly pass its reviewed case-specific peer allowance or wire an admitted value. Preserve all existing cases default120 and require exact future launch limits; do not globally raise the constant.",
+      "sha256": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+      "file": "fixture/np_runner_entry.py",
+      "lines": "38,843,1440,2038,2594"
+    },
+    {
+      "fact": "build_i01_asgi_app defaults to ControllableClock0. Current NONEXPIRED explicitly supplies monotonic at runner914-919.",
+      "reviewRequirement": "T04 body and withheld-body drivers must explicitly use actual monotonic clock. Reuse of the ASGI fixture builder alone is not evidence of production elapsed-time budget.",
+      "sha256": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B",
+      "file": "fixture/i01_asgi_app.py",
+      "lines": "469-496"
+    },
+    {
+      "fact": "runner_seconds watchdog is an outer supervisor, not the production request budget; its termination cannot substitute for elapsed deadline evidence.",
+      "reviewRequirement": "Record actual budget work boundary and peer lifetime separately from outer runner success.",
+      "sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "file": "fixture/np_integrated_runner.py",
+      "lines": "31-74"
+    }
+  ],
+  "activeMattAssignment": "CE778F137A9E59D030E6463868D3F55A082FED6DC3F8C8AB50D0B162A72D5A27",
+  "use": "Dex acceptance checklist for the pending body-stall addendum; no additional assignment or implementation authority",
+  "execution": "NONE",
+  "endpoint": "unbound"
+}

@@ -1,0 +1,3 @@
+# HELD. Authoring-only packet. Do not invoke without Trish exact-hash one-shot approval.
+# Wrapper: .\Invoke-Verification.ps1 -AdmissionSHA256 226331136EA11F8BC25386DC9C5D8BA070D16360366F97E47AA77AC287B33577
+# launch_ready=false; executed_in_preparation=false; endpoint unbound.

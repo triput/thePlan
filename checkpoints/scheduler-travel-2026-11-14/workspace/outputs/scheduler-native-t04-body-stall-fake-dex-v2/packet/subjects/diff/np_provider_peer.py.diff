@@ -1,0 +1,90 @@
+--- a/payload/fixture/np_provider_peer.py
++++ b/payload/fixture/np_provider_peer.py
+@@ -52,6 +52,12 @@
+     bytes_received: int = 0
+     bytes_sent: int = 0
+     notes: list[str] = field(default_factory=list)
++    # Finite same-process monotonic instants (decision 4F2F3B3F); None until set.
++    peer_started_at: float | None = None
++    peer_deadline_at: float | None = None
++    stall_entered_at: float | None = None
++    stall_exit_at: float | None = None
++    stall_exit_reason: str | None = None
+ 
+ 
+ @dataclass
+@@ -360,9 +366,8 @@
+         if close_mode == "stall_header":
+             self.life.phase_entered = "stall_header"
+             self.life.close_mode_observed = "stall_header"
+-            while monotonic() < deadline and not self._stop.is_set():
+-                select.select([], [], [], ACCEPT_POLL_SECONDS)
+-            raise PeerLifecycleError("header stall held to deadline")
++            self._hold_stall(deadline=deadline, deadline_message="header stall held to deadline")
++            return
+         wire = _http_response_bytes(step)
+         if close_mode == "stall_body":
+             # Send status/headers only (through first CRLFCRLF), then stall.
+@@ -372,9 +377,8 @@
+             self.life.response_sent = True
+             self.life.phase_entered = "stall_body"
+             self.life.close_mode_observed = "stall_body"
+-            while monotonic() < deadline and not self._stop.is_set():
+-                select.select([], [], [], ACCEPT_POLL_SECONDS)
+-            raise PeerLifecycleError("body stall held to deadline")
++            self._hold_stall(deadline=deadline, deadline_message="body stall held to deadline")
++            return
+         if close_mode == "partial_send_peer":
+             # Peer-side truncated response — not proof of client JoinedTLS partial send.
+             # Observation aid: peer prefix ≠ sender partial-completion proof.
+@@ -384,6 +388,26 @@
+         self.life.response_sent = True
+         self.life.phase_entered = "response_sent"
+ 
++    def _hold_stall(self, *, deadline: float, deadline_message: str) -> None:
++        """Hold a scripted header/body stall (Trish-approved decision 4F2F3B3F).
++
++        Returns cleanly ONLY when the owning runner's stop event (set by
++        retire_owned) ends the stall strictly before the peer deadline; the exit
++        reason is then "retired". Peer-deadline expiry remains an error (reason
++        "deadline") and the unchanged PeerLifecycleError is raised, so the selected
++        retirement helper still refuses it. Finite monotonic instants only.
++        """
++        self.life.stall_entered_at = monotonic()
++        while monotonic() < deadline and not self._stop.is_set():
++            select.select([], [], [], ACCEPT_POLL_SECONDS)
++        exited = monotonic()
++        self.life.stall_exit_at = exited
++        if self._stop.is_set() and exited < deadline:
++            self.life.stall_exit_reason = "retired"
++            return
++        self.life.stall_exit_reason = "deadline"
++        raise PeerLifecycleError(deadline_message)
++
+     def _send_all(self, tls: ssl.SSLSocket, data: bytes, *, deadline: float) -> None:
+         view = memoryview(data)
+         while view:
+@@ -501,7 +525,10 @@
+         """Accept finite Connection:close inventory and run each exchange. Launch-card only."""
+         if type(seconds) is not int or not 1 <= seconds <= 240:
+             raise PeerLifecycleError("explicit peer deadline required")
+-        deadline = monotonic() + seconds
++        started = monotonic()
++        deadline = started + seconds
++        self.life.peer_started_at = started
++        self.life.peer_deadline_at = deadline
+         self._exchange_inventory = []
+         multi = len(self.connection_scripts) > 1
+         try:
+@@ -624,6 +651,11 @@
+             "joined": self.life.joined,
+             "close_mode_observed": self.life.close_mode_observed,
+             "notes": list(self.life.notes),
++            "peer_started_at": self.life.peer_started_at,
++            "peer_deadline_at": self.life.peer_deadline_at,
++            "stall_entered_at": self.life.stall_entered_at,
++            "stall_exit_at": self.life.stall_exit_at,
++            "stall_exit_reason": self.life.stall_exit_reason,
+         }
+ 
+ 

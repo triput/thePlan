@@ -1,0 +1,23 @@
+# Native Microsoft refresh checkpoint — ready for decision
+
+Current exact packet: outputs/scheduler-native-ms-refresh-retirement-launch-dex-v1.
+Command BB179615F4426EB806636AEB4549D3985419A35F7EC35C22BC194A06A9AF467B.
+Input manifest836328A51EF0207A1A4F83F360F4A9A42B33A2F8C82FE5DFEE6382519ED5C937 (305).
+HostD0AAF6D14D0AF9CDEC2049F6167D5FFC836552A2C242A2EB1CBC67BD796FE822;DockerOps40C08D09DF5930B89288A946E447C55381222EE2BFA0254F52E55DFD3615C122.
+
+Matt native staging reviewEBA57E85 reconciledC0885C12, qualified acceptance/no blockers. Dex now rechecked all305inputs, Python/Docker executable hashes, exact command, absent evidence root and exact runner1A95E834 mapping to the passed fake. The retirement fake passed10controls/41predicates, resultC689B48C1F470219F8166C535C0174C47DFBD90C546B1AC2A5502B283353A79C, receiptF94A05370873A232FEB5FB203E7AA8B0EDD3EC44D8A49534537F7F17524A287D, reconciliation46209D1C43F8DDAAA7A84799456DD5C718589620AE0C1156EC2B7A165096CD5C. All27fakeinputs/21packet/10runtimepins unchanged. The fake is helper behavior plus structural caller proof, not native success. Copied staging documents saying fake pending reflect their freeze time; this current outside-packet overlay records the prerequisite without mutating frozen inputs.
+
+Exact future command is only Reviewed-MS-Refresh-Retirement-Native-Command.ps1.txt:
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-ms-refresh-retirement-launch-dex-v1\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 'D0AAF6D14D0AF9CDEC2049F6167D5FFC836552A2C242A2EB1CBC67BD796FE822' -ExpectedDockerConfigSHA256 '40C08D09DF5930B89288A946E447C55381222EE2BFA0254F52E55DFD3615C122' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-ms-refresh-retirement-launch-dex-v1\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'
+
+Request ONE invocation, exactly NP-V-MS-REFRESH/no expectedUNKNOWN, two pinned disposable containers. Production in-process covering HTTP/connector/defaultJoinedTLS → synthetic Microsoft token endpoint → identity/event imports → native final assessment. Exactly5ordered exchanges: OAuthPOST,identityGET,identityGET,eventGET,eventGET. Require semantic refreshed access and rotated refresh values persisted, old seed values absent, expiry beyond finalcheck+30s; native TOKEN COMMIT then ROLLBACK; publicsuccess/two successful rows, ready/fresh coverage and assessment; alias rewrite/unrelated stability; known joined/no-worker-error final peer inventory after retirement. Already-allowlisted token_terminal_sequence is retained by this case. No real calendar, provider or credential; endpoint unbound.
+
+No T05diagnostic/T03/BODY-STALL/othercase merge. This is independent of the stoppedT05fake checker and does not retry it. Prior passed invalid-grant/ NONEXPIRED evidence stays preserved. Refresh and invalid-grant remain separate because current vertical bodies each provision non-idempotent schema.
+
+Includes disposable DB/provider CA/server-leaf generation and bounded ownedpeer/PKI retirement; private keys remain in container temporary storage, publicCAs enter evidence. Limits900suite/600runner/120peer+5join;PKI30generation+5group retirement+two5readerjoins=45nominal. Each pinned nonroot/read-only1GiBmemory+swap/1CPU/64PIDs;DBnetworknone/runner exactDBnamespace;no extra privileges/hostports/Docker socket.32Dockercommandcap/22source-derivedsuccesspath;1MiBcombinedstreamsPERcommand plus separate1MiBreport. Startup/outer/file/hash/fsync/receipt/OS latency excluded;no separate outertimeout. Inherited CLIkill does not wait or establish daemon cancellation. Runtime states/images/ports admitted inside the attempt.
+
+Ordinaryconsole hash/countonly. Existing bounded sanitizedSTOP exceptionclass/ownedsource-location schema stays3exceptions/8frames/128walk/4096bytes,truncation/original-kindfallback. No messages/locals/SQL/bodies/keys/credentials. Require exact onecasePASS, complete expected evidence, known joinedretirement and unchangedinputs.
+
+SUCCESS-ONLY exact-ID cleanup included: verify exited0runner/remove/absence;verify runningDB/SIGINT/requireexit0/recheckidentity/remove/absence;retainreceipts. Stop failure/mismatch/timeout/unexpectedoutput/UNKNOWN. No retries,repairs,rerun,force,fallback or failure-containercleanup. Failurecleanup separately gated. Requires disclosed execution access outside default restrictions. No installation/build,deployment,activation or endpointbinding. This document adds no authority until Trish approves the exact card.
+
+Signed: Dex

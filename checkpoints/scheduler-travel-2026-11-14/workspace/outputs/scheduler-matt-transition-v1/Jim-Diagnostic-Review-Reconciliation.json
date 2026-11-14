@@ -1,0 +1,14 @@
+{
+  "disposition": "JIM_EXACT_DIFF_STATIC_ACCEPTANCE_RECONCILED",
+  "tip_on_disk": "5A3E3B841F6C276CA4E34D5A70D6E3329C54D69C4CC050AF43BECCB47ACCB66D",
+  "mirror_files": 4,
+  "preimage_valid": true,
+  "review_sha256": "ADAB268ECE5485743C8FE3723D0B3888E48F6B0D6F8E9743539781B0F5D85C51",
+  "fake_design_sha256": "D71AD87D3EE05432DC3264C0BA9A0006F1A6B9822BE239E63F6867C51512A5D4",
+  "blockers": [],
+  "qualification": "Original fallback class-name sanitization asymmetry retained; exotic fallback may be refused by host while original failure remains. No unapproved correction.",
+  "approval_snapshot": "Jim review says card pending; later Trish approval receipt is authoritative for current preparation scope",
+  "implementation_status": "No source/check scripts authored in this review; current writer cutoff still requires Jim confirmation",
+  "executed": false,
+  "endpoint": "unbound"
+}

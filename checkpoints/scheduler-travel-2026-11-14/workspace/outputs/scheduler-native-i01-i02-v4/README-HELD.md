@@ -1,0 +1,11 @@
+# Native I01/I02 v4 — workspace preparation HELD
+
+**Execution update: the one separately approved launch completed PASS and exact-ID success cleanup. Authority is consumed; do not invoke again.** Dex-Run-Reconciliation.md/.json records independently verified22 suite cases/16 SQL IDs, post-run pins and both container removals/absence. The remaining text preserves the preparation boundary/history; it is not new launch authority. Provider T01–T08 proof and all later activation gates remain open.
+
+Fresh copy of native-i01-i02-v3 with exactly the four approved T02 prospective files carried forward after the independently reconciled 20-control fake PASS. The executable fixture/host code is unchanged; other differences are unique packet/mount/evidence configuration metadata and the complete payload manifest. Prior native/fake packets and evidence remain untouched.
+
+Execution remains held. Final preparation now sets launch_ready=true to indicate a complete reviewed configuration, not permission to run it. A new Invoke-Native.ps1 operator command is prepared but has not been invoked. No evidence directory, container, certificate or real provider connection was created. Endpoint remains unbound; all execution and other holds remain.
+
+Staging-Receipt.json preserves the earlier held draft. Final-Review.json records 263 identical files, the four approved source/test changes plus configuration/manifest, 268 manifest entries, 22 native suite cases and exactly N06/N07/I01-C06 expected UNKNOWN. Final manifest642C489AA4FA3B21E5F7C23540267C550186FE771B5F69476A7B0298DF88E4F3, config4CC24980C83E71C0C43AB057B5802B54EF614AF9688C4783E381AAA298AA0A7B and command308D1A816B2D198131E00CB9847EE4C1CD95F2B8E1390CE288602EC155154CC6 are review pins, not launch approval.
+
+Review-and-Commands.md now records the final source/registry/configuration/pin chain, unchanged limits, real fixture PKI/owned child-group operations and success-only exact-ID cleanup scope. Trish's explicit one-launch approval remains required. Actual HTTP/native assessment, lost-ack gate, owner-lock contention and T01–T08 provider-transport proof remain unestablished. Jim's sole assignment is the documents-only D2/T01 proposal; Dex owns this native integration preparation.

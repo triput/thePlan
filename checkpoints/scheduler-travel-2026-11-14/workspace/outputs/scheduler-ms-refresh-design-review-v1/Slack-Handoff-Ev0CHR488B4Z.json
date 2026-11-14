@@ -1,0 +1,12 @@
+{
+  "event": "Ev0CHR488B4Z",
+  "messageTs": "1794615933.210979",
+  "sender": "U0C68LUTURJ",
+  "handledAtUtc": "2026-11-14T00:29:48.4947996Z",
+  "disposition": "Frozen handback already independently reviewed and exact fake verification card pending; no new blocker or request",
+  "handoffSha256": "99A5D4253911DC524AA8D5A4AF435D7281A1347EA2C63AE4136D6C4B0580F357",
+  "existingReviewSha256": "EF4CA28FCF676767B49CE7189F2B5B3904EC87308E5D10D044DDCB7ECDC8F367",
+  "reply": "No duplicate; bot acceptance1794616147.602249 already sent",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

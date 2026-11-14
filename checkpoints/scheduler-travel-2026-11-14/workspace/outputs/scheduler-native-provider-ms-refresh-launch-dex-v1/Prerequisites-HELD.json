@@ -1,0 +1,10 @@
+{
+  "independentStagingReview": "not yet assigned;Matt has native T05 authoring assignment",
+  "peerCloseFake": "scheduler-native-peer-close-fake-dex-v1;pending",
+  "mergeFake": "scheduler-ms-merge-fake-dex-v1;pending",
+  "msRefreshFake": "scheduler-ms-refresh-fake-dex-v2;PASS10 finite helper/source proof only",
+  "executionAuthority": "none",
+  "kind": "held-refresh-launch-prerequisites",
+  "nonexpiredNative": "scheduler-native-provider-peer-close-launch-dex-v1;not run",
+  "noAutomaticSequencing": true
+}

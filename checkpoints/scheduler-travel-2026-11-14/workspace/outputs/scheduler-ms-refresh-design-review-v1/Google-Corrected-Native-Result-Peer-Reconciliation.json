@@ -1,0 +1,10 @@
+{
+  "receipt": "FDC0AF907211D2F163A63F6A8EFF65925E7E743D95135EC523FB7BFBB208139E",
+  "reviewerQualification": "Matt did not individually extract fourth exchange/event fields; Dex separately confirmed fourth exchange exact GET/informational path/queryverified/sent/orderly; exact event checks remain fixture-assertion scope plus retained measurements",
+  "endpoint": "unbound",
+  "review": "82929ABFDC1D9761CC646FDB7717663E9128E7108FB381DE080D0F44871847BD",
+  "blockingObjections": 0,
+  "status": "QUALIFIED_INDEPENDENT_NATIVE_PASS_REVIEW_RECONCILED",
+  "fullGoalClosure": false,
+  "dexReconciliation": "2D03C8551FEA52BA758A5D9162A33A31F29ED92CA3625CF5E10F572B96ACD1DD"
+}

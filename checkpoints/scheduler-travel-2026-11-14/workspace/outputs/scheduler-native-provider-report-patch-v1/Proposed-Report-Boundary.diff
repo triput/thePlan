@@ -1,0 +1,93 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -525,38 +525,52 @@
+-    console = BoundedOutput()
+-    sys.stdout = console  # type: ignore[assignment]
+-    sys.stderr = console  # type: ignore[assignment]
+-
+-    case_results: list[dict[str, Any]] = []
+-
+-    def record_case(case_id: str, result: dict[str, Any]) -> None:
+-        case_results.append({"case_id": case_id, "result": result})
+-
+-    report = run_suite(
+-        config=config,
+-        registry=registry,
+-        runtime_pins=config["runtime_pins"],
+-        record_case=record_case,
+-    )
+-    receipt = build_receipt(
+-        kind="runner_suite_report",
+-        report=report,
+-        implementation_status=status,
+-        console_sha256=console.sha.hexdigest().upper(),
+-        console_bytes=console.length,
+-    )
+-    print(json.dumps(receipt, sort_keys=True))
+-    return 0
+-
+-
+-if __name__ == "__main__":
+-    try:
+-        raise SystemExit(main())
+-    except CaseBodyHold as exc:
+-        print(
+-            json.dumps({"status": "STOP", "kind": "CaseBodyHold", "case_id": exc.case_id, "reason": exc.reason}),
+-            file=sys.stderr,
+-        )
+-        raise SystemExit(125)
+-    except RunnerEntryHeld as exc:
+-        print(f"HELD: {exc}", file=sys.stderr)
+-        raise SystemExit(125)
++    console = BoundedOutput()
++    machine_stdout, machine_stderr = sys.stdout, sys.stderr
++    case_results: list[dict[str, Any]] = []
++
++    def record_case(case_id: str, result: dict[str, Any]) -> None:
++        case_results.append({"case_id": case_id, "result": result})
++
++    try:
++        sys.stdout = console  # type: ignore[assignment]
++        sys.stderr = console  # type: ignore[assignment]
++        report = run_suite(
++            config=config,
++            registry=registry,
++            runtime_pins=config["runtime_pins"],
++            record_case=record_case,
++        )
++    finally:
++        # The console sink never owns the machine-readable report channel.
++        sys.stdout, sys.stderr = machine_stdout, machine_stderr
++
++    # Preserve the host's top-level suite schema. Case results are passed through
++    # the existing sanitizer; this patch does not weaken secret exclusions.
++    receipt = build_receipt(
++        **report,
++        kind="runner_suite_report",
++        executed=True,
++        case_results=case_results,
++        implementation_status=status,
++        console_sha256=console.sha.hexdigest().upper(),
++        console_bytes=console.length,
++    )
++    # Human launch authority is recorded by the independently reviewed host ledger.
++    receipt.pop("launch_authorized", None)
++    payload = json.dumps(receipt, sort_keys=True) + "\n"
++    if len(payload.encode("utf-8")) > OUTPUT_BYTE_CAP:
++        raise RunnerEntryHeld("machine report byte cap exceeded")
++    machine_stdout.write(payload)
++    machine_stdout.flush()
++    return 0
++
++
++if __name__ == "__main__":
++    try:
++        _exit_code = main()
++    except BaseException as exc:
++        # No traceback, exception text, locals or raw console data cross the
++        # machine boundary. Final host STOP-schema admission remains required.
++        _stop = json.dumps({"status": "STOP", "kind": type(exc).__name__}, sort_keys=True) + "\n"
++        sys.stderr.write(_stop)
++        sys.stderr.flush()
++        _exit_code = 125
++    raise SystemExit(_exit_code)

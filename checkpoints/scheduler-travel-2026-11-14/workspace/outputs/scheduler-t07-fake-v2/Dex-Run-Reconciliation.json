@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "reconciled_utc": "2026-11-11T21:47:24.7465696Z",
+  "one_authorized_attempt_consumed": true,
+  "tool_exit_code": 0,
+  "tool_output": "PASS; inventory_error null; shell InitializeDefaultDrives warning is outside child stderr",
+  "packet_pins_verified": 253,
+  "runtime_pins_verified": 17,
+  "extraction_provenance_rows_verified": 9,
+  "exact_ordered_controls": 41,
+  "outcome_counts": [
+    {
+      "outcome": "PASS",
+      "count": 31
+    },
+    {
+      "outcome": "PASS_WITNESS",
+      "count": 10
+    }
+  ],
+  "result_sha256": "C543177837851662575F834C1BAD685075DF7919D499F4A1D25CFB9574479C49",
+  "result_bytes": 37584,
+  "receipt_sha256": "345695BFD7D9953D889ABC305BFA130F49F8C316B01FC7005A65EF57D6680981",
+  "child_returncode": 0,
+  "elapsed_child_seconds": 0.412,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "stderr_bytes": 0,
+  "issues": [],
+  "reviewed_evidence": [
+    "Normal response and transport close each once; R07 exact configured primary with zero sends and one raw close; R08 two method closes and one raw close",
+    "Foreign owner refusal preserves state and socket with no raw close",
+    "Positive provenance control exercised validator; mutation and inventory outcomes match frozen expected",
+    "Event owning importer and Google refresh adapter propagate the identical HTTP UNKNOWN through selected connector/domain; retain SUB-1 and stop later target/assessment"
+  ],
+  "scope_limits": [
+    "Extracted fake dependencies and selected callers only; no real sockets/TLS/native DB/provider retirement proof",
+    "Original ten PASS_WITNESS outcomes are explicitly expected original misses",
+    "Does not close full T07 or T01-T08; endpoint unbound; other holds retained"
+  ]
+}

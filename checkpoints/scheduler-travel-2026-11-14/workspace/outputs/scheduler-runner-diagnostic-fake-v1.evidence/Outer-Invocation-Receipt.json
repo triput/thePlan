@@ -1,0 +1,9 @@
+{
+  "started_at_utc": "2026-11-13T02:42:43.3617005Z",
+  "completed_at_utc": "2026-11-13T02:42:44.7608702Z",
+  "invocations": 1,
+  "outer_status": "STOP",
+  "error_type": "System.Management.Automation.RuntimeException",
+  "error_text": "STOP: fake verification exited 125; preserve evidence; no retry or repair",
+  "no_retry": true
+}

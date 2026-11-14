@@ -1,0 +1,17 @@
+# REVIEW ONLY: one native launch outside the default sandbox requires Trish authorization.
+$ErrorActionPreference = 'Stop'
+$root = 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-i01-i02-v1'
+$python = 'C:Users	rishAppDataLocalProgramsPythonPython311python.exe'
+if ((Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash -ne '5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC') { throw 'STOP interpreter mismatch' }
+$payload = Join-Path $root 'payload'
+$manifest = Join-Path $payload 'SHA256SUMS.txt'
+if ((Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash -ne 'A81485190B389706872AE40E140834BF2DFD349F333BF550CF0077B857014BE2') { throw 'STOP manifest mismatch' }
+foreach ($line in Get-Content -LiteralPath $manifest) {
+ if ($line -notmatch '^([A-F0-9]{64})  (.+)$') { throw 'STOP malformed manifest' }
+ $expected = $Matches[1]
+ $path = [IO.Path]::GetFullPath((Join-Path $payload $Matches[2]))
+ if (-not $path.StartsWith(($payload + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase)) { throw 'STOP manifest path outside payload' }
+ if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $expected) { throw 'STOP payload mismatch' }
+}
+& $python -I -S -B (Join-Path $payload 'invoke.py') --config-sha256 '184595EE7E778100C01BB450E508C6FD65547AE85EB4BF84185138DE30FE865D' --manifest-sha256 'A81485190B389706872AE40E140834BF2DFD349F333BF550CF0077B857014BE2'
+if ($LASTEXITCODE -ne 0) { throw 'STOP native launch failed; no retry, repair or failure cleanup' }

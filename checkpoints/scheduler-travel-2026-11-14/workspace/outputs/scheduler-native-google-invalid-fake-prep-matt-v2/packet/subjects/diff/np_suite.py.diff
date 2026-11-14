@@ -1,0 +1,18 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -457,6 +457,15 @@
+         "coverage and native final-assessment proof at the persisted final revision; unrelated owner "
+         "unchanged; launch_ready gate still required; no native PASS until an authorized run"
+     ),
++    "NP-V-GOOGLE-INVALID": (
++        "IMPLEMENTED_SOURCE — separate single-case batch (Dex 5FA59395, Google-first); expired Google "
++        "seed with one enabled requested primary-alias row; owning production refresh receives the "
++        "unchanged complete 400 invalid_grant script; exact typed reauthorization, acknowledged TOKEN "
++        "rollback, zero IMPORT/PARENT, public no_op with one preflight-rejected CALENDAR_ACCOUNT_DISCONNECTED; "
++        "credential/coverage/subscription/event/revision/busy and unrelated state unchanged; final "
++        "assessment completes not-ready at the unchanged revision; a known rejection is not a refresh "
++        "success; launch_ready gate still required; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 

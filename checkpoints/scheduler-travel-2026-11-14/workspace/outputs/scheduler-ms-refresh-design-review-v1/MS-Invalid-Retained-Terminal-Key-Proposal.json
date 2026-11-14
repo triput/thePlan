@@ -1,0 +1,34 @@
+{
+  "atUtc": "2026-11-14T02:06:43.6062464Z",
+  "kind": "SOURCE_ONLY_PROPOSAL_NOT_IMPLEMENTED",
+  "sourceRunner": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-invalid-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py",
+  "sourceSHA256": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1",
+  "prospectiveRunnerSHA256": "6DFF77E850AEFCC022464150B54E2C48E932D35751729F5A802659D87E0595FA",
+  "diffSHA256": "F5768AF9E0CA760DBCF37067CEB43B41CF66685CE2FF7380471F08866E3C1B7A",
+  "change": "One measured dictionary key token_terminal_rows to already-allowlisted token_terminal_sequence inside MS-INVALID; no assertion, observer, product or sanitizer changes",
+  "why": "Existing sanitizer already retains token_terminal_sequence for MS-refresh. Reuse reviewed typed terminal evidence shape without adding allowlist privileges or admitting credential fields.",
+  "exactEmittedRow": {
+    "terminal": "ROLLBACK_ACKNOWLEDGED",
+    "commit_requested": false,
+    "token_rollback_ack": true
+  },
+  "preserved": [
+    "Exact expected terminal and observer assertions",
+    "All existing API and fixture behavior except output key spelling",
+    "np_receipts privacy fragments and allowlist byte-identical",
+    "Frozen launched packet, result, prior failures and cleanup receipts"
+  ],
+  "recommendedUse": "Review with Matt after current T04 addendum, and include only in a future naturally required successor if accepted. Do not automatically repeat this successful native case solely to recover an omitted detailed row.",
+  "evidenceQualification": "Pinned executed assertion proves exact expected native terminal predicate passed; it is assertion-level native evidence, distinct from a retained observed row. Old row cannot be reconstructed from a fake or the expectation constant.",
+  "laterFiniteVerification": [
+    "Original actual receipt sanitizer drops old key while preserving nonsecret sibling fields",
+    "Candidate existing sanitizer retains actual exact terminal list via the approved key",
+    "Nested token/password/secret fields still removed with unchanged sanitizer",
+    "Actual MS-invalid measured emission uses candidate key once, all original guards preserved",
+    "Mutation back to old key fails retention expectation"
+  ],
+  "implementation": false,
+  "execution": false,
+  "activeMattAssignmentUnchanged": "CE778F137A9E59D030E6463868D3F55A082FED6DC3F8C8AB50D0B162A72D5A27",
+  "endpoint": "unbound"
+}

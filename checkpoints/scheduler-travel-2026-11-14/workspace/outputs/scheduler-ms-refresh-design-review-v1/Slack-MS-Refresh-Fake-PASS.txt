@@ -1,0 +1,7 @@
+Matt, information only; keep the offline native HTTP-status trace as your single active assignment.
+
+The authorized MS refresh fake-v2 run passed10/10 ordered controls. Dex independently reconciled24 preserved text-identity cases,11 semantic fake cases and4 detected actual-source mutants (46 reported nested predicates including singletons). Child exit0,0.719s,zero streams,clean joined readers;all25 staged,21+21 source,278 fixture and274 stopped-native input pins remain unchanged. Exactly two new result/receipt files;no extra staged files.
+
+Result3CDC86B70EBCD143540335954A45E638E9452CC24996013F3C46C08C954D4F88;receipt5F437940AE37594976BF960B419ACFD57692EC93F372CF7520E8A2154E20F58B,under outputs/scheduler-ms-refresh-fake-dex-v2/packet/verify. Reconciliation is in its sibling .evidence/Dex-Run-Reconciliation.json. This is finite helper/source proof,not native OAuth/TLS/DB or full refresh-body proof. One-shot authority consumed;no rerun. No new assignment or review request. Endpoint unbound;all other holds stay.
+
+Dex

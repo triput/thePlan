@@ -1,0 +1,34 @@
+[
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+    "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F"
+  },
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+    "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF"
+  },
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_refresh_import.py",
+    "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_domain_adapters.py",
+    "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+  },
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_domain_dispatch.py",
+    "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+  },
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_native_orm_factory.py",
+    "sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229"
+  },
+  {
+    "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_role_connector.py",
+    "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288"
+  },
+  {
+    "path": "outputs/scheduler-native-i01-i02-v4/payload/fixture/i01_auth_seed.py",
+    "sha256": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371"
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "t05Combined": {
+    "controls": 11,
+    "receiptSha256": "901EC9921E9063A8E8E3A3FDA608F95B08A88793B67C264F7BF481EFB690BBF5",
+    "invocations": 1,
+    "postInputs": 17,
+    "sourceMutants": 3,
+    "predicates": 40,
+    "postRuntimePins": 10,
+    "reconciliationSha256": "66733EF4307A032E7E175732C23527137B17AC1F6EB814CE0204F7ED40502175",
+    "resultSha256": "F48C53A193FC59F672D0B49CA32AB2BDBA8472F30500CAA6F792BDF2C804AF25",
+    "status": "PASS_INDEPENDENTLY_RECONCILED"
+  },
+  "peerCloseV1": {
+    "receiptSha256": "6515D73A5C28174EE0F6CC72ECA3EF9DE2BC0471D4969B2EEDCF221AB82DEE47",
+    "offlineTraceSha256": "C680C96447B99D1A283479706A1E280B4C86ECC5192FCB4AA3E0BBEEDBF132DD",
+    "knownRetirement": true,
+    "invocations": 1,
+    "inputPinsUnchanged": 16,
+    "failedEvidencePreserved": true,
+    "status": "STOP_CHECKER_DEFECT"
+  },
+  "nativeInvocations": 0,
+  "remainingExecutionAuthority": "NONE",
+  "authorizationHistory": "Initial three-run grant stopped after first;new explicit call_1ea6a7bb9175406b954c4db26c1c02cd permitted untouched two,now both consumed",
+  "retries": 0,
+  "merge": {
+    "controls": 9,
+    "receiptSha256": "C5A66A4F64D5FE62220E6B5398368612BA63AA31995704A5DE0F9C68E0110526",
+    "invocations": 1,
+    "postInputs": 28,
+    "sourceMutants": 4,
+    "predicates": 33,
+    "postRuntimePins": 1,
+    "reconciliationSha256": "0A50E925310172AC33029FB61385872B63F6C6544A36B4B58FFD6DC7838898C1",
+    "resultSha256": "114A510945F6FCE345D5576B5F51470297A6B7DA713E6E937E2676C35506201E",
+    "status": "PASS_INDEPENDENTLY_RECONCILED"
+  },
+  "peerCloseV2": "Fresh correction prepared;review and new launch approval still required",
+  "endpoint": "unbound",
+  "atUtc": "2026-11-13T19:21:20.9008697Z",
+  "failedCopyRepairs": 0,
+  "goalComplete": false
+}

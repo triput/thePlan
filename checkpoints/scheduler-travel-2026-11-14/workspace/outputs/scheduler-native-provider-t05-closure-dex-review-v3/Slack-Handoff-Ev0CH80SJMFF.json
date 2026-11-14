@@ -1,0 +1,9 @@
+{
+  "event_id": "Ev0CH80SJMFF",
+  "message_ts": "1794543991.769999",
+  "checked_at_utc": "2026-11-13T04:29:07.0945186Z",
+  "disposition": "already-reconciled-objection-pointer",
+  "review_sha256": "5EFB23E5AB5CC41D8B91E477C3D4041C569C86336BEAFB7B973C08A527EF5753",
+  "basis": "B3 already independently source-confirmed; no T05 card/run. Exact one-line v3 preparation assigned via signed drop7F1852AF and Slack1794544125.267159. No new request,scope or authority.",
+  "reply_sent": false
+}

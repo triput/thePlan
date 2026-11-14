@@ -1,0 +1,77 @@
+{
+  "class": "FRAMING-ACK-STATIC-PREPARATION-RECEIPT",
+  "at_date": "2026-11-11",
+  "author": "Justin for Jim",
+  "prep_version": "v3",
+  "executed": false,
+  "launch_authorized": false,
+  "endpoint": "unbound",
+  "prep_labeled_pass": false,
+  "authority": {
+    "approval_sha256": "75556514BB93057BAAC30B16C51E185982AD983BCB9FCA76CB5B2FD918FA35B2",
+    "assignment_sha256": "5B836550DC49C2071D09E4C40CC59BB24A0F334FA8249E530804D18C7C539B0A",
+    "brief_sha256": "BB230A784C6B556C401AF599A551E35F7650AB7F06B451AB9CC0788A4DF4E434",
+    "dex_revise_audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
+    "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+    "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
+    "dex_provisional_review_1_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+    "dex_provisional_review_2_sha256": "4BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E"
+  },
+  "application": {
+    "original_http": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F",
+    "candidate_http": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+    "original_tls": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "candidate_tls": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+    "provider_context": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+    "changed_files": 2,
+    "unchanged_application_files": 232,
+    "candidate_http_unchanged_from_v1": true,
+    "candidate_http_unchanged_from_v2": true,
+    "candidate_tls_unchanged_from_v2": true
+  },
+  "roles": {
+    "check": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698",
+    "invoke": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F",
+    "admit": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF",
+    "wrapper": "0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA",
+    "outer_admission": "F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6",
+    "verification_admission": "1D5847C0121B95F9219CA46BBC995A65EC9A7FC9922AC49D1E974BDE5F28D8EC"
+  },
+  "oracles": {
+    "EXPECTED": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+    "PACKET_SHA256SUMS": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9",
+    "H-TE-WS-LEAD": "OBSERVED_SUCCESS",
+    "H-TE-WS-TRAIL": "OBSERVED_REFUSE",
+    "predicted_outcome_dialect": "PASS",
+    "nested_observation_dialect": "OBSERVED_*"
+  },
+  "caller_labeling": {
+    "choice": "direct_http_replay_plus_matched_immutable_original_caller_evidence",
+    "owning_caller_obligation": "preserved_remaining_unproved_in_candidate",
+    "not_claimed": [
+      "_CoveringClient",
+      "refresh_access_token"
+    ]
+  },
+  "revise_disposition": {
+    "outer_admission_noncircular": "regenerated_after_final_freeze",
+    "exact_result_oracle_schema": "predicted_outcome_PASS_plus_nonempty_exact_predicate_all_73",
+    "caller_proof_labels": "direct_http_replay_plus_matched_immutable_original",
+    "commands_held": "concrete_exact_hashes"
+  },
+  "review_2_disposition": "OWS oracle/docs aligned; candidate 29CBD53C retained",
+  "header_policy_status": "APPROVED",
+  "port_zero_note": {
+    "implementation_authority": false,
+    "edited": false,
+    "scope_sha256": "A27E47A5B7106708CC1A6E683D645CAB2821FBA1FAE2F45E7A7488F1DB5B0F85",
+    "proposed_fix_diff_sha256": "C69EB5EFFAD47FBC1BB2A085DCF7620D736EF713BC09B4D4984736104BC9F8CB"
+  },
+  "immutable_v1_tip": "FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4",
+  "immutable_v2_tip": "569CA4F5C97A947F391F2AF3C616C3581851ED2853E1E6F2E9AEF80FFE2E5697",
+  "wire_control_count": 73,
+  "t05_immutable_wires": 57,
+  "p1_p2_p3": "addressed",
+  "native_tls_orderly_vs_abrupt": "unproved",
+  "no_slack_tip": true
+}

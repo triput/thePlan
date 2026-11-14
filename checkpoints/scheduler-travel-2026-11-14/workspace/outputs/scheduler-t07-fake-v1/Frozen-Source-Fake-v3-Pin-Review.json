@@ -1,0 +1,15 @@
+{
+  "kind": "T07 v3 pin-inventory successor review",
+  "at_utc": "2026-11-11T20:19:56.9183788Z",
+  "tip_sha256": "A6F1A2C395F8655E676F39B6553DF77BCD125F021DB585F0CFFEEC93440ED89F",
+  "artifact_rows_verified": 15,
+  "api_pin_rows_verified": 234,
+  "bases_pin_rows_verified": 3,
+  "explicit_payload_anchor": true,
+  "duplicate_rows": 0,
+  "root_diff_not_in_payload_inventory": true,
+  "check_unchanged_from_v2": true,
+  "pin_inventory_disposition": "ACCEPTED",
+  "harness_disposition": "REVISE; frozen v2 coverage/fault-setup findings remain",
+  "execution_performed": false
+}

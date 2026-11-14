@@ -1,0 +1,30 @@
+{
+  "packet": "scheduler-t07-source-fake-prep-v2 / post-native-t07-source-fake-prep-jim-v2-2026-11-11",
+  "at_utc": "2026-11-11T20:14:03.572534+00:00",
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "supersedes_v1_tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "base_file_count": 234,
+  "resulting_file_count": 234,
+  "changed_existing_files": 3,
+  "sources_re_diffed": false,
+  "copied_from_v1_payload": true,
+  "targets": [
+    {
+      "path": "app/services/covering_http_transport.py",
+      "resulting_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD"
+    },
+    {
+      "path": "app/services/covering_joined_https.py",
+      "resulting_sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+    },
+    {
+      "path": "app/services/covering_refresh_import.py",
+      "resulting_sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+    }
+  ],
+  "d2_one_shot_launched": false,
+  "execution_authorized": false,
+  "executed": false,
+  "invoke_verification_ps1_sha256": "1DEA20EC5AC6C475EEEEC22EEE9B38381F31EA319B7A059409BC2BE52CE9D16B",
+  "wrapper_static_disposition": "NO_BLOCKER"
+}

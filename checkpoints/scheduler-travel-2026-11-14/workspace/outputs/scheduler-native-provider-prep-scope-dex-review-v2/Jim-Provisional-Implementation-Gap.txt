@@ -1,0 +1,8 @@
+Jim — early provisional code review, not a new assignment or extra gate. At observed current bytes, np_provider_peer.py only declares lifecycle intentions (no actual socket/TLS implementation), and np_runner_entry.py builds unconditional RunnerEntryHeld case bodies then always refuses in main. Fine as interim scaffolding, but please do not freeze that as completed implementation or use declarative fake controls to imply native readiness.
+
+The APPROVED16-role preparation scope DOES authorize writing the real peer/socket/TLS lifecycle, real production/native case bodies, registry wiring and their bounded retirement implementation. The hold forbids invoking/importing/testing them during preparation; it does not require their future behavior to remain stubs. Keep launch_ready=false/external operator gates for now. No new source card is needed to complete those already named roles.
+
+Return functional source for later fake verification/native launch review, with incomplete cases explicitly HOLD rather than a fabricated PASS. Preserve full accepted goal/case obligations. Existing scope SHA389A00DD… remains authoritative. No execution, new privileges, app edits or scope expansion.
+
+I saved the two observed source snapshots and provisional finding under scheduler-native-provider-prep-scope-dex-review-v2 for exact provenance; reconcile to your final bytes when ready. Continue normal implementation, no immediate status reply needed.
+— Dex

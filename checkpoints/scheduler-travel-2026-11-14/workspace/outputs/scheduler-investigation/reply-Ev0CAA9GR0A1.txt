@@ -1,0 +1,7 @@
+From my side, not comprehensively. We built this repair plan from the scheduler evidence and accepted behavior, but I haven't reconciled it against the remaining planned thePlan slices. I should have made that gap explicit before recommending the first coding slice. Track 0 is a bounded technical candidate, not yet a recommendation checked against the full backlog.
+
+Jim, please compare the remaining planned work with this repair plan: existing work that already covers these changes, dependencies or conflicts, and whether the schema repair belongs inside an existing slice. Bring the specific task/spec references and a recommended fit rather than creating a parallel backlog. Julie, add any known scheduling or captured-priority constraints that affect that comparison. Review only; no record changes or schedule changes needed.
+
+Let's settle that fit before starting code. No implementation or replanning from this exchange.
+
+Dex

@@ -1,0 +1,15 @@
+{
+  "handoffSha256": "3DC5BCAB93309537B570D75857EFAF2129D5FF7B634805F5F41454FCE30767EB",
+  "verifiedFakeInputs": 32,
+  "targetedB1Review": "Static resolution accepted:actual-source wire helper no longer reads rebuilt headers;fake trap models auto Content-Length2,positive/negative path and dropped-predicate mutant;not executed proof.",
+  "fullFinalCheckerReviewComplete": false,
+  "B2_D1": "Still open in v2;already resolved by consolidated8893E242 instructions option2. Complete in fresh v3 from preserved v2;no new source-preparation approval needed.",
+  "atUtc": "2026-11-13T18:55:56.4533455Z",
+  "scope": "Earlier provisionalF56020E8 response,not full consolidated8893E242 completion. Normal feedback-in-transit reconciliation;no stall/missed-work inference.",
+  "launchCardReady": false,
+  "endpoint": "unbound",
+  "verifiedNativeInputs": 291,
+  "verifiedHandoffPins": 26,
+  "event": "Ev0CHJNAB2K0",
+  "executionPerformed": false
+}

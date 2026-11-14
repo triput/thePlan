@@ -1,0 +1,41 @@
+HANDBACK — post-native-framing-ack-source-fake-prep-jim-v1-2026-11-11
+Justin for Jim. Dex independent review next. NO Slack tip from this seat.
+
+Flags: executed=false; launch_authorized=false; endpoint=unbound; prep_is_not_PASS=true.
+
+Authority verified:
+  Trish-Increment-Workspace-Lane-Approval.json 75556514…
+  Jim-Framing-Increment-Implementation-Assignment.md 5B836550…
+  Framing-Increment-Implementation-Brief.md BB230A78…
+  Dex provisional source review 87E24D1A… (P1/P2/P3 addressed; staged B04B3D6B → candidate 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368)
+
+Prep root:
+  C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-prep-v1\
+
+Handback:
+  F:\DropFolder\pending\post-native-framing-ack-source-fake-prep-jim-v1-2026-11-11\
+
+Application (only two files):
+  covering_http_transport.py  E2FC2226… → 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368
+  covering_joined_https.py    2E6A4ABB… → 760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427  (exact EOF option)
+  covering_provider_context.py 65529CBC… UNCHANGED
+  Unchanged other app files: 232
+
+Roles SHA256:
+  TIP-FREEZE.json              FA211E1D1BFB6C72FF070A7B211E4D80CCA7EDC78E0F6BE3B5969FDF0810DFF4
+  admit_outer.py               26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF
+  check_framing_ack.py         AF7A61C19F031A3C09379FCC54D7B337F972B08AD0B17F62F18671CB349224E9
+  invoke_framing_ack_fake.py   7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F
+  Invoke-Verification.ps1      0477912DBEB37067DC5CB49975A91FD1A666BD9893D166385D833D4D4E24AABA
+  OUTER-ADMISSION.json         39ABC9C0DC5E59469AA6D7A99B50997C4F68EDE4A5DF1CE7D5725A4C8DBD8076
+
+Controls: 73 ordered (57 T05 immutable wires reused as original evidence + supplementals).
+Policy: header compatibility = REVIEW CANDIDATE / policy-pending on oracles — not accepted contract.
+
+P1: trailer _MAXHEADERS count + final CRLF (C-TRAILER-COUNT-100/101)
+P2: unsigned hex chunk size; C-NEG-SIZE refuse before read(-1)
+P3: TE no-strip coherent with begin(); CL SP/HTAB OWS only; H-TE-WS-* refused
+
+Blockers: Trish header-policy freeze before contract/launch; native TLS EOF unproved; no execute/import/compile performed.
+
+Method attestation: ordinary file reads/hashes/UTF-8 writes only under approved workspace-authoring lane. No sockets/PKI/Docker/native/providers. No helper invocation.

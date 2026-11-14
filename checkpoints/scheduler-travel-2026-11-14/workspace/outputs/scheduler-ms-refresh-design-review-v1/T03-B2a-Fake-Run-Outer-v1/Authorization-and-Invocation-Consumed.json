@@ -1,0 +1,7 @@
+{
+  "dex_ack": "EXECUTE one exact reviewed fake; no retry",
+  "remaining_invocations": 0,
+  "approval": "call_51866bf0cd3549ee9edac5f2632073f9 item0",
+  "command_sha256": "282ED9FB5311A6119F6EAAD2E7C03D272E91FECE64A0A9EDBC4B790040DDF7A5",
+  "atUtc": "2026-11-14T03:47:29.4604310Z"
+}

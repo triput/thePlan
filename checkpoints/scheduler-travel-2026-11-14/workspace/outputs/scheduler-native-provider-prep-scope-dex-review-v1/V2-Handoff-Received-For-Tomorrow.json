@@ -1,0 +1,21 @@
+{
+  "event_id": "Ev0CGLCD4P7H",
+  "channel": "C0C6ZFQ3K6C",
+  "thread_ts": "1794286413.519819",
+  "message_ts": "1794465347.346839",
+  "sender": "U0C68LUTURJ",
+  "received_at_utc": "2026-11-12T06:36:14.4193141Z",
+  "disposition": "Received for tomorrow; substantive artifact review deferred under Trish overnight pause",
+  "reported_packet": "F:\\DropFolder\\pending\\post-native-provider-prep-scope-jim-v2-2026-11-11",
+  "reported_workspace": "outputs\\scheduler-native-provider-prep-scope-jim-v2",
+  "reported_tip_prefix": "1D88A97F",
+  "reported_proposal_prefix": "F89B990C",
+  "reported_registry_prefix": "BBFEF333",
+  "artifact_hashes_verified": false,
+  "review_accepted": false,
+  "source_authorized": false,
+  "execution_authorized": false,
+  "goal_status": "paused",
+  "endpoint": "unbound",
+  "next": "On user resume, verify frozen v2 artifacts and independently reconcile R1-R8; retain pending port card and all holds"
+}

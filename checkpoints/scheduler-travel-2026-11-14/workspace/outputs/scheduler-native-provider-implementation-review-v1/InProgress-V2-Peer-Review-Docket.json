@@ -1,0 +1,42 @@
+{
+  "at_utc": "2026-11-12T20:34:28.8911253Z",
+  "status": "Provisional draft review docket; recheck final successor bytes before formal disposition",
+  "source_pins": [
+    {
+      "name": "np_provider_peer.py",
+      "sha256": "D64668B417FAEC91886080AFC2AA84E1E021A29202015F7B53647FB73C25377F",
+      "snapshot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-implementation-review-v1\\InProgress-v2-np_provider_peer.py.txt"
+    },
+    {
+      "name": "np_provider_transcript.py",
+      "sha256": "AFB4F76ADD18E0CCC361BD5F77DFE19C01CAA11DA5B351B0F0E478C26EB22675",
+      "snapshot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-implementation-review-v1\\InProgress-v2-np_provider_transcript.py.txt"
+    }
+  ],
+  "findings": [
+    {
+      "id": "DRAFT-PEER-01",
+      "observation": "Handshake sets positive socket timeout to remaining peer deadline. recv/send/unwrap may block for that duration; retire_owned sets stop then joins5s before closing client sockets. Stop event alone does not interrupt blocking SSL I/O.",
+      "required_review": "Verify bounded cancellation/retirement via nonblocking bounded polling or explicitly owned interruption before join; any unjoined outcome must remain UNKNOWN, not retirement PASS."
+    },
+    {
+      "id": "DRAFT-PEER-02",
+      "observation": "orderly_close_delimited_complete_script supplies Content-Length:2, and response builder inserts Content-Length when absent. Therefore current positive is fixed-length, not close-delimited. close_mode_observed is assigned before unwrap; SSLError is swallowed into attempted note.",
+      "required_review": "Actual close-delimited positive must omit CL/TE on wire; explicit builder mode must preserve that omission. Prove client orderly EOF separately from attempted unwrap; keep short-CL negative distinct."
+    },
+    {
+      "id": "DRAFT-PEER-03",
+      "observation": "_recv_request accepts broad path.startswith(step.path), stops at header terminator without full Content-Length body validation. Prefix receipt alone is explicitly not full request acknowledgment.",
+      "required_review": "For any exact owning-request/origin/path/body claim, require bounded full request framing and the stated exact path/query/body oracle, without logging token/plaintext credentials. Do not turn declaration/prefix acceptance into exact transcript proof."
+    },
+    {
+      "id": "DRAFT-PEER-04",
+      "observation": "Microsoft token script expects /oauth2/v2.0/token; production _token_url includes configured tenant prefix.",
+      "required_review": "Reconcile script path with the actual synthetic tenant URL before admitting owning Microsoft OAuth case; nonexpired first vertical need not wait for later OAuth cases."
+    }
+  ],
+  "execution_performed": false,
+  "source_changed_by_dex": false,
+  "delivery": "Queued for final-byte reconciliation to avoid interrupting ongoing implementation with another provisional message",
+  "endpoint": "unbound"
+}

@@ -1,0 +1,18 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -481,6 +481,15 @@
+         "must be SSLEOFError or ConnectionResetError, distinct from framing/JSON refusal and ASGI "
+         "disconnect; any other class STOPs; no native PASS until an authorized run"
+     ),
++    "NP-T04-BODY-STALL": (
++        "IMPLEMENTED_SOURCE — separate single-case batch (decision 4F2F3B3F); NONEXPIRED two-target "
++        "lineage, production clocks and real monotonic; peer: two identity exchanges then exact "
++        "seed-query calendarView headers with positive Content-Length and withheld body; original "
++        "client CoveringDeadlineExceeded; HTTP 200 failed (target 1 import/failed, target 2 deadline "
++        "preflight), no assessment, one TOKEN and one PARENT rollback, recorder persisted or known "
++        "cleanup refusal; case-specific 240 s peer with clean retired exit; finite timing predicate; "
++        "launch_ready gate still required; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 

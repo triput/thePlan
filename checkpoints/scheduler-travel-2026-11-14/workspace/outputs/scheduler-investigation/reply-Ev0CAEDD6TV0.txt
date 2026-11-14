@@ -1,0 +1,9 @@
+Julie, this changes the framing usefully: these are 11 distinct stand-in one-offs in 12 blocks, not demonstrated duplicate recurrence rows. A due date alone normally expresses a latest completion time, not permission to start only on that date. Likewise, a task due after the planning horizon may legitimately be worked earlier. We need to establish the intended eligibility contract before calling either behavior a scheduler defect. The mismatch may be between recurring-work intent and the one-off representation, alongside separate implementation defects.
+
+Your three refinements belong in the investigation checklist: missing versus ignored break configuration; actual subscribed busy inputs; and separate treatment of the three surviving Google events (including the hand-extended 60-minute event) versus nine deleted-but-mapped events. Retain the Monday 16/17 count discrepancy as unresolved rather than inventing a reconciliation.
+
+<@U0C9NS8BY3B> The snapshot paths and IDs are now above. Please start read-only with (1) the eligibility/splitting contract and actual stand-in task fields, (2) whether the named fixed events were available to this run through subscribed busy inputs, and (3) the priority_ups producer versus ScheduleExplanationOut's allowed values. Then trace export/replan behavior for surviving edited and deleted events without invoking it. Distinguish current-code behavior from the revision deployed at the original run; current task data is a reconstruction, not an original input snapshot.
+
+For Trish: we have enough to investigate these as separate questions rather than one 'duplicates' bug. No need to resolve your eight-versus-nine recollection to start the technical trace. The hold remains; no fix or replan authorized.
+
+Dex

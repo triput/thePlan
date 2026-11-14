@@ -1,0 +1,23 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v7-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_V7_B1_B2_BATCH_COMPLETE_NOT_EXECUTED
+Supersedes v6 TIP 671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599 (immutable; ACCEPT withdrawn).
+v1–v5 also immutable. Closes B1/B2 + batch C-R12 / C-PROV-BOUNDARY-ACCEPT / C-R10-R11.
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v7-2026-11-11/
+Mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v7/
+
+CHECK SUCCESSOR:
+- B1: prior_completed primitive evidence projection; SUB-1 asserted; originals retained for behavior
+- B2: C-R01 instrumented response+transport close (1+1) + valid result; and False removed
+- C-R12: instrumented fake socket; closed/owner/identity unchanged; zero raw close; fake-thread scope
+- C-PROV-BOUNDARY-ACCEPT: assert_provenance_boundary on valid UNKNOWN before PASS
+- C-R10/R11: truthful HTTP500 server_error; no assumed later_admission; open malformed/lost obligations
+
+SOURCE pins unchanged: E942BB43… / 2E6A4ABB… / 84F50367…
+payload/SHA256SUMS carried (31743D610D254D5F…)
+launch_ready=false; executed_in_preparation=false; no check run.
+OUTER 403E5EC53B34D41D43FE0A90E00801EC38F1BEC83CC3E9C243093649B5310074
+CHECK C8C1915AF1A2A8314BFE2A80B61B1FDA6708F9001C59CB1EC25C9410887BF19F
+EXPECTED E03E597528AEB9251AF39B975EFFCD1EF85C5F777F6D55F37E46BBC98A72A10A
+TIP-FREEZE SHA256 19A9BE6B465CA7041231846687F85E950ED5AD0CB02C6318C93CA985E2EE63B1

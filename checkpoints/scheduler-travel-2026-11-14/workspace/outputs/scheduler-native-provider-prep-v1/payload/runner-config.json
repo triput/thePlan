@@ -1,0 +1,57 @@
+{
+  "launch_ready": false,
+  "case_ids": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-V-MS-REFRESH",
+    "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+    "NP-V-MS-INVALID",
+    "NP-V-GOOGLE-REFRESH",
+    "NP-V-GOOGLE-INVALID",
+    "NP-T06-BEFORE-SEND",
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME",
+    "NP-T03-HANDSHAKE-STALL",
+    "NP-T03-TCP-REFUSAL",
+    "NP-T04-HEADER-STALL",
+    "NP-T04-BODY-STALL",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DEADLINE",
+    "NP-T04-DISCONNECT",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION",
+    "NP-T07-OWNED-SOCKET",
+    "NP-T07-BOTH-AFTER-FAILURE",
+    "NP-T08-OWNERSHIP"
+  ],
+  "expected_unknown_cases": [
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DISCONNECT"
+  ],
+  "runner_seconds": null,
+  "ca_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+  "runtime_pins": {
+    "python": null,
+    "note": "Freeze on later launch card against actual runner image pins"
+  },
+  "clocks": {
+    "work_deadline_seconds": 210,
+    "request_deadline_seconds": 240,
+    "cleanup_allowance_seconds": 30,
+    "attempt_validity_seconds": 600
+  },
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound"
+}

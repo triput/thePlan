@@ -1,0 +1,35 @@
+SLACK TIP -- post-native-t05-original-behavior-witness-design-jim-v2-2026-11-11
+
+Status: T05_ORIGINAL_BEHAVIOR_WITNESS_DESIGN_V2_COMPLETE_NOT_APPLIED (documents only)
+
+Packet:
+F:/DropFolder/pending/post-native-t05-original-behavior-witness-design-jim-v2-2026-11-11/
+
+Mirror:
+C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-original-behavior-witness-design-v2/
+
+Disposition: WITNESS-FIRST / NO APPLY -- applied=false; executed=false; launch_authorized=false
+Supersedes v1 tip: 8C32BFEC... (immutable)
+
+REVISE closed:
+1) ORIGINAL predictions vs CORRECTED acceptance (F02/F03/F05 may CONTRACT_MISS on original)
+2) calendar_client under covering_provider_transport -> _CoveringClient -> CoveringHTTP; outside context -> httpx
+3) Close-delimited retained as baseline; reject-all not adopted
+4) D1 refuse multi-CL raw inventory; D2 refuse TE+CL coexistence (recommendations only)
+5) D4 source-hold / D5 provenance launch-gate (not Trish product votes)
+6) Proposed-Authoring-Scope.md with exact later file/module purposes
+7) Header representation variants folded; markdown C0-sanitized
+
+No source/checker/fixture edits · no execution · T07 card untouched · endpoint unbound
+
+Brief SHA256:
+80D3298715F5196291B4EAA29DFCFDC14F533DFF0B9F3017234381F3BDE72E02
+
+Authoring-scope SHA256:
+C142291EEA4B1B5DDF3F5C8E462372DE2C08B655D9BDF01579C161EB5DF42602
+
+TIP-FREEZE tip_sha256 (preimage rule in TIP-FREEZE.json):
+0C9E3E47EC2440BB8FB8D2B2DC69467C216BA1DAEFC90231D86B251A031A03B0
+
+TIP-FREEZE.json on-disk SHA256 (ARTIFACT-HASHES line):
+FA13F24FC0EDE7534D9ED335E04CB2782F56376EC6EBAB61D7F5C206841EF740

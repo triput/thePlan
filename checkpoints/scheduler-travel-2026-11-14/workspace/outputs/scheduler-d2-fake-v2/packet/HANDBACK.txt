@@ -1,0 +1,1 @@
+Dex D2 v2 check-only CRLF successor. Prepared, not executed. All234 API files and all52 controls preserved. Exact pins in TIP-FREEZE.json and ARTIFACT-HASHES.txt. Failed predecessor evidence untouched. Separate launch approval required.

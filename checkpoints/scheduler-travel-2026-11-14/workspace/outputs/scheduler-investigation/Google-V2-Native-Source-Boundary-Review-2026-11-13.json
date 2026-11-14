@@ -1,0 +1,33 @@
+{
+  "atUtc": "2026-11-14T04:34:48.2728318+00:00",
+  "status": "SOURCE_INTEGRITY_AND_BOUNDARY_ONLY_AWAIT_FINAL_HANDBACK",
+  "source_manifest": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "candidate_manifest": "EFC705425F839D4FCC7C04FCEA2840A22FA3262B40B9F270F8951B868E42F35D",
+  "source_inputs": 301,
+  "candidate_inputs": 305,
+  "changed": [
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_provider_transcript.py",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt"
+  ],
+  "added": [
+    "Google-Refresh-Native-Command-HELD.ps1.txt",
+    "Google-Refresh-Prep-Freeze.json",
+    "GOOGLE-REFRESH-PREP-README.md",
+    "Source-NONEXPIRED-Retirement-V2-Input-Manifest.sha256"
+  ],
+  "unchanged": 293,
+  "api_files": 234,
+  "api_changed": [],
+  "execution": "NONE",
+  "not_proved": [
+    "Checker behavior",
+    "Native Google refresh/import/assessment",
+    "Complete final handback review"
+  ]
+}

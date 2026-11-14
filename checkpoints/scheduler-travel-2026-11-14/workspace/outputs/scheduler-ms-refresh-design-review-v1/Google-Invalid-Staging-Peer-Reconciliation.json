@@ -1,0 +1,13 @@
+{
+  "t08ResultReview": "PASS_RECONCILED_NO_OBJECTION_AT_FAKE_SCOPE",
+  "fakeNotRun": true,
+  "fakeInputs": 41,
+  "nativeInputs": 318,
+  "runtimePins": 9,
+  "endpoint": "unbound",
+  "humanExecutionAuthority": "NONE",
+  "documentationQualification": "Copied preparation note says launch_authorized=false beside staged true; staging_note and currentguide distinguish historical preparation from currentscaffold. Named-field readers ignore note,no executable ambiguity; retain frozenpacket without cosmetic revision.",
+  "review": "6941015466384249212D14C41C632EC4381CF94A21EC845EE0505D3619279D1A",
+  "status": "QUALIFIED_ACCEPTANCE_RECONCILED_NO_BLOCKERS",
+  "nativeNotRun": true
+}

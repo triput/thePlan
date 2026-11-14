@@ -1,0 +1,365 @@
+{
+  "status": "PASS",
+  "class": "FAKE-D2-PATH-ADMISSION",
+  "executed_in_preparation": false,
+  "later_authorized_run": {
+    "executed": true,
+    "held": false,
+    "source_hashes_verified": true,
+    "inventory_error": null
+  },
+  "inventory_contract": "exact_unique_control_ids_no_omission_exact_emitted_order",
+  "ordered_contract": "emitted control_ids_in_order compared DIRECTLY to EXPECTED.control_ids_in_order before PASS; serialization must not reorder/repair",
+  "named_expected_control_count": 52,
+  "functional_control_count": 44,
+  "approved_core_functional_control_count": 41,
+  "oracle_gap_added_functional_controls": [
+    "CTRL-NEG-CTX-ORD-SLASH",
+    "CTRL-NEG-CTX-ENC-SLASH",
+    "CTRL-NEG-CTX-MALFORM"
+  ],
+  "functional_breakdown": {
+    "positives": 16,
+    "negatives": 18,
+    "context_pre_delegate_named": 3,
+    "collision": 2,
+    "continuation": 4,
+    "separation": 1
+  },
+  "control_ids_in_order": [
+    "CTRL-POS-G-PLUS-AT",
+    "CTRL-POS-G-PERCENT",
+    "CTRL-POS-G-INTERNAL-DOT",
+    "CTRL-POS-G-UNICODE",
+    "CTRL-POS-G-ID-LITERAL-CALENDARS",
+    "CTRL-POS-G-EXACT-PREFIX",
+    "CTRL-POS-G-CHILD",
+    "CTRL-POS-MS-VIEW",
+    "CTRL-POS-MS-DELTA-COMPAT",
+    "CTRL-POS-G-CALENDARLIST",
+    "CTRL-POS-MS-LIST",
+    "CTRL-POS-MS-DEFAULT",
+    "CTRL-POS-G-OAUTH",
+    "CTRL-POS-MS-OAUTH",
+    "CTRL-POS-BUDGET-EQ-8",
+    "CTRL-POS-G-PAGE-TOKEN",
+    "CTRL-NEG-ORD-SLASH",
+    "CTRL-NEG-ENC-SLASH-PCT2F-UPPER",
+    "CTRL-NEG-ENC-SLASH-PCT2F-LOWER",
+    "CTRL-NEG-NEST-252F",
+    "CTRL-NEG-NEST-25252F",
+    "CTRL-NEG-NEST-DOT",
+    "CTRL-NEG-RAW-DOT",
+    "CTRL-NEG-EMPTY",
+    "CTRL-NEG-TRAILING",
+    "CTRL-NEG-MALFORM-BARE",
+    "CTRL-NEG-MALFORM-G1",
+    "CTRL-NEG-MALFORM-TRUNC",
+    "CTRL-NEG-UTF8-INVALID",
+    "CTRL-NEG-STRUCT-PCT-HELPER",
+    "CTRL-NEG-BUDGET-EQ-9",
+    "CTRL-NEG-PREFIX-BOUNDARY",
+    "CTRL-NEG-COVERINGHTTP-PATCH-TYPED",
+    "CTRL-NEG-COVERINGCLIENT-PATCH-ABSENT",
+    "CTRL-NEG-CTX-ORD-SLASH",
+    "CTRL-NEG-CTX-ENC-SLASH",
+    "CTRL-NEG-CTX-MALFORM",
+    "CTRL-COLLIDE-MULTI-PURPOSE",
+    "CTRL-COLLIDE-DUP-SAME-PURPOSE",
+    "CTRL-CONT-FOREIGN-BEFORE-SEND",
+    "CTRL-CONT-REDIRECT-3XX",
+    "CTRL-CONT-MS-NEXTLINK",
+    "CTRL-CONT-G-PAGE-TOKEN",
+    "CTRL-SEP-TARGET-AUTHZ",
+    "M-PATH-ADMIT-NOOP",
+    "M-HTTP-ALLOW-PATCH",
+    "M-ENCODED-SLASH-BYPASS",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "controls": {
+    "CTRL-POS-G-PLUS-AT": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "GET event under Google slash-boundary prefix; path /calendar/v3/calendars/cal%2Bendar%40x.com/events; 1 open/1 send; request-target unchanged on wire (no-normalize-and-forward); no Location follow"
+    },
+    "CTRL-POS-G-PERCENT": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "admit plain%25id; intermediate % not re-tested; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-INTERNAL-DOT": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "admit a%2Eb opaque ID; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-UNICODE": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "admit valid UTF-8 caf%C3%A9; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-ID-LITERAL-CALENDARS": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "opaque index 4 only; calendars literal does not open further opaque slot; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-EXACT-PREFIX": {
+      "result": "PASS",
+      "kind": "positive_exact_prefix",
+      "criterion": "route prefix EQUALS full path /calendar/v3/calendars/calx/events; exact-match admit; distinct from CHILD; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-CHILD": {
+      "result": "PASS",
+      "kind": "positive_child_prefix",
+      "criterion": "slash-boundary parent /calendar/v3/calendars/ + descendant /calendar/v3/calendars/calx/events; distinct from EXACT-PREFIX; request-target unchanged on wire"
+    },
+    "CTRL-POS-MS-VIEW": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "extracted GRAPH_BASE+_calendar_view_url(raw a=b+c) composes path; CoveringHTTP 1/1; first request line carries a%3Db%2Bc and not unescaped a=b+c; native/provider proof boundary unchanged"
+    },
+    "CTRL-POS-MS-DELTA-COMPAT": {
+      "result": "PASS",
+      "kind": "positive_path_admission",
+      "criterion": "extracted _calendar_view_delta_url(raw a=b+c) composes delta path; CoveringHTTP 1/1; request line carries a%3Db%2Bc not unescaped a=b+c; not ordinary-refresh invoke claim; native/provider proof boundary unchanged"
+    },
+    "CTRL-POS-G-CALENDARLIST": {
+      "result": "PASS",
+      "kind": "positive_identity_exact",
+      "criterion": "exact /calendar/v3/users/me/calendarList identity; all structural; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-MS-LIST": {
+      "result": "PASS",
+      "kind": "positive_identity_exact",
+      "criterion": "exact /v1.0/me/calendars identity; no opaque; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-MS-DEFAULT": {
+      "result": "PASS",
+      "kind": "positive_identity_exact",
+      "criterion": "exact /v1.0/me/calendar structural; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-OAUTH": {
+      "result": "PASS",
+      "kind": "positive_oauth",
+      "criterion": "POST /token exact + oauth pairing; structural; 1/1"
+    },
+    "CTRL-POS-MS-OAUTH": {
+      "result": "PASS",
+      "kind": "positive_oauth",
+      "criterion": "tenant token path exact; structural; no profile bind; 1/1"
+    },
+    "CTRL-POS-BUDGET-EQ-8": {
+      "result": "PASS",
+      "kind": "positive_budget_edge",
+      "criterion": "opaque %2525252525252561 admits at 8-transition edge; 1/1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-PAGE-TOKEN": {
+      "result": "PASS",
+      "kind": "positive_direct_query_page_token",
+      "criterion": "restored separate direct-query; GET event with pageToken=https%3A%2F%2Fexample.invalid%2Fnext; query opaque/not path-matched; 1 open/1 send; zero path-follow/redirect; wire query preserved; exact request-target unchanged; separate from CONT builder continuation control and truthful two-page accounting"
+    },
+    "CTRL-NEG-ORD-SLASH": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "ordinary%2Fid → CoveringTransportRefused path admission refused; CoveringHTTP 0/0; ALSO _CoveringClient context pre-delegate refuse (sentinel transport.request stays 0)"
+    },
+    "CTRL-NEG-ENC-SLASH-PCT2F-UPPER": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "x%2Fy → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-ENC-SLASH-PCT2F-LOWER": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "x%2fy → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-NEST-252F": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "foo%252Fbar → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-NEST-25252F": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "foo%25252Fbar → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-NEST-DOT": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "%252e%252e → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-RAW-DOT": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "../../outside under /calendar/v3/ → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-EMPTY": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "empty segment //events → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-TRAILING": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "trailing slash events/ → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-MALFORM-BARE": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "foo% → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-MALFORM-G1": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "foo%G1bar → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-MALFORM-TRUNC": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "foo%2 → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-UTF8-INVALID": {
+      "result": "PASS",
+      "kind": "negative_path_refuse",
+      "criterion": "%80 invalid UTF-8 → path admission refused; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-STRUCT-PCT-HELPER": {
+      "result": "PASS",
+      "kind": "negative_synthetic_helper_reach",
+      "criterion": "synthetic prefix /__fixture__/covering/admit/ matches then helper refuses structural % in enc%41bad; reaches admit_covering_path; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-BUDGET-EQ-9": {
+      "result": "PASS",
+      "kind": "negative_budget_exhaustion",
+      "criterion": "%252525252525252561 refuses at 9-transition exhaustion; CoveringHTTP 0/0; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-PREFIX-BOUNDARY": {
+      "result": "PASS",
+      "kind": "negative_route_refuse",
+      "criterion": "prefix /calendar/v3/calendars vs calendars-other → provider route refused before helper; 0/0"
+    },
+    "CTRL-NEG-COVERINGHTTP-PATCH-TYPED": {
+      "result": "PASS",
+      "kind": "negative_typed_method_refuse",
+      "criterion": "CoveringHTTP.request(PATCH) → method/purpose refused; distinct from client AttributeError; no PATCH support added; 0/0"
+    },
+    "CTRL-NEG-COVERINGCLIENT-PATCH-ABSENT": {
+      "result": "PASS",
+      "kind": "negative_absent_mutation_api",
+      "criterion": "_CoveringClient has no attribute patch → AttributeError; distinct from CoveringHTTP typed refuse; no mutation API added; 0/0"
+    },
+    "CTRL-NEG-CTX-ORD-SLASH": {
+      "result": "PASS",
+      "kind": "negative_context_pre_delegate",
+      "criterion": "dedicated context call-site: real extracted _CoveringClient with sentinel transport.request; ORD-SLASH admit refuse BEFORE any delegate; 0 delegate calls"
+    },
+    "CTRL-NEG-CTX-ENC-SLASH": {
+      "result": "PASS",
+      "kind": "negative_context_pre_delegate",
+      "criterion": "dedicated context call-site: _CoveringClient ENC-SLASH (%2F) admit refuse before sentinel transport.request; 0 delegate calls"
+    },
+    "CTRL-NEG-CTX-MALFORM": {
+      "result": "PASS",
+      "kind": "negative_context_pre_delegate",
+      "criterion": "dedicated context call-site: _CoveringClient MALFORM (foo%) admit refuse before sentinel transport.request; 0 delegate calls"
+    },
+    "CTRL-COLLIDE-MULTI-PURPOSE": {
+      "result": "PASS",
+      "kind": "collision",
+      "criterion": "event+identity same prefix via _CoveringClient → ambiguous/unapproved provider route; 0/0"
+    },
+    "CTRL-COLLIDE-DUP-SAME-PURPOSE": {
+      "result": "PASS",
+      "kind": "collision",
+      "criterion": "two distinguishable synthetic numeric peers (203.0.113.10 vs 203.0.113.12) same hostname/prefix/purpose; fake transport records selected peer; assert FIRST peer address selected; one-exchange counts+retirement; no dial/profile-bind/TLS claim"
+    },
+    "CTRL-CONT-FOREIGN-BEFORE-SEND": {
+      "result": "PASS",
+      "kind": "continuation_refuse",
+      "criterion": "foreign absolute URL peer not in reviewed peers → origin/route refuse before send; 0 opens/0 sends/0 follow-ups"
+    },
+    "CTRL-CONT-REDIRECT-3XX": {
+      "result": "PASS",
+      "kind": "continuation_redirect_refuse",
+      "criterion": "admitted path; peer returns 302+Location → redirect refused; 1 original open/send; 0 Location follow-ups"
+    },
+    "CTRL-CONT-MS-NEXTLINK": {
+      "result": "PASS",
+      "kind": "continuation_ms_nextlink",
+      "criterion": "concrete https://graph.microsoft.com/v1.0/me/calendars/a%3Db%2Bc/calendarView?$skiptoken=1 via extracted _absolute_graph_url; path admits; target authz separate; 1/1"
+    },
+    "CTRL-CONT-G-PAGE-TOKEN": {
+      "result": "PASS",
+      "kind": "continuation_google_builder_pagination",
+      "criterion": "extracted _paginate_events driven with 2 scripted pages; setup1+continuation1=2 total opens/sends; URL-shaped nextPageToken as query on continuation; zero redirect/destination follow-ups; not substitutable by direct one-request URL check"
+    },
+    "CTRL-SEP-TARGET-AUTHZ": {
+      "result": "PASS",
+      "kind": "separation",
+      "criterion": "non-tautology: after path admit 1/1 on /calendar/v3/calendars/calx/events; AST+interface evidence extracted covering surface has no calendar-target-authz binder; admit_covering_path returns no authz token; no binder API on _CoveringClient; explicitly separate from native I01-C02; no auth proof manufactured"
+    },
+    "M-PATH-ADMIT-NOOP": {
+      "result": "PASS",
+      "kind": "mutation_control_harness_only",
+      "criterion": "MUTATION_PROVENANCE M-PATH-ADMIT-NOOP: extracted admit_covering_path→noop rebound into CoveringHTTP; ORD-SLASH mutant reaches open/send; unmutated SAME CoveringHTTP assertion refuses path admission 0/0; temporary/in-memory only; never in production snapshot"
+    },
+    "M-HTTP-ALLOW-PATCH": {
+      "result": "PASS",
+      "kind": "mutation_control_harness_only",
+      "criterion": "MUTATION_PROVENANCE M-HTTP-ALLOW-PATCH: CoveringHTTP.request method tuple +PATCH; mutant PATCH reaches construct/open/send (non-method refuse alone is NOT success); unmutated SAME typed-refuse assertion stays 0/0; never in production snapshot"
+    },
+    "M-ENCODED-SLASH-BYPASS": {
+      "result": "PASS",
+      "kind": "mutation_control_harness_only",
+      "criterion": "MUTATION_PROVENANCE M-ENCODED-SLASH-BYPASS: neutralized encoded-slash AND decoded-literal-slash refuses inside extracted _inspect_opaque_id_segment; ENC-SLASH CoveringHTTP mutant reaches open/send; unmutated SAME assertion refuses 0/0; never in production snapshot"
+    },
+    "H-INVENTORY-ACCEPTS-GOOD": {
+      "result": "PASS",
+      "kind": "harness_inventory_self_check",
+      "criterion": "enforce_expected_inventory accepts exact ordered good result matching EXPECTED"
+    },
+    "H-INVENTORY-REJECTS-REORDER": {
+      "result": "PASS",
+      "kind": "harness_inventory_self_check",
+      "criterion": "enforce_expected_inventory rejects reordered control_ids before PASS"
+    },
+    "H-INVENTORY-REJECTS-DUPLICATE": {
+      "result": "PASS",
+      "kind": "harness_inventory_self_check",
+      "criterion": "enforce_expected_inventory rejects duplicate control_ids before PASS"
+    },
+    "H-INVENTORY-REJECTS-MISSING": {
+      "result": "PASS",
+      "kind": "harness_inventory_self_check",
+      "criterion": "enforce_expected_inventory rejects missing control_ids before PASS"
+    },
+    "H-INVENTORY-REJECTS-ALTERED": {
+      "result": "PASS",
+      "kind": "harness_inventory_self_check",
+      "criterion": "enforce_expected_inventory rejects altered/unexpected outcomes before PASS"
+    }
+  },
+  "unresolved_native_obligations_explicitly_not_claimed": [
+    "real TLS / provider dial",
+    "endpoint/profile binding",
+    "target calendar authorization",
+    "full provider transport proof",
+    "T01-T08 closure",
+    "DB acknowledgment"
+  ],
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "controls_plan_sha256": "5072CED783E3ACA08EC28E760D6581D3916F1E5175F3CF830ABD5412C0B845BB",
+  "supersedes_frozen_v2_tip_sha256": "9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB",
+  "predecessor_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "named_control_findings_closed": [
+    "CTRL-POS-MS-VIEW_and_DELTA_builder_composition_a_eq_b_plus_c",
+    "CTRL-COLLIDE-DUP-SAME-PURPOSE_first_peer_selection",
+    "positive_path_driver_exact_request_line_no_normalize_forward"
+  ],
+  "not_full_t01_t08_proof": true,
+  "launch_ready": false
+}

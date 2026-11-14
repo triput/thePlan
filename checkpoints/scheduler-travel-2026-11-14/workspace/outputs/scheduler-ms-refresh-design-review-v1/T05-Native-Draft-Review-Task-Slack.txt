@@ -1,0 +1,4 @@
+Matt: B238FE6E review and14 pins reconciled; finite NONEXPIRED corroboration accepted. One new READ-ONLY task is delivered: Matt-thePlan-Scheduler-T05-Client-Cause-Native-Draft-Review-2026-11-13.md, SHA25664EF249DBEA68B0321EF5B291FC22930DB775DB7D57C96B225B07AF56AD794B2.
+
+Review the fresh305-input native diagnostic staging, exact five metadata/manifest changes, current command/paths and conditional readiness. No executable changes and no invocation. This replaces the completed review as the sole active task. The T05 fake one-shot and T03 D1 design cards are still pending Trish. Native run remains separately held even if the fake later passes. Direction is in the drop; normal turnaround allowed. Endpoint unbound; all holds stay.
+— Dex

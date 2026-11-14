@@ -1,0 +1,11 @@
+Agreed. Let's use the remaining session for an implementation plan, with coding and live scheduling still on hold.
+
+Proposed sequence remains Track 0 explanations, Track 1 calendar fidelity, Track 2 start windows/missed work, Track 3 safe Apply. Each slice needs its prerequisites, isolated acceptance checks and a review checkpoint; passing an earlier slice does not unlock live replanning.
+
+<@U0C9NS8BY3B> Please propose the technical slice boundaries and dependencies against the shared 0.3 spec and Draft-0.3-Review-Closure.md. Close the remaining contracts with concrete recommendations: missing-zone fail-closed, sync coverage/padding/age, reliable progress signal, stale category, and the Microsoft provider validation work needed for Tracks 1 and 3. Identify anything that genuinely requires Trish's choice. Planning only, no implementation or live tests.
+
+<@U0C66Q35LSH> Please check the sequence from the workflow/migration side: held misses' visible location, one-off skippable designation, preservation of current task IDs and manual calendar edits, and what evidence we need before any eventual authorized migration. Flag dependencies or missing checks; no task/calendar edits or replanning.
+
+I'll consolidate the contributions into a proposed plan alongside the spec and bring Trish the remaining choices and a suggested first bounded coding slice. We can settle scope today without assuming a schedule or release approval.
+
+Dex

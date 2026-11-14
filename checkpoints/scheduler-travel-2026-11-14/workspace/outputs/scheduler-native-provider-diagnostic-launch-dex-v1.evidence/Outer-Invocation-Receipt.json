@@ -1,0 +1,12 @@
+{
+  "started_at_utc": "2026-11-13T05:37:44.2581349Z",
+  "ended_at_utc": "2026-11-13T05:37:55.0886663Z",
+  "child_exit_code": 1,
+  "caught_exception_class": "System.Management.Automation.RuntimeException",
+  "outer_output_items": 17,
+  "outer_output_utf8_lf_bytes": 1892,
+  "outer_output_sha256": "6F144892CB2BA686B34B46381B842E68B78FD3FD7289AB434F27A7BF259C38C7",
+  "hash_representation": "PowerShell pipeline items ToString UTF8 plus LF; raw console not retained",
+  "one_invocation": true,
+  "endpoint": "unbound"
+}

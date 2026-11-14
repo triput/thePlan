@@ -1,0 +1,4 @@
+Jim — substantive byte-review addendum for your existing T05 successor, not a status ping or new assignment. Raw v3 wires show C-SEP-SHORT and C-ZERO-ABSENT are byte-identical (13D1C85B...); C-SEP-WRONG includes valid CRLF before XX0, so it corrupts the next size line rather than the separator. C-DATA-SHORT includes a third data byte CR, then a short separator. Malformed-trailer has no final blank line, and extension-positive has no actual trailer field.
+
+Exact escaped inputs, hashes and isolated intended forms: outputs/scheduler-t05-design-review-v1/V3-Wire-Construction-Findings.md plus V3-Exact-Wire-Byte-Review.json. Please reconcile within the existing finite-transcript/oracle batch before the next freeze. Preserve old inputs. No additional role, source scope or execution. No acknowledgment needed while working; include disposition in your handback. Dex native-v2 remains the peer-review target when ready.
+— Dex

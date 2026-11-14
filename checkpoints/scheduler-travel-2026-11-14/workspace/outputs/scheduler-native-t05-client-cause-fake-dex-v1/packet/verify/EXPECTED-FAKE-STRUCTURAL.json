@@ -1,0 +1,63 @@
+{
+  "kind": "native-t05-client-cause-fake-structural-expected",
+  "packet": "scheduler-native-t05-client-cause-fake-prep-matt-v1",
+  "candidate_root": "scheduler-native-provider-t05-client-cause-prep-matt-v1",
+  "assignment": "Dex 9F9FF48E T05 client-cause diagnostic preparation (diagnostic only; no behavior change)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "CHAIN-HELPER",
+    "OBSERVE-WIRING",
+    "STOP-PRODUCER-AND-VALIDATOR",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner"],
+    "CHAIN-HELPER": ["admitted_label_unchanged", "refused_same_guard_and_cause", "none_fallback", "unexpected_exception_identity", "client_exception_not_mutated"],
+    "OBSERVE-WIRING": ["client_exc_init_none", "capture_in_client_handler_only", "chain_after_retirement_and_inventory", "classifier_call_replaced_once"],
+    "STOP-PRODUCER-AND-VALIDATOR": ["secret_markers_absent", "chain_exact_kinds_and_owned_frames", "non_owned_frames_dropped", "cleanup_unknown_preserved", "suppressed_context_followed", "overflow_truncation_and_bounds", "diagnostic_fallback"],
+    "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact"],
+    "PRIOR-FAKE-APPLICABILITY": ["t05_units_identical_except_observe", "peer_transcript_suite_unchanged"],
+    "ACTUAL-SOURCE-MUTANTS": ["cause_dropped", "wrong_cause", "none_fallback_chained", "producer_exports_message", "chain_before_retirement", "capture_dropped"]
+  },
+  "expected_nested_predicates": 38,
+  "nested_count_breakdown": "SUBJECT-PINS 1 + RUNTIME 7 + DIFF 2 + PRESERVED 1 + CHAIN 5 + WIRING 4 + PRODUCER 7 + BATCH 3 + PRIOR 2 + MUTANTS 6 = 38",
+  "check_kinds": {
+    "behavioral_extracted": "CHAIN-HELPER (candidate helper + unchanged classifier/tuples, named fake SuiteStop); STOP-PRODUCER-AND-VALIDATOR (actual stop_payload over a sandboxed temporary owned root with a hash-pinned fake owned module, plus the actual host DockerOps._record_runner_stop with a named fake self)",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; OBSERVE-WIRING",
+    "behavioral_mutants": ["cause_dropped", "wrong_cause", "none_fallback_chained", "producer_exports_message"],
+    "structural_mutants": ["chain_before_retirement", "capture_dropped"],
+    "not_counted": "adding an internal SuiteStop message is NOT a privacy defect (the producer never exports messages) and is not a mutant here"
+  },
+  "expected_outcomes": {
+    "admitted": "every admitted (expectation, outcome) returns the same label as the classifier directly, with or without a client exception",
+    "refused_with_client": "the classifier's SuiteStop (same object when the classifier is stubbed) is raised with __cause__ is the caught client exception and __suppress_context__ True",
+    "refused_without_client": "bare re-raise: __cause__ None, __suppress_context__ False, __context__ None",
+    "unexpected_classifier_exception": "propagates as the same object, unchained",
+    "client_exception": "its __cause__, __context__, __suppress_context__, __traceback__ and args are unchanged",
+    "wiring": "client_exc initialized None before the peer try; set only in the client request handler (first statement, before the unchanged outcome tuple); the single helper call is a top-level statement after the retirement and inventory checks; no direct classifier call remains in _t05_observe",
+    "producer": "kinds exactly [SuiteStop, <client kind>] with the owned raise frame; extracted (non-owned) frames dropped with truncated; cleanup UNKNOWN chain [SuiteStop, CoveringRootOutcomeUnknown, primary]; a suppressed context is still exported by the unchanged producer (cause else context); 4-link chain cut to 3 with truncated; deep frames cut to 8 with truncated; <= 4096 bytes; secret markers in messages/args absent from payload and validator record; missing manifest gives the original {status, kind} fallback",
+    "validator": "the unchanged host validator accepts every produced line and records runner_stop with the same exception entries"
+  },
+  "mutant_oracles": {
+    "cause_dropped": "chain:refused same guard and cause",
+    "wrong_cause": "chain:refused same guard and cause",
+    "none_fallback_chained": "chain:none fallback",
+    "producer_exports_message": "producer:secret markers absent",
+    "chain_before_retirement": "wiring:chain after retirement",
+    "capture_dropped": "wiring:capture in client handler"
+  },
+  "limits": {"check_seconds": 120, "timeout_retirement_total_seconds": 135, "result_byte_cap": 262144, "capture_byte_cap_per_stream": 65536, "temporary_owned_root": "created and removed inside the check run only"},
+  "not_proved": "which client exception a native run produces; native TLS/EOF behavior; peer retirement timing; any T05 requirement",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

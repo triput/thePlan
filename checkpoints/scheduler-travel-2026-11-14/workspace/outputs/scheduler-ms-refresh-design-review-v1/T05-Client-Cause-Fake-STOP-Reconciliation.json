@@ -1,0 +1,38 @@
+{
+  "atUtc": "2026-11-14T02:38:00.0021465Z",
+  "status": "STOP_ONE_SHOT_CONSUMED",
+  "question": "call_9fe24ed97d1a4017b5d4fd7eb44b318a item0",
+  "command": "08709F146A56F54F021AD6FA7F11C6660C8AA4D8C5D50845EFFD5FEFCC3918C2",
+  "manifest": "F94FE06950460E6FA557C1419AE7922029777EE610ED2B82DE9D81C9D800CA2F",
+  "invocations": 1,
+  "remainingInvocations": 0,
+  "launchReceiptSHA256": "0E7722BDAF90EC143822CB8D8B9EC6DFCB8177403C55DE96431675E1A6433D09",
+  "childExit": 125,
+  "childKilled": false,
+  "readersJoinedCleanEOF": true,
+  "retirementUnknown": false,
+  "timedOut": false,
+  "stdoutBytes": 0,
+  "stderrBytes": 30,
+  "stderrSHA256": "156DA107D83C7BF2CB10B2B934DDAFACB42EEB4AA24042C0812C343851321C35",
+  "resultFilePresent": false,
+  "postInputsUnchanged": 23,
+  "postRuntimePinsUnchanged": 10,
+  "sourceDerivedErrorHashMatch": {
+    "exactByteCount": 30,
+    "literal": "STOP: CHAIN-HELPER:TypeError",
+    "lineEnding": "CRLF",
+    "method": "Hash source-derived literal plus CRLF only; no checker import, parsing, execution or raw-child stream retained"
+  },
+  "sourceDiagnosis": {
+    "file": "packet/verify/check_native_provider.py",
+    "lines": "407-408,417-431",
+    "finding": "ADMITTED response entries have integer200 at outcome[1]; oracle_chain passes that value directly to client_exception; type(name,...) requires a string class name",
+    "confidence": "Source-supported checker defect consistent with exact retained class/control hash; raw underlying TypeError message is not retained",
+    "applicationOrDiagnosticFailureEstablished": false,
+    "staticReviewMissed": true
+  },
+  "sequence": "Stop before untouched MS-refresh retirement check per approved card; no second invocation",
+  "sourceOrExecutionRepairPerformed": false,
+  "endpoint": "unbound"
+}

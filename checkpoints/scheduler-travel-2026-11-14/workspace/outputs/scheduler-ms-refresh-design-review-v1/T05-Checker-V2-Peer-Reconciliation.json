@@ -1,0 +1,22 @@
+{
+  "atUtc": "2026-11-14T03:03:14.1894529Z",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED",
+  "peerReview": "FB153E9A85F64E3A0D269509833B7E1B45F06B095DEC26ABBFA152B81066D726",
+  "sourceAuthorship": "Matt authored originalchecker; independently reviewed Dex successor delta/staging and disclosed unchanged downstream runtime portability risk",
+  "inputs": 27,
+  "packetPins": 17,
+  "partialRuntimePins": 10,
+  "checker": "8B364EDEF6CE203EEE95A494303B77912EF2205F8319DCA817280B56CCB12D18",
+  "command": "32908BA50D15FEB19CC4FCB97997629B2AA00E1A0C3EC9694BFA5C714EFE7F33",
+  "admission": "D9E0305630642B01B8C02A82C71EAC687E6709F8C5EBD0ED5BBF848622CC222F",
+  "manifest": "E0822D160D11592E72ED58233B86F70662FD20479B6704B0593985268C65BA52",
+  "correction": "Exactly one admitted-probe class-name str conversion, all subjects/EXPECTED10/38/oracles unchanged",
+  "qualifications": [
+    "Windows non-owned synthetic traceback path resolution may fall back under the unchanged producer; any resulting mismatch stops, no widening or automatic repair",
+    "Inherited sourcepacketlabel identifies provenance; root current command identifies v2 staging",
+    "Peer opening snapshot sentence says neitherroot hasreceipt, but section1 correctly states failedv1receipt exists; Dex independently confirms v1failedreceipt preserved and v2outputs absent",
+    "Syntax/behavior unexecuted; no native failure class established"
+  ],
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

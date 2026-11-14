@@ -1,0 +1,14 @@
+{
+  "startedAtUtc": "2026-11-13T19:05:36.2207290Z",
+  "lastNativeExitCode": 125,
+  "outerOutputItems": 1,
+  "completedAtUtc": "2026-11-13T19:05:37.6271795Z",
+  "exceptionKind": "RuntimeException",
+  "outerOutputSha256": "8DF7A4E5B2299FDAD8FAA8DAEC4ED3927E11F843C0261BC229821B95623E3B54",
+  "oneShotConsumed": true,
+  "endpoint": "unbound",
+  "childStreams": "retained by reviewed launcher as hash/count only",
+  "executedInvocations": 1,
+  "status": "STOP",
+  "outerOutputBytes": 74
+}

@@ -1,0 +1,133 @@
+{
+  "packet": "post-native-provider-t05-closure-prep-jim-v2-2026-11-12",
+  "status": "NATIVE_PROVIDER_T05_CLOSURE_PREPARATION_AUTHORED_NOT_EXECUTED",
+  "disposition": "PREP_COMPLETE_FOR_DEX_REVIEW_T05_CLOSURE_R1_R5",
+  "disposition_one_liner": "Jim t05-closure-prep-jim-v2: Dex R1-R5 FIXED on NP-T05 bodies + extracted controls; launch batch NP-V-MS-NONEXPIRED only; LF tip; uninvoked",
+  "author": "Justin",
+  "role": "Jim primary coding lead — T05 closure prep-v2 under Dex REVISE R1-R5",
+  "date": "2026-11-12",
+  "byte_semantics": "utf-8 lf",
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": false,
+  "implementation_beyond_prep": false,
+  "prep_is_not_pass": true,
+  "first_vertical_increment": true,
+  "endpoint": "unbound",
+  "slack_tip_from_this_seat": false,
+  "tip_sha256": "D40FAA850097F42F38E06512141C16D3C46A7035D49B5B1FF6647DD3EB5C82AB",
+  "tip_sha256_preimage_rule": "tip_sha256 is SHA256 of this TIP-FREEZE.json exact on-disk UTF-8 LF bytes with the tip_sha256 field value replaced by 64 ASCII zeros; ARTIFACT-HASHES lists the final on-disk SHA256 of TIP-FREEZE.json (with tip_sha256 filled). No CRLF normalization.",
+  "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "approval_sha256": "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4",
+  "dex_reconciliation_sha256": "BA194960F6B96B1D9DD95F4434EC8C94AB1F7C65E1238761DA7B4DF17DCDF0BB",
+  "native_deadline_tls_sha256": "1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069",
+  "tip_base_t05_closure_prep_jim_v1_on_disk_sha256": "C902F5296D2B76031254213A1A0812CB944062296BD6B5BA13373A29863483EB",
+  "held_candidate_v2_tip_on_disk_sha256": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
+  "native_ready_tip_on_disk_sha256": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+  "prep_v9_tip_on_disk_sha256": "6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188",
+  "assignment_note": "Same approved 16-role lane; fresh T05 closure successor consolidating Dex R1-R5; no new preparation card",
+  "assembled_api_files": 234,
+  "mutable_role_count": 16,
+  "native_case_count_canonical": 27,
+  "pure_cf_witness_case_count": 4,
+  "planning_ids_preserved": 76,
+  "implemented_case_ids_source": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION"
+  ],
+  "launch_batch_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "expected_unknown_cases": [],
+  "authored_bodies_not_in_launch_batch": [
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION"
+  ],
+  "remaining_case_bodies": "HOLD_EXPLICIT_NOT_PASS",
+  "static_success_docker_command_count": 22,
+  "command_count_cap": 32,
+  "key_role_sha256": {
+    "np_suite.py": "617D381A92F41DEC8376BA0F45A9DF9A9FBA3A54DE6D15B6F61BA2439DEFE562",
+    "np_runner_entry.py": "A43092575F7DA6FD6892195DEA3356314C0AF8083D7B60968E42C1080276ABB4",
+    "np_provider_peer.py": "4EEAB1E7F789AB4918B36466A50F29E09F84E6FA48A87C0C942ECD599E097D17",
+    "np_provider_transcript.py": "46327DF0A848672FFBCA85772C0EA764D370BDF7B487EFAE36831F451A6915D4",
+    "check_native_provider.py": "49233E917CA41FECB1E42ECDCC7D8985DE31F7B749D7BCA65421695567B7AB9F",
+    "launch_check.py": "41F4EB8EE36715CBDE63AA3F8025FBBC073F319CDC397C830842D0C61B42FA49",
+    "verify_admission.py": "9B818F8E12AA2E654700AC44CBD2834C7640AB6D1EE2AEC49B8664DC76C5063C",
+    "Invoke-Fake.ps1": "2764F14ED01E70C39D1758E26EC7FDC8C025E28D42E4EFE14ABD7741BEF39721",
+    "Invoke-Native-Provider.ps1": "C4A883E8175F7AB40977CA482F78838C61C269E7CB46F5235FCDAD9E3C18A9AC",
+    "np_supervisor.py": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+    "payload/runner-config.json": "5A54F37CAD7A470CF2CCC2CC121818953E24848C19026C7EBC9D02114B10043D",
+    "payload/SHA256SUMS.txt": "30EF98F8067B1D0476BF0F2923B1FD80B557286BB5AE494661044B96F98DE472",
+    "EXPECTED-FAKE-STRUCTURAL.json": "CCC7824FEA9CA19C93148C20D079EE2011B850392E394F5B6A8177126DAC64FF",
+    "OUTER-ADMISSION.json": "B92E47CC9EC47182F54310563C94B642C8A41D2A85433F028A529D51A214B0AE",
+    "VERIFICATION-ADMISSION.json": "DA0DA60A5153C8174C2CEA439D152A341A364C4DD9EC35373D0E130C37FB4DDB",
+    "docker_transport.py": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53"
+  },
+  "observation_disposition": {
+    "obs1_close_delimited_accepted_after_orderly": "FIXED",
+    "obs2_short_cl_valid_json_refused_after_orderly": "FIXED",
+    "obs3_abrupt_truncation_distinct": "FIXED"
+  },
+  "dex_r1_r5_disposition": {
+    "R1_unknown_unwrap_refused": "FIXED",
+    "R2_abrupt_measured_receive_required": "FIXED",
+    "R3_partial_start_one_retirement": "FIXED",
+    "R4_fresh_plan_per_exchange": "FIXED",
+    "R5_report_deps_and_extracted_controls": "FIXED"
+  },
+  "t05_extracted_control_ids": [
+    "T05-R1-CLEAN-REFUSAL-ADMITTED",
+    "T05-R1-UNKNOWN-REFUSED",
+    "T05-R1-UNKNOWN-UNWRAP-MUTATION-HOLE",
+    "T05-R2-ABRUPT-MEASURED-ADMITTED",
+    "T05-R2-GENERIC-REFUSAL-REFUSED",
+    "T05-R2-DEADLINE-REFUSED",
+    "T05-R2-UNKNOWN-REFUSED",
+    "T05-R2-MEASURED-GUARD-MUTATION-HOLE",
+    "T05-R3-PARTIAL-START-ONE-RETIREMENT",
+    "T05-R3-UNCONFIRMED-RETIREMENT-STOP",
+    "T05-R3-DOUBLE-RETIRE-GUARD-PRESENT",
+    "T05-R4-PLAN-CAPTURE-FAILURE-STOP",
+    "T05-R4-PLAN-EXPIRY-STOP",
+    "T05-R4-NOW-FALLBACK-ABSENT"
+  ],
+  "dex_interrupt_folded": {
+    "peer_stimulus_not_sole_orderly_eof_proof": true,
+    "production_receive_pairing_under_suppress_ragged_eofs_false": true,
+    "unwrap_success_not_sole_proof": true,
+    "joinedtls_close_local_only_preserved": true,
+    "native_deadline_tls_section": 6,
+    "no_extra_launch_gate": true
+  },
+  "vertical_contract": {
+    "case_id": "NP-V-MS-NONEXPIRED",
+    "launch_batch_unchanged": true
+  },
+  "workspace_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-closure-prep-jim-v2",
+  "handback_dir": "F:/DropFolder/pending/post-native-provider-t05-closure-prep-jim-v2-2026-11-12",
+  "does_not_authorize": [
+    "imports_compilation_tests_helpers",
+    "pki_sockets_docker_providers_credentials",
+    "native_launch",
+    "focused_fake_invoke",
+    "endpoint_binding",
+    "slack_tip",
+    "claiming_pass_from_prep",
+    "launch_batch_expansion"
+  ],
+  "remaining_gaps": [
+    "case_bodies_hold_except_NP-V-MS-NONEXPIRED_and_authored_T05_outside_batch",
+    "provider_pki_generation_held",
+    "image_presence_and_port443_unverified",
+    "fake_v1_pass_prerequisite_unfulfilled",
+    "t05_native_behavioral_proof_unexecuted"
+  ],
+  "policy_surfaces": [
+    "close_delimited_uses_Content-Length_OMIT_not_CL2",
+    "t05_bodies_are_CoveringHTTP_JoinedTLS_event_exchanges_not_full_covering_refresh_vertical",
+    "short_cl_refuse_IncompleteRead_or_CoveringTransportRefused_only_UNKNOWN_is_STOP",
+    "abrupt_requires_measured_tls_eof_or_tcp_reset_receive_plus_stimulus"
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "status": "PASS",
+  "class": "FAKE-BEHAVIORAL",
+  "controls": {
+    "N1": {
+      "result": "REFUSE",
+      "detail": "primary preserved with cleanup attached via extract"
+    },
+    "N2": {
+      "result": "REFUSE",
+      "detail": "I02 select operational-vs-cleanup; owner+worker-close; worker+observer-close; verify-close dual-faults"
+    },
+    "N3": {
+      "result": "REFUSE",
+      "detail": "failure wake-up did not commit via await_mutation_admission"
+    },
+    "N4": {
+      "result": "REFUSE",
+      "detail": "missing final diagnostic refused by extracted oracle"
+    },
+    "N5": {
+      "result": "REFUSE",
+      "detail": "wrong final diagnostic refused by extracted oracle"
+    },
+    "N6": {
+      "result": "REFUSE_OR_IDEMPOTENT",
+      "detail": "second stop_gate no-op"
+    },
+    "N7": {
+      "result": "PASS_CONSTRUCT",
+      "detail": "i01c01/i01c10 hex-safe inverted pairs"
+    },
+    "N8": {
+      "result": "REFUSE",
+      "detail": "wrong script order refused by SharedTransportScript"
+    },
+    "N9": {
+      "result": "REFUSE",
+      "detail": "legacy lowercase rejected; uppercase accepted"
+    },
+    "N10": {
+      "result": "REFUSE",
+      "detail": "gate+lock+budget+transport missing/wrong observations refused with positives"
+    },
+    "N11": {
+      "result": "REFUSE",
+      "detail": "C09 unbound inject / fabricated / error / outbound / late-peer / cancel-before-selection peer-secondary refused via extract"
+    },
+    "N12": {
+      "result": "REFUSE",
+      "detail": "unrelated 422 rejected by extracted count assert"
+    },
+    "N13": {
+      "result": "REFUSE",
+      "detail": "already-sorted refused by assert_ordering_request_ids"
+    },
+    "N14": {
+      "result": "REFUSE",
+      "detail": "synthetic ModuleType registration / _is_type probe / patch visibility / missing-symbol refuse covered"
+    },
+    "P_UUID_actual_tokens": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_script_production_order": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_C07_uppercase_ids": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_C03_count_types": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_gate_idempotent_second_stop": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_admit_mutation_commits": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_C09_hold_snapshot_shape": {
+      "result": "PASS",
+      "detail": ""
+    },
+    "P_synthetic_module_registration": {
+      "result": "PASS",
+      "detail": ""
+    }
+  },
+  "control_ids_in_order": [
+    "N1",
+    "N2",
+    "N3",
+    "N4",
+    "N5",
+    "N6",
+    "N7",
+    "N8",
+    "N9",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "N14",
+    "P_UUID_actual_tokens",
+    "P_script_production_order",
+    "P_C07_uppercase_ids",
+    "P_C03_count_types",
+    "P_gate_idempotent_second_stop",
+    "P_admit_mutation_commits",
+    "P_C09_hold_snapshot_shape",
+    "P_synthetic_module_registration"
+  ],
+  "expected_control_ids": [
+    "N1",
+    "N2",
+    "N3",
+    "N4",
+    "N5",
+    "N6",
+    "N7",
+    "N8",
+    "N9",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "N14",
+    "P_UUID_actual_tokens",
+    "P_script_production_order",
+    "P_C07_uppercase_ids",
+    "P_C03_count_types",
+    "P_gate_idempotent_second_stop",
+    "P_admit_mutation_commits",
+    "P_C09_hold_snapshot_shape",
+    "P_synthetic_module_registration"
+  ],
+  "ordered_contract": "EXPECTED.controls key order == EXPECTED.control_ids_in_order == result.control_ids_in_order == result.controls key order",
+  "inventory_error": null,
+  "extraction_provenance": [
+    {
+      "source_path": "fixture/i01_auth_seed.py",
+      "source_sha256": "F66B4FE3D13F47122754835D3AF45EE6770D45B4D7250D35B013F026C4CC4371",
+      "names": [
+        "_token_hex_prefix",
+        "inverted_subscription_ids",
+        "production_ordered_calendar_ids",
+        "ATTEMPT_VALIDITY_SECONDS",
+        "PULL_WINDOW_MAX",
+        "PlanValidityExpired",
+        "REQUEST_END_HEADROOM",
+        "TOKEN_HORIZON"
+      ],
+      "module_name": "extracted_i01_auth_seed"
+    },
+    {
+      "source_path": "fixture/i01_byte_transport.py",
+      "source_sha256": "E532D3163712729DAA98FF16D50EB2682A7B44D8A7570D5CA2CE970B5D1CF5BA",
+      "names": [
+        "ScriptedExchange",
+        "SharedTransportScript",
+        "google_event_empty_script"
+      ],
+      "module_name": "extracted_i01_byte_transport"
+    },
+    {
+      "source_path": "fixture/i01_i02_receipts.py",
+      "source_sha256": "796F12ECB068E8BE7B01EE3CA390CDBF58FFE2BA981BB59B2293DD22409311BF",
+      "names": [
+        "build_receipt",
+        "sanitize_cleanup_failure",
+        "RECEIPT_VERSION"
+      ],
+      "module_name": "extracted_i01_i02_receipts"
+    },
+    {
+      "source_path": "fixture/i01_c06_dual_peer.py",
+      "source_sha256": "79EDDA9719577A805EA4CA4C2534B62EA3B21B55AF36EDA8D243C38E90A74331",
+      "names": [
+        "load_c06_gate_receipt",
+        "C06GateError",
+        "C06_GATE_ARTIFACT_STEM"
+      ],
+      "module_name": "extracted_i01_c06_dual_peer"
+    },
+    {
+      "source_path": "fixture/i01_asgi_app.py",
+      "source_sha256": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B",
+      "names": [
+        "DisconnectInjectControl",
+        "BoundedASGIResponse",
+        "MONITOR_OBSERVE_JOIN_SECONDS",
+        "_next_receive_message"
+      ],
+      "module_name": "extracted_i01_asgi_app"
+    },
+    {
+      "source_path": "fixture/i01_i02_suite.py",
+      "source_sha256": "EA776814DBD6924A689BAAC00C36E9AEE50B01F635AFB25B733D40796E4BC229",
+      "names": [
+        "AttemptCleanup",
+        "assert_subscription_ids_count_error",
+        "assert_ordering_request_ids",
+        "attach_cleanup_failures_to_primary",
+        "resolve_attempt_outcome",
+        "assert_c09_disconnect_evidence",
+        "assert_i02_lock_observations",
+        "assert_budget_identity_observations",
+        "assert_transport_coverage_observations",
+        "_validation_items",
+        "I01_CASE_IDS",
+        "JOIN_LIMIT_SECONDS",
+        "SuiteStop"
+      ],
+      "module_name": "extracted_i01_i02_suite"
+    },
+    {
+      "source_path": "fixture/i02_owner_lock_contention.py",
+      "source_sha256": "A8E38CD2B79AC5F0E19FCC724313F5608C5011B313D5EBB456FE9ED4A4C000E2",
+      "names": [
+        "I02Barriers",
+        "I02Evidence",
+        "GENERATION_MISMATCH_CAUSE",
+        "await_mutation_admission",
+        "assert_intended_subscription_diagnostic",
+        "record_observer_close_failure",
+        "select_i02_primary",
+        "close_preserving_primary",
+        "run_verification_query_with_close",
+        "JOIN_LIMIT_SECONDS"
+      ],
+      "module_name": "extracted_i02_owner_lock_contention"
+    }
+  ],
+  "source_hashes_verified": true,
+  "executed": true,
+  "cannot_waive": [
+    "native SQL contention",
+    "real TLS terminal",
+    "integrated ingress timing under Docker"
+  ]
+}

@@ -1,0 +1,303 @@
+{
+  "registry_kind": "Independent functional coverage checklist for later handback review",
+  "created_at_utc": "2026-11-11T18:20:18.1607655Z",
+  "source_tip": "7D2579FB0EDF3A98B3C9AA40C736CBA66FC949CB2F4F8982D6F4D8264A0A6131",
+  "source_controls_sha256": "5072CED783E3ACA08EC28E760D6581D3916F1E5175F3CF830ABD5412C0B845BB",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "count": 41,
+  "entries": [
+    {
+      "id": "CTRL-POS-G-PLUS-AT",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-PLUS-AT` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` (slash-boundary) | `/calendar/v3/calendars/cal%2Bendar%40x.com/events` | 1 | 1 | admit; wire unchanged | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-PERCENT",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-PERCENT` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/plain%25id/events` | 1 | 1 | admit; intermediate `%` not re-tested | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-INTERNAL-DOT",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-INTERNAL-DOT` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/a%2Eb/events` | 1 | 1 | admit | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-UNICODE",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-UNICODE` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/caf%C3%A9/events` | 1 | 1 | admit valid UTF-8 ID | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-ID-LITERAL-CALENDARS",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-ID-LITERAL-CALENDARS` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/calendars/events` | 1 | 1 | opaque index 4 only | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-EXACT-PREFIX",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-EXACT-PREFIX` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | **`/calendar/v3/calendars/calx/events`** (prefix **equals** full path) | `/calendar/v3/calendars/calx/events` | 1 | 1 | exact-match route + path admit | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-CHILD",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-CHILD` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` (slash-boundary parent) | `/calendar/v3/calendars/calx/events` | 1 | 1 | descendant match + path admit | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-MS-VIEW",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-MS-VIEW` | reviewed Microsoft Graph covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/v1.0/me/calendars/` | `/v1.0/me/calendars/a%3Db%2Bc/calendarView` | 1 | 1 | admit | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-MS-DELTA-COMPAT",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-MS-DELTA-COMPAT` | reviewed Microsoft Graph covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/v1.0/me/calendars/` | `/v1.0/me/calendars/a%3Db%2Bc/calendarView/delta` | 1 | 1 | admit; not ordinary-refresh invoke claim | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-CALENDARLIST",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-CALENDARLIST` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | identity | `/calendar/v3/users/me/calendarList` (exact) | `/calendar/v3/users/me/calendarList` | 1 | 1 | all structural | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-MS-LIST",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-MS-LIST` | reviewed Microsoft Graph covering peer (hostname name-only in docs; unbound; never dial) | GET | identity | `/v1.0/me/calendars` (exact) | `/v1.0/me/calendars` | 1 | 1 | no opaque | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-MS-DEFAULT",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-MS-DEFAULT` | reviewed Microsoft Graph covering peer (hostname name-only in docs; unbound; never dial) | GET | identity | `/v1.0/me/calendar` (exact) | `/v1.0/me/calendar` | 1 | 1 | structural | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-OAUTH",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-G-OAUTH` | reviewed Google OAuth peer (hostname name-only in docs; unbound; never dial) | POST | oauth | `/token` (exact); POST+oauth pairing | `/token` | 1 | 1 | structural | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-MS-OAUTH",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-MS-OAUTH` | reviewed Microsoft OAuth peer (hostname name-only in docs; unbound; never dial) | POST | oauth | tenant token path exact | `/11111111-2222-3333-4444-555555555555/oauth2/v2.0/token` | 1 | 1 | structural; no profile bind | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-BUDGET-EQ-8",
+      "family": "positive",
+      "source_row": "| `CTRL-POS-BUDGET-EQ-8` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/%2525252525252561/events` | 1 | 1 | admit at 8-transition edge | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-ORD-SLASH",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-ORD-SLASH` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/ordinary%2Fid/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-ENC-SLASH-PCT2F-UPPER",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-ENC-SLASH-PCT2F-UPPER` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/x%2Fy/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-ENC-SLASH-PCT2F-LOWER",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-ENC-SLASH-PCT2F-LOWER` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/x%2fy/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-NEST-252F",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-NEST-252F` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/foo%252Fbar/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-NEST-25252F",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-NEST-25252F` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/foo%25252Fbar/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-NEST-DOT",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-NEST-DOT` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/%252e%252e/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-RAW-DOT",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-RAW-DOT` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/` (slash-boundary; path still under match) | `/calendar/v3/calendars/calx/events/../../outside` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-EMPTY",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-EMPTY` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars//events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-TRAILING",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-TRAILING` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/calx/events/` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-MALFORM-BARE",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-MALFORM-BARE` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/foo%/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-MALFORM-G1",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-MALFORM-G1` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/foo%G1bar/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-MALFORM-TRUNC",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-MALFORM-TRUNC` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/foo%2/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-UTF8-INVALID",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-UTF8-INVALID` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/%80/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-STRUCT-PCT-HELPER",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-STRUCT-PCT-HELPER` | reviewed synthetic fixture peer (numeric address / public CA pins at fixture freeze; unbound; never dial); **synthetic already-matching prefix** so route match succeeds before helper | GET | event | **`/__fixture__/covering/admit/`** (slash-boundary) | `/__fixture__/covering/admit/enc%41bad` | 0 | 0 | reaches `admit_covering_path`; structural `%` → CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-BUDGET-EQ-9",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-BUDGET-EQ-9` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial) | GET | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/%252525252525252561/events` | 0 | 0 | CoveringTransportRefused(\"path admission refused\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-PREFIX-BOUNDARY",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-PREFIX-BOUNDARY` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial); routes prefix=`/calendar/v3/calendars` (no child match for `-other`) | GET | event | `/calendar/v3/calendars` | `/calendar/v3/calendars-other/x/events` | 0 | 0 | route refuse **before** helper (`provider route refused`) | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-COVERINGHTTP-PATCH-TYPED",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-COVERINGHTTP-PATCH-TYPED` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial); call **`CoveringHTTP.request(\"PATCH\", url, purpose=event)`** | PATCH | event | `/calendar/v3/calendars/` | `/calendar/v3/calendars/calx/events/eid123` | 0 | 0 | CoveringTransportRefused typed method refusal from CoveringHTTP.request (non-GET/non-POST) — typed refusal at CoveringHTTP; **no** PATCH support added | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-NEG-COVERINGCLIENT-PATCH-ABSENT",
+      "family": "negative",
+      "source_row": "| `CTRL-NEG-COVERINGCLIENT-PATCH-ABSENT` | covering context; call **`_CoveringClient.patch(...)`** directly | n/a | n/a | n/a | n/a (no `.patch` attribute) | 0 | 0 | AttributeError: _CoveringClient has no attribute patch (no mutation API added) — distinct from typed CoveringHTTP refusal; **no** mutation API added | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-COLLIDE-MULTI-PURPOSE",
+      "family": "collision",
+      "source_row": "| `CTRL-COLLIDE-MULTI-PURPOSE` | `_CoveringClient` routes include both (peer,`/calendar/v3/calendars/`,event) and (peer,`/calendar/v3/calendars/`,identity) | GET | `/calendar/v3/calendars/calx/events` | 0 | 0 | CoveringTransportRefused(\"ambiguous/unapproved provider route\") | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-COLLIDE-DUP-SAME-PURPOSE",
+      "family": "collision",
+      "source_row": "| `CTRL-COLLIDE-DUP-SAME-PURPOSE` | two identical (peer, prefix, event) mappings; unbound profile flagged | GET | `/calendar/v3/calendars/calx/events` | 1 | 1 | first-match at CoveringHTTP; record duplicate; no new profile bind | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-CONT-FOREIGN-BEFORE-SEND",
+      "family": "continuation",
+      "source_row": "| `CTRL-CONT-FOREIGN-BEFORE-SEND` | continuation URL peer not in reviewed peers | GET | event | foreign absolute URL (name-only host in fixture docs; never dial) | **0** | **0** | **0** | **0** | origin/route refuse before send | workers/resources joined; no next-case continuation on refuse |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-CONT-REDIRECT-3XX",
+      "family": "continuation",
+      "source_row": "| `CTRL-CONT-REDIRECT-3XX` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial); admitted path; peer returns HTTP 302 + Location | GET | event | `/calendar/v3/calendars/calx/events` | 1 | 1 | **1** | **0** | CoveringTransportRefused(\"redirect refused\"); no Location follow | response retained; one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-CONT-MS-NEXTLINK",
+      "family": "continuation",
+      "source_row": "| `CTRL-CONT-MS-NEXTLINK` | reviewed Microsoft Graph covering peer (hostname name-only in docs; unbound; never dial); `@odata.nextLink` under Graph path via `_absolute_graph_url` | GET | event | nextLink path under `/v1.0/me/calendars/...` | 1 | 1 | path policy A/B | — | admit if path admits; **target authz separate** | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-CONT-G-PAGE-TOKEN",
+      "family": "continuation",
+      "source_row": "| `CTRL-CONT-G-PAGE-TOKEN` | reviewed Google covering peer (hostname name-only in docs; unbound; never dial); event | GET | event | `/calendar/v3/calendars/cal%2Bendar%40x.com/events?pageToken=https%3A%2F%2Fexample.invalid%2Fnext` | 1 | 1 | 1 | 0 path-follow | query opaque; not path-matched | one exchange complete; workers joined; no Location follow |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-SEP-TARGET-AUTHZ",
+      "family": "separation",
+      "source_row": "| `CTRL-SEP-TARGET-AUTHZ` | After origin+prefix+`admit_covering_path` success on `/calendar/v3/calendars/calx/events` | Path admit ≠ authorized-calendar binding; keep target-authz oracle separate |",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "design oracle; not observed result"
+    },
+    {
+      "id": "CTRL-POS-G-PAGE-TOKEN",
+      "family": "positive",
+      "source_row": "Dex overlay restores standalone direct-query positive through context/HTTP: one original exchange, unchanged URL-shaped opaque query data, zero follow-ups and acknowledged fake retirement",
+      "expected_control_status": "pass only if all named assertions hold",
+      "authority": "Dex overlay; not observed result"
+    }
+  ],
+  "membership_rule": "All 41 functional IDs required; any extra inventory/mutation control IDs must be separately named and reviewed",
+  "order_rule": "This is design row order, not an approved executable order. Freeze and independently compare the final ordered runtime inventory before a launch card.",
+  "continuation_accounting": "Google builder case: setup1 + continuation1 = total2 opens/sends; direct-query control separately total1",
+  "candidate_code_executed": false,
+  "source_files_written": false,
+  "future_execution_authority": false
+}

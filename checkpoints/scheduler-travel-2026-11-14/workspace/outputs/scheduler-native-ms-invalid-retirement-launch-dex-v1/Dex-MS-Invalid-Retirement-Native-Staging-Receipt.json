@@ -1,0 +1,29 @@
+{
+  "atUtc": "2026-11-14T01:27:36.9316236Z",
+  "status": "NATIVE_INVALID_GRANT_DRAFT_HELD",
+  "sourceManifest": "6144365E0E7F282BABEDF0FDFB454E309112A16D17CE8464CF5335F7AFC5505B",
+  "sourceInputs": 297,
+  "unchanged": 292,
+  "changedMetadataOnly": [
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt"
+  ],
+  "commandSha256": "CC02480C4BB104E03DC95D85EDF9C30BF7DDB1D302F475B2F87A365C08D2C1DA",
+  "hostConfigSha256": "7B9EAA0D54CD616895C8E76DAEBDDCF4FA12269327CB87BD92C6A69570CCAD2D",
+  "dockerOpsConfigSha256": "24AC30CD4A4220C8B8487C44F1D6B948D4482CBB0FC3DB60A7DDBD30ECC2E4A2",
+  "nestedManifestSha256": "9409302D5C9BED44E7D3E21EC634E34396CDD927AA8AC9DDED8CFA61152CD958",
+  "payloadManifestSha256": "DC5205464943DD3BF4DAB5BEB3F07A68D741BF635BE22D06A8ABC0324774BA02",
+  "executableChanges": 0,
+  "applicationChanges": 0,
+  "selectedFakeReconciliation": "6004BED4293F8E3801B82EF75415427872ABCFB6520F53B756B4AF6E57C6481F",
+  "selectedFakeScope": "13controls/85predicates; extracted helper/finite invalid-grant properties, structural selected caller wiring; no native invalid-grant result",
+  "sourceSelection": "Exact MS-INVALID v2 runner4CBF198E used by the passed selected-retirement fake; unrelated unexecuted MS-refresh/T05 diagnostic changes not merged",
+  "nativeCard": "NOT_PRESENTED",
+  "humanAuthority": "NONE",
+  "receiptDefault": "native-provider-host-receipt.jsonl",
+  "receiptOverride": "OMITTED",
+  "endpoint": "unbound"
+}

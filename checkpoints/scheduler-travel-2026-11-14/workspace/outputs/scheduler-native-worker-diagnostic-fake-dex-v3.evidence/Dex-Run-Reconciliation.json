@@ -1,0 +1,49 @@
+{
+  "at_utc": "2026-11-13T07:03:14.3141372Z",
+  "status": "PASS10_OF10_EXACT47_PREDICATES_INDEPENDENTLY_RECONCILED",
+  "top_level_controls": 10,
+  "reported_nested_predicates": 47,
+  "actual_source_mutants_detected": 5,
+  "proof_kind_inventory_exact": true,
+  "fixture_diff": "5hunks,+41/-0,rederivedexact341074AEsource",
+  "child_elapsed_seconds": 0.516,
+  "child_stream_bytes": 0,
+  "clean_joined_readers": true,
+  "known_retirement": true,
+  "child_killed": false,
+  "postpins": [
+    {
+      "root": "outputs\\scheduler-native-worker-diagnostic-fake-dex-v3",
+      "entries": 20
+    },
+    {
+      "root": "outputs\\scheduler-native-worker-diagnostic-fake-prep-matt-v2",
+      "entries": 15
+    },
+    {
+      "root": "outputs\\scheduler-native-worker-diagnostic-fake-prep-matt-v1",
+      "entries": 15
+    },
+    {
+      "root": "outputs\\scheduler-native-provider-worker-diagnostic-prep-matt-v1",
+      "entries": 278
+    },
+    {
+      "root": "outputs\\scheduler-native-provider-worker-diagnostic-launch-dex-v1",
+      "entries": 283
+    },
+    {
+      "root": "outputs\\scheduler-native-provider-diagnostic-launch-dex-v1",
+      "entries": 274
+    }
+  ],
+  "actual_stage_files": 23,
+  "new_evidence_files": 2,
+  "unexpected_files": 0,
+  "result_sha256": "36C329DE49C0E63065D1167829357D783272D70CDA28B5829F01ECE87E73172C",
+  "receipt_sha256": "D7B96DBD37B54414070E246F7BB5B7B5849D66078063716D73E2F439D86BF3FD",
+  "authority": "consumedoneauthorizedinvocation;no retry/rerun",
+  "proof_limit": "finiteextractedobserver/producer/hostfakecomposition;notnativeobserverTLSDBoractualHTTPfailurecause",
+  "full_requirement_ids_closed": [],
+  "endpoint": "unbound"
+}

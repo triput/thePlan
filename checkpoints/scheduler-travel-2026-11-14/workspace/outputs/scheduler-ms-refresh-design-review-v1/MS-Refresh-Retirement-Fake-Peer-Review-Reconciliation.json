@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-11-14T01:16:25.4123173Z",
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED",
+  "reviewSha256": "4556CE9EE37E5557315532203D2B38FE40A5439B0BCD0BD813BB364597B592A1",
+  "sidecarEntries": 1,
+  "completedTask": "3ADC25FB0FBEAC08A6B5CE88EB37F2781CC5B6B4384D62CE8FE1C63968B77A15",
+  "stageManifest": "157C6863BA157298E910439D9FF71B8E4F8124B665A7331AFF54918B13EF6CCF",
+  "inputs": 27,
+  "packetPins": 21,
+  "partialRuntimePins": 10,
+  "staticBlockers": 0,
+  "qualification": "Matt authored checker/EXPECTED, so his oracle retrace is a self-check. Dex independently reviewed actual helper/wiring/assertion/mutation source; staged metadata reviewed by Matt.",
+  "claimsNotTransferred": "No syntax/behavior execution, native refresh or T06 closure",
+  "existingCard": "Unchanged, pending Trish",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

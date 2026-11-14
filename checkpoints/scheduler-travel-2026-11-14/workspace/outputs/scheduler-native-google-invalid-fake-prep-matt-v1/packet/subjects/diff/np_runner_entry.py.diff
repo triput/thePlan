@@ -1,0 +1,513 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -56,7 +56,7 @@
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-V-GOOGLE-REFRESH"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-V-GOOGLE-REFRESH", "NP-V-GOOGLE-INVALID"})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -2085,6 +2085,488 @@
+                 ) from primary_failure
+ 
+ 
++# NP-V-GOOGLE-INVALID (T06-INVALID-GRANT-GOOGLE; Dex 5FA59395). Source-derived expectations:
++# covering_domain_adapters.token catches the exact CoveringReauthorizationRequired raised by
++# CoveringHTTP for a complete fixed-length 400 {"error":"invalid_grant"} OAuth response
++# (covering_http_transport l.353-360), returns TokenRejected(CALENDAR_ACCOUNT_DISCONNECTED)
++# with changed=False and requires native ROLLBACK_ACKNOWLEDGED; dispatch appends a static
++# preflight row and skips run_target (no IMPORT/PARENT, no calendarList, no events), then the
++# final ASSESSMENT reads the unchanged locked owner revision (overall_outcome no_op).
++GOOGLE_INVALID_CLIENT_PURPOSES = [("POST", "oauth")]
++GOOGLE_INVALID_CLIENT_OUTCOMES = [("exception", "CoveringReauthorizationRequired", "app.services.covering_transport_policy")]
++GOOGLE_INVALID_TOKEN_TERMINAL_SEQUENCE = [
++    {"terminal": "ROLLBACK_ACKNOWLEDGED", "token_rollback_ack": True, "commit_requested": False},
++]
++GOOGLE_INVALID_ACTION_SUMMARY = {
++    "requested": 1,
++    "preflight_rejected": 1,
++    "import_attempted": 0,
++    "import_ok": 0,
++    "import_failed": 0,
++}
++GOOGLE_INVALID_PREFLIGHT_CODE = "CALENDAR_ACCOUNT_DISCONNECTED"  # PREFLIGHT_ACCOUNT_DISCONNECTED
++
++
++def _run_np_v_google_invalid() -> dict[str, Any]:
++    """NP-V-GOOGLE-INVALID (T06-INVALID-GRANT-GOOGLE): expired Google token, owning production
++    refresh receives a complete invalid_grant through actual covering-refresh ASGI ingress ->
++    CoveringReleasePlan -> ProviderCounter -> CoveringHTTP (default JoinedTLS); typed
++    reauthorization -> acknowledged TOKEN rollback -> preflight-rejected no_op with every
++    persisted credential/coverage/subscription/event/revision/busy value unchanged.
++    A correct known rejection is not a successful refresh. Separate single-case batch.
++    """
++    import inspect
++
++    from np_suite import SuiteStop, check_oracles_immediate, registry_by_id
++    from np_auth_seed import (
++        assert_plan_still_valid,
++        covering_refresh_body,
++        fixture_settings,
++        fresh_attempt_plan,
++        measure_subscription_coverage_state,
++        PlanValidityExpired,
++        seed_browser_owner_with_subscriptions,
++        seed_token_plan,
++    )
++    from np_receipts import case_result_receipt
++    from np_provider_routes import google_api_route, google_token_route
++    from np_provider_transcript import google_token_invalid_grant_script
++    from np_provider_peer import SyntheticProviderPeer, PeerMaterial, PeerRetirementUnknown, _http_response_bytes
++    from i01_asgi_app import asgi_client, build_i01_asgi_app, install_binding
++    from app.services.covering_release_plan import CoveringReleasePlan
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_http_dispatch import CoveringReleaseBinding
++    from app.services.covering_native_orm_factory import CoveringORMConnection
++
++    case_id = "NP-V-GOOGLE-INVALID"
++    decl = registry_by_id(include_cf=True)[case_id]
++    plan = fresh_attempt_plan(case_id)
++    t_plan_iso = plan.t_plan.isoformat()
++    token_seed = seed_token_plan(case_id=case_id, provider="google", expired=True)
++    settings = fixture_settings()
++    if inspect.signature(CoveringHTTP.__init__).parameters["transport_factory"].default is not JoinedTLS:
++        raise SuiteStop("production CoveringHTTP default is not JoinedTLS")
++    api_route = google_api_route()
++    token_route = google_token_route()
++    if (token_route.dial_address, token_route.dial_port, token_route.ca_path) != (
++        api_route.dial_address, api_route.dial_port, api_route.ca_path
++    ):
++        raise SuiteStop("Google token route must share API CA/address/port")
++
++    factory = _open_native_setup_factory(settings=settings)
++    schema_receipt = provision_disposable_schema(factory)
++    setup = factory.open_setup_session()
++    try:
++        seed = seed_browser_owner_with_subscriptions(
++            setup, settings=settings, username_prefix="np-google-invalid", subscription_count=1,
++            provider="google", expired=True, mark_covering_fresh_at_seed=False, t_plan=plan.t_plan,
++        )
++        unrelated = seed_browser_owner_with_subscriptions(
++            setup, settings=settings, username_prefix="np-google-invalid-unrelated", subscription_count=1,
++            provider="google", expired=False, mark_covering_fresh_at_seed=False, t_plan=plan.t_plan,
++        )
++        # SETUP-only primary planting (same pattern as NP-V-GOOGLE-REFRESH): the single requested
++        # row is the enabled PRIMARY row carrying the Google "primary" alias before commit.
++        from app.models import CalendarSubscription
++        from app.models.enums import CalendarSubscriptionRole
++        from app.services.calendar_alias_canonicalize import GOOGLE_PRIMARY_ALIAS
++
++        if GOOGLE_PRIMARY_ALIAS != GOOGLE_PRIMARY_ALIAS_LITERAL:
++            raise SuiteStop("production Google primary alias literal changed")
++        if len(seed.subscription_ids) != 1:
++            raise SuiteStop("google invalid requires exactly one requested subscription")
++        primary_target = seed.subscription_ids[0]
++        primary_row = setup.get(CalendarSubscription, primary_target)
++        if primary_row is None or primary_row.is_enabled is not True:
++            raise SuiteStop("primary target row missing or disabled at seed")
++        primary_row.external_calendar_id = GOOGLE_PRIMARY_ALIAS
++        primary_row.role = CalendarSubscriptionRole.primary
++        setup.flush()
++        setup.commit()
++    finally:
++        factory.close(setup)
++
++    assert seed.request_window_start is not None and seed.request_window_end is not None
++    assert_plan_still_valid(seed.t_plan)
++    if seed.token_expired is not True or seed.provider != "google":
++        raise SuiteStop("google invalid vertical requires an expired Google seed")
++    if len(seed.account_ids) != 1 or len(unrelated.account_ids) != 1:
++        raise SuiteStop("google invalid requires one requested account plus one unrelated account")
++    account_id = seed.account_ids[0]
++    window_start, window_end = seed.request_window_start, seed.request_window_end
++    expected_subscriptions = [
++        {"subscription_id": str(primary_target), "external_calendar_id": GOOGLE_PRIMARY_ALIAS_LITERAL,
++         "role": "primary", "is_enabled": True},
++    ]
++
++    invalid_script = google_token_invalid_grant_script()
++    expected_bytes_sent = sum(
++        len(_http_response_bytes(step)) for step in invalid_script.steps if step.direction == "send_response"
++    )
++    # Only the OAuth host is dialled; the shared vendor leaf (prepare-np-provider-tls.sh l.50)
++    # carries oauth2.googleapis.com, and token/API routes share CA/address/port (checked above).
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}", route=token_route, script=invalid_script, material=PeerMaterial()
++    )
++    native_terminals: list[dict[str, Any]] = []
++    parent_terminals: list[dict[str, Any]] = []
++    client_inventory: list[dict[str, Any]] = []
++    client_outcomes: list[tuple[str, str, str]] = []
++    oauth_requests = 0
++    held_transport: list[Any] = []
++    captured_contexts: list[Any] = []
++    worker_exceptions: list[BaseException] = []
++    restore_worker_observer: Callable[[], None] | None = None
++    restore_parent_observer: Callable[[], None] | None = None
++    real_request = None
++    transport = None
++    real_init = None
++    real_terminal = None
++    retirement_done = False
++    retirement_attempted = False
++    primary_failure: BaseException | None = None
++
++    def measure_all() -> dict[str, Any]:
++        db = factory.open_setup_session()
++        try:
++            return {
++                "credential": _measure_google_credential_state(
++                    db, settings=settings, account_id=account_id, reference_instant=plan.t_plan
++                ),
++                "unrelated_credential": _measure_google_credential_state(
++                    db, settings=settings, account_id=unrelated.account_ids[0], reference_instant=plan.t_plan
++                ),
++                "coverage": measure_subscription_coverage_state(db, subscription_ids=seed.subscription_ids),
++                "unrelated_coverage": measure_subscription_coverage_state(
++                    db, subscription_ids=unrelated.subscription_ids
++                ),
++                "events": _measure_google_events(db, account_ids=[account_id]),
++                "unrelated_events": _measure_google_events(db, account_ids=list(unrelated.account_ids)),
++                "subscriptions": _measure_google_subscriptions(db, subscription_ids=list(seed.subscription_ids)),
++                "unrelated_subscriptions": _measure_google_subscriptions(
++                    db, subscription_ids=list(unrelated.subscription_ids)
++                ),
++                "owner": _measure_owner_revision_and_busy(db, owner_id=seed.owner_id),
++                "unrelated_owner": _measure_owner_revision_and_busy(db, owner_id=unrelated.owner_id),
++            }
++        finally:
++            factory.close(db)
++
++    try:
++        assert_plan_still_valid(plan.t_plan)
++        before = measure_all()
++        cred = before["credential"]
++        if (
++            cred["seed_access_match"] is not True
++            or cred["seed_refresh_match"] is not True
++            or cred["refreshed_access_match"] is not False
++            or cred["rotated_refresh_match"] is not False
++            or cred["expiry_at_or_before_reference"] is not True
++        ):
++            raise SuiteStop("before-state credential is not exactly the expired declared seed")
++        if before["coverage"]["any_covering_success"] is not False or before["events"] or before["unrelated_events"]:
++            raise SuiteStop("before-state must have no coverage success and no imported events")
++        if before["subscriptions"] != expected_subscriptions:
++            raise SuiteStop("before-state must be exactly the enabled primary alias row")
++
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++        release_plan = CoveringReleasePlan(
++            database_profile=_fixture_database_profile(),
++            password_supplier=lambda: "",
++            runtime_pins=_runtime_pins_from_config(),
++            provider_routes=_google_provider_routes(api_route=api_route, token_route=token_route),
++            settings=settings,
++        )
++        if type(release_plan) is CoveringReleaseBinding:
++            raise SuiteStop("must install CoveringReleasePlan, not prebuilt binding")
++
++        def on_context(context: Any) -> None:
++            captured_contexts.append(context)
++
++        real_init = CoveringHTTP.__init__
++        real_terminal = CoveringORMConnection.token_terminal
++
++        def capturing_init(self, *args, **kwargs):
++            nonlocal real_request, transport
++            real_init(self, *args, **kwargs)
++            held_transport.append(self)
++            transport = self
++            if self.transport_factory is not JoinedTLS:
++                raise SuiteStop("transport_factory injection refused — require default JoinedTLS")
++            underlying = self.request
++
++            def counted_request(method, url, *, purpose, **kwargs):
++                nonlocal oauth_requests
++                if purpose == "oauth":
++                    oauth_requests += 1
++                client_inventory.append({"method": method, "purpose": purpose})
++                try:
++                    result = underlying(method, url, purpose=purpose, **kwargs)
++                except BaseException as exc:
++                    client_outcomes.append(("exception", type(exc).__name__, type(exc).__module__))
++                    raise
++                client_outcomes.append(("response", type(result).__name__, type(result).__module__))
++                return result
++
++            real_request = underlying
++            self.request = counted_request  # type: ignore[method-assign]
++
++        try:
++            # Installed inside the try so the finally below restores every patch on any failure.
++            _install_token_terminal_observer(native_terminals)
++            CoveringHTTP.__init__ = capturing_init  # type: ignore[method-assign]
++            restore_worker_observer = _install_worker_exception_observer(worker_exceptions)
++            restore_parent_observer = _install_google_parent_observer(parent_terminals)
++            app = build_i01_asgi_app(session_secret=settings.session_secret, clock=monotonic, on_context=on_context)
++            install_binding(app, release_plan)
++            client = asgi_client(app)
++            body = covering_refresh_body(
++                list(seed.subscription_ids), window_start=window_start, window_end=window_end,
++                horizon_label="np-google-invalid-horizon-v1",
++            )
++            assert_plan_still_valid(seed.t_plan)
++            response = client.post(
++                COVERING_PATH,
++                content=json.dumps(body).encode("utf-8"),
++                headers={"content-type": "application/json"},
++                cookies={"session": seed.cookie},
++            )
++        finally:
++            if restore_parent_observer is not None:
++                restore_parent_observer()
++                restore_parent_observer = None
++            if restore_worker_observer is not None:
++                restore_worker_observer()
++                restore_worker_observer = None
++            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            CoveringORMConnection.token_terminal = real_terminal  # type: ignore[method-assign]
++            try:
++                if transport is not None and real_request is not None:
++                    transport.request = real_request
++            except Exception:
++                pass
++
++        assert_plan_still_valid(seed.t_plan)
++        if CoveringORMConnection.token_terminal is not real_terminal or CoveringHTTP.__init__ is not real_init:
++            raise SuiteStop("token terminal or CoveringHTTP observer restoration failed")
++        if not captured_contexts or getattr(captured_contexts[0], "budget", None) is None:
++            raise SuiteStop("ingress on_context did not capture the request budget")
++        ingress_budget = captured_contexts[0].budget
++        if len(held_transport) != 1 or type(held_transport[0]) is not CoveringHTTP:
++            raise SuiteStop("worker/POST did not construct exactly one CoveringHTTP")
++        from app.services.covering_request_budget import CoveringRequestBudget
++
++        remaining_cb = getattr(getattr(held_transport[0], "counter", None), "remaining", None)
++        if (
++            getattr(remaining_cb, "__self__", None) is not ingress_budget
++            or getattr(remaining_cb, "__func__", None) is not CoveringRequestBudget.work_remaining
++        ):
++            raise SuiteStop("ProviderCounter.remaining is not the ingress budget work_remaining")
++
++        if response.status_code != 200:
++            raise SuiteStop(f"covering-refresh status:{response.status_code}")
++        payload = response.json()
++        if not isinstance(payload, dict) or payload.get("overall_outcome") != "no_op":
++            raise SuiteStop("overall_outcome is not no_op")
++        results = payload.get("results")
++        if results != [
++            {
++                "subscription_id": str(primary_target),
++                "phase": "preflight",
++                "status": "preflight_rejected",
++                "preflight_code": GOOGLE_INVALID_PREFLIGHT_CODE,
++                "preflight_effects": [],
++                "cause": None,
++                "upserted": 0,
++            }
++        ]:
++            raise SuiteStop("result row is not exactly one preflight-rejected CALENDAR_ACCOUNT_DISCONNECTED")
++        summary = payload.get("action_summary") or {}
++        if {key: summary.get(key) for key in GOOGLE_INVALID_ACTION_SUMMARY} != GOOGLE_INVALID_ACTION_SUMMARY:
++            raise SuiteStop("action_summary is not requested1/preflight1/attempted0/ok0/failed0")
++        coverage_action = payload.get("coverage_action")
++        readiness = payload.get("scheduling_readiness")
++        if not isinstance(coverage_action, dict) or not isinstance(readiness, dict):
++            raise SuiteStop("coverage_action/scheduling_readiness must be objects")
++        freshness_requested = coverage_action.get("freshness_requested") or {}
++        freshness_all = readiness.get("freshness_all_enabled") or {}
++        scheduling_revision = readiness.get("scheduling_revision")
++        # Source-derived: the requested never-covered row blocks requested and all-enabled
++        # freshness (covering_refresh l.191-224, l.345-366), so readiness is false; the final
++        # assessment still completes (no assessment_error) at the locked unchanged revision.
++        if (
++            coverage_action.get("all_requested_covering_ok") is not False
++            or freshness_requested.get("ok") is not False
++            or readiness.get("scheduling_ready") is not False
++            or freshness_all.get("ok") is not False
++            or readiness.get("assessment_error") is not None
++            or type(scheduling_revision) is not int
++        ):
++            raise SuiteStop("final native assessment is not the expected completed not-ready state")
++        for banned in ("command", "provider", "mode", "seed_hash", "assessment"):
++            if banned in payload:
++                raise SuiteStop(f"public covering-refresh must not carry private key:{banned}")
++
++        token_sequence = [row for row in native_terminals if "observer" not in row]
++        if oauth_requests != 1:
++            raise SuiteStop(f"google invalid must perform exactly one OAuth exchange:{oauth_requests}")
++        if [(row.get("method"), row.get("purpose")) for row in client_inventory] != GOOGLE_INVALID_CLIENT_PURPOSES:
++            raise SuiteStop("client request inventory is not exactly one POST oauth")
++        if client_outcomes != GOOGLE_INVALID_CLIENT_OUTCOMES:
++            raise SuiteStop(f"client outcome is not exact typed reauthorization:{client_outcomes!r}")
++        if token_sequence != GOOGLE_INVALID_TOKEN_TERMINAL_SEQUENCE:
++            raise SuiteStop(f"TOKEN terminal sequence mismatch:{token_sequence!r}")
++        if [row for row in native_terminals if "observer" in row] != [
++            {"observer": "CoveringORMConnection.token_terminal", "terminal": None}
++        ]:
++            raise SuiteStop("token terminal observer marker missing or duplicated")
++        if parent_terminals != []:
++            raise SuiteStop(f"no PARENT/IMPORT unit may run after token rejection:{parent_terminals!r}")
++        if worker_exceptions:
++            raise SuiteStop("worker exception observed during rejected refresh")
++
++        after = measure_all()
++        owner_before, owner_after = before["owner"], after["owner"]
++        if after["credential"] != before["credential"] or after["credential"]["refreshed_access_match"] is not False:
++            raise SuiteStop("rejected refresh changed the persisted credential or expiry")
++        if after["coverage"] != before["coverage"] or after["events"] or after["subscriptions"] != expected_subscriptions:
++            raise SuiteStop("rejected refresh changed coverage, events or the primary alias subscription")
++        if (
++            owner_after != owner_before
++            or scheduling_revision != owner_after["scheduling_revision"]
++            or payload.get("scheduling_revision_at_start") != owner_before["scheduling_revision"]
++            or payload.get("scheduling_revision_at_end") != owner_after["scheduling_revision"]
++            or payload.get("scheduling_revision_bumped") is not False
++        ):
++            raise SuiteStop("final revision/busy signature is not the unchanged persisted owner state")
++        if (
++            after["unrelated_credential"] != before["unrelated_credential"]
++            or after["unrelated_coverage"] != before["unrelated_coverage"]
++            or after["unrelated_events"] != before["unrelated_events"]
++            or after["unrelated_subscriptions"] != before["unrelated_subscriptions"]
++            or after["unrelated_owner"] != before["unrelated_owner"]
++        ):
++            raise SuiteStop("unrelated owner/account data changed")
++
++        assert_plan_still_valid(plan.t_plan)
++        retirement_attempted = True
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        retirement_done = True
++        peer_exchanges = list(peer_state.get("exchange_inventory") or [])
++        if (
++            int(peer_state.get("connection_count_admitted") or 0) != 1
++            or int(peer_state.get("connection_count_served") or 0) != 1
++            or [row.get("method") for row in peer_exchanges] != ["POST"]
++            or peer_exchanges[0].get("path") != "/token"
++            or peer_exchanges[0].get("close_mode_observed") != "orderly_close_notify"
++            or peer_state.get("bytes_sent") != expected_bytes_sent
++        ):
++            raise SuiteStop("peer inventory is not exactly one invalid_grant token POST")
++        if any(t is not threading.main_thread() and t.name.startswith("np-peer-") for t in threading.enumerate()):
++            raise SuiteStop("unjoined np-peer worker after retirement")
++
++        # The declared oracle name contains "token", which this baseline's unchanged sanitizer
++        # (np_receipts 69F59AF1) drops from receipts; it is enforced here in memory and its
++        # evidence is retained under the allowlisted "token_terminal"/"covering_token_terminal".
++        check_oracles_immediate(decl, {"token_rejected_path_not_ms": "OBSERVED"})
++        t_check_iso = _iso_now()
++        measured = {
++            "oauth_request_count": oauth_requests,
++            "client_exchange_inventory": list(client_inventory),
++            "client_outcomes": [list(item) for item in client_outcomes],
++            "token_terminal": token_sequence,
++            "covering_token_terminal": "ROLLBACK_ACKNOWLEDGED",
++            "parent_terminal_count": len(parent_terminals),
++            "preflight_code": GOOGLE_INVALID_PREFLIGHT_CODE,
++            "credential_state_before": before["credential"],
++            "credential_state_after": after["credential"],
++            "coverage_before": before["coverage"],
++            "coverage_after": after["coverage"],
++            "subscriptions_after": after["subscriptions"],
++            "owner_state_before": owner_before,
++            "owner_state_after": owner_after,
++            "imported_event_count_after": len(after["events"]),
++            "unrelated_unchanged": True,
++            "public_response": {
++                "overall_outcome": "no_op",
++                "action_summary": dict(GOOGLE_INVALID_ACTION_SUMMARY),
++                "scheduling_ready": False,
++                "scheduling_revision": scheduling_revision,
++                "scheduling_revision_at_start": payload.get("scheduling_revision_at_start"),
++                "scheduling_revision_at_end": payload.get("scheduling_revision_at_end"),
++                "scheduling_revision_bumped": False,
++            },
++            "label_hash": token_seed.label_hash,
++            "schema_provisioned": schema_receipt,
++            "ingress_budget_same_as_provider": True,
++            "joined_tls_default": True,
++            "peer_side_wire_bytes_sent_exact": True,
++            "known_rejection_not_refresh_success": True,
++        }
++        return case_result_receipt(
++            case_id=case_id,
++            passed=True,
++            workers_joined=True,
++            expected_unknown=False,
++            executed=True,
++            prep_is_not_pass=True,
++            observations={"token_rejected_path_not_ms": "OBSERVED"},
++            t_plan_iso=t_plan_iso,
++            t_check_iso=t_check_iso,
++            measured=measured,
++            peer_exchange_inventory=peer_exchanges,
++            resource_disposition={
++                "peer_retired": True,
++                "peer_joined": True,
++                "factory_closed": True,
++                "observers_restored": True,
++                "provider_pki_status": (
++                    "GENERATED"
++                    if _PROVIDER_PKI_GENERATE_ONCE_DONE
++                    else ("PREPARED_NOT_GENERATED" if _PROVIDER_PKI_PREPARED else "NOT_PREPARED")
++                ),
++            },
++        )
++    except PlanValidityExpired:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except PeerRetirementUnknown:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise SuiteStop("owned peer retirement UNKNOWN")
++    except CaseBodyHold:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except SuiteStop:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except BaseException as exc:
++        primary_failure = exc
++        raise SuiteStop(f"framework_stop:{case_id}:{type(exc).__name__}") from exc
++    finally:
++        # Defensive second restore (identity-checked) for any path that bypassed the inner finally.
++        if real_init is not None and CoveringHTTP.__init__ is not real_init:
++            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++        if real_terminal is not None and CoveringORMConnection.token_terminal is not real_terminal:
++            CoveringORMConnection.token_terminal = real_terminal  # type: ignore[method-assign]
++        try:
++            if transport is not None and real_request is not None:
++                transport.request = real_request
++        except Exception:
++            pass
++        if not retirement_attempted and peer._worker is not None and not peer.life.joined:  # noqa: SLF001
++            retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++                retirement_done = True
++            except PeerRetirementUnknown:
++                if primary_failure is None:
++                    raise SuiteStop("owned peer retirement UNKNOWN on cleanup")
++                raise SuiteStop(
++                    f"owned peer retirement UNKNOWN after primary:{type(primary_failure).__name__}"
++                ) from primary_failure
++
++
+ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+     if case_id == "NP-V-MS-NONEXPIRED":
+         def _run() -> dict[str, Any]:
+@@ -2098,6 +2580,12 @@
+ 
+         _run_google.__name__ = f"run_{case_id}"
+         return _run_google
++    if case_id == "NP-V-GOOGLE-INVALID":
++        def _run_google_invalid() -> dict[str, Any]:
++            return _run_np_v_google_invalid()
++
++        _run_google_invalid.__name__ = f"run_{case_id}"
++        return _run_google_invalid
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 

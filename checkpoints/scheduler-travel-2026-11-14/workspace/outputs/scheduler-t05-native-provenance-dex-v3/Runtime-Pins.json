@@ -1,0 +1,105 @@
+{
+  "kind": "Explicit host interpreter/stdlib provenance pins, not a complete runtime closure",
+  "files": [
+    {
+      "absolute_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\urllib\\parse.py",
+      "sha256": "7BFE4ADF0944AA4AA57AAAA1111BCDBB4B40546ED9CDA319EDED770B87625644"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ipaddress.py",
+      "sha256": "B7CB21107E90A9922B0AB8F8BA01444823693075B8BB07620B5E80267F46F203"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\http\\client.py",
+      "sha256": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py",
+      "sha256": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\dataclasses.py",
+      "sha256": "EABCB7B9EDB1073172915E871E7773FD44054E2A0AB33D1977C69E653946BA5C"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ast.py",
+      "sha256": "60CA452CFAC189E51C7C2A582C1240C28FCCD12964221BC8D10462F2EE74DE18"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\hashlib.py",
+      "sha256": "158B8E4D4F5FCECEF24B840AF0BEE5632B27F948C74FAF0810CC598B508E4F97"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\io.py",
+      "sha256": "F54831C68F1D335B8796C5FFDC4296D48DFE6A04150A92B69696585B4C275754"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\types.py",
+      "sha256": "C762D2321A143AA9A7EAEB30F8ED8042C10A3E98E4FA678E4F659E2136BF85B5"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\contextlib.py",
+      "sha256": "2BDAC461CF2A1DC783C34E69AD24FC5C0507DA34FF148DD815676F9E0B815287"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\contextvars.py",
+      "sha256": "758A96E17249E1E97C5CA5D1EE39AA31E5D439D0922AE7AF0064318E70B59FC8"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\copy.py",
+      "sha256": "82AFA1D570D4D328EFBBA5CDE3FC21025A44E3CFE5E10D9316A73745194A236B"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\enum.py",
+      "sha256": "14E2D7F31335FCEA9F08A9F89E2440F74D2FD08C8FBAE15CD75A56D343265F08"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\datetime.py",
+      "sha256": "B76C8980FC5AADE3455CC30AF7F655E8C8D7F42DD819335D9ECAD97773380F9E"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\pathlib.py",
+      "sha256": "BA20DA75D286788B5E68B110C9724E5C8FB4314E35FEA013118E42249F947F9B"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\typing.py",
+      "sha256": "68EC2C25AF2E873C51E5075A81DF4D123B0CA00AE86E77271556DAE7B34065AC"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\email\\message.py",
+      "sha256": "5254462AF22B409A88F238ED385ECB0E4E67EDEA64CF569FAD2AD78C293AFA2A"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\base64.py",
+      "sha256": "256DE63F58C74822E012FE7DAFD68DAF1D2285D3E03537D8B71BE2B5B07AE1F5"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\queue.py",
+      "sha256": "3160B770DC5CBDF0A5F9297DD8EA7FB77ACD99B36AF8088C8015B119D2E5069F"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\threading.py",
+      "sha256": "06BCB6BD7EA8BCBBD99703B0A89FE8190800949F0E79ED616862B5234A1E4B9B"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\subprocess.py",
+      "sha256": "4F08D583A95B415762D888FFF499C19103040D4B7027E25A73D46C7E3D777D04"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\argparse.py",
+      "sha256": "1BD76C4617131CC37BD384FE2686F55D8609A4ABF0AED0F820674CD7DBFDDC6F"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\re\\__init__.py",
+      "sha256": "E912249B8B1E2880FF212EF728E8BECBA893CE31BCB68AA2BFBCAB2C812E61BE"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\os.py",
+      "sha256": "F1340F1B15ADB52C8DF62556C18B637EAFB01F2BAF49943AA2A4A8DE78EFC65F"
+    }
+  ]
+}

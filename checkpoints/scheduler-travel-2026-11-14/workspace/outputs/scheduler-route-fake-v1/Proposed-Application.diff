@@ -1,0 +1,22 @@
+--- a/app/services/covering_provider_context.py
++++ b/app/services/covering_provider_context.py
+@@ -33,7 +33,7 @@
+                 parsed=peer.check_url(url)
+             except CoveringTransportRefused:
+                 continue
+-            if parsed.path==prefix or (kind!="oauth" and parsed.path.startswith(prefix.rstrip("/")+"/")):
++            if parsed.path==prefix or (kind=="event" and parsed.path.startswith(prefix.rstrip("/")+"/")):
+                 purposes.add(kind)
+         if len(purposes)!=1:
+             raise CoveringTransportRefused("ambiguous/unapproved provider route")
+--- a/app/services/covering_http_transport.py
++++ b/app/services/covering_http_transport.py
+@@ -51,7 +51,7 @@
+                 parsed=peer.check_url(url)
+             except CoveringTransportRefused:
+                 continue
+-            if parsed.path==prefix or (purpose!="oauth" and parsed.path.startswith(prefix.rstrip("/")+"/")):
++            if parsed.path==prefix or (purpose=="event" and parsed.path.startswith(prefix.rstrip("/")+"/")):
+                 matched=(peer,parsed)
+                 break
+         if matched is None:

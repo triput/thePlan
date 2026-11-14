@@ -1,0 +1,41 @@
+{
+  "atUtc": "2026-11-14T02:17:22.8660929Z",
+  "scope": "Reused actual extracted ContextVar behavior; no new execution",
+  "requirementIds": [
+    "T08-NESTED",
+    "T08-RESET"
+  ],
+  "sourceSHA256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+  "historicalSource": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1\\packet\\payload\\api\\app\\services\\covering_provider_context.py",
+  "currentSource": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_provider_context.py",
+  "byteIdentical": true,
+  "executedResultSHA256": "88805F6E67176B50F2B150200436431A3FCA527FB162B5D88CF5C09FE1B403B5",
+  "launcherReceiptSHA256": "8AA3F9E9BB9CB0B536AE4C75D2C207FF73586F2D7C9C255C9A4C6C01BE4B76F5",
+  "runReconciliationSHA256": "8D489C62069D5A7FD1873568C28B022F71BC042875DD866B550E325B8310F7B1",
+  "checkerSHA256": "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+  "checkerLines": "428-543",
+  "controlId": "T08-NESTED-RESET-BEHAVIOR",
+  "verified": [
+    "Actual extracted _current ContextVar and covering_provider_transport run inside independent real Context",
+    "Normal exit reset toNone",
+    "RuntimeError exceptional exit reset toNone",
+    "Nested transport refused and outer scope reset afterward"
+  ],
+  "qualification": [
+    "Fake CoveringTransportRefused class and string transport markers; no app package imports or sockets",
+    "Mutation is separately authored broken manager demonstrating a missing guard, not an actual-source mutant",
+    "No direct calendar_client/httpx fallback invocation in this control",
+    "This does not establish real cross-thread transport use/close/refusal/reuse or native socket retirement"
+  ],
+  "recommendation": "Reuse these exact context property witnesses. Do not schedule duplicate nativeTLS or another fake solely because old per-ID audit entries still say completion_unproven. Plan only the remaining exact ownership/fallback/resource gaps.",
+  "fullT08Closure": false,
+  "all76IdsRetained": true,
+  "remainingNativeIds": [
+    "T08-FOREIGN-THREAD",
+    "T08-FOREIGN-CLOSE",
+    "T08-REUSE"
+  ],
+  "activeMattAssignmentUnchanged": "F46CF47D6AB9BA630B3D8FEE114E904BD500DB8FF2CE3D21A201E9872C7979A4",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

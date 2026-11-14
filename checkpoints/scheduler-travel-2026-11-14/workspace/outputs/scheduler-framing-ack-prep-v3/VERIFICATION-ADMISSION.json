@@ -1,0 +1,346 @@
+{
+  "kind": "scheduler-framing-ack-one-shot-fake-admission",
+  "execution_authorized": false,
+  "launch_authorized": false,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "packet_file_pin_count": 75,
+  "packet_files": [
+    {
+      "relative_path": "verify/check_framing_ack.py",
+      "sha256": "9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698"
+    },
+    {
+      "relative_path": "verify/invoke_framing_ack_fake.py",
+      "sha256": "7848217D9D37B466D28EEF58D8B0E534CED211E06DADB74F18B09C59C0DD320F"
+    },
+    {
+      "relative_path": "verify/admit_outer.py",
+      "sha256": "26CF8FE8DFCDA3AC95A2365806B7C0087FB13B451D8FE4B37BCAE21B2A728AEF"
+    },
+    {
+      "relative_path": "verify/EXPECTED.json",
+      "sha256": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2"
+    },
+    {
+      "relative_path": "verify/INPUT-MANIFEST.json",
+      "sha256": "0A44D9AF50D37388FA0537F0F88930539C1A03F2C157F2502DE45713E51BAFD3"
+    },
+    {
+      "relative_path": "verify/PACKET-SHA256SUMS.txt",
+      "sha256": "0F08497C61328745079D5266E05CDF824C9C15C42B1F12D87BD376F266FFD8C9"
+    },
+    {
+      "relative_path": "verify/OUTER-ADMISSION.json",
+      "sha256": "F14788A3499941063DE161FFF9432EA006AEF023CEF1CE5D8CB5D45FF47DACA6"
+    },
+    {
+      "relative_path": "verify/EXPECTED-ORIGINAL-T05-IMMUTABLE.json",
+      "sha256": "E67AB1B1A4D35F02A73255F313666DF8513EF0C55BAAFFF59EBD69B37926AF99"
+    },
+    {
+      "relative_path": "verify/FAKE-T05-RESULT-IMMUTABLE.json",
+      "sha256": "D29D4CFDDE2B6EA3A7D2A99366A7211AA4FE58C34EC66FF7C6A8945F4525BCFC"
+    },
+    {
+      "relative_path": "verify/WIRE-INVENTORY-T05-IMMUTABLE.json",
+      "sha256": "6069A92895C31F7C50CBE8EE3BEFA5398F5690853C0ED49709F0960D11ACBE57"
+    },
+    {
+      "relative_path": "candidate/app/services/covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368"
+    },
+    {
+      "relative_path": "candidate/app/services/covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+    },
+    {
+      "relative_path": "candidate/app/services/covering_provider_context.py",
+      "sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    },
+    {
+      "relative_path": "original/app/services/covering_http_transport.py",
+      "sha256": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F"
+    },
+    {
+      "relative_path": "original/app/services/covering_joined_https.py",
+      "sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B"
+    },
+    {
+      "relative_path": "original/app/services/covering_provider_context.py",
+      "sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-BASE.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-DATA-SHORT.wire",
+      "sha256": "5CFFB2738B3D56487CADBB2A8CC5870F2D6A8789C34F4BF318FCA3397B7A6A83"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-EXT-VALID.wire",
+      "sha256": "9A751FB3DF44B331427727DBFEB59367592A9CBFEC93921679776875085EF789"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-NEG-SIZE.wire",
+      "sha256": "A7DF1FB01CA72D0457D6E3D249A548134BEAFDE84D2C702A9303E255203E0676"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-SEP-SHORT.wire",
+      "sha256": "1AEC0F54DAF220586736DEF77DE39E8D7AFE6DF9B7D7EB25DB680C09CDD2F821"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-SEP-WRONG.wire",
+      "sha256": "C24CC2E9091879CA8F938AC2260B05EE5E488A69EA87B9989CA8C3D63C4CE44C"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-TRAILER-COUNT-100.wire",
+      "sha256": "0ADFB8CF01CD0EADF55EEB0CD64867316FC94CBB1BFE977DF369A0C3092BE138"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-TRAILER-COUNT-101.wire",
+      "sha256": "9B4FEB979C21FE906524BE0B0ABD6B4C56E4F7D77A3BEB3AC7A1A61D40EB379D"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-TRAILER-EOF.wire",
+      "sha256": "CCE59FBDEDC749AA44F0792D81B630D00B54416D0DCA11F890564E09E7B367EB"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-TRAILER-LINE-EOF.wire",
+      "sha256": "B8EEA183024DC1FEDDBBA031FC99CAAAB4DC3AEC279B7171E1D7743B1C590396"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-TRAILER-MALFORMED.wire",
+      "sha256": "58D5A7288F7FD26F4200C389C26DE7B62C90FC72642A4E6E164A140D17A40720"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-TRAILER-VALID.wire",
+      "sha256": "FF58E4A04C7FAC656406ED71494DC2561C01F2F413F811783C8EAA0E219DE7E9"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-ZERO-ABSENT.wire",
+      "sha256": "E69CB0CEB14578282AD18648A88145D0F1C1802CB3CC87A6E0748E7EA3E781A7"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/C-ZERO-NO-CRLF.wire",
+      "sha256": "0D4FEEAFA9AF74C2E40E2A92F1AED638DC4CCC9395708E8939ED48C8A966576B"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/CD-ABRUPT.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/CD-DEADLINE.wire",
+      "sha256": "E14AAAC69EABB2D765D408611C6D0848F68BDBEFCE86B1C693D7F6E6AC8FA023"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/CD-ORDERLY.wire",
+      "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F01.wire",
+      "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F02.wire",
+      "sha256": "D58751EE563CB10B622B5B7DCFF646E66CD5A5727D4AF2127E8C8AE147B16240"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F03-oauth.wire",
+      "sha256": "7D387AC47BA834A2AA6A94F2733D84F4B3D4AD5C5CAC28D760ACB1C28D0850EF"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F04-oauth.wire",
+      "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F05-oauth.wire",
+      "sha256": "4A0D644A04EA81B81391391EBFE888FB6517A97F3F3DE01400F89FA7BF60E937"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F05b-oauth.wire",
+      "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F06.wire",
+      "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12a-INVALID-JSON-EVENT.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12a-INVALID-JSON-IDENTITY.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12a-INVALID-JSON-OAUTH.wire",
+      "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12a-NONOBJECT-EVENT.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12a-NONOBJECT-IDENTITY.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12a-NONOBJECT-OAUTH.wire",
+      "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12b-ENCODING-EVENT.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12b-ENCODING-IDENTITY.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/F12b-ENCODING-OAUTH.wire",
+      "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-CONFLICT-FIELDS-2-3.wire",
+      "sha256": "004583BC0A6E6847D191184C9781C7E9B74435107983F3B6168609261CF89876"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-CONFLICT-FIELDS-3-2.wire",
+      "sha256": "DA0133D46ADF8E84211DE5DFE350BEC8483B394BDB4E3FC4532BFF8093FFA7BB"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-CONFLICT-LIST-2-3.wire",
+      "sha256": "4833158B69A4ECAD4A84FA17FDA1AAE30AEA58D10A2B915E32145008F5E49C57"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-CONFLICT-LIST-3-2.wire",
+      "sha256": "3D1C5DE2067CC5D18234042D9E02140EDADED4171A0C6F5E2D30942391836D64"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DECIMAL-02.wire",
+      "sha256": "B9B204433236D92501FA8435DB6543E2039866FBC8DEB41F36CB814CFF50AAEC"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DECIMAL-DUP-FIELDS.wire",
+      "sha256": "B73E4209CE16BF742DE2058975A0C1BB6AA95A63E5F4F88C9EB26ED50E117BBF"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DECIMAL-DUP-LIST.wire",
+      "sha256": "F88FFCAEDB6B9AF36350D650F908F793DCB9DDE25225113D35EFCF790C23A452"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DECIMAL-EQ-DUP-FIELDS.wire",
+      "sha256": "854D93317CEFF637707016A2659DA68B015C1BA4FCE61D71D259E6C72C5BC7ED"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DECIMAL-EQ-DUP-LIST.wire",
+      "sha256": "0389D8FF86AF0DB1E6F19EFBC41A714C327E3B056024195FC27F1FB18EE919B6"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DEFECT-COLONLESS.wire",
+      "sha256": "C7BB51AD3562D3B53550469490E2C8D3EB66745B6BEF673260B3C7552D41C17E"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DUP-IDENTICAL-FIELDS.wire",
+      "sha256": "B07F9E56E236B3987AC49DEAFC6FBBDB320CC3F81A8A09ABB0DCB43AB74895C2"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-DUP-IDENTICAL-LIST.wire",
+      "sha256": "7CF16642407ED6415E26459667CF7F32DDA394D754105AD184CD433D28BB157B"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-INVALID-DECIMAL-EQ.wire",
+      "sha256": "3AD9BD75D8F9EF5B8ADF1945812DD819A073F9058C38264816C1E9C440D39CAA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-INVALID-EMPTY.wire",
+      "sha256": "6B6B65D7508B8A1EB4243AC1A6E071BA43E9BD7D6387A37B053987AB687AEE4D"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-INVALID-NEG.wire",
+      "sha256": "A602DF3E1B12BB9EB95184F038C795A229E68E492D331630333303975E16902D"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-INVALID-NONDEC.wire",
+      "sha256": "BC3028CE4FAAF5C958C2F5B5D7E056787E38A78E6D0AB37AA8519BCE594EBEAA"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-INVALID-PLUS.wire",
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-INVALID.wire",
+      "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-CL.wire",
+      "sha256": "840D382D9B4A6DB242AE43C92929B522BBE4B48ED2409B17930B7A1AF1477F95"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-LIST.wire",
+      "sha256": "1FBCC0D5A47DAD75486E2C79093D3DE9D1C3291AD6E7F0FB977DCE2172725D91"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-MIXED-CHUNKED-GZIP.wire",
+      "sha256": "B14F7808A97B6E0DC0328CD49532BCE61A038ABCC5B50910D5BA0F833AD35BB1"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-MIXED.wire",
+      "sha256": "5B3407984CB288C16B69C4457D5E8A3581345C4E95F0920633AC9C843623A774"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-NONEXACT+CL.wire",
+      "sha256": "0BA91225FDBE946AE8FA17E85BE78C8D68812E5156F7407E8863731670EF512F"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-REPEAT.wire",
+      "sha256": "39A5ADA6BDC14B99C9ED1B093E3FA187EA7CC6C1085E816CDA4D0328DE36BD05"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-WS-LEAD.wire",
+      "sha256": "D05FD6413653F895D032D9AF522F398D5B082F32C641AF7D59E3542F46285D24"
+    },
+    {
+      "relative_path": "verify/wire_transcripts/H-TE-WS-TRAIL.wire",
+      "sha256": "101AAECF00F2371CB951FB9A4DD9B569E47DDD4B50CA45E9CEAE69B9D51FCEE9"
+    }
+  ],
+  "runtime_file_pin_count": 3,
+  "runtime_files": [
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\http\\client.py",
+      "sha256": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\email\\feedparser.py",
+      "sha256": "A3A309A212382FA3CA054DB3150C78B931D9E975FD55EDBC8D6230FDA91A5E6D"
+    }
+  ],
+  "outer_exclusions": [
+    "outer file/hash/receipt I/O latency",
+    "process/OS scheduling latency",
+    "no separate outer timeout beyond launcher 45s nominal"
+  ],
+  "supervision_limits": {
+    "child_collect_seconds": 30,
+    "post_kill_wait_seconds": 5,
+    "reader_join_seconds": 5,
+    "reader_count": 2,
+    "nominal_total_seconds": 45,
+    "capture_stdout_bytes": 65536,
+    "capture_stderr_bytes": 65536,
+    "capture_result_bytes": 262144,
+    "stop_no_overwrite": true,
+    "no_retry": true
+  },
+  "prep_version": "v3",
+  "dex_revise_audit_sha256": "AEF66204C0582DD0833FEA3781D16C083CD559C80D8EA8BF7958736E8F98DA9F",
+  "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+  "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059"
+}

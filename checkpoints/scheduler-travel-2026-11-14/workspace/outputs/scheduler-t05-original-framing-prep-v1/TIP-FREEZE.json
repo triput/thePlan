@@ -1,0 +1,36 @@
+{
+  "author": "Justin",
+  "role": "Jim T05 source+fake prep v1 (Justin)",
+  "date": "2026-11-11",
+  "packet": "post-native-t05-source-fake-prep-jim-v1-2026-11-11",
+  "outputs_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-original-framing-prep-v1",
+  "native_provenance_mirror": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t05-native-provenance-prep-v1",
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "approval_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "design_tip_sha256": "FA13F24FC0EDE7534D9ED335E04CB2782F56376EC6EBAB61D7F5C206841EF740",
+  "executed": false,
+  "execution_authorized": false,
+  "launch_ready": false,
+  "tests_run": 0,
+  "wire_ids_frozen": 34,
+  "original_predictions": 34,
+  "admission_kind": "scheduler-t05-one-shot-fake-framing-original-admission",
+  "executables": {
+    "check_t05_framing_original.py": "BA8EDB370CD8D43E1842A872DEF6A6DEE9360507C3F9073083F140DB35474F58",
+    "invoke_t05_fake.py": "82EDC456FFEF51F3A82701B0ED1C763F0CF2EDA8BF85F564254C379F6F289AE3",
+    "admit_outer.py": "124371FFAA2F717624BD493F11E2C826F821709D64E409F0BE01B672B0E7DD05",
+    "Invoke-Verification.ps1": "C068661240FDF2D5AEF03AE66A1932B276FB3CA8EBB079E5EFD44273F3E4DBB2",
+    "collect-parser-sources.sh": "BFE5164A3007B529936E6369C7B1E1E0D37E502F752AF187BF34EC5220364A9D",
+    "verify_native_provenance.py": "B975AB5FC7C4BE8C41AC1D8E0F53A7DA6CD989CC4B23661712586F0C379B49C4"
+  },
+  "resulting_pins": {
+    "covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "covering_provider_context.py": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+    "covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+    "host_http_client.py": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+    "host_ssl.py": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E",
+    "host_email_message.py": "5254462AF22B409A88F238ED385ECB0E4E67EDEA64CF569FAD2AD78C293AFA2A"
+  },
+  "status": "T05_SOURCE_AND_FAKE_PREP_V1_HELD_NOT_EXECUTED"
+}

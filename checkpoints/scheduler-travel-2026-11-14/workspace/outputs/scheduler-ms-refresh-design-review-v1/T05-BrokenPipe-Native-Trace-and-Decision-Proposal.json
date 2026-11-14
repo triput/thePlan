@@ -1,0 +1,31 @@
+{
+  "atUtc": "2026-11-14T03:28:00.9414036Z",
+  "status": "NATIVE_OBSERVATION_AND_SOURCE_TRACE_POLICY_REVIEW_REQUIRED",
+  "native_receipt": "174E1BE136693014C7B9F5F1E885342604BF50FC52B0B9BAB83412EC6CC9EB13",
+  "runner": "1AEDEE93B1076D104E05700833548AE11B9AB4751E232E591FB615AAD72961BB",
+  "observation": [
+    "Sanitized retained cause is built-in BrokenPipeError at covering_joined_https.py112 sock.recv in receive.",
+    "Caller chain contains covering_http_transport.py345 part=response.read(8192), _GuardedHTTPResponse.read83 and _Reader.readinto51.",
+    "SuiteStop originates at abrupt-specific classifier1949 through classify-or-chain1966. No retained errno or message; truncated diagnostic."
+  ],
+  "source_implications": [
+    "Exact request send and response.begin completed; redirect/content-encoding/header gates precede line345. No decoded JSON response or API result established.",
+    "Before classifier call2112, same pinned observer code requires one joined peer retirement with no worker_error_kind and complete scripted peer inventory; reaching this guard supports these at executed-assertion scope, not direct retained measurement rows.",
+    "Abrupt script sends status200 Content-Length20 with one-byte body, then SO_LINGER0 plus SHUT_RDWR and TLS socket close, without unwrap/close_notify.",
+    "Existing finite abrupt-client class set accepts only SSLEOFError/ssl and ConnectionResetError/builtins; BrokenPipeError is therefore a correct STOP under the frozen oracle."
+  ],
+  "not_established": [
+    "Exact OS errno or OpenSSL implementation mechanism producing BrokenPipeError from receive",
+    "Causality beyond observed peer/client path",
+    "A separate completed-case PASS record for earlier orderly case",
+    "Full T05 or HTTP-ingress/native-assessment composition"
+  ],
+  "proposed_review_question": "Should the finite fixture policy additionally accept exactly BrokenPipeError/builtins for this abrupt peer case, with retained receive-stage provenance and existing complete-peer/clean-retirement conjunction, while preserving refusal of IncompleteRead, JSON failures, other OS errors and all UNKNOWN?",
+  "recommendation": "Seek independent review of exact source/evidence before asking Trish for a policy decision. No change to production exception mapping. Avoid generic OSError acceptance or a post-hoc PASS for this stopped run.",
+  "fallback_if_rejected": "Keep current accepted set and investigate/design a separately reviewed deterministic abrupt fixture; no rerun or expectation widening without approval.",
+  "scope": "Decision proposal only. No source change, policy approval, execution or retrospective PASS.",
+  "coordination": "Matt keeps T03 active; queue this trace for his next useful review alongside BODY checker review and T05 fake result confirmation.",
+  "cleanup": "Exact-ID failure cleanup card pending",
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

@@ -1,0 +1,26 @@
+{
+  "native_runner": "FA9AF0A4DEFB974998A0714A3FBC024F70E5C145C08A225E216388B6AACEF1BE",
+  "atUtc": "2026-11-14T05:34:48.5359942+00:00",
+  "packet_pins": 34,
+  "partial_runtime_pins": 10,
+  "endpoint": "unbound",
+  "mutants": 11,
+  "human_authority": "NONE",
+  "review": "333AA4A6D9F2DF37967E6597523B4CFBCE6F629829C85881BA650FE7E27F9A22",
+  "verified_inputs": {
+    "outputs\\scheduler-google-functional-fake-dex-v2": 43,
+    "outputs\\scheduler-native-google-refresh-fake-prep-dex-v3": 39,
+    "outputs\\scheduler-native-google-refresh-prep-dex-v3": 309
+  },
+  "status": "QUALIFIED_STATIC_ACCEPTANCE_RECONCILED_NO_BLOCKERS",
+  "command": "6D641185B82A50AEDBC093F08AAA8A29B8706C819D2DB312251D96A919AEBD58",
+  "admission": "F29AD9CBAC2E6667D28557C2B03CE171F70A8897FB312614F4180D4658A87766",
+  "qualifications": [
+    "Tiny existing install-before-try window remains nonblocking under single-case process scope; no extra hardening revision",
+    "Restoration fake assertion/mutant structural only; native execution remains unproved",
+    "All corrected checker/native syntax and behavior unexecuted",
+    "Old native command6CB658FB remains withheld; old fake PASS preserved at prior scope"
+  ],
+  "controls": 14,
+  "reported_predicates": 67
+}

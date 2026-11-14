@@ -1,0 +1,100 @@
+{
+  "kind": "independent_acceptance_data_not_executable",
+  "prepared_at_utc": "2026-11-13T05:31:12.4199070Z",
+  "current_status": "NO_REFRESH_EXECUTION_AUTHORITY",
+  "fixture_manifest_sha256": "518374841295D1312B6EF9A3CC8BC5061F284F1B6AC0475F469A52014AFFDC21",
+  "fixture_runner_sha256": "CC4D49E758F22E5E34C0D6093946CA390BC95A4C320C3D92B24AD723FA8634FF",
+  "fake_source_status": "v1 held and statically blocked; fresh checker-v2 pending",
+  "fake_acceptance": {
+    "scope": "Finite raw-pin/text-identity/helper-fake/structural/actual-source-mutation controls only. No native OAuth,TLS,Fernet,DB,shared-peer or whole refresh-body behavior claim.",
+    "actual_source_mutants": [
+      "ciphertext_only_persistence",
+      "legacy_token_path",
+      "missing_token_script",
+      "graph_only_routes"
+    ],
+    "lifecycle": "Exact authorized invocation once; zero child streams; exit0; clean EOF and joined readers; no timeout/overflow/retirement UNKNOWN; exclusive result/receipt and postpins; same120+5+5+5 nominal135s limits with reviewed exclusions.",
+    "result": "Exactly10 ordered PASS,failed0,no extra/missing controls; observed nested names/kinds and subject count12 match. Never equate JSON true with numeric1.",
+    "ordered_control_ids": [
+      "SUBJECT-PINS",
+      "NONEXPIRED-AND-DIAGNOSTIC-PRESERVED",
+      "TENANT-PATH-AGREEMENT",
+      "OAUTH-ROUTE-TABLE",
+      "REFRESH-INVENTORY-ORDER",
+      "SEMANTIC-PERSISTENCE-ADMISSION",
+      "SECRET-EXCLUSION-PROJECTION",
+      "REGISTRY-MAPPING",
+      "REFRESH-BODY-SHAPE",
+      "ACTUAL-SOURCE-MUTANTS"
+    ],
+    "line_endings": "Raw production bytes/hash unchanged;2252 CRLF pairs,zero bareCR; checker permits pairs without normalizing AST input.",
+    "preserved_identity_cases": 24,
+    "semantic_cases": [
+      "before_seed_state",
+      "after_refreshed_state",
+      "changed_ciphertext_unchanged_plaintext_refused",
+      "wrong_token_refused",
+      "missing_rotation_refused",
+      "invalid_expiry_refused",
+      "refuses_missing_expiry",
+      "refuses_missing_ciphertext",
+      "refuses_missing_account",
+      "refuses_naive_reference",
+      "projection_has_no_plaintext"
+    ]
+  },
+  "native_acceptance": [
+    {
+      "evidence": "Shared-harness diagnostic native outcome reconciled first; own exact reviewed REFRESH staging,all pins and explicit one-shot approval; evidence root absent; flags alone insufficient.",
+      "id": "ADMISSION"
+    },
+    {
+      "evidence": "Exactly NP-V-MS-REFRESH; passed1,failed0,skipped0,unexpected_unknown0,expected_unknown_cases[]; one executed passed case row; no HOLD treated as PASS.",
+      "id": "SCOPE"
+    },
+    {
+      "evidence": "Retain pinned HTTP ingress/release-plan/dispatch/connector/native factory provenance. Default JoinedTLS, no byte injection; actual captured ingress budget is same bound work_remaining callback in provider counter.",
+      "id": "OWNING-PATH"
+    },
+    {
+      "evidence": "Fresh persisted setup read: seed access/refresh match true,refreshed/rotated match false,expiry<=plan time,one account/two subscriptions,coverage any_success false; only typed booleans/expiry/short hashes retained.",
+      "id": "BEFORE"
+    },
+    {
+      "evidence": "New persisted setup read after response: refreshed_access_match/rotated_refresh_match true,seed matches false,expiry>final check+30s and advanced from stale before; all_covering_success true. Ciphertext variation alone never establishes persistence.",
+      "id": "AFTER"
+    },
+    {
+      "evidence": "Measured native TOKEN observer marker filtered: exactly COMMIT_ACKNOWLEDGED(commit_requested true),ROLLBACK_ACKNOWLEDGED(false). Keep TOKEN,IMPORT,ASSESSMENT roles distinct; do not claim extra terminal trace from literal booleans.",
+      "id": "TERMINALS"
+    },
+    {
+      "evidence": "Public overall_outcome success; two unique requested result subscription IDs,phase import,status ok; coverage_action all_requested_covering_ok/freshness_requested_ok true; scheduling_ready/freshness_all_enabled_ok true,scheduling_revision strict integer>=1,assessment_error null.600s planning validity preserved.",
+      "id": "PUBLIC-ASSESSMENT"
+    },
+    {
+      "evidence": "One OAuth request,exactly5 client and peer exchanges: POST login.microsoftonline.com/common/oauth2/v2.0/token,GET graph default identity,GET graph list identity,GET default calendarView,GET unrelated calendarView. Peer admitted=served=5. Exact alias before/after maps and requested lower-ID rewrite match canonical default/unrelated IDs. No wire form-field observation claim.",
+      "id": "WIRE"
+    },
+    {
+      "evidence": "Actual typed PKI generated summary and owned child/readers known;peer retirement joined;zero remaining owned peer workers;no framework/retirement UNKNOWN. Private keys remain container temp; no plaintext/body/key evidence.",
+      "id": "RETIREMENT"
+    },
+    {
+      "evidence": "Pinned images/runtime/CA/exact-ID isolation,mounts and namespace agree;runner daemon calls0;source success sequence22 Docker calls,cap32.1MiB per-command capture and separate1MiB report are not total disk quotas.",
+      "id": "HOST"
+    },
+    {
+      "evidence": "Require host suite_pass plus exited runner exact removal/absence,DB SIGINT exit0 exact removal/absence and complete.success=true; failure cleanup separately gated.",
+      "id": "SUCCESS-CLEANUP"
+    },
+    {
+      "evidence": "Reverify eventual exact staged manifest and278 frozen fixture/21 old fake inputs plus274 pending diagnostic inputs and301 completed T05 inputs; preserve all predecessor receipts/results and failed evidence. Reconcile future-v2 hashes and held commands before any card.",
+      "id": "PRESERVATION"
+    }
+  ],
+  "stop": "Any mismatch,failure,timeout,unexpected output/UNKNOWN or missing required proof stops; preserve evidence,no retries/repairs/rerun/force/failure-container cleanup.",
+  "scope_limit": "Selected Microsoft refresh vertical only; does not close all76,T05,Google,error families,live beta/activation authority.",
+  "new_source_or_execution": false,
+  "endpoint": "unbound"
+}

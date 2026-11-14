@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-11-13T02:43:30.1344577Z",
+  "status": "STOP_INDEPENDENTLY_RECONCILED",
+  "invocations": 1,
+  "check_exit_code": 125,
+  "result_exists": false,
+  "receipt_sha256": "3B385B4FC4A2E44CADB3859D9E46837E4EE8EFAF684D255D5148E7211A9A376C",
+  "post_input_pins_verified": 17,
+  "baseline_input_pins_verified": 265,
+  "timed_out": false,
+  "readers_joined": true,
+  "readers_clean_eof": true,
+  "retirement_unknown": false,
+  "stderr_bytes": 62,
+  "stderr_sha256": "7E2DBECCFE218E4E9C22754F1AA2948A1C40AAE92025F71BE264775C6309466C",
+  "stdout_bytes": 0,
+  "control_pass_count": "UNPROVEN: no result file",
+  "no_retry_repair_rerun": true,
+  "endpoint": "unbound"
+}

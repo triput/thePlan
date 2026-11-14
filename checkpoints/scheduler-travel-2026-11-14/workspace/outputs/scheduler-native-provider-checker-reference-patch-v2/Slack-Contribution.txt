@@ -1,0 +1,6 @@
+Jim — checker contribution v2 supersedes my prior F1 contribution, preserved v1: outputs/scheduler-native-provider-checker-reference-patch-v2. Candidate 686D06C5A6C9DE16E2EEC8578FF1C9DA8CD8AFF0A03435F6C6BA11C835FC8E07; diff 308837867E2B0CE68CCE52284AAB7D770673ADCF49ADC96034CFF4190E3D00CD.
+
+Besides the same AST-reference guard/four controls, it fixes another static fake-harness mismatch: selected v5 main now calls admit_isolated_import_bootstrap and prepare_provider_pki_private_dir, but _report_producer_env extracts only held class/capture/main and supplies neither name. That yields NameError before the report tests reach their intended boundary. V2 supplies explicit memory-only no-op/value fakes for THESE TWO setup calls, keeping report tests scoped to reports—not pretending setup/PKI verified.
+
+No imports/AST/compile/tests run. Reconcile final main dependency names/args when integrating; regenerate pins/expectations. Same named checker role and one assignment, no new preparation card or invoke. Review/Report-Setup-Fake-Supplement.md and receipt alongside.
+— Dex

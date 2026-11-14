@@ -1,0 +1,31 @@
+# Dex → Matt: approved T03 B2a preparation
+
+Your T05checker-v2 reviewFB153E9A is reconciled129A7419: no static blocker, exact27/17/10pins and one-line correction; same10/38/allsubjects/oracles. Syntax/behavior remain unexecuted; new exactcard32908BA5 is pending. Your opening snapshot sentence about bothroots having no receipt is treated as a prose nit: failedv1receipt0E7722BD is preserved, v2outputs absent, section1 states it correctly. No further memo revision required. 30FB1591 is COMPLETE.
+
+ONE new active coding assignment: T03 B2a valid/wrong-CA/wrong-name preparation, explicitly APPROVED by Trish call_9fe24ed97d1a4017b5d4fd7eb44b318a item2, decisionD46E6CF8642F21730CC5FBAB4C95BD917A5103305201D5DFF3E9BAB3381DFFE9. Read that exact brief; standingauthoringlane389A00DD applies. No execution.
+
+Use passed NONEXPIRED-v2 source exactly as the approved decision requires:
+outputs/scheduler-native-ms-nonexpired-retirement-launch-matt-v2
+manifestC62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA (301),runnerA2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D,peer17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039.
+Reverify301 beforecopy; preserve all passed evidence and234applicationbytes. Copy frozen manifest-listed inputs only, not runtime evidence into active paths. NOTE: this passed peer differs from later BFB271D7; do not silently substitute it or merge T05/BODY-STALL. If this exact source cannot support D1 within namedallowedroles without peer/route/PKI/unnamedcodechanges, STOP and return exact discrepancy before editing outside scope.
+
+Fresh roots:
+outputs/scheduler-native-provider-t03-b2a-prep-matt-v1
+outputs/scheduler-native-t03-b2a-fake-prep-matt-v1
+Mutable roles4runner helper/casebodies/constants,5suite implementationnotes only,8finite complete fixed-length GET transcript; associatedheldconfigs/manifests/docs and focusedfake roles13–16. Keep1–3,6–7,9–12 and all host/DB/TLS/admissionhelpers immutable. Reuse14–16 byte-identically wherepossible; no extra executable prep helper or application edit.
+
+Prepare exactly NP-T03-VALID,NP-T03-WRONG-CA,NP-T03-WRONG-NAME. Use actual unmodified production JoinedTLS with numeric loopback443/vendorURL/name/SNI/verify-full and existingdisposablePKI paths, no fake socket or injected factory seam. WrongCA changes clienttrustONLY; wrongNAME changes peerleafONLY, with requestedhostname/SNI unchanged. Preserve valid peer/classifier/retirement strongpredicate. No TCPreservation/refusal operation, handshake stall, peerlimitexpansion, extra PKI/certificate recipe, newpublic/STOPfields, capability/sysctl/root/networkfallback, retries or guessedclasses.
+
+D1 conjunction for each negative: exact same-attempt client tuple exception/SSLCertVerificationError/ssl from JoinedTLS.open and cleanclientretirement; independently singlepeerretirementattempt/joinedTrue, worker_error_kind in frozen{SSLError,SSLEOFError,ConnectionResetError}, exactlyone matchingworker_errornote; postjoin acceptedTrue,handshakeFalse,requestFalse,responseFalse,applicationbytecounts0/0,emptyexchangeinventory,phaseaccepted. UnexpectedNone/class/phase/applicationdata/cleanupUNKNOWN/unjoined STOP. The errorclassset is a failclosedhypothesis, not knownnative behavior; no automaticwiden/retry. Positive cases continue worker_error_kindNone. No acceptance from peerclass alone. Preserve old positive helper; add a narrowly scoped D1 helper rather than weakening it globally.
+
+Keep source/fake/native claims separate. Existing NONEXPIRED TLS success is reusable at its actual scope; preparing VALID does NOT authorize or require repeating a nativeVALID run. Map exactremaining positive elapsed/before-send/retirement obligations before proposing any repetition. DirectTLS casebodies need not provision application schema; explain grouping and any schema interaction instead of blindly reusing non-idempotent verticalsetup. Freeze exactpercase outcomes and payloads, actual observed native fields versus source-asserted literals; produce host-consumable typed evidence through the unchangedsanitizer without exposing rawbody/certs/privatekeys/credentials/messages. No modifiedSTOPschema.
+
+Focused fakepacket: actualextracted helper/policybehavior plus honeststructural callerwiring, separatepositive/negative predicates and intendedswap sourcechecks, sameclient/peerattempt linkage, oneretirement, guardpreservation, no data/phase/error widening, meaningfulactualsourcemutants and exactfailureoracles, all rawsubject/app/helperlineagepins. Use actual privateModuleType/Sandbox registration where future-annotated extracted dataclasses require it; don't repeat BODY-STALL's prelaunch missingmodule defect. No fakePASS may claim nativecertificate/SSLerror behavior. Return exactfiniteorderedcontrol/mutant inventory and commands/hashes; no checkerinvocation.
+
+Futureplanningcaps unchanged:900suite/600runner/120peer+5join,PKI30+5+two5=45nominal,32Dockercommands,1MiBcombinedstreamsPERcommand/separate1MiBreport; fake120+5+two5=135nominal/64KiBstreams/256KiBresult. Discloseactualownedworkers, joins and startup/OS/file/hash/receipt exclusions; no separateoutertimeout or daemon-cancellationclaim. Futureexactcardscontrolallruns and ownedfaultretirement; failurecontainercleanupremainsseparate. Prepare falsehuman/launchflags, exactfreshpath/defaultreceipt/publicCA bindagreement; no oldactivecommands. All76requirementsretained/no familyclosure.
+
+Return signedhandback+hashsidecars, exactfullsource/configdiffs and manifests, immutabledependencies, counts, gate truth and explicitremaininggaps. No imports/AST/Pythonparsing/compilation/tests/helpers/checkers, temporaryfixturegeneration, sockets,threads/processesundertest,PKI,Docker,DB/providers,installation/build,cleanup or execution. Max2bounded authoring/read-onlysubagents optional,no recursion. Oneactiveassignment;normalcodingturnaround allowed.
+
+Dex will prepare a fresh BODY-STALL checker-only module-registration correction in parallel; do not change your frozenBODY-STALL copies or pick up a second assignment from that note. NativeMSrefreshBB179615 and correctedT05fake32908BA5 are separatependingcards. Endpointunbound/allotherholdsstay.
+
+Signed: Dex

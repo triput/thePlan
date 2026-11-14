@@ -1,0 +1,36 @@
+SLACK TIP — post-native-d2-source-fake-prep-jim-v3-named-controls-2026-11-11
+
+Status: D2_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED (preparation only; no execution)
+
+Dir: F:/DropFolder/pending/post-native-d2-source-fake-prep-jim-v3-named-controls-2026-11-11/
+Also mirrored: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-source-prep-v3-named-controls/
+
+Supersedes frozen v2 tip 9794FE5B957B3F0017D7484855884545F7D90DFE854A87E4EA471A27D8BE2FAB.
+Incorporates Dex formal REVISE (oracle gaps from v2) + named-control findings p1794422024.
+v1 tip A91964DA… and v2 tip 9794FE5B… remain IMMUTABLE.
+
+Authority: D2-Source-and-Fake-Preparation-Scope C3D7B8F1… / Approval answer Approve fresh-copy preparation; overlay CA51E2D8…
+
+SOURCE (fresh copy only; originals untouched; pins identical to v1/v2):
+- Exact diff CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4 applied to 3 files
+- Resulting: policy A265F81F…; http AECE1018…; ctx 875FBF61…
+- Inventory 234/234; only those three existing files changed
+- bases/ hold starting pins
+
+FAKE PACKET (authored, NOT executed; oracle gaps retained; named controls strengthened):
+- fake-only-d2-path-admission-verification/
+- 41 approved-core functional CTRL rows retained (incl. CTRL-POS-G-PAGE-TOKEN + CTRL-CONT-G-PAGE-TOKEN)
+- +3 CTX context pre-delegate named controls → 44 functional total
+- +3 mutation +5 inventory self-checks = 52 named (no new IDs; three strengthenings in place)
+- MS VIEW/DELTA: extracted GRAPH_BASE + _calendar_view_url/_calendar_view_delta_url(raw a=b+c); wire carries a%3Db%2Bc
+- DUP-SAME-PURPOSE: two distinguishable peers; asserts FIRST selected address; one-exchange retirement
+- pos_get: exact request-target unchanged on wire (no-normalize-and-forward); pageToken keeps separate CONT builder
+- v2 oracle gaps retained: mutation CoveringHTTP oracles; SEP-TARGET-AUTHZ non-tautology; neg_path+_CoveringClient CTX
+- OUTER-ADMISSION D330D9BAE50BE9589A675FAA95EE618828288FE78704CB25BF84B65FD14669D2
+- check A8787F873BC54BFE1B71BB487716DF14D85D21BB932B5EE53BCA0A5F1AB9C9FC
+- EXPECTED 1ACD3F2D0F223C9C637C6F1EAE526E675A6D8618AF87ACDADD923EBF77AA5667
+- launch_ready=false; executed_in_preparation=false
+
+HELD: Verification-Commands-Held.md — do not run admit/launcher/check without a later card.
+No app imports, sockets, PKI, Docker, native, endpoint bind. T01–T08 not closed.
+TIP-FREEZE SHA256 A9415BB75B5B46CF774ABC239813815D015E0EDE07D46E53268E94C15DFB4BE8

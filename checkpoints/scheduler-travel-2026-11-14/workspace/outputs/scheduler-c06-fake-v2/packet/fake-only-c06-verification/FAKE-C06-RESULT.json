@@ -1,0 +1,10 @@
+{
+  "status": "STOP",
+  "class": "FAKE-C06-RUNNER-TLS",
+  "kind": "ControlFailure",
+  "detail": "expected 'occupied gate port' in FileExistsError:'/tmp/c06-gate-tls/I01-C06.result.json'",
+  "executed": true,
+  "held": false,
+  "source_hashes_verified": false,
+  "inventory_error": "expected 'occupied gate port' in FileExistsError:'/tmp/c06-gate-tls/I01-C06.result.json'"
+}

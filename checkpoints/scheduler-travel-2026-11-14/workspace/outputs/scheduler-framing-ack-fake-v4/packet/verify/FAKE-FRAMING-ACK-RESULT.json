@@ -1,0 +1,984 @@
+{
+  "status": "PASS",
+  "class": "FAKE-FRAMING-ACK",
+  "executed": true,
+  "preparation_executed": false,
+  "source_hashes_verified": true,
+  "wire_ids_in_order": [
+    "F01",
+    "F02",
+    "F03-oauth",
+    "F04-oauth",
+    "F05-oauth",
+    "F05b-oauth",
+    "C-BASE",
+    "C-EXT-VALID",
+    "C-TRAILER-VALID",
+    "C-DATA-SHORT",
+    "C-SEP-SHORT",
+    "C-SEP-WRONG",
+    "C-ZERO-ABSENT",
+    "C-TRAILER-EOF",
+    "C-ZERO-NO-CRLF",
+    "C-TRAILER-LINE-EOF",
+    "C-TRAILER-MALFORMED",
+    "F12a-INVALID-JSON-EVENT",
+    "F12a-INVALID-JSON-IDENTITY",
+    "F12a-INVALID-JSON-OAUTH",
+    "F12a-NONOBJECT-EVENT",
+    "F12a-NONOBJECT-IDENTITY",
+    "F12a-NONOBJECT-OAUTH",
+    "F12b-ENCODING-EVENT",
+    "F12b-ENCODING-IDENTITY",
+    "F12b-ENCODING-OAUTH",
+    "CALLER-CLIENT-EVENT-F01",
+    "CALLER-CLIENT-OAUTH-F04",
+    "CALLER-CLIENT-OAUTH-F05b",
+    "CALLER-REFRESH-TOKEN-F04",
+    "H-DUP-IDENTICAL-FIELDS",
+    "H-DUP-IDENTICAL-LIST",
+    "H-CONFLICT-FIELDS-2-3",
+    "H-CONFLICT-FIELDS-3-2",
+    "H-CONFLICT-LIST-2-3",
+    "H-CONFLICT-LIST-3-2",
+    "H-DECIMAL-02",
+    "H-DECIMAL-DUP-FIELDS",
+    "H-DECIMAL-DUP-LIST",
+    "H-INVALID",
+    "H-INVALID-PLUS",
+    "H-INVALID-NEG",
+    "H-INVALID-EMPTY",
+    "H-INVALID-NONDEC",
+    "H-INVALID-DECIMAL-EQ",
+    "H-DECIMAL-EQ-DUP-FIELDS",
+    "H-DECIMAL-EQ-DUP-LIST",
+    "H-TE-CL",
+    "H-TE-NONEXACT+CL",
+    "H-TE-REPEAT",
+    "H-TE-LIST",
+    "H-TE-MIXED",
+    "H-TE-MIXED-CHUNKED-GZIP",
+    "CD-ORDERLY",
+    "CD-ABRUPT",
+    "CD-DEADLINE",
+    "F06",
+    "H-DEFECT-COLONLESS",
+    "C-NEG-SIZE",
+    "C-TRAILER-COUNT-100",
+    "C-TRAILER-COUNT-101",
+    "H-TE-WS-TRAIL",
+    "H-TE-WS-LEAD",
+    "TLS-OPTION-FORWARD",
+    "CLEANUP-C-R02",
+    "CLEANUP-C-R03",
+    "CLEANUP-C-R04",
+    "CLEANUP-C-R05",
+    "CLEANUP-C-R06",
+    "EXCESS-ITEM-BYTE",
+    "PRIMARY-BOTH-CLOSES",
+    "OAUTH-UNKNOWN-RETIREMENT",
+    "SOURCE-INVENTORY"
+  ],
+  "inputs": {
+    "F01": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F02": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F03-oauth": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F04-oauth": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": "CoveringReauthorizationRequired",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F05-oauth": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F05b-oauth": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-BASE": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-EXT-VALID": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-TRAILER-VALID": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-DATA-SHORT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-SEP-SHORT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-SEP-WRONG": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-ZERO-ABSENT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-TRAILER-EOF": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-ZERO-NO-CRLF": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-TRAILER-LINE-EOF": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "IncompleteRead",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-TRAILER-MALFORMED": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12a-INVALID-JSON-EVENT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "JSONDecodeError",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12a-INVALID-JSON-IDENTITY": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "JSONDecodeError",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12a-INVALID-JSON-OAUTH": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_UNKNOWN",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12a-NONOBJECT-EVENT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12a-NONOBJECT-IDENTITY": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12a-NONOBJECT-OAUTH": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_UNKNOWN",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12b-ENCODING-EVENT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12b-ENCODING-IDENTITY": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F12b-ENCODING-OAUTH": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_UNKNOWN",
+      "candidate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CALLER-CLIENT-EVENT-F01": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CALLER-CLIENT-OAUTH-F04": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": "CoveringReauthorizationRequired",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CALLER-CLIENT-OAUTH-F05b": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CALLER-REFRESH-TOKEN-F04": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": "CoveringReauthorizationRequired",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DUP-IDENTICAL-FIELDS": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DUP-IDENTICAL-LIST": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-CONFLICT-FIELDS-2-3": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-CONFLICT-FIELDS-3-2": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-CONFLICT-LIST-2-3": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-CONFLICT-LIST-3-2": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DECIMAL-02": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DECIMAL-DUP-FIELDS": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DECIMAL-DUP-LIST": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-INVALID": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-INVALID-PLUS": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-INVALID-NEG": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-INVALID-EMPTY": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-INVALID-NONDEC": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-INVALID-DECIMAL-EQ": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DECIMAL-EQ-DUP-FIELDS": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DECIMAL-EQ-DUP-LIST": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-CL": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-NONEXACT+CL": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_REFUSE",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-REPEAT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-LIST": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-MIXED": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-MIXED-CHUNKED-GZIP": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CD-ORDERLY": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CD-ABRUPT": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "CD-DEADLINE": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_PARSER_ERROR",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "RemoteDisconnected",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "F06": {
+      "observed_outcome": "PASS",
+      "original_evidence": "T05-IMMUTABLE",
+      "t05_predicted": "OBSERVED_SUCCESS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-DEFECT-COLONLESS": {
+      "observed_outcome": "PASS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-NEG-SIZE": {
+      "observed_outcome": "PASS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-TRAILER-COUNT-100": {
+      "observed_outcome": "PASS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "C-TRAILER-COUNT-101": {
+      "observed_outcome": "PASS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "exception_type": "HTTPException",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-WS-TRAIL": {
+      "observed_outcome": "PASS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "exception_type": "CoveringTransportRefused",
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "H-TE-WS-LEAD": {
+      "observed_outcome": "PASS",
+      "candidate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "exception_type": null,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "negative_receive_requested": false,
+        "policy_pending": false
+      }
+    },
+    "TLS-OPTION-FORWARD": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "suppress_ragged_eofs_forwarded_false": true,
+        "wrap_exception_propagated": true,
+        "native_tls_proven": false
+      }
+    },
+    "CLEANUP-C-R02": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    "CLEANUP-C-R03": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    "CLEANUP-C-R04": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    "CLEANUP-C-R05": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    "CLEANUP-C-R06": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "lineage": "T07-fake-v2 C-R02..C-R06"
+      }
+    },
+    "EXCESS-ITEM-BYTE": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "byte_excess_outcome": "OBSERVED_REFUSE",
+        "byte_excess_exception": "CoveringTransportRefused",
+        "item_excess_outcome": "OBSERVED_REFUSE",
+        "item_excess_exception": "CoveringTransportRefused"
+      }
+    },
+    "PRIMARY-BOTH-CLOSES": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "three_roles_present": true,
+        "response_close_role": "FakeResponseCloseError",
+        "transport_close_role": "FakeTransportCloseError"
+      }
+    },
+    "OAUTH-UNKNOWN-RETIREMENT": {
+      "observed_outcome": "PASS",
+      "observation": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "exception_type": "CoveringRootOutcomeUnknown",
+        "transport_sent_observed": true
+      }
+    },
+    "SOURCE-INVENTORY": {
+      "observed_outcome": "PASS",
+      "changed_files": [
+        "app/services/covering_http_transport.py",
+        "app/services/covering_joined_https.py"
+      ],
+      "source_count": 468,
+      "dex_p1_p2_p3_addressed": true,
+      "provisional_review_sha256": "87E24D1AE390CFDE11CD31E88F6F2D8E89777DE49FFB3EFCF78997ABC9CB30B9",
+      "staged_read_hash_B04B3D6B_superseded_by": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
+      "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0"
+    }
+  },
+  "limits": "byte fakes; no native TLS/provider proof",
+  "policy_compatibility": "ACCEPTED_HEADER_COMPATIBILITY_POLICY",
+  "header_policy_decision_sha256": "AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0",
+  "header_policy_approval_sha256": "1C932F1A569AD55DF9B86C8994946B052B5BCDDB21676B848EC7ACBF98464059",
+  "dex_provisional_p1_p2_p3": "addressed_in_candidate_29CBD53C",
+  "native_tls_orderly_vs_abrupt": "unproved"
+}

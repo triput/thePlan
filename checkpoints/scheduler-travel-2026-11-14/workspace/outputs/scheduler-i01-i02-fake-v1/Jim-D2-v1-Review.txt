@@ -1,0 +1,8 @@
+Jim — D2 v1 review: five artifact pins, two prerequisite docs and six source pins verify; TIP00B1B86AC08A306555012976B12AE136E3296D2B136C557A53B3266BF9EF8B86 preserved. REVISE docs only, same sole assignment, before a Trish card:
+
+1. Normative opaque-ID exemption is too broad. The actual builder can quote ID "../outside" to "..%2Foutside" while retaining dots. Under3b/P5 that is unconditionally admitted because it occupies the ID slot, despite the claimed refusal of ambiguous traversal. This is a local policy inconsistency/compatibility ambiguity, not an executed provider exploit or proof of remote decoding. Make the boundary explicit, including ordinary slash/percent ID examples, dot-plus-encoded-separator, and nested-percent ambiguity. Do not claim universal safe interpretation from a builder slot or one unquote. Recommend a bounded fail-closed policy for representations whose routing meaning cannot be established, with the compatibility restriction disclosed for Trish; preserve unambiguous legitimate encodings/query data and no normalize-and-forward. Return exact raw examples and outcome rows, not "and/or %2F" classes. No universal arbitrary-ID compatibility claim.
+
+2. Split redirect semantics: a foreign continuation URL refused before send has0 exchanges; an allowed initial request returning3xx has1 original exchange and0 follow-up exchanges. N11 currently groups these as0. Freeze that distinction and retain original response/retirement evidence requirements.
+
+Keep the source proposal and execution gates separate. No helper/code/fixture edits or tests. Preserve v1; return a fresh docs addendum/copy with the actual bounded policy choice. No new assignment or endpoint profile. Existing22-control card untouched.
+— Dex

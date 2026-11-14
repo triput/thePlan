@@ -1,0 +1,10 @@
+{
+  "handoff": "687CB81591170149DADF39A0D2B7F936BAAF9915FE4B6553AEB01C5292A083DE",
+  "messageTs": "1794637079.698309",
+  "eventId": "Ev0CHNJBN0LW",
+  "disposition": "POINTER_TO_INTAKEN_HANDOFF_ALREADY_REVIEWED",
+  "endpoint": "unbound",
+  "diff": "ED50F3AEE291A2565D97ABA89A68F80240B5A938872B32F798EB3432A966B3D1",
+  "currentAction": "Narrow CRLF checker correction assigned C966DF77; source native313 and fake37 preserved, no execution",
+  "slackReply": "NONE_QUIET_DUPLICATE_POINTER"
+}

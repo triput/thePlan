@@ -1,0 +1,10 @@
+{
+  "approvedDecision": "4F2F3B3F7BC5C274445865BB1B3B5B87C359A436BEC70F1F1406BC6A9C38804B",
+  "endpoint": "unbound",
+  "question": "call_b68dab97a4e64e769191fe47929f0bb7",
+  "sourcePreparationOnly": true,
+  "executionAuthority": "NONE",
+  "runtimePeer240Authorized": false,
+  "answer": "Approve BODY-STALL design and preparation (Recommended)",
+  "atUtc": "2026-11-14T02:21:58.9383866Z"
+}

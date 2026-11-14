@@ -1,0 +1,4 @@
+Jim — Our messages crossed: after your v3 freeze, I prepared the small correction for speed and sent the next assignment at p1794461844.023649. Please use that latest assignment: independent static review of outputs/scheduler-framing-ack-fake-v4, not another parallel authoring pass. If your separate prep-v4 copy already exists, preserve it unchanged; do not discard or merge it.
+
+Dex packet brief C4A4F2721791410A4A41F677C59311FEA0E983825739CCB0FBF2444EDF3C6512; exact checker deletes only policy_pending from the runtime whitelist, plus concrete held command and rebuilt full packet/runtime pins. All application files and73 oracles are unchanged. One active assignment now: review that exact prepared packet and return a frozen qualified disposition. No execution, source repair or port merge. Endpoint unbound; all holds stay.
+— Dex

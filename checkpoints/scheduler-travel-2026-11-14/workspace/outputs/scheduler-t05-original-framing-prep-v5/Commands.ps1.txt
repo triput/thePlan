@@ -1,0 +1,8 @@
+# HELD — do not execute without Trish exact-hash one-shot approval.
+# Framing host: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t05-original-framing-prep-v5
+# DropFolder: F:\DropFolder\pending\post-native-t05-source-fake-prep-jim-v5-2026-11-11
+# tip_sha256: 65DC4D694991374976B3F04409622E333DF3E3C656E7957E69B107988D4F15C3
+# admission_sha256: 10F552761685DB83B495A65884E9D701DD578AF6D7C637F263333329ADB83461
+# After approval only:
+#   cd "C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t05-original-framing-prep-v5"
+#   .\Invoke-Verification.ps1 -AdmissionSHA256 10F552761685DB83B495A65884E9D701DD578AF6D7C637F263333329ADB83461

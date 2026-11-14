@@ -1,0 +1,25 @@
+{
+  "kind": "Static T07 launcher/outer delta review against verified D2 v2 template",
+  "at_utc": "2026-11-11T20:09:39.7831928Z",
+  "normalization": "Explicit check filename/launcher/result-class-label substitutions; remove initial documentation string, blank lines and comment-only lines; retain ordered remainder including string literals",
+  "subjects": [
+    {
+      "subject": "invoke_t07_fake.py",
+      "template_sha256": "560E9037DA168E03845098000EA34FB17C35509EED9D283B48F265A7EBF002DC",
+      "subject_sha256": "23C68C53ACB35A648D6676025AAF5412E18F3BC42CD91C539FA5A755872E9116",
+      "nonblank_noncomment_lines": 931,
+      "exact_after_named_substitutions_and_documentation_removal": true
+    },
+    {
+      "subject": "admit_outer.py",
+      "template_sha256": "D511AEE78936177004A37BB187A98B728185B7A7A95C2F22FBB1FA835039678B",
+      "subject_sha256": "EDF2684BAC273282E673FF4D71695B4BBA0B17DA2D317F0FC70B5965085FADE2",
+      "nonblank_noncomment_lines": 123,
+      "exact_after_named_substitutions_and_documentation_removal": true
+    }
+  ],
+  "limits": "Same30s child wait +5s kill/wait +two5s joins;64KiB stdout/stderr and256KiB result; no new execution or cleanup authority",
+  "result_gate": "Fresh size-bounded exact class/status/IDs/order/per-ID expected outcomes gate retained; designated original PASS_WITNESS requires the frozen expected oracle, not arbitrary failure acceptance",
+  "disposition": "No control-flow change in these two files; final successor must be re-pinned and check-oracle review still required",
+  "executed_imported_compiled_or_tested": false
+}

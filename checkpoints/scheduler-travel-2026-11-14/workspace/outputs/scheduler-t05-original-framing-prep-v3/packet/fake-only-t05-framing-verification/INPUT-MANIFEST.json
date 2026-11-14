@@ -1,0 +1,547 @@
+{
+  "packet": "post-native-t05-source-fake-prep-jim-v3-2026-11-11",
+  "kind": "held-fake-only-t05-framing-original-harness",
+  "byte_semantics": "utf-8 lf",
+  "execution_authorized": false,
+  "held": true,
+  "launch_ready": false,
+  "executed_in_preparation": false,
+  "scope_sha256": "20B9347FECC7597FC7DAA16AD92D8E3D45C1E4BC26B4DEFA929D1C58F3A42734",
+  "approval_sha256": "5C0B0F0B4EE98981C5CF58534FA8EA159C24C6315FEA9C834FF36A93D3878FA7",
+  "design_tip_sha256": "FA13F24FC0EDE7534D9ED335E04CB2782F56376EC6EBAB61D7F5C206841EF740",
+  "provenance_layers": {
+    "host_parser": "Pinned Python311 Lib consumed by fake driver; not native acceptance.",
+    "upstream_reference": "CPython 3.12.16 design hypotheses in witness design v2.",
+    "native_runner": "UNESTABLISHED until scheduler-t05-native-provenance-prep-v1 launch."
+  },
+  "named_callers": [
+    {
+      "symbol": "CoveringHTTP.request",
+      "module": "workspace/apps/api/app/services/covering_http_transport.py",
+      "purposes": [
+        "oauth",
+        "event",
+        "identity"
+      ]
+    },
+    {
+      "symbol": "_CoveringClient",
+      "module": "workspace/apps/api/app/services/covering_provider_context.py",
+      "via": "covering_provider_context.covering_provider_transport -> calendar_client"
+    },
+    {
+      "symbol": "make_domain_ports.token",
+      "module": "workspace/apps/api/app/services/covering_domain_adapters.py",
+      "note": "token path observation when exercised under covering context"
+    },
+    {
+      "symbol": "google_calendar.refresh_access_token",
+      "module": "workspace/apps/api/app/services/google_calendar.py",
+      "note": "only via calendar_client under covering_provider_transport"
+    }
+  ],
+  "source_extraction": {
+    "algorithm": "AST extract unchanged defs; fake deps only; real http.client.HTTPResponse parser",
+    "sources": {
+      "workspace/apps/api/app/services/covering_transport_policy.py": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "workspace/apps/api/app/services/covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "workspace/apps/api/app/services/covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+      "workspace/apps/api/app/services/covering_target_transaction.py": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "workspace/apps/api/app/services/covering_provider_context.py": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "workspace/apps/api/app/services/covering_domain_adapters.py": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "workspace/apps/api/app/services/google_calendar.py": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+      "bases/app/services/covering_http_transport.py": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8"
+    },
+    "extracted_symbols": {
+      "workspace/apps/api/app/services/covering_http_transport.py": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "workspace/apps/api/app/services/covering_transport_policy.py": [
+        "CoveringTransportRefused",
+        "CoveringReauthorizationRequired",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits",
+        "admit_covering_path"
+      ],
+      "workspace/apps/api/app/services/covering_target_transaction.py": [
+        "CoveringRootOutcomeUnknown"
+      ],
+      "workspace/apps/api/app/services/covering_provider_context.py": [
+        "covering_provider_transport",
+        "_CoveringClient",
+        "calendar_client"
+      ]
+    }
+  },
+  "stdlib_provenance": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "lib_root": "C:/Users/trish/AppData/Local/Programs/Python/Python311/Lib",
+    "modules": {
+      "http/client.py": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+      "ssl.py": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E",
+      "email/message.py": "5254462AF22B409A88F238ED385ECB0E4E67EDEA64CF569FAD2AD78C293AFA2A",
+      "json/__init__.py": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7"
+    }
+  },
+  "wire_inventory": {
+    "wire_count": 44,
+    "wire_ids_in_order": [
+      "F01",
+      "F02",
+      "F03-oauth",
+      "F04-oauth",
+      "F05-oauth",
+      "F05b-oauth",
+      "C-BASE",
+      "C-EXT-VALID",
+      "C-DATA-SHORT",
+      "C-SEP-SHORT",
+      "C-SEP-WRONG",
+      "C-ZERO-ABSENT",
+      "C-TRAILER-EOF",
+      "C-ZERO-NO-CRLF",
+      "C-TRAILER-LINE-EOF",
+      "C-TRAILER-MALFORMED",
+      "F12a-INVALID-JSON-EVENT",
+      "F12a-INVALID-JSON-IDENTITY",
+      "F12a-INVALID-JSON-OAUTH",
+      "F12a-NONOBJECT-EVENT",
+      "F12a-NONOBJECT-IDENTITY",
+      "F12a-NONOBJECT-OAUTH",
+      "F12b-ENCODING-EVENT",
+      "F12b-ENCODING-IDENTITY",
+      "F12b-ENCODING-OAUTH",
+      "CALLER-CLIENT-EVENT-F01",
+      "CALLER-CLIENT-OAUTH-F04",
+      "CALLER-CLIENT-OAUTH-F05b",
+      "H-DUP-IDENTICAL-FIELDS",
+      "H-DUP-IDENTICAL-LIST",
+      "H-CONFLICT-FIELDS-2-3",
+      "H-CONFLICT-FIELDS-3-2",
+      "H-CONFLICT-LIST-2-3",
+      "H-CONFLICT-LIST-3-2",
+      "H-DECIMAL-02",
+      "H-INVALID",
+      "H-TE-CL",
+      "H-TE-NONEXACT+CL",
+      "H-TE-REPEAT",
+      "H-TE-LIST",
+      "CD-ORDERLY",
+      "CD-ABRUPT",
+      "CD-DEADLINE",
+      "F06"
+    ],
+    "by_id": {
+      "F01": {
+        "wire_id": "CALLER-CLIENT-EVENT-F01",
+        "purpose": "event",
+        "path": "wire_transcripts/F01.wire",
+        "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496",
+        "byte_size": 119,
+        "driver": "covering_client",
+        "transcript_ref": "F01"
+      },
+      "F02": {
+        "wire_id": "F02",
+        "path": "wire_transcripts/F02.wire",
+        "sha256": "D58751EE563CB10B622B5B7DCFF646E66CD5A5727D4AF2127E8C8AE147B16240",
+        "byte_size": 119,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "F03-oauth": {
+        "wire_id": "F03-oauth",
+        "purpose": "oauth",
+        "path": "wire_transcripts/F03-oauth.wire",
+        "sha256": "7D387AC47BA834A2AA6A94F2733D84F4B3D4AD5C5CAC28D760ACB1C28D0850EF",
+        "byte_size": 152,
+        "driver": "covering_http"
+      },
+      "F04-oauth": {
+        "wire_id": "CALLER-CLIENT-OAUTH-F04",
+        "purpose": "oauth",
+        "path": "wire_transcripts/F04-oauth.wire",
+        "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892",
+        "byte_size": 152,
+        "driver": "covering_client",
+        "transcript_ref": "F04-oauth"
+      },
+      "F05-oauth": {
+        "wire_id": "F05-oauth",
+        "purpose": "oauth",
+        "path": "wire_transcripts/F05-oauth.wire",
+        "sha256": "4A0D644A04EA81B81391391EBFE888FB6517A97F3F3DE01400F89FA7BF60E937",
+        "byte_size": 158,
+        "driver": "covering_http"
+      },
+      "F05b-oauth": {
+        "wire_id": "CALLER-CLIENT-OAUTH-F05b",
+        "purpose": "oauth",
+        "path": "wire_transcripts/F05b-oauth.wire",
+        "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197",
+        "byte_size": 158,
+        "driver": "covering_client",
+        "transcript_ref": "F05b-oauth"
+      },
+      "C-BASE": {
+        "wire_id": "C-BASE",
+        "path": "wire_transcripts/C-BASE.wire",
+        "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+        "byte_size": 106,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-EXT-VALID": {
+        "wire_id": "C-EXT-VALID",
+        "path": "wire_transcripts/C-EXT-VALID.wire",
+        "sha256": "219DED98655D8F88E8C1BCD82ECB8B814345F06B3D911E420878BD789B002E93",
+        "byte_size": 116,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-DATA-SHORT": {
+        "wire_id": "C-DATA-SHORT",
+        "path": "wire_transcripts/C-DATA-SHORT.wire",
+        "sha256": "5AC256FBB532DB764B28016D3BA0ACBC8303552988D2AE61CF699C1E23A2C78D",
+        "byte_size": 101,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-SEP-SHORT": {
+        "wire_id": "C-SEP-SHORT",
+        "path": "wire_transcripts/C-SEP-SHORT.wire",
+        "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45",
+        "byte_size": 101,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-SEP-WRONG": {
+        "wire_id": "C-SEP-WRONG",
+        "path": "wire_transcripts/C-SEP-WRONG.wire",
+        "sha256": "9CADE02C4E1A7F2FE4BC52A85003CED404CDD3195B0B7D9C9BC82F321268BA61",
+        "byte_size": 108,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-ZERO-ABSENT": {
+        "wire_id": "C-ZERO-ABSENT",
+        "path": "wire_transcripts/C-ZERO-ABSENT.wire",
+        "sha256": "13D1C85BD4B6705C8BAF168B6E2E0EE391E71C5B1243E8216B8F2BC1E0BB2E45",
+        "byte_size": 101,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-TRAILER-EOF": {
+        "wire_id": "C-TRAILER-EOF",
+        "path": "wire_transcripts/C-TRAILER-EOF.wire",
+        "sha256": "CCE59FBDEDC749AA44F0792D81B630D00B54416D0DCA11F890564E09E7B367EB",
+        "byte_size": 104,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-ZERO-NO-CRLF": {
+        "wire_id": "C-ZERO-NO-CRLF",
+        "path": "wire_transcripts/C-ZERO-NO-CRLF.wire",
+        "sha256": "0D4FEEAFA9AF74C2E40E2A92F1AED638DC4CCC9395708E8939ED48C8A966576B",
+        "byte_size": 102,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-TRAILER-LINE-EOF": {
+        "wire_id": "C-TRAILER-LINE-EOF",
+        "path": "wire_transcripts/C-TRAILER-LINE-EOF.wire",
+        "sha256": "B8EEA183024DC1FEDDBBA031FC99CAAAB4DC3AEC279B7171E1D7743B1C590396",
+        "byte_size": 106,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "C-TRAILER-MALFORMED": {
+        "wire_id": "C-TRAILER-MALFORMED",
+        "path": "wire_transcripts/C-TRAILER-MALFORMED.wire",
+        "sha256": "CC2A5206BDF415A0908D6E12BF2DD0B2E73AA96C4ED2AA7022CF57B90A1390EC",
+        "byte_size": 116,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-DUP-IDENTICAL-FIELDS": {
+        "wire_id": "H-DUP-IDENTICAL-FIELDS",
+        "path": "wire_transcripts/H-DUP-IDENTICAL-FIELDS.wire",
+        "sha256": "B07F9E56E236B3987AC49DEAFC6FBBDB320CC3F81A8A09ABB0DCB43AB74895C2",
+        "byte_size": 138,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-DUP-IDENTICAL-LIST": {
+        "wire_id": "H-DUP-IDENTICAL-LIST",
+        "path": "wire_transcripts/H-DUP-IDENTICAL-LIST.wire",
+        "sha256": "7CF16642407ED6415E26459667CF7F32DDA394D754105AD184CD433D28BB157B",
+        "byte_size": 122,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-CONFLICT-FIELDS-2-3": {
+        "wire_id": "H-CONFLICT-FIELDS-2-3",
+        "path": "wire_transcripts/H-CONFLICT-FIELDS-2-3.wire",
+        "sha256": "004583BC0A6E6847D191184C9781C7E9B74435107983F3B6168609261CF89876",
+        "byte_size": 138,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-CONFLICT-FIELDS-3-2": {
+        "wire_id": "H-CONFLICT-FIELDS-3-2",
+        "path": "wire_transcripts/H-CONFLICT-FIELDS-3-2.wire",
+        "sha256": "DA0133D46ADF8E84211DE5DFE350BEC8483B394BDB4E3FC4532BFF8093FFA7BB",
+        "byte_size": 138,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-CONFLICT-LIST-2-3": {
+        "wire_id": "H-CONFLICT-LIST-2-3",
+        "path": "wire_transcripts/H-CONFLICT-LIST-2-3.wire",
+        "sha256": "4833158B69A4ECAD4A84FA17FDA1AAE30AEA58D10A2B915E32145008F5E49C57",
+        "byte_size": 122,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-CONFLICT-LIST-3-2": {
+        "wire_id": "H-CONFLICT-LIST-3-2",
+        "path": "wire_transcripts/H-CONFLICT-LIST-3-2.wire",
+        "sha256": "3D1C5DE2067CC5D18234042D9E02140EDADED4171A0C6F5E2D30942391836D64",
+        "byte_size": 122,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-DECIMAL-02": {
+        "wire_id": "H-DECIMAL-02",
+        "path": "wire_transcripts/H-DECIMAL-02.wire",
+        "sha256": "B9B204433236D92501FA8435DB6543E2039866FBC8DEB41F36CB814CFF50AAEC",
+        "byte_size": 120,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-INVALID": {
+        "wire_id": "H-INVALID",
+        "path": "wire_transcripts/H-INVALID.wire",
+        "sha256": "0B9659AF84198762C3CB7985B7E3A8737586E0F8EDDD18880341A44E28F041E0",
+        "byte_size": 120,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-TE-CL": {
+        "wire_id": "H-TE-CL",
+        "path": "wire_transcripts/H-TE-CL.wire",
+        "sha256": "840D382D9B4A6DB242AE43C92929B522BBE4B48ED2409B17930B7A1AF1477F95",
+        "byte_size": 125,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-TE-NONEXACT+CL": {
+        "wire_id": "H-TE-NONEXACT+CL",
+        "path": "wire_transcripts/H-TE-NONEXACT+CL.wire",
+        "sha256": "0BA91225FDBE946AE8FA17E85BE78C8D68812E5156F7407E8863731670EF512F",
+        "byte_size": 131,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-TE-REPEAT": {
+        "wire_id": "H-TE-REPEAT",
+        "path": "wire_transcripts/H-TE-REPEAT.wire",
+        "sha256": "39A5ADA6BDC14B99C9ED1B093E3FA187EA7CC6C1085E816CDA4D0328DE36BD05",
+        "byte_size": 134,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "H-TE-LIST": {
+        "wire_id": "H-TE-LIST",
+        "path": "wire_transcripts/H-TE-LIST.wire",
+        "sha256": "1FBCC0D5A47DAD75486E2C79093D3DE9D1C3291AD6E7F0FB977DCE2172725D91",
+        "byte_size": 115,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "CD-ORDERLY": {
+        "wire_id": "CD-ORDERLY",
+        "close_delimited_note": "orderly_close_notify_not_proven_by_fake",
+        "path": "wire_transcripts/CD-ORDERLY.wire",
+        "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA",
+        "byte_size": 100,
+        "purpose": "event",
+        "driver": "covering_http",
+        "byte_fake_eof_only": true,
+        "tls_close_notify_proven": false
+      },
+      "CD-ABRUPT": {
+        "wire_id": "CD-ABRUPT",
+        "close_delimited_note": "abrupt_eof_indistinguishable_under_fake",
+        "path": "wire_transcripts/CD-ABRUPT.wire",
+        "sha256": "82A87050640BD48661CD055F54F233030A570DF612305A21FBE005C8E646BBAA",
+        "byte_size": 100,
+        "purpose": "event",
+        "driver": "covering_http",
+        "byte_fake_eof_only": true,
+        "tls_close_notify_proven": false
+      },
+      "CD-DEADLINE": {
+        "wire_id": "CD-DEADLINE",
+        "path": "wire_transcripts/CD-DEADLINE.wire",
+        "sha256": "E14AAAC69EABB2D765D408611C6D0848F68BDBEFCE86B1C693D7F6E6AC8FA023",
+        "byte_size": 99,
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "F06": {
+        "wire_id": "F06",
+        "path": "wire_transcripts/F06.wire",
+        "sha256": "C9F64E9F0A6578FAB40BA040F9CE897BAB10A2286ADA273C42F21F5C718C33FD",
+        "byte_size": 106,
+        "alias_of": "C-BASE",
+        "purpose": "event",
+        "driver": "covering_http"
+      },
+      "F12a-INVALID-JSON-EVENT": {
+        "wire_id": "F12a-INVALID-JSON-EVENT",
+        "path": "wire_transcripts/F12a-INVALID-JSON-EVENT.wire",
+        "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+        "byte_size": 133,
+        "purpose": "event",
+        "stimulus": "invalid_json_syntax",
+        "driver": "covering_http"
+      },
+      "F12a-INVALID-JSON-IDENTITY": {
+        "wire_id": "F12a-INVALID-JSON-IDENTITY",
+        "path": "wire_transcripts/F12a-INVALID-JSON-IDENTITY.wire",
+        "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+        "byte_size": 133,
+        "purpose": "identity",
+        "stimulus": "invalid_json_syntax",
+        "driver": "covering_http"
+      },
+      "F12a-INVALID-JSON-OAUTH": {
+        "wire_id": "F12a-INVALID-JSON-OAUTH",
+        "path": "wire_transcripts/F12a-INVALID-JSON-OAUTH.wire",
+        "sha256": "B9B7DCC7ABF5D0E63215CBE16441D0D6243E44A2F0901ABAA5558859C345E7BE",
+        "byte_size": 133,
+        "purpose": "oauth",
+        "stimulus": "invalid_json_syntax",
+        "driver": "covering_http"
+      },
+      "F12a-NONOBJECT-EVENT": {
+        "wire_id": "F12a-NONOBJECT-EVENT",
+        "path": "wire_transcripts/F12a-NONOBJECT-EVENT.wire",
+        "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+        "byte_size": 121,
+        "purpose": "event",
+        "stimulus": "json_non_object",
+        "driver": "covering_http"
+      },
+      "F12a-NONOBJECT-IDENTITY": {
+        "wire_id": "F12a-NONOBJECT-IDENTITY",
+        "path": "wire_transcripts/F12a-NONOBJECT-IDENTITY.wire",
+        "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+        "byte_size": 121,
+        "purpose": "identity",
+        "stimulus": "json_non_object",
+        "driver": "covering_http"
+      },
+      "F12a-NONOBJECT-OAUTH": {
+        "wire_id": "F12a-NONOBJECT-OAUTH",
+        "path": "wire_transcripts/F12a-NONOBJECT-OAUTH.wire",
+        "sha256": "C9FFD5E72781ACB7E958AE26875B678909CCDEE2ED0524731588882D43D1DA5F",
+        "byte_size": 121,
+        "purpose": "oauth",
+        "stimulus": "json_non_object",
+        "driver": "covering_http"
+      },
+      "F12b-ENCODING-EVENT": {
+        "wire_id": "F12b-ENCODING-EVENT",
+        "path": "wire_transcripts/F12b-ENCODING-EVENT.wire",
+        "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+        "byte_size": 115,
+        "purpose": "event",
+        "stimulus": "non_identity_content_encoding",
+        "driver": "covering_http"
+      },
+      "F12b-ENCODING-IDENTITY": {
+        "wire_id": "F12b-ENCODING-IDENTITY",
+        "path": "wire_transcripts/F12b-ENCODING-IDENTITY.wire",
+        "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+        "byte_size": 115,
+        "purpose": "identity",
+        "stimulus": "non_identity_content_encoding",
+        "driver": "covering_http"
+      },
+      "F12b-ENCODING-OAUTH": {
+        "wire_id": "F12b-ENCODING-OAUTH",
+        "path": "wire_transcripts/F12b-ENCODING-OAUTH.wire",
+        "sha256": "7FF986EBACC63B297CB9EB31C4AC487CDFCE5D2CF7FDF7527643AEF92D8944AA",
+        "byte_size": 115,
+        "purpose": "oauth",
+        "stimulus": "non_identity_content_encoding",
+        "driver": "covering_http"
+      },
+      "CALLER-CLIENT-EVENT-F01": {
+        "wire_id": "CALLER-CLIENT-EVENT-F01",
+        "purpose": "event",
+        "path": "wire_transcripts/F01.wire",
+        "sha256": "95E61FC7D8E21E19F23261CADEFA546A32266A67E3ED66BA8EAF29B78F62C496",
+        "byte_size": 119,
+        "driver": "covering_client",
+        "transcript_ref": "F01"
+      },
+      "CALLER-CLIENT-OAUTH-F04": {
+        "wire_id": "CALLER-CLIENT-OAUTH-F04",
+        "purpose": "oauth",
+        "path": "wire_transcripts/F04-oauth.wire",
+        "sha256": "D4473AF0874A29A1ACD582911A2478E39D83BB6461292851E6DE2B5CA42AC892",
+        "byte_size": 152,
+        "driver": "covering_client",
+        "transcript_ref": "F04-oauth"
+      },
+      "CALLER-CLIENT-OAUTH-F05b": {
+        "wire_id": "CALLER-CLIENT-OAUTH-F05b",
+        "purpose": "oauth",
+        "path": "wire_transcripts/F05b-oauth.wire",
+        "sha256": "2ED3F9EC7BCA87371FB53FA0A149F83E8A0C6799E094D39740B447F859A06197",
+        "byte_size": 158,
+        "driver": "covering_client",
+        "transcript_ref": "F05b-oauth"
+      }
+    }
+  },
+  "held_launcher_limits": {
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5,
+    "reader_join_seconds_each": 5,
+    "capture_stdout_bytes": 65536,
+    "capture_stderr_bytes": 65536,
+    "capture_result_bytes": 262144,
+    "total_disclosed_seconds": 45,
+    "excluded_outer_latency": "wrapper admission hash + OS process scheduling not bounded by child caps"
+  },
+  "does_not_import_app_package": true,
+  "does_not_open_real_sockets": true,
+  "supersedes_v1_tip_sha256": "27EE9AB3666CC089A7541B2520FBFF02B0906ADCD26B0E207F2EC302FF13D82B",
+  "outcome_layering": {
+    "trace_sha256": "7676931DF1652653CAA837D094FA335D89FDB5F00055449CAA5F6A6B8C1E162A",
+    "fields": [
+      "underlying_cause_hypothesis",
+      "exposed_boundary_outcome",
+      "observation_boundary",
+      "exception_type"
+    ]
+  },
+  "jim_peer_review_sha256": "722E4FDFCD51CBB57C8ADB678B6AEE9F314D2437A182118DD3B0D4E092EA1B5F",
+  "supersedes_v2_tip_sha256": "1C1D269244D53302DE0542DBD6DCE949420E6BA789D9E4BCCDE15F74374322B5",
+  "authoring_custody": {
+    "v1_pycache_path": "outputs/scheduler-t05-original-framing-prep-v1/__pycache__/_prep_build_only.cpython-311.pyc",
+    "v1_pycache_sha256": "72615E8E4EABB57A9032EF695B2752139E1BCFE42759560A4C71AB5E35AE12CC",
+    "v1_pycache_bytes": 29470,
+    "v1_pycache_mtime_utc": "2026-11-11T21:54:19.0696255Z",
+    "created_by": "_prep_build_only.py one-shot wire/manifest authoring (v1)",
+    "forbidden_execution": "No check_t05/invoke/admit/wrapper/Docker execution; pyc is helper compile only",
+    "preserved": true
+  }
+}

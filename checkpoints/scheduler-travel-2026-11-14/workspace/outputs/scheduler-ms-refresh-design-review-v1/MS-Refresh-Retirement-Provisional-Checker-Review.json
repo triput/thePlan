@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-11-14T01:04:15.5034974Z",
+  "status": "PROVISIONAL_SOURCE_REVIEW_NOT_FROZEN_ACCEPTANCE",
+  "checkerSha256": "BF7A73557E23969413F8AA4FE84767E48DB00F9C95AF7C0B41E39C75C50C71D8",
+  "reviewed": [
+    "Actual unchanged helper extracted with named fake peer and SuiteStop module",
+    "Join publishes inventory; worker error and empty error both refused; unjoined and raised retirement retain precise behavior",
+    "Caller wiring explicitly structural; attempt latch before barrier, no second retirement and post-join inventory use",
+    "Selected body AST comparison removes only old snapshot/late retirement and inserts exact barrier; all other statements/handlers/finally compared",
+    "Removed old joined-only assertion explicitly mapped to stronger unchanged helper, rather than claimed byte-identical",
+    "Behavioral/structural mutants have related WitnessFailure prefixes; whole-runner barrier anchor independently counted once at1661"
+  ],
+  "unresolved": "Signed freeze, complete manifests, EXPECTED inventory, exact source/command/runtime pins and full admission review still required",
+  "noCheckerExecution": true,
+  "noNativeProof": true,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,117 @@
+{
+  "atUtc": "2026-11-14T00:41:59.9127458Z",
+  "kind": "Source-index preparation for Trish consequential-file walkthrough",
+  "scope": "Frozen application snapshot used by verified NONEXPIRED native checkpoint; not installed or active product",
+  "primaryFiles": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\api\\routes\\calendar.py",
+      "sha256": "23DC03967DE3919610DE84AF6CF651E221DA9444C4A82FB43A0DB8FBA8A120BA",
+      "startLine": 503,
+      "role": "Request entrance",
+      "whatItOwns": "Accepts the covering-refresh request and delegates to covering HTTP dispatch without a database dependency on this route.",
+      "trishSpotCheck": "Spot-check that this route still delegates rather than silently starting a legacy refresh."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+      "startLine": 42,
+      "role": "Worker and public result boundary",
+      "whatItOwns": "Requires the ingress context and reviewed release binding, joins the worker even during cancellation, and converts unresolved outcomes to the explicit unknown result.",
+      "trishSpotCheck": "Spot-check unbound refusal and abandon_on_cancel=False; an elapsed timeout must not be presented as a known transaction outcome."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_release_plan.py",
+      "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "startLine": 20,
+      "role": "Request resource assembly",
+      "whatItOwns": "Builds fresh native factories, one ProviderCounter sharing the request budget, and CoveringHTTP using its default transport.",
+      "trishSpotCheck": "Spot-check that the budget passed to the provider counter is the same request budget; construction is not endpoint activation."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "startLine": 165,
+      "role": "Ordered refresh orchestration",
+      "whatItOwns": "Orders authentication/preflight, token handling, per-target import work and final assessment, retaining completed results and separate role outcomes.",
+      "trishSpotCheck": "Spot-check TOKEN versus ASSESSMENT separation and the final assessment branch around line246; partial target work must not be mistaken for full coverage."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "startLine": 102,
+      "role": "Role ownership and lifecycle",
+      "whatItOwns": "Connects request role reservations to native parent/session factories and the target transaction boundary.",
+      "trishSpotCheck": "Spot-check that reservation/ownership precedes connection work and that each role has known retirement."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "startLine": 73,
+      "role": "Known database outcomes",
+      "whatItOwns": "Compares the requested commit/rollback with the acknowledged terminal; mismatches become UNKNOWN, then parent retirement and any separate failure-record unit are handled.",
+      "trishSpotCheck": "Spot-check terminal comparison and parent retirement; a failed or uncertain commit must never be turned into success by cleanup."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh.py",
+      "sha256": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E",
+      "startLine": 379,
+      "role": "Final scheduling answer",
+      "whatItOwns": "Requires a clean session, locks owner scheduling, then assembles requested coverage and scheduling readiness from coherent current state.",
+      "trishSpotCheck": "Spot-check clean-session guard, owner lock, assessment clock and revision; individual refreshed calendars alone do not establish readiness."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "startLine": 284,
+      "role": "HTTP admission and response completeness",
+      "whatItOwns": "Admits purpose/destination and exchanges through the selected byte transport; framing helpers reject incomplete or conflicting response bodies.",
+      "trishSpotCheck": "Spot-check _admit_framing_headers and _admit_fixed_length_complete; valid JSON bytes can still be an incomplete HTTP response. Native T05 remains open."
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "startLine": 40,
+      "role": "Actual socket and TLS ownership",
+      "whatItOwns": "Dials an approved numeric address, requires certificate and hostname verification, uses nonblocking operations under the live budget, and tracks transport ownership/closure.",
+      "trishSpotCheck": "Spot-check numeric address, CERT_REQUIRED, check_hostname=True, suppress_ragged_eofs=False, and close failure propagation."
+    }
+  ],
+  "supportingFiles": [
+    {
+      "startLine": 190,
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_refresh_locks.py",
+      "role": "Account identity -> owner -> subscription lock order; transaction-scoped locks do not commit here"
+    },
+    {
+      "startLine": 16,
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_request_budget.py",
+      "role": "One monotonic request budget:210s work,240s request and30s cleanup allowance"
+    },
+    {
+      "startLine": 197,
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_transport_policy.py",
+      "role": "Provider destination/purpose policy and request-wide admission counters"
+    },
+    {
+      "startLine": 48,
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_provider_context.py",
+      "role": "Binds covering callers to the selected request transport; ordinary calendar_client can use httpx outside covering context. Covering dispatch must establish its context; do not claim no fallback exists anywhere in the application."
+    }
+  ],
+  "testAndEvidenceSeparation": {
+    "fixture": "np_runner_entry.py and np_provider_peer.py construct synthetic conditions and check observations; they are not the Scheduler product",
+    "retainedEvidence": "Reports and receipts document observed outcomes and cleanup; manifests establish byte identity, not correctness by themselves",
+    "application": "The files above are candidate production application definitions",
+    "operator": "Invoke-Native-Provider.ps1/np_supervisor.py/docker_transport.py start and retire exact owned disposable resources under a separate user approval",
+    "checker": "check_native_provider.py checks finite extracted/fake source properties; a PASS is not native TLS proof"
+  },
+  "firstThreeToRead": [
+    "covering_domain_dispatch.py",
+    "covering_target_transaction.py",
+    "covering_refresh.py"
+  ],
+  "notUrgentUserRequest": true,
+  "noExecution": true,
+  "endpoint": "unbound",
+  "goalComplete": false
+}

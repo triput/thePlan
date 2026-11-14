@@ -1,0 +1,59 @@
+{
+  "packet": "scheduler-t02-fake-v1",
+  "kind": "held-fake-only-workspace-staging-with-H-only-authoring-amendment",
+  "byte_semantics": "utf-8 lf",
+  "execution_authorized": false,
+  "launch_ready": false,
+  "manifest_self_of": "TIP-FREEZE.json",
+  "manifest_self_sha256": "63C5DA9AB66B99FA9C883CEF36447895B31C8DEAF1EF538076B62039C69C6940",
+  "manifest_self_rule": "MANIFEST-SELF = SHA256 of TIP-FREEZE.json (C06 corrected6 convention)",
+  "parent_corrected1_tip_preserved": "6B4944B8DACE130CFFC3F74993D13D47F4FD81745612EDE2B7D3BB46F2F18625",
+  "parent_v1_tip_preserved": "A5C7E1DE33E63857A7A8E503262F6F2A85A34C6E5573C50734538E00147C0526",
+  "approval_call": "call_61f574d0b91546148d1c5fde581a4e37/1",
+  "scope_sha256": "8A427389E46F6318999192A7AD7934A8F96B93F154C719DAEE984FF6DD358A99",
+  "diff_sha256": "BEBCE1010F2086D09DFFD978C4032A1F7C1CF7133A3EC944D1648C3DB97A9979",
+  "prior_jim_static_review_manifest_self": "0EBDF9D92F026C92250E2213E6419F4E6A853D7B25770019DFEF9078A9EE189B",
+  "c06_corrected6_manifest_self_preserved": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+  "applied_prospective_pins": {
+    "covering_transport_policy.py": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+    "covering_http_transport.py": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+    "covering_domain_adapters.py": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+    "test_covering_transport_policy.py": "4A8C7EF1D4539F48B012797A478628267F2F544C3E62AB891B9E870131B1D342"
+  },
+  "named_expected_control_count": 20,
+  "provisional_notes_closed": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "sentinel_location_pin": "db.info.get:covering_token_terminal",
+  "verification_packet": "fake-only-t02-admission-verification/",
+  "verification_held": true,
+  "outer_admission_sha256": "64D60ED788F8A399940BD0B6D18B27ABD393B9D72F9437586E3B8BA21F33250B",
+  "check_sha256": "8661A4F1FFDDCB7400E5B80204A3DF5E5AF5444BF2D33AD6DA580B6226957B92",
+  "payload_sha256sums_sha256": "1C3D21D617D63C34825EAD92134ADEA6673049842ECE566724477B148E268F95",
+  "source_changes_diff_sha256": "BEBCE1010F2086D09DFFD978C4032A1F7C1CF7133A3EC944D1648C3DB97A9979",
+  "dex_review": "T02-Corrected1-Provisional-Review.md + Slack p1794383509/p1794383631/p1794383742/p1794383896",
+  "untouched_prior_packets": {
+    "parent_corrected1_tip": "6B4944B8DACE130CFFC3F74993D13D47F4FD81745612EDE2B7D3BB46F2F18625",
+    "parent_v1_tip": "A5C7E1DE33E63857A7A8E503262F6F2A85A34C6E5573C50734538E00147C0526",
+    "c06_corrected6_tip": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+    "c06_corrected5_tip": "5F8D87526F9D2C114C2B81A0D06D3ED2A5CEBC7E2DC97A562225C9C2FB23C602",
+    "t02_static_review_manifest_self": "0EBDF9D92F026C92250E2213E6419F4E6A853D7B25770019DFEF9078A9EE189B",
+    "failed_workspace_scheduler_c06_fake_v1_mutated": false,
+    "blocked_native_draft_mutated": false,
+    "base_evidence_workspace_mutated": false,
+    "four_candidate_bytes_unchanged": true
+  },
+  "limitations": [
+    "Verification authoring REVISE only; fake harness not executed",
+    "Does not close T02 runtime proof or other T01-T08",
+    "No execution authority; launch_ready=false",
+    "Parent corrected1 + v1 tips preserved; four prospective pins unchanged",
+    "F-DIFF disagreement preserved; applied bytes verified to prospective pins",
+    "Convenience limits labeled; not full integration proof",
+    "Unresolved native obligations not claimed: known-rollback vs UNKNOWN, provider/socket retirement, real TLS, DB ack"
+  ],
+  "parent_corrected2_tip_preserved": "57BE64F8297D6D19911C94D330B0F1062F93AAC5D565DB5F75F6D91E042762BF"
+}

@@ -1,0 +1,51 @@
+# Unchanged-file lineage vs base evidence workspace
+# base_root=C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-native-i01-i02-v1/payload/workspace/
+# candidate_root=F:/DropFolder/pending/post-native-t02-admission-prep-jim-v1-corrected2-2026-11-10/payload/workspace/
+# parent_v1_tip_preserved=A5C7E1DE33E63857A7A8E503262F6F2A85A34C6E5573C50734538E00147C0526
+parent_corrected1_tip_preserved=6B4944B8DACE130CFFC3F74993D13D47F4FD81745612EDE2B7D3BB46F2F18625
+# byte_semantics=utf-8 lf
+
+CHANGED apps/api/app/services/covering_transport_policy.py
+  base_sha256=B1EEA43A0A0B6EB56AC8B7F95D1A5611A139C9C5D7784FB1EB3348146EE89896
+  candidate_sha256=1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485
+  prospective_pin=1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485
+  prospective_match=True
+  base_evidence_untouched=True
+CHANGED apps/api/app/services/covering_http_transport.py
+  base_sha256=E2F30AA3DF04EC310514A4155C7D039BA6D26A2AE3F04470CF1F82EC6383FBB6
+  candidate_sha256=A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF
+  prospective_pin=A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF
+  prospective_match=True
+  base_evidence_untouched=True
+CHANGED apps/api/app/services/covering_domain_adapters.py
+  base_sha256=D94344AA20897C4C0D4FD8479F53B25C022955B08DC5EDA04C69A834A2933620
+  candidate_sha256=BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C
+  prospective_pin=BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C
+  prospective_match=True
+  base_evidence_untouched=True
+CHANGED apps/api/tests/test_covering_transport_policy.py
+  base_sha256=071A54E1D9C7D7885B78460206E31E4496AA5D2CDEACCD610F32E3927AE05D18
+  candidate_sha256=4A8C7EF1D4539F48B012797A478628267F2F544C3E62AB891B9E870131B1D342
+  prospective_pin=4A8C7EF1D4539F48B012797A478628267F2F544C3E62AB891B9E870131B1D342
+  prospective_match=True
+  base_evidence_untouched=True
+UNCHANGED apps/api/app/services/covering_release_plan.py
+  sha256=0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826
+  matches_base_evidence=True
+UNCHANGED apps/api/app/services/covering_request_budget.py
+  sha256=D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975
+  matches_base_evidence=True
+UNCHANGED apps/api/app/services/covering_joined_https.py
+  sha256=C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468
+  matches_base_evidence=True
+UNCHANGED apps/api/app/services/covering_target_transaction.py
+  sha256=8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A
+  matches_base_evidence=True
+UNCHANGED apps/api/app/services/covering_domain_dispatch.py
+  sha256=E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566
+  matches_base_evidence=True
+
+workspace_files_identical_to_base=230
+workspace_files_differ_from_base=4
+workspace_files_only_in_candidate=0
+expected_differ_count=4

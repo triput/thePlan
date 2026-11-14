@@ -1,0 +1,153 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-native-t05-client-cause-fake-prep-matt-v1",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "packet_file_pin_count": 17,
+  "packet_files": [
+    {
+      "sha256": "8B364EDEF6CE203EEE95A494303B77912EF2205F8319DCA817280B56CCB12D18",
+      "relative_path": "verify/check_native_provider.py"
+    },
+    {
+      "sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+      "relative_path": "verify/launch_check.py"
+    },
+    {
+      "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "relative_path": "verify/verify_admission.py"
+    },
+    {
+      "sha256": "D7CBC81F5C4A42F673FC73B30A4AFA78C6FD7979F4653D015D8BE461AD0751A5",
+      "relative_path": "verify/EXPECTED-FAKE-STRUCTURAL.json"
+    },
+    {
+      "sha256": "C69766C24E743BBC34B3BBA176AAB1822D23A244AED168B0AD7B9F0CEE1B6E90",
+      "relative_path": "verify/OUTER-ADMISSION.json"
+    },
+    {
+      "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "relative_path": "Invoke-Fake.ps1"
+    },
+    {
+      "sha256": "39AAEE8BA9A18BBB27AEA471CE1329F069C955CEFCE3AC35184804B230CA560E",
+      "relative_path": "subjects/config/candidate-launch-config.json"
+    },
+    {
+      "sha256": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+      "relative_path": "subjects/config/candidate-runner-config.json"
+    },
+    {
+      "sha256": "A9E724563A489498BBA45E7B3E251373BABFAB341BCD91B64A00A7C648538DC3",
+      "relative_path": "subjects/config/source-launch-config.json"
+    },
+    {
+      "sha256": "9E45F6B686B9E34E455BCDC6154AB8E80A6E2F780D8134A380F15EBC135B706B",
+      "relative_path": "subjects/config/source-runner-config.json"
+    },
+    {
+      "sha256": "3818CF6A705C5297AF97C307E217C7944B5E046A84F18B11C2B3591B6BDD42AC",
+      "relative_path": "subjects/diff/np_runner_entry.py.diff"
+    },
+    {
+      "sha256": "E16FF22B457597464DD191B67F8DE24C8B612BB585946AC8493C0A6E03203026",
+      "relative_path": "subjects/diff/runner-config.json.diff"
+    },
+    {
+      "sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "relative_path": "subjects/fixture/docker_transport.py"
+    },
+    {
+      "sha256": "4076B0D21601C31B8688586B241EB42A2E6B0026EE87D307A042CD01F570D2A6",
+      "relative_path": "subjects/manifest/candidate.txt"
+    },
+    {
+      "sha256": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B",
+      "relative_path": "subjects/manifest/source.txt"
+    },
+    {
+      "sha256": "1AEDEE93B1076D104E05700833548AE11B9AB4751E232E591FB615AAD72961BB",
+      "relative_path": "subjects/runner/candidate.py"
+    },
+    {
+      "sha256": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E",
+      "relative_path": "subjects/runner/source.py"
+    }
+  ],
+  "runtime_file_pin_count": 10,
+  "runtime_files": [
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+      "note": "interpreter executable"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python311.dll",
+      "sha256": "0817A2A657A24C0D5FBB60DF56960F42FC66B3039D522EC952DAB83E2D869364",
+      "note": "interpreter core incl. built-in _json accelerator"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\http\\client.py",
+      "sha256": "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2",
+      "note": "host HTTPResponse parser (matches transport docstring pin)"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\__init__.py",
+      "sha256": "FEB17670E443E5DB2723F217727DCC5D5E155C40E4E6935B16061C88542F24E7",
+      "note": "json.loads"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\decoder.py",
+      "sha256": "B719FBCFCEBD2B174F076E71292E22B1A17D9E258DBE896C768325383BAD4F80",
+      "note": "JSONDecodeError and raw_decode"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\json\\scanner.py",
+      "sha256": "9841566FB17315EBDD40A1CA9CB214F02CDE7171B187D4DC821C80120EA853C3",
+      "note": "scanner selection"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\email\\feedparser.py",
+      "sha256": "A3A309A212382FA3CA054DB3150C78B931D9E975FD55EDBC8D6230FDA91A5E6D",
+      "note": "header parse/defect recording (matches transport docstring pin)"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\email\\parser.py",
+      "sha256": "D8DF38F13F551011D93FEC18166E97BC7E3A0F9D6BD229059A540411C023AB3E",
+      "note": "http.client.parse_headers dependency"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\socket.py",
+      "sha256": "5AD9B5308644BD64CA7C10B3487C25D1DF8F745E2BC0BA416B3D6F4D4EDE0E10",
+      "note": "transitively imported by http.client; no socket is constructed"
+    },
+    {
+      "absolute_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\ssl.py",
+      "sha256": "8A1E202A75758A3E1DDB88289AFAFB7DE2073220E0A7154DF70A7B73661F1E0E",
+      "note": "transitively imported by http.client (module-level try); no SSL context is constructed"
+    }
+  ],
+  "runtime_scope_note": "partial runtime scope: these 10 files only; not a full standard-library/DLL/extension (_socket.pyd, _ssl.pyd, OpenSSL DLLs)/environment lock",
+  "result_byte_cap": 262144,
+  "capture_byte_cap": 65536,
+  "reader_join_seconds": 5,
+  "post_kill_wait_seconds": 5,
+  "check_seconds_budget": 120,
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_root": "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+  "exclusive_evidence": [
+    "verify/FAKE-NATIVE-PROVIDER-RESULT.json",
+    "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"
+  ],
+  "successor_reference": {
+    "workspace": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1",
+    "runner_sha256": "1AEDEE93B1076D104E05700833548AE11B9AB4751E232E591FB615AAD72961BB",
+    "transcript_sha256": "562F61CDB9DEF3F35A1693E3C9CC13EB63D9F0535F9A0D3C190BF275E78751BF",
+    "peer_sha256": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF"
+  },
+  "note": "Matt native T05 client-cause diagnostic fake prep v1 (Dex 9F9FF48E). Complete concrete pins; launch_authorized=false. Do not invoke under preparation. A later run needs the reviewed hashes, Trish's explicit one-shot approval (including authority to terminate the one owned check child on error/timeout/overflow), and flipping both launch_authorized booleans as a reviewed staging change."
+}

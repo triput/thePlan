@@ -1,0 +1,12 @@
+{
+  "kind": "scheduler-native-provider-one-shot-fake-admission",
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "packet_file_pin_count": 0,
+  "packet_files": [],
+  "runtime_file_pin_count": 0,
+  "runtime_files": [],
+  "note": "Scaffold only. Freeze complete pin inventory on later verification card."
+}

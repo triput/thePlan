@@ -1,0 +1,11 @@
+{
+  "payload": "50B43C0C7E36B286DE0F08DD69CE16EE10D94E365770424A7EA2B5E0A9A1E2F8",
+  "nativeAuthority": "NONE",
+  "dockerRenames": 7,
+  "host": "EAE930E304DCFC26170A162A5872D44558E6BD6BE16491242E79A82773B1A769",
+  "docker": "24EAE6A24852887D11C9FADFC20DF1247F03C622DEBA1E63369C32397E077C42",
+  "sourceInputs": 313,
+  "command": "51137AA5E76929B2F24EC0B98B331C876D6704FC55EE2BA8B1AFA06A7C2D34D0",
+  "root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-invalid-native-dex-v1",
+  "fakePrerequisite": "PENDING_CORRECTED_FAKE"
+}

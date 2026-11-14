@@ -1,0 +1,34 @@
+{
+  "disposition": "PASS_INDEPENDENTLY_RECONCILED",
+  "attempts": 1,
+  "execution_command_sha256": "B7F236B2F9AC0A963BDE6860A16130A799DBE78B7ED8D457DD6E2D3C867E92D4",
+  "raw_input_manifest_sha256": "1545B0C27192650A5AE4BFD2A2AEEEEC0DCD1B6600E7D80EDE90792486245CA0",
+  "host_exit_code": 0,
+  "controls": 22,
+  "exact_order_and_expected_outcomes": true,
+  "post_run_input_manifest_entries_verified": 283,
+  "extraction_source_pins_verified": 7,
+  "result_sha256": "A67C553FA52A21973E4D9C139DE65E3A5E41E0F57567D6A5DE988B8CB1CE7A2F",
+  "launch_receipt_sha256": "E6F31C34470A2D44B57F959585BE5B9D897FEDDDDB3D8A2C21CFF3B5368FED14",
+  "child_pid": 197300,
+  "child_elapsed_seconds": 0.505,
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "readers": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "stdout_bytes": 497,
+  "stderr_bytes": 0,
+  "result_bytes": 6907,
+  "native_launch_authorized": false,
+  "additional_cleanup_performed": false,
+  "socket_inventory_executed": false,
+  "limitations": [
+    "fake extracted fixture helpers only",
+    "no native SQL contention proof",
+    "no real provider TLS proof",
+    "no full HTTP-native integration timing proof"
+  ],
+  "endpoint": "unbound"
+}

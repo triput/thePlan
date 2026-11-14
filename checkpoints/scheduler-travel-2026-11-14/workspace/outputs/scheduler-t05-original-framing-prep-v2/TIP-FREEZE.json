@@ -1,0 +1,29 @@
+{
+  "author": "Justin",
+  "packet": "post-native-t05-source-fake-prep-jim-v2-2026-11-11",
+  "prep_version": "v2",
+  "supersedes_v1_tip_sha256": "27EE9AB3666CC089A7541B2520FBFF02B0906ADCD26B0E207F2EC302FF13D82B",
+  "outputs_mirror": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-original-framing-prep-v2",
+  "native_provenance_mirror": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t05-native-provenance-prep-v2",
+  "executed": false,
+  "execution_authorized": false,
+  "launch_ready": false,
+  "wire_ids_frozen": 41,
+  "native_capture_limits": {
+    "capture_stdout_bytes": 262144,
+    "capture_stderr_bytes": 65536,
+    "capture_result_bytes": 524288
+  },
+  "checklist_sha256": "4CFE6D33D9FA53EB17CCC3A89D311CD2AB2A8F1ABE4E7D89AA5EB848609E78AC",
+  "layering_trace_sha256": "7676931DF1652653CAA837D094FA335D89FDB5F00055449CAA5F6A6B8C1E162A",
+  "admission_sha256": "E54265680589DF805565BEC506892DD93D43214EFFA44EE8A2CB892B96FD41E5",
+  "executables": {
+    "check_t05_framing_original.py": "1E0550240CA5D9CD3BB7A1914BF02659FD6F03AB422A463830C63A93CB92BD1A",
+    "invoke_t05_fake.py": "82EDC456FFEF51F3A82701B0ED1C763F0CF2EDA8BF85F564254C379F6F289AE3",
+    "admit_outer.py": "124371FFAA2F717624BD493F11E2C826F821709D64E409F0BE01B672B0E7DD05",
+    "Invoke-Verification.ps1": "C068661240FDF2D5AEF03AE66A1932B276FB3CA8EBB079E5EFD44273F3E4DBB2",
+    "collect-parser-sources.sh": "F9027EC5CF522D855CFEB6CE42F8C98775CF6262066B66B20EFB3531869A0F60",
+    "verify_native_provenance.py": "3D92023539924395329339E71DE1EC913881C76EDDDEF5E6FBC3872573E81A45"
+  },
+  "status": "T05_SOURCE_AND_FAKE_PREP_V2_HELD_NOT_EXECUTED"
+}

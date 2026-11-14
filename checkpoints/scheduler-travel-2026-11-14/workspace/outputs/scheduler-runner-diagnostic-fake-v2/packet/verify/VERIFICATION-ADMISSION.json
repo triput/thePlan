@@ -1,0 +1,46 @@
+{
+    "kind":  "scheduler-native-provider-one-shot-fake-admission",
+    "launch_authorized":  true,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-native-provider-runner-diagnostic-fake-prep-matt-v2",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "packet_file_pin_count":  11,
+    "packet_files":  [
+                         {"sha256":  "BA1C333D5109D38569B6784332B1291B1035EF88737D774D303F34F88D6C4C7A", "relative_path":  "verify/check_native_provider.py"},
+                         {"sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07", "relative_path":  "verify/launch_check.py"},
+                         {"sha256":  "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB", "relative_path":  "verify/verify_admission.py"},
+                         {"sha256":  "D6702FE79DA85477C1A7A8B72BC531E19581D2484021B8D2480129A5025DEE32", "relative_path":  "verify/EXPECTED-FAKE-STRUCTURAL.json"},
+                         {"sha256":  "ECB87031AEDEBD262AD4244B06BDE3AFEECC56AC24350A1BF6A3390AB9E68688", "relative_path":  "verify/OUTER-ADMISSION.json"},
+                         {"sha256":  "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7", "relative_path":  "Invoke-Fake.ps1"},
+                         {"sha256":  "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5", "relative_path":  "subjects/original/np_runner_entry.py"},
+                         {"sha256":  "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F", "relative_path":  "subjects/candidate/np_runner_entry.py"},
+                         {"sha256":  "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53", "relative_path":  "subjects/host/docker_transport.py"},
+                         {"sha256":  "2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E", "relative_path":  "subjects/producer/runner_entry.py"},
+                         {"sha256":  "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832", "relative_path":  "subjects/diff/V3-Proposed-Runner-Diagnostic.diff"}
+                     ],
+    "runtime_file_pin_count":  1,
+    "runtime_files":  [
+                          {
+                              "absolute_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+                              "sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                              "note":  "partial runtime scope: reviewed interpreter executable only; not a standard-library/DLL/environment lock"
+                          }
+                      ],
+    "result_byte_cap":  262144,
+    "capture_byte_cap":  65536,
+    "reader_join_seconds":  5,
+    "post_kill_wait_seconds":  5,
+    "check_seconds_budget":  120,
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_root":  "wrapper_VERIFICATION_pins_OUTER_OUTER_does_not_pin_VERIFICATION",
+    "exclusive_evidence":  ["verify/FAKE-NATIVE-PROVIDER-RESULT.json", "verify/FAKE-NATIVE-PROVIDER-LAUNCH-RECEIPT.json"],
+    "successor_reference":  {
+        "workspace":  "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1",
+        "runner_sha256":  "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+        "host_validator_sha256":  "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53"
+    },
+    "note":  "Matt runner-diagnostic fake prep v2 (one-line fallback mutation-anchor correction only). Complete concrete pins; launch_authorized=false. Do not invoke under preparation. A later run needs the reviewed hashes, Trish's explicit one-shot approval (including authority to terminate the one owned check child on error/timeout/overflow), and flipping both launch_authorized booleans as a reviewed staging change."
+}

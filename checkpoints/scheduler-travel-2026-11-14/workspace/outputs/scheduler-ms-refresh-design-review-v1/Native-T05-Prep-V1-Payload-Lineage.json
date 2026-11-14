@@ -1,0 +1,19 @@
+{
+  "samePathSets": true,
+  "executed": false,
+  "analysisNote": "Initial PowerShell compound join/comparison expression was corrected by comparing separately computed sorted strings;actual path sets match,no packet mismatch.",
+  "priorPayloadManifest": "14FA30AD16E719150CA81F07274FF6AC8D3A2D80A065296D9FDB2830E2B00B46",
+  "otherPayloadEntriesUnchanged": 252,
+  "changed": [
+    "fixture/np_provider_peer.py",
+    "fixture/np_provider_transcript.py",
+    "fixture/np_runner_entry.py",
+    "fixture/np_suite.py",
+    "runner-config.json"
+  ],
+  "payloadEntries": 257,
+  "atUtc": "2026-11-13T18:48:24.6786062Z",
+  "candidatePayloadManifest": "62E29339859E81234A637E4794682912278B8A4D6DEC0794179C53A52582C54E",
+  "method": "Raw manifest comparison after parent hash verification;no parsing/import/compile/test or helper invocation.",
+  "applicationFilesUnchanged": 234
+}

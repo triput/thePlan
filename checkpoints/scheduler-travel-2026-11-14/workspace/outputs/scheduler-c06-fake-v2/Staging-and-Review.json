@@ -1,0 +1,31 @@
+{
+  "status": "STAGED_REVIEWED_EXECUTION_HELD",
+  "source": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10",
+  "source_tip_sha256": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+  "manifests": [
+    {
+      "file": "ARTIFACT-HASHES.txt",
+      "count": 20,
+      "mismatches": []
+    },
+    {
+      "file": "payload\\SHA256SUMS.txt",
+      "count": 268,
+      "mismatches": []
+    },
+    {
+      "file": "fake-only-c06-verification\\PACKET-SHA256SUMS.txt",
+      "count": 6,
+      "mismatches": []
+    }
+  ],
+  "copied_files": 284,
+  "all_copy_hashes_match": true,
+  "approved_check_only_change": true,
+  "fixture_payload_changed": false,
+  "controls": 39,
+  "command_sha256": "319F67A9A4D7358901E08230CE67509EA754790720166492D6AD8C7CE3F6C6A1",
+  "input_manifest_sha256": "2175053A1F14E5CE0DEBF675D8DCFD691A1D1725C1BF68F43D254C60BB4FDAB5",
+  "outer_admission_sha256": "C9A0B5214F752F2FFED9ACE3E983501F44B4D78FA6D030774ABC61DDFBC212BF",
+  "execution_authorized": false
+}

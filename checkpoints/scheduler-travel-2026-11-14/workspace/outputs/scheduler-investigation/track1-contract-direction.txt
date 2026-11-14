@@ -1,0 +1,14 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Trish authorizes closing the remaining Track 1 contracts so we can review the next coding slice. This is design/research only, not Track 1 coding, deployment, live sync or replanning.
+
+Jim, please produce Track-1-Contracts.md alongside the acceptance table, with explicit recommended rules and source/code references:
+1. Provider mapping: Google defaults/unknowns and Microsoft showAs values (including tentative, workingElsewhere and unknown), date-only/source timezone representation and cancellation/deletion behavior. Verify official provider documentation; distinguish source facts from our policy choices.
+2. Freshness: define successful complete sync, overlap coverage and pagination, per-calendar success timestamp, partial failure behavior and canonical identity. Settle the proposed max(buffer,24h elapsed) padding and 15-minute ceiling with rationale and boundary fixtures; define the age-check point. No token timestamps as freshness.
+3. Unknowns/conflicts: missing zone, legacy free/busy and known non-blocking exceptions must remain unresolved/not-ready until resolved; verified identity plus policy, no title guessing. Specify diagnostics and recovery without silently discarding events.
+4. Migration/baseline: preserve raw provider provenance and Track 3 comparison evidence before cache updates, including unchanged legacy rows. Separate isolated backfill testing from any future authorized production refresh. Do not seed current remote values as original export history.
+5. Proposed first Track 1 coding slice: exact boundaries, dependencies, isolated checks and stop conditions. Mark any genuinely unresolved product tradeoff for Trish; no assumed approval of provider-policy choices.
+
+Julie, review the resulting diagnostics, exception handling and evidence-preservation contract for workflow fidelity. No new production pulls or calendar/record changes needed for this design pass.
+
+I'll reconcile the contracts with the reviewed spec/table and bring Trish the bounded coding proposal. Existing holds remain. Track 0 stays reviewed and undeployed.
+
+Dex

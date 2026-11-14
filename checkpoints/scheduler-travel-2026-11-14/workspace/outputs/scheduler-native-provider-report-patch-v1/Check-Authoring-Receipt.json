@@ -1,0 +1,32 @@
+{
+  "at_utc": "2026-11-12T20:54:40.6410081Z",
+  "kind": "Source-only fake-check contribution for approved named checker role",
+  "checker": "verify/check_native_provider.py",
+  "checker_sha256": "C996C5F2E43E866853BD409981E381DFB1314B5B1A46748A9BB3E7D32879AD25",
+  "declared_control_count": 15,
+  "candidate_runner_sha256": "B910EC04CDA020BC68C2FC8A754E2D0D2EC693E4ECF74AAB1CD24D181CB1AFC1",
+  "host_source_data_sha256": "28248F6E9BC67362AB22B66BAB7756BF5F61D6727C4808A4A2F0B8587A4FD81F",
+  "extracted_definitions": [
+    "RunnerEntryHeld",
+    "BoundedOutput",
+    "main",
+    "__main__ guard statements",
+    "ProviderDockerOps.run_attached"
+  ],
+  "fake_dependencies": [
+    "run_suite",
+    "receipt builder",
+    "local stream objects",
+    "Docker inner operations"
+  ],
+  "not_verified": [
+    "actual sanitizer",
+    "native or application behavior",
+    "runtime dependency closure",
+    "actual execution/PASS"
+  ],
+  "imports_compilation_tests_executed": false,
+  "launch_ready": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,8 @@
+# ARTIFACT-HASHES.txt - post-native-t05-native-provenance-dex-v3-static-review-jim-v1-2026-11-11
+# SHA256  <relative-path>
+# Byte semantics: UTF-8 LF only.
+# Listed below: every packet file except this ARTIFACT-HASHES.txt, in artifact_hashes_list_order.
+
+AC2BC81C3621641BDEAB14DCC42187161812A8511FE50E342FA8F168D7A8425E  HANDBACK.txt
+AEBBF88EBE30091340AE2E45AC538D967A21D12CEBC43D766F91EF7BCC9D896C  Jim-Native-Provenance-Static-Review.md
+9F9592DD4D938A6AB052F2A85A060A21CB6B808ABF9D5D449D9A75BFE49876DD  TIP-FREEZE.json

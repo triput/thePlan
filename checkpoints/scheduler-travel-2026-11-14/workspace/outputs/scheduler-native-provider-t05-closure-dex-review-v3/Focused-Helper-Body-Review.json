@@ -1,0 +1,29 @@
+{
+  "at_utc": "2026-11-13T04:30:32.6015051Z",
+  "kind": "focused_static_helper_body_review_not_runtime_proof",
+  "checker_source_sha256": "099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F",
+  "runner_source_sha256": "9C0F85733287BDCF4F526AB52F5685E7BC10CB1C4CC349818D8B0AC001B07E70",
+  "reviewed_sections": [
+    "Actual runner receive observer and restore closure, unknown classification, orderly refusal, abrupt measurement/admission",
+    "Actual runner partial-start retirement and valid-plan capture",
+    "Checker fake exception hierarchy/import stubs/observer drive and15 extracted-helper predicates",
+    "Changed report-producer fake dependency environment and actual selected main call sites"
+  ],
+  "source_consistency": [
+    "SSLEOFError precedes SSLError; reset/abort precede OSError; clean EOF remains distinct",
+    "Fake inputs preserve selected subclass relationships and builtin timeout/reset identities",
+    "Actual abrupt admission checks measured terminal,peer stimulus,unknown/deadline/JSON-only refusal and finite exception class",
+    "Partial-start fake peer provides life notes and one retirement; unknown retirement maps to expected SuiteStop",
+    "Plan-capture fake exports required planner/validity symbols and aware datetime plan object; failure/expiry branches match expectations",
+    "Report-producer environment supplies the newly called public-CA and typed-PKI-summary dependencies with fakes; no real FS/PKI dependency needed for those extracted calls",
+    "One-line B3 correction remains the only concrete blocking mismatch established in this pass"
+  ],
+  "qualifications": [
+    "Source consistency is not a PASS prediction for the whole checker; no import/AST/compile/helper/test execution occurred",
+    "15 extracted behaviors,2 structural checks,2 separately authored hole demonstrations remain distinct",
+    "Module cleanup/no-op/docstring hygiene observations deferred under narrow correction assignment",
+    "Current Mattv3 preparation task unchanged; no source modified"
+  ],
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

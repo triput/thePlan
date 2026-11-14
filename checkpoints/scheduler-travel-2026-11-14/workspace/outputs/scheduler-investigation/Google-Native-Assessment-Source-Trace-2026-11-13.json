@@ -1,0 +1,42 @@
+{
+  "atUtc": "2026-11-14T04:43:31.7650412+00:00",
+  "status": "SOURCE_TRACE_NO_EXECUTION",
+  "native_candidate_manifest": "441B3ACA895143588E4D89545D46DC618899166DC0FE86B0C89ADD535F7337CC",
+  "findings": [
+    {
+      "fact": "Actual dispatch admits ASSESSMENT through connector classified session role and calls imported production _assemble_final_assessment after work_remaining check",
+      "source": "app/services/covering_domain_dispatch.py",
+      "lines": "249-257"
+    },
+    {
+      "fact": "Final assessment requires clean session, locks owner scheduling, captures persisted revision, expires covering assessment identity map, evaluates requested freshness and scheduling readiness under that owner lock",
+      "source": "app/services/covering_refresh.py",
+      "lines": "379-410"
+    },
+    {
+      "fact": "Full apply refuses incomplete pagination; upserts each noncancelled event in covering identity; counts successful upserts; reconciles stale rows scoped to account/calendar and owner/provider; commits full coverage metadata and flushes",
+      "source": "app/services/google_calendar.py",
+      "lines": "886-1008"
+    },
+    {
+      "fact": "Successful apply compares before-busy/trust through commit_covering_revision_if_required, flushes and returns import outcome with commit_unit and native revision fields",
+      "source": "app/services/covering_refresh_import.py",
+      "lines": "1106-1137"
+    }
+  ],
+  "candidate_assertion_scope": [
+    "Two exact imported ExternalCalendarEvent identities/time/busy measurements in separate DB read",
+    "Independent persisted before/after owner revision and busy signature",
+    "Public revision-at-start/end and readiness revision must equal independently persisted measurements",
+    "No hardcoded exact revision delta; owner-after must exceed owner-before",
+    "Known success/coverage and exact primary alias rewrite required"
+  ],
+  "not_proved": [
+    "Native runtime success",
+    "Actual measured revision/coverage/event state",
+    "Foreign thread ownership or full transport suite"
+  ],
+  "reused_evidence": "I01/I02 native owner-lock and assessment evidence remains at its prior exact scope; this checkpoint adds Google-specific composition rather than replacing old evidence",
+  "human_authority": "NONE",
+  "endpoint": "unbound"
+}

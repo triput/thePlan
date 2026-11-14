@@ -1,0 +1,16 @@
+{
+  "atUtc": "2026-11-14T01:01:35.5594144Z",
+  "status": "PROVISIONAL_AUTHORING_SNAPSHOT_ONLY",
+  "sourceManifest": "6144365E0E7F282BABEDF0FDFB454E309112A16D17CE8464CF5335F7AFC5505B",
+  "candidateRunner": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+  "apiFilesUnchanged": 234,
+  "otherExecutableFilesUnchanged": 250,
+  "runnerTextOutsideSelectedFunction": "BYTE_IDENTICAL",
+  "selectedHelper": "UNCHANGED outside selected body",
+  "selectedFunction": "_run_np_v_ms_refresh",
+  "remaining": "Fake checker/expected/frozen manifests/signed handback still pending",
+  "notProcessLivenessProof": true,
+  "noExecution": true,
+  "nativeRefreshProof": false,
+  "endpoint": "unbound"
+}

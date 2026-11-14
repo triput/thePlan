@@ -1,0 +1,29 @@
+{
+  "atUtc": "2026-11-14T04:10:00.0399759Z",
+  "status": "SOURCE_DRAFT_NOT_EXECUTED_NOT_ADMITTED_PACKET",
+  "author": "Dex",
+  "source_role": 4,
+  "standing_lane": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "baseline_runner": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D",
+  "candidate_runner": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C",
+  "proposed_case": "NP-T08-OWNERSHIP",
+  "oracles": [
+    "foreign_check",
+    "foreign_close",
+    "reuse_forbid",
+    "owner_retirement"
+  ],
+  "behavior": "Actual unmodified JoinedTLS on real owned socket in later approved native run; one finite Google-endpoint GET; one non-daemon foreign thread check/close; owner use/retirement; same-instance open refusal",
+  "proposed_limits": "One5s foreign-thread join attempt, one120s peer plus5s peer join, inheritedPKI45nominal; later exact card required",
+  "source_changes": "Add case body, implemented-ID and mapper only; retain baseline bodies/helpers; no API/peer/PKI/host/helper edits",
+  "remaining": [
+    "Independent source/failure-path review",
+    "Full fixture/config/manifest assembly and suite note",
+    "Focused fake/source controls and their review/approval/execution",
+    "Exact native launch review/card/approval"
+  ],
+  "not_proved": "No parsing/import/compilation/test or behavior check; no native socket/thread/T08/Google functional claim",
+  "matt_assignment_unchanged": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

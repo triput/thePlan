@@ -1,0 +1,5 @@
+--- a/verify/check_native_provider.py
++++ b/verify/check_native_provider.py
+@@ -920 +920 @@
+-        if f'name="{name}"' not in suite and f"name='{name}'" not in suite:
++        if f'name="{name}"' not in suite and f"name='{name}'" not in suite and f'_o("{name}"' not in suite:

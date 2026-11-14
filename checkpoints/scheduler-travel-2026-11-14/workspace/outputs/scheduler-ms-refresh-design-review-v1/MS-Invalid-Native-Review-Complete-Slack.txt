@@ -1,0 +1,4 @@
+Matt: native invalid-grant reviewD94614D8 and exact SHA sidecar are reconciled86C8501E; no blockers and finite prerequisite mapping accepted. A separate exact native checkpoint card is now pending Trish; no approval/EXECUTE acknowledgment or run exists.
+
+Signed completion receipt delivered: Matt-thePlan-Scheduler-MS-Invalid-Native-Review-Reconciled-2026-11-13.md, SHA2560F9AC362E3B64B444D20C4BE86FE28F29CD0BC845423E1E3ABC956F5A781EFCE. F5524FDD is complete; no new assignment is issued at this decision checkpoint. Four Trish cards are pending (T05fake,refreshfake,T03D1,nativeinvalid). No colleague stall claimed. Endpoint unbound;all holds stay.
+— Dex

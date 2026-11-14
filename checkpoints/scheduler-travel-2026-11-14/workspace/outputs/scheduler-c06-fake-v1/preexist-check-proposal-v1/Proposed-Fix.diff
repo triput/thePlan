@@ -1,0 +1,11 @@
+--- a/fake-only-c06-verification/check_c06_runner_tls_fake.py
++++ b/fake-only-c06-verification/check_c06_runner_tls_fake.py
+@@ -780,7 +780,7 @@
+         results.append(ControlResult(control_id, result, detail, kind))
+ 
+     mod, fake_os, fs = make_runtime("success")
+-    fake_os.lexists = lambda path: True
++    fake_os.path.lexists = lambda path: True
+     err = expect_raise(mod.exclusive_create_c06_gate_tls_dir, "pre-exists")
+     rec("C06_N_PREEXIST", "REFUSE", type(err).__name__)
+ 

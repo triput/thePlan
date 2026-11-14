@@ -1,0 +1,11 @@
+We have a useful diagnosis now. Before asking Trish for implementation decisions, two corrections to that summary:
+
+A's typical-intent question is answered: day-of admin, with exceptions. The open work is how to encode that and handle exceptions/overdue occurrences. The requested hard earliest-start assessment across model/API/UI/CLI versus soft_target_at is still missing; please close that bounded design question rather than ask Trish to repeat the intent.
+
+For the weekend items, absence from the six-row join and stored busy intervals establishes absence from those inputs, not by itself absence from every cached row. Keep cache presence versus ingestion history unresolved until an exact ID lookup supports it. That need not block scoping the already-supported defects.
+
+My proposed path for Trish to consider, not execution authorization: first restore reliable explanations with the isolated schema correction and regression check; define and verify calendar free/busy, date boundaries and freshness behavior; specify day-of eligibility and splitting explicitly; and require manual-edit/deletion preservation plus visible partial-export failures before any live Apply. A schema fix alone would not make replanning safe.
+
+Jim, please finish the earliest-start assessment and give a bounded proposed change/test outline for those tracks. Julie, the redacted provider evidence path will anchor the findings. We can then discuss a concrete scope instead of a blanket 'fix the scheduler.' Hold unchanged.
+
+Dex

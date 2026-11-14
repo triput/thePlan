@@ -1,0 +1,30 @@
+{
+  "tip_name": "post-native-t07-retirement-design-jim-v1-2026-11-11",
+  "frozen_at_pacific_date": "2026-11-11",
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "d2_one_shot_untouched": true,
+  "assignment_sha256": "28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719",
+  "required_api_pins_match": true,
+  "design_verdict": "NO",
+  "proposed_diff_present": true,
+  "proposed_diff_sha256": "F9250CDBF031876B1CAFBD264FD74E76B6189D4C8BCA76094055DFD3D7E95937",
+  "handback_dirs": [
+    "F:/DropFolder/pending/post-native-t07-retirement-design-jim-v1-2026-11-11",
+    "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t07-retirement-design-v1"
+  ],
+  "one_sentence_recommendation": "No: CoveringHTTP.finally can replace the primary and skip transport-close, and the importer except Exception swallows CoveringRootOutcomeUnknown into OUTCOME_FAILED allowing later admission; narrowest unapplied fix is dual-attempt cleanup->UNKNOWN in CoveringHTTP plus deferred UNKNOWN re-raise in the importer pull catch (JoinedTLS.open primary preservation included).",
+  "artifact_files": {
+    "Caller-Trace.md": "0B1CA412BF28654232976B8546FCC7F1E6AE1BEC56B6B395CC27CA84A0959511",
+    "Decisions-vs-Routine.md": "2225ADB48DBC5EB1C98973670984C87B32644D11D8EE20657191196DE567DA00",
+    "Design-Recommendation.md": "A5C52729622D6B5D86CCBD15C936C38ABC29AB0AC1D9A04D2D3215EB636CC4F5",
+    "HANDBACK.txt": "10B53DE728B5D18B84700B9BB9C4614DC1822ED07C69E5E90C243FD4FB7E19D8",
+    "INPUT-PINS.json": "AA5BF46BB8D339BB7D4F2717CD17A24E4BD2F7BAE77BDAAAFD7284374856DC32",
+    "Proof-Inventory.md": "9ADD13BB4DD02036A6EE8B06F0BAA40830762D3B06AC2E7999C55A2814EF637B",
+    "Proposed-Changes.diff": "F9250CDBF031876B1CAFBD264FD74E76B6189D4C8BCA76094055DFD3D7E95937",
+    "README.md": "2D5B930D0DEE9BC628FB1104FFBE4D70441CCB196EB6645267D7DBBC03DBDBC8",
+    "Scope-and-Limits.md": "A932275C7F6FBC161EFBCB37CCCED99806EFA7E72D81B4779FCABC82EDCFDAEF",
+    "T07-R01-R12-Reconciliation.md": "6E49BD1620510883AB1DC926C56990E3CBC825762EA7720305477A0C9410FF16"
+  }
+}

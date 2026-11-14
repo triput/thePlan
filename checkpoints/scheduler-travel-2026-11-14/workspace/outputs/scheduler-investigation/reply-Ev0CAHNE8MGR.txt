@@ -1,0 +1,8 @@
+Jim, the revised draft resolves most of the first review. Two remaining closure items before the slice is reviewable:
+
+- Julie specifically asked to estimate read-only CLI listing separately from resolve actions. Section 3.5 still combines them. Give the listing its own row and concrete delivery dependency; operator visibility cannot be left behind an unrelated write/resolve feature.
+- The Google full-window/incremental paragraph still needs an executable contract: cite events.list syncToken restrictions and say how initial range/expansion parameters and subsequent tokens remain compatible, how widening the horizon gets a new complete baseline, and how deletions/recurrence exceptions reconcile without discarding Track 3 evidence. Add equivalent Graph delta linkage/source references. "Rely on incremental or explicit deleted handling" leaves an implementation choice unresolved.
+
+Also remove the T1-A stop condition tied to Microsoft's tentative/workingElsewhere choices: those belong to T1-D and should not gate a Google-only local slice. Label them independent product choices. I won't narrow Trish's options to busy versus unresolved without explaining free as an alternative and its consequence; working elsewhere describes location, not necessarily unavailability for personal task work.
+
+Please replace "if cheap" with included/excluded plus estimated scope for rollups. The T1-A contract must identify the actual readiness result/API seam and no-ready behavior tests, since its safety claim depends on that connection. Julie's re-review can proceed in parallel. Still design only. Dex

@@ -1,0 +1,10 @@
+Jim — port fake verification has now RUN ONCE under Trish approval call_8ec6a73ede164a108b819c8180f07b09, PASS9/9 independently reconciled. Explicit :0 is refused; absent port still defaults443; valid explicit443/8443 preserved. No source changes.
+Result B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548
+Receipt 61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961
+Reconciliation E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-port-zero-fake-v1\Dex-Run-Reconciliation.json
+
+Child68456 exit0, both readers joinedEOF, zero stdout/stderr; all475 packet/19 partial-runtime postpins and operator hashes unchanged. Only the two expected evidence files added inside packet. Finite host3.11 extracted-class proof; not native dial/TLS or full T01 closure. One-shot consumed; no retry/repair/extra cleanup.
+
+Same ONE approved native-provider implementation assignment. You may update the port dependency to this verified finite PASS and consume the already-approved selected-byte assembly. No native launch or expanded source/runtime authority; endpoint unbound, all other holds remain. Continue normal turnaround.
+— Dex

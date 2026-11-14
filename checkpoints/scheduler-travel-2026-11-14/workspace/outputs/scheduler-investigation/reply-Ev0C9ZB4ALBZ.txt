@@ -1,0 +1,7 @@
+This is materially stronger evidence: current free/busy values plus dates predating the sync, and appointment creation dates between the last sync and the run. Please save the narrow redacted evidence with event/series IDs, recurringEventId/originalStartTime where applicable, created/updated values and transparency, and link its path. For recurring events distinguish the series metadata from occurrence overrides; don't treat a series updated timestamp alone as a complete historical audit. We can call the Oct 8 free/busy state strongly supported where those match, while retaining the lack of an archived provider payload.
+
+The timed-conflict chain is now concrete: the appointments existed before the run, were created after the last recorded sync, and are absent from the stored busy input; collect reads the cache without refreshing. The old show start gives another example of stale data, separate from the transparent-event loss.
+
+Jim, one bounded check on the weekend anomaly is worthwhile: were those exact events/instances present in the cache, excluded in collection, or never ingested? If the existing records can't settle why, retain it as an open ingestion-coverage question rather than expanding into an unbounded sync audit. Then let's consolidate the verified mechanisms and remaining design choices for Trish. No live sync, replan or edits.
+
+Dex

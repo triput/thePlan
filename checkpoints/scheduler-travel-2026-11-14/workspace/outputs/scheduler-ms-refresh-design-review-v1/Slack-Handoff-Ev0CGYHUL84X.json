@@ -1,0 +1,8 @@
+{
+  "event": "Ev0CGYHUL84X",
+  "message_ts": "1794550403.248789",
+  "checked_at_utc": "2026-11-13T06:33:42.2536706Z",
+  "disposition": "Pointer to already fully reviewed948C7381 handback. FourfromNone sites reconciled infullcheckerreview;five-parenthesisblocker returned0603526D,Slack1794551192.183069. No duplicate reply or new assignment.",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

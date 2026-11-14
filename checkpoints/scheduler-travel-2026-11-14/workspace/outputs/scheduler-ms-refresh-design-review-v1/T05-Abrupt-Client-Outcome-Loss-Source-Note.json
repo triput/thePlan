@@ -1,0 +1,25 @@
+{
+  "runnerSha256": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E",
+  "sourceEdits": false,
+  "activeMattTask": "0FA5655BE666C8326E040EE8EAD575BBDE817AD7A3DC19CA6A2E96B4466BFFCD",
+  "atUtc": "2026-11-13T23:51:56.1145205Z",
+  "proposalToAssess": "Preserve caught client exception identity and chain the unchanged classifier failure through the existing bounded class/location STOP producer,with clean retirement precedence and a truthful fallback for outcomes without an exception. No messages/locals/bodies/extra STOP fields. Matt is assigned the primary trace/proposal; no code prepared here.",
+  "kind": "Dex independent source trace of T05 diagnostic loss",
+  "endpoint": "unbound",
+  "executed": false,
+  "peerSha256": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+  "established": [
+    "Abrupt script declares Content-Length20 and sends a one-character JSON prefix,then selects abrupt_truncate",
+    "Peer abrupt branch attempts SO_LINGER0 and shutdown/close without unwrap; individual OSErrors are swallowed,so source note alone is not an acknowledgment of a particular TCP close result",
+    "JoinedTLS.receive returns bytes or propagates recv exceptions except WANT_READ/WRITE retries; no source evidence identifies the actual native exception class in this attempt",
+    "_t05_observe catches client Exception but retains only a tuple of kind/class/module; it does not preserve the exception object for later chaining",
+    "Classifier is invoked after retirement and peer checks,outside the client except block; a SuiteStop there loses the captured client exception provenance",
+    "The measured client-outcome fields are constructed only after classification succeeds; on this guard STOP they never reach the host receipt"
+  ],
+  "transcriptSha256": "562F61CDB9DEF3F35A1693E3C9CC13EB63D9F0535F9A0D3C190BF275E78751BF",
+  "notEstablished": [
+    "Actual native client class,returned response outcome or precise TLS/kernel behavior",
+    "Whether fixture,transport or classifier needs a behavioral correction",
+    "Native case-level PASS or measurements from earlier case"
+  ]
+}

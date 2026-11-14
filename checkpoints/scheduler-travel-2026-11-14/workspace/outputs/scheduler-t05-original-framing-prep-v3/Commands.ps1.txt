@@ -1,0 +1,1 @@
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t05-original-framing-prep-v3\Invoke-Verification.ps1' -AdmissionSHA256 'E0CED0B952FA3130AC81AE1B14073081D2BA5551E3D2083F3C18D9BEDBA5624C'

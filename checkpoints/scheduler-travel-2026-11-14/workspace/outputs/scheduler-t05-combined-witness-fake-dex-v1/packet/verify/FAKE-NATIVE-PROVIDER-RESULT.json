@@ -1,0 +1,149 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "SOURCE-LINEAGE",
+    "RUNTIME-PROVENANCE",
+    "STRUCTURE",
+    "SHORT-VALID-JSON",
+    "SHORT-INVALID-JSON-COMBINED",
+    "COMPLETE-INVALID-JSON",
+    "COMPLETE-VALID-JSON",
+    "LAYER-INDEPENDENCE",
+    "INVENTORY-REJECTION",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutants": {
+        "both_layers_bypassed": "DETECTED",
+        "condition_inverted_under_read_bypass": "DETECTED",
+        "condition_weakened_under_read_bypass": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "COMPLETE-INVALID-JSON": {
+      "cases": {
+        "cleanup_and_counters": "PASS",
+        "decoder_invoked_once": "PASS",
+        "gate_admits": "PASS",
+        "json_decode_error_propagates": "PASS"
+      },
+      "control_kind": "actual_source_host_parser",
+      "observed": "PASS"
+    },
+    "COMPLETE-VALID-JSON": {
+      "cases": {
+        "cleanup_and_counters": "PASS",
+        "decoder_and_gate_once_in_order": "PASS",
+        "exact_bytes_and_headers": "PASS",
+        "typed_response": "PASS"
+      },
+      "control_kind": "actual_source_host_parser",
+      "observed": "PASS"
+    },
+    "INVENTORY-REJECTION": {
+      "cases": {
+        "dropped_case_rejected": "PASS",
+        "exact_inventory_accepted": "PASS",
+        "extra_case_rejected": "PASS",
+        "reordered_case_rejected": "PASS"
+      },
+      "control_kind": "inventory_oracle",
+      "observed": "PASS"
+    },
+    "LAYER-INDEPENDENCE": {
+      "cases": {
+        "gate_call_removed_read_still_refuses": "PASS",
+        "read_guard_bypassed_gate_refuses": "PASS"
+      },
+      "control_kind": "actual_source_layer_mutation",
+      "equivalent_mutant_note": "gate-call removal alone is behaviorally equivalent on the short-body path; not counted as detection",
+      "observed": "PASS"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "json_c_scanstring_present": true,
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "SHORT-INVALID-JSON-COMBINED": {
+      "cases": {
+        "cleanup_and_counters": "PASS",
+        "decoder_not_invoked": "PASS",
+        "gate_not_reached": "PASS",
+        "refused_incomplete_read": "PASS"
+      },
+      "control_kind": "actual_source_host_parser",
+      "declared": 5,
+      "observed": "PASS",
+      "received_body": 1
+    },
+    "SHORT-VALID-JSON": {
+      "cases": {
+        "cleanup_and_counters": "PASS",
+        "decoder_not_invoked": "PASS",
+        "gate_not_reached": "PASS",
+        "refused_incomplete_read": "PASS"
+      },
+      "control_kind": "actual_source_host_parser",
+      "declared": 20,
+      "observed": "PASS",
+      "received_body": 12
+    },
+    "SOURCE-LINEAGE": {
+      "cases": {
+        "joined_row": "PASS",
+        "policy_row": "PASS",
+        "transport_row": "PASS"
+      },
+      "control_kind": "raw_pin_lineage",
+      "observed": "PASS"
+    },
+    "STRUCTURE": {
+      "cases": {
+        "default_factory_joined_tls": "PASS",
+        "guarded_read_short_body_raise": "PASS",
+        "joined_close_local_only": "PASS",
+        "read_loop_then_gate_then_decode": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "app/covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+        "app/covering_joined_https.py": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+        "app/covering_transport_policy.py": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+        "payload-SHA256SUMS.txt": "5F94DD7D4FA34BC9FB16273F040AED7FD066CE768DAE26694DF4457B4B04CCD6"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 40,
+  "packet": "scheduler-t05-combined-witness-fake-prep-matt-v1",
+  "passed": 11,
+  "prep_is_not_pass": true
+}

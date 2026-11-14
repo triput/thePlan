@@ -1,0 +1,3 @@
+# Matt thePlan MS-merge staged fake review findings - hash manifest (SHA256, uppercase). Signed: Matt. 2026-11-13
+D8868CC2403D61F22A118A487D96EAEC3B2BABF07BD43E9AEE2CBD27F2BF54D7  F:/DropFolder/Matt-Drops/Matt-thePlan-Scheduler-MS-Merge-Staged-Fake-Review-Findings-2026-11-13.md
+D18DF620242F99E4E1E87354EDDBA30CBD56671FFA6BD2BF4B919B048F0DAD8C  C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-ms-merge-fake-dex-v1/Input-Manifest.sha256 (reviewed, unmodified)

@@ -1,0 +1,38 @@
+{
+  "atUtc": "2026-11-14T02:07:31.9164827Z",
+  "scope": "Evidence mapping for exact T06-INVALID-GRANT-MICROSOFT requirement; peer result review pending",
+  "requirementId": "T06-INVALID-GRANT-MICROSOFT",
+  "nativeCase": "NP-V-MS-INVALID",
+  "requirementSource": "Transport-Case-Inventory-Draft.md:12 and Transport-Proof-Matrix.md:20",
+  "hostReceipt": "4BF457AA0364B2A3B38C982C7207607166923A37CE6C301CAC4B0E488150D9CC",
+  "reconciliation": "BA01CEF3DA4A2D02D5C353AEBCBA7C3AFEACF88A636D5F8D7FEB755A2F61E63D",
+  "measured": {
+    "joinedResources": "Retained peer/factory/PKI child/group/readers joined/retired",
+    "publicOutcome": "Retained no_op with preflight_rejected CALENDAR_ACCOUNT_DISCONNECTED; source assertion enforces HTTP200",
+    "typedKnownClient": "Retained CoveringReauthorizationRequired/app.services.covering_transport_policy",
+    "credentialExpiryCoverage": "Retained semantic before/after unchanged",
+    "containers": "Exact-ID removal and absence verified through frozen supervisor success guards, DBexit0",
+    "noReplay": "Retained exactly one OAuth request/exchange",
+    "noLaterImport": "Retained run_target_calls0",
+    "actualOAuthCallerAndParser": "Real production covering transport/defaultJoinedTLS via actual Microsoft refresh caller in pinned native container; one complete400invalid_grant exchange"
+  },
+  "nativeTerminalEvidence": {
+    "limitation": "np_receipts filtered measured token_terminal_rows; cannot reconstruct actual row from the expectation constant or a future fake",
+    "lines": "1849-1854,2153-2159,2421-2441",
+    "runnerSHA256": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1",
+    "nativeObserver": "real CoveringORMConnection.token_terminal is called before capturing the actual outcome",
+    "meaning": "CasePASS is native runtime evidence those exact checks passed; keep distinct from independent rereading of an emitted measurement",
+    "directDetailedRowRetained": false,
+    "exactPredicate": "One row {terminal:ROLLBACK_ACKNOWLEDGED,token_rollback_ack:true,commit_requested:false} plus one separate observer marker",
+    "level": "EXECUTED_PINNED_EXACT_ASSERTION"
+  },
+  "familyClosure": false,
+  "all76RequirementsRetained": true,
+  "googleInvalidGrant": "UNPROVED_BY_THIS_RUN",
+  "oauthSuccess": "UNPROVED_BY_THIS_RUN",
+  "unknownFaultVariants": "UNPROVED_BY_THIS_RUN",
+  "peerReview": "Not yet assigned; single Matt BODY-STALL addendum still active",
+  "recoveryProposal": "5108D706DBC5A9F3D8A081D9FD74B1FB2F9DF5E1F9790CC78006F9FEA7AF634F",
+  "automaticRerun": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,33 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -109,15 +109,15 @@
+-def _fixture_database_profile() -> Any:
+-    from app.services.covering_native_checkout import PostgreSQLPeer
+-
+-    # DB trust stays /public-ca — distinct from provider /tmp/np-provider-tls.
+-    return PostgreSQLPeer(
+-        hostname="db",
+-        address="127.0.0.1",
+-        port=5432,
+-        database="scheduler",
+-        username="scheduler",
+-        ca_file="/public-ca/ca.crt",
+-        absent_passfile="/tmp/np-absent-pgpass",
+-        client_cert="/tmp/np-absent-client.crt",
+-        client_key="/tmp/np-absent-client.key",
+-    )
++def _fixture_database_profile() -> Any:
++    from app.services.covering_native_checkout import PostgreSQLPeer
++
++    # DB trust stays /public-ca — distinct from provider /tmp/np-provider-tls.
++    return PostgreSQLPeer(
++        hostname="native-fixture.invalid",
++        address="127.0.0.1",
++        port=5432,
++        database="dex_fixture",
++        username="dex_fixture",
++        ca_file="/public-ca/ca.crt",
++        absent_passfile="/tmp/np-absent-pgpass",
++        client_cert="/tmp/np-absent-client.crt",
++        client_key="/tmp/np-absent-client.key",
++    )

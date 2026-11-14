@@ -1,0 +1,9 @@
+Jim — one further concrete wiring supplement for the SAME successor/first vertical; no new assignment/gate:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-implementation-review-v1\Provider-Trust-and-Wrong-Name-Supplement.md
+
+Provider recipe writes CA/leaves under /tmp/np-provider-tls, but route declarations point to inherited /public-ca DB trust paths; wire actual provider trust separately in runner tmpfs, leaving DB CA/mount unchanged and keys private.
+Wrong-name TLS test must retain vendor URL/HTTPSPeer.hostname/SNI/check_hostname and instead serve the wrong-name leaf. Changing client server_hostname to wrong-name.fixture.invalid either fails URL admission before TLS or matches the wrong leaf; it does not prove the intended vendor-hostname mismatch.
+Generation caller needs guarded private directory plus bounded owned child/reader retirement implementation; source recipe alone does not bound it. No generation or invocation now.
+
+All within approved16 roles and accepted verify-full contract. Preserve v1; combine with prior R1–R4 and host-wiring fixes, do not create a separate workstream. No immediate reply needed.
+— Dex

@@ -1,0 +1,302 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -56,7 +56,12 @@
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({
++    "NP-V-MS-NONEXPIRED",
++    "NP-T03-VALID",
++    "NP-T03-WRONG-CA",
++    "NP-T03-WRONG-NAME",
++})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -1304,6 +1309,266 @@
+     native_terminals.append({"observer": "CoveringORMConnection.token_terminal", "terminal": None})
+ 
+ 
++# NP-T03 B2a (Trish-approved decision D46E6CF8; Dex 21BBE5B7). Direct production
++# CoveringHTTP -> default JoinedTLS to the synthetic Google API peer on numeric
++# loopback :443 with verify-full; no application schema, DB or ASGI is touched.
++T03_CERT_REFUSAL_OUTCOME = ("exception", "SSLCertVerificationError", "ssl")
++T03_VALID_OUTCOME = ("response", 200, True)
++# Fail-closed peer-side hypothesis (D1), NOT a claim about native runtime behavior.
++T03_NEGATIVE_PEER_ERROR_KINDS = frozenset({"SSLError", "SSLEOFError", "ConnectionResetError"})
++T03_NEGATIVE_PEER_PHASE = "accepted"
++T03_EXPECTATIONS = ("valid", "wrong_ca", "wrong_name")
++T03_ORACLES = {
++    "NP-T03-VALID": "handshake_and_useful_app_data",
++    "NP-T03-WRONG-CA": "refuse_before_useful_application_data",
++    "NP-T03-WRONG-NAME": "refuse",
++}
++
++
++def _retire_negative_peer_then_observe(
++    peer: Any,
++    *,
++    allowed_worker_errors: frozenset[str],
++    expected_phase: str,
++    join_seconds: float = 5.0,
++) -> tuple[dict[str, Any], dict[str, Any]]:
++    """D1 negative-peer retirement barrier (scoped to WRONG-CA / WRONG-NAME only).
++
++    Exactly one call to the unchanged retire_owned with the existing bounded join; the
++    caller marks retirement_attempted BEFORE calling, so a raise never causes a second
++    attempt. PeerRetirementUnknown and any other exception propagate unchanged.
++    Requires joined is True, worker_error_kind a str inside the frozen finite set (None
++    STOPs), exactly one matching worker_error note, and post-join refusal before any
++    application data: accepted, no handshake/request/response, zero application byte
++    counts, empty exchange inventory and the expected phase. The positive helper
++    _retire_selected_peer_then_observe stays unchanged for every positive case.
++    """
++    from np_suite import SuiteStop
++
++    retirement = peer.retire_owned(join_seconds=join_seconds)
++    if retirement.get("joined") is not True:
++        raise SuiteStop("negative peer worker unjoined — UNKNOWN")
++    kind = retirement.get("worker_error_kind")
++    if type(kind) is not str or kind not in allowed_worker_errors:
++        raise SuiteStop("negative peer worker error outside the frozen class set")
++    state = peer.sanitized_state()
++    notes = [
++        note
++        for note in (state.get("notes") or [])
++        if isinstance(note, str) and note.startswith("worker_error:")
++    ]
++    if notes != [f"worker_error:{kind}"]:
++        raise SuiteStop("negative peer worker_error note is not exactly the returned kind")
++    if (
++        state.get("accepted") is not True
++        or state.get("handshake_complete") is not False
++        or state.get("request_received") is not False
++        or state.get("response_sent") is not False
++        or state.get("bytes_received") != 0
++        or state.get("bytes_sent") != 0
++        or state.get("exchange_inventory") != []
++        or state.get("phase_entered") != expected_phase
++    ):
++        raise SuiteStop("negative peer state is not refusal before application data")
++    return retirement, state
++
++
++def _t03_observe(case_id: str, expectation: str) -> dict[str, Any]:
++    """One NP-T03 B2a attempt: one peer, one request, one retirement, then classification.
++
++    VALID: valid client trust + valid served leaf. WRONG-CA: client trust is swapped to the
++    distinct wrong-ca root ONLY (peer serves the valid leaf). WRONG-NAME: the peer serves
++    the wrong-name leaf ONLY (client trust, requested hostname and SNI unchanged). The
++    client and peer outcomes of the SAME attempt are classified only after the bounded
++    joined retirement; no message, certificate, body or credential is retained.
++    """
++    from np_suite import SuiteStop
++    from np_provider_routes import FIXTURE_CA_PATH, WRONG_CA_PATH, google_api_route
++    from np_provider_transcript import T03_GET_PATH, T03_VALID_BODY, t03_valid_fixed_length_get_script
++    from np_provider_peer import (
++        PeerLifecycleError,
++        PeerMaterial,
++        PeerRetirementUnknown,
++        SyntheticProviderPeer,
++        _http_response_bytes,
++    )
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_request_budget import CoveringRequestBudget
++    from app.services.covering_transport_policy import (
++        HTTPSPeer,
++        ProviderCounter,
++        approved_provider_limits,
++    )
++
++    if expectation not in T03_EXPECTATIONS:
++        raise SuiteStop("unknown t03 expectation")
++    client_route = google_api_route()
++    peer_route = google_api_route(wrong_name=(expectation == "wrong_name"))
++    client_ca = WRONG_CA_PATH if expectation == "wrong_ca" else FIXTURE_CA_PATH
++    # Exactly one intended trust swap per negative case; everything else identical.
++    if (
++        peer_route.server_hostname != client_route.server_hostname
++        or peer_route.url_host != client_route.url_host
++        or (peer_route.dial_address, peer_route.dial_port) != (client_route.dial_address, client_route.dial_port)
++        or peer_route.serve_wrong_name_leaf is not (expectation == "wrong_name")
++        or client_route.serve_wrong_name_leaf is not False
++        or client_route.ca_path != FIXTURE_CA_PATH
++        or peer_route.ca_path != FIXTURE_CA_PATH
++        or (client_ca == WRONG_CA_PATH) is not (expectation == "wrong_ca")
++    ):
++        raise SuiteStop("t03 trust swap is not exactly the intended single dimension")
++
++    script = t03_valid_fixed_length_get_script()
++    sends = [step for step in script.steps if step.direction == "send_response"]
++    if len(sends) != 1:
++        raise SuiteStop("t03 script must declare exactly one response")
++    try:
++        expected_wire = _http_response_bytes(sends[0])
++    except PeerLifecycleError:
++        raise SuiteStop("t03 response framing refused before send") from None
++    expected_body = T03_VALID_BODY.encode("utf-8")
++    client_peer = HTTPSPeer(
++        hostname=client_route.server_hostname,
++        address=client_route.dial_address,
++        port=client_route.dial_port,
++        ca_file=client_ca,
++    )
++    budget = CoveringRequestBudget()
++    counter = ProviderCounter(approved_provider_limits(), budget.work_remaining)
++    http = CoveringHTTP(counter=counter, routes=((client_peer, "/calendar/v3/calendars/", "event"),))
++    if http.transport_factory is not JoinedTLS:
++        raise SuiteStop("t03 requires the default JoinedTLS transport")
++    url = f"https://{client_route.url_host}{T03_GET_PATH}"
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}",
++        route=peer_route,
++        script=script,
++        material=PeerMaterial(),
++    )
++    outcome: Any = None
++    retirement_attempted = False
++    retirement: dict[str, Any] = {}
++    state: dict[str, Any] = {}
++    try:
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++        try:
++            response = http.request("GET", url, purpose="event")
++        except Exception as exc:
++            outcome = ("exception", type(exc).__name__, type(exc).__module__)
++        else:
++            outcome = ("response", response.status_code, response.content == expected_body)
++        retirement_attempted = True
++        if expectation == "valid":
++            retirement, state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        else:
++            retirement, state = _retire_negative_peer_then_observe(
++                peer,
++                allowed_worker_errors=T03_NEGATIVE_PEER_ERROR_KINDS,
++                expected_phase=T03_NEGATIVE_PEER_PHASE,
++                join_seconds=5.0,
++            )
++    finally:
++        if not retirement_attempted and peer._worker is not None and not peer.life.joined:  # noqa: SLF001
++            retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++            except PeerRetirementUnknown:
++                raise SuiteStop("owned t03 peer retirement UNKNOWN on cleanup")
++
++    if expectation == "valid":
++        rows = list(state.get("exchange_inventory") or [])
++        if (
++            outcome != T03_VALID_OUTCOME
++            or state.get("connection_count_admitted") != 1
++            or state.get("connection_count_served") != 1
++            or len(rows) != 1
++            or rows[0].get("method") != "GET"
++            or rows[0].get("path") != T03_GET_PATH
++            or state.get("handshake_complete") is not True
++            or state.get("request_received") is not True
++            or state.get("response_sent") is not True
++            or state.get("close_mode_observed") != "orderly_close_notify"
++            or state.get("bytes_sent") != len(expected_wire)
++        ):
++            raise SuiteStop("t03 valid exchange is not one complete verified fixed-length GET")
++    elif outcome != T03_CERT_REFUSAL_OUTCOME:
++        raise SuiteStop(f"t03 negative client outcome is not certificate refusal:{outcome!r}")
++
++    return {
++        "client_outcome": list(outcome),
++        "trust_swap": {
++            "client_trust": "wrong_ca" if expectation == "wrong_ca" else "fixture_ca",
++            "served_leaf": "wrong_name" if expectation == "wrong_name" else "vendor_san",
++            "requested_hostname_unchanged": True,
++            "sni_unchanged": True,
++        },
++        "peer_retirement": {
++            "joined": retirement.get("joined"),
++            "worker_error_kind": retirement.get("worker_error_kind"),
++            "single_attempt": True,
++        },
++        "peer_post_join": {
++            "accepted": state.get("accepted"),
++            "handshake_complete": state.get("handshake_complete"),
++            "request_received": state.get("request_received"),
++            "response_sent": state.get("response_sent"),
++            "bytes_received": state.get("bytes_received"),
++            "bytes_sent": state.get("bytes_sent"),
++            "phase_entered": state.get("phase_entered"),
++            "exchange_count": len(state.get("exchange_inventory") or []),
++        },
++        "inventory": list(state.get("exchange_inventory") or []),
++        "default_joined_tls": True,
++    }
++
++
++def _run_np_t03_case(case_id: str, expectation: str) -> dict[str, Any]:
++    from np_suite import check_oracles_immediate, registry_by_id
++    from np_receipts import case_result_receipt
++
++    decl = registry_by_id(include_cf=True)[case_id]
++    t_plan_iso = _iso_now()
++    observed = _t03_observe(case_id, expectation)
++    observations = {T03_ORACLES[case_id]: "OBSERVED"}
++    check_oracles_immediate(decl, observations)
++    return case_result_receipt(
++        case_id=case_id,
++        passed=True,
++        workers_joined=True,
++        expected_unknown=False,
++        executed=True,
++        prep_is_not_pass=True,
++        observations=observations,
++        t_plan_iso=t_plan_iso,
++        t_check_iso=_iso_now(),
++        measured={key: value for key, value in observed.items() if key != "inventory"},
++        peer_exchange_inventory=observed["inventory"],
++        resource_disposition={
++            "peer_retired": True,
++            "peer_joined": True,
++            "schema_provisioned": False,
++            "provider_pki_status": (
++                "GENERATED"
++                if _PROVIDER_PKI_GENERATE_ONCE_DONE
++                else ("PREPARED_NOT_GENERATED" if _PROVIDER_PKI_PREPARED else "NOT_PREPARED")
++            ),
++        },
++    )
++
++
++def _run_np_t03_valid() -> dict[str, Any]:
++    return _run_np_t03_case("NP-T03-VALID", "valid")
++
++
++def _run_np_t03_wrong_ca() -> dict[str, Any]:
++    return _run_np_t03_case("NP-T03-WRONG-CA", "wrong_ca")
++
++
++def _run_np_t03_wrong_name() -> dict[str, Any]:
++    return _run_np_t03_case("NP-T03-WRONG-NAME", "wrong_name")
++
++
+ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+     if case_id == "NP-V-MS-NONEXPIRED":
+         def _run() -> dict[str, Any]:
+@@ -1311,6 +1576,18 @@
+ 
+         _run.__name__ = f"run_{case_id}"
+         return _run
++    if case_id in T03_ORACLES:
++        body = {
++            "NP-T03-VALID": _run_np_t03_valid,
++            "NP-T03-WRONG-CA": _run_np_t03_wrong_ca,
++            "NP-T03-WRONG-NAME": _run_np_t03_wrong_name,
++        }[case_id]
++
++        def _run_t03() -> dict[str, Any]:
++            return body()
++
++        _run_t03.__name__ = f"run_{case_id}"
++        return _run_t03
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 

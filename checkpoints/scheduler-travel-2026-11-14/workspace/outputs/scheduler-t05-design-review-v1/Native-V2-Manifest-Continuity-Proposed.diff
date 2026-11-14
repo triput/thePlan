@@ -1,0 +1,32 @@
+--- scheduler-t05-native-provenance-dex-v2/verify_native_provenance.py
++++ proposed-successor/verify_native_provenance.py
+@@ -53,6 +53,7 @@
+     if sha(manifest) != manifest_pin.upper():
+         raise RuntimeError('manifest mismatch')
+     seen = set()
++    admitted_inputs = []
+     for line in manifest.read_text(encoding='utf-8').splitlines():
+         pin, relative = line.split('  ', 1)
+         path = (ROOT / relative).resolve()
+@@ -60,6 +61,7 @@
+                 or not re.fullmatch('[A-F0-9]{64}', pin) or sha(path) != pin):
+             raise RuntimeError('input pin mismatch')
+         seen.add(path)
++        admitted_inputs.append((pin, path))
+     required = {ROOT / 'verify_native_provenance.py', ROOT / 'collect-parser-sources.sh',
+                 ROOT / 'docker-config' / 'config.json', ROOT / 'Runtime-Pins.json'}
+     if seen != required:
+@@ -289,9 +291,10 @@
+             for row in runtime['files']:
+                 if sha(Path(row['absolute_path'])) != row['sha256']:
+                     raise RuntimeError('post-collection runtime drift')
+-            for line in manifest.read_text(encoding='utf-8').splitlines():
+-                pin, relative = line.split('  ', 1)
+-                if sha(ROOT / relative) != pin:
++            if sha(manifest) != manifest_pin.upper():
++                raise RuntimeError('post-collection manifest drift')
++            for pin, path in admitted_inputs:
++                if sha(path) != pin:
+                     raise RuntimeError('post-collection packet drift')
+             if command(['container', 'rm', identifier]).decode('ascii').strip() != identifier:
+                 raise RuntimeError('exact removal response mismatch')

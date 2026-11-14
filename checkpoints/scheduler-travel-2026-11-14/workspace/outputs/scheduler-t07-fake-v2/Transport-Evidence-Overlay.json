@@ -1,0 +1,166 @@
+{
+  "kind": "T07 evidence overlay; original76-ID requirements audit preserved",
+  "at_utc": "2026-11-11T21:58:13.3731046Z",
+  "source_result_sha256": "C543177837851662575F834C1BAD685075DF7919D499F4A1D25CFB9574479C49",
+  "source_reconciliation_sha256": "07B6C05F1366BA27F85E0BA65DFF2A3319ADBD223BF885CCC39FE43D82B0F10C",
+  "entries": [
+    {
+      "planning_id": "T07-RESPONSE-CLOSE-AFTER-SUCCESS",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R02",
+        "C-CALLER-EVENT",
+        "C-CALLER-OAUTH"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R02",
+          "result": "PASS",
+          "detail": "C-R02 provenance"
+        },
+        {
+          "id": "C-CALLER-EVENT",
+          "result": "PASS",
+          "detail": "importer owning try/except → CoveringHTTP; Unknown identity; SUB-1 prior; no later target"
+        },
+        {
+          "id": "C-CALLER-OAUTH",
+          "result": "PASS",
+          "detail": "oauth adapter refresh_access_token → CoveringHTTP; Unknown identity; SUB-1 prior; no later"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    },
+    {
+      "planning_id": "T07-RESPONSE-CLOSE-AFTER-PRIMARY-FAILURE",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R04"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R04",
+          "result": "PASS",
+          "detail": "C-R04 provenance"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    },
+    {
+      "planning_id": "T07-TRANSPORT-CLOSE-AFTER-SUCCESS",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R03",
+        "C-CALLER-EVENT",
+        "C-CALLER-OAUTH"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R03",
+          "result": "PASS",
+          "detail": "C-R03 provenance"
+        },
+        {
+          "id": "C-CALLER-EVENT",
+          "result": "PASS",
+          "detail": "importer owning try/except → CoveringHTTP; Unknown identity; SUB-1 prior; no later target"
+        },
+        {
+          "id": "C-CALLER-OAUTH",
+          "result": "PASS",
+          "detail": "oauth adapter refresh_access_token → CoveringHTTP; Unknown identity; SUB-1 prior; no later"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    },
+    {
+      "planning_id": "T07-TRANSPORT-CLOSE-AFTER-PRIMARY-FAILURE",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R05"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R05",
+          "result": "PASS",
+          "detail": "C-R05 provenance"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    },
+    {
+      "planning_id": "T07-BOTH-CLOSE-AFTER-SUCCESS",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R06",
+        "M-SKIP-SECOND-CLOSE"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R06",
+          "result": "PASS",
+          "detail": "C-R06 provenance"
+        },
+        {
+          "id": "M-SKIP-SECOND-CLOSE",
+          "result": "PASS",
+          "detail": "unmutated C-R06 passes; mutant skips transport.close; dual absent"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    },
+    {
+      "planning_id": "T07-BOTH-CLOSE-AFTER-PRIMARY-FAILURE",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "not established by this run",
+      "control_ids": [],
+      "control_outcomes": [],
+      "remaining": "C-R06 has primary=null; do not infer both-closes-fail with active parser primary from separate R04/R05 cases. Require explicit branch plus later real ownership/retirement/caller evidence."
+    },
+    {
+      "planning_id": "T07-OPEN-CLOSE",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R08"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R08",
+          "result": "PASS",
+          "detail": "JoinedTLS via CoveringHTTP; 2 method closes + exactly 1 raw close"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    },
+    {
+      "planning_id": "T07-SETBLOCKING",
+      "full_scope_status": "completion_unproven",
+      "fake_prerequisite": "specified controls passed; no real retirement proof",
+      "control_ids": [
+        "C-R07"
+      ],
+      "control_outcomes": [
+        {
+          "id": "C-R07",
+          "result": "PASS",
+          "detail": "exact setblocking FakeOpenPrimaryError; 1 method/raw close; zero sends"
+        }
+      ],
+      "remaining": "Actual owned socket/TLS retirement and required caller/native/terminal/timing proof remain separately reviewed obligations. Cross-control linkage is not proof that every fault variant traversed each caller."
+    }
+  ],
+  "additional_open": [
+    "Malformed and lost OAuth response plus cleanup failure distinct from C-R10 complete HTTP500 JSON",
+    "Identity mapping and separate connector stop are not linked real identity HTTPS proof",
+    "Complete invalid_grant/cleanup uncertainty is low-level with fake terminal; full owner/token/native terminal remains open",
+    "Actual thread ownership and retirement under T08; fake owner IDs are not threads"
+  ],
+  "goal_complete": false,
+  "new_execution_authority": false
+}

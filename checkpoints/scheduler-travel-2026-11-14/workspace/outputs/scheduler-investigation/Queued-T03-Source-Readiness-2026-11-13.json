@@ -1,0 +1,71 @@
+{
+  "sourcesChanged": false,
+  "atUtc": "2026-11-13T22:29:47.5422677Z",
+  "currentCorrectionUnchanged": true,
+  "sourcePins": [
+    {
+      "path": "fixture\\np_suite.py",
+      "sha256": "DAB88CB352189411EED6A2181417CB813D592406598D89192FF307E9081205A1"
+    },
+    {
+      "path": "fixture\\np_provider_peer.py",
+      "sha256": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF"
+    },
+    {
+      "path": "fixture\\np_provider_routes.py",
+      "sha256": "9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA"
+    },
+    {
+      "path": "fixture\\prepare-np-provider-tls.sh",
+      "sha256": "591855FFCA5543ED15F0DA7F5EE1CC725E868FB278EBD112398A91BC3DC5E205"
+    },
+    {
+      "path": "api\\app\\services\\covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+    },
+    {
+      "path": "api\\app\\services\\covering_request_budget.py",
+      "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975"
+    }
+  ],
+  "endpoint": "unbound",
+  "requirements": [
+    "T03-VALID",
+    "T03-WRONG-CA",
+    "T03-WRONG-NAME",
+    "T03-HANDSHAKE-STALL",
+    "T03-TCP-REFUSAL"
+  ],
+  "additionalAssignment": false,
+  "executionAuthority": "NONE",
+  "activeMattAssignment": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+  "fullRequirementsClosed": 0,
+  "executed": false,
+  "observations": [
+    {
+      "limit": "Prepared source only; no native refusal or handshake proven.",
+      "finding": "Wrong CA and wrong name are distinct existing stimuli",
+      "evidence": "np_provider_routes swaps only client ca_path for wrong CA; wrong name preserves vendor hostname/SNI and selects a distinct server leaf. JoinedTLS explicitly uses CERT_REQUIRED and check_hostname=True."
+    },
+    {
+      "next": "Review an exact finite negative-peer observation design before authoring those case bodies. Do not globally tolerate worker errors or weaken the current selected Microsoft no-error requirement.",
+      "limit": "Source inference; exact native TLS error classes and timing not established.",
+      "finding": "Positive-case retirement helper cannot be copied blindly into negative TLS cases",
+      "evidence": "np_provider_peer._handshake catches only SSLWantRead/Write. The worker records any remaining BaseException into _error; retire_owned returns that error separately. A scripted handshake refusal or stall can therefore produce worker_error_kind, requiring a case-specific planned-stimulus versus unexpected-worker-fault contract."
+    },
+    {
+      "next": "A future stall card must explicitly disclose sufficient peer lifetime and elapsed-time evidence. Keep production clocks intact; a peer that closes at 120 seconds cannot establish the 210-second work guard.",
+      "limit": "No proposed new launch cap is authorized by this note.",
+      "finding": "Handshake stall needs its own clock/scope review",
+      "evidence": "CaseDecl calls for actual 210/240 production clocks; covering_request_budget defines those clocks; peer execute_script supports at most 240 seconds. Current selected native cards disclose a 120-second peer."
+    },
+    {
+      "next": "Use typed connect-failure and no-useful-data evidence, without assuming port9 is closed merely from its number.",
+      "limit": "No port probe or socket operation performed.",
+      "finding": "TCP refusal requires observed closed-port conditions",
+      "evidence": "tcp_refusal_route uses numeric loopback port9 with a comment requiring actual closed-port selection at launch; bind_listen refuses to bind that peer."
+    }
+  ],
+  "sourceRoot": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+  "kind": "Queued T03 source readiness findings; no implementation or execution"
+}

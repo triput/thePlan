@@ -1,0 +1,37 @@
+HANDBACK — Jim port-zero fake static review (Justin under Jim)
+Date: 2026-11-11
+Packet: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-port-zero-fake-v1\
+Finish line: Scheduler-Private-Beta-Finish-Line-Working.md SHA256 80FE8308B4D06B0D8F2D50067DBCDFB1336077E917510929946B33075A2D75EC MATCH
+Sequencing: after framing-ack prep v2; do not merge into framing; prep ≠ PASS
+
+Disposition: QUALIFIED ACCEPT
+DropFolder: F:\DropFolder\pending\post-native-port-zero-fake-static-review-jim-v1-2026-11-11\
+Codex mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-port-zero-fake-static-review-jim-v1\
+
+Pin MATCH summary:
+- Commands.ps1.txt A9883845… MATCH
+- VERIFICATION-ADMISSION.json AE502E6B… MATCH
+- Wrapper Invoke-Verification.ps1 DEBB3731… MATCH
+- Proposed-Application.diff C69EB5EF… MATCH (= approved proposal fix)
+- Policy orig A265F81F… / cand 5F48FD7E… MATCH
+- Packet pins 475/475 MATCH; runtime pins 19/19 MATCH
+- Orig/cand 234/234; 233 identical; 1 approved expression file only
+- Lineage: port original ≡ route-fake candidate 234/234
+- Finish-line doc MATCH
+- No preexisting FAKE-PORT-RESULT / FAKE-PORT-LAUNCH-RECEIPT
+
+Blockers (concrete correctness/integration): none requiring REVISE of this held packet.
+
+Optional expansion (not required for accept): broader adversarial spellings; native TLS repetition; dial/TLS destination claims; framing-tree merge after separately authorized verify.
+
+Qualifications (travel with any later verify card):
+- 9 controls ≠ full transport/dial/TLS closure
+- Byte/class-extracted origin proof ≠ verify-full TLS/socket/timing/dial
+- Host Python ≠ native; 19 runtime pins are partial provenance
+- Outer wait unbounded separately; 45s is nominal collect/retire only
+- Do not merge into framing; endpoint unbound; no execution/activation authority
+
+Preserved in packet design (static): explicit-0 refusal on candidate; UNKNOWN on unconfirmed capture; no-retry/no-overwrite; bounded retirement/cleanup wording; noncircular outer/launcher pins.
+
+Authority: executed=false; execution_authorized=false; launch_authorized=false; no helper/import/compile/test/launch performed; no Slack tip.
+See Jim-Port-Zero-Fake-Static-Review.md for full attribution and reviewed hashes.

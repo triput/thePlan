@@ -1,0 +1,44 @@
+{
+  "packet": "fake-only-t07-retirement-verification",
+  "class": "FAKE-T07-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_t07_fake.py do not embed their own final raw-byte hashes",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "EDF2684BAC273282E673FF4D71695B4BBA0B17DA2D317F0FC70B5965085FADE2",
+      "invoke_t07_fake.py": "23C68C53ACB35A648D6676025AAF5412E18F3BC42CD91C539FA5A755872E9116",
+      "check_t07_retirement_fake.py": "C8C1915AF1A2A8314BFE2A80B61B1FDA6708F9001C59CB1EC25C9410887BF19F",
+      "EXPECTED-OUTPUT.json": "E03E597528AEB9251AF39B975EFFCD1EF85C5F777F6D55F37E46BBC98A72A10A",
+      "INPUT-MANIFEST.json": "27E8AD93F6D57994087038C735849F69C34FDC1D098D2905029605CD15E09623",
+      "PACKET-SHA256SUMS.txt": "8161A85578FF2A6E504BFE79E929561E2F1AAF4343C24AE02AD404FF94B8A59A"
+    }
+  },
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "design_tip_sha256": "94362F46EE6912A9A6F2A7CB64A673E51A2037D145A1FB70721F373FE2B7AA91",
+  "scope_sha256": "B1481463CA6993C6C4C884485237E5DD2C308B7578A796DE5DE89565BDD46C83",
+  "supersedes_v6_tip_sha256": "671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599",
+  "supersedes_v5_tip_sha256": "0EF2EFD5AC028D5CCBDADB974C6632F090DF526788467079483D79799B834685",
+  "supersedes_v1_tip_sha256": "24C39F303DC279B812FE4BC1FF4A27B05B8633B81D2CE72ECCBA67F275BBB855",
+  "launch_ready": false,
+  "parent_packet": "post-native-t07-source-fake-prep-jim-v7-2026-11-11",
+  "dex_blockers_closed": [
+    "B1_prior_completed_serialization",
+    "B2_c_r01_normal_close_oracle",
+    "C-R12_instrumented_socket_no_mutation",
+    "C-PROV-BOUNDARY-ACCEPT_validator_exercised",
+    "C-R10-R11_truthful_stimulus_no_assumed_later_admission"
+  ],
+  "importer_owning_try_except": true,
+  "r07_exact_primary_no_unknown_alt": true,
+  "http_unknown_object_identity_asserted": true,
+  "sources_changed": false,
+  "check_logic_changed": true,
+  "open_obligations": [
+    "distinct_malformed_response_transport_proof",
+    "distinct_lost_response_transport_proof"
+  ]
+}

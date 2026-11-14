@@ -1,0 +1,98 @@
+{
+  "atUtc": "2026-11-14T01:46:54.8097180Z",
+  "status": "SOURCE_ONLY_NOT_RUNTIME_PROOF",
+  "sourceManifest": "F682D755584679CC31E25A3C1D99A2C64708CC5C83C0651C7C0072AEC1CB2BB4",
+  "pins": [
+    {
+      "relativePath": "fixture/np_provider_peer.py",
+      "sha256": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF"
+    },
+    {
+      "relativePath": "api/app/services/covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+    },
+    {
+      "relativePath": "api/app/services/covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368"
+    },
+    {
+      "relativePath": "api/app/services/covering_request_budget.py",
+      "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975"
+    },
+    {
+      "relativePath": "api/app/api/middleware/covering_ingress.py",
+      "sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D"
+    },
+    {
+      "relativePath": "api/app/services/covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "relativePath": "api/app/services/covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288"
+    },
+    {
+      "relativePath": "api/app/services/covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+    }
+  ],
+  "establishedSourceFacts": [
+    {
+      "line": 358,
+      "fact": "partial_send_peer slices the peer response wire and records prefix_only_not_client_partial_proof; this cannot establish a client request partial-send",
+      "file": "fixture/np_provider_peer.py"
+    },
+    {
+      "line": 91,
+      "fact": "JoinedTLS.send sets sent=True before sock.send; the flag is conservative possible-send admission, not proof of accepted prefix bytes",
+      "file": "api/app/services/covering_joined_https.py"
+    },
+    {
+      "line": 372,
+      "fact": "OAuth unexpected exception after transport.sent remaps to root outcome UNKNOWN; response/transport close failures independently produce a new UNKNOWN with retirement provenance",
+      "file": "api/app/services/covering_http_transport.py"
+    },
+    {
+      "line": 358,
+      "fact": "stall_header waits without response; stall_body sends headers then waits; both end in PeerLifecycleError on stop/deadline rather than successful positive-peer retirement",
+      "file": "fixture/np_provider_peer.py"
+    },
+    {
+      "line": 19,
+      "fact": "Work cutoff210,request240,shared cleanup allowance30; work_remaining checks cancellation/stopped/cleanup state while cleanup_remaining uses its admitted reserve",
+      "file": "api/app/services/covering_request_budget.py"
+    },
+    {
+      "line": 62,
+      "fact": "After completed body, monitor observes actual http.disconnect and sets shared threading Event; guarded_send suppresses outbound ASGI messages once disconnected",
+      "file": "api/app/api/middleware/covering_ingress.py"
+    },
+    {
+      "line": 42,
+      "fact": "Joined worker uses shielded anyio run_sync with abandon_on_cancel=False; UNKNOWN/BudgetStopped map to internal503 unknown response, which ingress may suppress after actual disconnect",
+      "file": "api/app/services/covering_http_dispatch.py"
+    },
+    {
+      "line": 118,
+      "fact": "After role begin, _session_scope catches escaping faults, stops admission, quarantines binding and raises UNKNOWN; do not infer a known role outcome from a transport fault alone",
+      "file": "api/app/services/covering_role_connector.py"
+    },
+    {
+      "line": 75,
+      "fact": "_classified_role defers only named ApiError/eligibility policy refusal until known retirement; native fault/deadline classification requires tracing actual owning role/caller",
+      "file": "api/app/services/covering_domain_dispatch.py"
+    }
+  ],
+  "requiredDesignQualifications": [
+    "Compare actual peer/request start instants and work_remaining at phase entry; a120s peer cannot be assumed to expose a210s client guard",
+    "A supervisor/peer timeout is not production deadline proof",
+    "After actual disconnect, distinguish internal sanitized classification from client-delivered response; zero outbound messages may be the correct wire observation",
+    "Keep client attempted-send, accepted-byte-prefix and peer response truncation separate",
+    "Positive no-worker-error helper must not be globally relaxed for intentional negative peers",
+    "OAuth/identity/event and before/after ownership outcomes must each follow their real caller/role source"
+  ],
+  "activeMattTask": "256AB4599028B43BA5217ECA865B460588671362AD6CAB7FDA4C3ECC42D468EE",
+  "noSourceChanges": true,
+  "noExecution": true,
+  "endpoint": "unbound"
+}

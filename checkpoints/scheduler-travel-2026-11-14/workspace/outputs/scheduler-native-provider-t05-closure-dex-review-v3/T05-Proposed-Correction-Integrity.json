@@ -1,0 +1,14 @@
+{
+  "at_utc": "2026-11-13T04:05:58.1286556Z",
+  "kind": "prospective_exact_source_diff_not_implemented",
+  "original_checker_sha256": "099BC9A4B3CFF811A573B95BFA0F2FBD194E92AA1A70B482AE5D75757F7B825F",
+  "prospective_checker_sha256": "FDB51077467A14CDEFC6A46717F43E6EAF0CD64EB57E19DDDB90531409B21AF6",
+  "diff_sha256": "072616EB0460D54CA7CAB493A818F0719374F479D6CBCCF1E8B3B22700416EA4",
+  "scope_sha256": "AD6996067B73B7C97569BD16BFF806DCB46B7DDCEB347F24058B8940DD4EFD0A",
+  "existing_approved_lane_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "new_source_gate_required": false,
+  "basis": "Named checker role13 plus associated metadata; approved routine same-contract fresh-copy corrections. No invocation permission.",
+  "peer_review_pending": true,
+  "source_modified": false,
+  "executed": false
+}

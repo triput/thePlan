@@ -1,0 +1,10 @@
+{
+  "kind": "Independent approved diff text expectation; no executable candidate written or imported",
+  "old_source_sha256": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+  "approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+  "exact_lf_candidate_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+  "hunks": 3,
+  "source_unchanged": true,
+  "executed": false,
+  "note": "Calculated using literal text hunks only; not syntax/runtime proof. Jim owns implementation."
+}

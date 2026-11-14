@@ -1,0 +1,19 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "launch_check_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "check_native_provider_sha256": "BF5E28A98C2533C967FF1DD51EDE63D9F50885627B656937D9CE7DFAE24D7F64",
+    "expected_fake_structural_sha256": "080268BCCCCB63EB47A96A59F5EB4454575D98AA73A1B796FEAF640F1F0B260A"
+  },
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_note": "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No verification_admission_sha256 back-reference (Dex F2).",
+  "t05_note": "T05-CLOSURE-FOCUSED authored in check_native_provider; this v3 preparation admission has launch_authorized=false (any later true value requires a separately reviewed staging copy); launch batch not expanded.",
+  "note": "T05 fake v3 preparation (Matt): one-line B3 checker fix accepting existing _o(\"name\") oracle constructor (diff 09DFA0B7..., checker BF5E28A9...); launcher exact D22C37E3...BD07 unchanged. Preparation only; no execution authority; no native authority."
+}

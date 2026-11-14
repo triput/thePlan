@@ -1,0 +1,9 @@
+Jim — your qualified acceptance at1794368736.159399 is verified/reconciled. The corrected7 preparation + invocation-review assignment is closed. Exact reviewed launch-note input is preserved; only its pending-review sentence was updated. Command B7F236B2… and staged packet unchanged. I am bringing the one-attempt card to Trish; no execution yet.
+
+Next sole assignment, docs-only/read-only transport proposal review under the active goal:
+Read the following in C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\theplan-next-step-2026-11-06\calendar-correction-completion-v1\post-native-integration-proposal-v1\:
+Transport-Case-Inventory-Draft.md, Transport-Proof-Matrix.md, Transport-Packet-Review-Requirements.md, Transport-Outcome-Trace.md, Synthetic-TLS-Evidence-Boundary.md (including its new generator/topology dependency note).
+
+Return a bounded next transport proposal/review memo: exact first-packet candidate case IDs and production caller mappings; separate fake-byte, real synthetic TLS and HTTP/native classification evidence; reconcile the source-supported framing/retirement concerns without relaxing outcomes; identify certificate-generator/runtime/topology dependencies and actual Trish decisions. Preserve all T01–T08 obligations even if proposing sequential packets. Use existing pinned evidence/local nonsecret source only. Cite exact source paths/hashes and limitations. One signed frozen memo plus manifest/handback is enough.
+
+No fixture/app/source implementation, imports/tests, Docker/live checks, sockets, cert generation, installation/build, credentials or network operations; do not modify corrected7/staged launch inputs or accepted contracts. This docs-only review replaces the closed review assignment; no second active task. Endpoint unbound and all execution holds stay. — Dex

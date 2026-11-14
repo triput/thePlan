@@ -1,0 +1,19 @@
+# BODY observer-corrected native v2 staging — held
+
+Accepted source: 310-input 8BFB54075B6A8BAEF10FC591F7CD6B4B2D0381B11E9056C375CB8F2AF09B5853, review 78C7AEA6BB4617860924B3124D34D76F2D3E4968FD036B8DF696913BC070FFBB. Application and fixture executable bytes are unchanged. Staging changes only runner readiness, host readiness/notes/own-root paths, Docker own-root paths, and dependent manifests. Human authority remains false. Only Reviewed-BODY-Observer-Native-V2-Command.ps1.txt is prospective; it omits the receipt-path override. Copied earlier commands/reviews/flags are historical.
+
+Prerequisites remain pending: corrected fake v2 PASS at 13 controls / 66 predicates / ten mutants, known retirement and unchanged inputs; independent native staging review; exact Trish one-shot approval. No corrected fake or native run has occurred. No ready-to-launch claim.
+
+Exactly NP-T04-BODY-STALL: production ingress, release plan, provider counter, CoveringHTTP and default JoinedTLS against synthetic HTTPS and a disposable DB. The Microsoft event route is only the shared-deadline stimulus; Microsoft integration expansion remains parked and Google stays first. Two identity exchanges precede valid event headers with positive Content-Length and a withheld body.
+
+Require actual 210-second work deadline and typed CoveringDeadlineExceeded; HTTP 200 with failed first import and static deadline refusal for target two; no later admission or final assessment; acknowledged TOKEN/PARENT rollback; unchanged credentials/coverage; reviewed failure-recorder disposition (persisted or known cleanup refusal); exact transcript/query; restored observers and known joined peer/PKI retirement. No expected UNKNOWN. The test intentionally receives a known application failure.
+
+For this case only, peer allowance is 240 seconds. Production work/request/cleanup clocks remain 210/240/30, attempt validity 600. Same-process monotonic predicate: peer start before budget start; work deadline before peer deadline; stall entry before work deadline; then work deadline <= client exception < response < retirement call < stall exit < peer deadline, intentional retirement exit reason. These are source-authored assertions until a native run. All five T04 obligations remain; one BODY checkpoint does not close the family.
+
+Prospective limits: 900-second suite, 600-second runner, 240-second BODY peer plus one 5-second join. PKI 30-second generation +5-second group retirement +two 5-second reader joins =45 seconds nominal. Each pinned container nonroot/read-only, 1 GiB memory+swap, one CPU,64 PIDs; unchanged isolation/no new privileges. Hard32 Docker-command cap, inherited22 success path. Capture1 MiB combined streams PER command plus separate1 MiB report. Startup, outer waits, file/hash/fsync/receipt work and OS latency excluded; no separate outer timeout. Inherited CLI kill does not wait or prove daemon cancellation.
+
+Private TLS keys stay in container temporary storage; public CAs only enter evidence. Ordinary console hash/count-only; unchanged bounded class/location-only STOP diagnostics. No raw messages, SQL, bodies, credentials or keys. No live provider, real account or product endpoint.
+
+Later launch approval may bundle SUCCESS-ONLY exact-ID cleanup: verify exited-0 runner/remove/absence; verify DB identity/SIGINT/require exit0/recheck identity/remove/absence; retain receipts. Failure-container cleanup separately gated. Stop on failure,mismatch,timeout,unexpected output or UNKNOWN. No retries,repairs,rerun,force,fallback or extra cleanup. No installation/build,deployment or activation. Endpoint unbound; all other holds stay.
+
+Source qualifications retained: token-only identity guard, install-before-try window, structural-only fake restoration checks. No claim of all transport contracts, HTTP framing variants or live calendar readiness.

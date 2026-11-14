@@ -1,0 +1,13 @@
+{
+  "atUtc": "2026-11-13T21:05:43.4923533Z",
+  "userText": "Approved",
+  "possibleReferencedDecision": "A50C04FB8E59AD23653C0F541970AA1C71863646674DDB43AFD041D81C58B5D9",
+  "questionIdNotSupplied": true,
+  "decisionCurrentStatus": "previously withheld/superseded by review90B66DA8 before this reply",
+  "disposition": "Recorded; not applied to held original or to any changed successor",
+  "executionStarted": false,
+  "approvalTransferredToDifferentHashes": false,
+  "currentMattAssignment": "BB93F31E1BA6AF0F1D6BFAC3B57DF41BAA35EB75303F9CC18531857F1EB00DF4",
+  "next": "Review corrected fresh successors and focused fake, then present matching exact-hash decision",
+  "endpoint": "unbound"
+}

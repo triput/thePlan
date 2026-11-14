@@ -1,0 +1,464 @@
+{
+  "at_utc": "2026-11-12T04:21:50.1421125Z",
+  "status": "PASS_INDEPENDENTLY_RECONCILED",
+  "authorization": "call_212b574a64b146599442113facd0b36b/0",
+  "approved_attempts": 1,
+  "executed_attempts": 1,
+  "retries": 0,
+  "repairs": 0,
+  "command_sha256": "9E6AC4B0C103707E786997CEB1C17F98852C6E36CFF0B5A5D6C89F72B69B334F",
+  "admission_sha256": "BE913D81E977F9F6C35D304DE1C9EF0F1DEA75C4812007A0038A530C052E36BB",
+  "result_sha256": "4466CEBD189A0D316C456217ECD9FFCFC8F142D5F7EC58091E32CA6916AF23BC",
+  "receipt_sha256": "56D49E5C157259F3F9EFBC2BDD52C92C8D03DDF68E86F0F26DBAAAB707B55CE0",
+  "result_bytes": 9793,
+  "controls": 19,
+  "exact_ordered_observations": [
+    {
+      "id": "ROUTE-MS-LIST",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        }
+      }
+    },
+    {
+      "id": "ROUTE-MS-EVENT-OVERLAP",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 1,
+          "sends": 1
+        }
+      }
+    },
+    {
+      "id": "ROUTE-MS-DEFAULT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        }
+      }
+    },
+    {
+      "id": "ROUTE-MS-LIST-CONTINUATION-ABS",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        }
+      }
+    },
+    {
+      "id": "ROUTE-MS-LIST-CONTINUATION-ROOT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        }
+      }
+    },
+    {
+      "id": "ROUTE-MS-EVENT-CONTINUATION",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 2,
+          "sends": 2
+        }
+      }
+    },
+    {
+      "id": "ROUTE-IDENTITY-DESCENDANT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      }
+    },
+    {
+      "id": "ROUTE-HTTP-IDENTITY-DESCENDANT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      }
+    },
+    {
+      "id": "ROUTE-EXPLICIT-SECOND-IDENTITY",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "exact": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "unlisted": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          }
+        },
+        "candidate": {
+          "exact": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "unlisted": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "ROUTE-EVENT-DESCENDANT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 1,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 1,
+          "sends": 1
+        }
+      }
+    },
+    {
+      "id": "ROUTE-EQUAL-PATH-CONFLICT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      }
+    },
+    {
+      "id": "ROUTE-GOOGLE-LIST",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        }
+      }
+    },
+    {
+      "id": "ROUTE-GOOGLE-EVENT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 2,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 2,
+          "sends": 2
+        }
+      }
+    },
+    {
+      "id": "ROUTE-OAUTH-EXACT",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "google": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          },
+          "ms": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        },
+        "candidate": {
+          "google": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          },
+          "ms": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "ROUTE-D2-PRESERVATION",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "traversal": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "encoded_slash": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "unicode": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          }
+        },
+        "candidate": {
+          "traversal": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "encoded_slash": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "unicode": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "ROUTE-REQUEST-SHARING",
+      "outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 1,
+          "event": 0,
+          "sends": 1,
+          "first": "OK",
+          "stopped": true,
+          "items": 1,
+          "counted_bytes": true,
+          "deadline_used": true
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 1,
+          "event": 0,
+          "sends": 1,
+          "first": "OK",
+          "stopped": true,
+          "items": 1,
+          "counted_bytes": true,
+          "deadline_used": true
+        }
+      }
+    },
+    {
+      "id": "ROUTE-SOURCE-INVENTORY",
+      "outcome": "PASS",
+      "observation": {
+        "changed_files": [
+          "app/services/covering_http_transport.py",
+          "app/services/covering_provider_context.py"
+        ],
+        "bad_pin_rejected": true,
+        "source_count": 468
+      }
+    },
+    {
+      "id": "ROUTE-MUTATION-CLIENT",
+      "outcome": "PASS",
+      "observation": {
+        "outcome": "REFUSE",
+        "identity": 0,
+        "event": 0,
+        "sends": 0
+      }
+    },
+    {
+      "id": "ROUTE-MUTATION-HTTP",
+      "outcome": "PASS",
+      "observation": {
+        "outcome": "OK",
+        "identity": 1,
+        "event": 0,
+        "sends": 1
+      }
+    }
+  ],
+  "post_packet_pins": 475,
+  "post_partial_runtime_pins": 19,
+  "unchanged_accepted_original_files": 234,
+  "new_packet_files": [
+    "verify/FAKE-ROUTE-LAUNCH-RECEIPT.json",
+    "verify/FAKE-ROUTE-RESULT.json"
+  ],
+  "child_pid": 117072,
+  "child_elapsed_seconds": 0.991,
+  "child_termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "readers": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "faults": [],
+  "native_resources_created": 0,
+  "additional_cleanup": 0,
+  "authority_consumed": true,
+  "workspace_lane_approved": false,
+  "scope": "Host Python3.11 actual extracted classifiers/owning pagination with memory-only HTTP responses. No native TLS/provider/DB or complete framing/final integration claim.",
+  "goal_complete": false,
+  "endpoint": "unbound"
+}

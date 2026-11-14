@@ -1,0 +1,324 @@
+"""HELD T05 source collection; authoring only, never invoked during preparation.
+
+Adapted from native-runtime-runner-only-v3/verify_runtime.py. One run, seven
+Docker commands, success-only exact-ID cleanup. CLI termination does not prove
+Docker daemon cancellation. No repair, retry, fallback or failure cleanup.
+"""
+import argparse
+import base64
+import hashlib
+import json
+import os
+from pathlib import Path
+import queue
+import re
+import subprocess
+import sys
+import threading
+from time import monotonic
+
+ROOT = Path(__file__).resolve().parent
+PACKET = 'scheduler-t05-native-provenance-dex-v2'
+DOCKER = Path(r'C:\Program Files\Docker\Docker\resources\bin\docker.exe')
+DOCKER_SHA = '8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70'
+PYTHON_SHA = '5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC'
+ENDPOINT = 'npipe:////./pipe/dockerDesktopLinuxEngine'
+IMAGE = 'sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab'
+TARGETS = (
+    '/usr/local/lib/python3.12/http/client.py',
+    '/usr/local/lib/python3.12/ssl.py',
+    '/usr/local/lib/python3.12/email/message.py',
+)
+NAMES = ('http-client.py.source', 'ssl.py.source', 'email-message.py.source')
+CAPS = (786432, 65536)
+PER_FILE = 131072
+TOTAL_RAW = 393216
+RESULT_CAP = 1048576
+COMMAND_MAX = 7
+SUITE_SECONDS = 300
+KILL_WAIT = 5
+READER_JOIN = 5
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest().upper()
+
+
+def main(manifest_pin):
+    if not (sys.flags.isolated and sys.flags.no_site and sys.dont_write_bytecode):
+        raise RuntimeError('require -I -S -B')
+    if sha(Path(sys.executable)) != PYTHON_SHA or sha(DOCKER) != DOCKER_SHA:
+        raise RuntimeError('host executable mismatch')
+    manifest = ROOT / 'SHA256SUMS.txt'
+    if sha(manifest) != manifest_pin.upper():
+        raise RuntimeError('manifest mismatch')
+    seen = set()
+    for line in manifest.read_text(encoding='utf-8').splitlines():
+        pin, relative = line.split('  ', 1)
+        path = (ROOT / relative).resolve()
+        if (not path.is_relative_to(ROOT) or path in seen
+                or not re.fullmatch('[A-F0-9]{64}', pin) or sha(path) != pin):
+            raise RuntimeError('input pin mismatch')
+        seen.add(path)
+    required = {ROOT / 'verify_native_provenance.py', ROOT / 'collect-parser-sources.sh',
+                ROOT / 'docker-config' / 'config.json', ROOT / 'Runtime-Pins.json'}
+    if seen != required:
+        raise RuntimeError('exact packet inventory mismatch')
+    runtime = json.loads((ROOT / 'Runtime-Pins.json').read_text(encoding='utf-8'))
+    runtime_seen = set()
+    for row in runtime['files']:
+        path = Path(row['absolute_path']).resolve()
+        if path in runtime_seen or sha(path) != row['sha256']:
+            raise RuntimeError('runtime pin mismatch')
+        runtime_seen.add(path)
+    if not runtime_seen or Path(sys.executable).resolve() not in runtime_seen:
+        raise RuntimeError('runtime inventory incomplete')
+    if any(key.upper().startswith('DOCKER_') for key in os.environ):
+        raise RuntimeError('ambient Docker configuration refused')
+
+    evidence = ROOT.parent / (PACKET + '.evidence')
+    evidence.mkdir(exist_ok=False)
+    end = monotonic() + SUITE_SECONDS
+    count = 0
+    known_id = None
+    with (evidence / 'receipt.jsonl').open('x', encoding='utf-8') as receipt:
+        def record(event, data):
+            receipt.write(json.dumps({'event': event, 'data': data}, sort_keys=True) + '\n')
+            receipt.flush()
+            os.fsync(receipt.fileno())
+
+        def command(args, seconds=30):
+            nonlocal count
+            count += 1
+            if count > COMMAND_MAX or monotonic() >= end:
+                raise TimeoutError('command admission exhausted')
+            deadline = min(end, monotonic() + seconds)
+            argv = [str(DOCKER), '--config', str(ROOT / 'docker-config'),
+                    '--host', ENDPOINT, *args]
+            record('command', {'number': count, 'argv': argv,
+                               'wait_seconds': seconds})
+            buffers = [bytearray(), bytearray()]
+            chunks = queue.Queue(maxsize=32)
+            stop = threading.Event()
+            workers = []
+            proc = None
+            fault = None
+            retirement_faults = []
+            done = set()
+            reader_errors = [None, None]
+            started = monotonic()
+            names = [f'{count:02d}.stdout.bin', f'{count:02d}.stderr.bin']
+            with (evidence / names[0]).open('xb') as out, (evidence / names[1]).open('xb') as err:
+                files = [out, err]
+
+                def pump(stream, tag):
+                    try:
+                        while not stop.is_set():
+                            data = stream.read1(4096)
+                            while not stop.is_set():
+                                try:
+                                    chunks.put((tag, data, None), timeout=.05)
+                                    break
+                                except queue.Full:
+                                    pass
+                            if not data:
+                                break
+                    except BaseException as error:
+                        reader_errors[tag] = type(error).__name__
+                        while not stop.is_set():
+                            try:
+                                chunks.put((tag, b'', type(error).__name__), timeout=.05)
+                                break
+                            except queue.Full:
+                                pass
+                    finally:
+                        try:
+                            stream.close()
+                        except BaseException as error:
+                            reader_errors[tag] = type(error).__name__
+
+                try:
+                    proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        creationflags=subprocess.CREATE_NO_WINDOW)
+                    workers = [threading.Thread(target=pump, args=(stream, tag), daemon=True)
+                               for stream, tag in ((proc.stdout, 0), (proc.stderr, 1))]
+                    for worker in workers:
+                        worker.start()
+                    while proc.poll() is None or len(done) != 2:
+                        if monotonic() >= deadline:
+                            raise TimeoutError('Docker command/reader outcome UNKNOWN')
+                        try:
+                            tag, data, reader_error = chunks.get(timeout=.05)
+                        except queue.Empty:
+                            continue
+                        if reader_error:
+                            raise RuntimeError('capture reader failure:' + reader_error)
+                        if not data:
+                            done.add(tag)
+                            continue
+                        if len(buffers[tag]) + len(data) > CAPS[tag]:
+                            raise RuntimeError('capture overflow STOP; incomplete evidence')
+                        buffers[tag].extend(data)
+                        files[tag].write(data)
+                        files[tag].flush()
+                except BaseException as error:
+                    fault = {'kind': type(error).__name__, 'message': str(error)}
+                finally:
+                    stop.set()
+                    if proc is not None and proc.poll() is None:
+                        try:
+                            proc.kill()  # Owned CLI only; no container signal or cleanup.
+                            proc.wait(timeout=KILL_WAIT)
+                        except BaseException as error:
+                            retirement_faults.append(type(error).__name__)
+                    for worker in workers:
+                        try:
+                            worker.join(READER_JOIN)
+                        except BaseException as error:
+                            retirement_faults.append('reader_join:' + type(error).__name__)
+                    if any(worker.is_alive() for worker in workers):
+                        retirement_faults.append('reader_not_joined')
+                    if any(reader_errors):
+                        retirement_faults.append('reader_error_or_close_error')
+                    for file in files:
+                        file.flush()
+                        os.fsync(file.fileno())
+                    complete = fault is None and not retirement_faults and len(done) == 2
+                    record('output', {'number': count, 'elapsed_seconds': monotonic() - started,
+                        'exit_code': None if proc is None else proc.poll(), 'fault': fault,
+                        'retirement_faults': retirement_faults, 'complete': complete,
+                        'reader_eof_tags': sorted(done),
+                        'reader_errors': reader_errors,
+                        'readers_joined': len(workers) == 2 and all(not w.is_alive() for w in workers),
+                        'cli_exit_confirmed': proc is not None and proc.poll() is not None,
+                        'streams': [{'file': name, 'bytes': len(data),
+                                     'sha256': hashlib.sha256(data).hexdigest().upper()}
+                                    for name, data in zip(names, buffers)]})
+            if not complete or proc is None or proc.returncode != 0 or buffers[1]:
+                raise RuntimeError('command STOP/UNKNOWN; no continuation')
+            return bytes(buffers[0])
+
+        def inspect(identifier, expected_status):
+            fmt = ('{"id":{{json .Id}},"image":{{json .Image}},"state":{{json .State}},'
+                   '"host":{{json .HostConfig}},"mounts":{{json .Mounts}},'
+                   '"user":{{json .Config.User}},'
+                   '"label":{{json (index .Config.Labels "dex.native-validation")}},'
+                   '"entrypoint":{{json .Config.Entrypoint}},"cmd":{{json .Config.Cmd}}}')
+            obj = json.loads(command(['container', 'inspect', '--format', fmt, identifier]))
+            h = obj['host']
+            if (obj['id'] != identifier or obj['image'] != IMAGE
+                    or obj['user'] != '65534:65534' or obj['label'] != PACKET
+                    or obj['entrypoint'] != ['/bin/sh']
+                    or obj['cmd'] != ['/packet/collect-parser-sources.sh']):
+                raise RuntimeError('exact identity mismatch')
+            required_host = {'NetworkMode': 'none', 'Privileged': False,
+                'ReadonlyRootfs': True, 'PublishAllPorts': False, 'Memory': 268435456,
+                'MemorySwap': 268435456, 'NanoCpus': 1000000000, 'PidsLimit': 32,
+                'CapDrop': ['ALL'], 'SecurityOpt': ['no-new-privileges']}
+            if (any(h.get(k) != v for k, v in required_host.items())
+                    or h.get('PortBindings') or h.get('CapAdd') or h.get('Devices')
+                    or h.get('DeviceRequests') or h.get('Tmpfs')
+                    or h.get('AutoRemove')
+                    or h['RestartPolicy']['Name'] != 'no'
+                    or h['LogConfig']['Type'] != 'none'):
+                raise RuntimeError('isolation mismatch')
+            if h.get('Binds') != [str(ROOT) + ':/packet:ro']:
+                raise RuntimeError('bind declaration mismatch')
+            mounts = obj['mounts']
+            if (len(mounts) != 1 or mounts[0]['Type'] != 'bind'
+                    or mounts[0]['Destination'] != '/packet' or mounts[0]['RW']):
+                raise RuntimeError('mount projection mismatch')
+            state = obj['state']
+            if state['Status'] != expected_status or state['Running'] or state['OOMKilled']:
+                raise RuntimeError('container state mismatch')
+            if expected_status == 'exited' and state['ExitCode'] != 0:
+                raise RuntimeError('collector exit mismatch')
+            return state
+
+        try:
+            record('attempt', {'packet': PACKET, 'manifest': manifest_pin,
+                'scope': 'three exact native source files only', 'automatic_failure_cleanup': False})
+            fmt = ('{"id":{{json .Id}},"os":{{json .Os}},"arch":{{json .Architecture}},'
+                   '"volumes":{{json (index .Config "Volumes")}}}')
+            meta = json.loads(command(['image', 'inspect', '--format', fmt, IMAGE]))
+            if meta != {'id': IMAGE, 'os': 'linux', 'arch': 'amd64', 'volumes': None}:
+                raise RuntimeError('image pin/metadata mismatch')
+            args = ['create', '--pull=never', '--network=none', '--read-only', '--cap-drop=ALL',
+                '--security-opt=no-new-privileges', '--restart=no', '--log-driver=none',
+                '--no-healthcheck', '--memory=256m', '--memory-swap=256m', '--cpus=1',
+                '--pids-limit=32', '--user=65534:65534', '--label=dex.native-validation=' + PACKET,
+                '--volume', str(ROOT) + ':/packet:ro', '--entrypoint=/bin/sh', IMAGE,
+                '/packet/collect-parser-sources.sh']
+            identifier = command(args).decode('ascii').strip()
+            if not re.fullmatch('[a-f0-9]{64}', identifier):
+                raise RuntimeError('created container ID UNKNOWN')
+            known_id = identifier
+            record('created', {'id': identifier})
+            inspect(identifier, 'created')
+            raw = command(['start', '--attach', identifier], seconds=60)
+            envelope = json.loads(raw)
+            if set(envelope) != {'kind', 'files'} or envelope['kind'] != 'T05-NATIVE-SOURCE-BYTES-V1':
+                raise RuntimeError('source envelope kind/schema mismatch')
+            rows = envelope['files']
+            if not isinstance(rows, list) or [row.get('path') for row in rows] != list(TARGETS):
+                raise RuntimeError('source path inventory mismatch')
+            decoded = []
+            total = 0
+            for row, name in zip(rows, NAMES):
+                if set(row) != {'path', 'bytes', 'sha256', 'base64'}:
+                    raise RuntimeError('source row schema mismatch')
+                data = base64.b64decode(row['base64'], validate=True)
+                total += len(data)
+                if (type(row['bytes']) is not int or not 0 < len(data) <= PER_FILE
+                        or len(data) != row['bytes'] or total > TOTAL_RAW
+                        or hashlib.sha256(data).hexdigest().upper() != row['sha256']):
+                    raise RuntimeError('source bytes/hash/limit mismatch')
+                decoded.append((name, data, row))
+            inspect(identifier, 'exited')
+            for name, data, row in decoded:
+                with (evidence / name).open('xb') as output:
+                    output.write(data)
+                    output.flush()
+                    os.fsync(output.fileno())
+                saved_hash = sha(evidence / name)
+                if saved_hash != row['sha256'] or (evidence / name).stat().st_size != row['bytes']:
+                    raise RuntimeError('saved source byte/hash mismatch')
+                record('source_saved', {'container_path': row['path'], 'file': name,
+                    'bytes': len(data), 'sha256': saved_hash})
+            for row in runtime['files']:
+                if sha(Path(row['absolute_path'])) != row['sha256']:
+                    raise RuntimeError('post-collection runtime drift')
+            for line in manifest.read_text(encoding='utf-8').splitlines():
+                pin, relative = line.split('  ', 1)
+                if sha(ROOT / relative) != pin:
+                    raise RuntimeError('post-collection packet drift')
+            if command(['container', 'rm', identifier]).decode('ascii').strip() != identifier:
+                raise RuntimeError('exact removal response mismatch')
+            if command(['ps', '-a', '--no-trunc', '--filter', 'id=' + identifier,
+                        '--format', '{{.ID}}']).strip():
+                raise RuntimeError('absence UNKNOWN')
+            result = {'status': 'PASS', 'kind': 'T05-NATIVE-SOURCE-PROVENANCE',
+                'image': IMAGE, 'container_id': identifier, 'removed_and_absent': True,
+                'commands': count, 'sources': [{k: row[k] for k in ('path', 'bytes', 'sha256')}
+                                             for _, _, row in decoded],
+                'behavior_proven': False}
+            result_bytes = (json.dumps(result, indent=2) + '\n').encode('utf-8')
+            if len(result_bytes) > RESULT_CAP:
+                raise RuntimeError('result overflow')
+            with (evidence / 'RESULT.json').open('xb') as output:
+                output.write(result_bytes)
+                output.flush()
+                os.fsync(output.fileno())
+            record('complete', {'result': result, 'result_sha256': sha(evidence / 'RESULT.json'),
+                                'result_bytes': len(result_bytes)})
+        except BaseException as error:
+            record('stopped', {'kind': type(error).__name__, 'message': str(error),
+                'known_id': known_id, 'automatic_cleanup': False})
+            raise
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--manifest-sha256', required=True)
+    main(parser.parse_args().manifest_sha256)

@@ -1,0 +1,7 @@
+Those four points are now explicit in the working draft: the full hold including real-data proposals; separate resolution rows for user-deleted mappings, failed-delete tombstones and hand-edited survivors; intended named local zone for new timed exports; and recorded progress distinguished from planned placement. The date-only source-zone question stays separate.
+
+I've attributed Google provider feasibility to your documentation review; Microsoft remains unchecked. Please include the exact Google documentation links in the evidence packet so engineering can verify the conditional-write and insert-ID contracts without reconstructing this discussion.
+
+Your review closes the condensed acceptance-shape pass, not full-spec sign-off. Next we need one accessible full document with these amendments consolidated, rather than more overlapping thread summaries. No additional product questionnaire or live operation is needed for that.
+
+Dex

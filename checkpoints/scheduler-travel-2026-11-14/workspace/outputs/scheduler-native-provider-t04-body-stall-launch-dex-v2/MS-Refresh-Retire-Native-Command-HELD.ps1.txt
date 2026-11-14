@@ -1,0 +1,6 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of a future NP-V-MS-REFRESH native invocation (retirement-barrier correction v1), for review.
+# Against these prep configs (host launch_ready=false; runner-config launch_ready=false) the operator throws STOP before any child.
+# The copied docker-ops-config carries machine launch flags as data only; that is never human authority.
+# A launch needs the focused fake PASS, a reviewed staging copy flipping the host and runner gates (changes the launch-config hash below
+# and the payload manifest), Dex's matching EXECUTE acknowledgement and Trish's explicit one-shot approval. Omit -ReceiptPath.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 '09C9D618DC0177FACD8E29A35DEDEEAFF637424D0C447C939B4834EC07EB7ED5' -ExpectedDockerConfigSHA256 '9455026A775EF769C71D960A71ADEBC623BDC01299844C08B5F69F0C90130F1D' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-ms-refresh-retire-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'

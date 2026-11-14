@@ -1,0 +1,19 @@
+{
+  "packet_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1",
+  "operator_evidence_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "operator_default_receipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl",
+  "operator_public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "host_receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "ops_public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "runner_public_ca_bind": [
+    [
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+      "/public-ca"
+    ]
+  ],
+  "active_ops_rebased_strings": 7,
+  "active_host_rebased_strings": 2,
+  "receipt_override": false,
+  "agreement": "Static declared path agreement,no new runtime guard",
+  "evidence_absent": true
+}

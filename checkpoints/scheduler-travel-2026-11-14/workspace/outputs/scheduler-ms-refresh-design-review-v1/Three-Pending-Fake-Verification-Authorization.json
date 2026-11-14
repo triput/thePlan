@@ -1,0 +1,16 @@
+{
+  "authorizedAtReceiptUtc": "2026-11-13T19:04:47.6625116Z",
+  "duplicateOldCardRepliesDoNotReplenish": true,
+  "sequence": [
+    "peer-close",
+    "T05-combined-witness",
+    "MS-refresh-merge"
+  ],
+  "atMostOnePerExactPacket": true,
+  "stopBeforeNextOnAnyFailure": true,
+  "endpoint": "unbound",
+  "userStatement": "Authorize the three pending fake verifications",
+  "nativeAuthority": false,
+  "decisionBriefSha256": "2249C12142D9777333FBECF6BBAD354520267508358A894BC9014AE806D078E2",
+  "allInputsReverified": 61
+}

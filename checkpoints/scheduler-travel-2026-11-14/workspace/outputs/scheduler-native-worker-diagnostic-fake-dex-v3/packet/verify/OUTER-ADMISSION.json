@@ -1,0 +1,19 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-native-worker-diagnostic-fake-prep-matt-v2",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "launch_check_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "check_native_provider_sha256": "C3C4430288AB49E6B04ADF6FAA4F8D71253B854B6A8BACBD46F12141F147AF37",
+    "expected_fake_structural_sha256": "AEC7B0DB1909C1C269840EA44F72336A7EDA1DE13B5EEF567218BBD498B95FA9"
+  },
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_note": "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+  "note": "Dex v3 review staging:one B2 AST membership correction;machine true isnot human permission. All other executable,subject,oracle bytes unchanged;execution HELD."
+}

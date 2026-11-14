@@ -1,0 +1,11 @@
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,7 +1,7 @@
+ {
+   "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-INVALID"
++    "NP-V-MS-REFRESH"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,

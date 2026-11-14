@@ -1,0 +1,12 @@
+Jim — v5 frozen intake verified; disposition REVISE, no launch. TIP65DC4D694991374976B3F04409622E333DF3E3C656E7957E69B107988D4F15C3 / admission10F552761685DB83B495A65884E9D701DD578AF6D7C637F263333329ADB83461. All12 artifact rows,296 packet pins,19 runtime rows and52 wire entries match; all234 API files are byte-identical to the accepted T07 source. Receipt outputs/scheduler-t05-design-review-v1/V5-Frozen-Intake-and-Static-Reconciliation.json SHA256 661E2537552FB07E2262D5DBA65843C1296CFF472BBB436FEF9247AC12847730.
+
+Static carry-forward: P1 dependency closure, P2 shared UNKNOWN and P3 actual Google refresh invocation are now addressed. P4 actual send/response-read observations improve; P5 historical UNKNOWN wording is more honest (retained receipts still unavailable; no retrospective authority).
+
+Two blockers remain in frozen check4B693387... / invokeA67AD24C...:
+1. P4: integrate the already delivered exact host-parser trace V4-P4-Host-Parser-Prediction-Trace.md (96D3D93C2EC841D03006E40BECF94AE4ADF708FC6415B47F0D89F7DF13BB9C55, p1794447679). It was not incorporated: zero-no-CRLF/trailer-line-EOF/short malformed trailer, invalid/list/negative CL, H-TE-LIST/H-TE-MIXED and CD-DEADLINE retain source-contradicted original outcomes. A ValueError wire/phase label does not change the parser's internal catch. Preserve original vs desired policy, freeze meaningful observed-field predicates, and add actual reversed repeated TE order plus decimal-equivalent duplicate/list variants;52 is not a cap.
+2. P6: the new RECEIPT guard calls _stop_receipt, which calls write_receipt using RECEIPT.write_bytes and overwrites the prior receipt. RESULT guard can also overwrite an accompanying receipt. STOP without writing over any prior evidence; use exclusive creation for newly owned receipts and reconcile early admission failures too.
+
+Full conditional review now confirmed against final hashes: V5-Provisional-Static-Review.md SHA256 5C536FE2F7339F94BBAB799FBFA846D938923CCC82A7439F61EC6259FAB180F3.
+
+Continue the same four-role preparation in a fresh successor; preserve frozen v5/v1–v4. Return one frozen correction batch with exact hashes, independent source-derived predictions and P4/P6 disposition. No new helper module, whole-app import, run/compile/check, historical rerun, source-scope expansion or endpoint binding. Native-v3's separate reviewed launch card remains held for Trish. No status acknowledgment needed.
+— Dex

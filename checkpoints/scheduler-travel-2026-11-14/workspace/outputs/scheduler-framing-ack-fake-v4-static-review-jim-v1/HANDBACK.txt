@@ -1,0 +1,36 @@
+HANDBACK — post-native-framing-ack-fake-v4-static-review-jim-v1-2026-11-11
+Justin for Jim. Documents-only independent static review of Dex scheduler-framing-ack-fake-v4.
+NO Slack tip from this seat. Endpoint unbound. Port not merged.
+
+Flags: executed=false; launch_authorized=false; execution_authorized=false; prep_is_not_PASS=true.
+
+Disposition: QUALIFIED ACCEPT
+Blocking findings: 0
+Optional expansions: 6 (native TLS; owning-caller; full runtime closure; outer timeout; port-zero merge; launch card)
+
+Dex assignment: p1794461844 (crossed reconciliation: review fake-v4, not parallel authoring)
+Subject: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-fake-v4\
+Baseline Jim v3 TIP: BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209
+Baseline Jim v3 check: 9F2DFB45D1EF358E16CC94481180F89D7CECB44F8DE4A2F940D3FEE105FB0698
+Jim crossed prep-v4 TIP (NOT subject): E7150DD829640A11C50542E64F1BA921B70A9DD3B0DCE62925F3FBD1796DAE40
+
+Verified intake:
+  Review-and-Commands.md         C4A4F2721791410A4A41F677C59311FEA0E983825739CCB0FBF2444EDF3C6512
+  Static-Preparation-Receipt.json C940552B25F3FB6CEC16FBB47CBD5C00A6D9D8D07336777BC70D1455797EE114
+  Commands.ps1.txt               C2D8D18660B734EB3A6FAC9BDFACC1847C86A007C11BC81ECBEFFD1EE11FC66C
+  VERIFICATION-ADMISSION.json    4BE04F87B1AD858C05DCA789DEF05B602E80DF33274E7D19A9BB4E985B865D85
+
+Focus results:
+  Checker: one-line delete of policy_pending from flat whitelist only; emit metadata retained; check 1A422FB3…
+  Commands: concrete held wrapper invoke present (not hash-only); not executed
+  Pins: 537/537 packet MATCH; 21/21 runtime MATCH; nested verify admission mirror absent
+  Application: 468/468 byte-identical to v3; EXPECTED 73 controls unchanged (08C2367D…)
+  Roles unchanged: admit_outer 26CF8FE8…; invoke 7848217D…; wrapper 0477912D…
+  Data rebuilt: OUTER 7E81E4AD…; PACKET-SHA256SUMS E702BF2A…; root admission 4BE04F87…
+  Noncircular: root/OUTER/sums do not self-hash; OUTER subjects MATCH live
+
+Review: Jim-Framing-Ack-Fake-V4-Static-Review.md
+Review SHA256: 9BFE7A07FF1B764B00D4C3EE35B1D0EBBF102FF7AF72C53BADBF7BFBA1BEB6AC
+
+DropFolder: F:\DropFolder\pending\post-native-framing-ack-fake-v4-static-review-jim-v1-2026-11-11\
+Codex mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-ack-fake-v4-static-review-jim-v1\

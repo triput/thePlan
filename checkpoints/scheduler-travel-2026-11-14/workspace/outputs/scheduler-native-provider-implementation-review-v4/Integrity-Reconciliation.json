@@ -1,0 +1,16 @@
+{
+  "at_utc": "2026-11-12T22:02:38.4577324Z",
+  "workspace_files": 284,
+  "drop_files": 284,
+  "mirror_mismatches": [],
+  "selected_application_files": 234,
+  "application_mismatches": [],
+  "tip_raw_sha256": "FC27FF88427A3EC0705547D2ACBF1A183F230F6B2AAA75A3582993D83C31A896",
+  "tip_declared_preimage": "7AE4E26B84205B28BA7E25158C8C80B17D76A3AB5C8B44B58E45F9CD3667414B",
+  "raw_preimage": "7AE4E26B84205B28BA7E25158C8C80B17D76A3AB5C8B44B58E45F9CD3667414B",
+  "raw_preimage_matches": true,
+  "cr_count": 0,
+  "behavior_accepted": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,380 @@
+{
+  "byte_alias_reference_control_ids": [
+    "BYTE-ALIAS-DOCUMENTATION-ACCEPTED",
+    "BYTE-ALIAS-IMPORT-REFUSED",
+    "BYTE-ALIAS-CALL-REFUSED",
+    "BYTE-ALIAS-INSTALL-REFUSED"
+  ],
+  "case_registry_pin": "BBFEF33312A4E532BCC0FD49BACAA40641C26F955F5862FD3192641621F15F05",
+  "control_ids_in_order": [
+    "ASSEMBLY-PINS",
+    "SUITE-INVENTORY",
+    "PEER-RUNNER-SHAPE",
+    "CANDIDATE-SOURCE-SYNTAX",
+    "T02-OVERRUN-GAP",
+    "T02-FOCUSED-CROSSING",
+    "PORT-DEPENDENCY-PASS",
+    "T08-NESTED-RESET-BEHAVIOR",
+    "T07-INDIVIDUAL-NAMES",
+    "HOST-VS-RUNNER-DOCKER",
+    "REPORT-PRODUCER-CONSUMER-SINK",
+    "HOST-ENTRY-RECEIPT-RELAY",
+    "PKI-LATE-DRAIN-OVERFLOW",
+    "MAPPED-COVERAGE-MEASUREMENT",
+    "VERTICAL-CONTRACT-SHAPE",
+    "ADMISSION-SCHEMA-WRAPPER-FIELDS"
+  ],
+  "controls": {
+    "ADMISSION-SCHEMA-WRAPPER-FIELDS": {
+      "acyclic_outer_verification": true,
+      "checker_read_fixture_extra_pins": true,
+      "control_kind": "shape_source",
+      "dex_launcher_receipt_candidate_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+      "dex_launcher_receipt_patch_sha256": "D8D779767E9CB2046B836EF91C59989837467DCFFDF695EC7AE0E4C5509A2F13",
+      "dex_launcher_retirement_sha256": "30FEEDFF468B3851D3630E73C8BB688D290E4639845A29A377B089DB6534BF27",
+      "dex_r1_review_sha256": "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+      "interpreter_membership": true,
+      "launcher_receipt_stream_admission": true,
+      "launcher_retirement_shape": true,
+      "observed": "PASS",
+      "outer_pinned_via_wrapper_root": true,
+      "packet_relative_path": true,
+      "runtime_absolute_path": true
+    },
+    "ASSEMBLY-PINS": {
+      "assembled_file_count": 234,
+      "assembled_files_byte_verified": 234,
+      "assembly_manifest_sha256": "D4B54E4D51E607D28ADE15A92C41BF19EC39535BE960310759A4C6CD03EFDDAE",
+      "assembly_selection_pin": "857141512AADF6F90F1CA8F92547A777E3D5FE943671495512FA18CEA7CBA296",
+      "control_kind": "shape_source",
+      "observed": "PASS",
+      "policy_override_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "port_dependency_consumed": true
+    },
+    "CANDIDATE-SOURCE-SYNTAX": {
+      "checker_read_fixture_extra_pins": [
+        "bootstrap-postgres-tls.sh",
+        "np_alias_seed.py",
+        "np_integrated_runner.py",
+        "np_provider_routes.py",
+        "prepare-tls.sh"
+      ],
+      "dex_r1_review_sha256": "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+      "identity_steps_intact": true,
+      "observed": "PASS",
+      "parsed_fixture_sources": [
+        "np_alias_seed.py",
+        "np_auth_seed.py",
+        "np_integrated_runner.py",
+        "np_provider_peer.py",
+        "np_provider_routes.py",
+        "np_provider_transcript.py",
+        "np_receipts.py",
+        "np_runner_entry.py",
+        "np_suite.py",
+        "np_supervisor.py"
+      ],
+      "reviewed_np_fixture_count": 10
+    },
+    "HOST-ENTRY-RECEIPT-RELAY": {
+      "control_kind": "fake_behavioral_seam",
+      "host_entry_seam_control_ids": [
+        "HOST-ENTRY-UNBOUND-REFUSED",
+        "HOST-ENTRY-ONE-TIME-BIND",
+        "HOST-ENTRY-DOUBLE-BIND-REFUSED",
+        "HOST-ENTRY-SYNTHETIC-DOCKER-EVENTS"
+      ],
+      "host_sha256": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+      "immutable_docker_transport_unchanged": true,
+      "native_behavioral_proof": false,
+      "observed": "PASS"
+    },
+    "HOST-VS-RUNNER-DOCKER": {
+      "host_supervisor_owns_docker": true,
+      "in_runner_docker_authority": false,
+      "observed": "PASS",
+      "provider_attach_overrides_legacy_gate": true
+    },
+    "MAPPED-COVERAGE-MEASUREMENT": {
+      "control_ids": [
+        "COVERAGE-MAPPED-BEFORE",
+        "COVERAGE-MAPPED-AFTER",
+        "COVERAGE-MAPPED-MIXED",
+        "COVERAGE-MISSING-ROW-REFUSES",
+        "COVERAGE-MISSING-ATTRIBUTE-REFUSES",
+        "COVERAGE-INVENTED-SUCCESS-MUTANT-REJECTED",
+        "COVERAGE-INVENTED-GENERATION-MUTANT-REJECTED"
+      ],
+      "mapped_fields": [
+        "coverage_active_generation",
+        "coverage_success_generation",
+        "coverage_window_start",
+        "coverage_window_end",
+        "coverage_success_at"
+      ],
+      "observed": "PASS"
+    },
+    "PEER-RUNNER-SHAPE": {
+      "explicit_holds": true,
+      "first_vertical": "NP-V-MS-NONEXPIRED",
+      "multi_connection_inventory": true,
+      "observed": "PASS",
+      "peer_lifecycle_methods": [
+        "_close_connection",
+        "_handshake",
+        "_recv_request",
+        "_send_response",
+        "bind_listen",
+        "execute_script",
+        "retire_owned",
+        "start_background"
+      ],
+      "runner_unconditional_refuse": false
+    },
+    "PKI-LATE-DRAIN-OVERFLOW": {
+      "control_kind": "fake_behavioral_extracted_block",
+      "dex_r2_review_sha256": "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+      "dex_v6_findings_sha256": "A80961743D8CC5AC272E00EE0DC5B28FE0A7E92F05C3B3B1FF41C917ADF5D763",
+      "extraction": "ast_selected_post_join_overflow_primary_refusal",
+      "full_pki_process_retirement_proof": false,
+      "gate_mutation_detected": true,
+      "native_behavioral_proof": false,
+      "observed": "PASS",
+      "pki_late_drain_control_ids": [
+        "PKI-IN-LOOP-OVERFLOW-REFUSED",
+        "PKI-LATE-DRAIN-OVERFLOW-REFUSED",
+        "PKI-LATE-DRAIN-PRESERVES-PRIMARY"
+      ]
+    },
+    "PORT-DEPENDENCY-PASS": {
+      "full_t01_closure": false,
+      "native_dial_tls": false,
+      "observed": "PASS",
+      "policy_override_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "receipt_sha256": "61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961",
+      "reconciliation_sha256": "E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D",
+      "result_sha256": "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548",
+      "status": "VERIFIED_FINITE_HOST_PASS_9_OF_9"
+    },
+    "REPORT-PRODUCER-CONSUMER-SINK": {
+      "actual_sanitizer_verified": false,
+      "case_results_included": true,
+      "dex_folded_controls": [
+        "REPORT-TOP-LEVEL-AND-CASE-EVIDENCE",
+        "CONSOLE-HASH-ONLY",
+        "SUCCESS-STREAM-RESTORATION",
+        "FAILURE-STREAM-RESTORATION",
+        "REPORT-BYTE-CAP",
+        "SANITIZED-ENTRY-STOP",
+        "ACTUAL-HOST-CONSUMER-ROUNDTRIP",
+        "HOST-REFUSES-WRONG-RUNTIME",
+        "HOST-REFUSES-WRONG-CA",
+        "HOST-REFUSES-DAEMON-CLAIM",
+        "HOST-REFUSES-RUNNER-OWNERSHIP",
+        "HOST-REFUSES-MALFORMED-JSON",
+        "HOST-REFUSES-OLD-NESTED-SCHEMA",
+        "MUTANT-REPORT-IN-CONSOLE-DETECTED",
+        "MUTANT-MISSING-RESTORATION-DETECTED"
+      ],
+      "executed_observed_not_host_authority": true,
+      "fake_producer_consumer": "PASS",
+      "flat_schema": true,
+      "host_sha256": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+      "machine_output_restored": true,
+      "native_or_app_behavior_verified": false,
+      "observed": "PASS",
+      "passed_boundary_controls": 15,
+      "runner_sha256": "87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25",
+      "token_rollback_ack_allowlisted": true
+    },
+    "SUITE-INVENTORY": {
+      "annassign_supported": true,
+      "cf_count": 4,
+      "cf_ids_in_order": [
+        "NP-T01-USERINFO-CF",
+        "NP-T01-FRAGMENT-CF",
+        "NP-T01-CONTROL-CHAR-CF",
+        "NP-T01-PURPOSE-WRONG-CF"
+      ],
+      "native_count": 27,
+      "native_ids_in_order": [
+        "NP-V-MS-NONEXPIRED",
+        "NP-V-MS-REFRESH",
+        "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+        "NP-V-MS-INVALID",
+        "NP-V-GOOGLE-REFRESH",
+        "NP-V-GOOGLE-INVALID",
+        "NP-T06-BEFORE-SEND",
+        "NP-T06-MALFORMED-ACK",
+        "NP-T06-TRUNCATED-ACK",
+        "NP-T06-OTHER",
+        "NP-T06-PARTIAL",
+        "NP-T06-LOST",
+        "NP-T03-VALID",
+        "NP-T03-WRONG-CA",
+        "NP-T03-WRONG-NAME",
+        "NP-T03-HANDSHAKE-STALL",
+        "NP-T03-TCP-REFUSAL",
+        "NP-T04-HEADER-STALL",
+        "NP-T04-BODY-STALL",
+        "NP-T04-PARTIAL-SEND",
+        "NP-T04-DEADLINE",
+        "NP-T04-DISCONNECT",
+        "NP-T05-ORDERLY-CLOSE",
+        "NP-T05-ABRUPT-TRUNCATION",
+        "NP-T07-OWNED-SOCKET",
+        "NP-T07-BOTH-AFTER-FAILURE",
+        "NP-T08-OWNERSHIP"
+      ],
+      "observed": "PASS",
+      "orderly_dual_observations": true
+    },
+    "T02-FOCUSED-CROSSING": {
+      "closes_native_t02_full_goal": false,
+      "design_pin": "88352EEA19FEC2524A73EED615E2425DA74DFFE6ED55F22A2F10B7E841C554A0",
+      "injected_snapshots": {
+        "T02-BYTES-DIRECT-CROSSING": {
+          "bytes": 16777215,
+          "items": 0,
+          "pages": {
+            "event": 0,
+            "identity": 0
+          },
+          "stopped": false
+        },
+        "T02-ITEMS-DIRECT-CROSSING": {
+          "bytes": 0,
+          "items": 9999,
+          "pages": {
+            "event": 0,
+            "identity": 0
+          },
+          "stopped": false
+        },
+        "T02-READER-DIRECT-CROSSING": {
+          "bytes": 16777215,
+          "stopped": false
+        }
+      },
+      "observed": "PASS",
+      "scope": "injected_snapshot_plus_extracted_counter_pure_fake_not_native_16mib",
+      "selected_policy_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "t02_bytes_direct_crossing": "OBSERVED_REFUSE",
+      "t02_items_direct_crossing": "OBSERVED_REFUSE",
+      "t02_reader_direct_crossing": "OBSERVED_REFUSE"
+    },
+    "T02-OVERRUN-GAP": {
+      "byte_excess_outcome": "OBSERVED_REFUSE",
+      "closes_native": false,
+      "framing_result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+      "gap_retained": true,
+      "item_excess_outcome": "OBSERVED_REFUSE",
+      "not_native_10k_16mib": true,
+      "observed": "PASS",
+      "scope": "host-fake-reduced-limit",
+      "witness": "T02_EXCESS_ITEM_BYTE_HOST_FAKE"
+    },
+    "T07-INDIVIDUAL-NAMES": {
+      "host_fake_primary_both_closes_closes_native": false,
+      "named_observations": [
+        "t07_response_close_after_success",
+        "t07_response_close_after_primary_failure",
+        "t07_transport_close_after_success",
+        "t07_transport_close_after_primary_failure",
+        "t07_both_close_after_success",
+        "t07_open_close",
+        "t07_setblocking",
+        "combined_both_close_after_failure"
+      ],
+      "observed": "PASS"
+    },
+    "T08-NESTED-RESET-BEHAVIOR": {
+      "closes_native_foreign_thread_close_reuse": false,
+      "extraction": "ast_selected_covering_provider_transport",
+      "independent_context_run": true,
+      "observation_review_pin": "1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069",
+      "observed": "PASS",
+      "selected_context_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "t08_nested": "OBSERVED_REFUSE",
+      "t08_reset_exceptional": "OBSERVED_RESET",
+      "t08_reset_normal": "OBSERVED_RESET"
+    },
+    "VERTICAL-CONTRACT-SHAPE": {
+      "asgi_helper": "i01_asgi_app",
+      "byte_alias_reference_control_ids": [
+        "BYTE-ALIAS-DOCUMENTATION-ACCEPTED",
+        "BYTE-ALIAS-IMPORT-REFUSED",
+        "BYTE-ALIAS-CALL-REFUSED",
+        "BYTE-ALIAS-INSTALL-REFUSED"
+      ],
+      "byte_transport_alias_in_joined_tls_claim": false,
+      "contract_pin": "C340C47B3D9CDB92D0DBA91506E4916F85233571B90015BBEDABF9CF3820C054",
+      "control_kind": "shape_source",
+      "counter_remaining_budget_proof": true,
+      "covering_path": "/api/v1/calendar/covering-refresh",
+      "dex_v6_findings_sha256": "A80961743D8CC5AC272E00EE0DC5B28FE0A7E92F05C3B3B1FF41C917ADF5D763",
+      "fake_may_advance_before_native_pki": true,
+      "mapped_coverage_fields": true,
+      "native_behavioral_proof": false,
+      "observed": "PASS",
+      "pki_caller_authored_uninvoked": true,
+      "pki_generate_once_call_site_authored": true,
+      "pki_late_overflow_gate_authored": true,
+      "primary_alias_on_lower_sorted_id": true,
+      "primary_alias_planted": true,
+      "profile_literals": {
+        "database": "dex_fixture",
+        "hostname": "native-fixture.invalid",
+        "username": "dex_fixture"
+      },
+      "provider_ca": "/tmp/np-provider-tls",
+      "release_plan_installed": true,
+      "settings_module": "app.config.Settings",
+      "wrong_name_leaf_not_client_hostname": true
+    }
+  },
+  "dex_launcher_receipt_candidate_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+  "dex_launcher_receipt_patch_sha256": "D8D779767E9CB2046B836EF91C59989837467DCFFDF695EC7AE0E4C5509A2F13",
+  "dex_launcher_retirement_sha256": "30FEEDFF468B3851D3630E73C8BB688D290E4639845A29A377B089DB6534BF27",
+  "dex_r1_r2_review_sha256": "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+  "dex_v6_findings_sha256": "A80961743D8CC5AC272E00EE0DC5B28FE0A7E92F05C3B3B1FF41C917ADF5D763",
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "first_vertical_increment": true,
+  "host_entry_seam_control_ids": [
+    "HOST-ENTRY-UNBOUND-REFUSED",
+    "HOST-ENTRY-ONE-TIME-BIND",
+    "HOST-ENTRY-DOUBLE-BIND-REFUSED",
+    "HOST-ENTRY-SYNTHETIC-DOCKER-EVENTS"
+  ],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "nested_predicates": 16,
+  "packet": "scheduler-native-provider-prep-v9",
+  "passed": 16,
+  "pki_late_drain_control_ids": [
+    "PKI-IN-LOOP-OVERFLOW-REFUSED",
+    "PKI-LATE-DRAIN-OVERFLOW-REFUSED",
+    "PKI-LATE-DRAIN-PRESERVES-PRIMARY"
+  ],
+  "prep_is_not_pass": true,
+  "report_boundary_control_ids": [
+    "REPORT-TOP-LEVEL-AND-CASE-EVIDENCE",
+    "CONSOLE-HASH-ONLY",
+    "SUCCESS-STREAM-RESTORATION",
+    "FAILURE-STREAM-RESTORATION",
+    "REPORT-BYTE-CAP",
+    "SANITIZED-ENTRY-STOP",
+    "ACTUAL-HOST-CONSUMER-ROUNDTRIP",
+    "HOST-REFUSES-WRONG-RUNTIME",
+    "HOST-REFUSES-WRONG-CA",
+    "HOST-REFUSES-DAEMON-CLAIM",
+    "HOST-REFUSES-RUNNER-OWNERSHIP",
+    "HOST-REFUSES-MALFORMED-JSON",
+    "HOST-REFUSES-OLD-NESTED-SCHEMA",
+    "MUTANT-REPORT-IN-CONSOLE-DETECTED",
+    "MUTANT-MISSING-RESTORATION-DETECTED"
+  ]
+}

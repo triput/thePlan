@@ -1,0 +1,52 @@
+# COMMANDS HELD — fake-only verification. NOT INVOKED under preparation approval.
+# executed=false; launch_authorized=false; launch_ready=false; prep_is_not_pass=true;
+# first_vertical_increment=true; endpoint=unbound.
+# prep-v4: port dependency = verified finite host PASS 9/9 (not native dial/TLS).
+#
+# R4 concrete reviewed input pins: see docs/R4-Reviewed-Input-Pins.json
+# (exact SHA256 of verify/*.py + EXPECTED + OUTER/VERIFICATION admissions).
+# Do NOT use hash-whatever-is-present. Operator command must cite the frozen
+# AdmissionSHA256 from that pin document after launch card flips launch_authorized.
+#
+# Limits (declared; freeze numeric suite/runner bounds on later card from actual ops):
+# - Fake structural check budget: <= 120s local (scaffold default in OUTER-ADMISSION)
+# - Capture during collection: stdout/stderr <= 65536; result <= 262144
+# - Reader join / post-kill wait: 5s each (port-fake lineage)
+# - No Docker, sockets, PKI generation, providers, or credentials under fake checks
+# - No 57-case native repetition
+# - Controls: ASSEMBLY-PINS, SUITE-INVENTORY, PEER-RUNNER-SHAPE, T02-OVERRUN-GAP,
+#   T02-FOCUSED-CROSSING, PORT-DEPENDENCY-PASS, T08-NESTED-RESET-BEHAVIOR,
+#   T07-INDIVIDUAL-NAMES, HOST-VS-RUNNER-DOCKER, REPORT-PRODUCER-CONSUMER-SINK
+#   (includes 15 Dex-folded report-boundary IDs), VERTICAL-CONTRACT-SHAPE
+#
+# Preconditions before any future one-shot:
+# 1. Freeze verify/EXPECTED-FAKE-STRUCTURAL.json hash into OUTER-ADMISSION + VERIFICATION-ADMISSION
+# 2. Freeze interpreter + verify/*.py pins (exact hashes from R4-Reviewed-Input-Pins.json)
+# 3. Set launch_authorized=true on both admission documents under Trish card
+# 4. Ensure no existing FAKE-NATIVE-PROVIDER-RESULT.json / LAUNCH-RECEIPT.json
+# 5. For native first vertical: admit ONLY case_ids=["NP-V-MS-NONEXPIRED"] (HOLD bodies excluded)
+#
+# Held fake invocation (DO NOT RUN NOW) — exact AdmissionSHA256 from R4 pins:
+#
+#   .\Invoke-Fake.ps1 -AdmissionSHA256 E4A74E4C8B784B980CC3C34AB8A23B7EA999728791A8EA63D6C9B7E80349DD81
+#
+# Equivalent direct path after outer pin freeze (also HELD):
+#
+#   & $python -I -S -B .\verify\verify_admission.py
+#
+# Native launch (separately gated; also HELD):
+# Requires -ExpectedConfigSHA256 (external reviewed raw config pin — not self_sha256),
+# -DockerConfigPath, and launch_ready=true with frozen bounds.
+# First vertical batch must not include HOLD case bodies.
+#
+#   .\Invoke-Native-Provider.ps1 -ExpectedConfigSHA256 <64hex> -DockerConfigPath <path>
+#
+# Forbidden under this preparation:
+# - certificate generation (prepare-np-provider-tls.sh)
+# - docker compose / docker run
+# - imports/compilation/tests of payload/api
+# - helper invocation beyond static authoring
+# - provider/credential access
+# - failed-attempt reseed/retry
+# - claiming PASS from prep / fabricating PASS for HOLD cases
+# - Slack tip from this seat

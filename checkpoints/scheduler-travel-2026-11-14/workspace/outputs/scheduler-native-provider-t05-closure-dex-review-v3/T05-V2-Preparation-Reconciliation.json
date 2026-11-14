@@ -1,0 +1,20 @@
+{
+  "at_utc": "2026-11-13T04:19:28.7124774Z",
+  "status": "PREPARATION_INDEPENDENTLY_RECONCILED_NO_EXECUTION",
+  "input_manifest_sha256": "103B35619A5A4B482DCCB7444D6DE95F1632D10BE176214CABCEC910237002A6",
+  "verified_source_inputs": 289,
+  "verified_handoff_pins": 12,
+  "verified_admission_pins": 23,
+  "runtime_pins": 1,
+  "changed_packet_files": [
+    "verify\\launch_check.py",
+    "verify\\OUTER-ADMISSION.json",
+    "verify\\VERIFICATION-ADMISSION.json"
+  ],
+  "checker_unchanged": true,
+  "payload_api_unchanged": true,
+  "launcher_exact_reuse_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+  "admission_flags_false": true,
+  "target_imports_parsing_compilation_execution": false,
+  "endpoint": "unbound"
+}

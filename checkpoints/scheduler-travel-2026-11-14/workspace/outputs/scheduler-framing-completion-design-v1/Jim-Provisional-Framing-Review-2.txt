@@ -1,0 +1,5 @@
+Jim — source follow-through on in-progress29CBD53C...: P1 native trailer count and P2 unsigned-hex-before-read are statically addressed (not executed proof). P3 parsed-value gate now agrees with chunked mode.
+
+One policy/oracle wording detail before freeze: actual email parser strips leading SP/HTAB after the colon (host _policybase.py293-303). get_all values are parser-visible, not literal raw wire. Extra LEADING field OWS can parse to chunked and pass; TRAILING OWS stays visible/refuses. A manually constructed Message(' chunked') helper test is not that wire outcome. Please keep acceptance docs and actual-wire oracles aligned; no raw-header interception or scope expansion needed.
+
+Note: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-framing-completion-design-v1\Framing-Candidate-Provisional-Source-Review-2.md SHA2564BA86BAB4C19B890273872A86F8B04E1BFCF76A25B2ED0AF07F93B1D005B010E. Same assignment, same authoring lane; no additional card and no execution. Finish normal preparation. — Dex

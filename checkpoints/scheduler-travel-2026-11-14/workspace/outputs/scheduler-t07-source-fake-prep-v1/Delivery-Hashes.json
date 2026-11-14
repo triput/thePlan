@@ -1,0 +1,41 @@
+{
+  "packet": "scheduler-t07-source-fake-prep-v1 / post-native-t07-source-fake-prep-jim-v1-2026-11-11",
+  "at_utc": "2026-11-11T20:01:16.121056+00:00",
+  "diff_sha256": "8623F550F8B0BE9DFA00EBD8AD066768F22BE0750DC3DD635CF0A2F7A4CE7808",
+  "design_tip_sha256": "94362F46EE6912A9A6F2A7CB64A673E51A2037D145A1FB70721F373FE2B7AA91",
+  "scope_sha256": "B1481463CA6993C6C4C884485237E5DD2C308B7578A796DE5DE89565BDD46C83",
+  "base_file_count": 234,
+  "resulting_file_count": 234,
+  "changed_existing_files": 3,
+  "targets": [
+    {
+      "path": "app/services/covering_http_transport.py",
+      "starting_sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "resulting_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "applied": true,
+      "in_fresh_copy_only": true
+    },
+    {
+      "path": "app/services/covering_joined_https.py",
+      "starting_sha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "resulting_sha256": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+      "applied": true,
+      "in_fresh_copy_only": true
+    },
+    {
+      "path": "app/services/covering_refresh_import.py",
+      "starting_sha256": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0",
+      "resulting_sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "applied": true,
+      "in_fresh_copy_only": true,
+      "newline_note": "candidate LF to match Dex prospective pin; base remains CRLF witness"
+    }
+  ],
+  "unexpected_changes": [],
+  "d2_one_shot_launched": false,
+  "execution_authorized": false,
+  "executed": false,
+  "imports_of_app": 0,
+  "tests_run": 0,
+  "endpoint": "unbound"
+}

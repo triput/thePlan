@@ -1,0 +1,215 @@
+{
+  "status": "PASS",
+  "class": "FAKE-T02-ADMISSION",
+  "executed": true,
+  "executed_in_preparation": false,
+  "held_preparation_only": true,
+  "source_hashes_verified": true,
+  "inventory_error": null,
+  "control_ids_in_order": [
+    "W-CROSS-PURPOSE-PAGE",
+    "W-OAUTH-AT-EQUALITY",
+    "W-TOKEN-AT-EQUALITY",
+    "W-FINAL-RESPONSE-COMPLETES",
+    "M-A-OAUTH-CHECK-NOT-ADMIT",
+    "M-B-PAGE-CHECK-NOT-ADMIT",
+    "M-C-TOKEN-STOPPED-ONLY",
+    "M-D-DRAINAGE-CALLS-ADMIT",
+    "R1-TEST-STUB-ADMISSION-EXHAUSTED",
+    "W-COUNTER-IDENTITY-REQUEST-WIDE",
+    "W-ORDERED-RESULTS-LATER-LIMIT",
+    "W-CEILING-MINUS-ONE-ADMITS",
+    "W-APPROVED-CEILING-EVENT-BOUNDARY",
+    "W-APPROVED-CEILING-IDENTITY-BOUNDARY",
+    "W-APPROVED-CEILING-ITEMS-N-MINUS-ONE",
+    "W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES",
+    "W-APPROVED-CEILING-BYTES-N-MINUS-ONE",
+    "W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES",
+    "L-CONVENIENCE-LIMITS-LABELED",
+    "H-INVENTORY-ENFORCER-REJECTS-BAD"
+  ],
+  "controls": {
+    "W-CROSS-PURPOSE-PAGE": {
+      "result": "PASS_WITNESS",
+      "detail": "original admits identity at event equality; candidate refuses"
+    },
+    "W-OAUTH-AT-EQUALITY": {
+      "result": "PASS_WITNESS",
+      "detail": "original check()-only admits OAuth at equality; candidate admit refuses pre-construct"
+    },
+    "W-TOKEN-AT-EQUALITY": {
+      "result": "PASS_WITNESS",
+      "detail": "candidate LIMIT_EXCEEDED at equality with zero db.info.get lookups; original hit AdmissionPassedSentinel count=1 location=db.info.get:covering_token_terminal"
+    },
+    "W-FINAL-RESPONSE-COMPLETES": {
+      "result": "PASS",
+      "detail": "final page at ceiling-minus-one drains; later new exchange refuses"
+    },
+    "M-A-OAUTH-CHECK-NOT-ADMIT": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-A extracted CandHTTP.request admit→check; same W-OAUTH-AT-EQUALITY witness fails (construct/open/send at equality)"
+    },
+    "M-B-PAGE-CHECK-NOT-ADMIT": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-B extracted ProviderCounter.page admit→check; same W-CROSS-PURPOSE-PAGE witness fails"
+    },
+    "M-C-TOKEN-STOPPED-ONLY": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-C extracted token admission_exhausted→stopped; token_mut invoked; same W-TOKEN-AT-EQUALITY witness fails via AdmissionPassedSentinel location=db.info.get:covering_token_terminal"
+    },
+    "M-D-DRAINAGE-CALLS-ADMIT": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-D extracted CandHTTP.request drainage check→admit; framed fake response through mutated path; final-page completion fails"
+    },
+    "R1-TEST-STUB-ADMISSION-EXHAUSTED": {
+      "result": "PASS",
+      "detail": "SimpleNamespace(admission_exhausted=True) matches candidate token port"
+    },
+    "W-COUNTER-IDENTITY-REQUEST-WIDE": {
+      "result": "PASS",
+      "detail": "CONVENIENCE_LIMITS_LABELED pages/items; APPROVED_RESPONSE_BYTES=16MiB for framed HTTP (convenience 64 insufficient; production accounting untouched); for_request ProviderCounter is domain_ports transport.counter; HTTP event/identity mutate that object; second for_request yields a fresh counter; FAKE_TRANSACTION_ACKNOWLEDGMENT=FAKE_NOT_NATIVE_DB_ACK; not full integration proof"
+    },
+    "W-ORDERED-RESULTS-LATER-LIMIT": {
+      "result": "PASS",
+      "detail": "FAKE_TRANSACTION_ACKNOWLEDGMENT=FAKE_NOT_NATIVE_DB_ACK: extracted run_bounded_domain; budget.check_admission present; exact cardinality=2 subscription_id order matches body.subscription_ids; token_calls=2 run_target_calls=1; first completed; later CALENDAR_REFRESH_PROVIDER_LIMIT_EXCEEDED; NOT native/DB-ack proof"
+    },
+    "W-CEILING-MINUS-ONE-ADMITS": {
+      "result": "PASS",
+      "detail": "approved ceilings: count N-1 admits Nth event/identity page"
+    },
+    "W-APPROVED-CEILING-EVENT-BOUNDARY": {
+      "result": "PASS",
+      "detail": "approved event ceiling 20: 20 admit, 21st refuses"
+    },
+    "W-APPROVED-CEILING-IDENTITY-BOUNDARY": {
+      "result": "PASS",
+      "detail": "approved identity ceiling 10: 10 admit, 11th refuses"
+    },
+    "W-APPROVED-CEILING-ITEMS-N-MINUS-ONE": {
+      "result": "PASS",
+      "detail": "INJECTED_COUNTER_STATE items=9999; approved items ceiling N-1 admits Nth"
+    },
+    "W-APPROVED-CEILING-ITEMS-EQUALITY-ALL-PURPOSES": {
+      "result": "PASS",
+      "detail": "INJECTED_COUNTER_STATE items=10000 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']"
+    },
+    "W-APPROVED-CEILING-BYTES-N-MINUS-ONE": {
+      "result": "PASS",
+      "detail": "INJECTED_COUNTER_STATE bytes=16777215; approved 16MiB N-1 admits Nth byte"
+    },
+    "W-APPROVED-CEILING-BYTES-EQUALITY-ALL-PURPOSES": {
+      "result": "PASS",
+      "detail": "INJECTED_COUNTER_STATE bytes=16777216 per purpose (fresh counter each); stopped=False asserted pre-call; event/identity/oauth refuse before transport construct (zero constructs/opens/sends); purposes=['event', 'identity', 'oauth']; does not interrupt W-FINAL-RESPONSE-COMPLETES"
+    },
+    "L-CONVENIENCE-LIMITS-LABELED": {
+      "result": "PASS",
+      "detail": "convenience 2/1/3/64 labeled; cannot substitute approved 20/10/10000/16MiB integration proof"
+    },
+    "H-INVENTORY-ENFORCER-REJECTS-BAD": {
+      "result": "PASS",
+      "detail": "harness-only: full synthetic baseline accepted; single-dimension wrong-order, duplicate, missing, and unexpected-outcome fixtures refused; synthetic baseline is not an executed suite result"
+    }
+  },
+  "extraction_provenance": [
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/bases/app/services/covering_transport_policy.py",
+      "source_sha256": "B1EEA43A0A0B6EB56AC8B7F95D1A5611A139C9C5D7784FB1EB3348146EE89896",
+      "names": [
+        "CoveringTransportRefused",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "module_name": "fake_t02_orig_covering_transport_policy"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/workspace/apps/api/app/services/covering_transport_policy.py",
+      "source_sha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "names": [
+        "CoveringTransportRefused",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "module_name": "fake_t02_cand_covering_transport_policy"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/bases/app/services/covering_http_transport.py",
+      "source_sha256": "E2F30AA3DF04EC310514A4155C7D039BA6D26A2AE3F04470CF1F82EC6383FBB6",
+      "names": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "module_name": "fake_t02_orig_covering_http_transport"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/workspace/apps/api/app/services/covering_http_transport.py",
+      "source_sha256": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "names": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "module_name": "fake_t02_cand_covering_http_transport"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/bases/app/services/covering_domain_adapters.py",
+      "source_sha256": "D94344AA20897C4C0D4FD8479F53B25C022955B08DC5EDA04C69A834A2933620",
+      "names": [
+        "make_domain_ports"
+      ],
+      "module_name": "fake_t02_orig_covering_domain_adapters"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/workspace/apps/api/app/services/covering_domain_adapters.py",
+      "source_sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "names": [
+        "make_domain_ports"
+      ],
+      "module_name": "fake_t02_cand_covering_domain_adapters"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/workspace/apps/api/app/services/covering_domain_dispatch.py",
+      "source_sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "names": [
+        "run_bounded_domain"
+      ],
+      "module_name": "app.services.covering_domain_dispatch"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-t02-fake-v1/packet/payload/workspace/apps/api/app/services/covering_release_plan.py",
+      "source_sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "names": [
+        "CoveringReleasePlan"
+      ],
+      "module_name": "fake_t02_cand_covering_release_plan"
+    }
+  ],
+  "limits": {
+    "approved_event_pages": 20,
+    "approved_identity_pages": 10,
+    "approved_items": 10000,
+    "approved_response_bytes": 16777216,
+    "convenience_limits_labeled_not_integration_proof": {
+      "event_pages": 2,
+      "identity_pages": 1,
+      "items": 3,
+      "response_bytes": 64
+    }
+  },
+  "unresolved_native_obligations": [
+    "known-rollback vs UNKNOWN classification — NOT claimed",
+    "provider/socket retirement — NOT claimed",
+    "real TLS — NOT claimed",
+    "DB acknowledgment — NOT claimed (W-ORDERED-RESULTS is fake token port only)",
+    "T02 runtime proof — NOT closed",
+    "T01-T08 other obligations — NOT closed"
+  ],
+  "does_not_import_app": true,
+  "launch_ready": false
+}

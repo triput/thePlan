@@ -1,0 +1,182 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t08-ownership-source-dex-v1\\payload\\fixture\\np_runner_entry.py"
+index f4bf855..908b999 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t08-ownership-source-dex-v1\\payload\\fixture\\np_runner_entry.py"
+@@ -56,7 +56,7 @@ PROVIDER_PKI_CHILD_ENV = {
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-T08-OWNERSHIP"})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -1304,6 +1304,159 @@ def _install_token_terminal_observer(native_terminals: list[dict[str, Any]]) ->
+     native_terminals.append({"observer": "CoveringORMConnection.token_terminal", "terminal": None})
+ 
+ 
++def _run_np_t08_ownership() -> dict[str, Any]:
++    """One actual JoinedTLS socket: foreign check/close, owner use/close, reuse refusal.
++
++    Source preparation only. A later launch must admit the owned foreign thread's
++    single five-second join and the existing peer's bounded retirement. This is
++    transport ownership proof, not HTTP framing, OAuth or assessment composition.
++    """
++    from np_suite import SuiteStop, check_oracles_immediate, registry_by_id
++    from np_receipts import case_result_receipt
++    from np_provider_routes import google_api_route
++    from np_provider_transcript import ExchangeScript, ExchangeStep
++    from np_provider_peer import SyntheticProviderPeer, PeerMaterial, _http_response_bytes
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_request_budget import CoveringRequestBudget
++    from app.services.covering_transport_policy import HTTPSPeer, CoveringTransportRefused
++
++    case_id = "NP-T08-OWNERSHIP"
++    decl = registry_by_id(include_cf=True)[case_id]
++    planned_at = _iso_now()
++    route = google_api_route()
++    path = "/calendar/v3/calendars/primary/events"
++    response_step = ExchangeStep(
++        "send_response", status=200,
++        headers=(("Content-Type", "application/json"), ("Content-Length", "2")),
++        body_template="{}",
++    )
++    script = ExchangeScript(
++        script_id="T08-OWNED-SOCKET-ONE-GET", purpose="transport_ownership",
++        steps=(ExchangeStep("recv_request", method="GET", path=path), response_step,
++               ExchangeStep("close", close_mode="orderly_close_notify")),
++    )
++    expected_wire = _http_response_bytes(response_step)
++    peer = SyntheticProviderPeer(peer_id=case_id, route=route, script=script, material=PeerMaterial())
++    budget = CoveringRequestBudget()
++    transport = JoinedTLS(HTTPSPeer(hostname=route.server_hostname, address=route.dial_address,
++                                   port=route.dial_port, ca_file=route.ca_path), budget.work_remaining)
++    foreign = None
++    foreign_started = False
++    foreign_join_attempted = False
++    peer_retirement_attempted = False
++    owner_close_attempted = False
++    primary_failure = None
++    foreign_results = []
++    unexpected_foreign = []
++    observations = {}
++    try:
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++        transport.open()
++        owned_socket = transport.sock
++        owned_fd = owned_socket.fileno()
++        if transport.closed or owned_fd < 0:
++            raise SuiteStop("t08 owner did not open a live TLS socket")
++
++        def foreign_access():
++            for label, operation in (("foreign_check", transport.check), ("foreign_close", transport.close)):
++                try:
++                    operation()
++                except BaseException as exc:
++                    foreign_results.append((label, type(exc) is CoveringTransportRefused))
++                else:
++                    foreign_results.append((label, False))
++
++        def foreign_worker():
++            try:
++                foreign_access()
++            except BaseException as exc:
++                unexpected_foreign.append(type(exc).__name__)
++
++        foreign = threading.Thread(target=foreign_worker, name="np-t08-foreign-owned", daemon=False)
++        foreign.start()
++        foreign_started = True
++        foreign_join_attempted = True
++        foreign.join(timeout=5.0)
++        if foreign.is_alive():
++            raise SuiteStop("t08 foreign worker unjoined UNKNOWN")
++        if unexpected_foreign or foreign_results != [("foreign_check", True), ("foreign_close", True)]:
++            raise SuiteStop("t08 foreign ownership guards did not refuse exactly")
++        if transport.closed or transport.sock is not owned_socket or owned_socket.fileno() != owned_fd:
++            raise SuiteStop("t08 foreign access changed the owner socket state")
++        observations.update(foreign_check="OBSERVED", foreign_close="OBSERVED")
++
++        # A successful owner exchange proves the refused foreign close left it usable.
++        request = (f"GET {path} HTTP/1.1\r\nHost: {route.url_host}\r\nConnection: close\r\n\r\n").encode("ascii")
++        transport.send(request)
++        received = bytearray()
++        while len(received) < len(expected_wire):
++            part = transport.receive(min(8192, len(expected_wire) - len(received)))
++            if not part:
++                raise SuiteStop("t08 owner exchange ended before the complete finite wire")
++            received.extend(part)
++        if bytes(received) != expected_wire:
++            raise SuiteStop("t08 owner exchange differs from the exact scripted wire")
++        owner_close_attempted = True
++        try:
++            transport.close()
++        except BaseException as exc:
++            raise SuiteStop("t08 owner socket retirement UNKNOWN") from exc
++        if transport.closed is not True or owned_socket.fileno() != -1:
++            raise SuiteStop("t08 owner socket retirement not confirmed UNKNOWN")
++        try:
++            transport.open()
++        except CoveringTransportRefused:
++            pass
++        else:
++            raise SuiteStop("t08 same-instance connection reuse was admitted")
++        if transport.sock is not owned_socket or owned_socket.fileno() != -1:
++            raise SuiteStop("t08 reuse refusal changed the retired resource")
++        observations.update(reuse_forbid="OBSERVED", owner_retirement="OBSERVED")
++
++        peer_retirement_attempted = True
++        retirement, state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        inventory = list(state.get("exchange_inventory") or [])
++        if (state.get("connection_count_admitted") != 1 or state.get("connection_count_served") != 1
++                or len(inventory) != 1 or inventory[0].get("method") != "GET"
++                or inventory[0].get("path") != path or state.get("bytes_sent") != len(expected_wire)):
++            raise SuiteStop("t08 peer inventory is not exactly one owner exchange")
++        check_oracles_immediate(decl, observations)
++        return case_result_receipt(
++            case_id=case_id, passed=True, workers_joined=True, expected_unknown=False,
++            observations=observations, t_plan_iso=planned_at, t_check_iso=_iso_now(),
++            measured={"foreign_check_refused": True, "foreign_close_refused": True,
++                      "owner_socket_unchanged_after_foreign": True, "owner_exchange_bytes": len(received),
++                      "owner_socket_closed": True, "reuse_refused": True, "native_tls_socket": True},
++            peer_exchange_inventory=inventory,
++            resource_disposition={"foreign_worker_joined": True, "foreign_join_attempts": 1,
++                                  "owner_socket_retired": True, "peer_retirement": retirement},
++        )
++    except BaseException as exc:
++        primary_failure = exc
++        raise
++    finally:
++        cleanup_failure = None
++        if foreign_started and not foreign_join_attempted:
++            foreign_join_attempted = True
++            foreign.join(timeout=5.0)
++        if foreign_started and foreign.is_alive():
++            cleanup_failure = SuiteStop("t08 foreign worker retirement UNKNOWN")
++        if not owner_close_attempted:
++            owner_close_attempted = True
++            try:
++                transport.close()
++            except BaseException:
++                cleanup_failure = SuiteStop("t08 owner socket retirement UNKNOWN")
++        if not peer_retirement_attempted and peer._worker is not None:  # noqa: SLF001
++            peer_retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++            except BaseException:
++                cleanup_failure = SuiteStop("t08 peer retirement UNKNOWN")
++        if cleanup_failure is not None:
++            raise cleanup_failure from primary_failure
++
++
+ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+     if case_id == "NP-V-MS-NONEXPIRED":
+         def _run() -> dict[str, Any]:
+@@ -1311,6 +1464,8 @@ def _make_implemented_case(case_id: str) -> Callable[[], dict[str, Any]]:
+ 
+         _run.__name__ = f"run_{case_id}"
+         return _run
++    if case_id == "NP-T08-OWNERSHIP":
++        return _run_np_t08_ownership
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 

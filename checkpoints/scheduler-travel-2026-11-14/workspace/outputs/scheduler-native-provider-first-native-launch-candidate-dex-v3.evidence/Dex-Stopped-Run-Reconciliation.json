@@ -1,0 +1,33 @@
+{
+  "kind": "Stopped v3 read-only reconciliation",
+  "executions": 1,
+  "launch_authority_consumed": true,
+  "input_pins_preserved": 265,
+  "identity_isolation_mount_mismatches": [],
+  "containers": [
+    {
+      "role": "database",
+      "id": "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7",
+      "state": "running",
+      "exit_code": 0
+    },
+    {
+      "role": "runner",
+      "id": "375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56",
+      "state": "exited",
+      "exit_code": 125
+    }
+  ],
+  "docker_command_count": 12,
+  "runner_stop": {
+    "cli_exit_code": 125,
+    "diagnostic_unavailable": true,
+    "kind": "SuiteStop",
+    "status": "STOP"
+  },
+  "all_recorded_capture_workers_joined": true,
+  "receipt_sha256": "FC3822C3A1CA0DBD7F6903BDACB0E6F32E2553381044841B1B72AB3B73F63D6D",
+  "success_cleanup_ran": false,
+  "failure_cleanup_authorized": false,
+  "endpoint": "unbound"
+}

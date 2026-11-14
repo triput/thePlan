@@ -1,0 +1,25 @@
+{
+  "at_utc": "2026-11-13T07:16:32.7766014Z",
+  "status": "QUALIFIED_ACCEPTANCE_RECONCILED_NO_STATIC_BLOCKERS",
+  "peer_sha256": "7335772A55C3BF3321193398FD8048FA33CBF13BFFB007BFCDE1D14C4DED1C51",
+  "manifest_counts": [
+    283,
+    269,
+    257
+  ],
+  "parent_manifest_sha256": "BCF86CA7E187A4D84CE6713F315A3E0103B94967B472762B2CC6B28F614E205F",
+  "command_sha256": "8C8D43F8B7B628A2EC78A54C9771CF3D68AC72CAC4BC4447DA5EFF3AF99168FB",
+  "executable_pins": "Interpreter and Docker raw bytes match frozen host config;no invocation",
+  "evidence_absent": true,
+  "fake_prerequisite": "PASS10/10 exact47 independently reconciled;no rerun",
+  "notes": [
+    "Current worker_observer_runner_sha256 metadata is inert and already explicitly covered by assignment section2 current runner label;no permission expansion or source change",
+    "Historical labels preserved;only current Worker-Native command/review apply",
+    "Peer did not fully rederive22 command success path;retain Dex derivation,not measured runtime promise",
+    "Peer citation line offsets are approximate;Dex directly read current supervisor158-272,plan297-309,runner selection1488-1502 andintegrated suite26-31"
+  ],
+  "native_proof": false,
+  "human_execution_authorized": false,
+  "endpoint": "unbound",
+  "holds": "No native execution until exact Trish approval;no retry/repair/force/failure cleanup"
+}

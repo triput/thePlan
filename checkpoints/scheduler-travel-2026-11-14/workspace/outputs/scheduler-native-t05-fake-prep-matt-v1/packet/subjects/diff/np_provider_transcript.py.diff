@@ -1,0 +1,50 @@
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -47,6 +47,13 @@
+     "normal",
+ ]
+ 
++# Explicit response framing selection for the fixture serializer.
++# "auto" (default) keeps the historical serializer exactly: Content-Length is
++# appended when absent and a "PLACEHOLDER" value is rewritten. "close_delimited"
++# sends neither Content-Length nor Transfer-Encoding; the body ends at connection
++# close. Unknown modes and inconsistent header sets are refused before sending.
++ResponseFraming = Literal["auto", "close_delimited"]
++
+ 
+ @dataclass(frozen=True)
+ class ExchangeStep:
+@@ -58,6 +65,7 @@
+     body_template: str | None = None
+     close_mode: CloseMode | None = None
+     note: str = ""
++    framing: ResponseFraming = "auto"
+ 
+ 
+ @dataclass(frozen=True)
+@@ -152,7 +160,11 @@
+ 
+ 
+ def orderly_close_delimited_complete_script() -> ExchangeScript:
+-    """Observation (a): complete close-delimited accepted after orderly close_notify."""
++    """Observation (a): complete close-delimited accepted after orderly close_notify.
++
++    No Content-Length and no Transfer-Encoding: the body is delimited only by the
++    peer's orderly TLS close (close_notify), so the client must read to EOF.
++    """
+     return ExchangeScript(
+         script_id="T05-ORDERLY-CLOSE-DELIMITED-COMPLETE",
+         purpose="orderly_close_delimited_complete_accepted",
+@@ -161,9 +173,10 @@
+             ExchangeStep(
+                 "send_response",
+                 status=200,
+-                headers=(("Content-Type", "application/json"), ("Content-Length", "2")),
++                headers=(("Content-Type", "application/json"),),
+                 body_template="{}",
+-                note="Exact Content-Length match; complete body",
++                note="Close-delimited: no Content-Length/Transfer-Encoding; complete body ends at orderly close",
++                framing="close_delimited",
+             ),
+             ExchangeStep("close", close_mode="orderly_close_notify"),
+         ),

@@ -1,0 +1,12 @@
+{
+  "event": "Ev0CHNPW4DTK",
+  "messageTs": "1794597117.088539",
+  "threadTs": "1794534925.412399",
+  "atUtc": "2026-11-13T19:50:16.4534474Z",
+  "status": "reconciled; two fake verification decision ready, execution held",
+  "review": "3D1FD47052820500AA2915D75A1B697787DC7D6590BA8EF7897DDF67241859B0",
+  "decision": "A7E1E8AD8F18EC9ECD89E5B8C84A55080E15ABE6B50C3398F23206901698D736",
+  "replyTs": "1794599405.869349",
+  "execution": false,
+  "endpoint": "unbound"
+}

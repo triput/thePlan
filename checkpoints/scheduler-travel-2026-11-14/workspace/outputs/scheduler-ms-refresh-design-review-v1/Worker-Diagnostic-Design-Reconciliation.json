@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-13T05:57:19.6443581Z",
+  "trace_sha256": "CD7B19636D34AA33BB79108B3B5DE449977FBEA1AB9B57B3B44A1E3D5AFD7014",
+  "independent_source_narrowing_sha256": "FACA227AEE6B6030B3A87B045BBAAF04902DD9F09CD6078DD7BB245C87D328A2",
+  "finding": "No deterministic request defect established. Source and observed frame put failure downstream of body/binding admission;actual HTTP status/code/cause remain unknown.",
+  "qualified_acceptance": "Pure worker-exception observer through unchanged bounded producer/hostvalidator;identity-preserving delegate/rethrow,one-object capture,unconditional restoration;only fresh role4 plus held fake roles13-16",
+  "authority_basis": "User approved manifest-pinned packet-owned source paths/classes,not fixture-only. Existing producer and host validator already admit pinnedapi/app paths and suppressedcontexts. No disclosure category,bound orschema change. Approved389A00DD routine same-contract fresh-successor authoring covers implementation.",
+  "not_authorized": [
+    "messages,statusorcodevalues,locals,SQL,bodies,keys,credentials,unownedframes",
+    "production/hostvalidator/producer edits",
+    "fake/native execution or retry/rerun",
+    "new executable roles or privileges"
+  ],
+  "assignment_sha256": "F6F15372BEEF22AB5278378800A78011F5167CA8F106F0BD18A383FCFFD127FD",
+  "delivered_at_utc": "2026-11-13T05:56:09.1517061Z",
+  "slack_pointer": "1794549397.998209",
+  "source_baseline": "failed native parent274manifest1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+  "next": "Matt fresh observer fixture/focused fake preparation;Dex independently reviews exact frozen handback before execution card",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,22 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Invoke-Verification.ps1" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v1\\Invoke-Verification.ps1"
+index 1fe8558..cef8587 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\Invoke-Verification.ps1"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v1\\Invoke-Verification.ps1"
+@@ -11,7 +11,7 @@ if ((Get-FileHash -LiteralPath $admissionPath -Algorithm SHA256).Hash -ne $Admis
+     throw 'STOP: reviewed admission bytes mismatch; no child started'
+ }
+ $admission = Get-Content -LiteralPath $admissionPath -Raw | ConvertFrom-Json
+-if ($admission.kind -ne 'scheduler-route-one-shot-fake-admission') {
++if ($admission.kind -ne 'scheduler-framing-ack-one-shot-fake-admission') {
+     throw 'STOP: admission schema mismatch; no child started'
+ }
+ 
+@@ -61,7 +61,7 @@ if (-not $seenRuntimePaths.Contains($pythonPath)) {
+     throw 'STOP: interpreter not included in reviewed runtime inventory'
+ }
+ $verifyRoot = Join-Path $packetRoot 'verify'
+-foreach ($output in @('FAKE-ROUTE-RESULT.json', 'FAKE-ROUTE-LAUNCH-RECEIPT.json')) {
++foreach ($output in @('FAKE-FRAMING-ACK-RESULT.json', 'FAKE-FRAMING-ACK-LAUNCH-RECEIPT.json')) {
+     if (Test-Path -LiteralPath (Join-Path $verifyRoot $output)) {
+         throw ('STOP: existing evidence; no replay or overwrite: ' + $output)
+     }

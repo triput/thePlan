@@ -1,0 +1,12 @@
+[
+  {
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\payload\\fixture\\i02_owner_lock_contention.py",
+    "size": 26386,
+    "sha256": "A8E38CD2B79AC5F0E19FCC724313F5608C5011B313D5EBB456FE9ED4A4C000E2"
+  },
+  {
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\payload\\fixture\\i01_i02_suite.py",
+    "size": 65990,
+    "sha256": "EA776814DBD6924A689BAAC00C36E9AEE50B01F635AFB25B733D40796E4BC229"
+  }
+]

@@ -1,0 +1,822 @@
+{
+  "class": "FAKE-T05-ORIGINAL-PREDICTIONS",
+  "launch_ready": false,
+  "execution_authorized": false,
+  "executed_in_preparation": false,
+  "prep_version": "v4",
+  "wire_ids_in_order": [
+    "F01",
+    "F02",
+    "F03-oauth",
+    "F04-oauth",
+    "F05-oauth",
+    "F05b-oauth",
+    "C-BASE",
+    "C-EXT-VALID",
+    "C-TRAILER-VALID",
+    "C-DATA-SHORT",
+    "C-SEP-SHORT",
+    "C-SEP-WRONG",
+    "C-ZERO-ABSENT",
+    "C-TRAILER-EOF",
+    "C-ZERO-NO-CRLF",
+    "C-TRAILER-LINE-EOF",
+    "C-TRAILER-MALFORMED",
+    "F12a-INVALID-JSON-EVENT",
+    "F12a-INVALID-JSON-IDENTITY",
+    "F12a-INVALID-JSON-OAUTH",
+    "F12a-NONOBJECT-EVENT",
+    "F12a-NONOBJECT-IDENTITY",
+    "F12a-NONOBJECT-OAUTH",
+    "F12b-ENCODING-EVENT",
+    "F12b-ENCODING-IDENTITY",
+    "F12b-ENCODING-OAUTH",
+    "CALLER-CLIENT-EVENT-F01",
+    "CALLER-CLIENT-OAUTH-F04",
+    "CALLER-CLIENT-OAUTH-F05b",
+    "CALLER-REFRESH-TOKEN-F04",
+    "H-DUP-IDENTICAL-FIELDS",
+    "H-DUP-IDENTICAL-LIST",
+    "H-CONFLICT-FIELDS-2-3",
+    "H-CONFLICT-FIELDS-3-2",
+    "H-CONFLICT-LIST-2-3",
+    "H-CONFLICT-LIST-3-2",
+    "H-DECIMAL-02",
+    "H-INVALID",
+    "H-INVALID-PLUS",
+    "H-INVALID-NEG",
+    "H-INVALID-EMPTY",
+    "H-INVALID-NONDEC",
+    "H-INVALID-DECIMAL-EQ",
+    "H-TE-CL",
+    "H-TE-NONEXACT+CL",
+    "H-TE-REPEAT",
+    "H-TE-LIST",
+    "H-TE-MIXED",
+    "CD-ORDERLY",
+    "CD-ABRUPT",
+    "CD-DEADLINE",
+    "F06"
+  ],
+  "inputs": {
+    "F01": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Complete CL=2 object under event purpose.",
+      "source_prediction": true
+    },
+    "F02": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Short CL with valid JSON prefix may succeed without remaining-length gate (defect).",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "truncated_body_accepted"
+    },
+    "F03-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringReauthorizationRequired"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Truncated invalid_grant may still type reauth on prefix-valid JSON (defect).",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "typed_reauth_on_truncated_invalid_grant"
+    },
+    "F04-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringReauthorizationRequired"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Complete invalid_grant raises CoveringReauthorizationRequired.",
+      "source_prediction": true,
+      "purpose": "oauth"
+    },
+    "F05-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Truncated token-success may expose success-shaped object (defect).",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "truncated_token_success"
+    },
+    "F05b-oauth": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Complete token-success JSON.",
+      "source_prediction": true,
+      "purpose": "oauth"
+    },
+    "C-BASE": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Valid chunked terminator.",
+      "source_prediction": true
+    },
+    "C-EXT-VALID": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Valid chunk extension plus trailer field.",
+      "source_prediction": true
+    },
+    "C-TRAILER-VALID": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Complete valid-trailer positive (no extension).",
+      "source_prediction": true
+    },
+    "C-DATA-SHORT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "IncompleteRead"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Isolated short chunk data: 3 then {} then EOF.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "short_chunk_data"
+    },
+    "C-SEP-SHORT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "IncompleteRead"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "One-byte separator truncation: 2 then {} then CR then EOF.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "short_chunk_separator"
+    },
+    "C-SEP-WRONG": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Wrong separator XX before zero chunk may still accept (defect).",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "wrong_separator_unchecked"
+    },
+    "C-ZERO-ABSENT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "IncompleteRead"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Absent next-size/zero chunk: 2 then {} then EOF.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "zero_chunk_absent"
+    },
+    "C-TRAILER-EOF": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Trailer EOF tolerance may look complete (defect).",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "trailer_eof_tolerance"
+    },
+    "C-ZERO-NO-CRLF": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "IncompleteRead"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Zero chunk without CRLF; narrow incomplete-framing miss.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "zero_chunk_no_crlf"
+    },
+    "C-TRAILER-LINE-EOF": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "IncompleteRead"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Trailer line without terminator; incomplete-framing.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "trailer_line_eof"
+    },
+    "C-TRAILER-MALFORMED": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "LineTooLong"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Malformed trailer syntax with final blank line present.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "malformed_trailer_syntax"
+    },
+    "F12a-INVALID-JSON-EVENT": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "JSONDecodeError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Malformed JSON exposes parser error.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "JSONDecodeError at json.loads"
+    },
+    "F12a-INVALID-JSON-IDENTITY": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "JSONDecodeError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Malformed JSON exposes parser error.",
+      "source_prediction": true,
+      "purpose": "identity",
+      "underlying_cause_hypothesis": "JSONDecodeError at json.loads"
+    },
+    "F12a-INVALID-JSON-OAUTH": {
+      "predicted_outcome": "OBSERVED_UNKNOWN",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringRootOutcomeUnknown"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "After send; SUT remaps to UNKNOWN.",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "oauth after-send remap"
+    },
+    "F12a-NONOBJECT-EVENT": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringTransportRefused"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Non-object JSON refused.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "JSON object guard"
+    },
+    "F12a-NONOBJECT-IDENTITY": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringTransportRefused"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Non-object JSON refused.",
+      "source_prediction": true,
+      "purpose": "identity",
+      "underlying_cause_hypothesis": "JSON object guard"
+    },
+    "F12a-NONOBJECT-OAUTH": {
+      "predicted_outcome": "OBSERVED_UNKNOWN",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringRootOutcomeUnknown"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "After send; SUT remaps refuse to UNKNOWN.",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "oauth after-send remap"
+    },
+    "F12b-ENCODING-EVENT": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringTransportRefused"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Non-identity encoding refused.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "Content-Encoding guard"
+    },
+    "F12b-ENCODING-IDENTITY": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringTransportRefused"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Non-identity encoding refused.",
+      "source_prediction": true,
+      "purpose": "identity",
+      "underlying_cause_hypothesis": "Content-Encoding guard"
+    },
+    "F12b-ENCODING-OAUTH": {
+      "predicted_outcome": "OBSERVED_UNKNOWN",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_UNKNOWN",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringRootOutcomeUnknown"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "After send; SUT remaps to UNKNOWN.",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "oauth after-send remap"
+    },
+    "CALLER-CLIENT-EVENT-F01": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "calendar_client under covering_provider_transport",
+      "rationale": "calendar_client context selection; F01 transcript.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "Same transcript as F01",
+      "transcript_ref": "F01"
+    },
+    "CALLER-CLIENT-OAUTH-F04": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringReauthorizationRequired"
+      },
+      "observation_boundary": "calendar_client under covering_provider_transport",
+      "rationale": "calendar_client oauth token route; F04 transcript.",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "Same transcript as F04-oauth",
+      "transcript_ref": "F04-oauth"
+    },
+    "CALLER-CLIENT-OAUTH-F05b": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "calendar_client under covering_provider_transport",
+      "rationale": "calendar_client complete token success; F05b.",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "Same transcript as F05b-oauth",
+      "transcript_ref": "F05b-oauth"
+    },
+    "CALLER-REFRESH-TOKEN-F04": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringReauthorizationRequired"
+      },
+      "observation_boundary": "calendar_client under covering_provider_transport",
+      "rationale": "Named owning google refresh entrypoint boundary via calendar_client (extracted; google_calendar module not imported).",
+      "source_prediction": true,
+      "purpose": "oauth",
+      "underlying_cause_hypothesis": "refresh_access_token uses calendar_client",
+      "transcript_ref": "F04-oauth",
+      "owning_caller": "google_calendar.refresh_access_token via calendar_client"
+    },
+    "H-DUP-IDENTICAL-FIELDS": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "First duplicate CL may win.",
+      "source_prediction": true
+    },
+    "H-DUP-IDENTICAL-LIST": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Comma list CL fails int().",
+      "source_prediction": true
+    },
+    "H-CONFLICT-FIELDS-2-3": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "First CL=2 may win with short body (defect).",
+      "source_prediction": true
+    },
+    "H-CONFLICT-FIELDS-3-2": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": true,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "First CL=3 may interact with short body (defect).",
+      "source_prediction": true
+    },
+    "H-CONFLICT-LIST-2-3": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "List conflict fails conversion.",
+      "source_prediction": true
+    },
+    "H-CONFLICT-LIST-3-2": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "List conflict fails conversion.",
+      "source_prediction": true
+    },
+    "H-DECIMAL-02": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Decimal CL 02 may parse as 2.",
+      "source_prediction": true
+    },
+    "H-INVALID": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "CL +2 invalid.",
+      "source_prediction": true
+    },
+    "H-INVALID-PLUS": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "CL +2 invalid (explicit plus variant).",
+      "source_prediction": true
+    },
+    "H-INVALID-NEG": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "CL -2 invalid.",
+      "source_prediction": true
+    },
+    "H-INVALID-EMPTY": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Empty CL invalid.",
+      "source_prediction": true
+    },
+    "H-INVALID-NONDEC": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Nondecimal CL invalid.",
+      "source_prediction": true
+    },
+    "H-INVALID-DECIMAL-EQ": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "ValueError"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Decimal-equivalent 2.0 CL invalid/distinct.",
+      "source_prediction": true
+    },
+    "H-TE-CL": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "TE+CL coexistence path.",
+      "source_prediction": true
+    },
+    "H-TE-NONEXACT+CL": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringTransportRefused"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Nonexact TE with CL refused by encoding/TE path.",
+      "source_prediction": true
+    },
+    "H-TE-REPEAT": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Repeated identical TE chunked fields.",
+      "source_prediction": true
+    },
+    "H-TE-LIST": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Comma-coded TE list chunked, chunked.",
+      "source_prediction": true
+    },
+    "H-TE-MIXED": {
+      "predicted_outcome": "OBSERVED_REFUSE",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_REFUSE",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "CoveringTransportRefused"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Mixed-coding TE field order gzip then chunked.",
+      "source_prediction": true
+    },
+    "CD-ORDERLY": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null,
+        "byte_fake_eof_only": true,
+        "tls_close_notify_proven": false,
+        "stall_is_not_deadline_proof": false
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Close-delimited via empty recv; close_notify not proven.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "byte_fake_eof",
+      "tls_close_notify_proven": false,
+      "byte_fake_eof_only": true
+    },
+    "CD-ABRUPT": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Fake cannot distinguish abrupt vs orderly EOF.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "byte_fake_eof",
+      "tls_close_notify_proven": false,
+      "byte_fake_eof_only": true
+    },
+    "CD-DEADLINE": {
+      "predicted_outcome": "OBSERVED_PARSER_ERROR",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_PARSER_ERROR",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": "IncompleteRead"
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Stall empty-recv is NOT deadline proof; incomplete close-delimited.",
+      "source_prediction": true,
+      "purpose": "event",
+      "underlying_cause_hypothesis": "stall_empty_recv",
+      "tls_close_notify_proven": false,
+      "byte_fake_eof_only": true,
+      "stall_is_not_deadline_proof": true
+    },
+    "F06": {
+      "predicted_outcome": "OBSERVED_SUCCESS",
+      "exact_predicate": {
+        "observed_outcome": "OBSERVED_SUCCESS",
+        "contract_miss": false,
+        "response_close_calls": 1,
+        "transport_close_calls": 1,
+        "exception_type": null
+      },
+      "observation_boundary": "CoveringHTTP.request",
+      "rationale": "Alias of C-BASE.",
+      "source_prediction": true
+    }
+  },
+  "layering_trace_sha256": "7676931DF1652653CAA837D094FA335D89FDB5F00055449CAA5F6A6B8C1E162A",
+  "dex_findings_addressed": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7"
+  ],
+  "b8_native_deferred": "Dex owns native-dex-v3; Jim documents deferral only",
+  "oracle_notes": "CONTRACT_MISS is a separate contract_miss bool; observed_outcome is the exposed class. Exact predicates replace broad allowed_outcomes. Exception types are source predictions until approved execution."
+}

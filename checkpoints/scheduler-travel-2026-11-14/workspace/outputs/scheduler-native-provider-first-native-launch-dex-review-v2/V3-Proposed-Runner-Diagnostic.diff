@@ -1,0 +1,83 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -1349,1 +1349,60 @@
++def stop_payload(error):
++    """Bounded locations only. Never format exception messages, locals or SQL."""
++    original = {'status': 'STOP', 'kind': type(error).__name__}
++    try:
++        import re
++        def kind(exc):
++            name = type(exc).__name__
++            return name if re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,79}', name) else 'Exception'
++        root = ROOT.resolve()
++        owned = {}
++        for row in (root/'SHA256SUMS.txt').read_text().splitlines():
++            pin, rel = row.split('  ', 1)
++            if re.fullmatch(r'[A-F0-9]{64}', pin) and re.fullmatch(r'[A-Za-z0-9_./-]{1,240}', rel) and rel.endswith('.py'):
++                path = (root/rel).resolve()
++                if path.is_relative_to(root) and path.relative_to(root).as_posix() == rel:
++                    owned[rel] = pin
++        exceptions, seen = [], set()
++        current, truncated = error, False
++        while current is not None and len(exceptions) < 3 and id(current) not in seen:
++            seen.add(id(current))
++            frames = []
++            tb = current.__traceback__
++            walked = 0
++            while tb is not None and walked < 128:
++                walked += 1
++                path = Path(tb.tb_frame.f_code.co_filename).resolve()
++                if path.is_relative_to(root):
++                    rel = path.relative_to(root).as_posix()
++                    if rel in owned:
++                        data = path.read_bytes()
++                        if hashlib.sha256(data).hexdigest().upper() == owned[rel] and 1 <= tb.tb_lineno <= len(data.splitlines()):
++                            frames.append({'path': rel, 'line': tb.tb_lineno})
++                            if len(frames) > 8:
++                                del frames[0]
++                                truncated = True
++                        else:
++                            truncated = True
++                    else:
++                        truncated = True
++                else:
++                    truncated = True
++                tb = tb.tb_next
++            truncated = truncated or tb is not None
++            exceptions.append({'kind': kind(current), 'frames': frames})
++            current = current.__cause__ if current.__cause__ is not None else current.__context__
++        truncated = truncated or current is not None
++        result = {'status': 'STOP', 'kind': kind(error), 'diagnostic': {
++            'version': 1, 'exceptions': exceptions, 'truncated': truncated}}
++        while len((json.dumps(result)+'\n').encode('utf-8')) > 4096:
++            populated = next((entry for entry in exceptions if entry['frames']), None)
++            if populated is None:
++                raise ValueError('diagnostic cap')
++            del populated['frames'][0]
++            result['diagnostic']['truncated'] = True
++        return result
++    except BaseException:
++        return original  # Diagnostic failure must not replace the primary kind.
++
++
+ def main() -> int:
+@@ -1438,3 +1497,8 @@
+-            "stop_schema": ["status", "kind"],
+-            "includes_traceback": False,
++            "stop_schema": ["status", "kind", "diagnostic_optional"],
++            "includes_raw_traceback": False,
++            "includes_packet_owned_source_locations": True,
++            "diagnostic_byte_cap": 4096,
++            "diagnostic_exception_cap": 3,
++            "diagnostic_frames_per_exception_cap": 8,
++            "diagnostic_fallback": "original_status_kind",
+             "includes_key_cert_body_credential_bytes": False,
+@@ -1459,4 +1523,4 @@
+-        # Failure evidence limits disclosed: status + kind only. No traceback,
+-        # exception text, locals, raw console, key/cert/body/credential bytes,
+-        # and no inferred PKI success summary on STOP (C7B8FD74…).
+-        _stop = json.dumps({"status": "STOP", "kind": type(exc).__name__}, sort_keys=True) + "\n"
++        # Existing location-only format: no messages, locals, SQL, key/cert/body
++        # or credential bytes. Bounded diagnostic failure preserves primary kind.
++        # Successful PKI summary is never copied into a STOP envelope.
++        _stop = json.dumps(stop_payload(exc), sort_keys=True) + "\n"

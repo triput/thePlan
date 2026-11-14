@@ -1,0 +1,13 @@
+{
+  "event": "Ev0CHJ4VNH0D",
+  "messageTs": "1794618464.654499",
+  "sender": "U0C68LUTURJ",
+  "handledAtUtc": "2026-11-14T01:12:00.6203722Z",
+  "disposition": "MS-refresh frozen handback already independently reconciled; exact fake card pending",
+  "handoff": "13A388F0ABD3A6A2351A4374856CE1107AC3C81F8BE6AD77722518A881A4BCFB",
+  "existingReview": "2B03F0D4C779F3F57E66D38E309DABF63009EE29B70F3414E34F03CB23D18980",
+  "priorBotAcceptance": "1794618697.352519",
+  "reply": "No duplicate response",
+  "executionAuthority": "NONE",
+  "endpoint": "unbound"
+}

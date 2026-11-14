@@ -1,0 +1,16 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+    "launch_check_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+    "check_native_provider_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+    "expected_fake_structural_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+    "verify_admission_sha256_note": "verify_admission must not self-waive via embedded own hash"
+  },
+  "note": "Freeze pins on later fake verification card; preparation does not authorize invocation"
+}

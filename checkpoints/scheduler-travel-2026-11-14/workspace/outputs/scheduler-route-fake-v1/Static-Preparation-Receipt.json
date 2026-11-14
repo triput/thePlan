@@ -1,0 +1,30 @@
+{
+  "at_utc": "2026-11-12T02:59:52.6291446Z",
+  "kind": "static preparation inventory only",
+  "application_original_files": 234,
+  "application_candidate_files": 234,
+  "changed_files": [
+    {
+      "relative_path": "app\\services\\covering_http_transport.py",
+      "original_sha256": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+      "candidate_sha256": "E2FC2226318E1F2D052D220C4A28F5116D7BEFD1FFBB01E863CD0767A1B28F0F"
+    },
+    {
+      "relative_path": "app\\services\\covering_provider_context.py",
+      "original_sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "candidate_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    }
+  ],
+  "packet_pins_verified": 475,
+  "partial_runtime_rows": 19,
+  "control_count": 19,
+  "static_source_read": true,
+  "imports": false,
+  "compilation": false,
+  "verification": false,
+  "executed": false,
+  "peer_review": "pending after Jim current framing design assignment",
+  "launch_ready": false,
+  "endpoint": "unbound",
+  "preparation_note": "Two outer orchestration quoting errors were rejected before shell execution; no packet helper invoked"
+}

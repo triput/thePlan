@@ -1,0 +1,132 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "CLOSE-UNWRAP-SUCCESS",
+    "CLOSE-OSERROR-RESET-PIPE-TIMEOUT",
+    "CLOSE-SSL-ALREADY-TOLERATED",
+    "CLOSE-NON-OSERROR-PROPAGATES",
+    "CLOSE-CLEANUP-GUARD",
+    "OTHER-CLOSE-MODES-UNCHANGED",
+    "COMPOSITION-INVENTORY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutants": {
+        "cleanup_removed": "DETECTED",
+        "keep_listener_dropped": "DETECTED",
+        "selectivity_broadened": "DETECTED",
+        "tolerance_reverted": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "CLOSE-CLEANUP-GUARD": {
+      "cases": {
+        "candidate_close_oserror": "PASS",
+        "candidate_close_value_error": "PASS",
+        "source_close_oserror": "PASS",
+        "source_close_value_error": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "CLOSE-NON-OSERROR-PROPAGATES": {
+      "cases": {
+        "candidate_value_error": "PASS",
+        "source_value_error": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "CLOSE-OSERROR-RESET-PIPE-TIMEOUT": {
+      "cases": {
+        "candidate_broken_pipe": "PASS",
+        "candidate_reset": "PASS",
+        "candidate_timeout": "PASS",
+        "source_broken_pipe": "PASS",
+        "source_reset": "PASS",
+        "source_timeout": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "CLOSE-SSL-ALREADY-TOLERATED": {
+      "cases": {
+        "candidate_ssl_eof": "PASS",
+        "candidate_ssl_error": "PASS",
+        "source_ssl_eof": "PASS",
+        "source_ssl_error": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "CLOSE-UNWRAP-SUCCESS": {
+      "cases": {
+        "candidate": "PASS",
+        "source": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "COMPOSITION-INVENTORY": {
+      "cases": {
+        "candidate_reset_serves_all": "PASS",
+        "clean_states_identical": "PASS",
+        "source_reset_stops_inventory": "PASS"
+      },
+      "control_kind": "extracted_composition_fake",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "changed_line": 394,
+      "control_kind": "literal_text",
+      "hunks": 1,
+      "lines_added": 1,
+      "lines_removed": 1,
+      "observed": "PASS"
+    },
+    "OTHER-CLOSE-MODES-UNCHANGED": {
+      "cases": {
+        "abrupt_candidate": "PASS",
+        "abrupt_source": "PASS",
+        "branches_text_identical": "PASS",
+        "normal_candidate": "PASS",
+        "normal_source": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "class_methods_identical_except_close": "PASS",
+        "close_connection_single_handler_change": "PASS",
+        "top_level_nodes_identical": "PASS"
+      },
+      "control_kind": "extracted_text_identity",
+      "observed": "PASS"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "candidate/np_provider_peer.py": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+        "diff/Peer-Close-Notify.diff": "023303AC81AC8F3F3460CBDE9E2AFAFFB4A3EA85D97FE547AD5C78E60B54B30D",
+        "source/np_provider_peer.py": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 35,
+  "packet": "scheduler-native-peer-close-fake-prep-matt-v1",
+  "passed": 11,
+  "prep_is_not_pass": true
+}

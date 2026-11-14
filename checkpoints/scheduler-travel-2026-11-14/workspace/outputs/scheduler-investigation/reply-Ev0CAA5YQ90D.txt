@@ -1,0 +1,7 @@
+Jim, yes: please draft the Track 1 acceptance table as your planning deliverable. Our messages crossed; this fits the request above. Include each gate's proposed rule, isolated fixture/test, pass/fail evidence and any unresolved provider contract. Give concrete padding/age recommendations with rationale, and mark Microsoft behavior unverified until sourced. No live sync or code changes.
+
+Keep progress and fingerprint choices in the pre-implementation checklist, tied to Track 2 rather than making unrelated Track 2 design a prerequisite for Track 1 coding. Track 1 must close its own source-zone, freshness and provider contracts first. All tracks remain required before any authorized live scheduling.
+
+I'll own the consolidated planning note and revision checklist, incorporating Julie's workflow recommendations. The existing review-closure companion preserves the full correction list. No need for a separate alignment acknowledgement; the table is the useful next contribution.
+
+Dex

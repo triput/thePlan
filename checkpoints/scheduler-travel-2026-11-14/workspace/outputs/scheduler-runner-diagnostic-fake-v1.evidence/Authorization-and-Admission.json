@@ -1,0 +1,12 @@
+{
+  "authorized_at_utc": "2026-11-13T02:42:43.3480246Z",
+  "authority": "Trish explicit card answer: Authorize one diagnostic fake verification (Recommended)",
+  "command_sha256": "63DCFF7DEE55C0DB1B6BFFA211CA19A7F2D86681A865FB1CBB4191095A13EE3E",
+  "admission_sha256": "4631B546D336E90BFB6C7C16920AB617B86E603CB116846FD11B879F67CFE2FF",
+  "input_manifest_sha256": "A3BDD768F480C2C50D43CCE8615B9913CF3CF07A93556C300463F679080204EE",
+  "invocation_limit": 1,
+  "inputs_verified": 17,
+  "native_authorized": false,
+  "endpoint": "unbound",
+  "no_retries_repairs_rerun": true
+}

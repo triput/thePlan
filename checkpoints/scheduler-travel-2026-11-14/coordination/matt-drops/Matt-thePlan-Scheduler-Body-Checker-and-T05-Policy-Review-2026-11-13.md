@@ -1,0 +1,25 @@
+# thePlan Scheduler — next single active assignment: read-only review
+
+Matt — T03 B2a735AD771 handback received; native305 and fake32 pins match. This is intake integrity, not technical acceptance. Your T03 authoring assignment21BBE5B7 is now handed back/frozen; do not change its packets. Dex reviews T03 in parallel. This signed drop replaces that completed authoring assignment with ONE bounded read-only review assignment; two review sections, one report. Allow ordinary turnaround. No source authoring or execution is authorized by this review task.
+
+## A. BODY-STALL checker correction first
+Root outputs/scheduler-native-t04-body-stall-fake-dex-v1, manifest33FAEB13697C4D840D7055D1A880EB3B3F967DEF77ECBA5C7A6740CE098E0947,40entries.
+Checker950863A9C0BF691945D0BD77CE5BADD0EA305679A5B9FB31607F48D21F0F96D0; diffBAA06C10633455D6D0BA0CF14D76465FDB17FE75520D57AFC203A53300D75E59.
+EXPECTED7E2E5CB3DBD2D360FA8CE1A9E352F2419DB374911B25847D4A39A3DB84CB4F70; admissionE9DA1CF5E5730D9C6AC4996353CD0D810C7D2A9E24EE2F67DD7F309156B45523; command2A9D65D014DBB68C698E9FDB33A410FE60534753CF7B1B1DE4D31AFB81895FA0.
+
+Compare frozen source outputs/scheduler-native-t04-body-stall-fake-prep-matt-v1 manifest37F978FDDCCC7326059E457977B22583558668CBBB3C1381FD489586D11B8BC0. Only executable delta: transcript_namespace owns a ModuleType with existing Sandbox during actual decorated dataclass definitions; oracle_transcript adds success-removal, ambient-name refusal/preservation and exceptional-definition cleanup/identity tests. Original13controls/61predicates/9mutants retained,3 added predicates=64; all26 subjects unchanged. Verify exact delta, existing Sandbox failure behavior, temporary module lifetime, no loss of decorators/future annotations, new fake exception/helper restoration, original controls/oracles/mutants and packet/runtime pins. Check for other definite prelaunch defects; static acceptance is not a syntax/run proof.
+
+Read current root receipt and CURRENT-BODY-STALL-CHECKER-HELD.md. Machine readiness true does not authorize execution. Copied preparation commands/documents are history; root Reviewed-Body-Stall-Fake-Command.ps1.txt is prospective only. No outputs exist from a run. Dex static/native boundary reports in outputs/scheduler-ms-refresh-design-review-v1 are context, not substituted for independent review.
+
+## B. T05 native evidence and finite policy question second
+Corrected diagnostic fake result640A222A3422DD6CA6F8EBF4A6C772F4A10FD7A7DC3BC504E6BA989BA32EBCA3 PASS10/38, launcher71F1C0B20BB3C9E9F2762B5E61BA482D84E76AD03752E52A4B26800CBBAAC6A9. Source/staging inputs unchanged.
+Native root outputs/scheduler-native-provider-t05-client-cause-launch-dex-v2 manifestBA69C85827195E7FDA76046D602DAB3607A841D1FEAB0BA10512117D968907D1,307inputs. Native receipt174E1BE136693014C7B9F5F1E885342604BF50FC52B0B9BAB83412EC6CC9EB13 at sibling scheduler-native-provider-diagnostic-launch-v1.evidence/native-provider-host-receipt.jsonl. STOP preserved, no rerun. Cleanup D944C6A1D6C3637C016A69CA7236697DF786974544C1FD3FF069432A918ABC6E:9calls,both absent,DBexit0.
+
+Independently review source/evidence trace outputs/scheduler-ms-refresh-design-review-v1/T05-BrokenPipe-Native-Trace-and-Decision-Proposal.json FD3877736081277F5EC1745B470E85E9EC7BC19B898B7356DD0E59BD00309F00. Retained cause BrokenPipeError at JoinedTLS.receive sock.recv112, CoveringHTTP body read345, abrupt classifier1949. No errno/messages; report truncated. Existing allowed set remains SSLEOFError/ssl and ConnectionResetError/builtins. Reaching classifier follows clean joined peer and inventory guards (executed-assertion scope, not separately retained native PASS rows).
+
+Question for your recommendation, NOT approval: Is there enough evidence for a narrow policy proposal admitting exactly BrokenPipeError/builtins only for this abrupt scripted peer after response headers/body-read entry and clean joined exact inventory, while continuing to reject IncompleteRead, JSON/other OS errors and every UNKNOWN? Identify any need for stronger stage evidence or a deterministic fixture alternative. Do not say this stopped run passed, infer errno/OpenSSL mechanism, silently broaden to OSError, edit the accepted set, or treat peer closure as application completion. Production code remains unchanged. Bring reasoned disagreement and concrete alternatives.
+
+## Boundaries and return
+Read source/text/JSON and compute hashes only. No imports, AST parsing, compilation, tests, helper/script invocation, application/vendor loading, threads/sockets/TLS contexts/PKI, Docker, database, install/build, cleanup or execution. No source edits, scratch code-copy edits, patches applied even outside the packet, or transient repair. Deliver one signed review and sidecar with exact reviewed pins, findings/objections, each section's qualified verdict, recommendations and unproved claims. If a source correction is needed, propose exact text/diff as a document; do not apply it. No subagents needed for this bounded review. Preserve all packets and failed evidence. Endpoint unbound; all holds stay.
+
+Signed: Dex

@@ -1,0 +1,19 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-ms-refresh-fake-prep-matt-v2",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "launch_check_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "check_native_provider_sha256": "6F4D83C04640E596A806E19FFCECDA026662CEB51B6B138C3C79EFBDD1FD2971",
+    "expected_fake_structural_sha256": "FD98745D2B83A2FD0C9233C16B050BDC5A1C719FA572793D99A95949B2EBDB71"
+  },
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_note": "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+  "note": "Dex reviewed staging only;true machine flag is not Trish approval. Exact checker/source/helper bytes unchanged. One future fake run requires explicit exact-hash authorization."
+}

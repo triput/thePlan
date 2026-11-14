@@ -1,0 +1,18 @@
+{
+  "literalSubjectPins": 26,
+  "runtimePins": 10,
+  "fakeInputs": 45,
+  "controls": 13,
+  "predicates": 66,
+  "syntaxOrBehaviorChecked": false,
+  "fakeManifest": "EBB3BED606B5F9824FA6CFEC905E7A0FE0F098F7D932637D52499529DEB8BCD0",
+  "packetPins": 32,
+  "fakeAuthority": "NONE",
+  "peerReview": "PENDING",
+  "nativeAuthority": "NONE",
+  "mutants": 10,
+  "status": "AUTHORING_PINS_RECONCILED_NO_EXECUTION",
+  "endpoint": "unbound",
+  "nativeManifest": "8BFB54075B6A8BAEF10FC591F7CD6B4B2D0381B11E9056C375CB8F2AF09B5853",
+  "nativeInputs": 310
+}

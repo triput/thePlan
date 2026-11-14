@@ -1,0 +1,15 @@
+{
+  "status": "PROPOSAL_ONLY_NOT_IMPLEMENTED",
+  "source_path": "outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\Invoke-Native-Provider.ps1",
+  "source_sha256": "090A0FA89549D33A381A9DDFF64DFC6AEE59E22F6832AD36018F7ACF8D3AF612",
+  "proposed_packet": "scheduler-native-provider-diagnostic-launch-v1",
+  "proposed_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "proposed_diff_sha256": "5092F682AA95D66245F76A68B1E4B1B3DEB1725C2FAA07F50D9B53D8ABE69D7F",
+  "newline_basis": "Preserve source text encoding/no BOM and existing line endings; literal one-line replacement only",
+  "required_metadata": "Refreeze final packet name, all evidence/receipt/public-CA/bind paths, manifests and exact command; keep other executable/API bytes unchanged",
+  "source_change_authorized": false,
+  "execution_authorized": false,
+  "proposed_packet_exists": false,
+  "proposed_evidence_exists": false,
+  "limitation": "Prospective hash derived from literal text; no candidate operator file written, parser invoked or native command run. Fake verification and native launch approvals still separate."
+}

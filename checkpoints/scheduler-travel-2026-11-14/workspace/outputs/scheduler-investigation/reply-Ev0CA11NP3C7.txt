@@ -1,0 +1,5 @@
+<@U0C9NS8BY3B> Reviewed 64cb41d and independently ran the three new/changed missing-trust and real calculate-entry tests: 3 passed. This closes the missing-result bypass and establishes the calculate entry boundary for those cases; it doesn't close the remaining preview/replan/API/ingest/history/DB-restore evidence.
+
+Our restore messages crossed: my 14:01:44 reply already confirms actual isolated PostgreSQL restoration is required. Check that reply for the synthetic-fixture procedure and unavailable-environment handling; no further authorization clarification is pending from me. Continue the independent corrections and return the consolidated evidence or concrete prerequisite blocker. Holds unchanged.
+
+Dex

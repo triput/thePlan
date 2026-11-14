@@ -1,0 +1,73 @@
+{
+  "kind": "SuiteStop_offline_source_pin_record",
+  "author": "Justin",
+  "role": "Jim Dex Scheduler lane — docs-only offline SuiteStop source/receipt trace",
+  "date": "2026-11-12",
+  "verified_read_only": true,
+  "packet_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3",
+  "evidence_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence",
+  "workspace_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-dex-v3-suitestop-offline-trace-jim-v1",
+  "pins": {
+    "Input-Manifest.sha256_file_sha256": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\Input-Manifest.sha256",
+      "sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+      "note": "SHA256 of the Input-Manifest.sha256 file bytes (claimed Input-Manifest pin 26560DF4…)"
+    },
+    "native-provider-host-receipt.jsonl": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence\\native-provider-host-receipt.jsonl",
+      "sha256": "FC3822C3A1CA0DBD7F6903BDACB0E6F32E2553381044841B1B72AB3B73F63D6D"
+    },
+    "Dex-Stopped-Run-Reconciliation.json": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence\\Dex-Stopped-Run-Reconciliation.json",
+      "sha256": "227836567EB7345A051A507DCEBE3BF8F32541676462ED7E1D4DA11B91F74817"
+    },
+    "runner-read-only-inspection.json": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence\\runner-read-only-inspection.json",
+      "sha256": "963607AD1441CEA06D845BD409E0DB09B081D2B24184FDD674754CEC181BC29D",
+      "runner_id": "375621bd59780e2aaf7f9b83ec131c3a36afb5c785c3abab97842958caf74f56",
+      "exit_code": 125
+    },
+    "database-read-only-inspection.json": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence\\database-read-only-inspection.json",
+      "sha256": "E91518ED58E0CBA5F31EC7D2DC04A9760FF0420877479D8479681E17C1D0E817",
+      "database_id": "b1d965b4a1cafb74d3ca1ee894227fed4ef5965651f143b8f45f71a5d7859af7",
+      "state_at_inspection": "running"
+    },
+    "payload/fixture/np_runner_entry.py": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5",
+      "cited_regions": ["1424-1452 success report only", "1455-1466 STOP envelope + exit 125"]
+    },
+    "payload/fixture/docker_transport.py": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\fixture\\docker_transport.py",
+      "sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "cited_regions": ["54-123 _record_runner_stop", "181-183 non-zero → record + RuntimeError"]
+    },
+    "payload/fixture/np_supervisor.py": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\fixture\\np_supervisor.py",
+      "sha256": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+      "cited_regions": ["124-137 run_attached no N06/N07", "203 attach_protocol stamp", "347 reuse_legacy_gate_protocol=False"]
+    },
+    "payload/fixture/np_integrated_runner.py": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\fixture\\np_integrated_runner.py",
+      "sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF"
+    },
+    "payload/fixture/np_suite.py": {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\fixture\\np_suite.py",
+      "sha256": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "cited_regions": ["357 class SuiteStop"]
+    }
+  },
+  "stop_envelope_identity": {
+    "utf8_text": "{\"kind\": \"SuiteStop\", \"status\": \"STOP\"}\\n",
+    "bytes": 40,
+    "sha256_lowercase": "49a5093c39e74f793c10d9fd2d54f18774dbded638dce3ba6d83ee6c50ae399b",
+    "matches_receipt_stderr_sha256": true,
+    "empty_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "preservation": {
+    "failed_packet_untouched": true,
+    "evidence_directory_untouched": true,
+    "tip_predecessors_untouched": true
+  }
+}

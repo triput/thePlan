@@ -1,0 +1,20 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v4-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_V4_CHECK_SUCCESSOR_COMPLETE_NOT_EXECUTED
+Supersedes v3 TIP A6F1A2C395F8655E676F39B6553DF77BCD125F021DB585F0CFFEEC93440ED89F (immutable; full 234+3 payload SHA256SUMS).
+v1 TIP 24C39F30… / v2 TIP 5875AC0D… also immutable.
+Closes Dex p1794428147 / p1794428226. Carries v2 oracle-gap fixes + v3 pin inventory.
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v4-2026-11-11/
+Mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v4/
+
+CHECK SUCCESSOR:
+- actual CoveringRoleConnector.run_target + run_bounded_domain caller/no-later
+- R07/R08 fault preserved through JoinedTLS driver; R08 exactly 2 method + 1 raw
+- M-MUTATE-OUTER-UNKNOWN = outer-object sensitivity; M-ALLOW-LATER = continuation
+- named controls: 40 (was 39); functional: 32
+
+SOURCE pins unchanged: E942BB43… / 2E6A4ABB… / 84F50367…
+payload/SHA256SUMS unchanged from v3 (31743D610D254D5F…)
+launch_ready=false; executed_in_preparation=false; no check run.
+TIP-FREEZE SHA256 DA6BCB39A5FB48F9D6449D6992BCBCC3A2EA57F5298E0C015D798642FA348B3D

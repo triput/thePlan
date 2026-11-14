@@ -1,0 +1,179 @@
+{
+  "packet": "post-native-I01-I02-fixture-prep-jim-v1-REVISE2-corrected7-2026-11-10",
+  "status": "PREP_REVISE2_CORRECTED7_COMPLETE_NOT_EXECUTED",
+  "disposition": "fresh_copy_fixture_prep_revise2_corrected7_for_jim_dex_review",
+  "scope": [
+    "I01",
+    "I02"
+  ],
+  "scope_note": "Authorized REVISE2-corrected7 closures under Dex tip-time notes on tipped corrected6: primary collection/wait error or unexpected interrupt blocks result admission/PASS even after confirmed exit 0 (p1794367441); child_pid custody at Popen success for read-only reconciliation (p1794367500). Corrected6 closures retained (Choice B Windows asyncio internal wakeup socket disclosure p1794366344 / consolidated p1794366450; collection-interrupt exit confirmation incl. proc_wait_error with capture_stop=None p1794366621; retirement total 45s p1794366987). Corrected5 closures retained (reader is_alive/UNKNOWN; overflow interrupt; kill/wait secondary; N14 take.__globals__). Tip message IDs reconciled: p1794366621, p1794366344, p1794366450, p1794366987, p1794367441, p1794367500. Tipped corrected6 preserved; fake-only harness authored not executed; no native/socket-inventory execution",
+  "executed": false,
+  "imports_of_app": 0,
+  "tests_run": 0,
+  "installations": 0,
+  "docker_or_live_checks": 0,
+  "check_script_invoked": false,
+  "socket_inventory_executed": false,
+  "socket_authority_added": false,
+  "production_repairs": 0,
+  "native_v9_mutated": false,
+  "prior_design_packets_mutated": false,
+  "parent_revise2_corrected6_mutated": false,
+  "parent_revise2_corrected5_mutated": false,
+  "parent_revise2_corrected4_mutated": false,
+  "parent_revise2_corrected3_mutated": false,
+  "parent_revise2_corrected2_mutated": false,
+  "parent_revise2_corrected_mutated": false,
+  "parent_revise2_mutated": false,
+  "parent_revise1_mutated": false,
+  "edit_set_widened": false,
+  "endpoint": "unbound",
+  "byte_semantics": "utf-8 lf",
+  "windows_asyncio_internal_socket_scope": {
+    "choice": "B",
+    "mechanism": "disclose_standard_event_loop_internal_wakeup_sockets",
+    "concurrent_bound_sockets": 2,
+    "sequential_asyncio_run_cycles_in_N11": 3,
+    "scope": "loopback-only",
+    "dex_finding": "p1794366344",
+    "consolidated_in": "p1794366450",
+    "retained_from": "corrected6"
+  },
+  "tip_message_notes": [
+    {
+      "id": "p1794366621",
+      "ts": "1794366621.337969",
+      "status": "closed_corrected6_retained",
+      "summary": "collection interrupt/error requires explicit exit confirmation"
+    },
+    {
+      "id": "p1794366344",
+      "ts": "1794366344.728349",
+      "status": "closed_corrected6_choice_B_retained",
+      "summary": "disclose Windows ProactorEventLoop internal wakeup sockets"
+    },
+    {
+      "id": "p1794366450",
+      "ts": "1794366450.439149",
+      "status": "closed_corrected6_retained",
+      "summary": "consolidated REVISE 6074/6127/6344"
+    },
+    {
+      "id": "p1794366987",
+      "ts": "1794366987.193389",
+      "status": "closed_corrected6_arithmetic_retained",
+      "summary": "timeout_retirement total 45s not 40s"
+    },
+    {
+      "id": "p1794367441",
+      "ts": "1794367441",
+      "status": "closed_corrected7",
+      "summary": "primary collection/wait error or unexpected interrupt blocks result admission/PASS even after exit 0"
+    },
+    {
+      "id": "p1794367500",
+      "ts": "1794367500",
+      "status": "closed_corrected7",
+      "summary": "child_pid custody at Popen success; receipt-only; no enumeration/retry/cleanup"
+    }
+  ],
+  "tipped_corrected6_manifest_self": "D583BA494D972E8421D4A59B1097E6CAFD2C3C8EA0C62AD0FAB12C38C4B2389F",
+  "tipped_corrected6_artifact_hashes_sha256": "46971420768D45B147EC65075FEA94D923C13C72A0C98D9792C857CCF7A33047",
+  "tipped_corrected6_tip_sha256": "34509F51CECD66468326FDBAE1E3972914FA739E6571FF070E1AC7DF6E97F8D7",
+  "tipped_corrected5_manifest_self": "14C59BAB362172309A6744F03B6C992F439BF32B304F2FD6FD1107A3E8EE61FC",
+  "tipped_corrected5_artifact_hashes_sha256": "C4E13B368796AE02EDC53B84CAE44690236785475ED406FF3AAE438882C7025A",
+  "tipped_corrected5_tip_sha256": "639C4E215341D7A6B5D0804387BF412217A1382A55568C7CBA0475361720BED9",
+  "tipped_corrected4_manifest_self": "A7423A0B9EB5A5AC258BEBE88ADF5BD5D57DBAE644A6220AB13F6B31B6BD1391",
+  "tipped_corrected4_artifact_hashes_sha256": "298997AB4135C2B02E1CB2F7A23B469273408DAFA6E856F6802813014D4BBC48",
+  "tipped_corrected4_tip_sha256": "2FAE8A9407FFC2A4375A079D6E71C28F7A587C2E5E799D262E35CD3E73101306",
+  "tipped_corrected3_manifest_self": "FF006EDA98F2560B751EBDB6AF5CBBAD3D06A60B3685AA75591640965B85DF19",
+  "tipped_corrected3_artifact_hashes_sha256": "EDB34D1F4D2A2249E8C1D48CE2461011736EE95197D000D624E0189077C50AE3",
+  "tipped_corrected3_tip_sha256": "F59CB6A84074EF85D60F030A7143388B1870250146A1F1FC7AAB33E03C96277C",
+  "tipped_corrected2_manifest_self": "DA55C66EAB845FCB32AF285486C74E5ED030DD34B3B7879F61E14AC37B9BEC4A",
+  "tipped_corrected2_artifact_hashes_sha256": "B0F0B5430D96E0184E3EA08DDE8AD23AE56DA924CAC29384E5D5FD9378B7A05E",
+  "tipped_corrected2_tip_sha256": "7A54DD15327E59203AFED9622D2CE01949071F9141F213B1B16B32C4D5DD9387",
+  "tipped_corrected_manifest_self": "945C67296C604080F06E6AB3E87642522EC5FCEF81EA9D268DA64ACC2D104FE8",
+  "tipped_corrected_tip_sha256": "DB64E51560656DE70E0B9DF8DEB14F43EACE4950466D0FDC2E6716A74FF30389",
+  "review_sha256": "F9BF7E036A8D3A9CBD83C456E2581FE647C83D926653F0013ED76F652B5161A6",
+  "revise2_preparation_scope_sha256": "03F9049ADF9FFD360A73B5995DB116895027CC18770DEC0184DED9418326FDA7",
+  "c09_testclient_no_response_source_md_sha256": "BEBB92D4D66DF7167036414F9B643D996C2A8736C8983FA43CDCFA9FF11D7943",
+  "starlette_0_41_3_testclient_source_sha256": "5F44EC9936AEEA73E0733F925A13C059106BF0E520E6C9EB42C1B9AB30BFA6BD",
+  "fixture_changes_diff_sha256": "96872AB529E219A121CA6BB204DF448AF5F2847D9AD49B7C72EE2ED1E2D5B585",
+  "workspace_payload": "workspace-payload/",
+  "workspace_payload_sha256sums_sha256": "7D3A3D4AC89A13DE94EB6C9EFD7F2F183DD8DC121C07D3760B1FD43499EAB059",
+  "workspace_authorized_sums_sha256": "7D3A3D4AC89A13DE94EB6C9EFD7F2F183DD8DC121C07D3760B1FD43499EAB059",
+  "parent_revise2_manifest_self": "6DB87EBCBC094824899E2F0A7FC9BD45CCD98E31B7F39C4A98D4DB5E3D00DF2D",
+  "parent_revise2_tip_sha256": "28CFA142F5B67400931C90D54D025B868A635B90A518AD926D7551C69DDECC7D",
+  "parent_revise1_manifest_self": "784837940230F542F4F88A2DF1BAF39D14022F09E09CC35EE85075F6202A7191",
+  "parent_revise1_tip_sha256": "5E50F555153CA0C9C4652294E9F70C061C16D5E8AE11F9B4FC0E5C2F4794B8BB",
+  "fake_only_packet": "fake-only-behavioral-harness/",
+  "fake_only_packet_tip_sha256": "7A87A4E1E06498B668B53BB1BF11872488BBF71B3892A0D2D6BA2A297D510ECA",
+  "outer_admission_sha256": "AACAAD3DDCD439AE50D51314172333A8E989DEB3C3E3C1A5824939F5490BBCAC",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pinned_interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+  "pinned_interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "timeout_supervisor": "invoke_fake_behavioral._collect_bounded.poll_wait_interrupt_on_overflow(timeout=30)",
+  "timeout_retirement_limits": {
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5.0,
+    "reader_join_seconds_each": 5.0,
+    "total_disclosed_seconds": 45.0,
+    "total_formula": "30 + 5 + 2*5 = 45",
+    "distinct_from_outer_admission_deadline": true,
+    "no_retry": true,
+    "overflow_interrupt": true,
+    "collection_interrupt_requires_exit_confirmation": true,
+    "primary_collection_failure_blocks_pass": true
+  },
+  "child_pid_custody": {
+    "pin_at_popen_success": true,
+    "fields": [
+      "child_pid",
+      "child_executable",
+      "child_argv",
+      "child_start_timestamp",
+      "child_custody"
+    ],
+    "authority": "receipt_preparation_only",
+    "no_process_enumeration": true,
+    "no_retry": true,
+    "no_fallback": true,
+    "no_new_cleanup_authority": true
+  },
+  "isolation_flags": [
+    "-I",
+    "-S",
+    "-B"
+  ],
+  "isolation_flag_evidence": {
+    "-I": "sys.flags.isolated",
+    "-S": "sys.flags.no_site",
+    "-B": "sys.flags.dont_write_bytecode"
+  },
+  "retained_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144
+  },
+  "capture_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144
+  },
+  "capture_during_collection": true,
+  "reader_retirement_accounting": true,
+  "pin_enforcement": {
+    "outer_admission_file": "OUTER-ADMISSION.json_operator_hash",
+    "outer_admit": "admit_outer_pre_spawn",
+    "interpreter": "admit_outer_and_launcher_hardcoded_pin",
+    "launcher_self": "outer_admission_not_self_hash",
+    "launcher_check_expected_manifest": "launcher_pre_admission_vs_PACKET-SHA256SUMS_excluding_launcher_self",
+    "fixture_sources": "check_script_verify_source_hashes",
+    "control_inventory": "check_script_and_launcher_result_gate_ordered_contract"
+  },
+  "obstruction_present": false,
+  "obstruction_note": "payload SHA256SUMS unchanged from tipped corrected5/6; harness PACKET/OUTER pins regenerated for corrected7; no soft-obstruction",
+  "author": "Justin",
+  "role": "Jim implementation seat",
+  "date": "2026-11-10"
+}

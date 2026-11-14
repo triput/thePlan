@@ -1,0 +1,31 @@
+{
+  "packet": "fake-only-t02-admission-verification",
+  "class": "FAKE-T02-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_t02_fake.py do not embed their own final raw-byte hashes; operator verifies this file's published hash before invoke; empty pin literals refuse",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pin_layers": [
+    "1_operator_OUTER_ADMISSION_hash",
+    "2_admit_outer_subject_pins",
+    "3_launcher_interpreter_and_packet_pins_excluding_self",
+    "4_check_source_pins_and_inventory"
+  ],
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "F94D4395748C1ECCD7C9D85102AEDC50E31D20C2D46F9759132B19E9587E9E47",
+      "invoke_t02_fake.py": "85C829868A1DF683DF69E0652A71002AECF024319CC00E97754AFE0E72D0344F",
+      "check_t02_admission_fake.py": "8661A4F1FFDDCB7400E5B80204A3DF5E5AF5444BF2D33AD6DA580B6226957B92",
+      "EXPECTED-OUTPUT.json": "719DC6DB04BC870E46FA673C83176C8A9925B00204BAFEAEBFA6F91010721A68",
+      "INPUT-MANIFEST.json": "48099B5C94EEC091BA44AF106F3863ED6C3D4AE6C554BC910B2DDBF16FE66C63",
+      "PACKET-SHA256SUMS.txt": "445D3F77FDDAA196B6DC85DB3C5056BA424A4D5715330234E69A531FB731FBC3"
+    }
+  },
+  "parent_corrected1_tip_preserved": "6B4944B8DACE130CFFC3F74993D13D47F4FD81745612EDE2B7D3BB46F2F18625",
+  "parent_v1_tip_preserved": "A5C7E1DE33E63857A7A8E503262F6F2A85A34C6E5573C50734538E00147C0526",
+  "revision": "dex-inventory-amendment-v1",
+  "approval_call": "call_61f574d0b91546148d1c5fde581a4e37/1",
+  "parent_corrected2_tip_preserved": "57BE64F8297D6D19911C94D330B0F1062F93AAC5D565DB5F75F6D91E042762BF"
+}

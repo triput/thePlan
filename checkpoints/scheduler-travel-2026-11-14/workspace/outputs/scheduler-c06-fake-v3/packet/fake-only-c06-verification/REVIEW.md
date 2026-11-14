@@ -1,0 +1,5 @@
+# C06 fake v3 — approved artifact-stem preparation, HELD
+
+Dex prepared the approved one-line check change in a fresh workspace copy of Jim corrected6. The second occupied-port call now uses artifact_stem="C06-P-PORT-15432"; the first fake case result remains preserved and exclusive-write guards unchanged. Check code differs by exactly this line; all assertions and39 control IDs, all fixture/production source and supervisor Python files remain unchanged.
+
+Both earlier failed workspace runs and every original drop remain untouched. Preparation approval grants no execution or rerun. All process, filesystem, TLS and signal behavior in extracted fixture controls remains fake. A future separately authorized launch still starts the reviewed real local outer/launcher/check supervisor chain and capture readers, under30+5+5+5=45s collection/retirement limits,64KiB captures and256KiB result. Outer admission/file operations and process/OS latency are excluded. Stop on failure/mismatch/timeout/UNKNOWN; no automatic retry, repairs or extra cleanup. No PKI, sockets, app/vendor imports, database, Docker, installation or native launch. Endpoint unbound.

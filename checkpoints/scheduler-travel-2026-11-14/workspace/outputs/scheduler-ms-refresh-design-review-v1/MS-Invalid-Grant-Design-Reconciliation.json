@@ -1,0 +1,38 @@
+{
+  "kind": "Dex MS invalid_grant design reconciliation",
+  "atUtc": "2026-11-13T20:19:26.2957501Z",
+  "event": "Ev0CJFRCLJKS",
+  "handoffSha256": "74F493D8CA5B52B8CCCF6A5DF4A89DDE15972E3982D4E248508988909A56B8DA",
+  "sidecarPinsVerified": 19,
+  "verdict": "Qualified acceptance for fresh preparation; no new product policy or execution authority",
+  "verified": [
+    "Production complete admitted status400 object error invalid_grant raises CoveringReauthorizationRequired; adapter maps TokenRejected and requires native rollback",
+    "Dispatch preflight row/no_op and continue mean IMPORT not entered for this target",
+    "Fixture ms_token_invalid_grant_script line116 lacks tenant path used by production _token_url and success script",
+    "One subscription prevents repeated refresh attempts against unchanged expired credential"
+  ],
+  "qualifications": [
+    "Q1: before-send is established by sent=False, not method name. JoinedTLS.send sets sent=True before sock.send; a failure inside that call must map UNKNOWN even if zero accepted bytes is known. Before-first-send check/open failures can remain original only with actual sent=False and successful cleanup.",
+    "Q2: native terminal observer rows include token_rollback_ack. Require one full row terminal=ROLLBACK_ACKNOWLEDGED,token_rollback_ack=True,commit_requested=False, or explicit checked projection without discarding the rollback acknowledgment predicate.",
+    "Q3: save/restore token_terminal observer as well as CoveringHTTP constructor/request and run_target in finally; same-object exception/return preservation; no behavior override.",
+    "Q4: separate fresh native sessions compare seed semantic access/refresh booleans and exact expiry before/after; coverage state unchanged; no ciphertext shortcut.",
+    "Q5: source-derive coverage/readiness or explicitly leave only those final-assessment values unproved; record actual final assessment without claiming full coverage/readiness from no_op alone.",
+    "Q6: bounds disclose per-command1MiB capture plus1MiB report,32command cap/22 source-derived success,900suite/600runner,one120+5peer,PKI30+5+two5joins=45nominal; exclude startup/outer/file/OS and preserve CLI no-wait limitation.",
+    "Q7: no dependency report should continue to call peer-close fake unexecuted: it now PASS11/35, finite scope only; native transport/OAuth proof still open."
+  ],
+  "mutableFixtureRoles": [
+    4,
+    5,
+    8
+  ],
+  "verificationRoles": [
+    13,
+    14,
+    15,
+    16
+  ],
+  "immutableSelectedApplicationFiles": 234,
+  "sourceAuthoringAuthority": "Standing389A00DD lane; no new preparation card required",
+  "nativeOrFakeExecutionAuthority": "NONE",
+  "endpoint": "unbound"
+}

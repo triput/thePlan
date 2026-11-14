@@ -1,0 +1,37 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-google-refresh-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-google-refresh-prep-dex-v3\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py"
+index 1172d48..0fbecef 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-google-refresh-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-google-refresh-prep-dex-v3\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py"
+@@ -1567,6 +1567,7 @@ def _run_np_v_google_refresh() -> dict[str, Any]:
+     from app.services.covering_http_transport import CoveringHTTP
+     from app.services.covering_joined_https import JoinedTLS
+     from app.services.covering_http_dispatch import CoveringReleaseBinding
++    from app.services.covering_native_orm_factory import CoveringORMConnection
+ 
+     case_id = "NP-V-GOOGLE-REFRESH"
+     decl = registry_by_id(include_cf=True)[case_id]
+@@ -1782,6 +1783,7 @@ def _run_np_v_google_refresh() -> dict[str, Any]:
+             captured_contexts.append(context)
+ 
+         real_init = CoveringHTTP.__init__
++        real_terminal = CoveringORMConnection.token_terminal
+         _install_token_terminal_observer(native_terminals)
+ 
+         def capturing_init(self, *args, **kwargs):
+@@ -1835,6 +1837,7 @@ def _run_np_v_google_refresh() -> dict[str, Any]:
+                 restore_worker_observer()
+                 restore_worker_observer = None
+             CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            CoveringORMConnection.token_terminal = real_terminal  # type: ignore[method-assign]
+             try:
+                 if transport is not None and real_request is not None:
+                     transport.request = real_request
+@@ -1842,6 +1845,8 @@ def _run_np_v_google_refresh() -> dict[str, Any]:
+                 pass
+ 
+         assert_plan_still_valid(seed.t_plan)
++        if CoveringORMConnection.token_terminal is not real_terminal:
++            raise SuiteStop("token terminal observer restoration failed")
+         if not captured_contexts or getattr(captured_contexts[0], "budget", None) is None:
+             raise SuiteStop("ingress on_context did not capture the request budget")
+         ingress_budget = captured_contexts[0].budget

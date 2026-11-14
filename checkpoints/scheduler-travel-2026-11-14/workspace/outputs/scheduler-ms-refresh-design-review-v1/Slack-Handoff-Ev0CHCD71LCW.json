@@ -1,0 +1,11 @@
+{
+  "event": "Ev0CHCD71LCW",
+  "message_ts": "1794554160.990799",
+  "thread": "1794534925.412399",
+  "at_utc": "2026-11-13T07:17:48.3951362Z",
+  "classification": "Pointer to already reconciled native review7335772A;no new question/blocker/authority",
+  "basis": "Worker-Native-Peer-Reconciliation.json2454FB6B;exact native execution card pending",
+  "reply_sent": false,
+  "native_execution_authorized": false,
+  "endpoint": "unbound"
+}

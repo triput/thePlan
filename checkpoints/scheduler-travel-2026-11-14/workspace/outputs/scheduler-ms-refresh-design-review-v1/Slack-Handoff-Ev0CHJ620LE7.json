@@ -1,0 +1,11 @@
+{
+  "disposition": "Duplicate message already handled as Ev0CHU41FNPN; no reread/reply or authority change",
+  "duplicate_of": "Ev0CHU41FNPN",
+  "thread_ts": "1794534925.412399",
+  "message_ts": "1794634448.936989",
+  "slack_reply_sent": false,
+  "event": "Ev0CHJ620LE7",
+  "atUtc": "2026-11-14T05:36:58.0748410+00:00",
+  "endpoint": "unbound",
+  "sender": "U0C68LUTURJ"
+}

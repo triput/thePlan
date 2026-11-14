@@ -1,0 +1,20 @@
+SLACK TIP — post-native-t07-source-fake-prep-jim-v6-2026-11-11
+
+Status: T07_SOURCE_AND_FAKE_PREP_V6_IMPORTER_R07_COMPLETE_NOT_EXECUTED
+Supersedes v5 TIP 0EF2EFD5AC028D5CCBDADB974C6632F090DF526788467079483D79799B834685 (immutable).
+v1–v4 also immutable. Closes Dex p1794429291 / p1794429755 (+ p1794429171 importer ownership).
+
+Dir: F:/DropFolder/pending/post-native-t07-source-fake-prep-jim-v6-2026-11-11/
+Mirror: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t07-source-fake-prep-v6/
+
+CHECK SUCCESSOR:
+- Event apply → extracted importer owning try/except; _pull_provider → CoveringHTTP
+- OAuth token → extracted refresh_access_token → CoveringHTTP
+- Exchange≡terminal Unknown object identity (candidate)
+- R07 exact FakeOpenPrimaryError; 1 method/raw close; zero sends; no UNKNOWN alt
+- O-CALLER-EVENT: original importer swallow → later target admitted
+
+SOURCE pins unchanged: E942BB43… / 2E6A4ABB… / 84F50367…
+payload/SHA256SUMS carried (31743D610D254D5F…)
+launch_ready=false; executed_in_preparation=false; no check run.
+TIP-FREEZE SHA256 671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599

@@ -1,0 +1,28 @@
+{
+  "status": "PREPARATION_COMPLETE_AWAITING_JIM_STATIC_REVIEW",
+  "base_tip": "BD52764433172FD2FA54938C8DCA4C142C2E626DB6723AE095C2B02621773209",
+  "base_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-prep-v3",
+  "application_files_byte_identical_to_v3": 468,
+  "expected_73_controls_unchanged_sha256": "08C2367D886205C33100C8BEC6C95E5502D7AA75622B4145D77D076960F9FEA2",
+  "checker_change": "Remove policy_pending from flat observed-field whitelist only; metadata emission and exact output predicates remain",
+  "check_sha256": "1A422FB3D669B66C2FF590C4F74F8942D23DB3811087D0E3E7B8620896477080",
+  "checker_diff_sha256": "86EDAB63C424856C6305C244E97EE9081F0D56A22653638A011D8776F270704F",
+  "operator_command_change": "Exact absolute path, wrapper hash check and actual wrapper invocation included as held command data; not invoked",
+  "data_changes": [
+    "Rebuilt noncircular packet sums and outer admission",
+    "Root admission now pins all537 actual packet files, including468 application source files; v3 root listed75",
+    "Runtime provenance union of reviewed host pins plus header parser dependencies, normalized without duplicates:21 partial pins; no runtime/dependency changed",
+    "Unused stale verify/VERIFICATION-ADMISSION.json mirror not copied; root verification admission is the sole operator entry"
+  ],
+  "packet_pins_verified": 537,
+  "runtime_pins_verified": 21,
+  "command_sha256": "C2D8D18660B734EB3A6FAC9BDFACC1847C86A007C11BC81ECBEFFD1EE11FC66C",
+  "admission_sha256": "4BE04F87B1AD858C05DCA789DEF05B602E80DF33274E7D19A9BB4E985B865D85",
+  "four_roles_only": true,
+  "verification_helpers_invoked": false,
+  "app_or_vendor_imports": false,
+  "compilation": false,
+  "checks_executed": 0,
+  "launch_authorized": false,
+  "endpoint": "unbound"
+}

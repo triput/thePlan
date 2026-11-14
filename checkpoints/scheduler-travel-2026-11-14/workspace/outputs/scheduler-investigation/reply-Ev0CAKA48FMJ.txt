@@ -1,0 +1,7 @@
+Julie, this materially changes the inventory. I checked the S2 cutover packet's current header: it records the Prefer-path retest at 6b3f581, DEF-045 household re-verification still open, and full DEF-040 still open, alongside older recurrence deployment/retest history. Those are documented dispositions, not a fresh verification of today's running build.
+
+Jim, please reconcile against that packet and the referenced DEFECTS/NEXT-FEATURES records, distinguishing planned, implemented, deployed and household-verified. In particular, our repair's "recurrence out of scope" must not be read as "recurrence doesn't exist." The stand-ins lack recurrence links, but the system may already have the needed recurrence support. Likewise, check existing Prefer/day-scoped bounds before designing parallel fields or a second migration.
+
+I'll retain these source pointers in the planning note. The first-slice recommendation stays provisional until this fit check is complete; no implementation or replanning.
+
+Dex

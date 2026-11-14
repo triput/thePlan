@@ -1,0 +1,72 @@
+diff --git "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t04-body-stall-fake-prep-matt-v1\\packet\\verify\\check_native_provider.py" "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t04-body-stall-fake-dex-v1\\packet\\verify\\check_native_provider.py"
+index e62b3a6..26d7bab 100644
+--- "a/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t04-body-stall-fake-prep-matt-v1\\packet\\verify\\check_native_provider.py"
++++ "b/C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-t04-body-stall-fake-dex-v1\\packet\\verify\\check_native_provider.py"
+@@ -560,12 +560,17 @@ def transcript_namespace(text: str) -> dict[str, Any]:
+     from dataclasses import dataclass
+     from typing import Literal
+ 
+-    namespace: dict[str, Any] = {"dataclass": dataclass, "Literal": Literal, "__name__": "transcript_subject"}
+-    exec_units(text, ("CloseMode", "ResponseFraming", "ExchangeStep", "ExchangeScript",
+-                      "ms_graph_identity_default_script", "ms_graph_identity_list_script",
+-                      "T04_BODY_STALL_EXCHANGE_COUNT", "T04_BODY_STALL_BODY_TEMPLATE",
+-                      "ms_graph_calendar_view_body_stall_script", "ms_body_stall_connection_inventory"),
+-               namespace, "transcript")
++    # Real dataclasses resolve string annotations through their defining module.
++    # Own that temporary module only while the extracted definitions are built.
++    with Sandbox(("transcript_subject",)) as box:
++        module = box.put("transcript_subject", types.ModuleType("transcript_subject"))
++        namespace = module.__dict__
++        namespace.update({"dataclass": dataclass, "Literal": Literal})
++        exec_units(text, ("CloseMode", "ResponseFraming", "ExchangeStep", "ExchangeScript",
++                          "ms_graph_identity_default_script", "ms_graph_identity_list_script",
++                          "T04_BODY_STALL_EXCHANGE_COUNT", "T04_BODY_STALL_BODY_TEMPLATE",
++                          "ms_graph_calendar_view_body_stall_script", "ms_body_stall_connection_inventory"),
++                   namespace, "transcript")
+     return namespace
+ 
+ 
+@@ -597,6 +602,43 @@ def oracle_transcript(text: str) -> dict[str, str]:
+             refused.append(True)
+     require(refused == [True, True, True], "transcript:query refusal")
+     cases["bad_query_refused"] = "PASS"
++    require("transcript_subject" not in sys.modules, "transcript:module removed after definitions")
++    cases["namespace_removed_after_success"] = "PASS"
++    # Refuse an ambient module without replacing or deleting someone else's entry.
++    with Sandbox(("transcript_subject",)) as box:
++        existing = box.put("transcript_subject", types.ModuleType("transcript_subject"))
++        try:
++            transcript_namespace(text)
++            conflict = None
++        except WitnessFailure as exc:
++            conflict = exc
++        require(type(conflict) is WitnessFailure and str(conflict) == "sandbox precondition"
++                and sys.modules.get("transcript_subject") is existing,
++                "transcript:ambient module preserved")
++    cases["preexisting_module_refused_unchanged"] = "PASS"
++    # A definition failure must remove the owned module and preserve the failure.
++    definition_failure = RuntimeError("injected transcript definition failure")
++    original_exec_units = globals()["exec_units"]
++
++    def fail_definitions(source, names, namespace, label, class_name=None):
++        module = sys.modules.get("transcript_subject")
++        require(module is not None and module.__dict__ is namespace,
++                "transcript:definition module registered")
++        raise definition_failure
++
++    try:
++        globals()["exec_units"] = fail_definitions
++        try:
++            transcript_namespace(text)
++            raised = None
++        except BaseException as exc:  # noqa: BLE001
++            raised = exc
++    finally:
++        globals()["exec_units"] = original_exec_units
++    require(raised is definition_failure and "transcript_subject" not in sys.modules
++            and globals()["exec_units"] is original_exec_units,
++            "transcript:module removed after definition failure")
++    cases["definition_failure_identity_and_cleanup"] = "PASS"
+     return cases
+ 
+ 

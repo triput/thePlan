@@ -1,0 +1,13 @@
+{
+  "at_utc": "2026-11-12T20:46:35.3197750Z",
+  "workspace_files": 281,
+  "drop_files": 281,
+  "matched_file_hashes": 281,
+  "mismatches": [],
+  "tip_raw_sha256": "9C49E0B84B36F7B53FADC79490FCEF3AB2CE093FA6F6B6A8E16F40243BEDD38D",
+  "tip_preimage_matches": false,
+  "tip_preimage_sha256": "0CBC2BF5DB9875FCA19F75D13AD6D6F014FC4D393429EBD2A498715BEF643158",
+  "behavior_accepted": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

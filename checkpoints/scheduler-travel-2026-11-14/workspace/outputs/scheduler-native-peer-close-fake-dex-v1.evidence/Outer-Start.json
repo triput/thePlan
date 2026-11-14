@@ -1,0 +1,9 @@
+{
+  "sequencePosition": 1,
+  "atUtc": "2026-11-13T19:05:36.1771355Z",
+  "oneShotConsumed": true,
+  "commandSha256": "8B44B8BC0277A70A2E9B739C0DBE0BC840B7F63DB62E89B5DAB8D7C0DDD008C6",
+  "packet": "peer-close",
+  "retries": 0,
+  "admissionSha256": "4104D6EBCEB4BB3DC4CFDC17C2905E2BDB4FA56A0B9E30619317DC6462589B9B"
+}

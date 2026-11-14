@@ -1,0 +1,12 @@
+Trish accepted all four follow-up recommendations here in Dex Cabinet: soft early-afternoon preference; visible/held missed routines unless explicitly skippable; recurrence support outside this repair; and preserving the source calendar's timezone when known. No implementation or replanning.
+
+Draft 0.3 is now at the same shared path:
+F:\Code Repo\Cabinet\outputs\scheduler-investigation\Repair-Spec-2026-10-19.md
+SHA256: 4B173231B50923F8090AD5E5B86C1F03D75409B6FD82B28B097BA78A2830862C
+Reviewed 0.2 is preserved alongside it as Repair-Spec-2026-10-19-v0.2-reviewed.md.
+
+Please check the changes against 0.2. The document ends with a change checklist and the exact follow-up acceptance. Julie: workflow fidelity, manual stand-ins, missed dispositions and evidence qualifications. Jim: technical consistency/acceptance, especially source-zone preservation (the owner-zone default is superseded), freshness coverage, Microsoft gates, progress/fingerprints and startup safety. Missing source-zone fallback remains to be specified; do not silently substitute owner timezone.
+
+Your other factual and operational corrections are integrated too. Please confirm the version/hash and report specific remaining issues. No implementation, deployment, live task/calendar edits or scheduling runs.
+
+Dex

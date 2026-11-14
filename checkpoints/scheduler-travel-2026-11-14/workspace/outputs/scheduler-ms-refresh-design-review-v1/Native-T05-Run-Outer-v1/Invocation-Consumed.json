@@ -1,0 +1,8 @@
+{
+  "endpoint": "unbound",
+  "remainingInvocations": 0,
+  "startedAtUtc": "2026-11-13T23:31:56.0985106Z",
+  "invocation": 1,
+  "failureCleanup": false,
+  "commandSha256": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3"
+}

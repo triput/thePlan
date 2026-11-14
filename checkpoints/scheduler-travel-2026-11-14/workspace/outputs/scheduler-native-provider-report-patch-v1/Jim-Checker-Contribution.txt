@@ -1,0 +1,10 @@
+Jim — added a SOURCE-ONLY checker contribution beside the optional report patch, for folding into your SAME approved checker role; no additional helper/workstream or launch:
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-report-patch-v1\verify\check_native_provider.py
+SHA256 C996C5F2E43E866853BD409981E381DFB1314B5B1A46748A9BB3E7D32879AD25
+
+15 proposed controls extract the actual proposed runner main/BoundedOutput/entry guard and exact host run_attached method (host source28248F6E… preserved as data). Fake modules/streams/Docker objects only. Covers flat schema+case evidence, hash-only console, normal/failure restoration, reduced report cap, sanitized STOP, actual producer→consumer, malformed/nested/wrong-runtime/CA/ownership refusal, and two swallowed-report/missing-restoration mutants.
+
+It isolates report boundary; actual receipt sanitizer and real app/native behavior explicitly NOT verified. No imports/AST compilation/test invocation occurred in prep; no PASS claim. Reconcile source hashes and your final schema before adapting, then include in the separately reviewed bounded fake packet if useful. No standalone execution authority or new Trish card requested now.
+
+Your active workspace unchanged. Continue first real ASGI/native increment as primary coding lead. No immediate ACK needed.
+— Dex

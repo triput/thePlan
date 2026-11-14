@@ -1,0 +1,260 @@
+[
+  {
+    "path": "outputs/scheduler-google-functional-native-dex-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "6E7305E464220A9229801FAC15239DE4C1D9A5C7FF271F70E06BE831B2E154A9",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-google-functional-native-dex-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "BBF44635589F9294614F303962617D17BE381AD8E341A9AC5AF929ACFAC45D81",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-google-invalid-native-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "D83C81871F1CE0BAA1C22977A214621C54F39F42DC5C25901B191F05EBD865E2",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-google-invalid-native-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "243EEBA6BCEC4920FDC71DA8EAFDA822F2C73893CF3FDB16923D4B13D09CD6E8",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-matt-transition-v1/Matt-thePlan-Scheduler-Diagnostic-Context-2026-11-12.zip",
+    "bytes": 65242,
+    "sha256": "23F995D0C9888D84DF77D9454FCD5DF48F7F58D1C5B254E5615F0C6B47E888B2",
+    "reason": "Opaque historical archive excluded; signed source handoff files retained separately"
+  },
+  {
+    "path": "outputs/scheduler-native-i01-i02-v4.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "89E1E7CE53CB2AB450680095D5D63E1A176333755577A3E8BB253742DEB344BB",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-i01-i02-v4.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "09DEFA0B8B842F32A92F769CAA830C449D0BF755016F951BA8F53F574E13F7C0",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-ms-invalid-retirement-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "A5394953204236CEDD05DDD0596EACAA0BB61AB2FFAC78BA18990FF74FEE84D4",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-ms-invalid-retirement-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "80B5DD73E8CE3F062327B1A87B93D08EA80FE9604AA30DCC9DD800B60E330E01",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-ms-nonexpired-retirement-launch-matt-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "C6F7B0EF3D3E68B129AADD3586832E740DDB29A98B3DB98F70D5C11DE29F4AD1",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-ms-nonexpired-retirement-launch-matt-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "E07A5CEF4D070AB061F8951D81527CCE56039B8659FC854A752B6C8F0D34E666",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "F716E3E80E1EEEEDB7D748DB4E51B814C9356D2E23307365EC412B4A16E5E9D0",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "ECA041481A714BF97BA15675A12E5B8F211E8A8946CCBD119D3527380CC7EA32",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "469AA647665A15585BC22379CA288FAB1D5889CF236DF8F832853FE3A7000DE6",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "51F30F5E279BA632BB2D5CF761541C03F32F7147DAAAA0475FBEBE6DCBC3E17B",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-t05-client-cause-launch-dex-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "82D22F68600D319929899C356CF105118B821E6B3174B1928CECC82E6D3FAC16",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-t05-client-cause-launch-dex-v2/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "FA99081B3C74B5E7F5C162B2E373BC3C284564374A2EF132DC3EE5FAF62D7ED3",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-t05-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "53BD8EE69BDDB87F79169419322209B386C7A02B2A28A896C61EDC8A85EEF928",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-t05-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "79BB0DE158939D2842B287B76848D92793FF092653DF3CB5D9E654F6E6C187DF",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "45B6E3F1A5AD0124F51EB21B17512D9713EE98BF3E36851D4AB1496262AC8D6C",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-native-provider-worker-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "DEB474D5F9961AE17201B22372660F8BCECF60481B563D07C9A176AC10A04F91",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/01.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/01.stdout.bin",
+    "bytes": 124,
+    "sha256": "D2B64A705FBB475D8076365E66C548EF0B942E4A167E410ED8E1AE78915E88D5",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/02.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/02.stdout.bin",
+    "bytes": 65,
+    "sha256": "99A471EA5FFD5A3E866DFF163116D219A91E128A45FE3DF8C0213F58C4600A0F",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/03.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/03.stdout.bin",
+    "bytes": 2402,
+    "sha256": "DD29E6B437B79D6D7EAF26A040C5F4A03F642199E65B8E9E29BC6A0D4664DEE3",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/04.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/04.stdout.bin",
+    "bytes": 213180,
+    "sha256": "B5BCE2EA807254B0DB185687F242F263E946B18663F09F3E69E2158236B4DFB8",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/05.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/05.stdout.bin",
+    "bytes": 2419,
+    "sha256": "1BF33434F533CD5530D30EBF53D118776ECF02A20B759587729501586121CA38",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/06.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/06.stdout.bin",
+    "bytes": 65,
+    "sha256": "99A471EA5FFD5A3E866DFF163116D219A91E128A45FE3DF8C0213F58C4600A0F",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/07.stderr.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-native-provenance-dex-v3.evidence/07.stdout.bin",
+    "bytes": 0,
+    "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "reason": "Raw capture excluded; sanitized receipts/source copies retained"
+  },
+  {
+    "path": "outputs/scheduler-t05-original-framing-prep-v1/__pycache__/_prep_build_only.cpython-311.pyc",
+    "bytes": 29470,
+    "sha256": "72615E8E4EABB57A9032EF695B2752139E1BCFE42759560A4C71AB5E35AE12CC",
+    "reason": "Interpreter cache excluded"
+  },
+  {
+    "path": "outputs/scheduler-t05-original-framing-prep-v2/__pycache__/_prep_build_only.cpython-311.pyc",
+    "bytes": 29470,
+    "sha256": "72615E8E4EABB57A9032EF695B2752139E1BCFE42759560A4C71AB5E35AE12CC",
+    "reason": "Interpreter cache excluded"
+  },
+  {
+    "path": "outputs/scheduler-t05-original-framing-prep-v3/__pycache__/_prep_build_only.cpython-311.pyc",
+    "bytes": 29470,
+    "sha256": "72615E8E4EABB57A9032EF695B2752139E1BCFE42759560A4C71AB5E35AE12CC",
+    "reason": "Interpreter cache excluded"
+  },
+  {
+    "path": "outputs/scheduler-t07-source-fake-prep-v4/fake-only-t07-retirement-verification/__pycache__/check_t07_retirement_fake.cpython-311.pyc",
+    "bytes": 139482,
+    "sha256": "308E830FFF31D1B384C3999AAEB40D8148B2E08B761982C55D16E36E43996D6E",
+    "reason": "Interpreter cache excluded"
+  },
+  {
+    "path": "outputs/scheduler-t07-source-fake-prep-v5/fake-only-t07-retirement-verification/__pycache__/check_t07_retirement_fake.cpython-311.pyc",
+    "bytes": 145720,
+    "sha256": "BC21F97F245B55D7CCEE16D0A755ECADE23D244541976C92839567E1C578F086",
+    "reason": "Interpreter cache excluded"
+  },
+  {
+    "path": "outputs/scheduler-t07-source-fake-prep-v6/fake-only-t07-retirement-verification/__pycache__/check_t07_retirement_fake.cpython-311.pyc",
+    "bytes": 156237,
+    "sha256": "89D4A5EA4D09F30FF9F3A37C6CF79DA97E5BAD62C5F882CF87A800B294423067",
+    "reason": "Interpreter cache excluded"
+  },
+  {
+    "path": "outputs/scheduler-t08-ownership-native-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/ca.crt",
+    "bytes": 1505,
+    "sha256": "650AE448B42C3FB9815DFFB91FD614B87EB67C6F0DD80E058B3948AEC9E3F1BC",
+    "reason": "Generated key/certificate material excluded"
+  },
+  {
+    "path": "outputs/scheduler-t08-ownership-native-dex-v1/scheduler-native-provider-diagnostic-launch-v1.evidence/public-ca/untrusted-ca.crt",
+    "bytes": 1501,
+    "sha256": "66674C5C623CBEA2D842EB2BB7E7F97611CCE39DD586325FDE2AE32574272FBD",
+    "reason": "Generated key/certificate material excluded"
+  }
+]

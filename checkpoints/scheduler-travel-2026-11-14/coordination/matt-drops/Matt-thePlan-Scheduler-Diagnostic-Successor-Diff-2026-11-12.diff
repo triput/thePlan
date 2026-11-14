@@ -1,0 +1,249 @@
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-first-native-launch-candidate-dex-v3/SUCCESSOR-README.md scheduler-native-provider-runner-diagnostic-prep-matt-v1/SUCCESSOR-README.md
+--- scheduler-native-provider-first-native-launch-candidate-dex-v3/SUCCESSOR-README.md	1969-12-31 16:00:00.000000000 -0800
++++ scheduler-native-provider-runner-diagnostic-prep-matt-v1/SUCCESSOR-README.md	2026-11-12 18:11:12.322546800 -0800
+@@ -0,0 +1,33 @@
++# Runner diagnostic successor — preparation only (Matt v1)
++
++Matt, November 12, 2026. This packet implements the approved assignment `Matt-thePlan-Scheduler-Diagnostic-Preparation-Assignment-2026-11-12.md` (SHA256 `782AB2F2…8E5F`).
++
++**Status: STAGED_NOT_EXECUTED.** It is not launch-ready. Nothing in it has been imported, parsed, compiled or run. Human launch authority is HELD, and no EXECUTE acknowledgement exists.
++
++## Lineage
++- **Base:** a fresh byte copy of `scheduler-native-provider-first-native-launch-candidate-dex-v3`. All 265 of its input-manifest entries re-hashed OK before copying (`26560DF4…2EAF`). The stopped packet and its `.evidence` directory are untouched.
++- **Source change:** exactly one. The approved diff `V3-Proposed-Runner-Diagnostic.diff` (`F6135717…9832`) was applied with `patch -p1`, cleanly, with no fuzz, to `payload/fixture/np_runner_entry.py`.
++  - The base was `7FBDCAEE…55FF5`. The result is `40A1BA8E…BF73F`, which equals Dex's expected exact LF candidate.
++
++## Metadata refreshed (truthfully)
++- **`payload/SHA256SUMS.txt`:** only the runner pin line changed, and the file was re-sorted. All 257 pins verify. Its aggregate hash is `3B25ABB6…2A90`.
++- **`host/launch-config.json`:**
++  - The packet name and the paths to the ops config and receipt directory now name this successor.
++  - `manifest_sha256` is now `3B25ABB6…2A90`.
++  - **`launch_ready` is false.** The operator refuses before starting any child.
++  - `candidate_launch_ready_staged` is false.
++  - The candidate note was rewritten, and lineage keys were added.
++- **`host/docker-ops-config.json`:** only its 8 path strings changed, to name this successor. Every other byte is unchanged.
++
++## Unchanged by design
++- All 234 `payload/api` files.
++- Every other fixture, helper and host executable file, including `docker_transport.py` (`7F7EA820…AC53`) and `Invoke-Native-Provider.ps1` (`090A0FA8…F612`).
++- `payload/runner-config.json`. It still carries the inherited `launch_ready: true`, which is not permission.
++
++## Historical copies (NOT current instructions)
++`TIP-FREEZE.json`, `Launch-Decision.md`, `Static-Staging-Receipt.json` and `Reviewed-Command.ps1.txt` are byte-identical copies of the dex-v3 records. They describe the stopped packet. **`Reviewed-Command.ps1.txt` is not an authorized or current launch command**: it names the dex-v3 operator and the old config hashes.
++
++## Known launch blocker (design objection O1)
++The byte-unchanged operator hardcodes its evidence directory as `…\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence` (line 42). That directory exists, holding the preserved failure evidence, and line 93 refuses whenever an evidence directory already exists. So this successor fails closed: it cannot launch without a separately reviewed operator change, which is outside this assignment.
++
++`Input-Manifest.sha256` covers every file in this packet except itself.
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-first-native-launch-candidate-dex-v3/host/docker-ops-config.json scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/docker-ops-config.json
+--- scheduler-native-provider-first-native-launch-candidate-dex-v3/host/docker-ops-config.json	2026-11-12 16:58:35.405634300 -0800
++++ scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/docker-ops-config.json	2026-11-12 18:10:28.102807300 -0800
+@@ -1,8 +1,8 @@
+ {
+-  "packet": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence\\public-ca",
++  "packet": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\payload\\docker-config"
+ }
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-first-native-launch-candidate-dex-v3/host/launch-config.json scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/launch-config.json
+--- scheduler-native-provider-first-native-launch-candidate-dex-v3/host/launch-config.json	2026-11-12 16:58:35.403130700 -0800
++++ scheduler-native-provider-runner-diagnostic-prep-matt-v1/host/launch-config.json	2026-11-12 18:10:37.555562100 -0800
+@@ -1,6 +1,6 @@
+ {
+-  "launch_ready": true,
+-  "packet": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
++  "launch_ready": false,
++  "packet": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
+   "batch_id": "np-v-ms-nonexpired-first-vertical",
+   "endpoint": "unbound",
+   "endpoint_binding_authorized": false,
+@@ -50,10 +50,10 @@
+   "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+-  "manifest_sha256": "336576063E21ECB1718D2C89DF715E570B6A45FD7EA51ECBCA71EA533F24C06D",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3\\host\\docker-ops-config.json",
++  "manifest_sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-runner-diagnostic-prep-matt-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+@@ -81,12 +81,17 @@
+   "static_success_docker_command_count": 22,
+   "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+   "human_launch_authorized": false,
+-  "candidate_launch_ready_staged": true,
+-  "candidate_note": "launch_ready=true staged on host AND payload/runner-config (Dex R1); human_launch_authorized=false; not Trish permission; do not invoke",
++  "candidate_launch_ready_staged": false,
++  "candidate_note": "Matt diagnostic successor: host launch_ready=false (operator refuses before any child); payload/runner-config launch_ready byte-unchanged (true, inherited, not permission); human_launch_authorized=false; do not invoke",
+   "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+   "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+   "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+   "source_candidate_v1_tip_sha256": "E5788AB2348B5EA578E25B2FD7B211F52DDD876202837D419D0BB130413AA313",
+   "dex_r1_revise_note": "runner-config launch_ready flipped true; host flags already true; human authority HELD",
+-  "source_candidate_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440"
++  "source_candidate_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
++  "diagnostic_successor_of": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
++  "diagnostic_successor_base_input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
++  "diagnostic_successor_approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
++  "diagnostic_successor_runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
++  "diagnostic_successor_operator_evidence_path_note": "Byte-unchanged operator hardcodes the dex-v3 .evidence directory (exists) and refuses on existing evidence; successor is not launchable without a separately reviewed operator change"
+ }
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-first-native-launch-candidate-dex-v3/payload/SHA256SUMS.txt scheduler-native-provider-runner-diagnostic-prep-matt-v1/payload/SHA256SUMS.txt
+--- scheduler-native-provider-first-native-launch-candidate-dex-v3/payload/SHA256SUMS.txt	2026-11-12 16:58:35.373094800 -0800
++++ scheduler-native-provider-runner-diagnostic-prep-matt-v1/payload/SHA256SUMS.txt	2026-11-12 18:10:17.628518100 -0800
+@@ -65,6 +65,7 @@
+ 37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B  fixture/i01_asgi_app.py
+ 39EB4E58DE2096F951383F70CDD814F82970FA65A640B9E26E5BA50DF94A2347  api/app/services/export_baseline.py
+ 4070655899C315DC59573FD7046E588370C7DF17C9E78DD6E7C35A48D9FFED31  api/app/scheduler/calculate.py
++40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F  fixture/np_runner_entry.py
+ 41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F  fixture/prepare-tls.sh
+ 468D5E0AE3A0A4688BE09145DFD08C26750D4E3CE5656946072E9F53E5E74651  api/app/services/quick_add.py
+ 478A39A844D17A4C8AA1522D6D1E72BCA1596B31B274657B1ADC7F5749E979A1  api/app/scheduler/input_fingerprint.py
+@@ -133,7 +134,6 @@
+ 7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0  api/app/services/covering_refresh_window.py
+ 7EABB11E13DF1B0AFAD483AF9F66D1CF93B837A32D07FBA86939077D639E3A11  api/app/api/deps.py
+ 7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53  fixture/docker_transport.py
+-7FBDCAEE078CDBE3F695191ABBED93B827A31EB6FED55DCD839AB43A84355FF5  fixture/np_runner_entry.py
+ 7FD73B8770875030B9E275D62A03D4D33CA743298BC05E601DC5AFFEFDAEC150  api/tests/test_covering_http_connector_seam.py
+ 7FDE41DF137612B3C752B120330C128B58FD41E967A4ABB38B2535283C22629E  api/pyproject.toml
+ 81433DB4B59E248F137313C7DC9146D16B362C9F57D899451CCBD70102EFB72E  api/app/services/demo_seed.py
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-first-native-launch-candidate-dex-v3/payload/fixture/np_runner_entry.py scheduler-native-provider-runner-diagnostic-prep-matt-v1/payload/fixture/np_runner_entry.py
+--- scheduler-native-provider-first-native-launch-candidate-dex-v3/payload/fixture/np_runner_entry.py	2026-11-12 15:57:55.681871900 -0800
++++ scheduler-native-provider-runner-diagnostic-prep-matt-v1/payload/fixture/np_runner_entry.py	2026-11-12 18:09:30.329950000 -0800
+@@ -1346,6 +1346,65 @@
+     return bound
+ 
+ 
++def stop_payload(error):
++    """Bounded locations only. Never format exception messages, locals or SQL."""
++    original = {'status': 'STOP', 'kind': type(error).__name__}
++    try:
++        import re
++        def kind(exc):
++            name = type(exc).__name__
++            return name if re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,79}', name) else 'Exception'
++        root = ROOT.resolve()
++        owned = {}
++        for row in (root/'SHA256SUMS.txt').read_text().splitlines():
++            pin, rel = row.split('  ', 1)
++            if re.fullmatch(r'[A-F0-9]{64}', pin) and re.fullmatch(r'[A-Za-z0-9_./-]{1,240}', rel) and rel.endswith('.py'):
++                path = (root/rel).resolve()
++                if path.is_relative_to(root) and path.relative_to(root).as_posix() == rel:
++                    owned[rel] = pin
++        exceptions, seen = [], set()
++        current, truncated = error, False
++        while current is not None and len(exceptions) < 3 and id(current) not in seen:
++            seen.add(id(current))
++            frames = []
++            tb = current.__traceback__
++            walked = 0
++            while tb is not None and walked < 128:
++                walked += 1
++                path = Path(tb.tb_frame.f_code.co_filename).resolve()
++                if path.is_relative_to(root):
++                    rel = path.relative_to(root).as_posix()
++                    if rel in owned:
++                        data = path.read_bytes()
++                        if hashlib.sha256(data).hexdigest().upper() == owned[rel] and 1 <= tb.tb_lineno <= len(data.splitlines()):
++                            frames.append({'path': rel, 'line': tb.tb_lineno})
++                            if len(frames) > 8:
++                                del frames[0]
++                                truncated = True
++                        else:
++                            truncated = True
++                    else:
++                        truncated = True
++                else:
++                    truncated = True
++                tb = tb.tb_next
++            truncated = truncated or tb is not None
++            exceptions.append({'kind': kind(current), 'frames': frames})
++            current = current.__cause__ if current.__cause__ is not None else current.__context__
++        truncated = truncated or current is not None
++        result = {'status': 'STOP', 'kind': kind(error), 'diagnostic': {
++            'version': 1, 'exceptions': exceptions, 'truncated': truncated}}
++        while len((json.dumps(result)+'\n').encode('utf-8')) > 4096:
++            populated = next((entry for entry in exceptions if entry['frames']), None)
++            if populated is None:
++                raise ValueError('diagnostic cap')
++            del populated['frames'][0]
++            result['diagnostic']['truncated'] = True
++        return result
++    except BaseException:
++        return original  # Diagnostic failure must not replace the primary kind.
++
++
+ def main() -> int:
+     """Admit identity + launch_ready config, bind registry, run serial suite.
+ 
+@@ -1435,8 +1494,13 @@
+         console_policy="hash_only_raw_console_not_retained",
+         provider_pki_summary=provider_pki_summary,
+         failure_evidence_limits={
+-            "stop_schema": ["status", "kind"],
+-            "includes_traceback": False,
++            "stop_schema": ["status", "kind", "diagnostic_optional"],
++            "includes_raw_traceback": False,
++            "includes_packet_owned_source_locations": True,
++            "diagnostic_byte_cap": 4096,
++            "diagnostic_exception_cap": 3,
++            "diagnostic_frames_per_exception_cap": 8,
++            "diagnostic_fallback": "original_status_kind",
+             "includes_key_cert_body_credential_bytes": False,
+             "provider_pki_summary_on_stop": False,
+             "note": "STOP does not inherit success PKI summary; no inferred success",
+@@ -1456,10 +1520,10 @@
+     try:
+         _exit_code = main()
+     except BaseException as exc:
+-        # Failure evidence limits disclosed: status + kind only. No traceback,
+-        # exception text, locals, raw console, key/cert/body/credential bytes,
+-        # and no inferred PKI success summary on STOP (C7B8FD74…).
+-        _stop = json.dumps({"status": "STOP", "kind": type(exc).__name__}, sort_keys=True) + "\n"
++        # Existing location-only format: no messages, locals, SQL, key/cert/body
++        # or credential bytes. Bounded diagnostic failure preserves primary kind.
++        # Successful PKI summary is never copied into a STOP envelope.
++        _stop = json.dumps(stop_payload(exc), sort_keys=True) + "\n"
+         sys.stderr.write(_stop)
+         sys.stderr.flush()
+         _exit_code = 125

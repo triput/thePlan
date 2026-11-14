@@ -1,0 +1,11 @@
+--- a/app/services/covering_transport_policy.py
++++ b/app/services/covering_transport_policy.py
+@@ -184,7 +184,7 @@
+         try:
+             u=urlsplit(url)
+             valid=(u.scheme=="https" and u.hostname==self.hostname
+-                   and (u.port or 443)==self.port and not u.username
++                   and (443 if u.port is None else u.port)==self.port and not u.username
+                    and not u.password and not u.fragment
+                    and not any(ord(c)<32 or ord(c)==127 for c in url))
+         except ValueError:

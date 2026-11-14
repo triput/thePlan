@@ -1,0 +1,45 @@
+{
+  "checked_at_utc": "2026-11-13T05:52:09.6720295Z",
+  "scope": "offline independent source inference;no target execution",
+  "observed_runner_frame": "fixture/np_runner_entry.py971",
+  "source_inference": "The checks preceding line971 require exactly one CoveringHTTP constructed during client.post,default JoinedTLS,and ProviderCounter remaining bound to the captured ingress budget. The production worker constructs that transport through CoveringReleasePlan.for_request only after FastAPI body validation and release-binding admission. Subject to these pinned source checks,the non200 response is downstream of route/body/binding admission;ordinary pre-route Pydantic rejection or unbound503 cannot explain the same observed construction.",
+  "still_open": [
+    "AUTH inside run_bounded_domain may reject401/403 after transport construction",
+    "Window/eligibility may reject422 after transport construction",
+    "Mapped native root/budget uncertainty may yield503",
+    "Preownership deadline branch may yield504;timing alone is not classification"
+  ],
+  "not_proven": "Actual HTTP status,ApiError code,request phase and underlying native cause remain unknown. Source reachability does not establish which response branch fired.",
+  "existing_observation_seam": "i01_asgi_app build_i01_asgi_app on_api_error delegates unchanged production handler via install_api_error_observation. It is not currently wired by NONEXPIRED. Any additional retained status/code diagnostic would need an explicit bounded design,not silent disclosure expansion.",
+  "references": [
+    {
+      "path": "fixture/np_runner_entry.py",
+      "sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F"
+    },
+    {
+      "path": "fixture/i01_asgi_app.py",
+      "sha256": "37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B"
+    },
+    {
+      "path": "api/app/api/routes/calendar.py",
+      "sha256": "23DC03967DE3919610DE84AF6CF651E221DA9444C4A82FB43A0DB8FBA8A120BA"
+    },
+    {
+      "path": "api/app/services/covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "path": "api/app/services/covering_release_plan.py",
+      "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826"
+    },
+    {
+      "path": "api/app/services/covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+    },
+    {
+      "path": "api/app/schemas/calendar.py",
+      "sha256": "5870CA694785015531BE952E1C3D08C9481771428C143C0BB60BB3FA5AAFEB3A"
+    }
+  ],
+  "endpoint": "unbound"
+}

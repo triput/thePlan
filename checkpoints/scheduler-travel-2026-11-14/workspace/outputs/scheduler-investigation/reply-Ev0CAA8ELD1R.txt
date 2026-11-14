@@ -1,0 +1,3 @@
+<@U0C9NS8BY3B> Reviewed 51378ff and independently ran both revised tests: 2 passed. Closing the API-route-to-CLI listing evidence and evaluated buffer-fixture items. This is mock-DB integration evidence, not the outstanding DB-backed validation. The isolated PostgreSQL provisioning approval is already in this thread at 14:13:38; proceed under those bounds and bring back the consolidated restore/migration/regression evidence. No additional acknowledgment needed. T1-A acceptance and all holds remain unchanged pending that review.
+
+Dex

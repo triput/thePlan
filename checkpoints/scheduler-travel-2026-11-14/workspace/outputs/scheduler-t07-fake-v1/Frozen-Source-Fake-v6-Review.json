@@ -1,0 +1,33 @@
+{
+  "kind": "Frozen T07 v6 independent static review",
+  "date": "2026-11-11",
+  "tip_sha256": "671E008FA26ABB3EFC4BBCBB32B57C3828A50CAB2ABC343A039B29FE2F2CB599",
+  "check_sha256": "7CD8D26B5E402F4548E4E7DA3EFD64F6A7738D54731C6E7FEC67FE7CACB6C899",
+  "artifact_rows_verified": 15,
+  "extraction_source_rows_verified": 9,
+  "accepted_payload_files_identical": 238,
+  "named_controls": 41,
+  "original_witness_controls": 10,
+  "mutation_controls": 4,
+  "inventory_controls": 5,
+  "noninventory_controls_including_mutations": 36,
+  "findings_closed": [
+    "Event domain apply now calls extracted complete owning importer try/except; injected _pull_provider invokes actual fake-backed CoveringHTTP",
+    "OAuth domain token now calls extracted Google refresh_access_token through fake client linked to CoveringHTTP",
+    "HTTP exchange exception captured before owning caller and compared by identity at terminal domain catch",
+    "Third target and assessment admission counters observed without rewriting",
+    "R07 requires exact injected primary, one method close, one raw close and zero sends; no UNKNOWN alternative"
+  ],
+  "retained_limits": [
+    "Only selected importer try/except is executed, not full importer setup/flush/post-fetch behavior",
+    "OAuth adapter means Google refresh_access_token; make_domain_ports.token policy/terminal logic and account persistence are not exercised by this control",
+    "Native parent/transaction/session completion, budget and ownership are fake boundaries",
+    "No actual sockets/TLS/providers/database or full T07 family completion",
+    "Nine internal extraction source rows are supplemented by complete host packet pinning of all234 API files, including connector/domain/Google consumed by dynamic extraction",
+    "Static review is not a verification PASS"
+  ],
+  "disposition": "ACCEPT for bounded fake-only verification packet preparation; execution held",
+  "unresolved_static_findings_for_this_scope": [],
+  "execution_performed": false,
+  "execution_authorized": false
+}

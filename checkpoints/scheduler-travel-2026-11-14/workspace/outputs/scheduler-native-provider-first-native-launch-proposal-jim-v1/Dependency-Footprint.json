@@ -1,0 +1,172 @@
+{
+  "kind": "first-native-launch-dependency-footprint",
+  "packet": "post-native-provider-first-native-launch-proposal-jim-v1-2026-11-12",
+  "case_ids": ["NP-V-MS-NONEXPIRED"],
+  "expected_unknown_cases": [],
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "dex_native_launch_readiness_seams_sha256": "57AA3A80E26BC7EA29E47AE279E9FA94270F8DA5C5BD2EC586568BFCF154B3E3",
+  "dex_native_launch_readiness_seams_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-implementation-review-v9\\Native-Launch-Readiness-Seams.md",
+  "source_prep_v9": {
+    "workspace": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-v9",
+    "tip_on_disk_sha256": "6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188",
+    "tip_sha256_preimage": "636E628B4D564CC7AE1C2540192D9033DF56E259106628C36676FE7F840DBB82",
+    "dropfolder_read_only": "F:/DropFolder/pending/post-native-provider-prep-jim-v9-2026-11-12",
+    "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+    "approval_sha256": "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4"
+  },
+  "fake_v1_prerequisite": {
+    "status": "UNFULFILLED",
+    "pass_claimed": false,
+    "card_with_trish": true,
+    "staged_packet_untouched": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1",
+    "jim_review_disposition": "QUALIFIED_ACCEPT_STAGING_NOT_PASS",
+    "note": "Treat fake-v1 PASS as unfulfilled prerequisite; do not wait; do not mutate staged packet"
+  },
+  "inventory": {
+    "mutable_role_count": 16,
+    "native_case_count_canonical": 27,
+    "pure_cf_witness_case_count": 4,
+    "planning_ids_retained": 76,
+    "implemented_case_ids": ["NP-V-MS-NONEXPIRED"],
+    "held_native_and_cf": "26_native_plus_4_cf"
+  },
+  "seams_reconciled": {
+    "seam_1_import_order": {
+      "status": "PROPOSED_NARROW_FIX_UNCODED",
+      "issue": "main imports np_integrated_runner/np_receipts before admit_isolated_import_bootstrap; isolated -I -S -B sibling import can fail",
+      "fake_inject_sys_modules": "not_native_proof",
+      "proposed_fix": "admit UID/config/roots then admit_isolated_import_bootstrap then sibling imports; keep reviewed roots/flags; no ambient widen",
+      "entry_sha256": "87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25"
+    },
+    "seam_2_runtime_public_ca": {
+      "status": "PLANNED_I01_I02_IN_MEMORY_BIND_UNCODED",
+      "issue": "run_suite compares /public-ca/ca.crt to config.ca_sha256; entry currently loads prepared sentinel only",
+      "plan": "ephemeral in-memory ca_sha256 from runtime public file; host compare to transferred public hash; never mutate admitted runner-config; never pre-generate private material; never conflate with provider PKI",
+      "integrated_runner_sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "docker_transport_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+      "i01_i02_lineage_note": "passed scheduler-native-i01-i02-v4 runner_entry public-CA in-memory binding ~line 688"
+    },
+    "seam_3_acyclic_input_graph": {
+      "status": "DOCUMENTED_GRAPH_BYTE_PIN_REQUIRED",
+      "issue": "wrapper checks DockerConfigPath existence not hash; launch-config embedding manifest_sha256 must not cycle with payload manifest",
+      "roots": {
+        "A_host_launch_config": "operator ExpectedConfigSHA256; excludes self from payload manifest",
+        "B_payload_manifest": "launch-config.manifest_sha256 -> payload/SHA256SUMS.txt; excludes host launch-config and docker ops config",
+        "C_docker_ops_config": "separate ExactDockerConfigSHA256 (or equivalent) on launch card; filename alone insufficient",
+        "D_host_exe_pins": "python_sha256 / docker_sha256 on launch-config; partial inventory disclosed"
+      },
+      "invoke_native_provider_sha256": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D"
+    }
+  },
+  "host_runtime": {
+    "python_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "python_inventory": "partial_interpreter_only",
+    "docker_path": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+    "docker_sha256": "UNFROZEN_PENDING_LAUNCH_CARD_000000000000000000000000000000000000000000000000000000000000",
+    "endpoint_npipe": "npipe:////./pipe/dockerDesktopLinuxEngine",
+    "endpoint_binding_authorized": false,
+    "isolated_flags": ["-I", "-S", "-B"],
+    "docker_ops_config_byte_pin": "REQUIRED_UNFROZEN"
+  },
+  "config_pins_prep_v9": {
+    "payload/launch-config.json": "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+    "payload/runner-config.json": "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+    "verify/VERIFICATION-ADMISSION.json": "E55A43F78688D48D7C9A8D5D5F8BEDDF9184A29F6668551504ED65852879E38D",
+    "Mutable-Role-Hashes.json": "78A4588486B0AC98129CC95D13E672689B4C8EF818332AF468F882481F001F3D",
+    "docs/R4-Reviewed-Input-Pins.json": "4A92DA67BF603CCDF3F75209CAF10038DD4647676B9752E1C15C0140B006D605",
+    "docs/Immutable-Helper-Lineage.json": "EC764FB8C90E0D350B7705D67E37BDE1BCC9FBC02FECFABF53D50D16C39A8B88",
+    "data/Expected-Outcomes.json": "986BD91C23044C23AD74B138232B56704A387EEC2DDB072F34D9907D2263DAC6",
+    "data/Case-Requirement-Map.json": "5E5F93AA6FBA8F03DD0C8968D0EB0A7372F7937278055953FEC6FD795AD2E15B"
+  },
+  "key_role_sha256": {
+    "Invoke-Native-Provider.ps1": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+    "np_supervisor.py": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+    "np_integrated_runner.py": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+    "np_runner_entry.py": "87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25",
+    "np_suite.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+    "np_receipts.py": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+    "np_provider_peer.py": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55",
+    "np_provider_transcript.py": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3",
+    "np_provider_routes.py": "9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA",
+    "np_auth_seed.py": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+    "np_alias_seed.py": "309CE658479FFD665408B6EAABF318258AF402D29F23C0C3F9BD99E5FDA003AD",
+    "prepare-np-provider-tls.sh": "591855FFCA5543ED15F0DA7F5EE1CC725E868FB278EBD112398A91BC3DC5E205",
+    "docker_transport.py": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+    "check_native_provider.py": "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+    "launch_check.py": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "verify_admission.py": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+    "Invoke-Fake.ps1": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7"
+  },
+  "images": {
+    "database_image": "UNFROZEN_PENDING_LAUNCH_CARD_HOST_INSPECT_sha256",
+    "runner_image": "UNFROZEN_PENDING_LAUNCH_CARD_HOST_INSPECT_sha256",
+    "pull_policy": "never",
+    "note": "Must live in byte-pinned docker ops config (Seam 3 Root C); not invented here"
+  },
+  "proposed_numeric_limits": {
+    "work_deadline_seconds": 210,
+    "request_deadline_seconds": 240,
+    "cleanup_allowance_seconds": 30,
+    "attempt_validity_seconds": 600,
+    "runner_seconds": 600,
+    "suite_seconds": 900,
+    "command_count_cap": 32,
+    "output_byte_cap": 1048576,
+    "peer_seconds": 120,
+    "peer_retire_join_seconds": 5.0,
+    "provider_pki_gen_seconds": 30,
+    "provider_pki_reap_seconds": 5,
+    "provider_pki_reader_join_seconds": 5,
+    "provider_pki_wait_poll_seconds": 0.05,
+    "provider_pki_capture_cap": 65536,
+    "provider_pki_retirement_total_seconds": 45,
+    "separate_outer_timeout": false,
+    "launcher_check_seconds_pattern": 120,
+    "launcher_timeout_retirement_total_seconds_pattern": 135
+  },
+  "limit_ownership": {
+    "work_deadline_seconds": "np_suite.WORK_DEADLINE_SECONDS / launch-config.clocks",
+    "request_deadline_seconds": "np_suite.REQUEST_DEADLINE_SECONDS / launch-config.clocks",
+    "cleanup_allowance_seconds": "np_suite.CLEANUP_ALLOWANCE_SECONDS / launch-config.clocks",
+    "attempt_validity_seconds": "np_suite.ATTEMPT_VALIDITY_SECONDS / launch-config.clocks",
+    "runner_seconds": "proposed freeze aligned to attempt_validity; ProviderDockerOps attach cap",
+    "suite_seconds": "proposed host outer; Plan.validate 1..3600; np_supervisor.run_once deadline",
+    "command_count_cap": "docker_transport._cmd vs config.command_count_cap; static success-path ~21 + headroom",
+    "output_byte_cap": "np_runner_entry.OUTPUT_BYTE_CAP / launch-config.output_byte_cap",
+    "peer_seconds": "np_runner_entry.PEER_SECONDS_DEFAULT",
+    "peer_retire_join_seconds": "np_runner_entry retire_owned(join_seconds=5.0)",
+    "provider_pki_*": "np_runner_entry.invoke_bounded_provider_pki_recipe; distinct from DB public CA (Seam 2)",
+    "launcher_135_pattern": "launch_check.TIMEOUT_RETIREMENT_TOTAL_SECONDS = 120+5+5+5; Dex 30FEEDFF"
+  },
+  "success_cleanup_sequence_owner": "np_supervisor.run_once success path only",
+  "failure_policy": {
+    "automatic_cleanup": false,
+    "retry": false,
+    "failed_container_shutdown_gated": true,
+    "unjoined_disposition": "UNKNOWN",
+    "invoke_wrapper": "preserve evidence; no retry, repair or failure cleanup"
+  },
+  "unverified": [
+    "fake_v1_PASS",
+    "seam_1_code_correction",
+    "seam_2_in_memory_ca_bind",
+    "seam_3_docker_ops_config_byte_pin",
+    "database_image_digest",
+    "runner_image_digest",
+    "docker_exe_sha256",
+    "manifest_sha256",
+    "runner_runtime_pins.python",
+    "database_runtime_pins",
+    "live_command_count",
+    "db_bootstrap_wall_clock",
+    "sanitizer_host_failure_path",
+    "provider_pki_invocation",
+    "endpoint_binding",
+    "native_dial_tls_t01_closure"
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "PEER-CLEAN-STOP",
+    "TRANSCRIPT-STALL-SCRIPT",
+    "QUERY-DERIVATION",
+    "TIMING-PREDICATE",
+    "RUNNER-WIRING",
+    "OBSERVERS",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutant_kinds": {
+        "default_peer_life": "structural",
+        "dropped_token_key": "structural",
+        "observer_copy_return": "behavioral",
+        "peer_body_sent": "behavioral",
+        "peer_deadline_returns": "behavioral",
+        "peer_lax_stop": "behavioral",
+        "query_top_changed": "behavioral",
+        "timing_epsilon": "behavioral",
+        "timing_no_reason": "behavioral",
+        "token_restore_dropped": "structural"
+      },
+      "mutants": {
+        "default_peer_life": "DETECTED",
+        "dropped_token_key": "DETECTED",
+        "observer_copy_return": "DETECTED",
+        "peer_body_sent": "DETECTED",
+        "peer_deadline_returns": "DETECTED",
+        "peer_lax_stop": "DETECTED",
+        "query_top_changed": "DETECTED",
+        "timing_epsilon": "DETECTED",
+        "timing_no_reason": "DETECTED",
+        "token_restore_dropped": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "CONFIG-AND-IMMUTABLES": {
+      "cases": {
+        "api_and_helpers_immutable": "PASS",
+        "docker_ops_root_rename_only": "PASS",
+        "launch_config": "PASS",
+        "nested_delta_exact": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "peer": "PASS",
+        "runner": "PASS",
+        "runner_config": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "OBSERVERS": {
+      "cases": {
+        "parent_same_return_and_exception": "PASS",
+        "restored_exactly": "PASS",
+        "target_same_return_and_disposition": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PEER-CLEAN-STOP": {
+      "cases": {
+        "body_stall_head_only": "PASS",
+        "deadline_remains_error": "PASS",
+        "header_stall_clean": "PASS",
+        "instants_recorded_structural": "PASS",
+        "late_stop_is_deadline": "PASS",
+        "retired_clean_return": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "structural_cases": [
+        "instants_recorded_structural"
+      ]
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "peer": "PASS",
+        "runner": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "QUERY-DERIVATION": {
+      "cases": {
+        "exact_literal_from_window": "PASS",
+        "invalid_window_refused": "PASS",
+        "offset_window_normalized_to_utc": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "literal": "startDateTime=2026-11-14T02%3A00%3A00.123456Z&endDateTime=2026-11-28T02%3A00%3A00.123456Z&%24top=100",
+      "observed": "PASS"
+    },
+    "RECEIPT-RETENTION": {
+      "cases": {
+        "every_emitted_key_survives": "PASS",
+        "privacy_filter_unchanged": "PASS",
+        "typed_evidence_survives_sanitizer": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake_and_structural",
+      "observed": "PASS"
+    },
+    "RUNNER-WIRING": {
+      "cases": {
+        "allowlisted_token_key_and_oracle": "PASS",
+        "case_peer_life_240_only": "PASS",
+        "observers_restored_in_finally": "PASS",
+        "real_monotonic_clock": "PASS",
+        "single_retirement_barrier": "PASS",
+        "timing_after_retirement": "PASS",
+        "token_observer_restored_and_identity_checked": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS",
+      "scope_note": "structural evidence of wiring in _run_np_t04_body_stall; not a behavioral run of the case"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "app/covering_refresh_window.py": "7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0",
+        "app/microsoft_calendar.py": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+        "config/candidate-docker-ops-config.json": "A3F4FF782018227D05B65D12D95E7E0B9C6E2F4DC648C8F4FEEACD6591FBAB98",
+        "config/candidate-launch-config.json": "2C9219556B07F0BFF36DF05B5F20F3AF181A82BECD95709817EF9432BD32084A",
+        "config/candidate-runner-config.json": "F43275F305C8BEEAE13B1372BE60278C8714E504DF6C9BB450284F6FCFE34923",
+        "config/source-docker-ops-config.json": "9455026A775EF769C71D960A71ADEBC623BDC01299844C08B5F69F0C90130F1D",
+        "config/source-launch-config.json": "09C9D618DC0177FACD8E29A35DEDEEAFF637424D0C447C939B4834EC07EB7ED5",
+        "config/source-runner-config.json": "D4C8BDBD83C3C5D0F76564C5E5BB6B5962CBBEBA4D3D3C3618E55DC8C693A88A",
+        "diff/np_provider_peer.py.diff": "995F91A1248564F297C197C137CCC0385CE58BDEE4B4A6E634CFDBB0989CCBCC",
+        "diff/np_provider_transcript.py.diff": "B97F9B2FA2EE9491DF866BB8DC43C7F67B6868F25DE7578E6B81E6028125A67C",
+        "diff/np_runner_entry.py.diff": "8FD8DF567A133C9CE1DC790CE9A6647785A1E50DA856D7FEECEE1AC3C5F58936",
+        "diff/np_suite.py.diff": "3A1B5798ECA6F09C471AE68925BE51FF8FE6656CB9BBA2BD09549D09B2557A60",
+        "diff/runner-config.json.diff": "D0D1A6A454B9A2742EE8E2518B0585F403A94602ADC3F01B1304FCE0B7EA380F",
+        "fixture/np_receipts.py": "7F27A3C2CBCA73C27DCEC6C9DCF6277C7F131ACC3A561C4170636EAB5D5E24C7",
+        "manifest/candidate-nested.txt": "C78B1AFD9F1C7E4B30238B8435271AC5A815280D60497A2B81CB567DDE290314",
+        "manifest/candidate.txt": "6DF528898EC326008B43922410678A8E1071FE36A2F72CA3A9490009E2597A1E",
+        "manifest/source-nested.txt": "C83A5E9E324C77465F03C3EEE371AEF7A16917FCD8335B943AFF98E2FAD7AB5B",
+        "manifest/source.txt": "CC02F38CFBD8542AD49DA8663FE3BCACD8F8712FDD97FE53D5F739A52C0CA687",
+        "peer/candidate.py": "F721BBE741AE5E59DFFB67D0B6EE364982CC1705C27FD635A36752BD3F86BDFA",
+        "peer/source.py": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+        "runner/candidate.py": "7087015D1136A963FC87B502CA600FA8C868B8F4FBEDCAF08D684C16BA76951D",
+        "runner/source.py": "1A95E8340B2D45B0DA4D77B14B7726E485691EB94B3CF765AD4497F96020A8B2",
+        "suite/candidate.py": "00DF3510E36B6A652D6073E6D1DDC8F475182222C8AEDB29BE8AE93B8EAFE173",
+        "suite/source.py": "DAB88CB352189411EED6A2181417CB813D592406598D89192FF307E9081205A1",
+        "transcript/candidate.py": "D3B9379B7C062DFBB5E6CF13F6AD44003C040545383BF893B514C0A685861C6B",
+        "transcript/source.py": "BEDCCFD3C3E8F776C4EC0B3379F863E976C73AF350DD6AE8B308518AB4A47735"
+      }
+    },
+    "TIMING-PREDICATE": {
+      "cases": {
+        "deadline_reason_stops": "PASS",
+        "each_inequality_stops": "PASS",
+        "missing_or_nonfinite_stops": "PASS",
+        "ordered_values_accepted": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "note": "no epsilon in any success inequality; lateness X_t-W is recorded data only",
+      "observed": "PASS"
+    },
+    "TRANSCRIPT-STALL-SCRIPT": {
+      "cases": {
+        "bad_query_refused": "PASS",
+        "definition_failure_identity_and_cleanup": "PASS",
+        "exact_path_query_stall_body": "PASS",
+        "exactly_three_exchanges": "PASS",
+        "namespace_removed_after_success": "PASS",
+        "positive_content_length_head": "PASS",
+        "preexisting_module_refused_unchanged": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 66,
+  "packet": "scheduler-native-t04-body-stall-fake-prep-matt-v1",
+  "passed": 13,
+  "prep_is_not_pass": true
+}

@@ -1,0 +1,37 @@
+{
+  "kind": "static-preparation-receipt",
+  "packet": "post-native-provider-prep-jim-v8-2026-11-12",
+  "executed": false,
+  "launch_authorized": false,
+  "launch_ready": false,
+  "prep_is_not_pass": true,
+  "first_vertical_increment": true,
+  "endpoint": "unbound",
+  "tip_sha256": "D4FA599A9138AD62E347249E3EAB5198475D8E2CFEE698F9B2BF9370814D8F6D",
+  "tip_on_disk_sha256": "AF3EAA400FC16D0335DB329B8A5B286FE0900791B6B851F5997E4E19D15E168C",
+  "scope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "approval_sha256": "5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4",
+  "dex_r1_r2_review_sha256": "D3B6FAD3D039E491846998439283F1DCBBD2B2F28F8578EC3BA352523E488A53",
+  "dex_launcher_retirement_sha256": "30FEEDFF468B3851D3630E73C8BB688D290E4639845A29A377B089DB6534BF27",
+  "key_role_sha256": {
+    "np_suite.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+    "np_runner_entry.py": "87D89F760BB7CD47764BA1C6574A9AFF9E6266E682F0CE752AE4B06B484B2E25",
+    "Invoke-Native-Provider.ps1": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+    "np_supervisor.py": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+    "check_native_provider.py": "48E60C427BAF14170F869056BB1983E785AA397BC8621A3382EE14C5C7F51664",
+    "launch_check.py": "F096D9C24664FDA31514769303160DACFE770E214100857C35542B99DE988FEB",
+    "np_auth_seed.py": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150",
+    "np_provider_peer.py": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55"
+  },
+  "verification_admission_sha256": "44AC413B832AC2C807B71509FF7777B65FE868ACF218BD3FFF4DD91CE4394BFE",
+  "mutable_role_hashes_sha256": "B53295BADAB682F59AF1E77604298F55E1AECAF24CE71E06A28D7D0B31CF6761",
+  "confirmations": {
+    "late_drain_extracted_candidate_gate": true,
+    "checker_read_fixture_admission_pins": true,
+    "launcher_retirement_30FEEDFF": true,
+    "timeout_retirement_total_seconds": 135,
+    "separate_outer_timeout": false,
+    "acyclic_outer_via_wrapper": true,
+    "assembly_manifest_byte_pins": true
+  }
+}

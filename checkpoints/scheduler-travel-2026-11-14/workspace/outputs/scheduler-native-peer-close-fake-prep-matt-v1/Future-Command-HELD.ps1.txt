@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of the one future peer close_notify fake-only invocation, for review.
+# Against this preparation admission (launch_authorized=false), the wrapper refuses before starting any child.
+# A run needs a separately reviewed staging copy that flips both launch_authorized booleans (new admission hash)
+# and Trish's explicit one-shot approval, including bounded termination of the one owned check child.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-peer-close-fake-prep-matt-v1\packet\Invoke-Fake.ps1' -AdmissionSHA256 'F2B750442D070BD45C158DA6C39E34BE017DD6405F0349720A74620A3C7167DF'

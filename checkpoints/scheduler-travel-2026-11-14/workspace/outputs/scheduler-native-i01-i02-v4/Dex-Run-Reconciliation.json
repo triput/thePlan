@@ -1,0 +1,387 @@
+{
+  "status": "PASS_INDEPENDENTLY_RECONCILED",
+  "approved_attempts": 1,
+  "executed_attempts": 1,
+  "retries": 0,
+  "repairs": 0,
+  "case_results": [
+    {
+      "id": "N01",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "N02",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "N03",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "N04",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "N05",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "N06",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": true
+    },
+    {
+      "id": "N07",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": true
+    },
+    {
+      "id": "N08",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "ASSESSMENT_SQL",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C01",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C02",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C03",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C04",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C05",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C06",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": true
+    },
+    {
+      "id": "I01-C06-MAP",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C07A",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C07B",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C08",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C09",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I01-C10",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    },
+    {
+      "id": "I02-C01",
+      "passed": true,
+      "workers_joined": true,
+      "expected_unknown": false
+    }
+  ],
+  "sql_assessment_passed_ids": [
+    "test_a01_healthy_requested_and_all_enabled",
+    "test_a02_requested_ok_all_enabled_blocked_by_unrequested_stale",
+    "test_a03_other_owner_rows_cannot_contaminate",
+    "test_a04_coverage_gates[missing_success]",
+    "test_a04_coverage_gates[stale_age]",
+    "test_a04_coverage_gates[window_missing]",
+    "test_a04_coverage_gates[window_short]",
+    "test_a04_coverage_gates[pages_incomplete]",
+    "test_a04_coverage_gates[generation_mismatch]",
+    "test_a04_coverage_gates[microsoft_ms_view]",
+    "test_a05_newer_sidecar_failure_blocks_equal_protects",
+    "test_a06_identity_map_cannot_conceal_deleted_requested",
+    "test_a07_owner_lock_returns_locked_revision_not_mixed",
+    "test_a08_busy_policy_enrichment_and_horizon_filtering",
+    "test_a09_pending_writes_refused_and_terminal_sanitization",
+    "test_a10_public_response_preserves_targets_and_assessment"
+  ],
+  "post_run_manifest_entries": 268,
+  "payload_file_count": 269,
+  "container_ids": {
+    "database": "7ac6cf76005330133975526c9426d5510d01fd048d454021e696de27096703b0",
+    "runner": "d0c3942c0359a91c5bff107db42fa82c6484de3bfdd5a58055338af926772914"
+  },
+  "cleanup_command_proof": [
+    {
+      "action": "remove",
+      "argv": [
+        "container",
+        "rm",
+        "d0c3942c0359a91c5bff107db42fa82c6484de3bfdd5a58055338af926772914"
+      ],
+      "output_hash_matches_expected": true
+    },
+    {
+      "action": "absence",
+      "argv": [
+        "ps",
+        "-a",
+        "--no-trunc",
+        "--filter",
+        "id=d0c3942c0359a91c5bff107db42fa82c6484de3bfdd5a58055338af926772914",
+        "--format",
+        "{{.ID}}"
+      ],
+      "output_hash_matches_expected": true
+    },
+    {
+      "action": "SIGINT",
+      "argv": [
+        "kill",
+        "--signal=SIGINT",
+        "7ac6cf76005330133975526c9426d5510d01fd048d454021e696de27096703b0"
+      ],
+      "output_hash_matches_expected": true
+    },
+    {
+      "action": "exit-zero",
+      "argv": [
+        "wait",
+        "7ac6cf76005330133975526c9426d5510d01fd048d454021e696de27096703b0"
+      ],
+      "output_hash_matches_expected": true
+    },
+    {
+      "action": "remove",
+      "argv": [
+        "container",
+        "rm",
+        "7ac6cf76005330133975526c9426d5510d01fd048d454021e696de27096703b0"
+      ],
+      "output_hash_matches_expected": true
+    },
+    {
+      "action": "absence",
+      "argv": [
+        "ps",
+        "-a",
+        "--no-trunc",
+        "--filter",
+        "id=7ac6cf76005330133975526c9426d5510d01fd048d454021e696de27096703b0",
+        "--format",
+        "{{.ID}}"
+      ],
+      "output_hash_matches_expected": true
+    }
+  ],
+  "docker_command_count": 24,
+  "all_output_workers_joined": true,
+  "unknown_cli_events": 0,
+  "http_native_receipt": {
+    "auth_channel": "browser",
+    "auth_seed_path": "assessment_sql_seed_owner+mint_signed_session_cookie",
+    "binding_shape": "covering_release_plan",
+    "case_id": "I01-C01",
+    "coverage_action": {
+      "all_requested_covering_ok": true,
+      "freshness_requested_ok": true
+    },
+    "covering_http_alias_wrapped": true,
+    "ordering_contract": "str_sorted_subscription_ids",
+    "proof_class": "http_native_composition",
+    "provider_coverage": "synthetic_fixture_byte_transport",
+    "provider_exchange_inventory": [
+      {
+        "method": "GET",
+        "purpose": "event",
+        "request_bytes": 371,
+        "response_bytes": 130,
+        "status": 200,
+        "url_prefix": "https://www.googleapis.com/calendar/v3/calendars/cal-i01-c01-1/events"
+      },
+      {
+        "method": "GET",
+        "purpose": "event",
+        "request_bytes": 371,
+        "response_bytes": 130,
+        "status": 200,
+        "url_prefix": "https://www.googleapis.com/calendar/v3/calendars/cal-i01-c01-0/events"
+      }
+    ],
+    "receipt_version": "i01-i02-fixture-design-revise2",
+    "scheduling_readiness": {
+      "freshness_all_enabled_ok": true,
+      "revision_coherence": "observed_response_trust_not_seed_only",
+      "scheduling_ready": true,
+      "scheduling_revision": 1
+    },
+    "transport_factory": "FixtureByteTransport",
+    "unscripted_exchange_count": 0
+  },
+  "lost_ack_receipt": {
+    "arm_fired": true,
+    "binding_shape": "covering_release_binding_dual_peer",
+    "case_id": "I01-C06",
+    "expected_unknown": true,
+    "gate_artifact_stem": "I01-C06",
+    "gate_receipt": {
+      "backend_idle": true,
+      "backend_tag": "COMMIT",
+      "complete": true,
+      "fault": "acknowledgment_withheld",
+      "terminal_response_bytes_forwarded": 0
+    },
+    "gate_root": "/tmp/c06-gate-tls",
+    "lost_ack_mechanism": "tls_ack_gate_n06",
+    "mapping_control_only": false,
+    "public_ca_identity": {
+      "db_public_ca_path": "/public-ca/ca.crt",
+      "db_public_ca_sha256": "89E1E7CE53CB2AB450680095D5D63E1A176333755577A3E8BB253742DEB344BB",
+      "distinct": true,
+      "gate_ca_path": "/tmp/c06-gate-tls/ca.crt",
+      "gate_ca_sha256": "10EB7B53E46B7AFAA2AF0BFBBAC32C3CEBB0F0A22EB54A97A892DE6F7964B726"
+    },
+    "receipt_version": "i01-i02-fixture-design-revise2"
+  },
+  "disconnect_receipt": {
+    "api_error_observation": {
+      "code": "CALENDAR_REFRESH_OUTCOME_UNKNOWN",
+      "status": 503
+    },
+    "cancellation_provenance": "CoveringBudgetStopped",
+    "case_id": "I01-C09",
+    "disconnect_classification": "CALENDAR_REFRESH_OUTCOME_UNKNOWN",
+    "hold_hook": "CoveringRequestBudget.check_admission",
+    "ingress": {
+      "actual_http_disconnect": true,
+      "asgi_driver": "run_covering_asgi",
+      "asgi_error": null,
+      "disconnected": true,
+      "fabricated_flag": false,
+      "monitor_observed": true,
+      "response_completed": false
+    },
+    "injector_joined": true,
+    "injector_retirement": "joined",
+    "notes": "cancellation provenance (CoveringBudgetStopped) plus registered ApiError handler 503/CALENDAR_REFRESH_OUTCOME_UNKNOWN observed; outbound sends suppressed; driver error/timeout rejected; intentional no-response OK only with error=None and completed result",
+    "ownership_snapshot": {
+      "auth_telemetry_admitted": false,
+      "calendar_admitted": false,
+      "ownership_established": true
+    },
+    "post_disconnect_outbound_sends": [],
+    "poster_joined": true,
+    "poster_retirement": "joined",
+    "receipt_version": "i01-i02-fixture-design-revise2",
+    "response_started": false,
+    "response_status": null,
+    "worker_entered": true,
+    "worker_retired": true
+  },
+  "owner_lock_receipt": {
+    "case_id": "I02-C01",
+    "cleanup_failures": [],
+    "contention_class": "advisory_xact_lock",
+    "coverage_active_generation": 1,
+    "coverage_success_generation": 2,
+    "failure_reason": "calendar_coverage_generation_mismatch",
+    "lock": {
+      "assessment_backend_pid": 170,
+      "assessment_started_after_hold_confirmed": true,
+      "contention_class": "advisory_xact_lock",
+      "database_oid": 13638,
+      "holder_pid": 169,
+      "lock_row_relationship": {
+        "database_oid": 13638,
+        "granted_holder_rows": 1,
+        "holder_in_pg_blocking_pids_waiter": true,
+        "holder_pid": 169,
+        "namespace": 1886415951,
+        "objsubid": 2,
+        "owner_lock_key": 124391701,
+        "ungranted_waiter_rows": 1,
+        "waiter_pid": 170
+      },
+      "objsubid": 2,
+      "observer_query_id": "i02_observer_advisory_xact_two_int_v1",
+      "owner_lock_key": 124391701,
+      "owner_lock_namespace": 1886415951,
+      "waiter_pid": 170
+    },
+    "mixed_revision_detected": false,
+    "mutator_committed": true,
+    "mutator_result": {
+      "coverage_active_generation": 1,
+      "coverage_success_generation": 2,
+      "scheduling_revision": 2
+    },
+    "proof_class": "owner_lock_contention",
+    "receipt_version": "i01-i02-fixture-design-revise2",
+    "scheduling_revision": 2,
+    "workers_joined": {
+      "i02-assessment": true,
+      "i02-mutator": true
+    }
+  },
+  "console": {
+    "bytes": 649,
+    "sha256": "db5ce15337a63740c2a6126a29e045d70d1b4ebfcd7cb0d1fcf90d2075c96d0f"
+  },
+  "receipt_sha256": "31ADF9FE65D6898728356B7F2AF8428BA505A57F94FEFB4D10BFDA4E6985C5E6",
+  "command_journal_sha256": "9E04C9BF921FB705252C6D8F0FEA7E04CF392378E429A182551C38799B3146D3",
+  "mismatches": [],
+  "endpoint": "unbound",
+  "remaining": "T01-T08 bounded synthetic provider-transport contracts remain required",
+  "goal_complete": false
+}

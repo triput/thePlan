@@ -1,0 +1,11 @@
+{
+  "chunk_id": "f6ecda",
+  "exit_code": 0,
+  "wall_time_seconds": 2.3266778,
+  "invocations": 1,
+  "outer_output": "Attempting to perform the InitializeDefaultDrives operation on the FileSystem provider failed.",
+  "outer_warning_boundary": "PowerShell host startup warning; child stdout/stderr were both0 bytes in the admitted receipt",
+  "child_pid": 202980,
+  "child_elapsed_seconds": 0.971,
+  "no_retry": true
+}

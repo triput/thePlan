@@ -1,0 +1,651 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -56,7 +56,7 @@
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-V-MS-REFRESH"})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -1184,6 +1184,626 @@
+                 ) from primary_failure
+ 
+ 
++def _ms_refresh_provider_routes(
++    *,
++    graph_hostname: str,
++    token_hostname: str,
++    dial_address: str,
++    dial_port: int,
++    ca_file: str,
++    token_path: str,
++):
++    """NP-V-MS-REFRESH routes: the UNCHANGED graph identity/event table plus one exact
++    OAuth route on a distinct login.microsoftonline.com HTTPSPeer (same CA/address/port).
++    """
++    from app.services.covering_transport_policy import HTTPSPeer
++
++    graph_routes = _ms_provider_routes(
++        peer_hostname=graph_hostname,
++        dial_address=dial_address,
++        dial_port=dial_port,
++        ca_file=ca_file,
++    )
++    token_peer = HTTPSPeer(
++        hostname=token_hostname,
++        address=dial_address,
++        port=dial_port,
++        ca_file=ca_file,
++    )
++    return tuple(graph_routes) + ((token_peer, token_path, "oauth"),)
++
++
++def _require_production_ms_token_path(*, settings: Any, token_hostname: str, token_path: str) -> None:
++    """Cross-check the fixture-derived token path against the actual pinned production builder."""
++    from urllib.parse import urlsplit
++
++    from np_suite import SuiteStop
++    from app.services import microsoft_calendar as production_ms
++
++    production_url = production_ms._token_url(  # noqa: SLF001 — read-only pinned builder
++        production_ms._normalize_tenant(settings.microsoft_tenant_id)  # noqa: SLF001
++    )
++    parts = urlsplit(production_url)
++    if (
++        parts.scheme != "https"
++        or parts.hostname != token_hostname
++        or parts.port is not None
++        or parts.path != token_path
++        or parts.query
++        or parts.fragment
++    ):
++        raise SuiteStop("fixture MS token path disagrees with production _token_url")
++
++
++def _actual_token_terminals(native_terminals: list[dict[str, Any]]) -> list[dict[str, Any]]:
++    """Native TOKEN terminal receipts only — excludes the observer marker row."""
++    return [row for row in native_terminals if "observer" not in row]
++
++
++def _run_np_v_ms_refresh() -> dict[str, Any]:
++    """NP-V-MS-REFRESH (T06-SUCCESS-MICROSOFT): expired MS token refreshed on the
++    production path, separate single-case batch.
++
++    Chain: covering-refresh ASGI ingress → CoveringReleasePlan.for_request →
++    ProviderCounter → CoveringHTTP (default JoinedTLS) → owning expired Microsoft
++    refresh (one OAuth POST at the production-derived tenant path) → native TOKEN
++    COMMIT (first target) / ROLLBACK (second target re-read) → IMPORT → final
++    ASSESSMENT. No transport injection, clock freezing, reseed or retry.
++    """
++    import inspect
++
++    from np_suite import SuiteStop, check_oracles_immediate, registry_by_id
++    from np_auth_seed import (
++        IDENTITY_DEFAULT_MS_CALENDAR_ID,
++        STABLE_UNRELATED_MS_CALENDAR_ID,
++        assert_plan_still_valid,
++        covering_refresh_body,
++        derive_production_target_calendar_order,
++        fixture_settings,
++        fresh_attempt_plan,
++        identity_list_calendar_ids_for_vertical,
++        inverted_subscription_ids,
++        measure_account_credential_state,
++        measure_subscription_coverage_state,
++        PlanValidityExpired,
++        seed_browser_owner_with_subscriptions,
++        seed_token_plan,
++    )
++    from np_alias_seed import microsoft_primary_alias_seed, sanitized_alias_receipt
++    from np_receipts import case_result_receipt
++    from np_provider_routes import microsoft_graph_route, microsoft_token_route
++    from np_provider_transcript import (
++        MS_REFRESH_EXCHANGE_COUNT,
++        MS_TOKEN_ENDPOINT_PATH,
++        ms_refresh_connection_inventory,
++    )
++    from np_provider_peer import SyntheticProviderPeer, PeerMaterial, PeerRetirementUnknown
++    from i01_asgi_app import asgi_client, build_i01_asgi_app, install_binding
++    from app.services.covering_release_plan import CoveringReleasePlan
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_http_dispatch import CoveringReleaseBinding
++    from app.services.covering_target_transaction import RootOutcome
++    from app.services.calendar_alias_canonicalize import MS_LEGACY_PRIMARY_ALIAS
++
++    case_id = "NP-V-MS-REFRESH"
++    decl = registry_by_id(include_cf=True)[case_id]
++    plan = fresh_attempt_plan(case_id)
++    t_plan_iso = plan.t_plan.isoformat()
++    token_seed = seed_token_plan(case_id=case_id, provider="microsoft", expired=True)
++    alias = microsoft_primary_alias_seed(case_id=case_id)
++    settings = fixture_settings()
++
++    # Default JoinedTLS must remain the CoveringHTTP transport_factory.
++    sig = inspect.signature(CoveringHTTP.__init__)
++    transport_default = sig.parameters["transport_factory"].default
++    if transport_default is not JoinedTLS:
++        raise SuiteStop("production CoveringHTTP default is not JoinedTLS")
++
++    graph_route = microsoft_graph_route()
++    token_route = microsoft_token_route()
++    if (
++        token_route.dial_address != graph_route.dial_address
++        or token_route.dial_port != graph_route.dial_port
++        or token_route.ca_path != graph_route.ca_path
++    ):
++        raise SuiteStop("MS token route must share graph CA/address/port")
++    _require_production_ms_token_path(
++        settings=settings,
++        token_hostname=token_route.server_hostname,
++        token_path=MS_TOKEN_ENDPOINT_PATH,
++    )
++
++    planted = inverted_subscription_ids(case_token=plan.attempt_token)
++    factory = _open_native_setup_factory(settings=settings)
++    schema_receipt = provision_disposable_schema(factory)
++    setup = factory.open_setup_session()
++    try:
++        seed = seed_browser_owner_with_subscriptions(
++            setup,
++            settings=settings,
++            username_prefix="np-ms-refresh",
++            subscription_count=2,
++            provider="microsoft",
++            expired=True,
++            mark_covering_fresh_at_seed=False,
++            planted_subscription_ids=planted,
++            t_plan=plan.t_plan,
++            plant_microsoft_primary_alias=True,
++        )
++        setup.commit()
++    finally:
++        factory.close(setup)
++
++    assert seed.request_window_start is not None and seed.request_window_end is not None
++    assert seed.t_plan is not None
++    assert_plan_still_valid(seed.t_plan)
++    if seed.token_expired is not True:
++        raise SuiteStop("refresh vertical requires an expired seeded account")
++    if len(seed.account_ids) != 1 or len(seed.subscription_ids) != 2:
++        raise SuiteStop("refresh vertical requires two subscriptions on one account")
++    account_id = seed.account_ids[0]
++    if MS_LEGACY_PRIMARY_ALIAS not in seed.calendar_ids:
++        raise SuiteStop("enabled MS primary alias not planted on subscription row")
++
++    wire_calendar_ids = derive_production_target_calendar_order(
++        subscription_ids=list(seed.subscription_ids),
++        subscription_calendar_map=dict(seed.subscription_calendar_map),
++        primary_alias=MS_LEGACY_PRIMARY_ALIAS,
++        identity_default_calendar_id=IDENTITY_DEFAULT_MS_CALENDAR_ID,
++    )
++    identity_list_ids = identity_list_calendar_ids_for_vertical()
++    if identity_list_ids != (IDENTITY_DEFAULT_MS_CALENDAR_ID, STABLE_UNRELATED_MS_CALENDAR_ID):
++        raise SuiteStop("identity list must be (cal-ms-default default, cal-np-other)")
++    if wire_calendar_ids != (IDENTITY_DEFAULT_MS_CALENDAR_ID, STABLE_UNRELATED_MS_CALENDAR_ID):
++        raise SuiteStop(f"wire calendar order mismatch:{wire_calendar_ids!r}")
++    before_external = dict(seed.subscription_calendar_map)
++    lower_sorted = sorted(seed.subscription_ids, key=str)[0]
++    if before_external.get(str(lower_sorted)) != MS_LEGACY_PRIMARY_ALIAS:
++        raise SuiteStop("primary alias must sit on LOWER str-sorted subscription id")
++    inventory_scripts = ms_refresh_connection_inventory(
++        identity_list_calendar_ids=identity_list_ids,
++        wire_calendar_ids=wire_calendar_ids,
++    )
++    if len(inventory_scripts) != MS_REFRESH_EXCHANGE_COUNT:
++        raise SuiteStop("refresh inventory must contain exactly five exchanges")
++    # One synthetic peer serves both vendor hostnames (leaf SAN covers both; same
++    # numeric loopback dial). Runtime validation of this shared-peer assumption is
++    # only by an authorized native run.
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}",
++        route=graph_route,
++        connection_scripts=inventory_scripts,
++        material=PeerMaterial(),
++    )
++    observations: dict[str, Any] = {}
++    native_terminals: list[dict[str, Any]] = []
++    client_inventory: list[dict[str, Any]] = []
++    oauth_requests = 0
++    held_transport: list[Any] = []
++    captured_contexts: list[Any] = []
++    real_request = None
++    transport = None
++    retirement_done = False
++    retirement_attempted = False
++    primary_failure: BaseException | None = None
++
++    try:
++        assert_plan_still_valid(plan.t_plan)
++
++        # BEFORE: fresh native setup sessions; measured persisted rows.
++        measure_db = factory.open_setup_session()
++        try:
++            credential_before = measure_account_credential_state(
++                measure_db,
++                settings=settings,
++                account_id=account_id,
++                reference_instant=plan.t_plan,
++            )
++            coverage_before = measure_subscription_coverage_state(
++                measure_db, subscription_ids=seed.subscription_ids
++            )
++        finally:
++            factory.close(measure_db)
++        if credential_before["expiry_at_or_before_reference"] is not True:
++            raise SuiteStop("before-state credential expiry is not at/before plan time")
++        if (
++            credential_before["seed_access_match"] is not True
++            or credential_before["seed_refresh_match"] is not True
++        ):
++            raise SuiteStop("before-state credential does not hold declared seed values")
++        if (
++            credential_before["refreshed_access_match"] is not False
++            or credential_before["rotated_refresh_match"] is not False
++        ):
++            raise SuiteStop("before-state credential already holds refreshed values")
++        if coverage_before["any_covering_success"] is True:
++            raise SuiteStop("before-state already covering-success; vertical not distinguishable")
++
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++
++        database_profile = _fixture_database_profile()
++        runtime_pins = _runtime_pins_from_config()
++        provider_routes = _ms_refresh_provider_routes(
++            graph_hostname=graph_route.server_hostname,
++            token_hostname=token_route.server_hostname,
++            dial_address=graph_route.dial_address,
++            dial_port=graph_route.dial_port,
++            ca_file=graph_route.ca_path,
++            token_path=MS_TOKEN_ENDPOINT_PATH,
++        )
++        release_plan = CoveringReleasePlan(
++            database_profile=database_profile,
++            password_supplier=lambda: "",
++            runtime_pins=runtime_pins,
++            provider_routes=provider_routes,
++            settings=settings,
++        )
++        if type(release_plan) is CoveringReleaseBinding:
++            raise SuiteStop("must install CoveringReleasePlan, not prebuilt binding")
++
++        def on_context(context: Any) -> None:
++            captured_contexts.append(context)
++
++        real_init = CoveringHTTP.__init__
++        _install_token_terminal_observer(native_terminals)
++
++        def capturing_init(self, *args, **kwargs):
++            nonlocal real_request, transport
++            real_init(self, *args, **kwargs)
++            held_transport.append(self)
++            transport = self
++            if self.transport_factory is not JoinedTLS:
++                raise SuiteStop("transport_factory injection refused — require default JoinedTLS")
++            underlying = self.request
++
++            def counted_request(method, url, *, purpose, **kwargs):
++                nonlocal oauth_requests
++                if purpose == "oauth":
++                    oauth_requests += 1
++                client_inventory.append(
++                    {
++                        "method": method,
++                        "purpose": purpose,
++                        "url_host_present": True,
++                        "connection_close_expected": True,
++                    }
++                )
++                return underlying(method, url, purpose=purpose, **kwargs)
++
++            real_request = underlying
++            self.request = counted_request  # type: ignore[method-assign]
++
++        CoveringHTTP.__init__ = capturing_init  # type: ignore[method-assign]
++        try:
++            app = build_i01_asgi_app(
++                session_secret=settings.session_secret,
++                clock=monotonic,
++                on_context=on_context,
++            )
++            install_binding(app, release_plan)
++            client = asgi_client(app)
++
++            body = covering_refresh_body(
++                list(seed.subscription_ids),
++                window_start=seed.request_window_start,
++                window_end=seed.request_window_end,
++                horizon_label="np-ms-refresh-horizon-v1",
++            )
++            assert_plan_still_valid(seed.t_plan)
++            response = client.post(
++                COVERING_PATH,
++                content=json.dumps(body).encode("utf-8"),
++                headers={"content-type": "application/json"},
++                cookies={"session": seed.cookie},
++            )
++        finally:
++            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            try:
++                if transport is not None and real_request is not None:
++                    transport.request = real_request
++            except Exception:
++                pass
++
++        assert_plan_still_valid(seed.t_plan)
++        if not captured_contexts:
++            raise SuiteStop("ingress on_context did not capture actual request context")
++        ingress_budget = getattr(captured_contexts[0], "budget", None)
++        if ingress_budget is None:
++            raise SuiteStop("captured ingress context missing budget")
++        if len(held_transport) != 1 or type(held_transport[0]) is not CoveringHTTP:
++            raise SuiteStop("worker/POST did not construct exactly one CoveringHTTP")
++        if transport is None:
++            transport = held_transport[0]
++        from app.services.covering_request_budget import CoveringRequestBudget
++
++        counter = getattr(transport, "counter", None)
++        if counter is None:
++            raise SuiteStop("CoveringHTTP.counter missing after for_request")
++        remaining_cb = getattr(counter, "remaining", None)
++        if remaining_cb is None:
++            raise SuiteStop("ProviderCounter.remaining missing")
++        if getattr(transport, "budget", None) is not None:
++            raise SuiteStop("do not invent transport.budget as proof")
++        if getattr(counter, "budget", None) is not None:
++            raise SuiteStop("do not invent counter.budget as proof")
++        if getattr(remaining_cb, "__self__", None) is not ingress_budget:
++            raise SuiteStop("counter.remaining.__self__ is not the captured ingress context.budget")
++        if getattr(remaining_cb, "__func__", None) is not CoveringRequestBudget.work_remaining:
++            raise SuiteStop("counter.remaining.__func__ is not CoveringRequestBudget.work_remaining")
++
++        if response.status_code != 200:
++            raise SuiteStop(f"covering-refresh status:{response.status_code}")
++        payload = response.json()
++        if not isinstance(payload, dict):
++            raise SuiteStop("covering-refresh response is not a typed object")
++        # Actual public CoveringRefreshResponse schema.
++        overall_outcome = payload.get("overall_outcome")
++        if overall_outcome != "success":
++            raise SuiteStop(f"overall_outcome is not success:{overall_outcome!r}")
++        results = payload.get("results")
++        if not isinstance(results, list) or len(results) != 2:
++            raise SuiteStop("results must list exactly the two requested subscriptions")
++        result_ids = set()
++        for row in results:
++            if not isinstance(row, dict):
++                raise SuiteStop("results[] row is not a typed object")
++            if row.get("status") != "ok" or row.get("phase") != "import":
++                raise SuiteStop("every results[] row must be phase=import status=ok")
++            result_ids.add(str(row.get("subscription_id")))
++        if result_ids != {str(item) for item in seed.subscription_ids}:
++            raise SuiteStop("results[] subscription ids do not match the requested pair")
++        if "coverage_action" not in payload or "scheduling_readiness" not in payload:
++            raise SuiteStop("covering-refresh missing coverage_action/scheduling_readiness")
++        coverage_action = payload["coverage_action"]
++        readiness = payload["scheduling_readiness"]
++        if not isinstance(coverage_action, dict) or not isinstance(readiness, dict):
++            raise SuiteStop("coverage_action/scheduling_readiness must be objects")
++        freshness_requested = coverage_action.get("freshness_requested")
++        if not isinstance(freshness_requested, dict):
++            raise SuiteStop("coverage_action.freshness_requested missing typed object")
++        freshness_ok = freshness_requested.get("ok")
++        all_ok = coverage_action.get("all_requested_covering_ok")
++        scheduling_ready = readiness.get("scheduling_ready")
++        scheduling_revision = readiness.get("scheduling_revision")
++        freshness_all = readiness.get("freshness_all_enabled")
++        if freshness_ok is not True:
++            raise SuiteStop("freshness_requested.ok is not True")
++        if all_ok is not True:
++            raise SuiteStop("all_requested_covering_ok is not True")
++        if scheduling_ready is not True:
++            raise SuiteStop("scheduling_readiness.scheduling_ready is not True")
++        if type(scheduling_revision) is not int or scheduling_revision < 1:
++            raise SuiteStop("scheduling_revision not typed int>=1")
++        if not isinstance(freshness_all, dict) or freshness_all.get("ok") is not True:
++            raise SuiteStop("freshness_all_enabled.ok is not True")
++        if readiness.get("assessment_error") is not None:
++            raise SuiteStop("final ASSESSMENT reported an assessment_error")
++        for banned in ("command", "provider", "mode", "seed_hash", "assessment"):
++            if banned in payload:
++                raise SuiteStop(f"public covering-refresh must not carry private key:{banned}")
++
++        # AFTER: fresh native setup session; semantic credential proof + coverage.
++        t_final_check = datetime.now(timezone.utc)
++        measure_db = factory.open_setup_session()
++        try:
++            credential_after = measure_account_credential_state(
++                measure_db,
++                settings=settings,
++                account_id=account_id,
++                reference_instant=t_final_check,
++            )
++            coverage_after = measure_subscription_coverage_state(
++                measure_db, subscription_ids=seed.subscription_ids
++            )
++        finally:
++            factory.close(measure_db)
++        if (
++            credential_after["refreshed_access_match"] is not True
++            or credential_after["rotated_refresh_match"] is not True
++        ):
++            raise SuiteStop("persisted credential does not equal the declared refreshed values")
++        if (
++            credential_after["seed_access_match"] is not False
++            or credential_after["seed_refresh_match"] is not False
++        ):
++            raise SuiteStop("persisted credential still equals the seed values")
++        if credential_after["expiry_after_reference_plus_skew"] is not True:
++            raise SuiteStop("persisted expiry not advanced beyond final check + 30s")
++        if coverage_after["all_covering_success"] is not True:
++            raise SuiteStop("after-state missing covering success")
++
++        # Native TOKEN terminals: exactly COMMIT (first target) then ROLLBACK (second).
++        token_terminals = _actual_token_terminals(native_terminals)
++        terminal_sequence = [
++            {"terminal": row.get("terminal"), "commit_requested": row.get("commit_requested")}
++            for row in token_terminals
++        ]
++        if terminal_sequence != [
++            {"terminal": RootOutcome.COMMIT_ACKNOWLEDGED.name, "commit_requested": True},
++            {"terminal": RootOutcome.ROLLBACK_ACKNOWLEDGED.name, "commit_requested": False},
++        ]:
++            raise SuiteStop(f"TOKEN terminal sequence mismatch:{terminal_sequence!r}")
++
++        # One OAuth request, first; exactly five client requests in production order.
++        if oauth_requests != 1:
++            raise SuiteStop(f"refresh path must perform exactly one OAuth exchange:{oauth_requests}")
++        client_purposes = [(row.get("method"), row.get("purpose")) for row in client_inventory]
++        if client_purposes != [
++            ("POST", "oauth"),
++            ("GET", "identity"),
++            ("GET", "identity"),
++            ("GET", "event"),
++            ("GET", "event"),
++        ]:
++            raise SuiteStop(f"client request order mismatch:{client_purposes!r}")
++
++        peer_state = peer.sanitized_state()
++        served = int(peer_state.get("connection_count_served") or 0)
++        admitted = int(peer_state.get("connection_count_admitted") or 0)
++        if served != admitted or served != len(inventory_scripts):
++            raise SuiteStop(f"peer exchange inventory mismatch served={served} admitted={admitted}")
++        peer_exchanges = list(peer_state.get("exchange_inventory") or [])
++        if len(peer_exchanges) != MS_REFRESH_EXCHANGE_COUNT:
++            raise SuiteStop("peer exchange inventory is not exactly five")
++        first = peer_exchanges[0] if peer_exchanges else {}
++        if first.get("method") != "POST" or first.get("path") != MS_TOKEN_ENDPOINT_PATH:
++            raise SuiteStop("first peer exchange is not POST at the production token path")
++        if any(row.get("method") != "GET" for row in peer_exchanges[1:]):
++            raise SuiteStop("only the first peer exchange may be the OAuth POST")
++
++        after_external = dict(coverage_after.get("external_calendar_ids") or {})
++        if after_external.get(str(lower_sorted)) == MS_LEGACY_PRIMARY_ALIAS:
++            raise SuiteStop("primary alias remained after requested-row rewrite")
++        if MS_LEGACY_PRIMARY_ALIAS in after_external.values():
++            raise SuiteStop("enabled primary alias remains after first rewrite")
++
++        # Oracles are emitted only after every measured check above has passed.
++        observations = {
++            "owning_ms_refresh_joinedtls": "OBSERVED",
++            "token_commit": "OBSERVED",
++            "persistence": "OBSERVED",
++            "covering_path": COVERING_PATH,
++            "settings_module": "app.config.Settings",
++            "joined_tls_default": True,
++            "byte_transport_alias_used": False,
++            "release_plan_installed": True,
++            "ms_oauth_endpoint_path": MS_TOKEN_ENDPOINT_PATH,
++            "primary_alias_planted": MS_LEGACY_PRIMARY_ALIAS,
++            "primary_alias_on_lower_sorted_id": True,
++            "wire_calendar_order": list(wire_calendar_ids),
++            "schema_provisioned": schema_receipt,
++            "provider_pki_caller": "admit_provider_pki_generated_once",
++            "provider_pki_status": (
++                "GENERATED" if _PROVIDER_PKI_GENERATE_ONCE_DONE else "PREPARED_NOT_GENERATED"
++            ),
++        }
++        measured = {
++            "credential_state_before": credential_before,
++            "credential_state_after": credential_after,
++            "coverage_before": coverage_before,
++            "coverage_after": coverage_after,
++            "public_response": {
++                "overall_outcome": overall_outcome,
++                "results": [
++                    {
++                        "subscription_id": str(row.get("subscription_id")),
++                        "phase": row.get("phase"),
++                        "status": row.get("status"),
++                    }
++                    for row in results
++                ],
++                "coverage_action": {
++                    "all_requested_covering_ok": all_ok,
++                    "freshness_requested_ok": freshness_ok,
++                },
++                "scheduling_readiness": {
++                    "scheduling_ready": scheduling_ready,
++                    "scheduling_revision": scheduling_revision,
++                    "freshness_all_enabled_ok": freshness_all.get("ok"),
++                    "assessment_error": readiness.get("assessment_error"),
++                },
++            },
++            "oauth_request_count": oauth_requests,
++            "token_terminal_sequence": terminal_sequence,
++            "client_exchange_inventory": list(client_inventory),
++            "alias_hash": alias.seed_hash,
++            "label_hash": token_seed.label_hash,
++            "ingress_budget_same_as_provider": True,
++            "budget_proof": "counter.remaining.__self__/__func__",
++            "wire_calendar_order": list(wire_calendar_ids),
++            "alias_rewrite": {
++                "before_external_calendar_ids": before_external,
++                "after_external_calendar_ids": after_external,
++                "lower_sorted_subscription_id": str(lower_sorted),
++                "primary_alias_before": MS_LEGACY_PRIMARY_ALIAS,
++                "canonical_default_after": IDENTITY_DEFAULT_MS_CALENDAR_ID,
++                "unrelated_stable": STABLE_UNRELATED_MS_CALENDAR_ID,
++                "identity_list_ids": list(identity_list_ids),
++            },
++        }
++        _ = sanitized_alias_receipt(alias)
++        check_oracles_immediate(
++            decl,
++            {"owning_ms_refresh_joinedtls": "OBSERVED", "token_commit": "OBSERVED", "persistence": "OBSERVED"},
++        )
++        t_check_iso = _iso_now()
++        assert_plan_still_valid(plan.t_plan)
++        retirement_attempted = True
++        retirement = peer.retire_owned(join_seconds=5.0)
++        retirement_done = True
++        if retirement.get("joined") is not True:
++            raise SuiteStop("peer worker unjoined — UNKNOWN")
++        unexpected = [
++            t
++            for t in threading.enumerate()
++            if t is not threading.main_thread() and t.name.startswith("np-peer-")
++        ]
++        if unexpected:
++            raise SuiteStop("unjoined np-peer worker after retirement")
++
++        return case_result_receipt(
++            case_id=case_id,
++            passed=True,
++            workers_joined=True,
++            expected_unknown=False,
++            executed=True,
++            prep_is_not_pass=True,
++            observations=observations,
++            t_plan_iso=t_plan_iso,
++            t_check_iso=t_check_iso,
++            measured=measured,
++            peer_exchange_inventory=peer_exchanges,
++            resource_disposition={
++                "peer_retired": True,
++                "peer_joined": True,
++                "factory_closed": True,
++                "provider_pki_status": (
++                    "GENERATED"
++                    if _PROVIDER_PKI_GENERATE_ONCE_DONE
++                    else ("PREPARED_NOT_GENERATED" if _PROVIDER_PKI_PREPARED else "NOT_PREPARED")
++                ),
++                "provider_pki_generated": _PROVIDER_PKI_GENERATE_ONCE_DONE is True,
++            },
++        )
++    except PlanValidityExpired:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except PeerRetirementUnknown:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise SuiteStop("owned peer retirement UNKNOWN")
++    except CaseBodyHold:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except SuiteStop:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except BaseException as exc:
++        primary_failure = exc
++        raise SuiteStop(f"framework_stop:{case_id}:{type(exc).__name__}") from exc
++    finally:
++        try:
++            if transport is not None and real_request is not None:
++                transport.request = real_request
++        except Exception:
++            pass
++        if (
++            not retirement_attempted
++            and peer._worker is not None
++            and not peer.life.joined
++        ):  # noqa: SLF001
++            retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++                retirement_done = True
++            except PeerRetirementUnknown:
++                if primary_failure is None:
++                    raise SuiteStop("owned peer retirement UNKNOWN on cleanup")
++                raise SuiteStop(
++                    f"owned peer retirement UNKNOWN after primary:{type(primary_failure).__name__}"
++                ) from primary_failure
++
++
+ def _open_native_setup_factory(*, settings: Any) -> Any:
+     """Open disposable setup factory — immutable AssessmentFactory lineage (i01)."""
+     from assessment_binding import AssessmentFactory
+@@ -1253,6 +1873,12 @@
+ 
+         _run.__name__ = f"run_{case_id}"
+         return _run
++    if case_id == "NP-V-MS-REFRESH":
++        def _run_refresh() -> dict[str, Any]:
++            return _run_np_v_ms_refresh()
++
++        _run_refresh.__name__ = f"run_{case_id}"
++        return _run_refresh
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 

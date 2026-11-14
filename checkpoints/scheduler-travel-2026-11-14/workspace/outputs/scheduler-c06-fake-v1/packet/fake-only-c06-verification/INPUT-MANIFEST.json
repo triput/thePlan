@@ -1,0 +1,49 @@
+{
+  "packet": "fake-only-c06-verification",
+  "kind": "held-fake-only-c06-runner-tls-harness",
+  "byte_semantics": "utf-8 lf",
+  "execution_authorized": false,
+  "held": true,
+  "parent_packet": "post-native-c06-runner-tls-prep-jim-v1-corrected5-2026-11-10",
+  "source_extraction": {
+    "algorithm": "AST module parse of frozen UTF-8 LF fixture bytes; required names FAIL CLOSED if missing from AST; synthetic ModuleType registered in sys.modules; exec against that exact module.__dict__; missing-symbol refusal; exact source/name/sha256 provenance enforced in main before controls; extracted runner receives a narrow fake Linux signal namespace (SIGTERM=15, SIGKILL=9) rather than the host signal module; no real signal calls; FakeOS.path.join is posixpath.join (POSIX in-memory FakeFS keys); consumed payload/launch-config.json is a separate pinned static input, not a fifth fixture source",
+    "sources": {
+      "fixture/prepare-c06-runner-tls.sh": "F1868F913BFBA3841331B397242566938DAF7C2047CACDD5031611B62D60E6DA",
+      "fixture/runner_entry.py": "2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E",
+      "fixture/i01_c06_dual_peer.py": "A636DE72ACB709AAD01EE036DD5EF070CE74F77A0DEC06865EBDCAE3D91B8C52",
+      "fixture/i01_i02_suite.py": "B3986FB351493C85DD4BE53137D3A1C93978A4567C0E02692819CCEEC54ACFA8"
+    },
+    "extracted_symbols": {
+      "fixture/runner_entry.py": [
+        "C06CaptureSink",
+        "_c06_attach_secondary",
+        "_c06_close_owned_pipes",
+        "_c06_group_probe",
+        "_c06_retire_process_group",
+        "prepare_c06_runner_tls"
+      ],
+      "fixture/i01_c06_dual_peer.py": [
+        "build_c06_dual_peer_binding",
+        "serve_i01_c06_gate",
+        "c06_artifact_paths",
+        "require_distinct_public_ca_hashes"
+      ]
+    }
+  },
+  "pinned_static_inputs": {
+    "payload/launch-config.json": "B94DEFE32C2C25B22D0AFBCBA0CC5E2365CBB5AD8FEE291C83667DC51145B4A9"
+  },
+  "does_not_import_app": true,
+  "does_not_spawn_real_children": true,
+  "does_not_open_sockets": true,
+  "does_not_generate_pki": true,
+  "pinned_interpreter": {
+    "path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+  },
+  "old_22_packet_immutable": {
+    "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet\\TIP-FREEZE.json",
+    "tip_freeze_sha256": "6D19C5963C3CF2F1FBADDAE64AE0BE039D32C2C419A4EDCAB940E6314EB5084E",
+    "mutated": false
+  }
+}

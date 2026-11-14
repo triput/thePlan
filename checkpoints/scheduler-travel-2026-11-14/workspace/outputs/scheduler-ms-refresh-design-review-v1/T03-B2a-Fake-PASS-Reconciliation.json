@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-11-14T03:48:12.8808948Z",
+  "status": "PASS",
+  "approval": "call_51866bf0cd3549ee9edac5f2632073f9 item0",
+  "controls": 11,
+  "predicates": 47,
+  "behavioral_mutants_detected": 8,
+  "inputs_unchanged": 35,
+  "partial_runtime_pins": 10,
+  "result_sha256": "167F78DCE0B09FBFF671A683CEB3142092C9973CC83CDAAD85719C0B82990216",
+  "launcher_receipt_sha256": "F77B242E13495FCF02A781A60D70179E9E2414631945073D8BB464478AEF0E84",
+  "child_output_bytes": 0,
+  "readers_joined_clean_eof": true,
+  "retirement_unknown": false,
+  "remaining_invocations": 0,
+  "scope": "Extracted fixture helper/caller with fake dependencies, actual routes/transcript/serializer and unchanged sanitizer; structural preservation/config/retention",
+  "not_proved": "Real TLS/certificate refusal, peer class hypothesis, native T03 or fullGooglefunctionalpath",
+  "endpoint": "unbound"
+}

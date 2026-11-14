@@ -1,0 +1,26 @@
+{
+  "packet": "dex-c06-fake-v3-artifact-stem-preparation",
+  "class": "FAKE-C06-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_c06_fake.py do not embed their own final raw-byte hashes; operator verifies this file's published hash before invoke; empty pin literals refuse",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pin_layers": [
+    "1_operator_OUTER_ADMISSION_hash",
+    "2_admit_outer_subject_pins",
+    "3_launcher_interpreter_and_packet_pins_excluding_self",
+    "4_check_four_fixture_sources_separate_launch_config_pin_posix_join_and_inventory"
+  ],
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "C1C48D7D62EF45F5590D8A84C707D3AF474820E46684A305DE5B17A8D0E0E3EA",
+      "invoke_c06_fake.py": "CD515342D88D4E7C47D97DC32C3BE1AA4AC2A5D5A8282BC52B727FE465BD597E",
+      "check_c06_runner_tls_fake.py": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+      "EXPECTED-OUTPUT.json": "3F71306E0CB5698E6A5E7D906AEE149EF2128252225D7D2E97F1DE5B90132931",
+      "INPUT-MANIFEST.json": "80261CE0A8BA2302CBAC4F6FCDD3CDF2A53C1BA0A67D03A2AC56263D5344D96A",
+      "PACKET-SHA256SUMS.txt": "1D8545589E7A9A2F9E00A5FB7AABD694937C099E3396CC5CCB7A7E545101FF73"
+    }
+  }
+}

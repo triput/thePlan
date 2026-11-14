@@ -1,0 +1,15 @@
+{
+  "status": "REVISE_BEFORE_ANY_RUN",
+  "execution": "NONE",
+  "kind": "PREEXECUTION_CHECKER_LINE_ENDING_BLOCKER",
+  "preflightRawCount": 0,
+  "method": "Read-only raw text/literal comparisons; no imports,AST parsing,compilation or checker execution",
+  "checker": "6A5F2D2618C5701C55841D2135A9048BF190403D3BD6D9C542B0F2DF4E36DC4C",
+  "preflightLfViewCount": 1,
+  "noOpRawCount": 0,
+  "proposedFix": "Fresh checker successor: normalize only check_contract refresh text view CRLF pairs to LF before LF literal comparisons. Keep raw pins,raw AST text,literal diff rederivation,subjects,controls and assertions unchanged; document exact scoped textual view.",
+  "handoff": "687CB81591170149DADF39A0D2B7F936BAAF9915FE4B6553AEB01C5292A083DE",
+  "diffHeaderCorrection": "Actual headers are LF and match; this is not a proven diff-header defect",
+  "nativeSourceChange": "NONE",
+  "noOpLfViewCount": 1
+}

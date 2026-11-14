@@ -1,0 +1,14 @@
+{
+  "slackReplySent": false,
+  "messageTs": "1794612231.626469",
+  "reviewedAtUtc": "2026-11-13T23:29:32.9074075Z",
+  "threadTs": "1794534925.412399",
+  "currentNativeDecision": "T05 E05EC250 pending",
+  "disposition": "Pointer to metadata handback1F54B01B already independently reconciledD55E1FC0 with20sidecar pins; no new finding. Acknowledgment and next signed assignment already posted1794612549.259159.",
+  "endpoint": "unbound",
+  "eventId": "Ev0CJH8NMQAC",
+  "sender": "U0C68LUTURJ",
+  "duplicateReplySuppressed": true,
+  "executionAuthority": "NONE",
+  "otherNative": "NONEXPIRED8031885C held, not yet presented"
+}

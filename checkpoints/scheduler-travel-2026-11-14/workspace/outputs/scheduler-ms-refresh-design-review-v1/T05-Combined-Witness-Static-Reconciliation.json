@@ -1,0 +1,19 @@
+{
+  "at_utc": "2026-11-13T17:34:41.8778674Z",
+  "status": "STATIC_REVIEW_NO_EXECUTABLE_BLOCKERS_FOUND",
+  "handoff_sha256": "9FFF2CA9AF72F22E7BC3F2266F3098E6B757560A55B595BA2EAB5E555DB8D849",
+  "handoff_pins": 15,
+  "source_inputs": 13,
+  "packet_pins": 10,
+  "runtime_pins": 10,
+  "checker_sha256": "CBC7DC4CFD14C64DF30E75AD342981E6B478DD14DEF99D9587168051840680BF",
+  "controls": 11,
+  "reported_predicates": 40,
+  "actual_source_mutants": 3,
+  "source_correction": "Dex assignment incorrectly expected later completion-gate refusal. Current _GuardedHTTPResponse.read raises http.client.IncompleteRead before gate/json on short fixed-length body. Matt correctly preserved actual class/site and equivalent gate-only mutant.",
+  "scope": "Whole pinned policy/HTTP transport source executed only in future approved run inside fake module sandbox,actual host HTTP/json parser,byte-buffer transport;JoinedTLS source structurally read only",
+  "reviewed": "All checker extraction/sandbox/fake module dependencies,raw read loop/gate/JSON ordering,original/complete-negative oracles,exact identities,three layered mutants and ordered inventory compared",
+  "qualification": "Metadata says policy REVIEW CANDIDATE but Trish already approved AEAE5343 framing policy via call_f23e9cdb68d44ae0a628c63d2f096277. Preserve source comment as historical label;no policy reopening or changed bytes. Native TLS/fullT05 proof remains open.",
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

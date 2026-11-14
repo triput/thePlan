@@ -1,0 +1,34 @@
+{
+  "at_utc": "2026-11-13T03:59:39.0365923Z",
+  "status": "STATIC_BLOCKERS_SOURCE_CONFIRMED_NO_EXECUTION",
+  "verified_inputs": 289,
+  "manifest_sha256": "0B9D31C9FE5EB5B4CB8FF1C57707B2BF03E37107A7F9999B1A196A1F4D4D47DE",
+  "execution_performed": false,
+  "source_edits": false,
+  "findings": [
+    {
+      "proposed": "Fresh copy data only: add exactly one interpreter absolute_path/sha256 runtime record and runtime_file_pin_count=1; preserve direct interpreter fields; regenerate admission/command/manifests.",
+      "consumers": [
+        "Invoke-Fake.ps1:50-53 requires nonempty runtime_files and matching runtime_file_pin_count",
+        "check_native_provider.py:2493-2497 independently requires runtime array"
+      ],
+      "subject": "verify/VERIFICATION-ADMISSION.json",
+      "observed_runtime_files_present": false,
+      "id": "T05-S1",
+      "observed_runtime_count_present": false
+    },
+    {
+      "proposed": "Fresh-copy checker one-line expected launcher SHA update to accepted ABCFC138...DC64; preserve actual launcher bytes, all assertions and inventories; regenerate dependent pins. Review whether existing authoring scope permits this correction before implementation.",
+      "admission_launcher_hash_agrees": true,
+      "subject": "verify/check_native_provider.py:2552",
+      "actual_launcher_sha256": "ABCFC1383F8A99100A2850834A5177CF698253469326B4C501160128D1CEDC64",
+      "id": "T05-S2",
+      "expected_hardcoded_launcher_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07"
+    }
+  ],
+  "proof_limitations": [
+    "Static source proves conflicting admission requirements and launcher pin; no target code imported, parsed, compiled or executed",
+    "No T05 syntax, 17-control or real TLS PASS is established",
+    "Native diagnostic launch card remains independent and held"
+  ]
+}

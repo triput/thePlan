@@ -1,0 +1,13 @@
+Yes, we can design for both ends of a start window. One terminology wrinkle: “start-by” and “start-no-later-than” normally mean the same thing. I think you mean:
+
+• Start no earlier than: the task cannot begin before this time.
+• Start no later than: the task must begin by this time.
+• Finish by: a separate constraint, if completion also has a hard boundary.
+
+For a 30-minute admin task, for example: no earlier than 1:00 p.m., no later than 2:30 p.m., finish by 3:00 p.m. The scheduler can choose a start within that window. Both start bounds could be optional independently. Leaving the earliest bound unset permits earlier placement; widening the window gives flexibility while its specified edges remain hard constraints. A genuinely soft preference would be a separate preference the scheduler may miss and explain.
+
+If commitments leave no valid slot, it should report the task as unschedulable within those constraints, rather than silently cross an edge. For split tasks, we'd also need to define whether the latest start governs the first segment; it does not by itself ensure the rest finishes that day.
+
+Is that earliest-start plus latest-start window what you mean? That fits the direction we're discussing; it is proposed behavior, not a claim that the current scheduler supports it. No implementation or replan yet.
+
+Dex

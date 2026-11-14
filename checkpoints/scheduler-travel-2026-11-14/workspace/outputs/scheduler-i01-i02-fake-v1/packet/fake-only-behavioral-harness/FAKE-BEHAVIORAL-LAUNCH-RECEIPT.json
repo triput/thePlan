@@ -1,0 +1,146 @@
+{
+  "status": "PASS",
+  "class": "FAKE-BEHAVIORAL-LAUNCH",
+  "interpreter": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "pinned_interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "interpreter_pin_matched": true,
+  "check_script": "check_i01_i02_fake_behavioral.py",
+  "check_sha256": "B8542F0C336E593C780A0DC062C4AB26A78F2534B9DC3A68FE71D4424A89973E",
+  "launcher_sha256": "B03C3458A453F863DD6AB7C6E21E56800A84F8E4B763582BC441B59D9BFA48F6",
+  "launcher_self_pin_compared": false,
+  "expected_output_sha256": "BF179EA6657391E3DFBFCC5AF7F9D0ED1D42E884DA712C625D95563C1666DB6A",
+  "input_manifest_sha256": "91F29BA6A7A5531A4528508B9E668E3CADFADEB796C73416DB561EBB08CCD617",
+  "packet_pins": {
+    "check_i01_i02_fake_behavioral.py": "B8542F0C336E593C780A0DC062C4AB26A78F2534B9DC3A68FE71D4424A89973E",
+    "EXPECTED-OUTPUT.json": "BF179EA6657391E3DFBFCC5AF7F9D0ED1D42E884DA712C625D95563C1666DB6A",
+    "INPUT-MANIFEST.json": "91F29BA6A7A5531A4528508B9E668E3CADFADEB796C73416DB561EBB08CCD617"
+  },
+  "expected_control_ids_in_order": [
+    "N1",
+    "N2",
+    "N3",
+    "N4",
+    "N5",
+    "N6",
+    "N7",
+    "N8",
+    "N9",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "N14",
+    "P_UUID_actual_tokens",
+    "P_script_production_order",
+    "P_C07_uppercase_ids",
+    "P_C03_count_types",
+    "P_gate_idempotent_second_stop",
+    "P_admit_mutation_commits",
+    "P_C09_hold_snapshot_shape",
+    "P_synthetic_module_registration"
+  ],
+  "pin_enforcement": {
+    "interpreter": "launcher_pre_admission_hardcoded_pin",
+    "launcher_self": "outer_OUTER-ADMISSION_via_admit_outer_not_self",
+    "check_script": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "expected_output_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "input_manifest_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "fixture_source_hashes": "check_script_verify_source_hashes",
+    "control_inventory": "check_script_enforce_expected_inventory_and_launcher_result_gate",
+    "ordered_contract": "EXPECTED.controls key order == EXPECTED.control_ids_in_order == result.control_ids_in_order == result.controls key order"
+  },
+  "cwd": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet\\fake-only-behavioral-harness",
+  "timeout_seconds": 30,
+  "timeout_enforced_by": "invoke_fake_behavioral._collect_bounded.poll_wait_interrupt_on_overflow",
+  "timeout_retirement_limits": {
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5.0,
+    "reader_join_seconds_each": 5.0,
+    "wait_poll_seconds": 0.05,
+    "total_disclosed_seconds": 45.0,
+    "no_retry": true,
+    "overflow_interrupt": "kill child on observed capture overflow; do not wait out full child_wait while readers drain"
+  },
+  "timed_out": false,
+  "returncode": 0,
+  "launcher_exit_code": 0,
+  "elapsed_seconds": 0.505,
+  "child_pid": 197300,
+  "child_executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "child_argv": [
+    "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet\\fake-only-behavioral-harness\\check_i01_i02_fake_behavioral.py"
+  ],
+  "child_start_timestamp": 1794371337.732379,
+  "child_custody": {
+    "pid": 197300,
+    "executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet\\fake-only-behavioral-harness\\check_i01_i02_fake_behavioral.py"
+    ],
+    "start_timestamp": 1794371337.732379,
+    "authority": "receipt_preparation_only; no process_enumeration; no_retry; no_fallback; no_new_cleanup_authority"
+  },
+  "isolation": {
+    "required_flags": [
+      "-I",
+      "-S",
+      "-B"
+    ],
+    "parent_flags_verified": true,
+    "parent_flag_evidence": {
+      "-I": "sys.flags.isolated",
+      "-S": "sys.flags.no_site",
+      "-B": "sys.flags.dont_write_bytecode"
+    },
+    "child_argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-i01-i02-fake-v1\\packet\\fake-only-behavioral-harness\\check_i01_i02_fake_behavioral.py"
+    ],
+    "child_flags_verified": true
+  },
+  "capture_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "bounded pipe readers during collection (chunked); over-limit → interrupt child + STOP disclosed as capture_stop_reason; reader still-live/incomplete/error → UNKNOWN; process exit alone does not imply reader EOF; not post-hoc-only after unbounded communicate; result size gate before read_bytes"
+  },
+  "retained_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "clip_utf8_tails_for_receipt_disclosure_only; capture admission is separate and during-collection; stale result unlinked pre-admission"
+  },
+  "stdout_tail": "{\r\n  \"status\": \"PASS\",\r\n  \"controls\": [\r\n    \"N1\",\r\n    \"N2\",\r\n    \"N3\",\r\n    \"N4\",\r\n    \"N5\",\r\n    \"N6\",\r\n    \"N7\",\r\n    \"N8\",\r\n    \"N9\",\r\n    \"N10\",\r\n    \"N11\",\r\n    \"N12\",\r\n    \"N13\",\r\n    \"N14\",\r\n    \"P_UUID_actual_tokens\",\r\n    \"P_script_production_order\",\r\n    \"P_C07_uppercase_ids\",\r\n    \"P_C03_count_types\",\r\n    \"P_gate_idempotent_second_stop\",\r\n    \"P_admit_mutation_commits\",\r\n    \"P_C09_hold_snapshot_shape\",\r\n    \"P_synthetic_module_registration\"\r\n  ],\r\n  \"inventory_error\": null\r\n}\r\n",
+  "stderr_tail": "",
+  "stdout_raw_bytes": 497,
+  "stderr_raw_bytes": 0,
+  "result_path": "FAKE-BEHAVIORAL-RESULT.json",
+  "result_present": true,
+  "result_sha256": "A67C553FA52A21973E4D9C139DE65E3A5E41E0F57567D6A5DE988B8CB1CE7A2F",
+  "result_read_bytes": 6907,
+  "result_gate_ok": true,
+  "result_gate_reason": null,
+  "capture_stop_reason": null,
+  "interrupt_reason": null,
+  "reader_retirement": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "primary_error": null,
+  "secondary_termination_evidence": null,
+  "executed_in_preparation": false
+}

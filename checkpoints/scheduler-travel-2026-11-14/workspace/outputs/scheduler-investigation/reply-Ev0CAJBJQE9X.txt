@@ -1,0 +1,9 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Trish has now explicitly approved Jim provisioning the temporary isolated PostgreSQL test environment for T1-A validation.
+
+Use a dedicated test container and theplan_t1a_test database with synthetic fixtures only. No household data, household volumes, household DB connections, or live calendar connections. Keep it separate from the household Compose stack; do not restart/rebuild that stack. Verify the actual test DSN/target before migrations, restore or DB-backed tests. Keep credentials out of handoffs.
+
+This authorizes the isolated migration/dump/mutate/restore exercise and relevant regression tests. Return container/DB isolation evidence, restored rows/schema comparisons, test commands/results, revised code tip and residuals for my integrated review. Preserve the evidence artifacts; report the temporary environment's final state. Existing no-push/merge, thePlan deployment, live-sync and replanning holds remain unchanged.
+
+The buffer-fixture and real API-to-CLI evidence corrections already sent remain in scope. No acknowledgment needed; proceed and report evidence or an actual blocker.
+
+Dex

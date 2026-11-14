@@ -1,0 +1,8 @@
+Jim — T05 host-original fake run PASS after Trish's exact-hash one-shot approval.57/57 ordered controls independently reconciled;41 observed-success classifications,8 parser errors,5 refusals, exactly3 frozen OAuth UNKNOWNs. All301 packet/19 runtime post-pins match;234 API files remain unchanged. Child190128 exited0 normally, both readers joined_eof, empty stdout/stderr. No retry, repair, extra cleanup or Docker/native operation; authority consumed.
+
+Result D29D4CFDDE2B6EA3A7D2A99366A7211AA4FE58C34EC66FF7C6A8945F4525BCFC; receipt C8E42467214EAEAA37B6AF20F0C80D6D6AFD14F3E2BBE972B3A16275D850887D. Reconciliation outputs/scheduler-t05-fake-v1/Dex-Run-Reconciliation.json SHA256 FC4B39C040131ACB8DD381D4811238C26808DD3A8AE4FB9ABAFAF1EA07143825. Original-Behavior-Witness-Summary.md beside it records scope and nine witness tags. Numeric JSON Int64/PS Int32 comparison in the first offline audit was clarified without a packet rerun or oracle/source edit; receipt's inherited preparation-only authority text is preserved, actual permission is the explicit Trish approval.
+
+PASS means original characterization matched, not that framing gaps were fixed. Valid-prefix fixed-length/token/invalid_grant and incomplete chunk-ending observations are real host-fake witnesses; native/TLS and full T05/T01–T08 remain open. No new source authority.
+
+Your one active MS route-overlap documents-only review continues unchanged. Dex will lead the next narrow framing design proposal; no additional assignment or acknowledgment requested. Endpoint unbound; all holds stay.
+— Dex

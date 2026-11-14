@@ -1,0 +1,145 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -1950,6 +1950,26 @@
+     raise SuiteStop("t05 unknown expectation")
+ 
+ 
++def _t05_classify_or_chain(expectation: str, outcome: Any, client_exc: BaseException | None) -> str:
++    """Classify one T05 outcome; on a classifier STOP, chain the caught client exception.
++
++    Diagnostic only (Dex 9F9FF48E). The unchanged classifier decides. An admitted label is
++    returned unchanged. On SuiteStop with a caught client exception, the SAME guard object
++    is re-raised with __cause__ set to the SAME client exception object; with no client
++    exception, a bare re-raise keeps today's behavior. Any other exception propagates
++    unchanged. Nothing is formatted or recorded here; the existing bounded class/location
++    stop_payload remains the only export.
++    """
++    from np_suite import SuiteStop
++
++    try:
++        return _t05_classify_client_outcome(expectation, outcome)
++    except SuiteStop as stop:
++        if client_exc is None:
++            raise
++        raise stop from client_exc
++
++
+ def _t05_scripted_wire_framing(scripted_wire: bytes, expected_body: bytes) -> str:
+     """Finite framing class of the exact scripted response wire.
+ 
+@@ -2061,11 +2081,13 @@
+         material=PeerMaterial(),
+     )
+     outcome: Any = None
++    client_exc: BaseException | None = None
+     try:
+         peer.start_background(seconds=PEER_SECONDS_DEFAULT)
+         try:
+             response = http.request("GET", url, purpose="event")
+         except Exception as exc:
++            client_exc = exc
+             outcome = ("exception", type(exc).__name__, type(exc).__module__)
+         else:
+             # Never read response.headers here: production rebuilds the API object
+@@ -2087,7 +2109,7 @@
+         or state["bytes_sent"] != len(expected_wire)
+     ):
+         raise SuiteStop("t05 peer exchange inventory mismatch")
+-    label = _t05_classify_client_outcome(expectation, outcome)
++    label = _t05_classify_or_chain(expectation, outcome, client_exc)
+     measured = {
+         "script_id": script.script_id,
+         "expectation": expectation,
+--- a/payload/runner-config.json
++++ b/payload/runner-config.json
+@@ -1,5 +1,5 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "case_ids": [
+     "NP-T05-ORDERLY-CLOSE",
+     "NP-T05-ABRUPT-TRUNCATION"
+--- a/host/launch-config.json
++++ b/host/launch-config.json
+@@ -1,5 +1,5 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+   "batch_id": "np-t05-orderly-and-abrupt",
+   "endpoint": "unbound",
+@@ -51,10 +51,10 @@
+   "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+-  "manifest_sha256": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
++  "manifest_sha256": "4076B0D21601C31B8688586B241EB42A2E6B0026EE87D307A042CD01F570D2A6",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+@@ -85,13 +85,13 @@
+   "static_success_docker_command_count": 22,
+   "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+   "human_launch_authorized": false,
+-  "candidate_launch_ready_staged": true,
+-  "candidate_note": "Dex fresh native T05 staging from Matt v3 (scheduler-native-provider-t05-launch-dex-v1): two-case batch NP-T05-ORDERLY-CLOSE + NP-T05-ABRUPT-TRUNCATION over the frozen MS-merge NONEXPIRED root; roles 4,5,7,8 changed (runner T05 bodies with three ORDERLY observations, suite ORDERLY oracle mapping and notes, peer explicit framing, transcript framing field plus close-delimited and exact fixed-length scripts); first_vertical_* fields are historical metadata; host and runner launch_ready=true and candidate staging true are machine data only; human authority HELD; prerequisites and exact approval required",
++  "candidate_launch_ready_staged": false,
++  "candidate_note": "Matt native T05 client-cause diagnostic preparation (scheduler-native-provider-t05-client-cause-prep-matt-v1) from Dex staging 417BEA58 (Matt v3 lineage): same two-case batch NP-T05-ORDERLY-CLOSE + NP-T05-ABRUPT-TRUNCATION; only role 4 changed (_t05_observe captures the caught client exception; new _t05_classify_or_chain re-raises the same classifier SuiteStop from it; diagnostic only, no behavior change); first_vertical_* fields are historical metadata; host launch_ready, candidate staging and runner launch_ready are false; copied docker-ops machine flags are data only; human authority HELD; prerequisites and exact approval required",
+   "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+   "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+   "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+   "source_candidate_v1_tip_sha256": "E5788AB2348B5EA578E25B2FD7B211F52DDD876202837D419D0BB130413AA313",
+-  "dex_r1_revise_note": "runner-config launch_ready flipped true; host flags already true; human authority HELD",
++  "dex_r1_revise_note": "HISTORICAL (earlier Dex staging lineage): runner-config launch_ready flipped true; host flags already true; human authority HELD. Superseded in this root: host and runner gates are false.",
+   "source_candidate_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
+   "diagnostic_successor_of": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+   "diagnostic_successor_base_input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+--- a/host/docker-ops-config.json
++++ b/host/docker-ops-config.json
+@@ -1,8 +1,8 @@
+ {
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-t05-client-cause-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }

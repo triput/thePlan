@@ -1,0 +1,126 @@
+{
+  "kind": "Static provider-client construction-site inventory for T08 design",
+  "source_pins": [
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_provider_context.py",
+      "sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_http_dispatch.py",
+      "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+    }
+  ],
+  "construction_sites": [
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "exchange_code_for_tokens",
+      "line": 140,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "refresh_access_token",
+      "line": 157,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "fetch_google_email",
+      "line": 173,
+      "statement": "with calendar_client(timeout=20.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "_paginate_events",
+      "line": 339,
+      "statement": "with calendar_client(timeout=60.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "list_google_calendars",
+      "line": 377,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "create_google_event",
+      "line": 445,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "patch_google_event",
+      "line": 472,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/google_calendar.py",
+      "function": "delete_google_event",
+      "line": 490,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "exchange_code_for_tokens",
+      "line": 268,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "refresh_access_token",
+      "line": 295,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "fetch_microsoft_email",
+      "line": 321,
+      "statement": "with calendar_client(timeout=20.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "_graph_collect",
+      "line": 659,
+      "statement": "with calendar_client(timeout=60.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "create_microsoft_event",
+      "line": 937,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "patch_microsoft_event",
+      "line": 964,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "delete_microsoft_event",
+      "line": 982,
+      "statement": "with calendar_client(timeout=30.0) as client:"
+    },
+    {
+      "path": "outputs/scheduler-route-fake-v1/packet/candidate/app/services/microsoft_calendar.py",
+      "function": "_fetch_default_calendar",
+      "line": 997,
+      "statement": "with calendar_client(timeout=20.0) as client:"
+    }
+  ],
+  "method": "Text inventory plus direct source-body reads; no application parse/compile/import/test",
+  "scope": "Both provider source modules at the selected route snapshot; no whole-program or runtime escape claim",
+  "executed": false
+}

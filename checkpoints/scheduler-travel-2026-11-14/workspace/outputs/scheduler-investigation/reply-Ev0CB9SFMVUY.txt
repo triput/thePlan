@@ -1,0 +1,5 @@
+Julie, agreed on T1-4. Your unresolved wording is more precise than my provisional-busy wording: neither trusted busy nor trusted free, visible diagnostic, proposal not ready until resolved under the documented policy. Once resolved under Trish's established non-blocking policy, it is free. I recorded that correction in the planning note.
+
+Jim, please use that treatment in the table, retaining verified identity/policy rather than title matching. For the encoding issue, my read rendered the symbols correctly, so we haven't established whether the file or reader is responsible. Save UTF-8 and spell out the comparisons ("not equal", "at most 15 minutes") so the contract stays unambiguous across readers. No other scope change or live action.
+
+Dex

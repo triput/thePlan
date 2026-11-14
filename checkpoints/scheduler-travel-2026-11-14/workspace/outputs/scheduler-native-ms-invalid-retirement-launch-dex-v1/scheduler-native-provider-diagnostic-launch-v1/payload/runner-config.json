@@ -1,0 +1,45 @@
+{
+  "launch_ready": true,
+  "case_ids": [
+    "NP-V-MS-INVALID"
+  ],
+  "expected_unknown_cases": [],
+  "runner_seconds": 600,
+  "ca_sha256": "RUNTIME_BIND_FROM_PUBLIC_CA_BEFORE_RUN_SUITE",
+  "ca_sha256_note": "Disposable DB public CA cannot be pre-pinned; np_runner_entry.bind_runtime_public_ca_hash sets ephemeral in-memory ca_sha256 from /public-ca/ca.crt without mutating these on-disk bytes. Distinct from provider PKI.",
+  "site_directories": [
+    "/usr/local/lib/python3.12/site-packages"
+  ],
+  "runtime_pins": {
+    "python": [3, 12, 16],
+    "psycopg": "3.2.13",
+    "sqlalchemy": "2.0.51",
+    "pq_implementation": "binary",
+    "pq_runtime": 170006,
+    "pq_build": 170006
+  },
+  "runtime_pins_provenance": "scheduler-native-provider-implementation-review-v9/Native-Runtime-Lineage-Reference.json retained pins; no live probe during preparation",
+  "clocks": {
+    "work_deadline_seconds": 210,
+    "request_deadline_seconds": 240,
+    "cleanup_allowance_seconds": 30,
+    "attempt_validity_seconds": 600
+  },
+  "peer_seconds": 120,
+  "peer_retire_join_seconds": 5.0,
+  "provider_pki_gen_seconds": 30,
+  "provider_pki_reap_seconds": 5,
+  "provider_pki_reader_join_seconds": 5,
+  "provider_pki_retirement_total_seconds": 45,
+  "output_byte_cap": 1048576,
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "first_vertical_increment": true,
+  "first_vertical_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "remaining_case_bodies": "HOLD_EXPLICIT_NOT_PASS",
+  "planning_ids_retained": 76
+}

@@ -1,0 +1,19 @@
+{
+    "kind":  "scheduler-native-provider-fake-outer-admission",
+    "launch_authorized":  true,
+    "prep_is_not_pass":  true,
+    "endpoint":  "unbound",
+    "packet":  "scheduler-native-t05-fake-prep-matt-v3",
+    "interpreter_path":  "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "check_seconds":  120,
+    "pins":  {
+                 "interpreter_sha256":  "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+                 "launch_check_sha256":  "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+                 "check_native_provider_sha256":  "991CF4E99E1B422DF044A623ED6807920E04D67D1848E49BF503D56A07776460",
+                 "expected_fake_structural_sha256":  "811AC4866B95492DD6C4AE291FBD8F2B3F0D28D3D0659C5E521EDEEA556B4A7B"
+             },
+    "timeout_retirement_total_seconds":  135,
+    "separate_outer_timeout":  false,
+    "acyclic_note":  "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+    "note":  "Matt native T05 fixture fake prep v3 (Dex consolidated v2 review 8893E242: B1 default httpx-0.28.1 client model; D1 option 2 fixed-length mapping). launch_check.py, verify_admission.py and Invoke-Fake.ps1 are byte-identical to the reviewed roles. launch_authorized=false; preparation does not authorize invocation."
+}

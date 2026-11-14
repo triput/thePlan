@@ -1,0 +1,31 @@
+{
+  "checked_at_utc": "2026-11-13T06:27:22.9844944Z",
+  "status": "FIXTURE_STATIC_ACCEPTANCE_FAKE_CHECKER_PUNCTUATION_BLOCKER",
+  "handoff_pins_verified": 23,
+  "native_parent_inputs_verified": 278,
+  "fake_inputs_verified": 15,
+  "executed_source_inputs_verified": 274,
+  "source_entry_differences": 6,
+  "all_application_files_unchanged": 234,
+  "observer_runner_sha256": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+  "checker_sha256": "38BE55DF092E9382FC13655BB6A0226026668C822D5BAC3A90B402EB2D59C4E4",
+  "static_blocker": {
+    "description": "One excess closing parenthesis per mutant tuple before prefix;manual source review,no parser/compile invocation",
+    "prospective_checker_sha256": "C283F512F15FEFDD3CCAD3F1525229C350035BEB564FB77DE542BCA2C73397ED",
+    "correction": "Remove exactlyone closeparen ineach ofthefive lines,in freshfakev2only",
+    "lines": [
+      974,
+      976,
+      979,
+      980,
+      983
+    ]
+  },
+  "scope": "all10controls,47nested predicates,5mutants,subjects/oracles/helpers unchanged;native278-input successor frozen",
+  "review_assignment_sha256": "0603526D873F2BFDF0E8A9814A7BFE97125B270DF9BA86DF2A57FDA67424C530",
+  "delivered_at_utc": "2026-11-13T06:26:02.1430137Z",
+  "slack_pointer": "1794551192.183069",
+  "execution_authorized": false,
+  "target_parsed_compiled_or_run": false,
+  "endpoint": "unbound"
+}

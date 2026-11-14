@@ -1,0 +1,19 @@
+{
+  "kind": "scheduler-native-provider-fake-outer-admission",
+  "launch_authorized": true,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "packet": "scheduler-native-t04-body-stall-fake-prep-matt-v1",
+  "interpreter_path": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "check_seconds": 120,
+  "pins": {
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "launch_check_sha256": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+    "check_native_provider_sha256": "950863A9C0BF691945D0BD77CE5BADD0EA305679A5B9FB31607F48D21F0F96D0",
+    "expected_fake_structural_sha256": "7E2E5CB3DBD2D360FA8CE1A9E352F2419DB374911B25847D4A39A3DB84CB4F70"
+  },
+  "timeout_retirement_total_seconds": 135,
+  "separate_outer_timeout": false,
+  "acyclic_note": "OUTER pins subjects only. Wrapper-rooted VERIFICATION pins OUTER bytes. No back-reference from OUTER to VERIFICATION.",
+  "note": "Fresh Dex staging corrects only checker transcript-module registration and adds three lifecycle predicates. All26subjects/nativefixture bytes preserved. Machine readiness grants no human authority; only root Reviewed-Body-Stall-Fake-Command.ps1.txt is current. Copied preparation documents and commands are history."
+}

@@ -1,0 +1,58 @@
+--- a/payload/fixture/np_runner_entry.py
++++ b/payload/fixture/np_runner_entry.py
+@@ -695,6 +695,25 @@
+     return capture
+ 
+ 
++def _retire_selected_peer_then_observe(peer: Any, *, join_seconds: float = 5.0) -> tuple[dict[str, Any], dict[str, Any]]:
++    """Selected-case retirement barrier, then final peer evidence (Dex BB93F31E R1/R2).
++
++    Exactly one call to the unchanged retire_owned with the existing bounded join; the
++    caller marks retirement_attempted BEFORE calling, so a raise never causes a second
++    attempt. PeerRetirementUnknown and any other exception propagate unchanged.
++    Success requires joined is True AND worker_error_kind is None; otherwise STOP.
++    The final sanitized_state (exchange inventory) is read only after the join.
++    """
++    from np_suite import SuiteStop
++
++    retirement = peer.retire_owned(join_seconds=join_seconds)
++    if retirement.get("joined") is not True:
++        raise SuiteStop("selected peer worker unjoined — UNKNOWN")
++    if retirement.get("worker_error_kind") is not None:
++        raise SuiteStop("selected peer worker recorded an error")
++    return retirement, peer.sanitized_state()
++
++
+ def _run_np_v_ms_nonexpired() -> dict[str, Any]:
+     """Production vertical: Settings + covering-refresh ASGI + default JoinedTLS.
+ 
+@@ -1035,7 +1054,13 @@
+         if not token_rollback_acked:
+             raise SuiteStop("TOKEN ROLLBACK acknowledgment missing from native terminals")
+ 
+-        peer_state = peer.sanitized_state()
++        # Retirement barrier BEFORE final peer evidence (Dex BB93F31E R1/R2). One confirmed
++        # bounded retirement — mark attempt BEFORE call so a raised PeerRetirementUnknown
++        # cannot trigger a second attempt in finally. Joined AND no worker error required;
++        # the final sanitized state is read only after the join.
++        retirement_attempted = True
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        retirement_done = True
+         served = int(peer_state.get("connection_count_served") or 0)
+         admitted = int(peer_state.get("connection_count_admitted") or 0)
+         if served != admitted or served != len(inventory_scripts):
+@@ -1109,14 +1134,6 @@
+         check_oracles_immediate(decl, {"no_oauth_request": "OBSERVED", "token_rollback_ack": "OBSERVED", "identity_event_assessment_separate": "OBSERVED"})
+         t_check_iso = _iso_now()
+         assert_plan_still_valid(plan.t_plan)
+-        # One confirmed bounded retirement — mark attempt BEFORE call so a raised
+-        # PeerRetirementUnknown cannot trigger a second attempt in finally.
+-        retirement_attempted = True
+-        retirement = peer.retire_owned(join_seconds=5.0)
+-        retirement_done = True
+-        workers_joined = retirement.get("joined") is True
+-        if not workers_joined:
+-            raise SuiteStop("peer worker unjoined — UNKNOWN")
+         unexpected = [
+             t
+             for t in threading.enumerate()

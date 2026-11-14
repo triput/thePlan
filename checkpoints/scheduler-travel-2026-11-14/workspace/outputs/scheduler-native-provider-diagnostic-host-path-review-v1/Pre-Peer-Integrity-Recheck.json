@@ -1,0 +1,12 @@
+{
+  "checked_at_utc": "2026-11-13T03:55:03.5031686Z",
+  "status": "ALL_274_STAGING_INPUTS_UNCHANGED",
+  "manifest_sha256": "1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+  "count": 274,
+  "evidence_root_absent": true,
+  "target_execution_performed": false,
+  "peer_review_pending": true,
+  "human_execution_authorized": false,
+  "previous_goal_turn_classification": "progress: delivery pointer reconciled with existing authoritative native review; no duplicate reply",
+  "current_goal_turn_classification": "progress: complete final staging integrity recheck and held decision draft prepared"
+}

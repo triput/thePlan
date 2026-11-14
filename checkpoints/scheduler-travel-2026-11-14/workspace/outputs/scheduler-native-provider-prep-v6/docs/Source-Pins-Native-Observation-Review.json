@@ -1,0 +1,26 @@
+[
+  {
+    "relative_path": "app/services/covering_joined_https.py",
+    "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+  },
+  {
+    "relative_path": "app/services/covering_request_budget.py",
+    "sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975"
+  },
+  {
+    "relative_path": "app/services/covering_http_transport.py",
+    "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368"
+  },
+  {
+    "relative_path": "app/services/covering_release_plan.py",
+    "sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826"
+  },
+  {
+    "relative_path": "app/services/covering_http_dispatch.py",
+    "sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF"
+  },
+  {
+    "relative_path": "app/api/middleware/covering_ingress.py",
+    "sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D"
+  }
+]

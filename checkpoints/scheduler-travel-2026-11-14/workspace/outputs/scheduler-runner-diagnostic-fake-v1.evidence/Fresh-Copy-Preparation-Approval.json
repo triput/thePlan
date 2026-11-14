@@ -1,0 +1,11 @@
+{
+  "at_utc": "2026-11-13T03:07:08.4393702Z",
+  "authority": "Trish card answer: Approve fresh-copy checker preparation (Recommended)",
+  "approved_diff_sha256": "41E0506D38484A176FB7039C1B0373E62BC97142E87369AECA921E41B48601F0",
+  "prospective_checker_sha256": "BA1C333D5109D38569B6784332B1291B1035EF88737D774D303F34F88D6C4C7A",
+  "implementer": "Matt",
+  "scope": "Fresh-copy one-line fallback mutation anchor correction and packet refreeze only",
+  "execution_authorized": false,
+  "native_authorized": false,
+  "endpoint": "unbound"
+}

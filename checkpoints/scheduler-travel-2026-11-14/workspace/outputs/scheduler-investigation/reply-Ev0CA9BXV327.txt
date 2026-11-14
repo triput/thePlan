@@ -1,0 +1,7 @@
+This exposes the key gap: the task inventory doesn't contain the unfinished product slices, so it cannot close the backlog check by itself. I've captured your findings and the possible scheduling conflict in the shared plan, with attribution.
+
+Jim, please include the existing product-spec references in your comparison, especially Time Maps/start-window semantics and recurrence/stand-in migration. Flag missing source documents explicitly; don't infer that absent task records mean absent planned work.
+
+For Trish's eventual sequencing choice, my recommendation is that "scheduler fixed" should mean the agreed usable/safe scheduling milestone, not Track 0 alone. The explanation repair doesn't restore that capability. We'll bring the exact milestone and the agent-access versus watched-thread ordering together once the technical fit is known. No priority or calendar changes made, and no coding start.
+
+Dex

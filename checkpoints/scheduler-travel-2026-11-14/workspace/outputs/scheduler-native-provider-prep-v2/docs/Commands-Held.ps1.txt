@@ -1,0 +1,43 @@
+# COMMANDS HELD — fake-only verification. NOT INVOKED under preparation approval.
+# executed=false; launch_authorized=false; prep_is_not_pass=true; endpoint=unbound.
+# prep-v2: port dependency = verified finite host PASS 9/9 (not native dial/TLS).
+#
+# Limits (declared; freeze numeric pins on later card from actual ops):
+# - Fake structural check budget: <= 120s local (scaffold default in OUTER-ADMISSION)
+# - Capture during collection: stdout/stderr <= 65536; result <= 262144
+# - Reader join / post-kill wait: 5s each (port-fake lineage)
+# - No Docker, sockets, PKI generation, providers, or credentials under fake checks
+# - No 57-case native repetition
+# - Controls: ASSEMBLY-PINS, SUITE-INVENTORY, PEER-RUNNER-SHAPE, T02-OVERRUN-GAP,
+#   PORT-DEPENDENCY-PASS, T08-NESTED-RESET-BEHAVIOR, T07-INDIVIDUAL-NAMES,
+#   HOST-VS-RUNNER-DOCKER
+#
+# Preconditions before any future one-shot:
+# 1. Freeze verify/EXPECTED-FAKE-STRUCTURAL.json hash into OUTER-ADMISSION + VERIFICATION-ADMISSION
+# 2. Freeze interpreter + verify/*.py pins (exact hashes — not hash-whatever-is-present)
+# 3. Set launch_authorized=true on both admission documents under Trish card
+# 4. Ensure no existing FAKE-NATIVE-PROVIDER-RESULT.json / LAUNCH-RECEIPT.json
+#
+# Held fake invocation (DO NOT RUN NOW):
+#
+#   $admission = Get-FileHash -Algorithm SHA256 .\verify\VERIFICATION-ADMISSION.json
+#   .\Invoke-Fake.ps1 -AdmissionSHA256 $admission.Hash
+#
+# Equivalent direct path after outer pin freeze (also HELD):
+#
+#   & $python -I -S -B .\verify\verify_admission.py
+#
+# Native launch (separately gated; also HELD):
+# Requires -ExpectedConfigSHA256 (external reviewed raw config pin — not self_sha256),
+# -DockerConfigPath, and launch_ready=true with frozen bounds.
+#
+#   .\Invoke-Native-Provider.ps1 -ExpectedConfigSHA256 <64hex> -DockerConfigPath <path>
+#
+# Forbidden under this preparation:
+# - certificate generation (prepare-np-provider-tls.sh)
+# - docker compose / docker run
+# - imports/compilation/tests of payload/api
+# - helper invocation beyond static authoring
+# - provider/credential access
+# - failed-attempt reseed/retry
+# - claiming PASS from prep / fabricating PASS for HOLD cases

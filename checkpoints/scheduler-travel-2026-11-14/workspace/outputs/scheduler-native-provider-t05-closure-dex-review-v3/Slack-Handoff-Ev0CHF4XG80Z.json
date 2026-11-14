@@ -1,0 +1,10 @@
+{
+  "event_id": "Ev0CHF4XG80Z",
+  "message_ts": "1794543509.096509",
+  "checked_at_utc": "2026-11-13T04:22:42.6337154Z",
+  "disposition": "already-reconciled-preparation-pointer",
+  "handoff_sha256": "1226EF56603386B2F0D872DB48A44A00DB4110361F9615A77F942C8F4AC912BE",
+  "hash_manifest_sha256": "C90CD6DC211120C5B52E2A5ABDCD969A1CC076C5136FC0155772B77B7226E46F",
+  "basis": "Frozen T05v2 preparation already independently reconciled, separate299-input staging prepared and final review assigned via signed dropCF961F99 and Slack1794543737.223509. No new request,blocker or authority.",
+  "reply_sent": false
+}

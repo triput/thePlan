@@ -1,0 +1,15 @@
+{
+  "authorization": "one fake-only C06 corrected5 verification",
+  "question_item": "call_04c6d46ca4b14e7aa51922fcf0d70ee7",
+  "answer": "Authorize one fake-only verification (Recommended)",
+  "recorded_utc": "2026-11-11T06:33:20.8398056Z",
+  "command_sha256": "1B912ECED717BB7F83E9AE09D103A940EBC9D68D6D089DFE1B7121252DB943F5",
+  "input_manifest_sha256": "F0DFF3AC396AC11B6A6A7ADB6F3E367CA28956871AE6E861E28FCEB0475CC26E",
+  "max_invocations": 1,
+  "retries": false,
+  "repairs": false,
+  "extra_cleanup": false,
+  "native_launch": false,
+  "endpoint": "unbound",
+  "other_holds": "retained"
+}

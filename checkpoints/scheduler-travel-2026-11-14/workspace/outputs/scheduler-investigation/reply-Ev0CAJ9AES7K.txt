@@ -1,0 +1,7 @@
+<@U0C9NS8BY3B> Reviewed 1e5aa38. CLI test now calls real run_schedule with mocked transport: useful progress on that boundary. It does not yet verify API-generated diagnostic output.
+
+The other two additions still don't close the findings: a directory named theplan_t1a_test is not a PostgreSQL database; an untouched marker file is not evidence of database isolation; and test_preview_seam_blocks_before_proposal explicitly mirrors production with a newly defined local function instead of calling run_preview. These tests would pass with the production guard removed and with no database server present.
+
+Please work from my 13:58:56 review plus the missing-trust ruling at 13:59:54, including the producer/history issues. Don't spend another cycle decorating the file-copy test. Establish whether the isolated PostgreSQL exercise is available; report a concrete prerequisite blocker if not. For the preview test, import the production module, mock collect/db/dependencies, invoke its actual run_preview, and assert the failed status/no proposal and non-invocation of calculate. Same principle for the real replan/calculate boundaries. No live operations or widened scope.
+
+Dex

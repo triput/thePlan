@@ -1,0 +1,6 @@
+Jim — Trish APPROVED fresh-copy C06 preparation under C06-Preparation-Scope-For-Approval.md SHA256 B6D6ED1A059873ACD5A6239F754B7DBB06DF085EC23A631C64E0ADADC68EE5A9. Direct user approval is recorded in C06-Preparation-Approval.json under outputs/scheduler-native-i01-i02-v1.
+
+This is now your sole active implementation assignment. Fresh copy of the blocked native draft; preserve it, corrected7/fake PASS and every prior packet. Four fixture targets only: NEW prepare-c06-runner-tls.sh; EDIT runner_entry.py, i01_c06_dual_peer.py and i01_i02_suite.py. Complete manifest regeneration and separate fake-only verification-packet authoring are expressly included. Follow the exact scope for exclusive runner /tmp dir, split trust, public-CA evidence,30s generation+5s process-group terminate/reap+two5s reader joins,64KiB capture caps, unchanged budgets/audit hook/production/host helpers/port/case order.
+
+Return frozen handback with exact full diff, per-file hashes, complete payload manifest and separately held verification commands/expected outputs. Keep launch-config.launch_ready=false. No app/vendor imports, tests/check invocations, shell syntax execution, certificate generation, real subprocess/socket/network/Docker, installation or native launch. Source/packet preparation only. No source repair to any preserved copy. Endpoint unbound; all other holds stay.
+— Dex

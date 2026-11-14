@@ -1,0 +1,36 @@
+HANDBACK — post-native-provider-first-native-launch-proposal-jim-v1-2026-11-12
+Jim (Justin), 2026-11-12
+
+STATUS: FIRST_NATIVE_LAUNCH_PROPOSAL_AUTHORED_NOT_EXECUTED
+FLAGS: executed=false; launch_authorized=false; launch_ready=false; prep_is_not_pass=true; first_vertical_increment=true; endpoint=unbound; slack_tip=false; waiting_on_trish=false
+
+AUTHORITY (unchanged):
+- Scope 389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D
+- Approval 5D1EA2F973FE110D35B65E4172821F014E74A8F2A65BCBB4AB8EE22458F80CA4
+
+SOURCE PREP-V9 (immutable tipped; DropFolder not mutated):
+- Workspace: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-prep-v9
+- TIP on-disk: 6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188
+
+DEX SEAMS FOLDED:
+- Native-Launch-Readiness-Seams.md SHA256 57AA3A80E26BC7EA29E47AE279E9FA94270F8DA5C5BD2EC586568BFCF154B3E3
+- Seam1: entry sibling imports before admit_isolated_import_bootstrap — proposed later narrow fix (UID/config/roots then bootstrap then imports); fake sys.modules inject ≠ native proof
+- Seam2: plan I01/I02 in-memory public-CA bind + host compare to transferred hash; never mutate admitted runner-config; never pre-generate private material; distinct from provider PKI
+- Seam3: acyclic roots A=ExpectedConfigSHA256 launch-config, B=payload manifest (excludes host launch-config), C=byte-pinned Docker ops config (filename alone insufficient)
+
+BATCH: case_ids=["NP-V-MS-NONEXPIRED"]; expected_unknown_cases=[]; other 26 native + 4 CF HOLD; 76 requirements retained; 16-role lane
+
+PROPOSED LIMITS (not frozen on launch card): runner_seconds=600; suite_seconds=900; command_count_cap=32; output_byte_cap=1048576; peer=120/join=5; PKI 30+5+5+5=45; clocks 210/240/30/600
+
+SUCCESS CLEANUP: exact-ID runner remove→absent then DB sigint→wait0→remove→absent only; fail/mismatch/timeout/unexpected → UNKNOWN STOP; no retries/repairs/failure cleanup
+
+FAKE-V1: PASS unfulfilled prerequisite (card with Trish); staged packet untouched; not waiting on Trish
+
+WORKSPACE: C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-first-native-launch-proposal-jim-v1
+DROP: F:/DropFolder/pending/post-native-provider-first-native-launch-proposal-jim-v1-2026-11-12
+
+FILES: First-Native-Launch-Proposal.md; Dependency-Footprint.json; HANDBACK.txt; TIP-FREEZE.json
+
+No invoke/helpers/PKI/Docker/DB/imports-to-run. No launch_ready flip. No Slack tip. Docs-only.
+TIP_SHA256 (preimage on exact LF bytes): 7A2735515CE62E5A7E0EBF31542E71D656D8BD6561A0DD61E92B0384C09B4B05
+TIP-FREEZE on-disk: FB9AF80E01BC48E60B082EE02A54D29957F52B64BC636751D19142B2D5982A7B

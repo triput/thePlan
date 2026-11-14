@@ -1,0 +1,30 @@
+{
+  "atUtc": "2026-11-14T00:39:14.3144406Z",
+  "status": "DRAFT_NATIVE_STAGING_HELD",
+  "sourceManifest": "59DC1797DDA5F71C6BBD37DF3C688991068957D2B2D009760B5FF20C5D6F8A1E",
+  "sourceInputs": 301,
+  "unchanged": 296,
+  "metadataChangesOnly": [
+    "scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt",
+    "scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json",
+    "scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256",
+    "scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json"
+  ],
+  "applicationAndExecutableBytes": "UNCHANGED",
+  "commandSha256": "1DE5DD51296D90676A5EC7478C611A0B50B0F9F0824DF017E98793A100A696C2",
+  "hostConfigSha256": "8C62AB4CA90A66B6B0B127694B7FF0C587F6FD2F1ADA4035CA81D2CFEBF722FA",
+  "dockerOpsConfigSha256": "CC6B24129CED5014DA959A1A63A39EEC64866BC9718C1803F81B3DACD89E6911",
+  "payloadManifestSha256": "43EACD30734FE5689022E7BF99C21EA321D064B68D6FDAC0893A461F42D3CCB5",
+  "nestedManifestSha256": "9DAD94B5E2D74281D8ADCAC1836B7DE4D7E7DA92503233F208B405E220292F95",
+  "humanAuthority": "NONE",
+  "fakePrerequisite": "PENDING_ONE_SHOT_DECISION_AND_RUN",
+  "nativeLaunch": "HELD_SEPARATE_FUTURE_CARD",
+  "receiptDefault": "native-provider-host-receipt.jsonl",
+  "receiptOverride": "OMITTED",
+  "authoringIncidents": [
+    "Reserved PowerShell Host variable stopped first staging command; partial fresh data inspected and completed with task-specific name; no subject execution",
+    "Expected metadata delta count corrected from six to exact five named files after inspection; all296 other source inputs identical"
+  ],
+  "endpoint": "unbound"
+}

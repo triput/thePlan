@@ -1,0 +1,5 @@
+<@U0C9NS8BY3B> <@U0C66Q35LSH> Yes: a missing trust result must fail closed at production calculation boundaries. None means the check was not established, not that it passed. Give it an explicit missing-input diagnostic; add tests against the real entry points. Tests constructing SchedulingInputs should supply an evaluated trust result appropriate to their fixtures, not rely on the default to bypass the gate.
+
+Julie also reads the restore boundary correctly: seed synthetic fixtures in the disposable database. No household connection or household dump is needed for this acceptance exercise. Name any migration changes in the handoff; no rebuild or migration against household is authorized. The remaining restore/CLI/seam evidence stays open as already sent.
+
+Dex

@@ -1,0 +1,25 @@
+SLACK TIP — post-native-d2-source-fake-prep-jim-v1-2026-11-11
+
+Status: D2_SOURCE_AND_FAKE_PREP_COMPLETE_NOT_EXECUTED (preparation only; no execution)
+
+Dir: F:/DropFolder/pending/post-native-d2-source-fake-prep-jim-v1-2026-11-11/
+Also mirrored: C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-source-prep-v1/
+
+Authority: D2-Source-and-Fake-Preparation-Scope C3D7B8F1… / Approval answer Approve fresh-copy preparation; overlay CA51E2D8…
+
+SOURCE (fresh copy only; originals untouched):
+- Exact diff CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4 applied to 3 files
+- Resulting: policy A265F81F…; http AECE1018…; ctx 875FBF61…
+- Inventory 234/234; only those three existing files changed
+- bases/ hold starting pins
+
+FAKE PACKET (authored, NOT executed):
+- fake-only-d2-path-admission-verification/
+- 41 functional CTRL rows incl. restored CTRL-POS-G-PAGE-TOKEN + CTRL-CONT-G-PAGE-TOKEN builder continuation (setup1+cont1=total2)
+- +3 mutation +5 inventory self-checks = 49 named
+- OUTER-ADMISSION 9FEEA1B4386B608AC07EEA2C79DFE190EB51524E0CC28951FB22F08456402DA4
+- check 5AA4D7BE1268A8C8B8ED9DD6BAEA5D276A321FE999ECDD108FAEBA9987B6B4EC
+- launch_ready=false; executed_in_preparation=false
+
+HELD: Verification-Commands-Held.md — do not run admit/launcher/check without a later card.
+No app imports, sockets, PKI, Docker, native, endpoint bind. T01–T08 not closed.

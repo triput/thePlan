@@ -1,0 +1,14 @@
+{
+  "atUtc": "2026-11-14T05:21:13.5466280+00:00",
+  "caller": "Google case calls helper at1785; innerfinally restores parent/worker/HTTPconstructor only; outerfinally restores transport.request/peer only",
+  "authority": "Standing authoring lane only; future fake/native execution requires new exact reviewed approvals",
+  "native_run_occurred": false,
+  "native_manifest": "441B3ACA895143588E4D89545D46DC618899166DC0FE86B0C89ADD535F7337CC",
+  "helper": "np_runner_entry.py:1284-1304 mutates CoveringORMConnection.token_terminal and returns None",
+  "endpoint": "unbound",
+  "fake_scope_gap": "oracle_wiring wanted tuple contains parent observer,worker observer and CoveringHTTP constructor; token original callable/restoration not checked",
+  "false_evidence": "resource_disposition.observers_restored=True does not cover token observer",
+  "runner": "8EFE8D5BCEA73D5936E4C0B094F5710B1BA7A7F9244A6E4BCD052CAA8A4BF774",
+  "status": "CONFIRMED_SOURCE_DEFECT_NATIVE_COMMAND_WITHHELD",
+  "narrow_proposal": "Capture original token_terminal locally before installing helper; restore it in existing innerfinally; extend same structural restoration control to require the token restoration. Preserve helper and assertions/all subject/application/API/peer behavior otherwise."
+}

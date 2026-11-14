@@ -1,0 +1,5 @@
+--- a/Invoke-Native-Provider.ps1
++++ b/Invoke-Native-Provider.ps1
+@@ -42 +42 @@
+-$evidence = Join-Path (Split-Path $PSScriptRoot -Parent) 'scheduler-native-provider-first-native-launch-candidate-dex-v3.evidence'
++$evidence = Join-Path (Split-Path $PSScriptRoot -Parent) 'scheduler-native-provider-diagnostic-launch-v1.evidence'

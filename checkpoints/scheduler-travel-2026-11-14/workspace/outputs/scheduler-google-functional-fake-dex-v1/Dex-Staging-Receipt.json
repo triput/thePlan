@@ -1,0 +1,20 @@
+{
+  "status": "STAGED_NOT_EXECUTED_REVIEW_REQUIRED",
+  "source_manifest": "D626F1C2D9DA9045F68AC19E8B6269FAED82A09A650037ECA04DC7392079931F",
+  "native_source_manifest": "EFC705425F839D4FCC7C04FCEA2840A22FA3262B40B9F270F8951B868E42F35D",
+  "handback": "503414C843A76B5BA1DAF2D774804AAE3F9B84969523CC181EEAED391AEED8BA",
+  "changes": [
+    "OUTER admission launch_authorized true and staging note",
+    "VERIFICATION admission launch_authorized true, staging note and new OUTER pin"
+  ],
+  "unchanged": "All checker, subject, expected inventory, wrapper and helper bytes",
+  "controls": 14,
+  "predicates": 66,
+  "behavioral_mutants": 6,
+  "structural_mutants": 4,
+  "runtime_pins": 10,
+  "admission": "4801342233DB37970C539392C5811E8638C9AC0F9219EEE56720435F983224A2",
+  "command_sha256": "00C77B7D13A4794EFD38DE595FB0FF1AF10B8A0F586D8EBDFD1ED5190858DCFB",
+  "human_execution_authority": "NONE",
+  "endpoint": "unbound"
+}

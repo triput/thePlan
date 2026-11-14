@@ -1,0 +1,61 @@
+{
+  "kind": "Focused fake control design data only; not executed or PASS",
+  "policy_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+  "approved_limits": {
+    "response_bytes": 16777216,
+    "event_pages": 20,
+    "identity_pages": 10,
+    "items": 10000
+  },
+  "scope": "Source-extracted actual ProviderLimits/ProviderCounter and optional actual _Reader with fake transport; no real I/O or app/vendor imports",
+  "controls": [
+    {
+      "id": "T02-ITEMS-DIRECT-CROSSING",
+      "setup": "Fresh counter at approved limits; inject items=9999, bytes=0, pages event/identity=0, stopped=false; injected snapshot explicitly disclosed",
+      "operation": "Call actual batch with a list of2 harmless synthetic entries",
+      "expected": {
+        "returned_collection": false,
+        "stopped": true,
+        "exception": "CoveringTransportRefused",
+        "items": 9999
+      },
+      "followup": "A subsequent admit must refuse without calling transport",
+      "mutation": "A mutant that ignores existing item count and checks only len(batch)<=limit must fail this oracle"
+    },
+    {
+      "id": "T02-BYTES-DIRECT-CROSSING",
+      "setup": "Fresh counter at approved limits; inject bytes=16777215, items=0, pages=0, stopped=false; injected snapshot explicitly disclosed",
+      "operation": "Call actual body(2)",
+      "expected": {
+        "stopped": true,
+        "exception": "CoveringTransportRefused",
+        "bytes": 16777215
+      },
+      "followup": "A subsequent admit must refuse without calling transport",
+      "mutation": "A mutant that ignores cumulative byte count and checks only count<=limit must fail this oracle"
+    },
+    {
+      "id": "T02-READER-DIRECT-CROSSING",
+      "optional_composition_witness": true,
+      "setup": "Fresh approved counter with bytes=16777215, stopped=false; actual extracted _Reader, fake transport returning exactly2 bytes, two-byte destination buffer",
+      "operation": "Call actual readinto(buffer); receive requested maximum should be2 from left+1",
+      "expected": {
+        "stopped": true,
+        "bytes": 16777215,
+        "exception": "CoveringTransportRefused",
+        "requested_maximum": 2,
+        "buffer_written": false
+      },
+      "limits": "Only2 synthetic bytes allocated; not a native socket or16MiB raw-response run"
+    }
+  ],
+  "evidence_composition": [
+    "Existing20-control T02 PASS covers N-1→N acceptance and exact equality/new-admission behavior",
+    "Existing73-control framing PASS covers small-limit actual HTTP item/byte refusal",
+    "These focused controls add actual approved-ceiling cumulative crossing arithmetic with explicitly injected initial counts",
+    "No automatic full T02 closure or native retirement/ordered-target claim"
+  ],
+  "execution_authorized": false,
+  "source_authoring": "Within approved named checker role only; no new helper",
+  "endpoint": "unbound"
+}

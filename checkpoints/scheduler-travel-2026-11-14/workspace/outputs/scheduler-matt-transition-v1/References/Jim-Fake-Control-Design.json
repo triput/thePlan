@@ -1,0 +1,172 @@
+{
+  "kind": "finite-fake-control-design-runner-diagnostic",
+  "date": "2026-11-12",
+  "author": "Justin",
+  "role": "Jim Dex Scheduler lane — docs-only fake-control design",
+  "documents_only": true,
+  "scripts_authored": false,
+  "native_run_in_prep_or_fake_verification": false,
+  "implementation_authorized": false,
+  "notes": [
+    "Fake controls use fake traceback/filesystem boundaries.",
+    "Existing immutable host validator exercisable with fake owned attach inputs.",
+    "No native run in preparation/fake verification.",
+    "Authoring deferred until Trish-approved combined card."
+  ],
+  "controls": [
+    {
+      "id": "original",
+      "name": "Original status/kind-only",
+      "envelope": {
+        "status": "STOP",
+        "kind": "SuiteStop"
+      },
+      "expect_host": {
+        "diagnostic_unavailable": true,
+        "retains_diagnostic": false
+      },
+      "expect_exit": 125
+    },
+    {
+      "id": "candidate_happy",
+      "name": "Candidate happy path",
+      "envelope": {
+        "status": "STOP",
+        "kind": "SuiteStop",
+        "diagnostic": {
+          "version": 1,
+          "exceptions": [
+            {
+              "kind": "SuiteStop",
+              "frames": [
+                {
+                  "path": "fixture/fake_owned.py",
+                  "line": 1
+                }
+              ]
+            }
+          ],
+          "truncated": false
+        }
+      },
+      "expect_host": {
+        "diagnostic_unavailable": false,
+        "retains_diagnostic": true
+      },
+      "expect_exit": 125,
+      "requires": "frames path owned by fake manifest + hash/line bounds OK"
+    },
+    {
+      "id": "cause_chain",
+      "name": "SuiteStop wrapping other class",
+      "setup": "SuiteStop with __cause__/__context__ pointing at another exception class",
+      "expect_runner_diagnostic": {
+        "exception_entries_min": 2,
+        "primary_kind": "SuiteStop"
+      },
+      "expect_host": {
+        "primary_kind_match": true
+      },
+      "expect_exit": 125
+    },
+    {
+      "id": "rejections",
+      "name": "Owned-frame rejections",
+      "cases": [
+        {
+          "case": "path_outside_ROOT",
+          "expect": "truncated_and_or_fallback"
+        },
+        {
+          "case": "rel_not_in_manifest",
+          "expect": "truncated_and_or_fallback"
+        },
+        {
+          "case": "hash_mismatch",
+          "expect": "truncated_and_or_fallback"
+        },
+        {
+          "case": "line_OOB",
+          "expect": "truncated_and_or_fallback"
+        }
+      ],
+      "expect_exit": 125
+    },
+    {
+      "id": "bounds",
+      "name": "Finite caps",
+      "cases": [
+        {
+          "case": "exceptions_gt_3",
+          "expect": "truncation_flag_or_cap_at_3"
+        },
+        {
+          "case": "frames_gt_8",
+          "expect": "truncated_true_keep_newest_8"
+        },
+        {
+          "case": "envelope_gt_4096",
+          "expect": "frame_trim_or_fallback"
+        },
+        {
+          "case": "traceback_walk_gt_128",
+          "expect": "truncated_true"
+        }
+      ],
+      "expect_exit": 125
+    },
+    {
+      "id": "fallback",
+      "name": "Force diagnostic failure",
+      "setup": "induce stop_payload internal failure after original captured",
+      "expect_envelope": {
+        "status": "STOP",
+        "kind": "original_unsanitized_type_name",
+        "diagnostic_absent": true
+      },
+      "expect_host": {
+        "diagnostic_unavailable": true
+      },
+      "expect_exit": 125,
+      "note": "primary kind never replaced by diagnostic failure"
+    },
+    {
+      "id": "privacy",
+      "name": "Privacy envelope inspection",
+      "must_not_contain": [
+        "exception_args",
+        "exception_messages",
+        "locals",
+        "SQL",
+        "key_material",
+        "cert_body",
+        "credentials",
+        "raw_traceback_text"
+      ],
+      "allowed": [
+        "status",
+        "kind",
+        "diagnostic.version",
+        "diagnostic.exceptions[].kind",
+        "diagnostic.exceptions[].frames[].path",
+        "diagnostic.exceptions[].frames[].line",
+        "diagnostic.truncated"
+      ]
+    },
+    {
+      "id": "unchanged_stop_exit",
+      "name": "Unchanged STOP/exit contract",
+      "expect": {
+        "status": "STOP",
+        "cli_process_exit": 125,
+        "success_report": false,
+        "no_pki_success_inference_on_STOP": true
+      }
+    }
+  ],
+  "host_exercise": {
+    "validator": "docker_transport.DockerOps._record_runner_stop",
+    "mutable_host_required": false,
+    "inputs": "fake owned attach stderr envelopes + returncode 125"
+  }
+}

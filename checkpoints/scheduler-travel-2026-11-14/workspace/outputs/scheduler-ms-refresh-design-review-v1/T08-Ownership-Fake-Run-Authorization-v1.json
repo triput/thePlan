@@ -1,0 +1,8 @@
+{
+  "command": "0CDC2C7D46C5C93784D0E5268A7258C898134FAFBDFE5AD2868EEB3E8F405261",
+  "invocations": 1,
+  "status": "CONSUMED_FOR_ONE_ATTEMPT_NO_RETRY",
+  "questionId": "call_5fbe8c67677a47298cdc4f8a3b5c95db",
+  "remainingAuthority": 0,
+  "atUtc": "2026-11-14T06:28:40.3845851+00:00"
+}

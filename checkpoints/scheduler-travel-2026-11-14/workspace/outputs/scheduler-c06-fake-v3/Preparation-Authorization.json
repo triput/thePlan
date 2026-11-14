@@ -1,0 +1,12 @@
+{
+  "question_item": "call_7f6a3bb524854a42babba949055e5a18/0",
+  "answer": "Approve fresh-copy artifact-stem preparation (Recommended)",
+  "recorded_utc": "2026-11-11T07:14:35.1604929Z",
+  "diff_sha256": "488CBC110A225F7431AC8B7DA235AD2C1012AB5A274220958FFF98D312005A46",
+  "change": "unique fake artifact stem on second port probe",
+  "functional_changed_lines": 1,
+  "expected_check_sha256": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+  "execution_authorized": false,
+  "verification_authorized": false,
+  "endpoint": "unbound"
+}

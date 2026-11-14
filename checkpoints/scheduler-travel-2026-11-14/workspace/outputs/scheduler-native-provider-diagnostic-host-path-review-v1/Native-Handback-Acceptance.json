@@ -1,0 +1,88 @@
+{
+  "status": "REVIEW_CHECKLIST_NOT_EXECUTION",
+  "approved_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891",
+  "target_packet": "scheduler-native-provider-diagnostic-launch-v1",
+  "target_evidence": "scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+  "host_helper_sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53",
+  "baseline_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "baseline_images": {
+    "database": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+    "runner": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab"
+  },
+  "baseline_constraints": {
+    "database_host_config": {
+      "Privileged": false,
+      "ReadonlyRootfs": true,
+      "PublishAllPorts": false,
+      "PortBindings": {},
+      "CapAdd": null,
+      "Devices": [],
+      "DeviceRequests": null,
+      "Memory": 1073741824,
+      "MemorySwap": 1073741824,
+      "NanoCpus": 1000000000,
+      "PidsLimit": 64,
+      "CapDrop": [
+        "ALL"
+      ],
+      "SecurityOpt": [
+        "no-new-privileges"
+      ],
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "NetworkMode": "none",
+      "Tmpfs": {
+        "/var/lib/postgresql/data": "rw,nosuid,nodev,noexec,size=256m,mode=1777",
+        "/fixture-tls": "rw,nosuid,nodev,noexec,size=16m,mode=1777",
+        "/tmp": "rw,nosuid,nodev,noexec,size=64m,mode=1777"
+      }
+    },
+    "runner_host_config": {
+      "Privileged": false,
+      "ReadonlyRootfs": true,
+      "PublishAllPorts": false,
+      "PortBindings": {},
+      "CapAdd": null,
+      "Devices": [],
+      "DeviceRequests": null,
+      "Memory": 1073741824,
+      "MemorySwap": 1073741824,
+      "NanoCpus": 1000000000,
+      "PidsLimit": 64,
+      "CapDrop": [
+        "ALL"
+      ],
+      "SecurityOpt": [
+        "no-new-privileges"
+      ],
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "NetworkMode": "container:<exact-created-database-ID>",
+      "Tmpfs": {
+        "/tmp": "rw,nosuid,nodev,noexec,size=128m,mode=1777"
+      }
+    }
+  },
+  "required_checks": [
+    "Exact operator one-line diff only; runner/helper/other executable/API bytes unchanged.",
+    "Every declared manifest entry verified under its explicit root, exact input/payload inventory and acyclic external admission.",
+    "Host launch_ready and candidate staging flags false; internal runner-config byte-identical.",
+    "Explicit path table connects operator evidence/default receipt/public-ca to ops config CA directory and runner CA bind plus host receipt declaration.",
+    "New packet source/payload/config/bind paths correct; no old evidence literal in active executable/config/command inputs.",
+    "Future command absolute, exact config hashes and no ReceiptPath override.",
+    "Fresh sibling evidence absent; old evidence and native/cleanup/fake result receipt hashes preserved.",
+    "Batch/images/isolation/network/resource/command/time/capture limits unchanged; no T05 merge or scope expansion.",
+    "Historical docs clearly distinguished from current commands/freeze records.",
+    "No active writer; authored/static/runtime proof stated truthfully. No parsing/compilation/helpers or launch performed during preparation."
+  ],
+  "execution_authorized": false,
+  "qualification": "Use actual final frozen handback as authority. This record is not a replacement for reading metadata deltas and limits."
+}

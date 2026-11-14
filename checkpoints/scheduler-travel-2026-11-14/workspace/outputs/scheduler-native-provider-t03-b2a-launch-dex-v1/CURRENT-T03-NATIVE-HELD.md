@@ -1,0 +1,1 @@
+Current only prospective command: Reviewed-T03-B2a-Native-Command.ps1.txt. Copied commands/documents are historical. No human launch authority. Native source and fullGoogle function remain unproved. Include Google VALID control with negatives; no native execution under preparation. Machine gates true are data only. Fake PASS11/47. Endpoint unbound; all other holds stay.

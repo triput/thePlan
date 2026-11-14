@@ -1,0 +1,14 @@
+# Runner-to-host report contract — provisional v2 review
+
+Dex, November12. Static read only of the in-progress successor. Same approved roles; no invocation. Reconcile final bytes before acceptance.
+
+1. np_runner_entry.main assigns sys.stdout/sys.stderr to BoundedOutput, then prints its final JSON without restoring the original machine-output stream. BoundedOutput only updates a hash/count, so Docker attach receives no JSON. Keep console capture/hash-only policy, but emit exactly one bounded sanitized report through the preserved machine-output stream after restoring streams in finally. Do not expose raw console output or exception messages as a workaround. Failure diagnostics must also follow the declared sanitized STOP protocol and survive the console sink.
+
+2. The current runner calls build_receipt(kind=runner_suite_report, report=report,...), while np_supervisor.ProviderDockerOps.run_attached immediately reads runtime_pins/ca_sha256/host_docker_ownership/case_ids from the top-level object. Those fields are currently nested under report. Pick one exact schema and validate it on both sides. Keep the independent identity/CA/runtime checks; do not weaken them to bypass a schema mismatch.
+
+3. record_case collects case_results but the final emitted receipt omits that list. Counts and IDs alone do not preserve the per-case oracles, measured before/after native state, token/import terminal evidence, peer exchange inventory and resource disposition required by the vertical. Include the bounded sanitized case evidence needed for independent reconciliation, with exact expected cardinality/order. Source-declared OBSERVED strings alone are not those observations.
+
+4. np_receipts.redact_mapping discards every key containing token, which also drops the safe token_rollback_ack observation. Preserve explicitly reviewed typed booleans/hashes/terminal classifications through an allowlisted evidence schema while excluding actual plaintext tokens/keys/cookies/secrets. Do not switch to raw token-bearing dictionaries or broad arbitrary message retention. Runtime executed/authorization flags must truthfully describe the actual authorized run, rather than inheriting preparation-only False defaults into successful execution receipts.
+
+These are same-contract implementation corrections inside np_runner_entry.py, np_receipts.py, np_supervisor.py and the named checker roles. Add fake report producer/consumer and capture-sink controls so the exact schema/output channel is exercised before native launch. Preserve the clean application tree and every prior packet. No new source card, extra helper, app edit, raw-console retention or execution authority.
+— Dex

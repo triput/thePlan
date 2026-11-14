@@ -1,0 +1,86 @@
+{
+  "kind": "native-ms-selected-retire-fake-structural-expected",
+  "packet": "scheduler-native-ms-selected-retire-fake-prep-matt-v1",
+  "candidate_roots": ["scheduler-native-provider-ms-invalid-prep-matt-v2", "scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1"],
+  "case_ids": ["NP-V-MS-INVALID", "NP-V-MS-NONEXPIRED"],
+  "assignment": "Dex BB93F31E selected-case retirement correction (R1 worker_error_kind admission, R2 final peer evidence after the bounded join)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "SCRIPT-SELECTION",
+    "CLIENT-OAUTH-CLASSIFICATION",
+    "OWNING-REFRESH-UNITS",
+    "PUBLIC-RESULT-CONTRACT",
+    "RUNNER-WIRING",
+    "RETIREMENT-BARRIER",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "transcript", "suite", "runner_config", "nonexpired_runner", "nonexpired_runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "transcript", "suite", "nonexpired"],
+    "SCRIPT-SELECTION": ["tenant_path_fix", "only_request_path_changed", "exact_wire", "one_exchange_inventory", "catalog_other_scripts_unchanged"],
+    "CLIENT-OAUTH-CLASSIFICATION": ["invalid_grant_typed", "other_error_unknown", "status_401_unknown", "nonobject_unknown", "malformed_unknown", "truncated_unknown", "eof_after_send_unknown", "send_failure_sets_sent_unknown", "open_failure_before_send_original", "close_failure_after_invalid_grant_unknown", "event_purpose_not_classified", "joined_send_marks_sent_before_socket_send"],
+    "OWNING-REFRESH-UNITS": ["ms_refresh_raises_before_any_write", "adapter_rejected_rollback", "adapter_wrong_terminal_unknown", "adapter_other_exception_propagates"],
+    "PUBLIC-RESULT-CONTRACT": ["preflight_row_shape", "overall_no_op", "overall_failed_distinct", "dispatch_rejected_skips_run_target"],
+    "RUNNER-WIRING": ["default_joined_tls", "observers_saved_before_install", "observers_restored_in_finally", "wrappers_preserve_identity", "oracle_constants_exact", "stops_before_receipt", "single_subscription_seed", "separate_measure_sessions", "mapper_and_implemented"],
+    "RETIREMENT-BARRIER": ["helper_identical_in_both_runners", "joined_no_error_post_join_state", "worker_error_refused", "unjoined_refused", "retirement_unknown_same_object", "other_exception_same_object", "single_attempt_all_paths", "invalid_body_barrier_order", "nonexpired_body_barrier_order", "nonexpired_assertions_preserved"],
+    "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact", "nonexpired_runner_config", "nonexpired_launch_config", "nonexpired_payload_delta_exact"],
+    "PRIOR-FAKE-APPLICABILITY": ["t05_units_identical", "refresh_units_identical", "peer_and_seed_unchanged"],
+    "ACTUAL-SOURCE-MUTANTS": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed", "joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed", "worker_error_admission_removed", "snapshot_moved_before_join", "body_snapshot_before_barrier", "body_second_retirement"]
+  },
+  "expected_nested_predicates": 85,
+  "nested_count_breakdown": "SUBJECT-PINS 1 + RUNTIME 7 + DIFF 6 + PRESERVED 4 + SELECTION 5 + CLIENT 12 + UNITS 4 + PUBLIC 4 + WIRING 9 + RETIREMENT 10 + BATCH 6 + PRIOR 3 + MUTANTS 14 = 85",
+  "check_kinds": {
+    "behavioral_host_parser": "CLIENT-OAUTH-CLASSIFICATION except joined_send_marks_sent_before_socket_send",
+    "behavioral_extracted_units": "OWNING-REFRESH-UNITS; PUBLIC-RESULT-CONTRACT except dispatch_rejected_skips_run_target; RETIREMENT-BARRIER joined_no_error_post_join_state, worker_error_refused, unjoined_refused, retirement_unknown_same_object, other_exception_same_object, single_attempt_all_paths",
+    "whole_module_fake": "SCRIPT-SELECTION",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; RUNNER-WIRING; joined_send_marks_sent_before_socket_send; dispatch_rejected_skips_run_target; RETIREMENT-BARRIER helper_identical_in_both_runners, invalid_body_barrier_order, nonexpired_body_barrier_order, nonexpired_assertions_preserved",
+    "behavioral_mutants": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed", "worker_error_admission_removed", "snapshot_moved_before_join"],
+    "structural_mutants": ["joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed", "body_snapshot_before_barrier", "body_second_retirement"]
+  },
+  "expected_outcomes": {
+    "invalid_grant_v1_checks": "unchanged from scheduler-native-ms-invalid-fake-prep-matt-v1 EXPECTED, now against the v2 runner candidate 4CBF198E",
+    "retirement_helper": {
+      "joined_no_error": "exactly one retire_owned(join_seconds=5.0), then sanitized_state; the returned final inventory includes the row published during the join",
+      "worker_error": "SuiteStop; sanitized_state not called",
+      "unjoined": "SuiteStop; sanitized_state not called",
+      "PeerRetirementUnknown_or_other": "the same exception object propagates; sanitized_state not called",
+      "attempts": "exactly one retire_owned call on every path"
+    },
+    "selected_bodies": "in both _run_np_v_ms_invalid and _run_np_v_ms_nonexpired: retirement_attempted = True immediately precedes the single helper call; no direct retire_owned/sanitized_state in the main try body; one failure-path retire_owned in finally; every peer_state use follows the barrier; barrier < check_oracles_immediate < case_result_receipt(passed=True, workers_joined=True, expected_unknown=False)",
+    "nonexpired_unchanged": "only the helper and the body changed; the body's SuiteStop message set equals the source set minus the removed 'peer worker unjoined — UNKNOWN'; runner-config differs only in launch_ready; launch-config differs only in launch_ready, candidate_launch_ready_staged, manifest_sha256, the two root paths, candidate_note and dex_r1_revise_note; payload delta is exactly runner and runner-config with peer 17EA148E unchanged"
+  },
+  "mutant_oracles": {
+    "path_fix_reverted": "selection:tenant path",
+    "transport_accepts_any_400": "client:other error unknown",
+    "send_state_ignored": "client:open failure original",
+    "adapter_except_sets_changed": "units:adapter rejected rollback",
+    "adapter_except_removed": "units:adapter rejected rollback",
+    "joined_marks_sent_after_send": "client:joined send marks sent",
+    "terminal_row_commit": "wiring:oracle constants",
+    "observer_restore_removed": "wiring:observers restored",
+    "counted_request_swallows": "wiring:wrappers preserve identity",
+    "two_subscriptions_seed": "wiring:single subscription seed",
+    "worker_error_admission_removed": "retire:worker error refused",
+    "snapshot_moved_before_join": "retire:post-join state",
+    "body_snapshot_before_barrier": "retire:nonexpired body barrier",
+    "body_second_retirement": "retire:invalid body barrier"
+  },
+  "limits": {
+    "check_seconds": 120,
+    "timeout_retirement_total_seconds": 135,
+    "result_byte_cap": 262144,
+    "capture_byte_cap_per_stream": 65536
+  },
+  "not_proved": "native TLS, native peer retirement timing, the native client exception at runtime, native PostgreSQL ROLLBACK acknowledgement, persisted DB state, the ASGI response, exact coverage_action/scheduling_readiness values; MS-REFRESH and other unselected bodies are not certified",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

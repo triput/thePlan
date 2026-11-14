@@ -1,0 +1,10 @@
+{
+  "captureSHA256": "81150BFEEB6311161E913CDE7180056D7447C5E5BF0C3D2FE2FF2ED2219B11CD",
+  "operatorOutcome": "OPERATOR_STOP",
+  "startedAtUtc": "2026-11-14T02:34:44.5794746Z",
+  "rawOutputDisclosed": false,
+  "captureBytes": 37,
+  "remainingInvocations": 0,
+  "finishedAtUtc": "2026-11-14T02:34:45.3917467Z",
+  "exitCode": 1
+}

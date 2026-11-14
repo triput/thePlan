@@ -1,0 +1,369 @@
+{
+  "status": "PASS",
+  "class": "FAKE-D2-PATH-ADMISSION",
+  "executed": true,
+  "executed_in_preparation": false,
+  "held_preparation_only": true,
+  "source_hashes_verified": true,
+  "inventory_error": null,
+  "control_ids_in_order": [
+    "CTRL-POS-G-PLUS-AT",
+    "CTRL-POS-G-PERCENT",
+    "CTRL-POS-G-INTERNAL-DOT",
+    "CTRL-POS-G-UNICODE",
+    "CTRL-POS-G-ID-LITERAL-CALENDARS",
+    "CTRL-POS-G-EXACT-PREFIX",
+    "CTRL-POS-G-CHILD",
+    "CTRL-POS-MS-VIEW",
+    "CTRL-POS-MS-DELTA-COMPAT",
+    "CTRL-POS-G-CALENDARLIST",
+    "CTRL-POS-MS-LIST",
+    "CTRL-POS-MS-DEFAULT",
+    "CTRL-POS-G-OAUTH",
+    "CTRL-POS-MS-OAUTH",
+    "CTRL-POS-BUDGET-EQ-8",
+    "CTRL-POS-G-PAGE-TOKEN",
+    "CTRL-NEG-ORD-SLASH",
+    "CTRL-NEG-ENC-SLASH-PCT2F-UPPER",
+    "CTRL-NEG-ENC-SLASH-PCT2F-LOWER",
+    "CTRL-NEG-NEST-252F",
+    "CTRL-NEG-NEST-25252F",
+    "CTRL-NEG-NEST-DOT",
+    "CTRL-NEG-RAW-DOT",
+    "CTRL-NEG-EMPTY",
+    "CTRL-NEG-TRAILING",
+    "CTRL-NEG-MALFORM-BARE",
+    "CTRL-NEG-MALFORM-G1",
+    "CTRL-NEG-MALFORM-TRUNC",
+    "CTRL-NEG-UTF8-INVALID",
+    "CTRL-NEG-STRUCT-PCT-HELPER",
+    "CTRL-NEG-BUDGET-EQ-9",
+    "CTRL-NEG-PREFIX-BOUNDARY",
+    "CTRL-NEG-COVERINGHTTP-PATCH-TYPED",
+    "CTRL-NEG-COVERINGCLIENT-PATCH-ABSENT",
+    "CTRL-NEG-CTX-ORD-SLASH",
+    "CTRL-NEG-CTX-ENC-SLASH",
+    "CTRL-NEG-CTX-MALFORM",
+    "CTRL-COLLIDE-MULTI-PURPOSE",
+    "CTRL-COLLIDE-DUP-SAME-PURPOSE",
+    "CTRL-CONT-FOREIGN-BEFORE-SEND",
+    "CTRL-CONT-REDIRECT-3XX",
+    "CTRL-CONT-MS-NEXTLINK",
+    "CTRL-CONT-G-PAGE-TOKEN",
+    "CTRL-SEP-TARGET-AUTHZ",
+    "M-PATH-ADMIT-NOOP",
+    "M-HTTP-ALLOW-PATCH",
+    "M-ENCODED-SLASH-BYPASS",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "controls": {
+    "CTRL-POS-G-PLUS-AT": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-PERCENT": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-INTERNAL-DOT": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-UNICODE": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-ID-LITERAL-CALENDARS": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-EXACT-PREFIX": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-CHILD": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-MS-VIEW": {
+      "result": "PASS",
+      "detail": "builder _calendar_view_url(a=b+c) → context/client → CoveringHTTP; wire carries a%3Db%2Bc; native/provider proof boundary unchanged"
+    },
+    "CTRL-POS-MS-DELTA-COMPAT": {
+      "result": "PASS",
+      "detail": "builder _calendar_view_delta_url(a=b+c) → context/client → CoveringHTTP; wire carries a%3Db%2Bc; not ordinary-refresh invoke claim; native/provider proof boundary unchanged"
+    },
+    "CTRL-POS-G-CALENDARLIST": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-MS-LIST": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-MS-DEFAULT": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-OAUTH": {
+      "result": "PASS",
+      "detail": "structural oauth POST admit"
+    },
+    "CTRL-POS-MS-OAUTH": {
+      "result": "PASS",
+      "detail": "structural ms oauth POST admit; no profile bind"
+    },
+    "CTRL-POS-BUDGET-EQ-8": {
+      "result": "PASS",
+      "detail": "admit opens=1 sends=1; request-target unchanged on wire"
+    },
+    "CTRL-POS-G-PAGE-TOKEN": {
+      "result": "PASS",
+      "detail": "direct-query admit; query opaque; 1 open/send; zero path-follow; request-target unchanged; separate from CONT builder continuation"
+    },
+    "CTRL-NEG-ORD-SLASH": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-ENC-SLASH-PCT2F-UPPER": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-ENC-SLASH-PCT2F-LOWER": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-NEST-252F": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-NEST-25252F": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-NEST-DOT": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-RAW-DOT": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-EMPTY": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-TRAILING": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-MALFORM-BARE": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-MALFORM-G1": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-MALFORM-TRUNC": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-UTF8-INVALID": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-STRUCT-PCT-HELPER": {
+      "result": "PASS",
+      "detail": "synthetic matching prefix reaches admit_covering_path; structural % refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-BUDGET-EQ-9": {
+      "result": "PASS",
+      "detail": "refused pre-send: path admission refused; context pre-delegate refuse (0 delegate calls)"
+    },
+    "CTRL-NEG-PREFIX-BOUNDARY": {
+      "result": "PASS",
+      "detail": "route refuse before helper"
+    },
+    "CTRL-NEG-COVERINGHTTP-PATCH-TYPED": {
+      "result": "PASS",
+      "detail": "CoveringHTTP.request PATCH → method/purpose refused; no PATCH support added"
+    },
+    "CTRL-NEG-COVERINGCLIENT-PATCH-ABSENT": {
+      "result": "PASS",
+      "detail": "AttributeError: _CoveringClient has no attribute patch; distinct from typed CoveringHTTP refuse"
+    },
+    "CTRL-NEG-CTX-ORD-SLASH": {
+      "result": "PASS",
+      "detail": "_CoveringClient ORD-SLASH: admit refuse before sentinel transport.request; 0 delegate calls"
+    },
+    "CTRL-NEG-CTX-ENC-SLASH": {
+      "result": "PASS",
+      "detail": "_CoveringClient ENC-SLASH: admit refuse before sentinel transport.request; 0 delegate calls"
+    },
+    "CTRL-NEG-CTX-MALFORM": {
+      "result": "PASS",
+      "detail": "_CoveringClient MALFORM: admit refuse before sentinel transport.request; 0 delegate calls"
+    },
+    "CTRL-COLLIDE-MULTI-PURPOSE": {
+      "result": "PASS",
+      "detail": "ambiguous/unapproved provider route"
+    },
+    "CTRL-COLLIDE-DUP-SAME-PURPOSE": {
+      "result": "PASS",
+      "detail": "first-match admit; selected peer address=203.0.113.10 (not 203.0.113.12); one-exchange counts+retirement; no dial/profile-bind/TLS claim"
+    },
+    "CTRL-CONT-FOREIGN-BEFORE-SEND": {
+      "result": "PASS",
+      "detail": "origin/route refuse before send; 0/0"
+    },
+    "CTRL-CONT-REDIRECT-3XX": {
+      "result": "PASS",
+      "detail": "1 open/send original; 0 follow-ups; redirect refused"
+    },
+    "CTRL-CONT-MS-NEXTLINK": {
+      "result": "PASS",
+      "detail": "admitted Graph nextLink path via _absolute_graph_url; target authz separate"
+    },
+    "CTRL-CONT-G-PAGE-TOKEN": {
+      "result": "PASS",
+      "detail": "builder: setup1+continuation1=2 opens/sends; URL-shaped pageToken query; 0 redirect follow-ups"
+    },
+    "CTRL-SEP-TARGET-AUTHZ": {
+      "result": "PASS",
+      "detail": "path admit 1/1 observed; extracted covering surface has no calendar-target-authz binder (AST+interface); admit returns no authz token; separate from native I01-C02; no auth proof manufactured"
+    },
+    "M-PATH-ADMIT-NOOP": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-PATH-ADMIT-NOOP: extracted admit_covering_path→noop rebound into CoveringHTTP; ORD-SLASH mutant reaches open/send; unmutated SAME assertion refuses path admission 0/0; never in production snapshot"
+    },
+    "M-HTTP-ALLOW-PATCH": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-HTTP-ALLOW-PATCH: CoveringHTTP.request method tuple +PATCH; mutant PATCH reaches construct/open/send; unmutated SAME typed-refuse assertion stays 0/0; never in production snapshot"
+    },
+    "M-ENCODED-SLASH-BYPASS": {
+      "result": "PASS",
+      "detail": "MUTATION_PROVENANCE M-ENCODED-SLASH-BYPASS: neutralized encoded-slash AND decoded-literal-slash refuses inside extracted _inspect_opaque_id_segment; ENC-SLASH CoveringHTTP mutant reaches open/send; unmutated SAME assertion refuses 0/0; never in production snapshot"
+    },
+    "H-INVENTORY-ACCEPTS-GOOD": {
+      "result": "PASS",
+      "detail": "enforce_expected_inventory accepts exact ordered good result"
+    },
+    "H-INVENTORY-REJECTS-REORDER": {
+      "result": "PASS",
+      "detail": "rejects reordered control_ids"
+    },
+    "H-INVENTORY-REJECTS-DUPLICATE": {
+      "result": "PASS",
+      "detail": "rejects duplicate control_ids"
+    },
+    "H-INVENTORY-REJECTS-MISSING": {
+      "result": "PASS",
+      "detail": "rejects missing control_ids"
+    },
+    "H-INVENTORY-REJECTS-ALTERED": {
+      "result": "PASS",
+      "detail": "rejects altered/unexpected outcomes before PASS"
+    }
+  },
+  "extraction_provenance": [
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v2/packet/payload/workspace/apps/api/app/services/covering_transport_policy.py",
+      "source_sha256": "A265F81F72E719B23FE3DE9BF332E2DE01D8E90073F3AC04675EC6A4B2203598",
+      "names": [
+        "CoveringTransportRefused",
+        "_one_unquote",
+        "_PATH_INSPECT_STEP_BUDGET",
+        "_refuse_path_admission",
+        "_is_dot_nav",
+        "_has_encoded_slash",
+        "_original_wire_percent_malformed",
+        "_inspect_opaque_id_segment",
+        "_admit_structural_segment",
+        "_opaque_calendar_id_indices",
+        "admit_covering_path",
+        "CoveringReauthorizationRequired",
+        "ProviderLimits",
+        "HTTPSPeer",
+        "ProviderCounter",
+        "approved_provider_limits"
+      ],
+      "module_name": "fake_d2_cand_covering_transport_policy"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v2/packet/payload/workspace/apps/api/app/services/covering_http_transport.py",
+      "source_sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "names": [
+        "_Reader",
+        "_SocketView",
+        "CoveringHTTP"
+      ],
+      "module_name": "fake_d2_cand_covering_http_transport"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v2/packet/payload/workspace/apps/api/app/services/covering_provider_context.py",
+      "source_sha256": "875FBF61A386D661A4DD70609162E41540500F10AD6AEDCACAF790701D693240",
+      "names": [
+        "_current",
+        "covering_provider_transport",
+        "_CoveringClient",
+        "calendar_client"
+      ],
+      "module_name": "fake_d2_cand_covering_provider_context"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v2/packet/payload/workspace/apps/api/app/services/google_calendar.py",
+      "source_sha256": "8A33597198FEFBC8D5E6671D56FE4118091F89255A6F46A8589117127318231F",
+      "names": [
+        "_calendar_events_base",
+        "_paginate_events"
+      ],
+      "module_name": "fake_d2_cand_google_calendar_pagination"
+    },
+    {
+      "source_path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v2/packet/payload/workspace/apps/api/app/services/microsoft_calendar.py",
+      "source_sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+      "names": [
+        "GRAPH_BASE",
+        "_GRAPH_ORIGIN",
+        "_calendar_view_url",
+        "_calendar_view_delta_url",
+        "_absolute_graph_url"
+      ],
+      "module_name": "fake_d2_cand_microsoft_absolute_url"
+    }
+  ],
+  "functional_control_count": 44,
+  "approved_core_functional_control_count": 41,
+  "oracle_gap_added_functional_controls": [
+    "CTRL-NEG-CTX-ORD-SLASH",
+    "CTRL-NEG-CTX-ENC-SLASH",
+    "CTRL-NEG-CTX-MALFORM"
+  ],
+  "named_inventory_and_mutation_controls": [
+    "M-PATH-ADMIT-NOOP",
+    "M-HTTP-ALLOW-PATCH",
+    "M-ENCODED-SLASH-BYPASS",
+    "H-INVENTORY-ACCEPTS-GOOD",
+    "H-INVENTORY-REJECTS-REORDER",
+    "H-INVENTORY-REJECTS-DUPLICATE",
+    "H-INVENTORY-REJECTS-MISSING",
+    "H-INVENTORY-REJECTS-ALTERED"
+  ],
+  "unresolved_native_obligations": [
+    "real TLS / provider dial — NOT claimed",
+    "endpoint/profile binding — NOT claimed",
+    "target calendar authorization — separate oracle; NOT claimed here",
+    "full provider transport proof — NOT claimed",
+    "T01–T08 closure — NOT claimed (this packet is path-admission fake only)",
+    "DB acknowledgment — NOT claimed"
+  ],
+  "does_not_import_app": true,
+  "launch_ready": false,
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D"
+}

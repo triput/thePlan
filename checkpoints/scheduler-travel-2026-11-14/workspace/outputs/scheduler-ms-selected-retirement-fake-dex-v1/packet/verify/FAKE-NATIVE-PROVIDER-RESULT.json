@@ -1,0 +1,279 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "SCRIPT-SELECTION",
+    "CLIENT-OAUTH-CLASSIFICATION",
+    "OWNING-REFRESH-UNITS",
+    "PUBLIC-RESULT-CONTRACT",
+    "RUNNER-WIRING",
+    "RETIREMENT-BARRIER",
+    "BATCH-CONFIG",
+    "PRIOR-FAKE-APPLICABILITY",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutant_kinds": {
+        "adapter_except_removed": "behavioral",
+        "adapter_except_sets_changed": "behavioral",
+        "body_second_retirement": "structural",
+        "body_snapshot_before_barrier": "structural",
+        "counted_request_swallows": "structural",
+        "joined_marks_sent_after_send": "structural",
+        "observer_restore_removed": "structural",
+        "path_fix_reverted": "behavioral",
+        "send_state_ignored": "behavioral",
+        "snapshot_moved_before_join": "behavioral",
+        "terminal_row_commit": "structural",
+        "transport_accepts_any_400": "behavioral",
+        "two_subscriptions_seed": "structural",
+        "worker_error_admission_removed": "behavioral"
+      },
+      "mutants": {
+        "adapter_except_removed": "DETECTED",
+        "adapter_except_sets_changed": "DETECTED",
+        "body_second_retirement": "DETECTED",
+        "body_snapshot_before_barrier": "DETECTED",
+        "counted_request_swallows": "DETECTED",
+        "joined_marks_sent_after_send": "DETECTED",
+        "observer_restore_removed": "DETECTED",
+        "path_fix_reverted": "DETECTED",
+        "send_state_ignored": "DETECTED",
+        "snapshot_moved_before_join": "DETECTED",
+        "terminal_row_commit": "DETECTED",
+        "transport_accepts_any_400": "DETECTED",
+        "two_subscriptions_seed": "DETECTED",
+        "worker_error_admission_removed": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "BATCH-CONFIG": {
+      "cases": {
+        "launch_config": "PASS",
+        "nonexpired_launch_config": "PASS",
+        "nonexpired_payload_delta_exact": "PASS",
+        "nonexpired_runner_config": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "CLIENT-OAUTH-CLASSIFICATION": {
+      "cases": {
+        "close_failure_after_invalid_grant_unknown": "PASS",
+        "eof_after_send_unknown": "PASS",
+        "event_purpose_not_classified": "PASS",
+        "invalid_grant_typed": "PASS",
+        "joined_send_marks_sent_before_socket_send": "PASS",
+        "malformed_unknown": "PASS",
+        "nonobject_unknown": "PASS",
+        "open_failure_before_send_original": "PASS",
+        "other_error_unknown": "PASS",
+        "send_failure_sets_sent_unknown": "PASS",
+        "status_401_unknown": "PASS",
+        "truncated_unknown": "PASS"
+      },
+      "control_kind": "actual_source_host_parser",
+      "eof_model": "fake b'' after bytes models a client-observed orderly EOF; not native TLS",
+      "observed": "PASS",
+      "structural_cases": [
+        "joined_send_marks_sent_before_socket_send"
+      ]
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "nonexpired_runner": "PASS",
+        "nonexpired_runner_config": "PASS",
+        "runner": "PASS",
+        "runner_config": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "OWNING-REFRESH-UNITS": {
+      "cases": {
+        "adapter_other_exception_propagates": "PASS",
+        "adapter_rejected_rollback": "PASS",
+        "adapter_wrong_terminal_unknown": "PASS",
+        "ms_refresh_raises_before_any_write": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "nonexpired": "PASS",
+        "runner": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "PRIOR-FAKE-APPLICABILITY": {
+      "cases": {
+        "peer_and_seed_unchanged": "PASS",
+        "refresh_units_identical": "PASS",
+        "t05_units_identical": "PASS"
+      },
+      "control_kind": "applicability_map",
+      "not_transferred": [
+        "T05 fixture fake v2 PASS 14/74 (C4771F53): applies to the T05 units only (text-identical); it does not cover the changed MS invalid_grant script or _run_np_v_ms_invalid.",
+        "Peer-close fake v2 PASS 11/35 (911AC7A0): applies to the unchanged peer BFB271D7 close path only.",
+        "MS-refresh helper fake PASS 10: finite helper scope only; no native refresh success or invalid_grant claim.",
+        "No native JoinedTLS/OAuth/refresh PASS exists; nothing here is native proof.",
+        "MS invalid_grant fake v1 (scheduler-native-ms-invalid-fake-prep-matt-v1, unexecuted): superseded for the v2 runner; every v1 check is re-run here against the v2 candidate.",
+        "MS-REFRESH _run_np_v_ms_refresh keeps the inherited joined-only, snapshot-before-retirement boundary: a recorded gap before its later launch, not certified here.",
+        "Other unselected case bodies are not certified by this correction.",
+        "Original NONEXPIRED native card A50C04FB is WITHHELD; a new exact card is needed after review."
+      ],
+      "observed": "PASS"
+    },
+    "PUBLIC-RESULT-CONTRACT": {
+      "cases": {
+        "dispatch_rejected_skips_run_target": "PASS",
+        "overall_failed_distinct": "PASS",
+        "overall_no_op": "PASS",
+        "preflight_row_shape": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "structural_cases": [
+        "dispatch_rejected_skips_run_target"
+      ]
+    },
+    "RETIREMENT-BARRIER": {
+      "behavioral_cases": [
+        "joined_no_error_post_join_state",
+        "worker_error_refused",
+        "unjoined_refused",
+        "retirement_unknown_same_object",
+        "other_exception_same_object",
+        "single_attempt_all_paths"
+      ],
+      "cases": {
+        "helper_identical_in_both_runners": "PASS",
+        "invalid_body_barrier_order": "PASS",
+        "joined_no_error_post_join_state": "PASS",
+        "nonexpired_assertions_preserved": "PASS",
+        "nonexpired_body_barrier_order": "PASS",
+        "other_exception_same_object": "PASS",
+        "retirement_unknown_same_object": "PASS",
+        "single_attempt_all_paths": "PASS",
+        "unjoined_refused": "PASS",
+        "worker_error_refused": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake_and_structural",
+      "observed": "PASS",
+      "selected_body_sha256": {
+        "_retire_selected_peer_then_observe": "3AC0895BA0C2913FCC09E7955ECFF778C01B334A714CE7D3330FD5F52F6511F3",
+        "_run_np_v_ms_invalid": "3782015C302F23017C711F8F51BD5FF13095044A0B4FDCFF828040F6E6E2BFE8",
+        "_run_np_v_ms_nonexpired": "DDC4ECAA9E4250550BCBEB6A0BC3D8F6F9C9FA5382116B2EC860227ABCBB94FF"
+      }
+    },
+    "RUNNER-WIRING": {
+      "cases": {
+        "default_joined_tls": "PASS",
+        "mapper_and_implemented": "PASS",
+        "observers_restored_in_finally": "PASS",
+        "observers_saved_before_install": "PASS",
+        "oracle_constants_exact": "PASS",
+        "separate_measure_sessions": "PASS",
+        "single_subscription_seed": "PASS",
+        "stops_before_receipt": "PASS",
+        "wrappers_preserve_identity": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "SCRIPT-SELECTION": {
+      "cases": {
+        "catalog_other_scripts_unchanged": "PASS",
+        "exact_wire": "PASS",
+        "one_exchange_inventory": "PASS",
+        "only_request_path_changed": "PASS",
+        "tenant_path_fix": "PASS"
+      },
+      "control_kind": "whole_module_fake",
+      "observed": "PASS"
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "app/covering_domain_adapters.py": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+        "app/covering_domain_dispatch.py": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+        "app/covering_http_transport.py": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+        "app/covering_joined_https.py": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+        "app/covering_refresh.py": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E",
+        "app/covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+        "app/covering_transport_policy.py": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+        "app/microsoft_calendar.py": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF",
+        "config/candidate-launch-config.json": "4584428948A544473C1F7ABF7E9AD87DBAFCDBB0828C987820C9CE2BE1C14098",
+        "config/candidate-runner-config.json": "10106B8278033FC0DBC83D5841446F2D2B7476960C90DB654AF4AAF25549E004",
+        "config/source-runner-config.json": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+        "diff/np_provider_transcript.py.diff": "B5F064F528CDE6116DFE1FEA4E302A798892E17F5F3136BEFFAF7BC4A8A00A25",
+        "diff/np_runner_entry.py.diff": "E792CA033C8AC1E108E0542ABEDBD502385C6C451E9C8441D88D3B171898CC17",
+        "diff/np_suite.py.diff": "E0527D3D5427B58C8F65D390C4C90114598CCA08DC7156A7BEC372F5678E921F",
+        "diff/runner-config.json.diff": "5791715D4C3C1034A51F6B90FA42FCFD3916D9A32B4281FBD079802490547FFC",
+        "fixture/np_auth_seed.py": "2ADFA3ADCFDA8DB4D9D32EDFC9950AF354CE29ADFA1B5A8162FD5182DC22ED05",
+        "manifest/candidate.txt": "D9F14FF142C972F886C9BA066E292B09E24BED4C51DD98F9DCAFDEB0632BC868",
+        "manifest/source.txt": "D03EA0D671DF61AB3E66B2E3B96D34B72AC9BDAF6282676A8A1328DEF853B0C5",
+        "nonexpired/candidate-launch-config.json": "9BE3C57D1F99E39AB93355A80B8A8D74C84C7CFCE6E6099B284FAA0303F414D9",
+        "nonexpired/candidate-manifest.txt": "5835297919BA3B43DEB767FD5F88F9A8AE41F7EBF0EC3F5B73EB5CCC87251BF3",
+        "nonexpired/candidate-runner-config.json": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929",
+        "nonexpired/candidate.py": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D",
+        "nonexpired/np_runner_entry.py.diff": "6F166098CC93CABA4296F1BB87BCF34E238A1F94DBB9F9627323845BBC66EBC3",
+        "nonexpired/runner-config.json.diff": "EB06A4800E7CAEFB2246B9CE665430027C626DBBCE97B73EF37655F0B377958E",
+        "nonexpired/source-launch-config.json": "4C065AEFDD495AB1BFF16D5C2B21DA0FDF7D830BCF691B95BD2096AC921B4C0E",
+        "nonexpired/source-manifest.txt": "5F94DD7D4FA34BC9FB16273F040AED7FD066CE768DAE26694DF4457B4B04CCD6",
+        "nonexpired/source-runner-config.json": "E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160",
+        "nonexpired/source.py": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
+        "peer/source.py": "BFB271D770D08BC161E9613564ECA799B7E28884D8211E10228F5973A4A271BF",
+        "runner/candidate.py": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1",
+        "runner/source.py": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E",
+        "suite/candidate.py": "DAB88CB352189411EED6A2181417CB813D592406598D89192FF307E9081205A1",
+        "suite/source.py": "9AED74EE4F00C5F88518A1B246D7B03D5E82C05DDF3596958D5483730C376792",
+        "transcript/candidate.py": "BEDCCFD3C3E8F776C4EC0B3379F863E976C73AF350DD6AE8B308518AB4A47735",
+        "transcript/source.py": "562F61CDB9DEF3F35A1693E3C9CC13EB63D9F0535F9A0D3C190BF275E78751BF"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 85,
+  "packet": "scheduler-native-ms-selected-retire-fake-prep-matt-v1",
+  "passed": 13,
+  "prep_is_not_pass": true
+}

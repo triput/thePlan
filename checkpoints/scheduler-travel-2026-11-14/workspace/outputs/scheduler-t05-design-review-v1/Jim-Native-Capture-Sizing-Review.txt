@@ -1,0 +1,6 @@
+Jim — same approved T05 assignment, no scope expansion. I prepared the independent static handback checklist: outputs/scheduler-t05-design-review-v1/Independent-Handback-Review-Checklist.md (SHA2564CFE6D33D9FA53EB17CCC3A89D311CD2AB2A8F1ABE4E7D89AA5EB848609E78AC).
+
+One concrete sizing issue to account for while preparing the separate native-provenance supervisor: corresponding host http/client.py,ssl.py,email/message.py are59093+55874+49230=164197 raw bytes; base64 envelope about219KiB plus metadata. Host sizes only, native sizes still unestablished. Reusing the fake launcher's64KiB pipe cap cannot retain all three complete files. Choose/disclose/enforce concrete native-specific capture/result limits sufficient for the bounded three-file envelope; STOP on overflow, no clipping or partial-file provenance claims. Keep the fake packet's approved64KiB pipes/256KiB result unchanged. This is within the existing native packet's requirement to return concrete capture limits for launch review, not permission to collect or execute now.
+
+All six-file scope and Q1–Q8 constraints continue. No response needed while authoring unless this reveals an actual scope question; return it with your frozen handback. Endpoint unbound; all holds stay.
+— Dex

@@ -1,0 +1,21 @@
+{
+  "kind": "Offline retained native runner provenance reconciliation for later transport proof",
+  "date": "2026-11-11",
+  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+  "runner_python": [3, 12, 16],
+  "runner_executable": "/usr/local/bin/python3",
+  "runner_site_directory": "/usr/local/lib/python3.12/site-packages",
+  "retained_receipt": "outputs/theplan-next-step-2026-11-06/calendar-correction-completion-v1/native-runtime-runner-only-v3.evidence/receipt.jsonl",
+  "receipt_sha256": "D9AAEB894E6075A9B0F55A38D58598ACE4201D30EECD763E1AFE9B6A3A9FE685",
+  "capture": "04.stdout.bin",
+  "capture_sha256_verified_against_receipt": "B4D04D465200287E3013669341A6449E1020E9DC7B8BA0E74004FE5CAB5E10AC",
+  "retained_command_complete": true,
+  "retained_command_exit": 0,
+  "retained_container_removal_and_absence": true,
+  "established": "Version/executable/site provenance for the pinned runner in the completed retained probe",
+  "not_established": ["Raw native http/client.py or ssl.py source bytes/hashes", "Native TLS EOF and HTTP framing behavior", "Low-port listener capability"],
+  "consequence": "Host Python311 parser source analysis remains hypothesis/design input for native runtime; acquire exact native parser/SSL provenance within a later reviewed packet before behavior-specific native claims",
+  "new_execution_performed": false,
+  "new_live_inspection_performed": false,
+  "t07_pending_launch_changed": false
+}

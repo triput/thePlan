@@ -1,0 +1,47 @@
+{
+  "kind": "ms-refresh-fake-structural-expected",
+  "packet": "scheduler-ms-refresh-fake-prep-matt-v1",
+  "case_id": "NP-V-MS-REFRESH",
+  "planning_id": "T06-SUCCESS-MICROSOFT",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "NONEXPIRED-AND-DIAGNOSTIC-PRESERVED",
+    "TENANT-PATH-AGREEMENT",
+    "OAUTH-ROUTE-TABLE",
+    "REFRESH-INVENTORY-ORDER",
+    "SEMANTIC-PERSISTENCE-ADMISSION",
+    "SECRET-EXCLUSION-PROJECTION",
+    "REGISTRY-MAPPING",
+    "REFRESH-BODY-SHAPE",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "control_kinds": {
+    "SUBJECT-PINS": "raw_pin",
+    "NONEXPIRED-AND-DIAGNOSTIC-PRESERVED": "extracted_text_identity",
+    "TENANT-PATH-AGREEMENT": "extracted_behavior_fake",
+    "OAUTH-ROUTE-TABLE": "extracted_behavior_fake",
+    "REFRESH-INVENTORY-ORDER": "extracted_behavior_fake",
+    "SEMANTIC-PERSISTENCE-ADMISSION": "extracted_behavior_fake",
+    "SECRET-EXCLUSION-PROJECTION": "extracted_behavior_fake",
+    "REGISTRY-MAPPING": "structural_source",
+    "REFRESH-BODY-SHAPE": "structural_source",
+    "ACTUAL-SOURCE-MUTANTS": "actual_source_mutant"
+  },
+  "nested_case_ids": {
+    "SEMANTIC-PERSISTENCE-ADMISSION": ["before_seed_state", "after_refreshed_state", "changed_ciphertext_unchanged_plaintext_refused", "wrong_token_refused", "missing_rotation_refused", "invalid_expiry_refused", "refuses_missing_expiry", "refuses_missing_ciphertext", "refuses_missing_account", "refuses_naive_reference", "projection_has_no_plaintext"],
+    "ACTUAL-SOURCE-MUTANTS": ["ciphertext_only_persistence", "legacy_token_path", "missing_token_script", "graph_only_routes"]
+  },
+  "not_proved": [
+    "native OAuth exchange over JoinedTLS",
+    "native database persistence and Fernet behavior",
+    "single synthetic peer serving both vendor hostnames",
+    "second-target TOKEN ROLLBACK without a request",
+    "native TOKEN/IMPORT/ASSESSMENT terminals and response schema at runtime",
+    "the full _run_np_v_ms_refresh body (shape only)"
+  ],
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

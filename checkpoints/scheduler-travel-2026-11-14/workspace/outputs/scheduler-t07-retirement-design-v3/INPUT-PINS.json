@@ -1,0 +1,61 @@
+{
+  "documents_only": true,
+  "applied": false,
+  "executed": false,
+  "d2_one_shot_untouched": true,
+  "supersedes_v2_tip_sha256": "9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB",
+  "prior_immutable_tips": [
+    "ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A",
+    "9522BC2F8166F508606E6ACB1912511DDDB39D472CBA2FE400419A7AC30163BB"
+  ],
+  "assignment": {
+    "path": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/Next-Transport-Design-Assignment.md",
+    "sha256": "28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719",
+    "reverified": true
+  },
+  "api_root": "C:/Users/trish/Documents/Codex/2026-10-15/trish-wants-to-improve-dex-s/outputs/scheduler-d2-fake-v1/packet/payload/workspace/apps/api",
+  "required_pins_match": true,
+  "required_sources": [
+    {
+      "relative": "app/services/covering_http_transport.py",
+      "sha256": "AECE10186CFFAE46D3EF2292D3772F1C287FD0A562AA9E764AAC4ABB10C861D8",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_joined_https.py",
+      "sha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_refresh_import.py",
+      "sha256": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_target_transaction.py",
+      "sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "match": true
+    },
+    {
+      "relative": "app/services/covering_role_connector.py",
+      "sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "match": true
+    }
+  ],
+  "prospective_resulting_sha256": {
+    "app/services/covering_http_transport.py": "E942BB43827364A9F20E36AAB604F031287FFF2B3F15BE5CFE48FDE9E81FF4BD",
+    "app/services/covering_joined_https.py": "2E6A4ABB0E9658747C07A06F17D4359987C926DDD3CFDC0FE098984922A6A29B",
+    "app/services/covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+  },
+  "prospective_note": "In-memory static application of Proposed-Changes.diff to pinned originals only; not written to disk under api/; not imported/compiled/tested.",
+  "hunk_counts_verified": true,
+  "design_verdict": "NO",
+  "proposed_diff_present": true,
+  "proposed_diff_applied": false,
+  "dex_p1794424822_closed": [
+    "invocation_primary; no sys.exc_info in finally",
+    "C-OUT-VE and C-OUT-UNK controls",
+    "append-only provenance; no caller-owned mutation",
+    "hunk-count-correct unapplied diff"
+  ]
+}

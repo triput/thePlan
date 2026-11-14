@@ -1,0 +1,13 @@
+{
+  "sender": "U0C68LUTURJ",
+  "slack_reply_sent": false,
+  "atUtc": "2026-11-14T05:12:31.0939721+00:00",
+  "thread_ts": "1794534925.412399",
+  "current_assignment": "0A68598F6163B44235FFFCC9387FEA530F63B840DE223D2C29857D583CCB3119",
+  "message_ts": "1794632947.796719",
+  "event": "Ev0CH8UJ3JNB",
+  "endpoint": "unbound",
+  "review": "4C8B135D28542CC04596B233BAF86031CBAD02BB4FCECC625256AE21830951CB",
+  "execution_authority": "NONE",
+  "disposition": "Review already reconciled: native source accepted with qualifications; checker B1 confirmed and exact freshv3 anchor correction delivered for narrow review"
+}

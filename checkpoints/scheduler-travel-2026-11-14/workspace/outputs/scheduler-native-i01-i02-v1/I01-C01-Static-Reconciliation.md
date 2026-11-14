@@ -1,0 +1,13 @@
+# I01-C01 static composition reconciliation
+
+Static call-chain review only. No source changes, imports, execution, sockets, native launch or endpoint binding. Current C06 correction remains in progress; this note does not accept its mutable handback.
+
+The C01 case installs a CoveringReleasePlan, calls the mounted production calendar router at /api/v1/calendar/covering-refresh using TestClient, and asserts HTTP200, production-sorted result IDs despite reversed request order, all-requested-covering success, requested freshness, all-enabled freshness and scheduling readiness. Planned coverage validity is checked around the request. The fixture inventories and fully consumes the scripted provider exchanges.
+
+The mounted route delegates to dispatch_covering_http. Its worker resolves the plan per request, constructs CoveringRoleConnector from native factories and calls run_bounded_domain. The domain dispatch imports and calls the production final-assessment function. The fixture's HTTP alias wrapper injects FixtureByteTransport into the actual CoveringHTTP class; it does not replace CoveringHTTP.request with preassembled httpx responses. CoveringReleasePlan constructs NativeORMFactories, the shared ProviderCounter and real domain ports. This supports the intended composition design without proving that the eventual run passed.
+
+The fixture ASGI app mounts the production router and relevant middleware/exception handlers. ContextCapturingIngress subclasses and delegates to the production ingress middleware. It is a fixture assembly using an in-process TestClient, synthetic provider byte streams and a controllable clock. It is not the deployed application startup, a published HTTP listener, real provider HTTPS or a wall-clock timeout proof. Those claims must remain separate; T01–T08 stay open.
+
+C01 readiness revision >=1 is a response observation, not by itself a proof that revision changed from seed. Preserve its requested/all-enabled freshness checks and the separate actual mutation/assessment coherence scenario in I02; do not collapse these into one stronger claim. C05 intentionally replaces the final-assessment function to check sanitization and cannot substitute for C01 real assessment composition.
+
+Runtime acceptance remains absent. Later reconciliation must check final frozen source pins, exact case outputs and assessment/transaction evidence, alias restoration and joined retirement, and authorized disposable-resource cleanup. No launch card is ready until C06 and its separate fake verification are reconciled.

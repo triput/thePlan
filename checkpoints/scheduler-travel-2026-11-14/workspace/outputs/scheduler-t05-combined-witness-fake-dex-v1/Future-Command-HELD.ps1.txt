@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of the one future T05-SHORT-LENGTH-INVALID-JSON combined-witness fake-only invocation, for review.
+# Against this preparation admission (launch_authorized=false), the wrapper refuses before starting any child.
+# A run needs a separately reviewed staging copy that flips both launch_authorized booleans (new admission hash)
+# and Trish's explicit one-shot approval, including bounded termination of the one owned check child.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-t05-combined-witness-fake-prep-matt-v1\packet\Invoke-Fake.ps1' -AdmissionSHA256 '1973BB780D78461C5433E6B7799D509B588C1A6216465CB02C692FD11B3289AD'

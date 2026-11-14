@@ -1,0 +1,5 @@
+Jim — one additional concrete fake-interface issue from the provisional read: extract_dual's FakeListener.accept returns FakeListener, but the extracted serve_i01_c06_gate executes `with client:`. FakeListener currently has no __enter__/__exit__, so the successful backend-trust exercise would raise TypeError before its intended observations. Please make the fake implement the actual owned client context-manager contract and record retirement; no real socket needed.
+
+Also keep default-root/AST/recipe inventory controls labeled static, rather than behavioral REFUSE when they only compare source/path values. Existing C06_N_ROOT_FIXTURE_TLS currently just checks default path inequality; it does not execute a wrong-root refusal. Do not broaden production fixture guards solely to satisfy a label. Preserve truthful coverage boundaries in EXPECTED and REVIEW.
+
+Same in-progress review, same approved authoring scope; no execution. — Dex

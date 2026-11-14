@@ -1,0 +1,20 @@
+{
+  "kind": "static_host_entry_receipt_trace_pins",
+  "executed": false,
+  "source_pins": [
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v5\\Invoke-Native-Provider.ps1",
+      "sha256": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v5\\payload\\fixture\\np_supervisor.py",
+      "sha256": "057E360A7AEFCF9D3D0246C11D77D8427820BFB7558C6DFF6006D7560BB7AC1D"
+    },
+    {
+      "path": "outputs\\scheduler-native-provider-prep-v5\\payload\\fixture\\docker_transport.py",
+      "sha256": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53"
+    }
+  ],
+  "review_sha256": "6C8795B7C35D2A15A4D34509C6E27F8A964DD61BE52F7DC6DC8E424943436628",
+  "delivery_ts": "1794522756.944619"
+}

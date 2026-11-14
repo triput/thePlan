@@ -1,0 +1,28 @@
+{
+  "kind": "Native T05 staging prepared; no execution",
+  "atUtc": "2026-11-13T20:07:12.7319105Z",
+  "root": "outputs/scheduler-native-provider-t05-launch-dex-v1",
+  "inputManifestSha256": "417BEA58FD10956DF9B33778672CD2197E548BD5E2ABD9F53C6B1EF0BAF1596F",
+  "inputCount": 297,
+  "nestedManifestSha256": "3C4D775444D00B5277DA05C096092F53E4B1F1995B292D7C638CCE298903747F",
+  "nestedCount": 269,
+  "payloadManifestSha256": "EEBC1403FB0FCDD58A23717F657C8910870D0CE6B66DFD0FD7EA5F030CB8054B",
+  "payloadCount": 257,
+  "commandSha256": "E05EC25057515EA16FAC86950CEF46F4A6D945A27D5BF6F00D75FF26BCB28CD3",
+  "codeChanges": 0,
+  "applicationFilesPreserved": 234,
+  "humanAuthority": "NONE",
+  "prerequisites": "two pending fakes, independent staging review, exact native approval",
+  "mattAssignmentUnchanged": "MS invalid_grant design57DA3EF5",
+  "metadataObserver": {
+    "terminalExit": 0,
+    "noNewDesignDropDuringWindow": true,
+    "noRestartSolelyOnObservationExpiry": true,
+    "sessionId": 9367,
+    "completedAtUtc": "2026-11-13T20:03:56.6283181Z",
+    "notMattProcessLiveness": true
+  },
+  "blockedCounter": 0,
+  "goalComplete": false,
+  "endpoint": "unbound"
+}

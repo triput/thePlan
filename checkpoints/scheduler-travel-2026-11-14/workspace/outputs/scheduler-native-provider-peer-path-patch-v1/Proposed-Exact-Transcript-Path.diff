@@ -1,0 +1,286 @@
+--- a/payload/fixture/np_provider_peer.py
++++ b/payload/fixture/np_provider_peer.py
+@@ -318,135 +318,148 @@
+-        method, path = _parse_request_head(bytes(buf))
+-        if step.method is not None and method != step.method:
+-            raise PeerLifecycleError(f"method mismatch:{method}")
+-        if step.path is not None and not (path == step.path or path.startswith(step.path.rstrip("/") + "/") or path.startswith(step.path)):
+-            raise PeerLifecycleError(f"path mismatch:{path}")
+-        # Drain any already-buffered body prefix; do not invent Content-Length proof here.
+-        self.life.request_received = True
+-        return bytes(buf)
+-
+-    def _send_response(self, tls: ssl.SSLSocket, *, deadline: float, step: ExchangeStep) -> None:
+-        close_mode = self._script_close_mode()
+-        if close_mode == "stall_header":
+-            self.life.phase_entered = "stall_header"
+-            self.life.close_mode_observed = "stall_header"
+-            while monotonic() < deadline and not self._stop.is_set():
+-                select.select([], [], [], ACCEPT_POLL_SECONDS)
+-            raise PeerLifecycleError("header stall held to deadline")
+-        wire = _http_response_bytes(step)
+-        if close_mode == "stall_body":
+-            # Send status/headers only (through first CRLFCRLF), then stall.
+-            head, sep, _ = wire.partition(HEADER_TERMINATOR)
+-            partial = head + sep
+-            self._send_all(tls, partial, deadline=deadline)
+-            self.life.response_sent = True
+-            self.life.phase_entered = "stall_body"
+-            self.life.close_mode_observed = "stall_body"
+-            while monotonic() < deadline and not self._stop.is_set():
+-                select.select([], [], [], ACCEPT_POLL_SECONDS)
+-            raise PeerLifecycleError("body stall held to deadline")
+-        if close_mode == "partial_send_peer":
+-            # Peer-side truncated response — not proof of client JoinedTLS partial send.
+-            # Observation aid: peer prefix ≠ sender partial-completion proof.
+-            self.life.notes.append("partial_send_peer:prefix_only_not_client_partial_proof")
+-            wire = wire[: max(1, len(wire) // 2)]
+-        self._send_all(tls, wire, deadline=deadline)
+-        self.life.response_sent = True
+-        self.life.phase_entered = "response_sent"
+-
+-    def _send_all(self, tls: ssl.SSLSocket, data: bytes, *, deadline: float) -> None:
+-        view = memoryview(data)
+-        while view:
+-            if monotonic() >= deadline or self._stop.is_set():
+-                raise PeerLifecycleError("response send deadline")
+-            try:
+-                sent = tls.send(view)
+-            except ssl.SSLWantWriteError:
+-                select.select([], [tls], [], ACCEPT_POLL_SECONDS)
+-                continue
+-            except ssl.SSLWantReadError:
+-                select.select([tls], [], [], ACCEPT_POLL_SECONDS)
+-                continue
+-            if sent <= 0:
+-                raise PeerLifecycleError("response send incomplete")
+-            self.life.bytes_sent += sent
+-            view = view[sent:]
+-
+-    def _close_connection(self, tls: ssl.SSLSocket) -> None:
+-        mode = self._script_close_mode() or "normal"
+-        self.life.close_mode_observed = mode
+-        self.life.phase_entered = f"close:{mode}"
+-        if mode == "orderly_close_notify":
+-            # Orderly TLS close_notify via unwrap; distinct from abrupt stream drop.
+-            try:
+-                tls.unwrap()
+-            except ssl.SSLError:
+-                # Still mark attempted orderly path; abrupt fallback is separately scripted.
+-                self.life.notes.append("close_notify_unwrap_ssl_error")
+-            finally:
+-                try:
+-                    tls.close()
+-                except OSError:
+-                    pass
+-            self.life.notes.append("orderly_close_notify_attempted")
+-            return
+-        if mode == "abrupt_truncate":
+-            # Abrupt TCP/TLS drop without close_notify / unwrap exchange.
+-            try:
+-                import struct
+-
+-                tls.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+-            except OSError:
+-                pass
+-            try:
+-                # Shutdown RDWR without unwrap = abrupt from peer perspective.
+-                tls.shutdown(socket.SHUT_RDWR)
+-            except OSError:
+-                pass
+-            try:
+-                tls.close()
+-            except OSError:
+-                pass
+-            self.life.notes.append("abrupt_truncate_without_close_notify")
+-            return
+-        try:
+-            tls.close()
+-        except OSError:
+-            pass
+-        self.life.notes.append(f"close_mode:{mode}")
+-
+-    def _run_one_connection(
+-        self,
+-        *,
+-        script: ExchangeScript,
+-        deadline: float,
+-        keep_listener: bool,
+-        connection_index: int,
+-    ) -> dict[str, Any]:
+-        self.life.script = script
+-        client = self._accept_once(deadline=deadline, keep_listener=keep_listener)
+-        self._client = client
+-        exchange: dict[str, Any] = {
+-            "connection_index": connection_index,
+-            "script_id": script.script_id,
+-            "purpose": script.purpose,
+-            "connection_close": True,
+-        }
+-        try:
+-            close_mode = None
+-            for step in script.steps:
+-                if step.direction == "close" and step.close_mode is not None:
+-                    close_mode = step.close_mode
+-                    break
+-            if close_mode == "stall_pre_handshake":
+-                self._handshake(client, deadline=deadline)
+-                exchange["phase"] = "stall_pre_handshake"
+-                return exchange
+-            tls = self._handshake(client, deadline=deadline)
+-            for step in script.steps:
+-                if step.direction == "recv_request":
+-                    self._recv_request(tls, deadline=deadline, step=step)
+-                    exchange["method"] = step.method
+-                    exchange["path"] = step.path
+-                elif step.direction == "send_response":
+-                    self._send_response(tls, deadline=deadline, step=step)
+-                elif step.direction == "close":
++        method, path = _parse_request_head(bytes(buf))
++        if step.method is not None and method != step.method:
++            raise PeerLifecycleError(f"method mismatch:{method}")
++        if step.path is not None:
++            actual_path, actual_separator, actual_query = path.partition("?")
++            expected_path, expected_separator, expected_query = step.path.partition("?")
++            if actual_path != expected_path:
++                raise PeerLifecycleError("exact transcript path mismatch")
++            # Query-free scripts constrain the path only. A script declaring '?'
++            # additionally constrains the exact wire query, without normalization.
++            if expected_separator and (
++                not actual_separator or actual_query != expected_query
++            ):
++                raise PeerLifecycleError("exact transcript query mismatch")
++        # Drain any already-buffered body prefix; do not invent Content-Length proof here.
++        self.life.request_received = True
++        return bytes(buf)
++
++    def _send_response(self, tls: ssl.SSLSocket, *, deadline: float, step: ExchangeStep) -> None:
++        close_mode = self._script_close_mode()
++        if close_mode == "stall_header":
++            self.life.phase_entered = "stall_header"
++            self.life.close_mode_observed = "stall_header"
++            while monotonic() < deadline and not self._stop.is_set():
++                select.select([], [], [], ACCEPT_POLL_SECONDS)
++            raise PeerLifecycleError("header stall held to deadline")
++        wire = _http_response_bytes(step)
++        if close_mode == "stall_body":
++            # Send status/headers only (through first CRLFCRLF), then stall.
++            head, sep, _ = wire.partition(HEADER_TERMINATOR)
++            partial = head + sep
++            self._send_all(tls, partial, deadline=deadline)
++            self.life.response_sent = True
++            self.life.phase_entered = "stall_body"
++            self.life.close_mode_observed = "stall_body"
++            while monotonic() < deadline and not self._stop.is_set():
++                select.select([], [], [], ACCEPT_POLL_SECONDS)
++            raise PeerLifecycleError("body stall held to deadline")
++        if close_mode == "partial_send_peer":
++            # Peer-side truncated response — not proof of client JoinedTLS partial send.
++            # Observation aid: peer prefix ≠ sender partial-completion proof.
++            self.life.notes.append("partial_send_peer:prefix_only_not_client_partial_proof")
++            wire = wire[: max(1, len(wire) // 2)]
++        self._send_all(tls, wire, deadline=deadline)
++        self.life.response_sent = True
++        self.life.phase_entered = "response_sent"
++
++    def _send_all(self, tls: ssl.SSLSocket, data: bytes, *, deadline: float) -> None:
++        view = memoryview(data)
++        while view:
++            if monotonic() >= deadline or self._stop.is_set():
++                raise PeerLifecycleError("response send deadline")
++            try:
++                sent = tls.send(view)
++            except ssl.SSLWantWriteError:
++                select.select([], [tls], [], ACCEPT_POLL_SECONDS)
++                continue
++            except ssl.SSLWantReadError:
++                select.select([tls], [], [], ACCEPT_POLL_SECONDS)
++                continue
++            if sent <= 0:
++                raise PeerLifecycleError("response send incomplete")
++            self.life.bytes_sent += sent
++            view = view[sent:]
++
++    def _close_connection(self, tls: ssl.SSLSocket) -> None:
++        mode = self._script_close_mode() or "normal"
++        self.life.close_mode_observed = mode
++        self.life.phase_entered = f"close:{mode}"
++        if mode == "orderly_close_notify":
++            # Orderly TLS close_notify via unwrap; distinct from abrupt stream drop.
++            try:
++                tls.unwrap()
++            except ssl.SSLError:
++                # Still mark attempted orderly path; abrupt fallback is separately scripted.
++                self.life.notes.append("close_notify_unwrap_ssl_error")
++            finally:
++                try:
++                    tls.close()
++                except OSError:
++                    pass
++            self.life.notes.append("orderly_close_notify_attempted")
++            return
++        if mode == "abrupt_truncate":
++            # Abrupt TCP/TLS drop without close_notify / unwrap exchange.
++            try:
++                import struct
++
++                tls.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
++            except OSError:
++                pass
++            try:
++                # Shutdown RDWR without unwrap = abrupt from peer perspective.
++                tls.shutdown(socket.SHUT_RDWR)
++            except OSError:
++                pass
++            try:
++                tls.close()
++            except OSError:
++                pass
++            self.life.notes.append("abrupt_truncate_without_close_notify")
++            return
++        try:
++            tls.close()
++        except OSError:
++            pass
++        self.life.notes.append(f"close_mode:{mode}")
++
++    def _run_one_connection(
++        self,
++        *,
++        script: ExchangeScript,
++        deadline: float,
++        keep_listener: bool,
++        connection_index: int,
++    ) -> dict[str, Any]:
++        self.life.script = script
++        client = self._accept_once(deadline=deadline, keep_listener=keep_listener)
++        self._client = client
++        exchange: dict[str, Any] = {
++            "connection_index": connection_index,
++            "script_id": script.script_id,
++            "purpose": script.purpose,
++            "connection_close": True,
++        }
++        try:
++            close_mode = None
++            for step in script.steps:
++                if step.direction == "close" and step.close_mode is not None:
++                    close_mode = step.close_mode
++                    break
++            if close_mode == "stall_pre_handshake":
++                self._handshake(client, deadline=deadline)
++                exchange["phase"] = "stall_pre_handshake"
++                return exchange
++            tls = self._handshake(client, deadline=deadline)
++            for step in script.steps:
++                if step.direction == "recv_request":
++                    request_bytes = self._recv_request(tls, deadline=deadline, step=step)
++                    observed_method, observed_target = _parse_request_head(request_bytes)
++                    observed_path, separator, _query = observed_target.partition("?")
++                    exchange["method"] = observed_method
++                    exchange["path"] = observed_path
++                    exchange["query_present"] = bool(separator)
++                    exchange["query_verified"] = bool(step.path and "?" in step.path)
++                elif step.direction == "send_response":
++                    self._send_response(tls, deadline=deadline, step=step)
++                elif step.direction == "close":

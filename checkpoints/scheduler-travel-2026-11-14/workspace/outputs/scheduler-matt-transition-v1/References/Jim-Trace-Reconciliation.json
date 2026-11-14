@@ -1,0 +1,14 @@
+{
+  "disposition": "QUALIFIED_TRACE_RECONCILED",
+  "trace_tip": "1AE5A5B379F74DE182CAB5BA822BB3050595E813548DBED60419F69093FBAE8F",
+  "mirror_files": 4,
+  "preimage_valid": true,
+  "source_evidence_pins_verified": 10,
+  "mismatches": [],
+  "root_cause_attributed": false,
+  "cleanup_snapshot_qualification": "Jim trace captured prior inspection states; separately authorized cleanup now complete, both exact IDs absent, DB SIGINT exit0",
+  "next": "Combined policy and fresh-copy preparation decision for existing bounded location-only diagnostic format; no host change or transaction repair",
+  "proposed_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+  "executed": false,
+  "endpoint": "unbound"
+}

@@ -1,0 +1,246 @@
+{
+  "status": "PASS",
+  "class": "FAKE-C06-RUNNER-TLS",
+  "executed": true,
+  "held": false,
+  "source_hashes_verified": true,
+  "inventory_error": null,
+  "control_ids_in_order": [
+    "C06_N_PREEXIST",
+    "C06_N_NONEMPTY",
+    "C06_N_UID",
+    "C06_N_MODE",
+    "C06_N_TRUST_SAME_CA",
+    "C06_N_TRUST_PARENT_DB_CA",
+    "C06_N_TRUST_BACKEND_GATE_CA",
+    "C06_N_ROOT_FIXTURE_TLS",
+    "C06_N_ORDER_C06_BEFORE_N06",
+    "C06_N_GEN_REFUSE",
+    "C06_N_GEN_TIMEOUT",
+    "C06_N_CAP",
+    "C06_N_SHELL_ONLY_KILL",
+    "C06_N_GROUP_LEADER_EXITED_DESCENDANT_ALIVE",
+    "C06_N_GROUP_SIGTERM_IGNORED",
+    "C06_N_READER_JOIN",
+    "C06_N_LATE_READER_ERROR",
+    "C06_N_PIPE_UNRETIRED_UNDER_LIVE_READER",
+    "C06_N_BOUNDED_CAP_EVIDENCE",
+    "C06_N_PARTIAL_START_RETIRE",
+    "C06_N_PARTIAL_CONSTRUCT_RETIRE",
+    "C06_N_PRIMARY_PRESERVE",
+    "C06_N_DUAL_FAULT_PRIMARY",
+    "C06_N_SHARED_DEADLINE",
+    "C06_N_OBSERVED_VS_RETAINED",
+    "C06_P_DISTINCT_CA",
+    "C06_P_HOOK_ORDER",
+    "C06_P_SYNTHETIC_MODULE",
+    "C06_P_MAP_SEPARATE",
+    "C06_P_UNKNOWN_INVENTORY",
+    "C06_P_PORT_15432",
+    "C06_P_ABS_BINARIES",
+    "C06_P_RECIPE_LITERALS",
+    "C06_P_LAUNCH_READY_FALSE",
+    "C06_N_WRONG_READY_ROOT",
+    "C06_P_CHILD_ENV_PATH",
+    "C06_P_SUITE_CA_EVIDENCE",
+    "C06_P_EXPLICIT_ROOT_WIRING",
+    "C06_P_BUDGETS_UNCHANGED"
+  ],
+  "controls": {
+    "C06_N_PREEXIST": {
+      "result": "REFUSE",
+      "detail": "C06RunnerTlsError",
+      "kind": "behavioral"
+    },
+    "C06_N_NONEMPTY": {
+      "result": "REFUSE",
+      "detail": "C06RunnerTlsError",
+      "kind": "behavioral"
+    },
+    "C06_N_UID": {
+      "result": "REFUSE",
+      "detail": "C06RunnerTlsError",
+      "kind": "behavioral"
+    },
+    "C06_N_MODE": {
+      "result": "REFUSE",
+      "detail": "C06RunnerTlsError",
+      "kind": "behavioral"
+    },
+    "C06_N_TRUST_SAME_CA": {
+      "result": "REFUSE",
+      "detail": "C06GateError",
+      "kind": "behavioral"
+    },
+    "C06_N_TRUST_PARENT_DB_CA": {
+      "result": "REFUSE",
+      "detail": "C06ArmError",
+      "kind": "behavioral"
+    },
+    "C06_N_TRUST_BACKEND_GATE_CA": {
+      "result": "REFUSE",
+      "detail": "extracted serve_i01_c06_gate uses DB CA",
+      "kind": "behavioral"
+    },
+    "C06_N_ROOT_FIXTURE_TLS": {
+      "result": "PASS",
+      "detail": "STATIC: default C06_GATE_ROOT path is not /fixture-tls",
+      "kind": "static"
+    },
+    "C06_N_ORDER_C06_BEFORE_N06": {
+      "result": "REFUSE",
+      "detail": "C06GateError",
+      "kind": "behavioral"
+    },
+    "C06_N_GEN_REFUSE": {
+      "result": "REFUSE",
+      "detail": "c06 generation refused",
+      "kind": "behavioral"
+    },
+    "C06_N_GEN_TIMEOUT": {
+      "result": "REFUSE",
+      "detail": "shared deadline then group retire",
+      "kind": "behavioral"
+    },
+    "C06_N_CAP": {
+      "result": "REFUSE",
+      "detail": "C06RunnerTlsError",
+      "kind": "behavioral"
+    },
+    "C06_N_SHELL_ONLY_KILL": {
+      "result": "REFUSE",
+      "detail": "killpg owns openssl children",
+      "kind": "behavioral"
+    },
+    "C06_N_GROUP_LEADER_EXITED_DESCENDANT_ALIVE": {
+      "result": "REFUSE",
+      "detail": "group probe independent of leader poll",
+      "kind": "behavioral"
+    },
+    "C06_N_GROUP_SIGTERM_IGNORED": {
+      "result": "REFUSE",
+      "detail": "SIGTERM-ignored independent of leader-exit case",
+      "kind": "behavioral"
+    },
+    "C06_N_READER_JOIN": {
+      "result": "REFUSE",
+      "detail": "primary eof unknown; unjoined + pipes_unretired attached",
+      "kind": "behavioral"
+    },
+    "C06_N_LATE_READER_ERROR": {
+      "result": "REFUSE",
+      "detail": "post-wait reader throw rechecked after join",
+      "kind": "behavioral"
+    },
+    "C06_N_PIPE_UNRETIRED_UNDER_LIVE_READER": {
+      "result": "REFUSE",
+      "detail": 2,
+      "kind": "behavioral"
+    },
+    "C06_N_BOUNDED_CAP_EVIDENCE": {
+      "result": "REFUSE",
+      "detail": "overflow flag+counter; observed vs retained",
+      "kind": "behavioral"
+    },
+    "C06_N_PARTIAL_START_RETIRE": {
+      "result": "REFUSE",
+      "detail": "started-only join; remaining retirement attempted",
+      "kind": "behavioral"
+    },
+    "C06_N_PARTIAL_CONSTRUCT_RETIRE": {
+      "result": "REFUSE",
+      "detail": "two pipe closes; one constructed; zero started; primary preserved; STOP",
+      "kind": "behavioral"
+    },
+    "C06_N_PRIMARY_PRESERVE": {
+      "result": "REFUSE",
+      "detail": "generation primary kept; secondary retirement attached",
+      "kind": "behavioral"
+    },
+    "C06_N_DUAL_FAULT_PRIMARY": {
+      "result": "REFUSE",
+      "detail": "timeout primary + unjoined secondary",
+      "kind": "behavioral"
+    },
+    "C06_N_SHARED_DEADLINE": {
+      "result": "REFUSE",
+      "detail": "shared 30s from entry; setup after deadline; disclosed total 45",
+      "kind": "behavioral"
+    },
+    "C06_N_OBSERVED_VS_RETAINED": {
+      "result": "REFUSE",
+      "detail": "observed/retained distinguished on cap extra",
+      "kind": "behavioral"
+    },
+    "C06_P_DISTINCT_CA": {
+      "result": "PASS",
+      "detail": "distinct hashes recorded",
+      "kind": "behavioral"
+    },
+    "C06_P_HOOK_ORDER": {
+      "result": "PASS",
+      "detail": "STATIC: AST main() prepare before addaudithook",
+      "kind": "static"
+    },
+    "C06_P_SYNTHETIC_MODULE": {
+      "result": "PASS",
+      "detail": "ModuleType registered; exec uses module.__dict__",
+      "kind": "behavioral"
+    },
+    "C06_P_MAP_SEPARATE": {
+      "result": "PASS",
+      "detail": "STATIC: C06-MAP remains mapping control",
+      "kind": "static"
+    },
+    "C06_P_UNKNOWN_INVENTORY": {
+      "result": "PASS",
+      "detail": "STATIC: N06 N07 I01-C06",
+      "kind": "static"
+    },
+    "C06_P_PORT_15432": {
+      "result": "PASS",
+      "detail": "C06GateError",
+      "kind": "behavioral"
+    },
+    "C06_P_ABS_BINARIES": {
+      "result": "PASS",
+      "detail": "STATIC: fixed /bin/sh and /usr/bin/openssl",
+      "kind": "static"
+    },
+    "C06_P_RECIPE_LITERALS": {
+      "result": "PASS",
+      "detail": "STATIC: RSA3072 CN SAN serverAuth days2",
+      "kind": "static"
+    },
+    "C06_P_LAUNCH_READY_FALSE": {
+      "result": "PASS",
+      "detail": "STATIC: false",
+      "kind": "static"
+    },
+    "C06_N_WRONG_READY_ROOT": {
+      "result": "PASS",
+      "detail": "STATIC: extracted c06_artifact_paths honors explicit root (path inventory)",
+      "kind": "static"
+    },
+    "C06_P_CHILD_ENV_PATH": {
+      "result": "PASS",
+      "detail": "STATIC: minimal env + new session",
+      "kind": "static"
+    },
+    "C06_P_SUITE_CA_EVIDENCE": {
+      "result": "PASS",
+      "detail": "STATIC: distinct hashes in C06 receipt",
+      "kind": "static"
+    },
+    "C06_P_EXPLICIT_ROOT_WIRING": {
+      "result": "PASS",
+      "detail": "STATIC: serve/ready/receipt same root",
+      "kind": "static"
+    },
+    "C06_P_BUDGETS_UNCHANGED": {
+      "result": "PASS",
+      "detail": "STATIC: runner 600 suite 900",
+      "kind": "static"
+    }
+  }
+}

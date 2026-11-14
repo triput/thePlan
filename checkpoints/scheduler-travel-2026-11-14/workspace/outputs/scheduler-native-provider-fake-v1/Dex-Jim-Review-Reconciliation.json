@@ -1,0 +1,16 @@
+{
+  "at_utc": "2026-11-12T23:37:24.4873831Z",
+  "review_mirror_files": 4,
+  "review_mirror_mismatches": [],
+  "review_sha256": "1C9604B559CB0F4AF8A8E65B435D90AF4C6842868EFAEFFC912ED72EE52C18D3",
+  "review_hash_matches": true,
+  "review_tip_sha256": "1379097F649D6F6AFBE6132AF80DC874557F609760976E3DEBC55519756933F2",
+  "review_tip_preimage": "E2485371987636A84F9646710B69A15694FEB727FEF7DA73C36DEF69CAED5149",
+  "review_tip_preimage_match": true,
+  "packet_input_count": 285,
+  "packet_hash_mismatches": [],
+  "disposition": "Qualified accept reconciled; stale machine-admission prose treated as historical, candidate booleans alone do not grant human authority",
+  "command_sha256": "72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03",
+  "admission_sha256": "1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285",
+  "human_execution_authorized": false
+}

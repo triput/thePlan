@@ -1,0 +1,23 @@
+T07 retirement / caller-classification — frozen documents-only handback v2
+Jim under Dex assignment 2026-11-11. Justin implementation design only.
+
+documents_only=true
+applied=false
+executed=false
+d2_one_shot_untouched=true
+
+Supersedes v1 TIP-FREEZE SHA256 ABA0923505155EC0D7555B13A61CB6F7CFFE662051F0E2B5C439BEAC48800F2A (v1 directory immutable; do not mutate).
+
+Assignment SHA256: 28232EFED72B8B60E89086866B1B9A1B7A36366123CE834E1F4AB1EA0D672719
+
+Answer: NO — current covering provider path cannot truthfully stop with UNKNOWN when retirement is uncertain, preserve the primary failure, and attempt independently owned retirement operations without retries.
+
+v2 closes Dex provisional feedback:
+1) R08 requires JoinedTLS.open change: after closed=True + sock.close raise, CoveringHTTP.finally transport.close is a no-op, so HTTP-only cannot classify that uncertainty or preserve the open primary. Three-file design retained on purpose (no two-file ceiling).
+2) Dual cleanup provenance: finally retains response_close_exc and transport_close_exc locals and attaches explicit attributes on CoveringRootOutcomeUnknown (.primary, .response_close, .transport_close, .retirement_provenance). Do not claim __context__ keeps caught cleanup errors.
+3) Doc hygiene cleaned; INPUT-PINS.json must parse as strict JSON.
+
+Proposed unapplied diff: YES — Proposed-Changes.diff
+Existing common exception CoveringRootOutcomeUnknown suffices with added optional provenance attributes; deferred importer import avoids cycle.
+
+Actual decisions for Trish/Dex: listed in Decisions-vs-Routine.md.

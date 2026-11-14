@@ -1,0 +1,134 @@
+{
+  "packet": "scheduler-native-provider-fake-v1-jim-review-v1",
+  "reviewed_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1",
+  "prep_v9_root": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-prep-v9",
+  "at_utc": "2026-11-12T23:45:00Z",
+  "review_mode": "docs-only-static-no-invoke",
+  "disposition": "QUALIFIED_ACCEPT",
+  "source_tip_claimed": "6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188",
+  "source_tip_observed": "6585E768FA64E455052368F75E47795ECC99708DC4EDCFBF6D33CD3B5A25F188",
+  "source_tip_match": true,
+  "source_tip_cr_count": 0,
+  "role_hashes": [
+    {
+      "role": "command",
+      "path": "Reviewed-Command.ps1.txt",
+      "claimed": "72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03",
+      "observed": "72938AA858697DC5314B63CCC44B56955EE783281BB188E1B8216BC65A01FD03",
+      "match": true
+    },
+    {
+      "role": "admission",
+      "path": "packet/verify/VERIFICATION-ADMISSION.json",
+      "claimed": "1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285",
+      "observed": "1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285",
+      "match": true
+    },
+    {
+      "role": "wrapper",
+      "path": "packet/Invoke-Fake.ps1",
+      "claimed": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "observed": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "match": true
+    },
+    {
+      "role": "manifest",
+      "path": "Input-Manifest.sha256",
+      "claimed": "7BA8972274CCED132D47155A65D92B21AE15CA6173D4798A036F14E5745ABD2B",
+      "observed": "7BA8972274CCED132D47155A65D92B21AE15CA6173D4798A036F14E5745ABD2B",
+      "match": true
+    },
+    {
+      "role": "outer",
+      "path": "packet/verify/OUTER-ADMISSION.json",
+      "claimed": "C6B46DFBF968BE8CF5328722C45FC310DDBB5E46D74C0628EA622510710DDE34",
+      "observed": "C6B46DFBF968BE8CF5328722C45FC310DDBB5E46D74C0628EA622510710DDE34",
+      "match": true
+    },
+    {
+      "role": "checker",
+      "path": "packet/verify/check_native_provider.py",
+      "claimed": "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+      "observed": "97EBFF21FFC545C6F8806750C88BFB493F2E5425BAFEDDD7A70401FB632A58F6",
+      "match": true
+    },
+    {
+      "role": "launcher",
+      "path": "packet/verify/launch_check.py",
+      "claimed": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+      "observed": "D22C37E36E5D333C087C8EE80B6936756C69F7D369369C66F8E0FFE6906EBD07",
+      "match": true
+    }
+  ],
+  "all_claimed_role_hashes_match": true,
+  "input_manifest": {
+    "entries": 285,
+    "packet_files_on_disk": 285,
+    "entries_hash_ok": 285,
+    "entries_bad": 0,
+    "coverage_complete": true
+  },
+  "prep_v9_delta": {
+    "same": 283,
+    "changed": 2,
+    "only_in_fake": 0,
+    "only_in_v9": 0,
+    "changed_files": [
+      {
+        "relative_path": "verify/VERIFICATION-ADMISSION.json",
+        "fake_sha256": "1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285",
+        "v9_sha256": "E55A43F78688D48D7C9A8D5D5F8BEDDF9184A29F6668551504ED65852879E38D",
+        "diff_summary": "launch_authorized false->true; dependent OUTER packet_files pin hash updated"
+      },
+      {
+        "relative_path": "verify/OUTER-ADMISSION.json",
+        "fake_sha256": "C6B46DFBF968BE8CF5328722C45FC310DDBB5E46D74C0628EA622510710DDE34",
+        "v9_sha256": "1E40F71BBC74AEEA36794EE5488689135506B2C5C68AC8259FA780383103566E",
+        "diff_summary": "launch_authorized false->true"
+      }
+    ],
+    "admission_only_delta_claim": true,
+    "code_application_checker_unchanged": true
+  },
+  "command": {
+    "exact_text": "& 'C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-fake-v1\\packet\\Invoke-Fake.ps1' -AdmissionSHA256 '1C0A415D1A9E342A87F5C1272870F46041BD2DE72CB3215B36CA5A9ED0236285'",
+    "bytes": 225,
+    "cr_count": 1,
+    "pins_admission_sha256": true,
+    "silent_extras": false,
+    "matches_wrapper_contract": true
+  },
+  "limits": {
+    "top_level_controls": 16,
+    "check_seconds": 120,
+    "post_kill_wait_seconds": 5,
+    "reader_join_seconds_each": 5,
+    "timeout_retirement_total_seconds": 135,
+    "capture_stdout_stderr_bytes": 65536,
+    "capture_result_bytes": 262144,
+    "runtime_scope": "interpreter_only",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "separate_outer_timeout": false,
+    "retry": false
+  },
+  "holds": {
+    "native_launch_ready": false,
+    "human_launch_authorized": false,
+    "execution": "not run",
+    "endpoint": "unbound",
+    "result_present": false,
+    "receipt_present": false,
+    "candidate_admission_launch_authorized": true,
+    "prep_is_not_pass": true
+  },
+  "ancillary_observed": {
+    "Static-Staging-Receipt.json": "555C8F58B0BBB290BC2B5DE7150FE3DDD0150658E309DA9891DADF586282D82C",
+    "Launch-Decision.md": "046D8515151A5AD57245C41BDD3A92D136AC2F97E70CB834F5902D388246B305"
+  },
+  "qualifications": [
+    "admission JSON note fields still say launch_authorized=false while boolean is true",
+    "historical prep metadata in packet remains false / prep-era; disclosed as predecessor record",
+    "Jim QUALIFIED ACCEPT is not Trish execution authorization"
+  ],
+  "revise_blockers": []
+}

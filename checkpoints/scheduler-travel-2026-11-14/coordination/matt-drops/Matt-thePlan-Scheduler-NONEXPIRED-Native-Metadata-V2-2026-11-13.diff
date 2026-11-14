@@ -1,0 +1,124 @@
+--- a/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json
++++ b/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json
+@@ -51,9 +51,9 @@
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "manifest_sha256": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+--- a/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json
++++ b/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json
+@@ -1,8 +1,8 @@
+ {
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-ms-nonexpired-retirement-launch-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }
+--- a/scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256
++++ b/scheduler-native-provider-diagnostic-launch-v1/Input-Manifest.sha256
+@@ -3,6 +3,7 @@
+ 0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826  payload/api/app/services/covering_release_plan.py
+ 03046DE50B076CCB6852BDFE229EF3948BEC8ECD3851DC2B11283CE6541810B3  payload/api/tests/test_covering_bounded_domain.py
+ 036005E745FCB93CB58598E2EC33F8199069529135ECB646633FB5E9490BD6A3  payload/api/app/scheduler/preview_planning.py
++03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9  host/launch-config.json
+ 041A570D403B433C5D390577B5AE0C0F670A7DBB6C2691591F7A2A640593DD77  payload/api/app/services/day_scoped_ranking_cutover_activation.py
+ 0507B9AF1E7D328DFB4AC790E0A9302D15F5A93A8F87DCA9748F07703D865860  payload/api/app/api/routes/reminders.py
+ 05C3F0B223C02F71192680F5A5CEE8CE250DD9CDA04947FDD3E9C8F84C6D27DE  payload/api/app/models/mixins.py
+@@ -50,7 +51,6 @@
+ 28205C019FCF531D4C71BBA8E323CDB42501BEB1D43758DEA4F05AB602D232DA  payload/api/app/services/token_crypto.py
+ 29575325829FE9E3F1AFCFF966601CA13E995A837CB6030F37D68C20E688550B  payload/api/app/schemas/auth.py
+ 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368  payload/api/app/services/covering_http_transport.py
+-C32159D7D70EC68C3D671DB90352C066F291530BD229B2267815D8D5DA99B9EC  host/docker-ops-config.json
+ 2AE3E64ADF5608CA6C6808FE901B329995788079EB85792612D9BC3CE36C7B44  payload/api/app/models/free_busy_policy.py
+ 2B27EB79F97CD73C0837A804A5C3325245288F6AAE26733F9653B8569F9B7831  payload/api/app/schemas/templates.py
+ 2B54DD2A37C3B51EB2D1A4D5E6B1A26C51670D6D9A62BEE90163D954C16ED951  payload/api/app/api/middleware/__init__.py
+@@ -89,7 +89,6 @@
+ 54AB49C79855995DFDF15AEB7ACEBCC1F68406F5D75D81544EBB4CD5FCB361D3  payload/api/app/scheduler/busy_map.py
+ 55DDE0275CD4BE25EFC5C2CDF6062D07AF7E8A7367AB842844AED7F985AF3649  payload/api/app/services/task_helpers.py
+ 56061DE9B2000E7B5F6728704DAC9F28F5F057499CED6BB3BCA994F997094E42  payload/api/tests/conftest.py
+-C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A  payload/SHA256SUMS.txt
+ 585DDEBFD2B7BF6662E0EE821BB6FFA4D2B9A640EBA9CE46C8D86985662B8DA4  payload/api/app/scheduler/proposal_revalidation.py
+ 5870CA694785015531BE952E1C3D08C9481771428C143C0BB60BB3FA5AAFEB3A  payload/api/app/schemas/calendar.py
+ 5875FAFD7DE8E922DE5E164A3FB8C5FAB4907FA1C1C80AF25207FEC7E2BC4761  payload/api/app/schemas/saved_views.py
+@@ -101,6 +100,7 @@
+ 5D0D6527427E3734A80B8AE458E24318479D4CFDBE8E4CD9739D41DBB7EE13CB  payload/api/app/services/assist_llm.py
+ 5DA5FCB42127318801346D8469CA5449C973D87FDBC1C9280FB2ADAFC028FBD4  payload/api/app/services/occurrence_disposition.py
+ 5DE93B0B11EB6FA0FFE1CFC6D868D3CFB52EF42249C126037E67014E270E7142  payload/api/app/scheduler/availability_materializer.py
++5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76  host/docker-ops-config.json
+ 5EADE04EE75B650203D1B991328CE5DAEC611080E3127AC6DA0F7A06673C2904  payload/api/app/scheduler/composition_resolver.py
+ 5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88  payload/api/app/services/covering_transport_policy.py
+ 5FCD342B3486DAF8C6E885FFBEBDD2A73F395A288BD62BE9C14F42CC4AB87F69  payload/api/app/schemas/settings.py
+@@ -146,6 +146,7 @@
+ 83F5A5977FFEA312F21BE7DFF6338CF91648D26D44C502417A9BBAB8D2273004  payload/api/app/services/scheduling_assignments.py
+ 84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339  payload/api/app/services/covering_refresh_import.py
+ 86422D5F452934EE13115255980F8D2D0956A20235AA540754FC3F93C3DE34A6  payload/api/app/api/routes/projects.py
++8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029  payload/runner-config.json
+ 86BB433C22BA05304423AEA239C5C0FA46FEDAB5783EE8B6E2C6A17A9BA000FF  payload/api/app/services/calendar_conflicts.py
+ 870596144AAAC3B2DE4894E27639F0D69C581AA621304921AA9E59A6AC3C96CF  TIP-FREEZE.json
+ 87D11EE35BAB8C5163F29C990F1570D94D7218931D77F215F7D55AE9024D4C17  payload/api/requirements.txt
+@@ -160,7 +161,6 @@
+ 92958C0A3FF86521756AFC22153D334C78F103574F3ED75AC86DE7C2EA505B1F  payload/api/app/scheduler/occurrence_bounds.py
+ 92F0D2E1CFDDC29F95B26DED3A12E86686B2A70B4E2973294CF958032170E008  payload/api/app/api/routes/settings.py
+ 933BBB6AD5159A1C677E8DEDB996B465AC3451F5F4590BE5E80811FA03B7757D  Launch-Decision.md
+-8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029  payload/runner-config.json
+ 94667305903CC419D41BC10C2B058688F110F8DD7D00B7468F6E0C02B28BD9EC  payload/api/app/schemas/task_scheduling.py
+ 954D796DBBA19037A06767B2D416D6FE772968943FC592B3C52E1EE5BF167D15  payload/api/app/services/schedule_dispatch.py
+ 980C84026FD24285B8619599BD6098E3FB0B5E45616174353FA9CE48D6A054E5  payload/api/app/services/saved_filter_query.py
+@@ -169,7 +169,6 @@
+ 9AB4E6A85FFF64D6E82A65DF3E93FCC1C07229DF35A6B0B7B7B28514CBD311C3  payload/api/app/api/middleware/agent_boundary_a.py
+ 9B5D7A0E4836799B097D05C1447CDE91CCD680E02232ADDA9802AB791AA1D069  payload/api/app/models/enums.py
+ 9BA04877E358D6057DBD8666140E1041605C5BC91741E4C4EC5531DB317A89B5  payload/api/app/scheduler/assignment_resolve.py
+-B31EA26203CE9C3B952E59B9D0EED9DAC22515F9B1FBAAA8BA6A583F8F0DE103  host/launch-config.json
+ 9C6851F0FDFB7BE2CCE0C24D3392890056A6B7EC5233F9202767E5A6EF13567C  payload/api/app/services/auth_users.py
+ 9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA  payload/fixture/np_provider_routes.py
+ 9D9D44C68115C8BA92A6039F6E19D7D5B5D13DF8A3121090EA5A8DE46C2C1BB4  payload/api/tests/test_covering_ingress_response_regression.py
+@@ -192,6 +191,7 @@
+ BE0D19A6760618736AC6D9CCA78CEFB5A3A393996EA67B514604694DA79D3EB9  payload/api/app/api/routes/assist.py
+ BE7CB44F1B8C3778984E963EB7AB1C9E5661BB3669F58B2648A191D4997CCF0A  payload/api/tests/support/run_domain_auth_ordered_result_harness_offline.py
+ BFE64F3A9BD8AB7240F43CEFA311BFEB2B65FE16C084B86216F71FC25E6F4524  payload/api/app/schemas/availability.py
++C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A  payload/SHA256SUMS.txt
+ C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229  payload/api/app/services/covering_native_orm_factory.py
+ C45CC362E9D91CA5D42BDB46C58D6CA12EB4A3E9DEE7D3E726D4579B4C52D9AD  payload/api/app/api/routes/focus_windows.py
+ C470DE9A9498EC3F7D9EA41F2D1C6A9D3FE8050F703D2BF962999A351C8D68D6  payload/api/app/services/passwords.py

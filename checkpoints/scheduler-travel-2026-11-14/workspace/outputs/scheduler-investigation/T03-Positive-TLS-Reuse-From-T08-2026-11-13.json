@@ -1,0 +1,106 @@
+{
+  "newAssignment": false,
+  "sourcePins": [
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t08-ownership-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\api\\app\\services\\covering_joined_https.py",
+      "sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t08-ownership-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_provider_routes.py",
+      "sha256": "9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA"
+    },
+    {
+      "path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-t08-ownership-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\fixture\\np_runner_entry.py",
+      "sha256": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C"
+    }
+  ],
+  "reuseConclusion": "Existing T08 native PASS supplies a Google positive TLS handshake and finite response witness. Reuse that fact in future T03 review rather than claiming no Google positive TLS proof exists.",
+  "atUtc": "2026-11-14T07:38:57.8742994Z",
+  "receipt": "F136E8ACC71E7DA9D825CFB3A587B423F0990953AFC98D8D0ED76EC9860BA69E",
+  "kind": "Positive TLS evidence reuse candidate; no requirement or family closure",
+  "requirement": "T03-VALID",
+  "manifest": "4C9CAE799A4C431442782B34FDEEFE586199A8FD775AB59024C968D0667B443B",
+  "sourceFindings": [
+    "Executed case calls google_api_route() with default correct CA and name",
+    "Route preserves www.googleapis.com hostname/SNI, numeric 127.0.0.1 port 443, fixture CA",
+    "Production JoinedTLS uses create_default_context, CERT_REQUIRED, check_hostname=True and explicit server_hostname, then completes do_handshake before returning",
+    "Case completes exact fixed-length {} GET response bytes and joined peer retirement"
+  ],
+  "sourceCase": "NP-T08-OWNERSHIP",
+  "executionAuthority": "NONE",
+  "limitations": [
+    "T08 independent result review remains pending",
+    "Does not execute wrong-CA or wrong-name cases",
+    "Does not prove certificate rejection, HTTP parser completion, EOF or receipt of close_notify",
+    "Does not remove the same-batch positive control from the already frozen T03 negative-test packet; any change to that packet requires fresh preparation and review"
+  ],
+  "endpoint": "unbound",
+  "newExecution": false,
+  "retainedCase": [
+    {
+      "case_id": "NP-T08-OWNERSHIP",
+      "result": {
+        "case_id": "NP-T08-OWNERSHIP",
+        "endpoint": "unbound",
+        "executed": true,
+        "expected_unknown": false,
+        "kind": "case_result",
+        "launch_authorized": false,
+        "measured": {
+          "foreign_check_refused": true,
+          "foreign_close_refused": true,
+          "native_tls_socket": true,
+          "owner_exchange_bytes": 91,
+          "owner_socket_closed": true,
+          "owner_socket_unchanged_after_foreign": true,
+          "reuse_refused": true
+        },
+        "observations": {
+          "foreign_check": "OBSERVED",
+          "foreign_close": "OBSERVED",
+          "owner_retirement": "OBSERVED",
+          "reuse_forbid": "OBSERVED"
+        },
+        "passed": true,
+        "peer_exchange_inventory": [
+          {
+            "close_mode_observed": "orderly_close_notify",
+            "connection_close": true,
+            "connection_index": 0,
+            "handshake_complete": true,
+            "method": "GET",
+            "path": "/calendar/v3/calendars/primary/events",
+            "purpose": "transport_ownership",
+            "query_present": false,
+            "query_verified": false,
+            "request_received": true,
+            "response_sent": true,
+            "script_id": "T08-OWNED-SOCKET-ONE-GET"
+          }
+        ],
+        "prep_is_not_pass": true,
+        "receipt_version": "native-provider-prep-v4",
+        "resource_disposition": {
+          "foreign_join_attempts": 1,
+          "foreign_worker_joined": true,
+          "owner_socket_retired": true,
+          "peer_retirement": {
+            "authority": "later_launch_card_only",
+            "failed_container_shutdown": "separately_gated",
+            "interruption": "stop_event_plus_owned_socket_close_before_join",
+            "joined": true,
+            "peer_id": "NP-T08-OWNERSHIP",
+            "retired": true,
+            "retirement_kind": "owned_peer_reader",
+            "unjoined_disposition": "UNKNOWN",
+            "worker_error_kind": null
+          }
+        },
+        "skipped": false,
+        "t_check": "2026-11-14T07:26:35.854396+00:00",
+        "t_plan": "2026-11-14T07:26:35.797011+00:00",
+        "workers_joined": true
+      }
+    }
+  ]
+}

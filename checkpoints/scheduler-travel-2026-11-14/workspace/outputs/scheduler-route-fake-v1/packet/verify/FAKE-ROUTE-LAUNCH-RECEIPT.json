@@ -1,0 +1,145 @@
+{
+  "status": "PASS",
+  "class": "FAKE-ROUTE-LAUNCH",
+  "interpreter": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "pinned_interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+  "interpreter_pin_matched": true,
+  "check_script": "check_route.py",
+  "check_sha256": "133DE7AF16632640AA43B2C38AEF0D0202B5B203B14B001012664A72D97B2537",
+  "launcher_sha256": "27A189A64BFB0273FA51ABDAAE9C572CF6838B2AE5059494C61BA4DAC214C3B2",
+  "launcher_self_pin_compared": false,
+  "expected_output_sha256": "2B8B70974A9202ED19A476E9613F15FDE96AE522DB6B38282A9DA89964963C7E",
+  "input_manifest_sha256": "529B3651814D3D6F133F780A9ED4E55E806460E335C66C90B5305C46A47A1BB9",
+  "packet_pins": {
+    "check_route.py": "133DE7AF16632640AA43B2C38AEF0D0202B5B203B14B001012664A72D97B2537",
+    "EXPECTED.json": "2B8B70974A9202ED19A476E9613F15FDE96AE522DB6B38282A9DA89964963C7E",
+    "INPUT-MANIFEST.json": "529B3651814D3D6F133F780A9ED4E55E806460E335C66C90B5305C46A47A1BB9"
+  },
+  "expected_wire_ids_in_order": [
+    "ROUTE-MS-LIST",
+    "ROUTE-MS-EVENT-OVERLAP",
+    "ROUTE-MS-DEFAULT",
+    "ROUTE-MS-LIST-CONTINUATION-ABS",
+    "ROUTE-MS-LIST-CONTINUATION-ROOT",
+    "ROUTE-MS-EVENT-CONTINUATION",
+    "ROUTE-IDENTITY-DESCENDANT",
+    "ROUTE-HTTP-IDENTITY-DESCENDANT",
+    "ROUTE-EXPLICIT-SECOND-IDENTITY",
+    "ROUTE-EVENT-DESCENDANT",
+    "ROUTE-EQUAL-PATH-CONFLICT",
+    "ROUTE-GOOGLE-LIST",
+    "ROUTE-GOOGLE-EVENT",
+    "ROUTE-OAUTH-EXACT",
+    "ROUTE-D2-PRESERVATION",
+    "ROUTE-REQUEST-SHARING",
+    "ROUTE-SOURCE-INVENTORY",
+    "ROUTE-MUTATION-CLIENT",
+    "ROUTE-MUTATION-HTTP"
+  ],
+  "pin_enforcement": {
+    "interpreter": "launcher_pre_admission_hardcoded_pin",
+    "launcher_self": "outer_OUTER-ADMISSION_via_admit_outer_not_self",
+    "check_script": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "expected_output_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "input_manifest_file": "launcher_pre_admission_vs_PACKET-SHA256SUMS",
+    "fixture_source_hashes": "check_script_verify_source_hashes",
+    "control_inventory": "check_script_enforce_expected_inventory_and_launcher_result_gate",
+    "ordered_contract": "EXPECTED.inputs key order == EXPECTED.wire_ids_in_order == result.wire_ids_in_order == result.inputs key order"
+  },
+  "cwd": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify",
+  "timeout_seconds": 30,
+  "timeout_enforced_by": "invoke_route_fake._collect_bounded.poll_wait_interrupt_on_overflow",
+  "timeout_routing_limits": {
+    "child_wait_seconds": 30,
+    "post_kill_wait_seconds": 5.0,
+    "reader_join_seconds_each": 5.0,
+    "wait_poll_seconds": 0.05,
+    "total_disclosed_seconds": 45.0,
+    "no_retry": true,
+    "overflow_interrupt": "kill child on observed capture overflow; do not wait out full child_wait while readers drain"
+  },
+  "timed_out": false,
+  "returncode": 0,
+  "launcher_exit_code": 0,
+  "elapsed_seconds": 0.991,
+  "child_pid": 117072,
+  "child_executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "child_argv": [
+    "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "-I",
+    "-S",
+    "-B",
+    "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\check_route.py"
+  ],
+  "child_start_timestamp": 1794457226.5539129,
+  "child_custody": {
+    "pid": 117072,
+    "executable": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\check_route.py"
+    ],
+    "start_timestamp": 1794457226.5539129,
+    "authority": "owned_check_child_custody; no process_enumeration; no_retry; no_fallback; no_new_cleanup_authority"
+  },
+  "isolation": {
+    "required_flags": [
+      "-I",
+      "-S",
+      "-B"
+    ],
+    "parent_flags_verified": true,
+    "parent_flag_evidence": {
+      "-I": "sys.flags.isolated",
+      "-S": "sys.flags.no_site",
+      "-B": "sys.flags.dont_write_bytecode"
+    },
+    "child_argv": [
+      "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+      "-I",
+      "-S",
+      "-B",
+      "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-route-fake-v1\\packet\\verify\\check_route.py"
+    ],
+    "child_flags_verified": true
+  },
+  "capture_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "bounded pipe readers during collection (chunked); over-limit → interrupt child + STOP disclosed as capture_stop_reason; reader still-live/incomplete/error → UNKNOWN; process exit alone does not imply reader EOF; not post-hoc-only after unbounded communicate; result size gate before read_bytes"
+  },
+  "retained_byte_limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "result": 262144,
+    "mechanism": "clip_utf8_tails_for_receipt_disclosure_only; capture admission is separate and during-collection; preexisting result/receipt STOP without write/overwrite (P6); newly owned receipts use exclusive create (O_CREAT|O_EXCL)"
+  },
+  "stdout_tail": "",
+  "stderr_tail": "",
+  "stdout_raw_bytes": 0,
+  "stderr_raw_bytes": 0,
+  "result_path": "FAKE-ROUTE-RESULT.json",
+  "result_present": true,
+  "result_sha256": "4466CEBD189A0D316C456217ECD9FFCFC8F142D5F7EC58091E32CA6916AF23BC",
+  "result_read_bytes": 9793,
+  "result_gate_ok": true,
+  "result_gate_reason": null,
+  "capture_stop_reason": null,
+  "interrupt_reason": null,
+  "reader_routing": {
+    "stdout": "joined_eof",
+    "stderr": "joined_eof"
+  },
+  "termination": "child_exited_normally",
+  "termination_confirmed": true,
+  "primary_error": null,
+  "secondary_termination_evidence": null,
+  "executed_in_preparation": false,
+  "receipt_write_mode": "exclusive_create_O_EXCL",
+  "p6_no_overwrite": true
+}

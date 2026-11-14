@@ -1,0 +1,17 @@
+{
+  "expectedChanges": 0,
+  "mutants": 10,
+  "executionPerformed": false,
+  "kind": "Fresh BODY observer fake v2 staging",
+  "controls": 13,
+  "predicates": 66,
+  "humanAuthority": false,
+  "endpoint": "unbound",
+  "sourceReview": "78C7AEA6BB4617860924B3124D34D76F2D3E4968FD036B8DF696913BC070FFBB",
+  "executableChanges": 0,
+  "admission": "3AE7EDC9FFDD84F7FE4FA13270C790250D6000404001D38C60DFE1BAB1FC8B1E",
+  "independentStagingReview": "PENDING",
+  "subjectChanges": 0,
+  "command": "BEF8510660BDCF4D13811C6A2C59D75ABD6B9FEC0F26891068D094FAC6003675",
+  "sourceManifest": "EBB3BED606B5F9824FA6CFEC905E7A0FE0F098F7D932637D52499529DEB8BCD0"
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "file": "C06-Prep-Scope-Reconcile.md",
+    "match": true
+  },
+  {
+    "file": "INPUT-MANIFEST.json",
+    "match": true
+  },
+  {
+    "file": "TIP-FREEZE.json",
+    "match": true
+  },
+  {
+    "file": "HANDBACK.txt",
+    "match": true
+  },
+  {
+    "file": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\C06-Reconciled-Preparation-Scope.md",
+    "match": true
+  },
+  {
+    "file": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\C06-Correction-Review-Criteria.md",
+    "match": true
+  },
+  {
+    "file": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v1\\C06-Static-Blocker.md",
+    "match": true
+  },
+  {
+    "file": "optionA_tip",
+    "match": true
+  },
+  {
+    "file": "optionA_proposal",
+    "match": true
+  },
+  {
+    "file": "optionA_trace",
+    "match": true
+  }
+]

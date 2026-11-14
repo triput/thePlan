@@ -1,0 +1,122 @@
+{
+  "kind": "native-provider-static-preparation-receipt",
+  "packet": "post-native-provider-prep-jim-v2-2026-11-12",
+  "at_utc": "2026-11-12T20:41:29.512003Z",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "tip_sha256": "5AC8EBE2EF6EFB29F22C8274E5F1CC65AB942540BB1724B1CF14B6A288BD79F9",
+  "tip_on_disk_sha256": "9C49E0B84B36F7B53FADC79490FCEF3AB2CE093FA6F6B6A8E16F40243BEDD38D",
+  "predecessor_tip_on_disk_sha256": "0AA4C08197E897F8A91A23945D882854FED44528E476AF04506D245B2EDB211D",
+  "assembled_api_files": 234,
+  "sole_override_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+  "port_dependency_status": "VERIFIED_FINITE_HOST_PASS_9_OF_9",
+  "mutable_roles": [
+    {
+      "role_key": "1_Invoke-Native-Provider.ps1",
+      "relative_path": "Invoke-Native-Provider.ps1",
+      "sha256": "C4DC4AB0CA1F85FF17F8AB78AA5056FC20BDBA57301960E3D993FA9777DFA4FE",
+      "bytes": 5495
+    },
+    {
+      "role_key": "2_np_supervisor.py",
+      "relative_path": "payload/fixture/np_supervisor.py",
+      "sha256": "28248F6E9BC67362AB22B66BAB7756BF5F61D6727C4808A4A2F0B8587A4FD81F",
+      "bytes": 11774
+    },
+    {
+      "role_key": "3_np_integrated_runner.py",
+      "relative_path": "payload/fixture/np_integrated_runner.py",
+      "sha256": "2C8B5BE78B5F042210D042DF1FB7FDBB07C486ED5A57CA36C00006F61E6040DF",
+      "bytes": 3230
+    },
+    {
+      "role_key": "4_np_runner_entry.py",
+      "relative_path": "payload/fixture/np_runner_entry.py",
+      "sha256": "B8E0FAF345C943E25CD85DB3DD20F56B8F6AABDA16565C838B6D62B458823E17",
+      "bytes": 21443
+    },
+    {
+      "role_key": "5_np_suite.py",
+      "relative_path": "payload/fixture/np_suite.py",
+      "sha256": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "bytes": 16377
+    },
+    {
+      "role_key": "6_np_receipts.py",
+      "relative_path": "payload/fixture/np_receipts.py",
+      "sha256": "7467522BCCC5925D9FD0D294769E4C62050EE0C8EA6FD170B077FDBC4AA83FDE",
+      "bytes": 2688
+    },
+    {
+      "role_key": "7_np_provider_peer.py",
+      "relative_path": "payload/fixture/np_provider_peer.py",
+      "sha256": "D64668B417FAEC91886080AFC2AA84E1E021A29202015F7B53647FB73C25377F",
+      "bytes": 22395
+    },
+    {
+      "role_key": "8_np_provider_transcript.py",
+      "relative_path": "payload/fixture/np_provider_transcript.py",
+      "sha256": "902A13B05F5A57AFB657FD2D31576BDEEB6B86BF1643BF15A04F1795F72797CE",
+      "bytes": 9817
+    },
+    {
+      "role_key": "9_np_provider_routes.py",
+      "relative_path": "payload/fixture/np_provider_routes.py",
+      "sha256": "80C84A48D8515FB22F3848BA9245002501331434909935D8810E586BC21D5E92",
+      "bytes": 3662
+    },
+    {
+      "role_key": "10_np_auth_seed.py",
+      "relative_path": "payload/fixture/np_auth_seed.py",
+      "sha256": "8AE12AC3BD06221EEDA1848FA42632246BC78222AC14E8E9B0DAE19F88E818DC",
+      "bytes": 5669
+    },
+    {
+      "role_key": "11_np_alias_seed.py",
+      "relative_path": "payload/fixture/np_alias_seed.py",
+      "sha256": "A370C630B7DD21DE02D00FB3081A0C4ADC4C129A1549180182B7AF79FBCC0AB8",
+      "bytes": 1418
+    },
+    {
+      "role_key": "12_prepare-np-provider-tls.sh",
+      "relative_path": "payload/fixture/prepare-np-provider-tls.sh",
+      "sha256": "F692FA6D0338C3BA5E0CA55CD96A6817B15605F8162BABE66BFDA2800EC3000C",
+      "bytes": 3321
+    },
+    {
+      "role_key": "13_check_native_provider.py",
+      "relative_path": "verify/check_native_provider.py",
+      "sha256": "2A0B9AC685AD1E61F769F38C45B63D28A620ABDC68E4FE67092C5F318DDF365D",
+      "bytes": 18891
+    },
+    {
+      "role_key": "14_launch_check.py",
+      "relative_path": "verify/launch_check.py",
+      "sha256": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "bytes": 11004
+    },
+    {
+      "role_key": "15_verify_admission.py",
+      "relative_path": "verify/verify_admission.py",
+      "sha256": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "bytes": 4360
+    },
+    {
+      "role_key": "16_Invoke-Fake.ps1",
+      "relative_path": "Invoke-Fake.ps1",
+      "sha256": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "bytes": 3960
+    }
+  ],
+  "key_roles": {
+    "np_provider_peer.py": "D64668B417FAEC91886080AFC2AA84E1E021A29202015F7B53647FB73C25377F",
+    "np_runner_entry.py": "B8E0FAF345C943E25CD85DB3DD20F56B8F6AABDA16565C838B6D62B458823E17",
+    "np_suite.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673"
+  },
+  "implemented_case_ids_source": [
+    "NP-V-MS-NONEXPIRED"
+  ],
+  "commands_held_invoked": false
+}

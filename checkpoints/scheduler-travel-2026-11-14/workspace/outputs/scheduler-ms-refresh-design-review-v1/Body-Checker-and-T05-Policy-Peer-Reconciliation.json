@@ -1,0 +1,15 @@
+{
+  "atUtc": "2026-11-14T03:52:36.4271076Z",
+  "peer_review": "AD61EA225F970656C326CD3BED73C1C03D6BC190E262550C513BEA1A0125F306",
+  "body_checker_verdict": "QUALIFIED_STATIC_ACCEPTANCE_NO_BLOCKER",
+  "body_manifest": "33FAEB13697C4D840D7055D1A880EB3B3F967DEF77ECBA5C7A6740CE098E0947",
+  "body_limits": "13controls64predicates9mutants, unexecuted",
+  "t05_evidence": "Peer independently agrees retained BrokenPipeError body-read frames; exact errno/OpenSSL mechanism/wire ordering unproved",
+  "peer_disagreement": "Prefers deterministic FIN-only vsRST-only scripts; supports narrow BrokenPipe allowance only with receive/body-stage evidence on future PASS and fake wrong-stage mutation",
+  "dex_recommendation": "For current private beta, propose narrow exact BrokenPipe allowance with bounded owned-code-identity receive/body-read stage evidence. Keep existing mixed fixture and all refusal/retirement guards; no generic OSError, retrospectivePASS or new optionalresetcase.",
+  "qualification": "Peer wording that shutdown sends FIN thenRST is an implementation hypothesis, not wire evidence. No packet capture/native stimulus redesign proof retained.",
+  "decision_status": "POLICY_PENDING_NOT_IMPLEMENTED",
+  "matt_next": "Google functional vertical preparation",
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

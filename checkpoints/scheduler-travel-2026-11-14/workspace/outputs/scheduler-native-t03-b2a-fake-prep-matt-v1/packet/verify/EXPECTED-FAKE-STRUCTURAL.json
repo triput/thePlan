@@ -1,0 +1,57 @@
+{
+  "kind": "native-t03-b2a-fake-structural-expected",
+  "packet": "scheduler-native-t03-b2a-fake-prep-matt-v1",
+  "candidate_root": "scheduler-native-provider-t03-b2a-prep-matt-v1",
+  "assignment": "Dex 21BBE5B7 under Trish-approved decision D46E6CF8 (NP-T03-VALID, NP-T03-WRONG-CA, NP-T03-WRONG-NAME only)",
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "NEGATIVE-HELPER",
+    "POSITIVE-HELPER-PRESERVED",
+    "OBSERVE-WIRING",
+    "CASE-BODIES",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_case_ids": {
+    "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+    "DIFF-REDERIVATION": ["runner", "transcript", "suite", "runner_config"],
+    "PRESERVED-OUTSIDE-CHANGE": ["runner", "positive_helper_byte_identical", "transcript_and_suite"],
+    "NEGATIVE-HELPER": ["planned_refusal_accepted", "none_stops", "class_outside_set_stops", "note_mismatch_stops", "advanced_state_stops", "unjoined_stops_unknown_same_object", "single_attempt_all_paths"],
+    "POSITIVE-HELPER-PRESERVED": ["clean_joined_accepted", "worker_error_and_unjoined_refused"],
+    "OBSERVE-WIRING": ["valid_one_attempt_one_retirement", "wrong_ca_client_trust_only", "wrong_name_served_leaf_only", "wrong_outcome_stops"],
+    "CASE-BODIES": ["case_mapping_exact", "oracle_names_equal_declarations", "no_schema_or_asgi"],
+    "RECEIPT-RETENTION": ["every_emitted_key_survives", "typed_evidence_survives_privacy_unchanged"],
+    "CONFIG-AND-IMMUTABLES": ["runner_config", "launch_config", "docker_ops_root_rename_only", "payload_delta_exact", "nested_delta_exact", "api_peer_routes_helpers_immutable"],
+    "ACTUAL-SOURCE-MUTANTS": ["class_set_widened", "none_admitted", "phase_check_dropped", "note_check_dropped", "ca_swap_mixed", "wrong_name_also_swaps_ca", "outcome_widened", "second_retirement"]
+  },
+  "expected_nested_predicates": 47,
+  "nested_count_breakdown": "SUBJECT 1 + RUNTIME 7 + DIFF 4 + PRESERVED 3 + NEGATIVE 7 + POSITIVE 2 + OBSERVE 4 + BODIES 3 + RETENTION 2 + CONFIG 6 + MUTANTS 8 = 47",
+  "check_kinds": {
+    "behavioral_extracted": "NEGATIVE-HELPER and POSITIVE-HELPER-PRESERVED (actual helpers with a named fake peer); OBSERVE-WIRING (actual _t03_observe with the actual routes module and actual transcript units executed inside privately registered ModuleTypes, the actual peer serializer, and named fakes for peer/CoveringHTTP/JoinedTLS/budget/policy; actual stdlib ssl exception classes used as values); RECEIPT-RETENTION b (actual redact_mapping)",
+    "structural": "PRESERVED-OUTSIDE-CHANGE; CASE-BODIES; RECEIPT-RETENTION a; CONFIG-AND-IMMUTABLES",
+    "behavioral_mutants": ["class_set_widened", "none_admitted", "phase_check_dropped", "note_check_dropped", "ca_swap_mixed", "wrong_name_also_swaps_ca", "outcome_widened", "second_retirement"],
+    "structural_mutants": []
+  },
+  "mutant_oracles": {
+    "class_set_widened": "negative:class outside set stops",
+    "none_admitted": "negative:none stops",
+    "phase_check_dropped": "negative:advanced state stops",
+    "note_check_dropped": "negative:note mismatch stops",
+    "ca_swap_mixed": "observe:wrong ca swap only",
+    "wrong_name_also_swaps_ca": "observe:wrong name swap only",
+    "outcome_widened": "observe:wrong outcome stops",
+    "second_retirement": "observe:valid wiring"
+  },
+  "module_registration": "np_provider_routes and np_provider_transcript are registered as owned ModuleTypes BEFORE their decorated dataclasses execute; Sandbox refuses any pre-existing name and removes only its own entries on every exit path",
+  "limits": {"check_seconds": 120, "timeout_retirement_total_seconds": 135, "result_byte_cap": 262144, "capture_byte_cap_per_stream": 65536, "temporary_files": "none (result and launch receipt only)"},
+  "not_proved": "native certificate verification; OpenSSL/TLS alert, client or peer exception classes; wire timing; peer retirement timing; any T03 requirement",
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "native_proof": false,
+  "endpoint": "unbound"
+}

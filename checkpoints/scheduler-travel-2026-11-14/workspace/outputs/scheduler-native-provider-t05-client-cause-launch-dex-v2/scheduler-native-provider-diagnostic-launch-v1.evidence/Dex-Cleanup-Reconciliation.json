@@ -1,0 +1,15 @@
+{
+  "atUtc": "2026-11-14T03:30:18.4145080Z",
+  "status": "CLEANUP_PASS",
+  "approval": "call_4367dc1a004248c7ab5dc8893a1f0181 item0",
+  "receipt_sha256": "D944C6A1D6C3637C016A69CA7236697DF786974544C1FD3FF069432A918ABC6E",
+  "docker_commands": 9,
+  "runner_absent": true,
+  "database_absent": true,
+  "database_exit": 0,
+  "inputs_unchanged": 307,
+  "native_t05_status": "STOP_PRESERVED_NOT_PASS",
+  "remaining_cleanup_authority": 0,
+  "remaining_run_authority": 0,
+  "endpoint": "unbound"
+}

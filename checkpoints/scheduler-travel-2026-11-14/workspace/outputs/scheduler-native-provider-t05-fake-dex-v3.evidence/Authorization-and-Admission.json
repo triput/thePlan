@@ -1,0 +1,21 @@
+{
+  "at_utc": "2026-11-13T05:09:53.4962739Z",
+  "status": "AUTHORIZED_ADMITTED_FOR_ONE_INVOCATION",
+  "authorization_question_id": "call_4885e31f4a5841e6aa760f080cc55726",
+  "user_answer": "Authorize one T05 fake verification (Recommended)",
+  "command_sha256": "8500E3ED1ECC5FA93034F9F1D4B28F73F2FA2631EC21795C6D902F9B709F13D9",
+  "admission_sha256": "523574A769AB466BAD5C7E5112BF8FE64C8A224360B8AE2AFAD570BFEA49D2FB",
+  "launch_manifest_sha256": "43CF735E7FAF231F97EF5E91DBCA7C74798102FD4194E9734F1F914360B76210",
+  "staging_inputs_verified": 301,
+  "admitted_subjects": 23,
+  "runtime_pins": 1,
+  "expected_top_level": 17,
+  "expected_t05_nested": 19,
+  "child_collection_seconds": 120,
+  "retirement_nominal_seconds": 15,
+  "separate_outer_timeout": false,
+  "owned_child_termination_authorized": true,
+  "native_launch_authorized": false,
+  "endpoint": "unbound",
+  "retry_authorized": false
+}

@@ -1,0 +1,22 @@
+{
+  "predicates": 66,
+  "status": "STAGING_PEER_RECONCILED_READY_FOR_EXACT_DECISION_NOT_EXECUTION",
+  "packetPins": 32,
+  "endpoint": "unbound",
+  "admission": "3AE7EDC9FFDD84F7FE4FA13270C790250D6000404001D38C60DFE1BAB1FC8B1E",
+  "inputs": 49,
+  "humanAuthority": "NONE",
+  "qualifications": [
+    "Token-only identity guard",
+    "Install-before-try window",
+    "New restoration checks structural",
+    "No syntax or behavior run"
+  ],
+  "review": "3EC40A2AE1C2FB4AA2A8D7F8488A936EDEF5E3C04D8ED82D524AC67AE55E98C9",
+  "mutants": 10,
+  "runtimePins": 10,
+  "controls": 13,
+  "manifest": "0DB0A2FAD54E9630F9266141943A36A9DD8D1D59E5AC10C01CD71D381456DED9",
+  "executed": false,
+  "command": "BEF8510660BDCF4D13811C6A2C59D75ABD6B9FEC0F26891068D094FAC6003675"
+}

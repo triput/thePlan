@@ -1,0 +1,44 @@
+--- a/payload/fixture/np_provider_transcript.py
++++ b/payload/fixture/np_provider_transcript.py
+@@ -109,11 +109,17 @@
+ 
+ 
+ def ms_token_invalid_grant_script() -> ExchangeScript:
++    """Complete status-400 OAuth error object at the production-derived tenant path.
++
++    The path must equal production microsoft_calendar._token_url for the fixture
++    tenant (the peer enforces exact path equality); a tenant-less path would be
++    refused by the peer as a transcript mismatch, not reach invalid_grant.
++    """
+     return ExchangeScript(
+         script_id="MS-TOKEN-INVALID-GRANT",
+         purpose="microsoft_token_invalid_grant",
+         steps=(
+-            ExchangeStep("recv_request", method="POST", path="/oauth2/v2.0/token"),
++            ExchangeStep("recv_request", method="POST", path=MS_TOKEN_ENDPOINT_PATH),
+             ExchangeStep(
+                 "send_response",
+                 status=400,
+@@ -355,6 +361,22 @@
+     return scripts
+ 
+ 
++MS_INVALID_GRANT_EXCHANGE_COUNT = 1
++
++
++def ms_invalid_grant_connection_inventory() -> tuple[ExchangeScript, ...]:
++    """Finite per-connection inventory for NP-V-MS-INVALID (one subscription, one account).
++
++    Exactly one OAuth refresh POST at the production-derived tenant path answered by
++    a complete status-400 invalid_grant object, then orderly close. The token unit
++    rolls back, the target is preflight-rejected, and no Graph request follows.
++    """
++    scripts = (ms_token_invalid_grant_script(),)
++    if len(scripts) != MS_INVALID_GRANT_EXCHANGE_COUNT:
++        raise RuntimeError("MS invalid_grant inventory must contain exactly one exchange")
++    return scripts
++
++
+ def abrupt_truncation_script() -> ExchangeScript:
+     return ExchangeScript(
+         script_id="T05-ABRUPT-TRUNCATION",

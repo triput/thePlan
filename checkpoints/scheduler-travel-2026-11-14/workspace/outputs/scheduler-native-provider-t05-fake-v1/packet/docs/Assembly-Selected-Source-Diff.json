@@ -1,0 +1,136 @@
+{
+  "kind": "Assembly selection diff vs passed native I01/I02-v4",
+  "selection_sha256": "857141512AADF6F90F1CA8F92547A777E3D5FE943671495512FA18CEA7CBA296",
+  "changed_files": [
+    {
+      "relative_path": "app/services/covering_http_transport.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_http_transport.py",
+      "selected_sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368",
+      "native_sha256": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+      "unchanged_from_native": false
+    },
+    {
+      "relative_path": "app/services/covering_joined_https.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_joined_https.py",
+      "selected_sha256": "760177767EA64A6129E788BA7828FBE998522706791E6CFC5DBB9C2D0C013427",
+      "native_sha256": "C58382900BE1C190ED39242B4992FE88E1155E55F7E8C33D32065DBFCC993468",
+      "unchanged_from_native": false
+    },
+    {
+      "relative_path": "app/services/covering_provider_context.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_provider_context.py",
+      "selected_sha256": "65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2",
+      "native_sha256": "8A40B635467D3BB3CD12E57F96521ACF7AEEF7D4A7661DB9157AC7FED9802D9F",
+      "unchanged_from_native": false
+    },
+    {
+      "relative_path": "app/services/covering_refresh_import.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_refresh_import.py",
+      "selected_sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+      "native_sha256": "C57A5F956BEA5A364B781C586B595C984013F357F337355B30C4182230BFE1F0",
+      "unchanged_from_native": false
+    },
+    {
+      "relative_path": "app/services/covering_transport_policy.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-port-zero-fake-v1\\packet\\candidate\\app\\services\\covering_transport_policy.py",
+      "selected_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+      "native_sha256": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+      "unchanged_from_native": false
+    }
+  ],
+  "critical_unchanged_paths": [
+    {
+      "relative_path": "app/services/covering_target_transaction.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_target_transaction.py",
+      "selected_sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "native_sha256": "8ADC67737002512BD66D87A6A874E6970250094BA1CF7FCE69E7A66B966A235A",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_release_plan.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_release_plan.py",
+      "selected_sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "native_sha256": "0265969CD230D42747CDB722D73FF2C8748144324B5B930E5EB940E97DC2B826",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_role_connector.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_role_connector.py",
+      "selected_sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "native_sha256": "C5BA15CDE276586CFFA2DE24A51E79F40CC6479D3A5A1D6663D23A20D930B288",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_role_admission.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_role_admission.py",
+      "selected_sha256": "79A95035953C7280EFD6F48683A80E49422C4C4BEBF39E0E515EA2629860D4BE",
+      "native_sha256": "79A95035953C7280EFD6F48683A80E49422C4C4BEBF39E0E515EA2629860D4BE",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_request_budget.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_request_budget.py",
+      "selected_sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975",
+      "native_sha256": "D5C465CC8BACB83C49FCD8586BB84D5B32C12C113CB81386C6D715EBF7088975",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_refresh_locks.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_refresh_locks.py",
+      "selected_sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69",
+      "native_sha256": "6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_native_terminal.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_native_terminal.py",
+      "selected_sha256": "1EF89808EB5FD7162304D7CEEC87A2FE46F255388DB66A1C6987E55EBC108CCE",
+      "native_sha256": "1EF89808EB5FD7162304D7CEEC87A2FE46F255388DB66A1C6987E55EBC108CCE",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_native_orm_factory.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_native_orm_factory.py",
+      "selected_sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229",
+      "native_sha256": "C37B6DBB005DEF83033312594EE92F8BF180A70F470B4FD2BCCA78F3EFFE7229",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_native_checkout.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_native_checkout.py",
+      "selected_sha256": "681497FCDB625249E5BAF4771D6F9AEB60324691F228EFEA1F78CE0C491D46B6",
+      "native_sha256": "681497FCDB625249E5BAF4771D6F9AEB60324691F228EFEA1F78CE0C491D46B6",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_domain_dispatch.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_domain_dispatch.py",
+      "selected_sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "native_sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_domain_adapters.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_domain_adapters.py",
+      "selected_sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "native_sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/services/covering_http_dispatch.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\services\\covering_http_dispatch.py",
+      "selected_sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+      "native_sha256": "5160780F4F13E450F19515560CF85EDCDCB5A7906FED99A7027AE8C93071D1FF",
+      "unchanged_from_native": true
+    },
+    {
+      "relative_path": "app/api/middleware/covering_ingress.py",
+      "selected_source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-framing-ack-fake-v4\\packet\\candidate\\app\\api\\middleware\\covering_ingress.py",
+      "selected_sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D",
+      "native_sha256": "FA6904A2CD7436D8D6E7F316D192654B6FE5CA1E9BC050DEADBAFA3D8932C68D",
+      "unchanged_from_native": true
+    }
+  ],
+  "note": "233 base framing-ack-fake-v4 candidate files retained unchanged; sole override covering_transport_policy.py from port-zero-fake-v1. This is selected-byte assembly, not new application editing.",
+  "app_edits_beyond_assembly": false
+}

@@ -1,0 +1,4 @@
+Jim — to save you authoring time on the mapped-state fix, I added an UNEXECUTED seven-control checker contribution at outputs/scheduler-native-provider-coverage-patch-v1/verify/check_native_provider.py; SHA256 2FF4B8A03567A72A4D875721463CF6ED9EC74F50556CE9AB9C2F23AA3E1EF4F4. Exact helper source pin is the candidate already sent. Uses extracted helper + fake app.models/DB/rows exposing only real mapped fields; before/after/mixed, missing row/attribute refusal, and two invented-field mutants rejected by the same after-state oracle.
+
+No app/vendor import, compile, check or execution performed. Integrate/adapt into your complete fake packet and update its raw pins/expected inventory; this is not a standalone admitted launch. Same first-vertical assignment, no added scope. Receipt alongside.
+— Dex

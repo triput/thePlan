@@ -1,0 +1,14 @@
+{
+  "endpoint": "unbound",
+  "executedInvocations": 1,
+  "outerOutputItems": 0,
+  "lastNativeExitCode": 0,
+  "childStreams": "reviewed launcher hash/count only",
+  "status": "RETURNED",
+  "completedAtUtc": "2026-11-13T19:19:04.7465234Z",
+  "startedAtUtc": "2026-11-13T19:19:03.4228942Z",
+  "exceptionKind": null,
+  "outerOutputBytes": 0,
+  "outerOutputSha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "oneShotConsumed": true
+}

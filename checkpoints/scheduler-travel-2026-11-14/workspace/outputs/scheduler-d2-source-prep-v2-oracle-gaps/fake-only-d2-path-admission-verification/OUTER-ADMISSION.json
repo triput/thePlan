@@ -1,0 +1,31 @@
+{
+  "packet": "fake-only-d2-path-admission-verification",
+  "class": "FAKE-D2-OUTER-ADMISSION",
+  "executed_in_preparation": false,
+  "byte_semantics": "utf-8 lf",
+  "noncircular_scheme": "OUTER-ADMISSION.json holds subject pins and does not embed its own hash; admit_outer.py and invoke_d2_fake.py do not embed their own final raw-byte hashes; operator verifies this file's published hash before invoke; empty pin literals refuse",
+  "exact_enforcing_invocation": "admit_outer.py",
+  "pin_layers": [
+    "1_operator_OUTER_ADMISSION_hash",
+    "2_admit_outer_subject_pins",
+    "3_launcher_interpreter_and_packet_pins_excluding_self",
+    "4_check_source_pins_and_inventory"
+  ],
+  "pins": {
+    "interpreter_path": "C:/Users/trish/AppData/Local/Programs/Python/Python311/python.exe",
+    "interpreter_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+    "subjects": {
+      "admit_outer.py": "D511AEE78936177004A37BB187A98B728185B7A7A95C2F22FBB1FA835039678B",
+      "invoke_d2_fake.py": "560E9037DA168E03845098000EA34FB17C35509EED9D283B48F265A7EBF002DC",
+      "check_d2_path_admission_fake.py": "82017D3336FB8CD32336979C6ECA968FF5D442402A290EF14E8E1914F732D5A0",
+      "EXPECTED-OUTPUT.json": "DD6A7118E6F86FC087DF3A2BF33F03333D027A6FA57C4C51E02AA5DE3119624D",
+      "INPUT-MANIFEST.json": "5BFE0746D23A92604CBB11B1BEFD1FA95B1CD6F93347A34224D05490C5C6C495",
+      "PACKET-SHA256SUMS.txt": "979869C7E5A9A9D2DB17B9535D751219517A2D313F86EB71FC7B40999254F7E2"
+    }
+  },
+  "diff_sha256": "CDB3AF210C7DD2BDC725F44F61931AD39B8010D5D259289D5D1FEF3E98E3F4F4",
+  "overlay_sha256": "CA51E2D8F40073C260942B5AF634229D253D9E2AA77177C45471037ED3C59B4D",
+  "supersedes_frozen_v1_tip_sha256": "A91964DAA5C16E940840A631E8E3B05BF89C7F8260DFC502FD5CF3562AE20C2E",
+  "launch_ready": false,
+  "parent_packet": "post-native-d2-source-fake-prep-jim-v2-oracle-gaps-2026-11-11"
+}

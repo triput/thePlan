@@ -1,0 +1,18 @@
+{
+  "kind": "unexecuted_one_checker_role_contribution",
+  "source_sha256": "9B925C575923A0A8BCB2F901C98013010F4C5EE66F88CF7B694DF40EBB56FA48",
+  "candidate_sha256": "E511B69A556F744ADD8618D967B613681B7B3CE663C1CBCFACDEC03A7F77066F",
+  "diff_sha256": "128756531A006ED835F873B0920D2D4055EA14767C45677A8BD23C1B181D6603",
+  "declared_control_ids": [
+    "BYTE-ALIAS-DOCUMENTATION-ACCEPTED",
+    "BYTE-ALIAS-IMPORT-REFUSED",
+    "BYTE-ALIAS-CALL-REFUSED",
+    "BYTE-ALIAS-INSTALL-REFUSED"
+  ],
+  "existing_group": "VERTICAL-CONTRACT-SHAPE",
+  "imports_run": false,
+  "ast_run": false,
+  "compiled": false,
+  "executed": false,
+  "launch_authorized": false
+}

@@ -1,0 +1,59 @@
+{
+  "kind": "fake-native-provider-structural-result",
+  "executed": true,
+  "native_proof": false,
+  "prep_is_not_pass": true,
+  "launch_authorized": false,
+  "passed": 7,
+  "failed": 0,
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "FOREIGN-CHECK",
+    "FOREIGN-CLOSE",
+    "OWNER-USE-CLOSE",
+    "SAME-INSTANCE-REUSE",
+    "NATIVE-WIRING-STRUCTURAL",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "nested_predicates": 9,
+  "controls": {
+    "SUBJECT-PINS": {
+      "observed": "PASS",
+      "control_kind": "raw_pin"
+    },
+    "FOREIGN-CHECK": {
+      "observed": "PASS",
+      "control_kind": "actual_class_methods_with_named_fakes"
+    },
+    "FOREIGN-CLOSE": {
+      "observed": "PASS",
+      "control_kind": "actual_class_methods_with_named_fakes"
+    },
+    "OWNER-USE-CLOSE": {
+      "observed": "PASS",
+      "control_kind": "actual_class_methods_with_named_fakes"
+    },
+    "SAME-INSTANCE-REUSE": {
+      "observed": "PASS",
+      "control_kind": "actual_class_methods_with_named_fakes"
+    },
+    "NATIVE-WIRING-STRUCTURAL": {
+      "observed": "PASS",
+      "control_kind": "structural_only"
+    },
+    "ACTUAL-SOURCE-MUTANTS": {
+      "observed": "PASS",
+      "control_kind": "actual_source_mutants",
+      "mutants": {
+        "foreign_check_guard": "DETECTED",
+        "foreign_close_guard": "DETECTED",
+        "reuse_guard": "DETECTED"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "limitations": [
+    "Fake owner identity and already-owned socket; no real thread or TLS",
+    "Native case wiring is structural; case body and retirement paths unexecuted"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "kind": "native-provider-fake-structural-expected",
+  "packet": "scheduler-native-provider-prep-v3",
+  "native_case_ids": [
+    "NP-V-MS-NONEXPIRED",
+    "NP-V-MS-REFRESH",
+    "NP-V-MS-TOKEN-THEN-IMPORT-FAIL",
+    "NP-V-MS-INVALID",
+    "NP-V-GOOGLE-REFRESH",
+    "NP-V-GOOGLE-INVALID",
+    "NP-T06-BEFORE-SEND",
+    "NP-T06-MALFORMED-ACK",
+    "NP-T06-TRUNCATED-ACK",
+    "NP-T06-OTHER",
+    "NP-T06-PARTIAL",
+    "NP-T06-LOST",
+    "NP-T03-VALID",
+    "NP-T03-WRONG-CA",
+    "NP-T03-WRONG-NAME",
+    "NP-T03-HANDSHAKE-STALL",
+    "NP-T03-TCP-REFUSAL",
+    "NP-T04-HEADER-STALL",
+    "NP-T04-BODY-STALL",
+    "NP-T04-PARTIAL-SEND",
+    "NP-T04-DEADLINE",
+    "NP-T04-DISCONNECT",
+    "NP-T05-ORDERLY-CLOSE",
+    "NP-T05-ABRUPT-TRUNCATION",
+    "NP-T07-OWNED-SOCKET",
+    "NP-T07-BOTH-AFTER-FAILURE",
+    "NP-T08-OWNERSHIP"
+  ],
+  "cf_witness_case_ids": [
+    "NP-T01-USERINFO-CF",
+    "NP-T01-FRAGMENT-CF",
+    "NP-T01-CONTROL-CHAR-CF",
+    "NP-T01-PURPOSE-WRONG-CF"
+  ],
+  "native_count": 27,
+  "cf_count": 4,
+  "planning_ids_retained": 76,
+  "control_ids_in_order": [
+    "ASSEMBLY-PINS",
+    "SUITE-INVENTORY",
+    "PEER-RUNNER-SHAPE",
+    "T02-OVERRUN-GAP",
+    "T02-FOCUSED-CROSSING",
+    "PORT-DEPENDENCY-PASS",
+    "T08-NESTED-RESET-BEHAVIOR",
+    "T07-INDIVIDUAL-NAMES",
+    "HOST-VS-RUNNER-DOCKER",
+    "REPORT-PRODUCER-CONSUMER-SINK",
+    "VERTICAL-CONTRACT-SHAPE"
+  ],
+  "np_t05_orderly_observations": [
+    {
+      "name": "orderly_close_delimited_complete_accepted",
+      "expected": "ACCEPTED_AFTER_ORDERLY_CLOSE_NOTIFY"
+    },
+    {
+      "name": "orderly_short_cl_valid_json_prefix_refused",
+      "expected": "REFUSED_AFTER_ORDERLY_CLOSE_NOTIFY"
+    }
+  ],
+  "port_dependency": {
+    "status": "VERIFIED_FINITE_HOST_PASS_9_OF_9",
+    "result_sha256": "B8C6353A712382E16B601036034B32293EDEDF345388990D489B0E9AB9A12548",
+    "receipt_sha256": "61F266A34BF7E4BD8BD5193D3DB6A315F02C9C9AC13D4AC51F80C73C62720961",
+    "reconciliation_sha256": "E922DA6183B70D5DA9B1CBE19768F95E6B31578DA6B5594C2BD0CB5129861D7D",
+    "policy_override_sha256": "5F48FD7ED50C57A6A47ADA20138678BB3C112A2A69D1C234A47580E6CD068B88",
+    "native_dial_tls": false,
+    "full_t01_closure": false,
+    "scope": "Host Python3.11 extracted-class HTTPSPeer origin-port admission only"
+  },
+  "focused_witnesses": {
+    "T02_EXCESS_ITEM_BYTE_HOST_FAKE": {
+      "framing_result_sha256": "3905A070AE06EF2EA6B31C8A8D1407A6F58E46B549E1118FF3928C00866ECBA3",
+      "framing_receipt_sha256": "166BB080CCCD19B80F88703BA3CC16B46142DAEF3904BDAF5D7AA9CF3254E6E6",
+      "item_excess_outcome": "OBSERVED_REFUSE",
+      "byte_excess_outcome": "OBSERVED_REFUSE",
+      "exception": "CoveringTransportRefused",
+      "reduced_limit_probe": true,
+      "response_bytes_probe": 8,
+      "items_probe": 3,
+      "items_baseline": 5,
+      "closes_native_t02_full_goal": false,
+      "planning_ids": [
+        "T02-ITEMS-OVERFLOW",
+        "T02-BYTES-OVERFLOW"
+      ],
+      "witness_matching": "T02-T08-Witness-Matching-20261112.md"
+    },
+    "T08_NESTED_FOCUSED": {
+      "disposition": "GAP_OR_FOCUSED_FAKE",
+      "planning_id": "T08-NESTED",
+      "note": "ContextVar nesting; focused behavioral control in check_native_provider (extracted selected defs)"
+    },
+    "T08_RESET_FOCUSED": {
+      "disposition": "GAP_OR_FOCUSED_FAKE",
+      "planning_id": "T08-RESET",
+      "note": "ContextVar reset normal/exceptional; focused behavioral control in check_native_provider"
+    },
+    "T07_PRIMARY_BOTH_CLOSES_HOST_FAKE": {
+      "framing_control": "PRIMARY-BOTH-CLOSES",
+      "observed_outcome": "OBSERVED_UNKNOWN",
+      "closes_native_NP_T07_BOTH_AFTER_FAILURE": false,
+      "note": "Host-fake only; native NP-T07-BOTH-AFTER-FAILURE retained"
+    }
+  },
+  "observation_aids": {
+    "Native-Deadline-TLS-Observation-Review.md_sha256": "1A485EB29FD095933F0BA45A13B288A149E44FBFCEAFB26029C59C5D5F761069",
+    "Source-Pins-Native-Observation-Review.json": "alongside",
+    "T02-T08-Witness-Matching-20261112.md": "present"
+  },
+  "implementation_increment": {
+    "implemented_case_ids": [
+      "NP-V-MS-NONEXPIRED"
+    ],
+    "remaining_cases": "HOLD_EXPLICIT_NOT_PASS"
+  },
+  "no_57_case_native_repetition": true,
+  "executed": false,
+  "launch_authorized": false,
+  "prep_is_not_pass": true,
+  "endpoint": "unbound",
+  "first_vertical_increment": true,
+  "implemented_case_ids": [
+    "NP-V-MS-NONEXPIRED"
+  ]
+}

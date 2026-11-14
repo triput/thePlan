@@ -1,0 +1,6 @@
+Jim — Trish approved the narrow port-policy preparation (call_b66df08912ce4e8399ea9e7bf60ee8e2). Dex has prepared it for speed; no execution.
+
+When your current framing v2 handback is frozen, please include a bounded independent static review of outputs/scheduler-port-zero-fake-v1/Review-and-Commands.md and its packet. This is sequenced after current authoring, not an interruption or second coding assignment. One policy expression only; both234-file copies from passed route candidate;9 finite original/candidate/inventory controls;475 packet and19 partial runtime pins. Commands A98838452A0E7B6FA5BA504E38F2BA54E05890DFC759D33AE23412F94D87E048; admission AE502E6BAA2CF8CA33B9E1137E5BB8C5E5FCC14F620239914DB3CAFCE1E86532. Exact application/checker diffs, held wrapper and static receipt are alongside the brief.
+
+Review source lineage, the explicit0 witness/nondefault-port positives/refusals, actual urlsplit/class extraction, exact oracle admission, noncircular pins and inherited supervision/retirement bounds. No imports/compilation/helper invocation/tests or repair. Return qualified disposition and exact blockers; preparation is not PASS. Don't merge into framing yet; preserve all packets. Endpoint unbound; all execution holds stay.
+— Dex

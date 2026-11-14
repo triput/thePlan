@@ -1,0 +1,28 @@
+{
+  "at_utc": "2026-11-13T17:06:06.4688377Z",
+  "status": "STATIC_RECONCILIATION_NO_BLOCKERS_FOUND",
+  "handoff_sha256": "1C5A155A4971D146D8C4AA08DF2A69AA4AB383F147C9BD2C461ADC5236AC4DD2",
+  "handoff_pins": 24,
+  "native_preparation_manifests": [
+    282,
+    269,
+    257
+  ],
+  "native_diff": "exact peer-only one-line change plus dependent manifests/two config data files",
+  "application_files_unchanged": 234,
+  "staging_inputs": 16,
+  "staging_manifest_sha256": "4D03B98A82592DA8A5E4B822985895A112CC0222245387AA4C5F4BDC7E92B1E8",
+  "staging_admission_sha256": "4104D6EBCEB4BB3DC4CFDC17C2905E2BDB4FA56A0B9E30619317DC6462589B9B",
+  "staging_command_sha256": "8B44B8BC0277A70A2E9B739C0DBE0BC840B7F63DB62E89B5DAB8D7C0DDD008C6",
+  "contained_packet_pins": 9,
+  "runtime_pins": 1,
+  "runtime_scope": "Interpreter executable only",
+  "controls": 11,
+  "reported_predicates": 35,
+  "targeted_actual_source_mutants": 4,
+  "original_exception_note_oracle": "correct source no attempted-note after escaping error;candidate caught+attempted",
+  "checker_review": "Read extraction/globals/fakes/oracles/composition/result inventory and all four mutation paths;no Python imports/parsing/compile/tests/helper invoked",
+  "reviewed_source": "CE60B3D3E46E7E41EFD712A9E19CDC672605A36DF45C5B0A7B1C4CC9784F7184",
+  "authority": "No execution yet;machine admission flags not human permission",
+  "endpoint": "unbound"
+}

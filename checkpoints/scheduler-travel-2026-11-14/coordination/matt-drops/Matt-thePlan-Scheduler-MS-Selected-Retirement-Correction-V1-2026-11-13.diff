@@ -1,0 +1,938 @@
+# A. invalid-grant v1 -> v2
+--- a/ms-invalid/payload/fixture/np_runner_entry.py
++++ b/ms-invalid/payload/fixture/np_runner_entry.py
+@@ -1821,6 +1821,25 @@
+                 ) from primary_failure
+ 
+ 
++def _retire_selected_peer_then_observe(peer: Any, *, join_seconds: float = 5.0) -> tuple[dict[str, Any], dict[str, Any]]:
++    """Selected-case retirement barrier, then final peer evidence (Dex BB93F31E R1/R2).
++
++    Exactly one call to the unchanged retire_owned with the existing bounded join; the
++    caller marks retirement_attempted BEFORE calling, so a raise never causes a second
++    attempt. PeerRetirementUnknown and any other exception propagate unchanged.
++    Success requires joined is True AND worker_error_kind is None; otherwise STOP.
++    The final sanitized_state (exchange inventory) is read only after the join.
++    """
++    from np_suite import SuiteStop
++
++    retirement = peer.retire_owned(join_seconds=join_seconds)
++    if retirement.get("joined") is not True:
++        raise SuiteStop("selected peer worker unjoined — UNKNOWN")
++    if retirement.get("worker_error_kind") is not None:
++        raise SuiteStop("selected peer worker recorded an error")
++    return retirement, peer.sanitized_state()
++
++
+ # NP-V-MS-INVALID exact expectations (source-derived; see CASE_IMPLEMENTATION_NOTES).
+ MS_INVALID_CLIENT_OUTCOME = (
+     "exception",
+@@ -2202,8 +2221,12 @@
+         if coverage_after != coverage_before:
+             raise SuiteStop("subscription coverage state changed after invalid_grant")
+ 
++        # Retirement barrier BEFORE final peer evidence (Dex BB93F31E R1/R2): exactly one
++        # attempt, marked before the call; joined and no worker error required; the final
++        # sanitized state is read only after the bounded join.
++        retirement_attempted = True
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
+         # Completed peer-side stimulus (stimulus only; client claims are above).
+-        peer_state = peer.sanitized_state()
+         peer_exchanges = list(peer_state.get("exchange_inventory") or [])
+         if (
+             int(peer_state.get("connection_count_admitted") or 0) != MS_INVALID_GRANT_EXCHANGE_COUNT
+@@ -2255,10 +2278,6 @@
+         check_oracles_immediate(decl, observations)
+         t_check_iso = _iso_now()
+         assert_plan_still_valid(plan.t_plan)
+-        retirement_attempted = True
+-        retirement = peer.retire_owned(join_seconds=5.0)
+-        if retirement.get("joined") is not True:
+-            raise SuiteStop("peer worker unjoined — UNKNOWN")
+         if any(
+             t is not threading.main_thread() and t.name.startswith("np-peer-")
+             for t in threading.enumerate()
+--- a/ms-invalid/host/launch-config.json
++++ b/ms-invalid/host/launch-config.json
+@@ -50,10 +50,10 @@
+   "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+-  "manifest_sha256": "8A1FCA71DBD9DB51293E36691DD8DAB1757BB4CCD1A84E1C2F3636CA3F5B880D",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
++  "manifest_sha256": "D9F14FF142C972F886C9BA066E292B09E24BED4C51DD98F9DCAFDEB0632BC868",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+@@ -86,7 +86,7 @@
+   "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": false,
+-  "candidate_note": "Matt native MS invalid_grant preparation (scheduler-native-provider-ms-invalid-prep-matt-v1): single-case batch NP-V-MS-INVALID over the frozen T05 v3 root (B773B95E); roles 4,5,8 changed (runner NP-V-MS-INVALID body/mapper/implemented id, suite implementation note, transcript MS invalid_grant tenant-path fix plus one-exchange inventory); T05 bodies retained but not in this batch; first_vertical_* fields are historical metadata; host launch_ready=false, candidate staging false, runner-config launch_ready=false; not human authority; a run needs reviewed staging and a separate exact approval",
++  "candidate_note": "Matt native MS invalid_grant preparation (scheduler-native-provider-ms-invalid-prep-matt-v2): single-case batch NP-V-MS-INVALID over the frozen T05 v3 root (B773B95E); roles 4,5,8 changed (runner NP-V-MS-INVALID body/mapper/implemented id, suite implementation note, transcript MS invalid_grant tenant-path fix plus one-exchange inventory); T05 bodies retained but not in this batch; first_vertical_* fields are historical metadata; host launch_ready=false, candidate staging false, runner-config launch_ready=false; not human authority; a run needs reviewed staging and a separate exact approval",
+   "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+   "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+   "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+--- a/ms-invalid/host/docker-ops-config.json
++++ b/ms-invalid/host/docker-ops-config.json
+@@ -1,8 +1,8 @@
+ {
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-invalid-prep-matt-v2\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }
+# B. Dex peer-close staging -> NONEXPIRED selected-retirement successor
+--- a/nonexpired/payload/fixture/np_runner_entry.py
++++ b/nonexpired/payload/fixture/np_runner_entry.py
+@@ -695,6 +695,25 @@
+     return capture
+ 
+ 
++def _retire_selected_peer_then_observe(peer: Any, *, join_seconds: float = 5.0) -> tuple[dict[str, Any], dict[str, Any]]:
++    """Selected-case retirement barrier, then final peer evidence (Dex BB93F31E R1/R2).
++
++    Exactly one call to the unchanged retire_owned with the existing bounded join; the
++    caller marks retirement_attempted BEFORE calling, so a raise never causes a second
++    attempt. PeerRetirementUnknown and any other exception propagate unchanged.
++    Success requires joined is True AND worker_error_kind is None; otherwise STOP.
++    The final sanitized_state (exchange inventory) is read only after the join.
++    """
++    from np_suite import SuiteStop
++
++    retirement = peer.retire_owned(join_seconds=join_seconds)
++    if retirement.get("joined") is not True:
++        raise SuiteStop("selected peer worker unjoined — UNKNOWN")
++    if retirement.get("worker_error_kind") is not None:
++        raise SuiteStop("selected peer worker recorded an error")
++    return retirement, peer.sanitized_state()
++
++
+ def _run_np_v_ms_nonexpired() -> dict[str, Any]:
+     """Production vertical: Settings + covering-refresh ASGI + default JoinedTLS.
+ 
+@@ -1035,7 +1054,13 @@
+         if not token_rollback_acked:
+             raise SuiteStop("TOKEN ROLLBACK acknowledgment missing from native terminals")
+ 
+-        peer_state = peer.sanitized_state()
++        # Retirement barrier BEFORE final peer evidence (Dex BB93F31E R1/R2). One confirmed
++        # bounded retirement — mark attempt BEFORE call so a raised PeerRetirementUnknown
++        # cannot trigger a second attempt in finally. Joined AND no worker error required;
++        # the final sanitized state is read only after the join.
++        retirement_attempted = True
++        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)
++        retirement_done = True
+         served = int(peer_state.get("connection_count_served") or 0)
+         admitted = int(peer_state.get("connection_count_admitted") or 0)
+         if served != admitted or served != len(inventory_scripts):
+@@ -1109,14 +1134,6 @@
+         check_oracles_immediate(decl, {"no_oauth_request": "OBSERVED", "token_rollback_ack": "OBSERVED", "identity_event_assessment_separate": "OBSERVED"})
+         t_check_iso = _iso_now()
+         assert_plan_still_valid(plan.t_plan)
+-        # One confirmed bounded retirement — mark attempt BEFORE call so a raised
+-        # PeerRetirementUnknown cannot trigger a second attempt in finally.
+-        retirement_attempted = True
+-        retirement = peer.retire_owned(join_seconds=5.0)
+-        retirement_done = True
+-        workers_joined = retirement.get("joined") is True
+-        if not workers_joined:
+-            raise SuiteStop("peer worker unjoined — UNKNOWN")
+         unexpected = [
+             t
+             for t in threading.enumerate()
+--- a/nonexpired/payload/runner-config.json
++++ b/nonexpired/payload/runner-config.json
+@@ -1,5 +1,5 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "case_ids": [
+     "NP-V-MS-NONEXPIRED"
+   ],
+--- a/nonexpired/host/launch-config.json
++++ b/nonexpired/host/launch-config.json
+@@ -1,101 +1,101 @@
+-{
+-  "launch_ready": true,
+-  "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "batch_id": "np-v-ms-nonexpired-first-vertical",
+-  "endpoint": "unbound",
+-  "endpoint_binding_authorized": false,
+-  "port_verification_authorized": false,
+-  "case_ids": [
+-    "NP-V-MS-NONEXPIRED"
+-  ],
+-  "expected_unknown_cases": [],
+-  "include_cf_witnesses_separate_batch": true,
+-  "cf_witness_case_ids": [
+-    "NP-T01-USERINFO-CF",
+-    "NP-T01-FRAGMENT-CF",
+-    "NP-T01-CONTROL-CHAR-CF",
+-    "NP-T01-PURPOSE-WRONG-CF"
+-  ],
+-  "master_inventory_note": "All 76 planning requirements retained; other 26 native + 4 CF remain HOLD_EXPLICIT_NOT_PASS in suite registry / Expected-Outcomes",
+-  "clocks": {
+-    "work_deadline_seconds": 210,
+-    "request_deadline_seconds": 240,
+-    "cleanup_allowance_seconds": 30,
+-    "attempt_validity_seconds": 600
+-  },
+-  "suite_seconds": 900,
+-  "runner_seconds": 600,
+-  "command_count_cap": 32,
+-  "output_byte_cap": 1048576,
+-  "peer_seconds": 120,
+-  "peer_retire_join_seconds": 5.0,
+-  "provider_pki_retirement_total_seconds": 45,
+-  "bounds_note": "Proposed caps from Dex C7B8FD74 reconciliation; product 210/240/30 and 600s plan validity remain distinct. Caps are not observed timings.",
+-  "topology": {
+-    "initial_bind": "unchanged_isolation_nonroot_443",
+-    "dial": "127.0.0.1:443",
+-    "verify_full": true,
+-    "host_docker_ownership": true,
+-    "runner_docker_socket": false,
+-    "new_privileges": false,
+-    "runner_uid": 65534
+-  },
+-  "retirement": {
+-    "owned_peer_pki_reader": "source_implements_bounded; invocation_fault_authority=later_launch_card_only",
+-    "failed_container_shutdown": "separately_gated",
+-    "unjoined": "UNKNOWN",
+-    "success_cleanup": "exact_id_only"
+-  },
+-  "python": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+-  "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+-  "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+-  "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+-  "manifest_sha256": "5F94DD7D4FA34BC9FB16273F040AED7FD066CE768DAE26694DF4457B4B04CCD6",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+-  "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+-  "acyclic_input_graph": {
+-    "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+-    "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+-    "C_docker_ops_config": "operator ExpectedDockerConfigSHA256 admits host/docker-ops-config.json (outside payload)",
+-    "D_host_exe_pins": "python_sha256 / docker_sha256 retained from prior proven host inventory / I01 path"
+-  },
+-  "endpoint_npipe": "npipe:////./pipe/dockerDesktopLinuxEngine",
+-  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
+-  "database_image": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
+-  "image_presence_verified_this_prep": false,
+-  "port_443_bind_verified_this_prep": false,
+-  "executed": false,
+-  "launch_authorized": false,
+-  "prep_is_not_pass": true,
+-  "implementation_increment": {
+-    "implemented_case_ids": [
+-      "NP-V-MS-NONEXPIRED"
+-    ],
+-    "remaining": "HOLD_EXPLICIT_NOT_PASS"
+-  },
+-  "first_vertical_increment": true,
+-  "first_vertical_case_ids": [
+-    "NP-V-MS-NONEXPIRED"
+-  ],
+-  "static_success_docker_command_count": 22,
+-  "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+-  "human_launch_authorized": false,
+-  "candidate_launch_ready_staged": true,
+-  "candidate_note": "Dex peer-close native staging;machine flags not human authority. One fixture catch correction17EA148E only;production234API and observer341074AE unchanged. Exact peer-close fakePASS11/35 plus independently reconciled native staging review required before any native card. No refresh/T05 merge.",
+-  "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+-  "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+-  "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+-  "source_candidate_v1_tip_sha256": "E5788AB2348B5EA578E25B2FD7B211F52DDD876202837D419D0BB130413AA313",
+-  "dex_r1_revise_note": "runner-config launch_ready flipped true; host flags already true; human authority HELD",
+-  "source_candidate_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
+-  "diagnostic_successor_of": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
+-  "diagnostic_successor_base_input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
+-  "diagnostic_successor_approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
+-  "diagnostic_successor_runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+-  "diagnostic_successor_operator_evidence_path_note": "HISTORICAL O1 resolved in this packet: operator line 42 now names sibling scheduler-native-provider-diagnostic-launch-v1.evidence (operator 5A8A04B6...D7D6, approved diff 5092F682...7D69F); refusals on existing evidence/receipt unchanged",
+-  "launch_packet_prepared_from": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
+-  "launch_packet_baseline_input_manifest_sha256": "899B06F6E3FEB3AB82AC11E47BE25A6F3923CF081D4DA3E2E9EEDAFA7A4E0DA7",
+-  "launch_packet_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+-  "launch_packet_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891"
+-}
++{
++  "launch_ready": false,
++  "packet": "scheduler-native-provider-diagnostic-launch-v1",
++  "batch_id": "np-v-ms-nonexpired-first-vertical",
++  "endpoint": "unbound",
++  "endpoint_binding_authorized": false,
++  "port_verification_authorized": false,
++  "case_ids": [
++    "NP-V-MS-NONEXPIRED"
++  ],
++  "expected_unknown_cases": [],
++  "include_cf_witnesses_separate_batch": true,
++  "cf_witness_case_ids": [
++    "NP-T01-USERINFO-CF",
++    "NP-T01-FRAGMENT-CF",
++    "NP-T01-CONTROL-CHAR-CF",
++    "NP-T01-PURPOSE-WRONG-CF"
++  ],
++  "master_inventory_note": "All 76 planning requirements retained; other 26 native + 4 CF remain HOLD_EXPLICIT_NOT_PASS in suite registry / Expected-Outcomes",
++  "clocks": {
++    "work_deadline_seconds": 210,
++    "request_deadline_seconds": 240,
++    "cleanup_allowance_seconds": 30,
++    "attempt_validity_seconds": 600
++  },
++  "suite_seconds": 900,
++  "runner_seconds": 600,
++  "command_count_cap": 32,
++  "output_byte_cap": 1048576,
++  "peer_seconds": 120,
++  "peer_retire_join_seconds": 5.0,
++  "provider_pki_retirement_total_seconds": 45,
++  "bounds_note": "Proposed caps from Dex C7B8FD74 reconciliation; product 210/240/30 and 600s plan validity remain distinct. Caps are not observed timings.",
++  "topology": {
++    "initial_bind": "unchanged_isolation_nonroot_443",
++    "dial": "127.0.0.1:443",
++    "verify_full": true,
++    "host_docker_ownership": true,
++    "runner_docker_socket": false,
++    "new_privileges": false,
++    "runner_uid": 65534
++  },
++  "retirement": {
++    "owned_peer_pki_reader": "source_implements_bounded; invocation_fault_authority=later_launch_card_only",
++    "failed_container_shutdown": "separately_gated",
++    "unjoined": "UNKNOWN",
++    "success_cleanup": "exact_id_only"
++  },
++  "python": "C:\\Users\\trish\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
++  "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
++  "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
++  "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
++  "manifest_sha256": "5835297919BA3B43DEB767FD5F88F9A8AE41F7EBF0EC3F5B73EB5CCC87251BF3",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
++  "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "acyclic_input_graph": {
++    "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
++    "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
++    "C_docker_ops_config": "operator ExpectedDockerConfigSHA256 admits host/docker-ops-config.json (outside payload)",
++    "D_host_exe_pins": "python_sha256 / docker_sha256 retained from prior proven host inventory / I01 path"
++  },
++  "endpoint_npipe": "npipe:////./pipe/dockerDesktopLinuxEngine",
++  "runner_image": "sha256:c220110432cf4adbb4005518a02808b754e0efb050b5de202e71872fecdbd2ab",
++  "database_image": "sha256:53758bea23f62daeac84dc53fd634b6061e5971e81e715204455e4f282296b52",
++  "image_presence_verified_this_prep": false,
++  "port_443_bind_verified_this_prep": false,
++  "executed": false,
++  "launch_authorized": false,
++  "prep_is_not_pass": true,
++  "implementation_increment": {
++    "implemented_case_ids": [
++      "NP-V-MS-NONEXPIRED"
++    ],
++    "remaining": "HOLD_EXPLICIT_NOT_PASS"
++  },
++  "first_vertical_increment": true,
++  "first_vertical_case_ids": [
++    "NP-V-MS-NONEXPIRED"
++  ],
++  "static_success_docker_command_count": 22,
++  "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
++  "human_launch_authorized": false,
++  "candidate_launch_ready_staged": false,
++  "candidate_note": "Matt NONEXPIRED selected-retirement successor (scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1) from Dex peer-close native staging 2913656A: only role 4 _run_np_v_ms_nonexpired retirement/worker-error/final-snapshot boundary changed via the pure helper _retire_selected_peer_then_observe (Dex BB93F31E R1/R2); production 234 API, peer 17EA148E and host operator/helper bytes unchanged. Host launch_ready, candidate_launch_ready_staged and runner-config launch_ready reset to false; copied docker-ops machine flags remain true data only; never human authority. No refresh/T05 merge.",
++  "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
++  "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
++  "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
++  "source_candidate_v1_tip_sha256": "E5788AB2348B5EA578E25B2FD7B211F52DDD876202837D419D0BB130413AA313",
++  "dex_r1_revise_note": "HISTORICAL (Dex staging 2913656A): runner-config launch_ready flipped true; host flags already true; human authority HELD. Superseded in this successor: host and runner gates are false.",
++  "source_candidate_v2_tip_on_disk": "34BBC408549BA80F54A9DB189C11A37377484B1424FF33F5190836C3224BC440",
++  "diagnostic_successor_of": "scheduler-native-provider-first-native-launch-candidate-dex-v3",
++  "diagnostic_successor_base_input_manifest_sha256": "26560DF4DF4C33E3FCB1B9A983F30BF8F1569AB0BC5C9D23EC7F892C17B31EAF",
++  "diagnostic_successor_approved_diff_sha256": "F6135717D3DC46EB1082A19B69ECDB3602F246EFFF47FFA562E9AB1A6ECF9832",
++  "diagnostic_successor_runner_sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
++  "diagnostic_successor_operator_evidence_path_note": "HISTORICAL O1 resolved in this packet: operator line 42 now names sibling scheduler-native-provider-diagnostic-launch-v1.evidence (operator 5A8A04B6...D7D6, approved diff 5092F682...7D69F); refusals on existing evidence/receipt unchanged",
++  "launch_packet_prepared_from": "scheduler-native-provider-runner-diagnostic-prep-matt-v1",
++  "launch_packet_baseline_input_manifest_sha256": "899B06F6E3FEB3AB82AC11E47BE25A6F3923CF081D4DA3E2E9EEDAFA7A4E0DA7",
++  "launch_packet_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
++  "launch_packet_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891"
++}
+--- a/nonexpired/host/docker-ops-config.json
++++ b/nonexpired/host/docker-ops-config.json
+@@ -1,8 +1,8 @@
+ {
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-peer-close-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }
+# Fake: invalid-grant fake v1 -> selected-retire fake v1
+--- a/fake/packet/verify/check_native_provider.py
++++ b/fake/packet/verify/check_native_provider.py
+@@ -1,5 +1,12 @@
+ #!/usr/bin/env python3
+-"""HELD fake-only checker for the native MS invalid_grant (NP-V-MS-INVALID) preparation.
++"""HELD fake-only checker for the selected-case retirement correction (Dex BB93F31E):
++NP-V-MS-INVALID v2 and the NP-V-MS-NONEXPIRED selected-retirement successor.
++
++All invalid_grant v1 checks are preserved against the v2 candidate. Added: the
++NONEXPIRED source/candidate subjects (Dex peer-close staging 341074AE -> successor),
++and RETIREMENT-BARRIER, which exercises the actual extracted pure helper
++_retire_selected_peer_then_observe with a named fake peer (behavior) and checks the
++order of the barrier inside both selected bodies (structure).
+ 
+ Matt, 2026-11-13. AUTHORING ONLY. This file has not been imported, parsed, compiled
+ or run. Each later run needs Trish's explicit one-shot approval of the exact reviewed
+@@ -64,21 +71,21 @@
+ EXPECTED = HERE / "EXPECTED-FAKE-STRUCTURAL.json"
+ RESULT = HERE / "FAKE-NATIVE-PROVIDER-RESULT.json"
+ MAX_RESULT = 262144
+-PACKET_NAME = "scheduler-native-ms-invalid-fake-prep-matt-v1"
++PACKET_NAME = "scheduler-native-ms-selected-retire-fake-prep-matt-v1"
+ 
+ SUBJECT_PINS = {
+     "runner/source.py": "1D70164C8EFD7D1CD0A9ED59F23D9F8A4ED9F68B806364B366E2E707259AAA7E",
+-    "runner/candidate.py": "ACD7F4493492DC01406558374E4B2EC46E8CDDA59FAE4FD2195FC0B154006FF1",
++    "runner/candidate.py": "4CBF198E0ACC605897D99C00A334E50B58A1DC5B3AAE91FF7856A319BBA6F7E1",
+     "transcript/source.py": "562F61CDB9DEF3F35A1693E3C9CC13EB63D9F0535F9A0D3C190BF275E78751BF",
+     "transcript/candidate.py": "BEDCCFD3C3E8F776C4EC0B3379F863E976C73AF350DD6AE8B308518AB4A47735",
+     "suite/source.py": "9AED74EE4F00C5F88518A1B246D7B03D5E82C05DDF3596958D5483730C376792",
+     "suite/candidate.py": "DAB88CB352189411EED6A2181417CB813D592406598D89192FF307E9081205A1",
+     "config/source-runner-config.json": "96782CB425239BC6F121949DABE16B4B53528E249BE625DD25A9811DA7D07E71",
+     "config/candidate-runner-config.json": "10106B8278033FC0DBC83D5841446F2D2B7476960C90DB654AF4AAF25549E004",
+-    "config/candidate-launch-config.json": "5ECEBDF37270C9ADBB46573C3507FA25354189188FEB79CF167E2155A95A3D4D",
++    "config/candidate-launch-config.json": "4584428948A544473C1F7ABF7E9AD87DBAFCDBB0828C987820C9CE2BE1C14098",
+     "manifest/source.txt": "D03EA0D671DF61AB3E66B2E3B96D34B72AC9BDAF6282676A8A1328DEF853B0C5",
+-    "manifest/candidate.txt": "8A1FCA71DBD9DB51293E36691DD8DAB1757BB4CCD1A84E1C2F3636CA3F5B880D",
+-    "diff/np_runner_entry.py.diff": "02BD2B24A662D1883CE59866722590088B3912B9804FE7406877BA436FD37EE6",
++    "manifest/candidate.txt": "D9F14FF142C972F886C9BA066E292B09E24BED4C51DD98F9DCAFDEB0632BC868",
++    "diff/np_runner_entry.py.diff": "E792CA033C8AC1E108E0542ABEDBD502385C6C451E9C8441D88D3B171898CC17",
+     "diff/np_provider_transcript.py.diff": "B5F064F528CDE6116DFE1FEA4E302A798892E17F5F3136BEFFAF7BC4A8A00A25",
+     "diff/np_suite.py.diff": "E0527D3D5427B58C8F65D390C4C90114598CCA08DC7156A7BEC372F5678E921F",
+     "diff/runner-config.json.diff": "5791715D4C3C1034A51F6B90FA42FCFD3916D9A32B4281FBD079802490547FFC",
+@@ -92,6 +99,16 @@
+     "app/covering_refresh_import.py": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339",
+     "app/covering_refresh.py": "0605E983F728D99D90BD50CCB85A6FC71509FCFBC0ADF50B7C2E3280E3603E5E",
+     "app/covering_domain_dispatch.py": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566",
++    "nonexpired/source.py": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645",
++    "nonexpired/candidate.py": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D",
++    "nonexpired/np_runner_entry.py.diff": "6F166098CC93CABA4296F1BB87BCF34E238A1F94DBB9F9627323845BBC66EBC3",
++    "nonexpired/source-runner-config.json": "E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160",
++    "nonexpired/candidate-runner-config.json": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929",
++    "nonexpired/runner-config.json.diff": "EB06A4800E7CAEFB2246B9CE665430027C626DBBCE97B73EF37655F0B377958E",
++    "nonexpired/source-launch-config.json": "4C065AEFDD495AB1BFF16D5C2B21DA0FDF7D830BCF691B95BD2096AC921B4C0E",
++    "nonexpired/candidate-launch-config.json": "9BE3C57D1F99E39AB93355A80B8A8D74C84C7CFCE6E6099B284FAA0303F414D9",
++    "nonexpired/source-manifest.txt": "5F94DD7D4FA34BC9FB16273F040AED7FD066CE768DAE26694DF4457B4B04CCD6",
++    "nonexpired/candidate-manifest.txt": "5835297919BA3B43DEB767FD5F88F9A8AE41F7EBF0EC3F5B73EB5CCC87251BF3",
+ }
+ RUNTIME_MODULE_PINS = {
+     "http_client_pin": ("http.client", "3A752927A1257EDEBCABAD42CA9508AD532F91C15431755BFBE437A32AB13EB2"),
+@@ -112,6 +129,7 @@
+     "OWNING-REFRESH-UNITS",
+     "PUBLIC-RESULT-CONTRACT",
+     "RUNNER-WIRING",
++    "RETIREMENT-BARRIER",
+     "BATCH-CONFIG",
+     "PRIOR-FAKE-APPLICABILITY",
+     "ACTUAL-SOURCE-MUTANTS",
+@@ -125,10 +143,20 @@
+                                b"Connection: close\r\n\r\n{\"error\":\"invalid_grant\"}")
+ PREFLIGHT_CODE = "CALENDAR_ACCOUNT_DISCONNECTED"
+ STEP_FIELDS = ("direction", "method", "path", "status", "headers", "body_template", "close_mode", "note")
+-OWN_ROOT = "scheduler-native-provider-ms-invalid-prep-matt-v1"
++OWN_ROOT = "scheduler-native-provider-ms-invalid-prep-matt-v2"
+ FOREIGN_ROOTS = ("t05-prep-matt-v1", "t05-prep-matt-v2", "t05-prep-matt-v3", "ms-merge-nonexpired-prep-matt-v1",
+                  "ms-merge-refresh-prep-matt-v1", "peer-close-prep-matt-v1", "peer-close-launch-dex-v1",
+-                 "scheduler-ms-refresh-prep-matt-v1")
++                 "scheduler-ms-refresh-prep-matt-v1", "ms-invalid-prep-matt-v1", "ms-nonexpired-retire-prep-matt-v1")
++NONEXPIRED_ROOT = "scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1"
++NONEXPIRED_FOREIGN = ("peer-close-launch-dex-v1", "ms-invalid-prep-matt-v", "t05-prep-matt-v")
++NONEXPIRED_ID = "NP-V-MS-NONEXPIRED"
++HELPER = "_retire_selected_peer_then_observe"
++BARRIER_CALL = "retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)"
++REMOVED_UNJOINED_MESSAGE = "peer worker unjoined — UNKNOWN"
++# Launch-config keys that the NONEXPIRED successor may change; every other key must equal the source.
++NONEXPIRED_LAUNCH_CHANGED_KEYS = {"launch_ready", "candidate_launch_ready_staged", "manifest_sha256",
++                                  "docker_ops_config_path", "receipt_directory", "candidate_note",
++                                  "dex_r1_revise_note"}
+ CHANGED_PAYLOAD_ROWS = {
+     "fixture/np_runner_entry.py": "runner/candidate.py",
+     "fixture/np_provider_transcript.py": "transcript/candidate.py",
+@@ -179,6 +207,19 @@
+              '                    )\n                    return None\n')
+ M_TWO_SUBS = ('            username_prefix="np-ms-invalid",\n            subscription_count=1,\n',
+               '            username_prefix="np-ms-invalid",\n            subscription_count=2,\n')
++# Retirement-barrier mutants (helper text is identical in both runners; anchors unique in each).
++M_WORKER_ERROR_REMOVED = ('    if retirement.get("worker_error_kind") is not None:\n'
++                          '        raise SuiteStop("selected peer worker recorded an error")\n', '')
++M_SNAPSHOT_EARLY_A = ('    retirement = peer.retire_owned(join_seconds=join_seconds)\n',
++                      '    early_state = peer.sanitized_state()\n'
++                      '    retirement = peer.retire_owned(join_seconds=join_seconds)\n')
++M_SNAPSHOT_EARLY_B = ('    return retirement, peer.sanitized_state()\n', '    return retirement, early_state\n')
++M_BODY_SNAPSHOT_BEFORE = ('        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)\n',
++                          '        peer_state = peer.sanitized_state()\n'
++                          '        retirement, _late_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)\n')
++M_BODY_SECOND_RETIRE = ('        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)\n',
++                        '        retirement, peer_state = _retire_selected_peer_then_observe(peer, join_seconds=5.0)\n'
++                        '        peer.retire_owned(join_seconds=5.0)\n')
+ 
+ 
+ class WitnessFailure(Exception):
+@@ -299,6 +340,10 @@
+         "suite": ("suite/source.py", "suite/candidate.py", "diff/np_suite.py.diff", "payload/fixture/np_suite.py", 1),
+         "runner_config": ("config/source-runner-config.json", "config/candidate-runner-config.json",
+                           "diff/runner-config.json.diff", "payload/runner-config.json", 1),
++        "nonexpired_runner": ("nonexpired/source.py", "nonexpired/candidate.py", "nonexpired/np_runner_entry.py.diff",
++                              "payload/fixture/np_runner_entry.py", 3),
++        "nonexpired_runner_config": ("nonexpired/source-runner-config.json", "nonexpired/candidate-runner-config.json",
++                                     "nonexpired/runner-config.json.diff", "payload/runner-config.json", 1),
+     }.items():
+         derived, files, hunks = apply_unified(subject_text(source), subject_text(diff))
+         require(files == [f"a/{label}", f"b/{label}"] and hunks == hunks_expected
+@@ -374,11 +419,12 @@
+     expected = {
+         "runner": ({"IMPLEMENTED_CASE_IDS", "MS_INVALID_CLIENT_OUTCOME", "MS_INVALID_TOKEN_TERMINAL_ROWS",
+                     "MS_INVALID_TERMINAL_OBSERVER_ROWS", "MS_INVALID_PREFLIGHT_CODE", "MS_INVALID_ACTION_SUMMARY",
+-                    "MS_INVALID_CREDENTIAL_SEMANTIC_KEYS", "_run_np_v_ms_invalid", "_make_implemented_case"},
++                    "MS_INVALID_CREDENTIAL_SEMANTIC_KEYS", "_run_np_v_ms_invalid", "_make_implemented_case", HELPER},
+                    {"IMPLEMENTED_CASE_IDS", "_make_implemented_case"}),
+         "transcript": ({"ms_token_invalid_grant_script", "MS_INVALID_GRANT_EXCHANGE_COUNT",
+                         "ms_invalid_grant_connection_inventory"}, {"ms_token_invalid_grant_script"}),
+         "suite": ({"CASE_IMPLEMENTATION_NOTES"}, {"CASE_IMPLEMENTATION_NOTES"}),
++        "nonexpired": ({HELPER, "_run_np_v_ms_nonexpired"}, {"_run_np_v_ms_nonexpired"}),
+     }
+     cases = {}
+     for role, (cand_only, src_only) in expected.items():
+@@ -1079,6 +1125,149 @@
+ 
+ 
+ # ---------------------------------------------------------------------------
++# RETIREMENT-BARRIER (Dex BB93F31E R1/R2)
++# ---------------------------------------------------------------------------
++
++class SuiteStopFake(Exception):
++    pass
++
++
++class FakePeerRetirementUnknown(Exception):
++    pass
++
++
++class FakeSelectedPeer:
++    """Named fake for the retire_owned/sanitized_state interface only.
++
++    The final exchange-inventory row is published while the bounded join completes
++    (inside retire_owned), modelling the asynchronous peer append/teardown that a
++    pre-join snapshot would miss. Every call is recorded in order.
++    """
++
++    def __init__(self, *, joined: Any = True, worker_error: str | None = None,
++                 raises: BaseException | None = None) -> None:
++        self.joined, self.worker_error, self.raises = joined, worker_error, raises
++        self.calls: list[tuple[Any, ...]] = []
++        self.inventory: list[dict[str, str]] = [{"method": "POST", "path": "/pre-join"}]
++
++    def retire_owned(self, *, join_seconds: float) -> dict[str, Any]:
++        self.calls.append(("retire", join_seconds))
++        if self.raises is not None:
++            raise self.raises
++        self.inventory.append({"method": "GET", "path": "/published-during-join"})
++        return {"joined": self.joined, "worker_error_kind": self.worker_error}
++
++    def sanitized_state(self) -> dict[str, Any]:
++        self.calls.append(("state",))
++        return {"exchange_inventory": [dict(row) for row in self.inventory]}
++
++
++def run_helper(runner_text: str, peer: FakeSelectedPeer) -> dict[str, Any]:
++    namespace: dict[str, Any] = {"Any": Any}
++    exec_units(runner_text, (HELPER,), namespace, "runner")
++    escaped: BaseException | None = None
++    result: Any = None
++    with Sandbox(("np_suite",)) as box:
++        box.put("np_suite", types.ModuleType("np_suite")).SuiteStop = SuiteStopFake
++        try:
++            result = namespace[HELPER](peer)
++        except BaseException as exc:  # noqa: BLE001
++            escaped = exc
++    require("np_suite" not in sys.modules, "helper sandbox restored")
++    return {"result": result, "escaped": escaped, "calls": list(peer.calls)}
++
++
++def oracle_retire_behavior(runner_text: str) -> dict[str, str]:
++    cases = {}
++    run = run_helper(runner_text, FakeSelectedPeer())
++    ok = (run["escaped"] is None and isinstance(run["result"], tuple) and len(run["result"]) == 2
++          and run["result"][0] == {"joined": True, "worker_error_kind": None}
++          and run["result"][1]["exchange_inventory"][-1] == {"method": "GET", "path": "/published-during-join"}
++          and run["calls"] == [("retire", 5.0), ("state",)])
++    require(ok, "retire:post-join state")
++    cases["joined_no_error_post_join_state"] = "PASS"
++    run = run_helper(runner_text, FakeSelectedPeer(worker_error="OSError"))
++    require(type(run["escaped"]) is SuiteStopFake and run["calls"] == [("retire", 5.0)], "retire:worker error refused")
++    cases["worker_error_refused"] = "PASS"
++    run = run_helper(runner_text, FakeSelectedPeer(joined=False))
++    require(type(run["escaped"]) is SuiteStopFake and run["calls"] == [("retire", 5.0)], "retire:unjoined refused")
++    cases["unjoined_refused"] = "PASS"
++    unknown = FakePeerRetirementUnknown("owned peer worker unjoined")
++    run = run_helper(runner_text, FakeSelectedPeer(raises=unknown))
++    require(run["escaped"] is unknown and run["calls"] == [("retire", 5.0)], "retire:unknown same object")
++    cases["retirement_unknown_same_object"] = "PASS"
++    other = RuntimeError("injected")
++    run = run_helper(runner_text, FakeSelectedPeer(raises=other))
++    require(run["escaped"] is other and run["calls"] == [("retire", 5.0)], "retire:other exception same object")
++    cases["other_exception_same_object"] = "PASS"
++    attempts = [sum(1 for c in run_helper(runner_text, peer)["calls"] if c[0] == "retire") for peer in (
++        FakeSelectedPeer(), FakeSelectedPeer(worker_error="ValueError"), FakeSelectedPeer(joined=None),
++        FakeSelectedPeer(raises=FakePeerRetirementUnknown()), FakeSelectedPeer(raises=KeyError("k")))]
++    require(attempts == [1, 1, 1, 1, 1], "retire:single attempt")
++    cases["single_attempt_all_paths"] = "PASS"
++    return cases
++
++
++def _suite_stop_messages(fn: ast.AST) -> set[str]:
++    out: set[str] = set()
++    for node in ast.walk(fn):
++        if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call) and isinstance(node.exc.func, ast.Name) \
++                and node.exc.func.id == "SuiteStop" and node.exc.args:
++            arg = node.exc.args[0]
++            out.add(arg.value if isinstance(arg, ast.Constant) else ast.dump(arg))
++    return out
++
++
++def oracle_body_barrier(runner_text: str, fn_name: str, label: str) -> str:
++    fn = unit_node(runner_text, fn_name)
++    mains = [s for s in fn.body if isinstance(s, ast.Try) and _calls(s, "case_result_receipt")]
++    require(len(mains) == 1, f"retire:{label} body barrier")
++    main = mains[0]
++    dumps = [ast.dump(s) for s in main.body]
++    idx = [i for i, d in enumerate(dumps) if d == dump_stmt(BARRIER_CALL)]
++    body_calls = [c for s in main.body for c in _calls(s, "retire_owned")] + \
++                 [c for s in main.body for c in _calls(s, "sanitized_state")]
++    final_retires = [c for s in main.finalbody for c in _calls(s, "retire_owned")]
++    ok = len(idx) == 1 and idx[0] > 0 and dumps[idx[0] - 1] == dump_stmt("retirement_attempted = True") \
++        and not body_calls and len(final_retires) == 1
++    if ok:
++        barrier_line = main.body[idx[0]].lineno
++        state_uses = [n.lineno for n in ast.walk(main) if isinstance(n, ast.Name) and n.id == "peer_state"
++                      and isinstance(n.ctx, ast.Load)]
++        check_line = _single(_calls(main, "check_oracles_immediate"), "check_oracles_immediate").lineno
++        receipt = _single(_calls(main, "case_result_receipt"), "case_result_receipt")
++        kw = {k.arg: k.value for k in receipt.keywords}
++        ok = (bool(state_uses) and min(state_uses) > barrier_line and barrier_line < check_line < receipt.lineno
++              and all(isinstance(kw.get(k), ast.Constant) and kw[k].value is v
++                      for k, v in (("passed", True), ("workers_joined", True), ("expected_unknown", False))))
++    require(ok, f"retire:{label} body barrier")
++    return "PASS"
++
++
++def check_retirement() -> dict[str, Any]:
++    a_text, b_text = subject_text("runner/candidate.py"), subject_text("nonexpired/candidate.py")
++    require(unit_text(a_text, HELPER) == unit_text(b_text, HELPER), "retire:helper identical")
++    cases = {"helper_identical_in_both_runners": "PASS"}
++    cases.update(oracle_retire_behavior(a_text))
++    cases["invalid_body_barrier_order"] = oracle_body_barrier(a_text, "_run_np_v_ms_invalid", "invalid")
++    cases["nonexpired_body_barrier_order"] = oracle_body_barrier(b_text, "_run_np_v_ms_nonexpired", "nonexpired")
++    src_msgs = _suite_stop_messages(unit_node(subject_text("nonexpired/source.py"), "_run_np_v_ms_nonexpired"))
++    cand_msgs = _suite_stop_messages(unit_node(b_text, "_run_np_v_ms_nonexpired"))
++    require(REMOVED_UNJOINED_MESSAGE in src_msgs and cand_msgs == src_msgs - {REMOVED_UNJOINED_MESSAGE},
++            "retire:nonexpired assertions preserved")
++    cases["nonexpired_assertions_preserved"] = "PASS"
++    return {"cases": cases,
++            "behavioral_cases": ["joined_no_error_post_join_state", "worker_error_refused", "unjoined_refused",
++                                 "retirement_unknown_same_object", "other_exception_same_object",
++                                 "single_attempt_all_paths"],
++            "selected_body_sha256": {
++                "_run_np_v_ms_invalid": sha256_bytes(unit_text(a_text, "_run_np_v_ms_invalid").encode("utf-8")),
++                "_run_np_v_ms_nonexpired": sha256_bytes(unit_text(b_text, "_run_np_v_ms_nonexpired").encode("utf-8")),
++                HELPER: sha256_bytes(unit_text(a_text, HELPER).encode("utf-8"))},
++            "control_kind": "extracted_behavior_fake_and_structural", "observed": "PASS"}
++
++
++# ---------------------------------------------------------------------------
+ # BATCH-CONFIG and PRIOR-FAKE-APPLICABILITY
+ # ---------------------------------------------------------------------------
+ 
+@@ -1123,6 +1312,33 @@
+             and all(cand[rel] == SUBJECT_PINS[subject] for rel, subject in CHANGED_PAYLOAD_ROWS.items()),
+             "batch:payload manifest delta")
+     cases["payload_delta_exact"] = "PASS"
++    n_cfg = json.loads(subject_text("nonexpired/candidate-runner-config.json"))
++    n_src_cfg = json.loads(subject_text("nonexpired/source-runner-config.json"))
++    require(n_cfg.get("case_ids") == [NONEXPIRED_ID] and n_cfg.get("launch_ready") is False
++            and n_src_cfg.get("launch_ready") is True
++            and {k: v for k, v in n_cfg.items() if k != "launch_ready"}
++            == {k: v for k, v in n_src_cfg.items() if k != "launch_ready"}, "batch:nonexpired runner config")
++    cases["nonexpired_runner_config"] = "PASS"
++    n_raw = subject_text("nonexpired/candidate-launch-config.json")
++    n_launch, n_src = json.loads(n_raw), json.loads(subject_text("nonexpired/source-launch-config.json"))
++    require(n_launch.get("launch_ready") is False and n_launch.get("candidate_launch_ready_staged") is False
++            and n_launch.get("human_launch_authorized") is False and n_launch.get("case_ids") == [NONEXPIRED_ID]
++            and n_launch.get("manifest_sha256") == SUBJECT_PINS["nonexpired/candidate-manifest.txt"]
++            and n_src.get("manifest_sha256") == SUBJECT_PINS["nonexpired/source-manifest.txt"]
++            and all(NONEXPIRED_ROOT in str(n_launch.get(k)) for k in ("docker_ops_config_path", "receipt_directory"))
++            and not any(root in n_raw for root in NONEXPIRED_FOREIGN)
++            and set(n_launch) == set(n_src)
++            and all(n_launch[k] == n_src[k] for k in n_src if k not in NONEXPIRED_LAUNCH_CHANGED_KEYS),
++            "batch:nonexpired launch config")
++    cases["nonexpired_launch_config"] = "PASS"
++    n_s, n_c = rows(subject_text("nonexpired/source-manifest.txt")), rows(subject_text("nonexpired/candidate-manifest.txt"))
++    n_changed = {rel for rel in n_s if n_s[rel] != n_c.get(rel)}
++    require(set(n_s) == set(n_c) and n_changed == {"fixture/np_runner_entry.py", "runner-config.json"}
++            and n_c["fixture/np_runner_entry.py"] == SUBJECT_PINS["nonexpired/candidate.py"]
++            and n_c["runner-config.json"] == SUBJECT_PINS["nonexpired/candidate-runner-config.json"]
++            and n_c.get("fixture/np_provider_peer.py") == "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
++            "batch:nonexpired payload delta")
++    cases["nonexpired_payload_delta_exact"] = "PASS"
+     return {"cases": cases, "control_kind": "config_data", "observed": "PASS"}
+ 
+ 
+@@ -1150,7 +1366,13 @@
+         "cover the changed MS invalid_grant script or _run_np_v_ms_invalid.",
+         "Peer-close fake v2 PASS 11/35 (911AC7A0): applies to the unchanged peer BFB271D7 close path only.",
+         "MS-refresh helper fake PASS 10: finite helper scope only; no native refresh success or invalid_grant claim.",
+-        "No native JoinedTLS/OAuth/refresh PASS exists; nothing here is native proof."],
++        "No native JoinedTLS/OAuth/refresh PASS exists; nothing here is native proof.",
++        "MS invalid_grant fake v1 (scheduler-native-ms-invalid-fake-prep-matt-v1, unexecuted): superseded for the v2 "
++        "runner; every v1 check is re-run here against the v2 candidate.",
++        "MS-REFRESH _run_np_v_ms_refresh keeps the inherited joined-only, snapshot-before-retirement boundary: a "
++        "recorded gap before its later launch, not certified here.",
++        "Other unselected case bodies are not certified by this correction.",
++        "Original NONEXPIRED native card A50C04FB is WITHHELD; a new exact card is needed after review."],
+         "control_kind": "applicability_map", "observed": "PASS"}
+ 
+ 
+@@ -1181,6 +1403,10 @@
+     "observer_restore_removed": "structural",
+     "counted_request_swallows": "structural",
+     "two_subscriptions_seed": "structural",
++    "worker_error_admission_removed": "behavioral",
++    "snapshot_moved_before_join": "behavioral",
++    "body_snapshot_before_barrier": "structural",
++    "body_second_retirement": "structural",
+ }
+ 
+ 
+@@ -1207,6 +1433,16 @@
+         "counted_request_swallows": (lambda: oracle_wiring(_mutate(runner, M_SWALLOW)),
+                                      "wiring:wrappers preserve identity"),
+         "two_subscriptions_seed": (lambda: oracle_wiring(_mutate(runner, M_TWO_SUBS)), "wiring:single subscription seed"),
++        "worker_error_admission_removed": (lambda: oracle_retire_behavior(_mutate(runner, M_WORKER_ERROR_REMOVED)),
++                                           "retire:worker error refused"),
++        "snapshot_moved_before_join": (lambda: oracle_retire_behavior(
++            _mutate(_mutate(runner, M_SNAPSHOT_EARLY_A), M_SNAPSHOT_EARLY_B)), "retire:post-join state"),
++        "body_snapshot_before_barrier": (lambda: oracle_body_barrier(
++            _mutate(subject_text("nonexpired/candidate.py"), M_BODY_SNAPSHOT_BEFORE), "_run_np_v_ms_nonexpired",
++            "nonexpired"), "retire:nonexpired body barrier"),
++        "body_second_retirement": (lambda: oracle_body_barrier(_mutate(runner, M_BODY_SECOND_RETIRE),
++                                                               "_run_np_v_ms_invalid", "invalid"),
++                                   "retire:invalid body barrier"),
+     }
+     results = {name: _expect_detected(name, action, prefix) for name, (action, prefix) in mutants.items()}
+     return {"mutants": results, "mutant_kinds": MUTANT_KINDS, "control_kind": "actual_source_mutant",
+@@ -1244,7 +1480,7 @@
+     if RESULT.exists():
+         raise WitnessFailure("existing result; no replay")
+     expected = json.loads(EXPECTED.read_text(encoding="utf-8"))
+-    require(expected.get("kind") == "native-ms-invalid-fake-structural-expected", "EXPECTED kind")
++    require(expected.get("kind") == "native-ms-selected-retire-fake-structural-expected", "EXPECTED kind")
+     require(tuple(expected.get("control_ids_in_order") or ()) == CONTROL_IDS, "EXPECTED control inventory")
+     functions = {
+         "SUBJECT-PINS": check_subject_pins,
+@@ -1256,6 +1492,7 @@
+         "OWNING-REFRESH-UNITS": check_units,
+         "PUBLIC-RESULT-CONTRACT": check_public,
+         "RUNNER-WIRING": check_wiring,
++        "RETIREMENT-BARRIER": check_retirement,
+         "BATCH-CONFIG": check_batch_config,
+         "PRIOR-FAKE-APPLICABILITY": check_prior_applicability,
+         "ACTUAL-SOURCE-MUTANTS": check_mutants,
+--- a/fake/packet/verify/EXPECTED-FAKE-STRUCTURAL.json
++++ b/fake/packet/verify/EXPECTED-FAKE-STRUCTURAL.json
+@@ -1,9 +1,9 @@
+ {
+-  "kind": "native-ms-invalid-fake-structural-expected",
+-  "packet": "scheduler-native-ms-invalid-fake-prep-matt-v1",
+-  "candidate_root": "scheduler-native-provider-ms-invalid-prep-matt-v1",
+-  "case_id": "NP-V-MS-INVALID",
+-  "requirement_id": "T06-INVALID-GRANT-MICROSOFT",
++  "kind": "native-ms-selected-retire-fake-structural-expected",
++  "packet": "scheduler-native-ms-selected-retire-fake-prep-matt-v1",
++  "candidate_roots": ["scheduler-native-provider-ms-invalid-prep-matt-v2", "scheduler-native-provider-ms-nonexpired-retire-prep-matt-v1"],
++  "case_ids": ["NP-V-MS-INVALID", "NP-V-MS-NONEXPIRED"],
++  "assignment": "Dex BB93F31E selected-case retirement correction (R1 worker_error_kind admission, R2 final peer evidence after the bounded join)",
+   "control_ids_in_order": [
+     "SUBJECT-PINS",
+     "RUNTIME-PROVENANCE",
+@@ -14,56 +14,46 @@
+     "OWNING-REFRESH-UNITS",
+     "PUBLIC-RESULT-CONTRACT",
+     "RUNNER-WIRING",
++    "RETIREMENT-BARRIER",
+     "BATCH-CONFIG",
+     "PRIOR-FAKE-APPLICABILITY",
+     "ACTUAL-SOURCE-MUTANTS"
+   ],
+   "nested_case_ids": {
+     "RUNTIME-PROVENANCE": ["http_client_pin", "json_init_pin", "json_decoder_pin", "json_scanner_pin", "email_feedparser_pin", "email_parser_pin", "transitive_modules_disclosed"],
+-    "DIFF-REDERIVATION": ["runner", "transcript", "suite", "runner_config"],
+-    "PRESERVED-OUTSIDE-CHANGE": ["runner", "transcript", "suite"],
++    "DIFF-REDERIVATION": ["runner", "transcript", "suite", "runner_config", "nonexpired_runner", "nonexpired_runner_config"],
++    "PRESERVED-OUTSIDE-CHANGE": ["runner", "transcript", "suite", "nonexpired"],
+     "SCRIPT-SELECTION": ["tenant_path_fix", "only_request_path_changed", "exact_wire", "one_exchange_inventory", "catalog_other_scripts_unchanged"],
+     "CLIENT-OAUTH-CLASSIFICATION": ["invalid_grant_typed", "other_error_unknown", "status_401_unknown", "nonobject_unknown", "malformed_unknown", "truncated_unknown", "eof_after_send_unknown", "send_failure_sets_sent_unknown", "open_failure_before_send_original", "close_failure_after_invalid_grant_unknown", "event_purpose_not_classified", "joined_send_marks_sent_before_socket_send"],
+     "OWNING-REFRESH-UNITS": ["ms_refresh_raises_before_any_write", "adapter_rejected_rollback", "adapter_wrong_terminal_unknown", "adapter_other_exception_propagates"],
+     "PUBLIC-RESULT-CONTRACT": ["preflight_row_shape", "overall_no_op", "overall_failed_distinct", "dispatch_rejected_skips_run_target"],
+     "RUNNER-WIRING": ["default_joined_tls", "observers_saved_before_install", "observers_restored_in_finally", "wrappers_preserve_identity", "oracle_constants_exact", "stops_before_receipt", "single_subscription_seed", "separate_measure_sessions", "mapper_and_implemented"],
+-    "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact"],
++    "RETIREMENT-BARRIER": ["helper_identical_in_both_runners", "joined_no_error_post_join_state", "worker_error_refused", "unjoined_refused", "retirement_unknown_same_object", "other_exception_same_object", "single_attempt_all_paths", "invalid_body_barrier_order", "nonexpired_body_barrier_order", "nonexpired_assertions_preserved"],
++    "BATCH-CONFIG": ["runner_config", "launch_config", "payload_delta_exact", "nonexpired_runner_config", "nonexpired_launch_config", "nonexpired_payload_delta_exact"],
+     "PRIOR-FAKE-APPLICABILITY": ["t05_units_identical", "refresh_units_identical", "peer_and_seed_unchanged"],
+-    "ACTUAL-SOURCE-MUTANTS": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed", "joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed"]
++    "ACTUAL-SOURCE-MUTANTS": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed", "joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed", "worker_error_admission_removed", "snapshot_moved_before_join", "body_snapshot_before_barrier", "body_second_retirement"]
+   },
+-  "expected_nested_predicates": 65,
+-  "nested_count_breakdown": "SUBJECT-PINS 1 + RUNTIME 7 + DIFF 4 + PRESERVED 3 + SELECTION 5 + CLIENT 12 + UNITS 4 + PUBLIC 4 + WIRING 9 + BATCH 3 + PRIOR 3 + MUTANTS 10 = 65",
++  "expected_nested_predicates": 85,
++  "nested_count_breakdown": "SUBJECT-PINS 1 + RUNTIME 7 + DIFF 6 + PRESERVED 4 + SELECTION 5 + CLIENT 12 + UNITS 4 + PUBLIC 4 + WIRING 9 + RETIREMENT 10 + BATCH 6 + PRIOR 3 + MUTANTS 14 = 85",
+   "check_kinds": {
+     "behavioral_host_parser": "CLIENT-OAUTH-CLASSIFICATION except joined_send_marks_sent_before_socket_send",
+-    "behavioral_extracted_units": "OWNING-REFRESH-UNITS; PUBLIC-RESULT-CONTRACT except dispatch_rejected_skips_run_target",
++    "behavioral_extracted_units": "OWNING-REFRESH-UNITS; PUBLIC-RESULT-CONTRACT except dispatch_rejected_skips_run_target; RETIREMENT-BARRIER joined_no_error_post_join_state, worker_error_refused, unjoined_refused, retirement_unknown_same_object, other_exception_same_object, single_attempt_all_paths",
+     "whole_module_fake": "SCRIPT-SELECTION",
+-    "structural": "PRESERVED-OUTSIDE-CHANGE; RUNNER-WIRING; joined_send_marks_sent_before_socket_send; dispatch_rejected_skips_run_target",
+-    "behavioral_mutants": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed"],
+-    "structural_mutants": ["joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed"]
++    "structural": "PRESERVED-OUTSIDE-CHANGE; RUNNER-WIRING; joined_send_marks_sent_before_socket_send; dispatch_rejected_skips_run_target; RETIREMENT-BARRIER helper_identical_in_both_runners, invalid_body_barrier_order, nonexpired_body_barrier_order, nonexpired_assertions_preserved",
++    "behavioral_mutants": ["path_fix_reverted", "transport_accepts_any_400", "send_state_ignored", "adapter_except_sets_changed", "adapter_except_removed", "worker_error_admission_removed", "snapshot_moved_before_join"],
++    "structural_mutants": ["joined_marks_sent_after_send", "terminal_row_commit", "observer_restore_removed", "counted_request_swallows", "two_subscriptions_seed", "body_snapshot_before_barrier", "body_second_retirement"]
+   },
+   "expected_outcomes": {
+-    "invalid_grant_wire": "HTTP/1.1 400 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: 25\\r\\nConnection: close\\r\\n\\r\\n{\"error\":\"invalid_grant\"}",
+-    "wire_derivation": "unchanged peer _http_response_bytes (BFB271D7) on the candidate send step; identical to the source script's send step",
+-    "request_path": "candidate POST at MS_TOKEN_ENDPOINT_PATH (production tenant path); source was the tenant-less /oauth2/v2.0/token",
+-    "host_client": {
+-      "complete_400_invalid_grant_object": "CoveringReauthorizationRequired (policy class); gate 1, json 1, transport closed once, sent True",
+-      "400_other_error, 401, non-object, malformed, truncated, EOF after send, send failure": "CoveringRootOutcomeUnknown with no chained cause; transport closed once",
+-      "send_failure": "FakeTransport.send marks sent=True before raising, mirroring JoinedTLS.send (structural case); result UNKNOWN",
+-      "open_failure_with_sent_false": "the exact original exception object propagates; sent False; closed once",
+-      "close_failure_after_invalid_grant": "new CoveringRootOutcomeUnknown; primary is the typed reauthorization; transport_close is the close failure",
+-      "event_purpose": "the same 400 body under purpose event is returned (no OAuth classification)"
++    "invalid_grant_v1_checks": "unchanged from scheduler-native-ms-invalid-fake-prep-matt-v1 EXPECTED, now against the v2 runner candidate 4CBF198E",
++    "retirement_helper": {
++      "joined_no_error": "exactly one retire_owned(join_seconds=5.0), then sanitized_state; the returned final inventory includes the row published during the join",
++      "worker_error": "SuiteStop; sanitized_state not called",
++      "unjoined": "SuiteStop; sanitized_state not called",
++      "PeerRetirementUnknown_or_other": "the same exception object propagates; sanitized_state not called",
++      "attempts": "exactly one retire_owned call on every path"
+     },
+-    "units": {
+-      "get_valid_access_token": "expired account; exactly one token POST at https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token with refresh_token grant; the reauthorization object propagates unchanged; no account attribute write, no flush, no token-field validation, no encrypt, no JSON decode",
+-      "token_port": "TokenRejected(CALENDAR_ACCOUNT_DISCONNECTED); terminal called once with commit=False; provider transport entered once; no agent write",
+-      "wrong_terminal": "terminal returning COMMIT for commit=False raises CoveringRootOutcomeUnknown",
+-      "other_exception": "a non-reauthorization exception propagates unchanged; terminal not called"
+-    },
+-    "public": {
+-      "row": "phase preflight, status preflight_rejected, preflight_code CALENDAR_ACCOUNT_DISCONNECTED, preflight_effects [], cause null, upserted 0",
+-      "overall_outcome": "no_op when import_attempted 0; failed when import_attempted 1 and import_ok 0",
+-      "dispatch": "type(token) is TokenRejected appends _static_preflight_result(preflight_code=token.code) and continues before connector.run_target"
+-    }
++    "selected_bodies": "in both _run_np_v_ms_invalid and _run_np_v_ms_nonexpired: retirement_attempted = True immediately precedes the single helper call; no direct retire_owned/sanitized_state in the main try body; one failure-path retire_owned in finally; every peer_state use follows the barrier; barrier < check_oracles_immediate < case_result_receipt(passed=True, workers_joined=True, expected_unknown=False)",
++    "nonexpired_unchanged": "only the helper and the body changed; the body's SuiteStop message set equals the source set minus the removed 'peer worker unjoined — UNKNOWN'; runner-config differs only in launch_ready; launch-config differs only in launch_ready, candidate_launch_ready_staged, manifest_sha256, the two root paths, candidate_note and dex_r1_revise_note; payload delta is exactly runner and runner-config with peer 17EA148E unchanged"
+   },
+   "mutant_oracles": {
+     "path_fix_reverted": "selection:tenant path",
+@@ -75,7 +65,11 @@
+     "terminal_row_commit": "wiring:oracle constants",
+     "observer_restore_removed": "wiring:observers restored",
+     "counted_request_swallows": "wiring:wrappers preserve identity",
+-    "two_subscriptions_seed": "wiring:single subscription seed"
++    "two_subscriptions_seed": "wiring:single subscription seed",
++    "worker_error_admission_removed": "retire:worker error refused",
++    "snapshot_moved_before_join": "retire:post-join state",
++    "body_snapshot_before_barrier": "retire:nonexpired body barrier",
++    "body_second_retirement": "retire:invalid body barrier"
+   },
+   "limits": {
+     "check_seconds": 120,
+@@ -83,7 +77,7 @@
+     "result_byte_cap": 262144,
+     "capture_byte_cap_per_stream": 65536
+   },
+-  "not_proved": "native TLS, the native client exception at runtime, native PostgreSQL ROLLBACK acknowledgement, persisted DB state, the ASGI response, peer or worker retirement, exact coverage_action/scheduling_readiness values",
++  "not_proved": "native TLS, native peer retirement timing, the native client exception at runtime, native PostgreSQL ROLLBACK acknowledgement, persisted DB state, the ASGI response, exact coverage_action/scheduling_readiness values; MS-REFRESH and other unselected bodies are not certified",
+   "executed": false,
+   "launch_authorized": false,
+   "prep_is_not_pass": true,

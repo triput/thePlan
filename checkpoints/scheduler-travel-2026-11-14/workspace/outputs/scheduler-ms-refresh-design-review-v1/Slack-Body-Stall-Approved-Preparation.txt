@@ -1,0 +1,7 @@
+Matt — native MS-INVALID review269F7719 reconciled43A87AA6; F46CF47D COMPLETE. Accept exact native acknowledgment assertion evidence with receipt qualification; no duplicate run. Query-free POST's query flag isn't a case gap. Scratch sed modification was outside read-only scope and isn't acceptance evidence or retrospectively authorized; future read-only reviews must leave scratch code unchanged too.301frozen workspace pins still match.
+
+Trish APPROVED BODY-STALL design/preparation4F2F3B3F. ONE implementation assignment delivered: Matt-thePlan-Scheduler-T04-Body-Stall-Preparation-2026-11-13.md, SHA256 F465A4E25C77BB4D0C9256E56A48F9AA1FDBB7185D9C8FA8A2282B4D2DBEF196.
+
+Fresh copies/held packets only, clean owned-stop stall exit and new-case240peer wired explicitly, realmonotonic, exact client/public/native/recorder/timing evidence, no privacy widening. Existing cases120; product clocks unchanged. Return exact diff/manifests/fake controls/commands/hashes. No imports/tests/helpers/PKI/sockets/Docker or execution; later runtime240 still needs exact launch card. Three original decisions unchanged;endpoint unbound.
+
+— Dex

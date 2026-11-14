@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-13T07:24:53.8445850Z",
+  "status": "CLEANUP_COMPLETE_INDEPENDENTLY_RECONCILED",
+  "authorization_question": "call_3dce516874774295a8f2297e0f9fe258",
+  "calls": 9,
+  "identity_checks": 3,
+  "removals": 2,
+  "both_absent": true,
+  "database_exit": 0,
+  "clean_cli_readers": 9,
+  "cleanup_receipt_sha256": "56523DFDDCCEE7767C47BE9A37B4705BB63FA8B02C837A70FAFACD7F3734EFDD",
+  "postpins": 283,
+  "native_status": "STOP preserved,no rerun",
+  "endpoint": "unbound"
+}

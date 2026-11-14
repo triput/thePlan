@@ -1,0 +1,29 @@
+{
+  "kind": "native-google-refresh-preparation-freeze",
+  "workspace": "scheduler-native-google-refresh-prep-matt-v1",
+  "batch_id": "np-v-google-refresh-single-case",
+  "batch_case_ids": ["NP-V-GOOGLE-REFRESH"],
+  "expected_unknown_cases": [],
+  "author": "Matt",
+  "date": "2026-11-13",
+  "status": "PREPARED_NOT_EXECUTED",
+  "assignment_sha256": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "approved_envelope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "copy_source": "scheduler-native-ms-nonexpired-retirement-launch-matt-v2",
+  "copy_source_input_manifest_sha256": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "evidence_copied": false,
+  "changed_files_vs_source": {
+    "payload/fixture/np_runner_entry.py": {"role": 4, "before": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D", "after": "6C0FA135955CC2DA476A2657E4F66B456E5B0F6F08074B8BFFB696FEEBF2F5DB"},
+    "payload/fixture/np_suite.py": {"role": 5, "before": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673", "after": "98DCC0422D04A11417CB5AE78B85ED5FCDA2F3132594A196005B4DD1B67531D4"},
+    "payload/fixture/np_provider_transcript.py": {"role": 8, "before": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3", "after": "D74EB1FE1393605251A95449B32D27D580FC19CC5427459E2806B78C7B63A82C"},
+    "payload/runner-config.json": {"before": "8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029", "after": "95278DF6B3756F39B5D45CF24C96B3435B20394D3A951FAD95DE5FB76095E7ED"},
+    "payload/SHA256SUMS.txt": {"before": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A", "after": "63325E1542472C93045278A36A37F3DC3C6EA1F44DCE50CA951D55A44E4ABEB8", "rows": 257, "changed_rows": 4},
+    "host/launch-config.json": {"before": "03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9", "after": "F0B8A78FB5CABFB914044F1ED35EB206809B43E59B1EDFEDCE3FEE284E302452"},
+    "host/docker-ops-config.json": {"before": "5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76", "after": "317A0C195CE80EF9C7D8BB6492D20272CBCCBDE3DED3A531BDB11E27C307F813"},
+    "Input-Manifest.sha256": {"before": "DA1D9A157E8F6BCB6512923126D2E76104E9D48CE39E27F40B687B5388C08BB8", "after": "E29827DBDA20D363D103B6D72B859523AA88E394D9AD56AF7C449F2FB6F178C4", "rows": 269, "changed_rows": 7}
+  },
+  "held_command_sha256": "34E79F545AAF2350A1DA31F157F60D581F4AA7B8F47F890F55C5DF2373F18870",
+  "evidence_root_present": false,
+  "gates": {"host_launch_ready": false, "candidate_launch_ready_staged": false, "runner_launch_ready": false, "launch_authorized": false, "human_launch_authorized": false},
+  "executed": false, "launch_authorized": false, "prep_is_not_pass": true, "endpoint": "unbound"
+}

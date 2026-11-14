@@ -1,0 +1,79 @@
+{
+  "at_utc": "2026-11-13T04:58:42.5808899Z",
+  "status": "DESIGN_RECONCILED_SOURCE_QUALIFIED_PREPARATION_WITHIN_APPROVED_LANE",
+  "proposal_sha256": "5A482D5CF141839B12E122C539B48644668DC971AA81D95645266BF2881037B2",
+  "verified_parent_source_pins": 274,
+  "key_source_pins": [
+    {
+      "payload_relative_path": "fixture/np_runner_entry.py",
+      "sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F"
+    },
+    {
+      "payload_relative_path": "fixture/np_provider_transcript.py",
+      "sha256": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3"
+    },
+    {
+      "payload_relative_path": "fixture/np_provider_peer.py",
+      "sha256": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55"
+    },
+    {
+      "payload_relative_path": "fixture/np_auth_seed.py",
+      "sha256": "66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150"
+    },
+    {
+      "payload_relative_path": "fixture/np_suite.py",
+      "sha256": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673"
+    },
+    {
+      "payload_relative_path": "fixture/np_receipts.py",
+      "sha256": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD"
+    },
+    {
+      "payload_relative_path": "api/app/services/microsoft_calendar.py",
+      "sha256": "6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF"
+    },
+    {
+      "payload_relative_path": "api/app/services/covering_domain_adapters.py",
+      "sha256": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C"
+    },
+    {
+      "payload_relative_path": "api/app/services/covering_domain_dispatch.py",
+      "sha256": "E73EFF6812A191F3F03431B98990BBF3C61D09D8398101AC804DBD2B2E7F6566"
+    },
+    {
+      "payload_relative_path": "api/app/services/covering_refresh_import.py",
+      "sha256": "84F50367BC91E0368437B4CD6E6FA5FAC9A77E42A270F00E8FF1EC62BB25C339"
+    },
+    {
+      "payload_relative_path": "api/app/services/covering_http_transport.py",
+      "sha256": "29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368"
+    },
+    {
+      "payload_relative_path": "api/app/services/token_crypto.py",
+      "sha256": "28205C019FCF531D4C71BBA8E323CDB42501BEB1D43758DEA4F05AB602D232DA"
+    },
+    {
+      "payload_relative_path": "api/app/schemas/calendar.py",
+      "sha256": "5870CA694785015531BE952E1C3D08C9481771428C143C0BB60BB3FA5AAFEB3A"
+    }
+  ],
+  "delegation_provenance": "Matt used2 read-only Explore subagents, spot-checked load-bearing source and corrected one subagent line citation",
+  "decisions": {
+    "Q2": "Keep2 subscriptions on same account; expect one OAuth/5peer exchanges and TOKEN COMMIT then ROLLBACK",
+    "Q3": "Defer MS-TOKEN-INVALID-GRANT path correction to its own existing case",
+    "Q4": "Defer peer form-field recorder and role7 changes; wire-body fieldnames not claimed observed",
+    "Q1": "Separate single-case NP-V-MS-REFRESH batch; pending NONEXPIRED batch untouched"
+  },
+  "qualifications": [
+    "Ciphertext change alone is insufficient with randomized Fernet. Require fresh persisted DB read/decrypt and equality to expected synthetic access/rotated refresh; only booleans/approved hashes leave fixture.",
+    "Current source confirms exact common tenant OAuth path and missing OAuth route; both fixture script and route must share derived exact path without altering production.",
+    "Use public overall_outcome=success and results[].status=ok, not invented schema names.",
+    "Filter observer marker rows: only actual TOKEN terminal rows form COMMIT/ROLLBACK sequence, with commit_requested flags.",
+    "Final native assessment proof comes from owning source path plus actual typed response and persisted state; do not label literal observation true as a new terminal trace.",
+    "No native shared-harness outcome yet; preparation may proceed, native refresh execution must wait/rebase if diagnostic finds shared defect."
+  ],
+  "new_trish_design_gate_required": false,
+  "basis": "Routine fixture choices within approved389A00DD named roles; no compatibility/production/TLS/privilege contract change",
+  "execution_performed": false,
+  "endpoint": "unbound"
+}

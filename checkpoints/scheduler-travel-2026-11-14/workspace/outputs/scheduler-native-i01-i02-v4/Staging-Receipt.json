@@ -1,0 +1,35 @@
+{
+  "status": "FRESH_NATIVE_PREPARATION_HELD",
+  "source": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-i01-i02-v3\\payload",
+  "t02_fake_proof": "scheduler-t02-fake-v1/Dex-Run-Reconciliation.json",
+  "approved_t02_pins": {
+    "app\\services\\covering_transport_policy.py": "1171F629B596AC0366B9BE495D475FD125507027582491989F96E2BF3D922485",
+    "app\\services\\covering_http_transport.py": "A1F68F7529724BFDA709663C353BD8CD65E3FE757D1EC10FB34970E8303CC9DF",
+    "app\\services\\covering_domain_adapters.py": "BA82577E8CF4B27D4EDD5A1B9D31B35E87990A381B83E22D4DB2A4D89352A53C",
+    "tests\\test_covering_transport_policy.py": "4A8C7EF1D4539F48B012797A478628267F2F544C3E62AB891B9E870131B1D342"
+  },
+  "changed_vs_native_v3": [
+    "launch-config.json",
+    "SHA256SUMS.txt",
+    "workspace\\apps\\api\\app\\services\\covering_domain_adapters.py",
+    "workspace\\apps\\api\\app\\services\\covering_http_transport.py",
+    "workspace\\apps\\api\\app\\services\\covering_transport_policy.py",
+    "workspace\\apps\\api\\tests\\test_covering_transport_policy.py"
+  ],
+  "identical_files": 263,
+  "manifest_entries": 268,
+  "manifest_sha256": "26592043E5AE6DE3B002F6670B1610780DFF417077D46FF4FD4EFF29B2404117",
+  "config_sha256": "348CC5F57B52F452BC8E5E598146F183EA76942F0574D7B01DE4FEEDD7B97671",
+  "case_count": 22,
+  "expected_unknown": [
+    "N06",
+    "N07",
+    "I01-C06"
+  ],
+  "launch_ready": false,
+  "evidence_directory_exists": false,
+  "invocation_file_created": false,
+  "execution_authorized": false,
+  "executed": false,
+  "endpoint": "unbound"
+}

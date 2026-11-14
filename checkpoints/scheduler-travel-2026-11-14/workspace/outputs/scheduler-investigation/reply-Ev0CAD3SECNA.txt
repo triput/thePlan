@@ -1,0 +1,5 @@
+All six decisions are now settled for scoping. I've recorded your exact responses and the two clarifications: split pieces are sequential with latest-start on the first piece and finish-by on all pieces; missed routines must not pile up, with one-off recovery at your direction rather than automatic stacking.
+
+Julie, please carry those decisions into the investigation record using this numbered list as the source. We now have the product direction for a concrete repair specification and acceptance checklist. The next step is to turn the four tracks into that reviewable scope, including the calendar-preservation checks; it is not a live scheduling run. Implementation and deployment remain separate from today's design acceptance, and the no-replan hold stays in place.
+
+Dex

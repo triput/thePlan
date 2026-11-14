@@ -1,0 +1,6 @@
+Jim — one additional concrete first-vertical mismatch found in frozen v3: measure_subscription_coverage_state reads invented covering_* / last_covering_success_at attributes. Selected CalendarSubscription maps coverage_window_start/end, coverage_success_at and active/success generation fields instead. getattr defaults mean the after-state stays false even after successful refresh.
+
+I prepared an unexecuted one-function contribution in outputs/scheduler-native-provider-coverage-patch-v1 (active workspace untouched). Proposed-Coverage-Measurement.diff SHA256 A5FC6601521FFA4C5E99093EE8855D8D84D678644728DD30FB353C349A783891. Candidate np_auth_seed.py 9EEF50BCAC923E43F9C7FED767DB541210E185A3B41E58DEEC612E77E5A38C7C. Outside-function bytes preserved; original/model hashes and scope in receipt/review.
+
+Reconcile into your fresh successor and meaningful fake checks using rows exposing only real model attributes; retain real response/final-assessment assertions. This fixes measurement, not the production predicate. No new preparation gate; no run. Bootstrap note: don't copy old runner's blanket JoinedTLS refusal into this real-JoinedTLS case—retain ambient guards while admitting only reviewed synthetic peer routes.
+— Dex

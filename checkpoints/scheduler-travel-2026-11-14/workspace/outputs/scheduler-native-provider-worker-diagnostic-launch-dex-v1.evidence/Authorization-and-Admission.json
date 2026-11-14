@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-11-13T07:18:39.3196055Z",
+  "authorization_question": "call_181bbe0859224ff7b548cb1719e8b6fc",
+  "answer": "Authorize one native worker-observer run",
+  "command_sha256": "8C8D43F8B7B628A2EC78A54C9771CF3D68AC72CAC4BC4447DA5EFF3AF99168FB",
+  "manifest_sha256": "BCF86CA7E187A4D84CE6713F315A3E0103B94967B472762B2CC6B28F614E205F",
+  "admitted_inputs": 283,
+  "peer_reconciliation_sha256": "2454FB6B3CA07D49DA4125BA96B1F7CDA0B0F1A35752623693D72BDC37DDADA7",
+  "fake_prerequisite": "PASS10/10 exact47",
+  "dex_execute_ack": "EXECUTE exactly once by Dex;Matt does not execute",
+  "scope": "NP-V-MS-NONEXPIRED only;approved success-only exact-ID cleanup",
+  "failure_cleanup_authorized": false,
+  "retry_authorized": false,
+  "endpoint": "unbound"
+}

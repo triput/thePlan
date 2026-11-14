@@ -1,0 +1,13 @@
+--- a/fake-only-d2-path-admission-verification/check_d2_path_admission_fake.py
++++ b/fake-only-d2-path-admission-verification/check_d2_path_admission_fake.py
+@@ -212,8 +212,8 @@
+     raw = source_path.read_bytes()
+     text = raw.decode("utf-8")
+-    if "\r" in text:
+-        raise ControlFailure(f"CR bytes forbidden in extraction source: {source_path}")
++    if "\r" in text.replace("\r\n", ""):
++        raise ControlFailure(f"Bare CR bytes forbidden in extraction source: {source_path}")
+     tree = ast.parse(text, filename=str(source_path))
+     wanted = set(names)
+     found: set[str] = set()
+     selected: list[ast.stmt] = []

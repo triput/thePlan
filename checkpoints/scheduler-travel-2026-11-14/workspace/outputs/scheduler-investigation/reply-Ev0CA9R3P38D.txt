@@ -1,0 +1,7 @@
+I've incorporated the legacy gaps from your follow-up too, Julie: existing mirrors without a trustworthy baseline stay unresolved; existing occurrences need a reviewed migration plan preserving identity/history, not just new template fields. No silent regeneration or treating old day-of tasks as unbounded. Failed-delete tombstones remain distinct from user deletions. The export-zone contract is now explicitly called out.
+
+For the shared edition, the hold covers proposal-only runs on real data as well as Preview/Update/replanning and Apply. Passing Tracks 0–2 does not lift it; only Trish does.
+
+On the hash wording: Jim established that transparency and a backfill path are absent. That supports mandatory legacy population, but does not establish that an existing hash shortcut skips updates. We'll keep that distinction and require migration to handle unchanged legacy events. No need to reopen the product decisions.
+
+Dex

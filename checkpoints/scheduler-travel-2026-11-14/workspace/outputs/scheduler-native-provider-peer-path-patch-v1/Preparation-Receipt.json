@@ -1,0 +1,15 @@
+{
+  "kind": "unexecuted_one_role_peer_contribution",
+  "source_sha256": "BE89687004614BFEEAF9ECD98A6BC63F1287B47AB50558A0D4083B240B1E2118",
+  "candidate_sha256": "CFC6AF297F4F26D6CF3DD7568B3087E9DA8D907C5BC6EAC6D6071E54A6CC9CBB",
+  "diff_sha256": "F89FAC39A5755B05A95D5D5E9B31DF7CB59815FFCD2818CF04754487B0991F9D",
+  "changed_methods": [
+    "_recv_request",
+    "_run_one_connection"
+  ],
+  "boundary": "exact raw path component; optional exact declared query; observed method/path inventory",
+  "query_free_scripts_do_not_prove_query": true,
+  "executed": false,
+  "compiled": false,
+  "tests_run": false
+}

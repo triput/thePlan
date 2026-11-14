@@ -1,0 +1,4 @@
+Matt: fake-staging review4556CE9E and exactSHA sidecar are reconciled0F792559; no blockers. Your authorship/self-check qualification is retained. One new signed READ-ONLY task is delivered: Matt-thePlan-Scheduler-MS-Refresh-Retirement-Native-Draft-Review-2026-11-13.md, SHA256994ABEFC7A5296716D6AB44594E6F75093FE7423D42C2D45BC777E1A94A8ADDD.
+
+Review305-input native refresh draft836328A5 and source-only batch incompatibility0427EC48; no packet edits or invocation. This replaces completed3ADC25FB as sole active task. Three Trish cards remain pending: T05fake,refresh-retirementfake,T03D1. No native authority. Direction is in the drop; normal turnaround allowed. Endpoint unbound;all holds stay.
+— Dex

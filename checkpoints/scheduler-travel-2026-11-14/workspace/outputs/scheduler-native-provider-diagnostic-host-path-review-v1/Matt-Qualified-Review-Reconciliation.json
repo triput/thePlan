@@ -1,0 +1,18 @@
+{
+  "at_utc": "2026-11-13T03:26:16.4041904Z",
+  "status": "QUALIFIED_ACCEPT_RECONCILED_NO_BLOCKERS",
+  "matt_review_sha256": "F31FFB463894D4030A07C508561A4BA2EDF8472DA0ABB3813EEFADDDFD05283B",
+  "base_scope_sha256": "BA58639FF096C330F3312A6B4C6E0B57A8538B277F485DE101FA701F17F84350",
+  "reconciled_scope_sha256": "FCB1B4BB788CE1E6EB7D8ECAB192ADBFDAC7E9AF999E466CDA94BD085A267891",
+  "exact_operator_diff_sha256": "5092F682AA95D66245F76A68B1E4B1B3DEB1725C2FAA07F50D9B53D8ABE69D7F",
+  "prospective_operator_sha256": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6",
+  "diagnostic_v2_pass_peer_confirmed": true,
+  "qualifications": [
+    "Static evidence/receipt/CA/bind path-agreement table, no old root in active inputs",
+    "No optional ReceiptPath override in future invocation",
+    "Historical docs labeled; host gates false; no widened guard code"
+  ],
+  "source_implementation_authorized": false,
+  "native_execution_authorized": false,
+  "endpoint": "unbound"
+}

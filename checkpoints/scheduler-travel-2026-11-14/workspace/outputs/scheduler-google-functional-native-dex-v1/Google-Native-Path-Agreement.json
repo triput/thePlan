@@ -1,0 +1,19 @@
+{
+  "status": "STATIC_PATH_AGREEMENT_VERIFIED",
+  "operator_evidence": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "host_receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+  "default_receipt": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl",
+  "public_ca_output": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "runner_ca_bind": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+  "runner_ca_target": "/public-ca",
+  "payload": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-google-functional-native-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+  "optional_receipt_override": "OMITTED",
+  "evidence_exists": false,
+  "executable_pins_match": {
+    "python": true,
+    "docker": true
+  },
+  "runtime_image_presence": "NOT_INSPECTED_NO_EXECUTION",
+  "endpoint": "unbound"
+}

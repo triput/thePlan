@@ -1,0 +1,30 @@
+{
+  "kind": "peer-close-correction-preparation-freeze",
+  "workspace": "scheduler-native-provider-peer-close-prep-matt-v1",
+  "author": "Matt",
+  "date": "2026-11-12",
+  "status": "PREPARED_NOT_EXECUTED",
+  "assignment_sha256": "34698A96B6E63217B3CA329E7D4B7FF8378C014443DC5F450F9093CAF6D05DEF",
+  "approved_envelope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "copy_source": "scheduler-native-provider-worker-diagnostic-prep-matt-v1",
+  "copy_source_input_manifest_sha256": "9DCAA6FF06FF890E53AB867ECFDFA5617115A0B684762304E49AF6BE07F00A68",
+  "copy_source_entries": 278,
+  "approved_diff_sha256": "023303AC81AC8F3F3460CBDE9E2AFAFFB4A3EA85D97FE547AD5C78E60B54B30D",
+  "changed_files": {
+    "payload/fixture/np_provider_peer.py": {"before": "5568AF73DD42FEB5B8E2FE4D723AD4FB0339CBF4B889F5472995ABC628F72A55", "after": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039", "role": 7, "lines_changed": 1},
+    "payload/SHA256SUMS.txt": {"before": "250CFD3C39944C2A238371B957267719900B861368CF8C3118DCB274052D2A70", "after": "74B637D46586E1C8FD94EBEE8E3BB29581131C592B881D695D88BA1D509CCE45", "entries": 257},
+    "host/launch-config.json": {"after": "5CC778375B6E30FD3EF44957423F33A02F6B9AC47641BAC7DE9D6B3AFBE33DD7"},
+    "host/docker-ops-config.json": {"after": "27EA171033BF4A8F5295F117EF78CCC945DD6A264184357DA8A004FCC0C74D55"}
+  },
+  "unchanged": {"runner": "341074AEF88A9E438C0F488E6231572103E694FB5EB81D6F3AC6BD30517CD645", "runner_config": "9411AC387CCB735751E3D22C580EEFB2F9ADEE92F2E3725E1E36B7EACE7BE929", "operator": "5A8A04B6FC497BEA634C095686B3E7C2B76CE8E64BC526053687C399E66DA7D6", "docker_transport": "7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53", "api_files": 234},
+  "gates": {"host_launch_ready": false, "candidate_launch_ready_staged": false, "runner_config_launch_ready": false},
+  "batch": ["NP-V-MS-NONEXPIRED"],
+  "expected_unknown_cases": [],
+  "root_cause_status": "plausible_testable_mechanism_not_proved",
+  "evidence_root_exists_at_freeze": false,
+  "companion_fake_packet": "scheduler-native-peer-close-fake-prep-matt-v1",
+  "executed": false,
+  "execute_ack_exists": false,
+  "endpoint": "unbound",
+  "writer_active": false
+}

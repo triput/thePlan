@@ -1,0 +1,71 @@
+{
+  "kind": "independent_postrun_acceptance_checklist_not_execution",
+  "prepared_at_utc": "2026-11-13T04:02:41.6468245Z",
+  "current_authority": "HELD_PENDING_TRISH_CARD",
+  "command_sha256": "F39C778C9A20A5CA538CAE8F414768833866B3852367CB1EE53FF115C509A870",
+  "input_manifest_sha256": "1C85559E1091D6AA11502C9E81113B8328E138525A0A63B655BB87245EFF851A",
+  "receipt_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\native-provider-host-receipt.jsonl",
+  "source_references": [
+    {
+      "sha256": "40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F",
+      "reviewed_sections": "NP-V-MS-NONEXPIRED implementation lines725-1170; run report lines1410-1518",
+      "path": "payload/fixture/np_runner_entry.py"
+    },
+    {
+      "sha256": "A1ADA2311B10631209DBA0588B8C9C6B947B3206F0EFBC51F4CF66B1F45303BC",
+      "reviewed_sections": "run_attached and run_once lines125-275",
+      "path": "payload/fixture/np_supervisor.py"
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "ADMISSION",
+      "evidence": "Exact reviewed invocation and explicit one-shot authorization recorded before execution; all274 staging pins and executable/config pins match, unique evidence root absent."
+    },
+    {
+      "id": "CASE-SCOPE",
+      "evidence": "One exact case_id NP-V-MS-NONEXPIRED; passed=1,failed=0,skipped=0,unexpected_unknown=0,expected_unknown_cases=[]; exactly one matching case_results row, executed=true and case passed=true; no HOLD case treated as PASS."
+    },
+    {
+      "id": "NATIVE-IDENTITY",
+      "evidence": "Runtime pins and public DB CA agree with host; runner Docker calls=0, in-runner host ownership=false; host exact container IDs/images/isolation/mounts verified in receipt."
+    },
+    {
+      "id": "OWNING-PATH",
+      "evidence": "Case observations joined_tls_default=true,byte_transport_alias_used=false,release_plan_installed=true; measured ingress_budget_same_as_provider=true with counter.remaining.__self__/__func__ proof. Retain source-call-chain provenance; booleans alone do not establish a distinct runtime trace."
+    },
+    {
+      "id": "ASSESSMENT",
+      "evidence": "Measured persisted before.any_covering_success=false and after.all_covering_success=true; coverage_action all_requested_covering_ok/freshness_requested_ok=true; scheduling_ready=true,scheduling_revision typed integer>=1,freshness_all_enabled_ok=true; timestamps respect frozen600s validity."
+    },
+    {
+      "id": "NONEXPIRED-TOKEN",
+      "evidence": "Measured oauth_request_count=0,token_rollback_ack=true plus native terminal evidence and ROLLBACK_ACKNOWLEDGED classification; no secret token values needed."
+    },
+    {
+      "id": "WIRE-AND-ALIAS",
+      "evidence": "Peer/client exchange inventories agree with exact admitted four-exchange Microsoft transcript: default identity,list identity,two calendarView event calls. Wire order cal-ms-default then cal-np-other. Before lower sorted subscription points at primary alias; after no primary alias remains, canonical default and unrelated stable mapping agree. No extra OAuth/identity fetch inferred from status alone."
+    },
+    {
+      "id": "PKI-AND-RETIREMENT",
+      "evidence": "Typed provider_pki_summary generated success reconciled with case resource disposition and joined_workers/peer_retired/peer_joined; no success summary inferred on STOP. Distinguish observed joined peers from source-only lifecycle claims."
+    },
+    {
+      "id": "CAPTURE",
+      "evidence": "Bounded machine report valid, console bytes/hash only and no raw console retained; all command capture readers/retirement statuses known, command count<=32. Per-command1MiB is not whole-run quota."
+    },
+    {
+      "id": "SUCCESS-CLEANUP",
+      "evidence": "suite_pass followed by exact runner removed+absence; DB SIGINT/wait exit0,exact removal+absence; complete.success=true. suite_pass alone is insufficient for completed disposal."
+    },
+    {
+      "id": "POST-PRESERVATION",
+      "evidence": "All274 final staging pins and frozen269 preparation/266 diagnostic successor/265 stopped baseline unchanged; old native and cleanup receipts/fake result/old publicCA hashes unchanged. Record result/receipt hashes and limits in consolidated plan."
+    }
+  ],
+  "stop_disposition": "Any failure,mismatch,timeout,unexpected UNKNOWN or absent required evidence stops. Preserve output; no retry,repair,rerun,force or failure cleanup. Read-only reconcile exact IDs, then separate state-change gate if needed.",
+  "scope_limit": "Even a complete PASS proves only this selected native Microsoft nonexpired vertical at pinned source/runtime. It does not close all76 IDs,T05,Google/OAuth/error families,activation or live-provider readiness.",
+  "new_controls_or_behavior_added": false,
+  "target_code_parsed_or_executed": false,
+  "endpoint": "unbound"
+}

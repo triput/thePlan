@@ -1,0 +1,1094 @@
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json	2026-11-12 19:43:56.277460000 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/host/docker-ops-config.json	2026-11-12 21:10:55.310522200 -0800
+@@ -1,8 +1,8 @@
+ {
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+-  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
+-  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++  "source_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++  "manifest": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\SHA256SUMS.txt",
++  "public_ca_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+   "endpoint": "npipe:////./pipe/dockerDesktopLinuxEngine",
+@@ -48,7 +48,7 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ]
+       ],
+@@ -107,11 +107,11 @@
+       ],
+       "readonly_binds": [
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload",
+           "/packet"
+         ],
+         [
+-          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
++          "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence\\public-ca",
+           "/public-ca"
+         ]
+       ],
+@@ -165,5 +165,5 @@
+   "prep_is_not_pass": true,
+   "human_launch_authorized": false,
+   "candidate_launch_ready_staged": true,
+-  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
++  "docker_config": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\payload\\docker-config"
+ }
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json	2026-11-12 19:43:56.294492200 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/host/launch-config.json	2026-11-12 21:12:05.971492700 -0800
+@@ -1,12 +1,12 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "packet": "scheduler-native-provider-diagnostic-launch-v1",
+-  "batch_id": "np-v-ms-nonexpired-first-vertical",
++  "batch_id": "np-v-ms-refresh-single-case",
+   "endpoint": "unbound",
+   "endpoint_binding_authorized": false,
+   "port_verification_authorized": false,
+   "case_ids": [
+-    "NP-V-MS-NONEXPIRED"
++    "NP-V-MS-REFRESH"
+   ],
+   "expected_unknown_cases": [],
+   "include_cf_witnesses_separate_batch": true,
+@@ -50,10 +50,10 @@
+   "python_sha256": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC",
+   "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+   "docker_sha256": "8985CD8AC002C3240B5AA48FE401FCB55DCA5D849B537E3C835564E8E8C49A70",
+-  "manifest_sha256": "3B25ABB656F991B3B80F012C9E67E5840E48AAACD3AE2336DE13AFB8039B2A90",
+-  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
++  "manifest_sha256": "BD48E400924E8D6DD17597F7845E20FC01F1889AFEEAD743880CB3BF2623472D",
++  "docker_ops_config_path": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1\\host\\docker-ops-config.json",
+   "docker_ops_config_sha256_note": "Admitted only by operator ExpectedDockerConfigSHA256; not embedded as self-hash cycle",
+-  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-native-provider-diagnostic-launch-dex-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
++  "receipt_directory": "C:\\Users\\trish\\Documents\\Codex\\2026-10-15\\trish-wants-to-improve-dex-s\\outputs\\scheduler-ms-refresh-prep-matt-v1\\scheduler-native-provider-diagnostic-launch-v1.evidence",
+   "acyclic_input_graph": {
+     "A_host_launch_config": "operator ExpectedConfigSHA256 admits this file (outside payload)",
+     "B_payload_manifest": "manifest_sha256 -> payload/SHA256SUMS.txt covers every payload file except itself; excludes host launch-config, docker-ops-config, evidence",
+@@ -70,7 +70,8 @@
+   "prep_is_not_pass": true,
+   "implementation_increment": {
+     "implemented_case_ids": [
+-      "NP-V-MS-NONEXPIRED"
++      "NP-V-MS-NONEXPIRED",
++      "NP-V-MS-REFRESH"
+     ],
+     "remaining": "HOLD_EXPLICIT_NOT_PASS"
+   },
+@@ -81,8 +82,9 @@
+   "static_success_docker_command_count": 22,
+   "fake_v1_pass_prerequisite": "VERIFIED_PASS_16_OF_16_RESULT_88805F6E_RECON_8D489C62",
+   "human_launch_authorized": false,
+-  "candidate_launch_ready_staged": true,
+-  "candidate_note": "Dex launch-staging copy: machine admission flags staged true, not human authority; original Matt preparation remains frozen and unexecuted; one exact-hash Trish launch approval is still required",
++  "candidate_launch_ready_staged": false,
++  "candidate_note": "Matt MS-refresh preparation (scheduler-ms-refresh-prep-matt-v1): single-case NP-V-MS-REFRESH batch; host launch_ready=false and candidate staging false; runner-config launch_ready=false; not human authority; no native REFRESH launch before the shared-harness diagnostic outcome is reconciled and a separate exact approval exists",
++  "refresh_increment_note": "Copied from scheduler-native-provider-diagnostic-launch-dex-v1 (Input-Manifest 1C85559E...851A); static_success_docker_command_count carried from host Docker operation sequence (case-independent) - not re-derived in this preparation",
+   "source_native_ready_tip_on_disk": "A321FB198A69FBA4864C14D1CE474D49E68DF887F087EF0673DAA588CDB3FF57",
+   "source_native_ready_tip_sha256": "044862EF2B8DDC81C944DD8B576E3DE18F6DC198E8E55B1BC2EBE174CEACA2C1",
+   "source_candidate_v1_tip_on_disk": "7537494A683EA7F4AF1F0C4AC6D5926849922ACA01EFF06857FB69BADF89453F",
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt	2026-11-12 18:10:17.628518100 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/SHA256SUMS.txt	2026-11-12 21:12:05.743314800 -0800
+@@ -15,10 +15,12 @@
+ 09F72DDB9728CD0B8E45EE6ABFA3EDAEAA792717F6E8DF3E3195B10EB95A16D0  api/app/services/schedule_preview_apply.py
+ 0A28DFD540623453DE68C7B527FADA0D5DC9F88EDF9B924FD1997F7CCBF9C4CE  api/app/scheduler/replan.py
+ 0A8B0E20B4F058311CF93322C74BB2C0522C6FFC1E28237A9D7D72C9C10CC6DF  api/app/models/calendar.py
++0AA3BC093711B7EEBADD1F23A80BF86F2B5AEAB4C1224014537BB051FDDCE52E  fixture/np_provider_transcript.py
+ 0BA1540C9EA998B4C89286DF76BD08C127B226330CCBEBDD9D28D01296A2B64A  api/app/scheduler/README.md
+ 0BA49CA8BCF2BD427C7220D456339A7F3F347A060D16FC5CD75C006680D673E5  api/app/services/template_apply.py
+ 0FB9D2FD88AD189EB4259F93D538728AE41D6AA3923705321E5DB49B75986F7D  api/app/services/schedule_preview_dispatch.py
+ 1023C0B1866B25BB31408BD2775D68580BBFFEF0D7F6DDF269F0E96BFD459B4A  api/app/bootstrap.py
++108D8D1E5FEE4F1DBAB3FC6023AD018D7A5442C79C5012BD4D43A4DBAC6EE11A  runner-config.json
+ 109334339CEE464B1868B2F8F03014C273D898215FF2AE449D9D8D9ADB100CAA  api/app/scheduler/assignment_resolver.py
+ 132A8DF7E120725D2763BC23CD914BE2063AE4C084AF69D18DABB0264FE8B4DE  api/app/services/busy_intervals.py
+ 15350E0DFA6DE6432FB426B70CF3C0A3F465743935C733CA669B9BDC732E6F69  api/app/schemas/occurrence_disposition.py
+@@ -47,6 +49,7 @@
+ 28205C019FCF531D4C71BBA8E323CDB42501BEB1D43758DEA4F05AB602D232DA  api/app/services/token_crypto.py
+ 29575325829FE9E3F1AFCFF966601CA13E995A837CB6030F37D68C20E688550B  api/app/schemas/auth.py
+ 29CBD53C85E8D40185A5E7DF73DF85B752A34837D25FCD65DB6504AFB775B368  api/app/services/covering_http_transport.py
++2ADFA3ADCFDA8DB4D9D32EDFC9950AF354CE29ADFA1B5A8162FD5182DC22ED05  fixture/np_auth_seed.py
+ 2AE3E64ADF5608CA6C6808FE901B329995788079EB85792612D9BC3CE36C7B44  api/app/models/free_busy_policy.py
+ 2B27EB79F97CD73C0837A804A5C3325245288F6AAE26733F9653B8569F9B7831  api/app/schemas/templates.py
+ 2B54DD2A37C3B51EB2D1A4D5E6B1A26C51670D6D9A62BEE90163D954C16ED951  api/app/api/middleware/__init__.py
+@@ -65,9 +68,9 @@
+ 37667D5B18B341C47DE7DFB02DDB7440525832BEFD3E695CA0A1BA3CAB350F4B  fixture/i01_asgi_app.py
+ 39EB4E58DE2096F951383F70CDD814F82970FA65A640B9E26E5BA50DF94A2347  api/app/services/export_baseline.py
+ 4070655899C315DC59573FD7046E588370C7DF17C9E78DD6E7C35A48D9FFED31  api/app/scheduler/calculate.py
+-40A1BA8E9C3E320DD7DF9E06102CC29C0E1AFAAD4213EC0FECF9FE34455BF73F  fixture/np_runner_entry.py
+ 41A683A6A0312B12F71C42C966F9BA0EF3D02D97416FAEF28C6E99DE9B29DF4F  fixture/prepare-tls.sh
+ 468D5E0AE3A0A4688BE09145DFD08C26750D4E3CE5656946072E9F53E5E74651  api/app/services/quick_add.py
++46C9443D13E4CA526DEE4BEF5747D65AA0549CA0FFA963A8F8EB44595485370D  fixture/np_suite.py
+ 478A39A844D17A4C8AA1522D6D1E72BCA1596B31B274657B1ADC7F5749E979A1  api/app/scheduler/input_fingerprint.py
+ 483484D98DCD35ED6D2C8E24199B8FF910ADD9252F18CC8436FC485CF04BA7C1  api/app/services/availability_slug.py
+ 496C2C50525ED9C6D7F31E8FB298E0A8480FEBB0A001DD274FC163B599B62611  api/app/schemas/hierarchy.py
+@@ -104,7 +107,6 @@
+ 65529CBC072F34BD80D273C3D1480B23EDDF6BD877DF39886E56D90A18D848D2  api/app/services/covering_provider_context.py
+ 65B362BA1BFC43CE05C9D95160435A2692AE8082F5F15E330AEF5D208AFE3D81  api/app/services/calendar_refresh_failures.py
+ 665C9AD0DDC951FA0E88BA2F674F7D68F936AF1105A87BF416269AEF5F10BD5D  api/app/scheduler/task_effort.py
+-66FEEA815C7B196A78117229F80769ADDF8428CB073A586B59E2D81491419150  fixture/np_auth_seed.py
+ 6715C10AD2FF0770AB4E1B837305495303DC57A30AE3E97C67A77771267A1379  api/app/services/microsoft_series_identity.py
+ 6756D5A4D2B91EF57CEFC3FF510BCDEDB4C6AA5E73D2FA9FB4528C3CC00E5A6F  api/app/api/routes/handoffs.py
+ 678A95B2BF0B604678A71DF25ACC5C53D110E4FDC26FE0395FB8F2645843410B  api/app/services/keep_in_one_conflicts.py
+@@ -114,7 +116,6 @@
+ 6825929CE631BA764E830F0AFF3A48A92C9EE04E159F58460906523B69354B69  api/app/services/covering_refresh_locks.py
+ 692BC4F706F1AB3A492A711F8DE4B31E42B0E1578DEDB7C935BBBF2F07610B00  api/app/models/__init__.py
+ 692CE59506E4642C158D2CD24911347A61936BDE0A2EA72B1A4465ED568191FF  api/app/services/saved_view_presentation.py
+-69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD  fixture/np_receipts.py
+ 6A52B10FE43A7781718BAE0AC69DA91CA7FB3B48B9534EB18D5C9C80E75DD6EF  api/app/services/microsoft_calendar.py
+ 6AF6F2F49B63D376426CA6FCD4A63433B3EDB64B2DEA72CEF29A80B376B02BFD  api/app/api/routes/task_dependencies.py
+ 6BB6461E4E5179F7F47B0C49E192CE6B5CFD869E8F8DE458A9DA1B7EBF38FD03  api/app/data/outlines/blank_hierarchy_v1.json
+@@ -133,6 +134,7 @@
+ 7DF2F74ADCBBFDCFA76CCFF5C40E1287BBB09797C8A66C48A660220C09A1AA4E  api/app/scheduler/keep_in_one_conflicts.py
+ 7E39381B06A9557F8E4D29EFDEE1A140AA123155058BE949213664087B8114C0  api/app/services/covering_refresh_window.py
+ 7EABB11E13DF1B0AFAD483AF9F66D1CF93B837A32D07FBA86939077D639E3A11  api/app/api/deps.py
++7F27A3C2CBCA73C27DCEC6C9DCF6277C7F131ACC3A561C4170636EAB5D5E24C7  fixture/np_receipts.py
+ 7F7EA8204879D312624DAEB7941504FEA1402F45C48BDA79DDAD94A23711AC53  fixture/docker_transport.py
+ 7FD73B8770875030B9E275D62A03D4D33CA743298BC05E601DC5AFFEFDAEC150  api/tests/test_covering_http_connector_seam.py
+ 7FDE41DF137612B3C752B120330C128B58FD41E967A4ABB38B2535283C22629E  api/pyproject.toml
+@@ -170,7 +172,6 @@
+ A4594315C3F5BE2AED6E0BDAB8A41EE0A7C8D3470B360ED2276926E5B5266020  api/app/services/task_progress.py
+ A661FE9287E0BE086CCB070DF8F227D2449CA9B70303140A7E38B4015A71946F  api/app/services/calendar_alias_canonicalize.py
+ A8C473F1D062CF0DF3C4E8D3614283D9B5E2CF8682982CDC00CBC514CA628B71  api/app/scheduler/candidates.py
+-AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673  fixture/np_suite.py
+ AFAA59CD1195EA190C589C06A2D988836B6E2EBB59F4C4BE6A976777BFFDD781  api/app/scheduler/style.py
+ B597D2D4572716504C46846D2850205CF8401C7FBB2234C02BF96835650DCD2C  fixture/gate_pair.py
+ B6761A79514F0EA3B1E1454B6D193610DC49811871C3D54283C77017B9F62539  api/app/services/schedule_preview_staleness.py
+@@ -195,12 +196,12 @@
+ CA00CADFE7F3064E16BF37ACECBFC3754718FCB39FCDCA3B521DE7F1E70B51A1  api/app/scheduler/outcomes.py
+ CB03043193D8BB788D5C72BC71CD9380AAEF347CAB4240858A0D89721B03D483  api/app/api/routes/scheduling_assignments.py
+ CB423406B1535C18C1E0AF9A88DDA046080600359289A4B99E7F524EABE126A2  api/app/services/reorder.py
++CC4D49E758F22E5E34C0D6093946CA390BC95A4C320C3D92B24AD723FA8634FF  fixture/np_runner_entry.py
+ CD2F1DC05CC06986B9CD92584597C835AE256B8EC0320BA2D6B7020749A04546  api/app/schemas/search.py
+ CD5433A5939FD9D1B0E681AD68F6D608D382D0210539D37F980874ACBA36A060  api/app/services/friendly_duration.py
+ CD5F181F485804027951F80C20DD4804C017E82EF82E41ABBC2CD892D2FE1228  api/app/models/user.py
+ CE8F4052E955526304803402B0638DA0699A58C17E490FC6D2F98DF58946C40E  api/app/api/routes/agent_credentials.py
+ CF501293D154C9D1DD417F74C0F050A087533F2D7162AB3D3F8BFC3C25493511  fixture/gates_ready.py
+-CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3  fixture/np_provider_transcript.py
+ CFF4178C2BA9D3666C763B8A5E1666FC0D486F3F4716500CE0CAA4AC3BDCEA48  api/app/services/duration_fields.py
+ D096571F433C932F82F0FC443F0C34BFAA295148CD7FDCAC70765F3AAF2DDA5A  api/app/schemas/tasks.py
+ D2ED8B829989E6A5AA9B0EE3B55A2D47DB40DD6B501E43198014ECDC2BA2CE54  api/app/services/chunking_cutover_activation.py
+@@ -218,7 +219,6 @@
+ DD84BA434194847560E3EEDBCB2A741789C0BD3769725462293C4ADFE956982D  api/app/services/schedule_previews.py
+ DDC28D5BC8003638CB5386E35C568033B8B864482D4C345B75C092DA4CDAC62B  api/app/scheduler/day_scoped.py
+ DF0E31A74BB2E001617ECDCB7A18EC6C73A257AB2AB0B2D9BE5017BD9CD1206A  api/app/services/schedule_explanations.py
+-E132A138D1A01530984C2E90603B48E5A37801CD4097808D59E599A60C43A160  runner-config.json
+ E1B56312B506E8320F586442191D69DC08D9D807966D347F91878EDAEDBCB928  api/app/api/routes/outlines.py
+ E3566B3A06430868D71E9287DFD6C6C520A3DA027AABEA01951D407EE131DC2F  docker-config/config.json
+ E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855  api/app/__init__.py
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_auth_seed.py scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_auth_seed.py
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_auth_seed.py	2026-11-12 14:44:50.816478200 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_auth_seed.py	2026-11-12 21:07:48.657803900 -0800
+@@ -481,5 +481,76 @@
+     }
+ 
+ 
++# --- NP-V-MS-REFRESH (T06-SUCCESS-MICROSOFT) declared synthetic values -------------
++# Disposable fixture labels only — never live credentials, never emitted to evidence.
++# SEED_* mirror the literals encrypted by seed_browser_owner_with_subscriptions above
++# (kept as literals there so the NONEXPIRED seed path stays byte-identical).
++SEED_MS_ACCESS_PLAINTEXT = "fixture-access-plaintext-not-for-receipt"
++SEED_MS_REFRESH_PLAINTEXT = "fixture-refresh-plaintext-not-for-receipt"
++# Values the synthetic MS token endpoint returns for the refresh vertical.
++REFRESHED_MS_ACCESS_PLAINTEXT = "np-ms-refresh-new-access-synthetic-v1"
++ROTATED_MS_REFRESH_PLAINTEXT = "np-ms-refresh-rotated-refresh-synthetic-v1"
++MS_REFRESH_EXPIRES_IN_SECONDS = 3600
++TOKEN_FRESHNESS_SKEW_SECONDS = 30  # production get_valid_access_token skew
++
++
++def _ciphertext_sha16(ciphertext: str) -> str:
++    return hashlib.sha256(ciphertext.encode("utf-8")).hexdigest().upper()[:16]
++
++
++def measure_account_credential_state(
++    db,
++    *,
++    settings,
++    account_id: UUID,
++    reference_instant: datetime,
++) -> dict[str, Any]:
++    """Fresh persisted read of one account's credential columns.
++
++    Decrypts with the UNCHANGED production helper inside the fixture and compares
++    against the declared synthetic seed and refreshed values. Emits ONLY typed
++    booleans, the persisted expiry instant and short ciphertext hashes. Ciphertext
++    hash change alone is never proof (Fernet randomizes ciphertext); semantic
++    plaintext equality is the admission basis. Plaintext/ciphertext bodies are
++    never returned.
++    """
++    from app.models import CalendarAccount
++    from app.services.token_crypto import decrypt_token
++
++    if reference_instant.tzinfo is None:
++        raise RuntimeError("reference_instant must be timezone-aware UTC")
++    account = db.get(CalendarAccount, account_id)
++    if account is None:
++        raise RuntimeError("calendar account missing for credential measurement")
++    access_enc = account.access_token_enc
++    refresh_enc = account.refresh_token_enc
++    if not access_enc or not refresh_enc:
++        raise RuntimeError("credential ciphertext missing")
++    expires = account.token_expires_at
++    if expires is None:
++        raise RuntimeError("credential expiry missing")
++    if expires.tzinfo is None:
++        expires = expires.replace(tzinfo=timezone.utc)
++    access_plain = decrypt_token(settings, access_enc)
++    refresh_plain = decrypt_token(settings, refresh_enc)
++    try:
++        state = {
++            "seed_access_match": access_plain == SEED_MS_ACCESS_PLAINTEXT,
++            "seed_refresh_match": refresh_plain == SEED_MS_REFRESH_PLAINTEXT,
++            "refreshed_access_match": access_plain == REFRESHED_MS_ACCESS_PLAINTEXT,
++            "rotated_refresh_match": refresh_plain == ROTATED_MS_REFRESH_PLAINTEXT,
++            "access_ciphertext_sha16": _ciphertext_sha16(access_enc),
++            "refresh_ciphertext_sha16": _ciphertext_sha16(refresh_enc),
++            "expiry": expires.isoformat(),
++            "reference_instant": reference_instant.isoformat(),
++            "expiry_at_or_before_reference": expires <= reference_instant,
++            "expiry_after_reference_plus_skew": expires
++            > reference_instant + timedelta(seconds=TOKEN_FRESHNESS_SKEW_SECONDS),
++        }
++    finally:
++        del access_plain, refresh_plain
++    return state
++
++
+ if __name__ == "__main__":
+     raise SystemExit("HELD: np_auth_seed preparation only; no seeding or imports of app")
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_provider_transcript.py scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_provider_transcript.py
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_provider_transcript.py	2026-11-12 14:45:00.492898900 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_provider_transcript.py	2026-11-12 21:08:12.546931700 -0800
+@@ -4,9 +4,38 @@
+ """
+ from __future__ import annotations
+ 
++import json
+ from dataclasses import dataclass
+ from typing import Literal
+ 
++from np_auth_seed import (
++    FIXTURE_MS_TENANT,
++    MS_REFRESH_EXPIRES_IN_SECONDS,
++    REFRESHED_MS_ACCESS_PLAINTEXT,
++    ROTATED_MS_REFRESH_PLAINTEXT,
++)
++
++
++def ms_token_endpoint_path(tenant: str = FIXTURE_MS_TENANT) -> str:
++    """Path of production microsoft_calendar._token_url for an already-normalized tenant.
++
++    Production builds https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
++    after _normalize_tenant. This fixture derives the path ONCE from the fixture
++    tenant; the runner cross-checks it against the actual pinned production
++    builder before any request. Refuse anything production would rewrite.
++    """
++    if (
++        not isinstance(tenant, str)
++        or not tenant
++        or tenant != tenant.strip().strip("/")
++        or not all(ch.isascii() and (ch.isalnum() or ch == "-") for ch in tenant)
++    ):
++        raise ValueError("tenant must already be a normalized [A-Za-z0-9-] label")
++    return f"/{tenant}/oauth2/v2.0/token"
++
++
++MS_TOKEN_ENDPOINT_PATH = ms_token_endpoint_path()
++
+ 
+ CloseMode = Literal[
+     "orderly_close_notify",
+@@ -39,17 +68,32 @@
+ 
+ 
+ def ms_token_success_script() -> ExchangeScript:
++    """Synthetic MS refresh success at the production-derived tenant path.
++
++    Body carries the declared synthetic refreshed access + rotated refresh values
++    (np_auth_seed) so the fixture can prove semantic persistence by decrypting the
++    stored row. The peer sends body_template verbatim; it is never logged raw.
++    """
++    body = json.dumps(
++        {
++            "token_type": "Bearer",
++            "expires_in": MS_REFRESH_EXPIRES_IN_SECONDS,
++            "access_token": REFRESHED_MS_ACCESS_PLAINTEXT,
++            "refresh_token": ROTATED_MS_REFRESH_PLAINTEXT,
++        },
++        separators=(",", ":"),
++    )
+     return ExchangeScript(
+         script_id="MS-TOKEN-SUCCESS",
+         purpose="microsoft_token_refresh_success",
+         steps=(
+-            ExchangeStep("recv_request", method="POST", path="/oauth2/v2.0/token"),
++            ExchangeStep("recv_request", method="POST", path=MS_TOKEN_ENDPOINT_PATH),
+             ExchangeStep(
+                 "send_response",
+                 status=200,
+                 headers=(("Content-Type", "application/json"), ("Content-Length", "PLACEHOLDER")),
+-                body_template='{"token_type":"Bearer","expires_in":3600,"access_token":"fixture","refresh_token":"fixture"}',
+-                note="Body substituted at launch; never logged raw",
++                body_template=body,
++                note="Declared synthetic refresh values; peer sends verbatim; never logged raw",
+             ),
+             ExchangeStep("close", close_mode="orderly_close_notify"),
+         ),
+@@ -245,6 +289,36 @@
+     ) + views
+ 
+ 
++MS_REFRESH_EXCHANGE_COUNT = 5
++
++
++def ms_refresh_connection_inventory(
++    *,
++    identity_list_calendar_ids: tuple[str, ...] | list[str],
++    wire_calendar_ids: tuple[str, ...] | list[str],
++) -> tuple[ExchangeScript, ...]:
++    """Finite per-connection inventory for NP-V-MS-REFRESH (two subscriptions, one account).
++
++    Exact production order: one OAuth refresh POST for the first str-sorted target
++    (TOKEN COMMIT), then default identity, identity list, calendarView for each
++    wire calendar. The second target re-reads the committed token (TOKEN ROLLBACK)
++    and makes NO second OAuth request. Exactly five Connection:close exchanges.
++    Reuses the unchanged NONEXPIRED Graph scripts after the token exchange.
++    """
++    list_ids = tuple(identity_list_calendar_ids)
++    view_ids = tuple(wire_calendar_ids)
++    if len(view_ids) != 2 or len(list_ids) != 2:
++        raise RuntimeError("MS refresh inventory requires exactly two calendars")
++    scripts = (ms_token_success_script(),) + ms_nonexpired_connection_inventory(
++        calendar_ids=view_ids,
++        identity_list_calendar_ids=list_ids,
++        wire_calendar_ids=view_ids,
++    )
++    if len(scripts) != MS_REFRESH_EXCHANGE_COUNT:
++        raise RuntimeError("MS refresh inventory must contain exactly five exchanges")
++    return scripts
++
++
+ def abrupt_truncation_script() -> ExchangeScript:
+     return ExchangeScript(
+         script_id="T05-ABRUPT-TRUNCATION",
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_receipts.py scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_receipts.py
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_receipts.py	2026-11-12 14:09:42.891517800 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_receipts.py	2026-11-12 21:08:20.583761500 -0800
+@@ -45,6 +45,11 @@
+         "label_hash",
+         "alias_hash",
+         "case_token_sha256_16",
++        # NP-V-MS-REFRESH typed non-secret evidence (oracle name + measured terminal
++        # classifications only). Credential-state rows use non-token key names and
++        # carry only booleans, expiry instants and short ciphertext hashes.
++        "token_commit",
++        "token_terminal_sequence",
+     }
+ )
+ 
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py	2026-11-12 18:09:30.329950000 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_runner_entry.py	2026-11-12 21:10:19.718320300 -0800
+@@ -56,7 +56,7 @@
+ }
+ 
+ # Cases with authored runnable bodies under this prep successor.
+-IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED"})
++IMPLEMENTED_CASE_IDS: frozenset[str] = frozenset({"NP-V-MS-NONEXPIRED", "NP-V-MS-REFRESH"})
+ _IMPORT_BOOTSTRAP_DONE = False
+ _PROVIDER_PKI_PREPARED = False
+ 
+@@ -1184,6 +1184,626 @@
+                 ) from primary_failure
+ 
+ 
++def _ms_refresh_provider_routes(
++    *,
++    graph_hostname: str,
++    token_hostname: str,
++    dial_address: str,
++    dial_port: int,
++    ca_file: str,
++    token_path: str,
++):
++    """NP-V-MS-REFRESH routes: the UNCHANGED graph identity/event table plus one exact
++    OAuth route on a distinct login.microsoftonline.com HTTPSPeer (same CA/address/port).
++    """
++    from app.services.covering_transport_policy import HTTPSPeer
++
++    graph_routes = _ms_provider_routes(
++        peer_hostname=graph_hostname,
++        dial_address=dial_address,
++        dial_port=dial_port,
++        ca_file=ca_file,
++    )
++    token_peer = HTTPSPeer(
++        hostname=token_hostname,
++        address=dial_address,
++        port=dial_port,
++        ca_file=ca_file,
++    )
++    return tuple(graph_routes) + ((token_peer, token_path, "oauth"),)
++
++
++def _require_production_ms_token_path(*, settings: Any, token_hostname: str, token_path: str) -> None:
++    """Cross-check the fixture-derived token path against the actual pinned production builder."""
++    from urllib.parse import urlsplit
++
++    from np_suite import SuiteStop
++    from app.services import microsoft_calendar as production_ms
++
++    production_url = production_ms._token_url(  # noqa: SLF001 — read-only pinned builder
++        production_ms._normalize_tenant(settings.microsoft_tenant_id)  # noqa: SLF001
++    )
++    parts = urlsplit(production_url)
++    if (
++        parts.scheme != "https"
++        or parts.hostname != token_hostname
++        or parts.port is not None
++        or parts.path != token_path
++        or parts.query
++        or parts.fragment
++    ):
++        raise SuiteStop("fixture MS token path disagrees with production _token_url")
++
++
++def _actual_token_terminals(native_terminals: list[dict[str, Any]]) -> list[dict[str, Any]]:
++    """Native TOKEN terminal receipts only — excludes the observer marker row."""
++    return [row for row in native_terminals if "observer" not in row]
++
++
++def _run_np_v_ms_refresh() -> dict[str, Any]:
++    """NP-V-MS-REFRESH (T06-SUCCESS-MICROSOFT): expired MS token refreshed on the
++    production path, separate single-case batch.
++
++    Chain: covering-refresh ASGI ingress → CoveringReleasePlan.for_request →
++    ProviderCounter → CoveringHTTP (default JoinedTLS) → owning expired Microsoft
++    refresh (one OAuth POST at the production-derived tenant path) → native TOKEN
++    COMMIT (first target) / ROLLBACK (second target re-read) → IMPORT → final
++    ASSESSMENT. No transport injection, clock freezing, reseed or retry.
++    """
++    import inspect
++
++    from np_suite import SuiteStop, check_oracles_immediate, registry_by_id
++    from np_auth_seed import (
++        IDENTITY_DEFAULT_MS_CALENDAR_ID,
++        STABLE_UNRELATED_MS_CALENDAR_ID,
++        assert_plan_still_valid,
++        covering_refresh_body,
++        derive_production_target_calendar_order,
++        fixture_settings,
++        fresh_attempt_plan,
++        identity_list_calendar_ids_for_vertical,
++        inverted_subscription_ids,
++        measure_account_credential_state,
++        measure_subscription_coverage_state,
++        PlanValidityExpired,
++        seed_browser_owner_with_subscriptions,
++        seed_token_plan,
++    )
++    from np_alias_seed import microsoft_primary_alias_seed, sanitized_alias_receipt
++    from np_receipts import case_result_receipt
++    from np_provider_routes import microsoft_graph_route, microsoft_token_route
++    from np_provider_transcript import (
++        MS_REFRESH_EXCHANGE_COUNT,
++        MS_TOKEN_ENDPOINT_PATH,
++        ms_refresh_connection_inventory,
++    )
++    from np_provider_peer import SyntheticProviderPeer, PeerMaterial, PeerRetirementUnknown
++    from i01_asgi_app import asgi_client, build_i01_asgi_app, install_binding
++    from app.services.covering_release_plan import CoveringReleasePlan
++    from app.services.covering_http_transport import CoveringHTTP
++    from app.services.covering_joined_https import JoinedTLS
++    from app.services.covering_http_dispatch import CoveringReleaseBinding
++    from app.services.covering_target_transaction import RootOutcome
++    from app.services.calendar_alias_canonicalize import MS_LEGACY_PRIMARY_ALIAS
++
++    case_id = "NP-V-MS-REFRESH"
++    decl = registry_by_id(include_cf=True)[case_id]
++    plan = fresh_attempt_plan(case_id)
++    t_plan_iso = plan.t_plan.isoformat()
++    token_seed = seed_token_plan(case_id=case_id, provider="microsoft", expired=True)
++    alias = microsoft_primary_alias_seed(case_id=case_id)
++    settings = fixture_settings()
++
++    # Default JoinedTLS must remain the CoveringHTTP transport_factory.
++    sig = inspect.signature(CoveringHTTP.__init__)
++    transport_default = sig.parameters["transport_factory"].default
++    if transport_default is not JoinedTLS:
++        raise SuiteStop("production CoveringHTTP default is not JoinedTLS")
++
++    graph_route = microsoft_graph_route()
++    token_route = microsoft_token_route()
++    if (
++        token_route.dial_address != graph_route.dial_address
++        or token_route.dial_port != graph_route.dial_port
++        or token_route.ca_path != graph_route.ca_path
++    ):
++        raise SuiteStop("MS token route must share graph CA/address/port")
++    _require_production_ms_token_path(
++        settings=settings,
++        token_hostname=token_route.server_hostname,
++        token_path=MS_TOKEN_ENDPOINT_PATH,
++    )
++
++    planted = inverted_subscription_ids(case_token=plan.attempt_token)
++    factory = _open_native_setup_factory(settings=settings)
++    schema_receipt = provision_disposable_schema(factory)
++    setup = factory.open_setup_session()
++    try:
++        seed = seed_browser_owner_with_subscriptions(
++            setup,
++            settings=settings,
++            username_prefix="np-ms-refresh",
++            subscription_count=2,
++            provider="microsoft",
++            expired=True,
++            mark_covering_fresh_at_seed=False,
++            planted_subscription_ids=planted,
++            t_plan=plan.t_plan,
++            plant_microsoft_primary_alias=True,
++        )
++        setup.commit()
++    finally:
++        factory.close(setup)
++
++    assert seed.request_window_start is not None and seed.request_window_end is not None
++    assert seed.t_plan is not None
++    assert_plan_still_valid(seed.t_plan)
++    if seed.token_expired is not True:
++        raise SuiteStop("refresh vertical requires an expired seeded account")
++    if len(seed.account_ids) != 1 or len(seed.subscription_ids) != 2:
++        raise SuiteStop("refresh vertical requires two subscriptions on one account")
++    account_id = seed.account_ids[0]
++    if MS_LEGACY_PRIMARY_ALIAS not in seed.calendar_ids:
++        raise SuiteStop("enabled MS primary alias not planted on subscription row")
++
++    wire_calendar_ids = derive_production_target_calendar_order(
++        subscription_ids=list(seed.subscription_ids),
++        subscription_calendar_map=dict(seed.subscription_calendar_map),
++        primary_alias=MS_LEGACY_PRIMARY_ALIAS,
++        identity_default_calendar_id=IDENTITY_DEFAULT_MS_CALENDAR_ID,
++    )
++    identity_list_ids = identity_list_calendar_ids_for_vertical()
++    if identity_list_ids != (IDENTITY_DEFAULT_MS_CALENDAR_ID, STABLE_UNRELATED_MS_CALENDAR_ID):
++        raise SuiteStop("identity list must be (cal-ms-default default, cal-np-other)")
++    if wire_calendar_ids != (IDENTITY_DEFAULT_MS_CALENDAR_ID, STABLE_UNRELATED_MS_CALENDAR_ID):
++        raise SuiteStop(f"wire calendar order mismatch:{wire_calendar_ids!r}")
++    before_external = dict(seed.subscription_calendar_map)
++    lower_sorted = sorted(seed.subscription_ids, key=str)[0]
++    if before_external.get(str(lower_sorted)) != MS_LEGACY_PRIMARY_ALIAS:
++        raise SuiteStop("primary alias must sit on LOWER str-sorted subscription id")
++    inventory_scripts = ms_refresh_connection_inventory(
++        identity_list_calendar_ids=identity_list_ids,
++        wire_calendar_ids=wire_calendar_ids,
++    )
++    if len(inventory_scripts) != MS_REFRESH_EXCHANGE_COUNT:
++        raise SuiteStop("refresh inventory must contain exactly five exchanges")
++    # One synthetic peer serves both vendor hostnames (leaf SAN covers both; same
++    # numeric loopback dial). Runtime validation of this shared-peer assumption is
++    # only by an authorized native run.
++    peer = SyntheticProviderPeer(
++        peer_id=f"peer-{case_id}",
++        route=graph_route,
++        connection_scripts=inventory_scripts,
++        material=PeerMaterial(),
++    )
++    observations: dict[str, Any] = {}
++    native_terminals: list[dict[str, Any]] = []
++    client_inventory: list[dict[str, Any]] = []
++    oauth_requests = 0
++    held_transport: list[Any] = []
++    captured_contexts: list[Any] = []
++    real_request = None
++    transport = None
++    retirement_done = False
++    retirement_attempted = False
++    primary_failure: BaseException | None = None
++
++    try:
++        assert_plan_still_valid(plan.t_plan)
++
++        # BEFORE: fresh native setup sessions; measured persisted rows.
++        measure_db = factory.open_setup_session()
++        try:
++            credential_before = measure_account_credential_state(
++                measure_db,
++                settings=settings,
++                account_id=account_id,
++                reference_instant=plan.t_plan,
++            )
++            coverage_before = measure_subscription_coverage_state(
++                measure_db, subscription_ids=seed.subscription_ids
++            )
++        finally:
++            factory.close(measure_db)
++        if credential_before["expiry_at_or_before_reference"] is not True:
++            raise SuiteStop("before-state credential expiry is not at/before plan time")
++        if (
++            credential_before["seed_access_match"] is not True
++            or credential_before["seed_refresh_match"] is not True
++        ):
++            raise SuiteStop("before-state credential does not hold declared seed values")
++        if (
++            credential_before["refreshed_access_match"] is not False
++            or credential_before["rotated_refresh_match"] is not False
++        ):
++            raise SuiteStop("before-state credential already holds refreshed values")
++        if coverage_before["any_covering_success"] is True:
++            raise SuiteStop("before-state already covering-success; vertical not distinguishable")
++
++        peer.start_background(seconds=PEER_SECONDS_DEFAULT)
++
++        database_profile = _fixture_database_profile()
++        runtime_pins = _runtime_pins_from_config()
++        provider_routes = _ms_refresh_provider_routes(
++            graph_hostname=graph_route.server_hostname,
++            token_hostname=token_route.server_hostname,
++            dial_address=graph_route.dial_address,
++            dial_port=graph_route.dial_port,
++            ca_file=graph_route.ca_path,
++            token_path=MS_TOKEN_ENDPOINT_PATH,
++        )
++        release_plan = CoveringReleasePlan(
++            database_profile=database_profile,
++            password_supplier=lambda: "",
++            runtime_pins=runtime_pins,
++            provider_routes=provider_routes,
++            settings=settings,
++        )
++        if type(release_plan) is CoveringReleaseBinding:
++            raise SuiteStop("must install CoveringReleasePlan, not prebuilt binding")
++
++        def on_context(context: Any) -> None:
++            captured_contexts.append(context)
++
++        real_init = CoveringHTTP.__init__
++        _install_token_terminal_observer(native_terminals)
++
++        def capturing_init(self, *args, **kwargs):
++            nonlocal real_request, transport
++            real_init(self, *args, **kwargs)
++            held_transport.append(self)
++            transport = self
++            if self.transport_factory is not JoinedTLS:
++                raise SuiteStop("transport_factory injection refused — require default JoinedTLS")
++            underlying = self.request
++
++            def counted_request(method, url, *, purpose, **kwargs):
++                nonlocal oauth_requests
++                if purpose == "oauth":
++                    oauth_requests += 1
++                client_inventory.append(
++                    {
++                        "method": method,
++                        "purpose": purpose,
++                        "url_host_present": True,
++                        "connection_close_expected": True,
++                    }
++                )
++                return underlying(method, url, purpose=purpose, **kwargs)
++
++            real_request = underlying
++            self.request = counted_request  # type: ignore[method-assign]
++
++        CoveringHTTP.__init__ = capturing_init  # type: ignore[method-assign]
++        try:
++            app = build_i01_asgi_app(
++                session_secret=settings.session_secret,
++                clock=monotonic,
++                on_context=on_context,
++            )
++            install_binding(app, release_plan)
++            client = asgi_client(app)
++
++            body = covering_refresh_body(
++                list(seed.subscription_ids),
++                window_start=seed.request_window_start,
++                window_end=seed.request_window_end,
++                horizon_label="np-ms-refresh-horizon-v1",
++            )
++            assert_plan_still_valid(seed.t_plan)
++            response = client.post(
++                COVERING_PATH,
++                content=json.dumps(body).encode("utf-8"),
++                headers={"content-type": "application/json"},
++                cookies={"session": seed.cookie},
++            )
++        finally:
++            CoveringHTTP.__init__ = real_init  # type: ignore[method-assign]
++            try:
++                if transport is not None and real_request is not None:
++                    transport.request = real_request
++            except Exception:
++                pass
++
++        assert_plan_still_valid(seed.t_plan)
++        if not captured_contexts:
++            raise SuiteStop("ingress on_context did not capture actual request context")
++        ingress_budget = getattr(captured_contexts[0], "budget", None)
++        if ingress_budget is None:
++            raise SuiteStop("captured ingress context missing budget")
++        if len(held_transport) != 1 or type(held_transport[0]) is not CoveringHTTP:
++            raise SuiteStop("worker/POST did not construct exactly one CoveringHTTP")
++        if transport is None:
++            transport = held_transport[0]
++        from app.services.covering_request_budget import CoveringRequestBudget
++
++        counter = getattr(transport, "counter", None)
++        if counter is None:
++            raise SuiteStop("CoveringHTTP.counter missing after for_request")
++        remaining_cb = getattr(counter, "remaining", None)
++        if remaining_cb is None:
++            raise SuiteStop("ProviderCounter.remaining missing")
++        if getattr(transport, "budget", None) is not None:
++            raise SuiteStop("do not invent transport.budget as proof")
++        if getattr(counter, "budget", None) is not None:
++            raise SuiteStop("do not invent counter.budget as proof")
++        if getattr(remaining_cb, "__self__", None) is not ingress_budget:
++            raise SuiteStop("counter.remaining.__self__ is not the captured ingress context.budget")
++        if getattr(remaining_cb, "__func__", None) is not CoveringRequestBudget.work_remaining:
++            raise SuiteStop("counter.remaining.__func__ is not CoveringRequestBudget.work_remaining")
++
++        if response.status_code != 200:
++            raise SuiteStop(f"covering-refresh status:{response.status_code}")
++        payload = response.json()
++        if not isinstance(payload, dict):
++            raise SuiteStop("covering-refresh response is not a typed object")
++        # Actual public CoveringRefreshResponse schema.
++        overall_outcome = payload.get("overall_outcome")
++        if overall_outcome != "success":
++            raise SuiteStop(f"overall_outcome is not success:{overall_outcome!r}")
++        results = payload.get("results")
++        if not isinstance(results, list) or len(results) != 2:
++            raise SuiteStop("results must list exactly the two requested subscriptions")
++        result_ids = set()
++        for row in results:
++            if not isinstance(row, dict):
++                raise SuiteStop("results[] row is not a typed object")
++            if row.get("status") != "ok" or row.get("phase") != "import":
++                raise SuiteStop("every results[] row must be phase=import status=ok")
++            result_ids.add(str(row.get("subscription_id")))
++        if result_ids != {str(item) for item in seed.subscription_ids}:
++            raise SuiteStop("results[] subscription ids do not match the requested pair")
++        if "coverage_action" not in payload or "scheduling_readiness" not in payload:
++            raise SuiteStop("covering-refresh missing coverage_action/scheduling_readiness")
++        coverage_action = payload["coverage_action"]
++        readiness = payload["scheduling_readiness"]
++        if not isinstance(coverage_action, dict) or not isinstance(readiness, dict):
++            raise SuiteStop("coverage_action/scheduling_readiness must be objects")
++        freshness_requested = coverage_action.get("freshness_requested")
++        if not isinstance(freshness_requested, dict):
++            raise SuiteStop("coverage_action.freshness_requested missing typed object")
++        freshness_ok = freshness_requested.get("ok")
++        all_ok = coverage_action.get("all_requested_covering_ok")
++        scheduling_ready = readiness.get("scheduling_ready")
++        scheduling_revision = readiness.get("scheduling_revision")
++        freshness_all = readiness.get("freshness_all_enabled")
++        if freshness_ok is not True:
++            raise SuiteStop("freshness_requested.ok is not True")
++        if all_ok is not True:
++            raise SuiteStop("all_requested_covering_ok is not True")
++        if scheduling_ready is not True:
++            raise SuiteStop("scheduling_readiness.scheduling_ready is not True")
++        if type(scheduling_revision) is not int or scheduling_revision < 1:
++            raise SuiteStop("scheduling_revision not typed int>=1")
++        if not isinstance(freshness_all, dict) or freshness_all.get("ok") is not True:
++            raise SuiteStop("freshness_all_enabled.ok is not True")
++        if readiness.get("assessment_error") is not None:
++            raise SuiteStop("final ASSESSMENT reported an assessment_error")
++        for banned in ("command", "provider", "mode", "seed_hash", "assessment"):
++            if banned in payload:
++                raise SuiteStop(f"public covering-refresh must not carry private key:{banned}")
++
++        # AFTER: fresh native setup session; semantic credential proof + coverage.
++        t_final_check = datetime.now(timezone.utc)
++        measure_db = factory.open_setup_session()
++        try:
++            credential_after = measure_account_credential_state(
++                measure_db,
++                settings=settings,
++                account_id=account_id,
++                reference_instant=t_final_check,
++            )
++            coverage_after = measure_subscription_coverage_state(
++                measure_db, subscription_ids=seed.subscription_ids
++            )
++        finally:
++            factory.close(measure_db)
++        if (
++            credential_after["refreshed_access_match"] is not True
++            or credential_after["rotated_refresh_match"] is not True
++        ):
++            raise SuiteStop("persisted credential does not equal the declared refreshed values")
++        if (
++            credential_after["seed_access_match"] is not False
++            or credential_after["seed_refresh_match"] is not False
++        ):
++            raise SuiteStop("persisted credential still equals the seed values")
++        if credential_after["expiry_after_reference_plus_skew"] is not True:
++            raise SuiteStop("persisted expiry not advanced beyond final check + 30s")
++        if coverage_after["all_covering_success"] is not True:
++            raise SuiteStop("after-state missing covering success")
++
++        # Native TOKEN terminals: exactly COMMIT (first target) then ROLLBACK (second).
++        token_terminals = _actual_token_terminals(native_terminals)
++        terminal_sequence = [
++            {"terminal": row.get("terminal"), "commit_requested": row.get("commit_requested")}
++            for row in token_terminals
++        ]
++        if terminal_sequence != [
++            {"terminal": RootOutcome.COMMIT_ACKNOWLEDGED.name, "commit_requested": True},
++            {"terminal": RootOutcome.ROLLBACK_ACKNOWLEDGED.name, "commit_requested": False},
++        ]:
++            raise SuiteStop(f"TOKEN terminal sequence mismatch:{terminal_sequence!r}")
++
++        # One OAuth request, first; exactly five client requests in production order.
++        if oauth_requests != 1:
++            raise SuiteStop(f"refresh path must perform exactly one OAuth exchange:{oauth_requests}")
++        client_purposes = [(row.get("method"), row.get("purpose")) for row in client_inventory]
++        if client_purposes != [
++            ("POST", "oauth"),
++            ("GET", "identity"),
++            ("GET", "identity"),
++            ("GET", "event"),
++            ("GET", "event"),
++        ]:
++            raise SuiteStop(f"client request order mismatch:{client_purposes!r}")
++
++        peer_state = peer.sanitized_state()
++        served = int(peer_state.get("connection_count_served") or 0)
++        admitted = int(peer_state.get("connection_count_admitted") or 0)
++        if served != admitted or served != len(inventory_scripts):
++            raise SuiteStop(f"peer exchange inventory mismatch served={served} admitted={admitted}")
++        peer_exchanges = list(peer_state.get("exchange_inventory") or [])
++        if len(peer_exchanges) != MS_REFRESH_EXCHANGE_COUNT:
++            raise SuiteStop("peer exchange inventory is not exactly five")
++        first = peer_exchanges[0] if peer_exchanges else {}
++        if first.get("method") != "POST" or first.get("path") != MS_TOKEN_ENDPOINT_PATH:
++            raise SuiteStop("first peer exchange is not POST at the production token path")
++        if any(row.get("method") != "GET" for row in peer_exchanges[1:]):
++            raise SuiteStop("only the first peer exchange may be the OAuth POST")
++
++        after_external = dict(coverage_after.get("external_calendar_ids") or {})
++        if after_external.get(str(lower_sorted)) == MS_LEGACY_PRIMARY_ALIAS:
++            raise SuiteStop("primary alias remained after requested-row rewrite")
++        if MS_LEGACY_PRIMARY_ALIAS in after_external.values():
++            raise SuiteStop("enabled primary alias remains after first rewrite")
++
++        # Oracles are emitted only after every measured check above has passed.
++        observations = {
++            "owning_ms_refresh_joinedtls": "OBSERVED",
++            "token_commit": "OBSERVED",
++            "persistence": "OBSERVED",
++            "covering_path": COVERING_PATH,
++            "settings_module": "app.config.Settings",
++            "joined_tls_default": True,
++            "byte_transport_alias_used": False,
++            "release_plan_installed": True,
++            "ms_oauth_endpoint_path": MS_TOKEN_ENDPOINT_PATH,
++            "primary_alias_planted": MS_LEGACY_PRIMARY_ALIAS,
++            "primary_alias_on_lower_sorted_id": True,
++            "wire_calendar_order": list(wire_calendar_ids),
++            "schema_provisioned": schema_receipt,
++            "provider_pki_caller": "admit_provider_pki_generated_once",
++            "provider_pki_status": (
++                "GENERATED" if _PROVIDER_PKI_GENERATE_ONCE_DONE else "PREPARED_NOT_GENERATED"
++            ),
++        }
++        measured = {
++            "credential_state_before": credential_before,
++            "credential_state_after": credential_after,
++            "coverage_before": coverage_before,
++            "coverage_after": coverage_after,
++            "public_response": {
++                "overall_outcome": overall_outcome,
++                "results": [
++                    {
++                        "subscription_id": str(row.get("subscription_id")),
++                        "phase": row.get("phase"),
++                        "status": row.get("status"),
++                    }
++                    for row in results
++                ],
++                "coverage_action": {
++                    "all_requested_covering_ok": all_ok,
++                    "freshness_requested_ok": freshness_ok,
++                },
++                "scheduling_readiness": {
++                    "scheduling_ready": scheduling_ready,
++                    "scheduling_revision": scheduling_revision,
++                    "freshness_all_enabled_ok": freshness_all.get("ok"),
++                    "assessment_error": readiness.get("assessment_error"),
++                },
++            },
++            "oauth_request_count": oauth_requests,
++            "token_terminal_sequence": terminal_sequence,
++            "client_exchange_inventory": list(client_inventory),
++            "alias_hash": alias.seed_hash,
++            "label_hash": token_seed.label_hash,
++            "ingress_budget_same_as_provider": True,
++            "budget_proof": "counter.remaining.__self__/__func__",
++            "wire_calendar_order": list(wire_calendar_ids),
++            "alias_rewrite": {
++                "before_external_calendar_ids": before_external,
++                "after_external_calendar_ids": after_external,
++                "lower_sorted_subscription_id": str(lower_sorted),
++                "primary_alias_before": MS_LEGACY_PRIMARY_ALIAS,
++                "canonical_default_after": IDENTITY_DEFAULT_MS_CALENDAR_ID,
++                "unrelated_stable": STABLE_UNRELATED_MS_CALENDAR_ID,
++                "identity_list_ids": list(identity_list_ids),
++            },
++        }
++        _ = sanitized_alias_receipt(alias)
++        check_oracles_immediate(
++            decl,
++            {"owning_ms_refresh_joinedtls": "OBSERVED", "token_commit": "OBSERVED", "persistence": "OBSERVED"},
++        )
++        t_check_iso = _iso_now()
++        assert_plan_still_valid(plan.t_plan)
++        retirement_attempted = True
++        retirement = peer.retire_owned(join_seconds=5.0)
++        retirement_done = True
++        if retirement.get("joined") is not True:
++            raise SuiteStop("peer worker unjoined — UNKNOWN")
++        unexpected = [
++            t
++            for t in threading.enumerate()
++            if t is not threading.main_thread() and t.name.startswith("np-peer-")
++        ]
++        if unexpected:
++            raise SuiteStop("unjoined np-peer worker after retirement")
++
++        return case_result_receipt(
++            case_id=case_id,
++            passed=True,
++            workers_joined=True,
++            expected_unknown=False,
++            executed=True,
++            prep_is_not_pass=True,
++            observations=observations,
++            t_plan_iso=t_plan_iso,
++            t_check_iso=t_check_iso,
++            measured=measured,
++            peer_exchange_inventory=peer_exchanges,
++            resource_disposition={
++                "peer_retired": True,
++                "peer_joined": True,
++                "factory_closed": True,
++                "provider_pki_status": (
++                    "GENERATED"
++                    if _PROVIDER_PKI_GENERATE_ONCE_DONE
++                    else ("PREPARED_NOT_GENERATED" if _PROVIDER_PKI_PREPARED else "NOT_PREPARED")
++                ),
++                "provider_pki_generated": _PROVIDER_PKI_GENERATE_ONCE_DONE is True,
++            },
++        )
++    except PlanValidityExpired:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except PeerRetirementUnknown:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise SuiteStop("owned peer retirement UNKNOWN")
++    except CaseBodyHold:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except SuiteStop:
++        primary_failure = sys.exc_info()[1]  # type: ignore[assignment]
++        raise
++    except BaseException as exc:
++        primary_failure = exc
++        raise SuiteStop(f"framework_stop:{case_id}:{type(exc).__name__}") from exc
++    finally:
++        try:
++            if transport is not None and real_request is not None:
++                transport.request = real_request
++        except Exception:
++            pass
++        if (
++            not retirement_attempted
++            and peer._worker is not None
++            and not peer.life.joined
++        ):  # noqa: SLF001
++            retirement_attempted = True
++            try:
++                peer.retire_owned(join_seconds=5.0)
++                retirement_done = True
++            except PeerRetirementUnknown:
++                if primary_failure is None:
++                    raise SuiteStop("owned peer retirement UNKNOWN on cleanup")
++                raise SuiteStop(
++                    f"owned peer retirement UNKNOWN after primary:{type(primary_failure).__name__}"
++                ) from primary_failure
++
++
+ def _open_native_setup_factory(*, settings: Any) -> Any:
+     """Open disposable setup factory — immutable AssessmentFactory lineage (i01)."""
+     from assessment_binding import AssessmentFactory
+@@ -1253,6 +1873,12 @@
+ 
+         _run.__name__ = f"run_{case_id}"
+         return _run
++    if case_id == "NP-V-MS-REFRESH":
++        def _run_refresh() -> dict[str, Any]:
++            return _run_np_v_ms_refresh()
++
++        _run_refresh.__name__ = f"run_{case_id}"
++        return _run_refresh
+     raise CaseBodyHold(case_id, "no implemented body mapper")
+ 
+ 
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py	2026-11-12 12:36:39.226537600 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/fixture/np_suite.py	2026-11-12 21:08:30.238053500 -0800
+@@ -447,6 +447,12 @@
+ # Incomplete cases remain HOLD in runner — never fabricated PASS.
+ CASE_IMPLEMENTATION_NOTES: dict[str, str] = {
+     "NP-V-MS-NONEXPIRED": "IMPLEMENTED_SOURCE — first vertical; launch_ready gate still required",
++    "NP-V-MS-REFRESH": (
++        "IMPLEMENTED_SOURCE — separate single-case batch; expired MS seed, one OAuth "
++        "exchange at production-derived tenant path, TOKEN COMMIT then ROLLBACK, five "
++        "peer exchanges, semantic persisted-credential proof; launch_ready gate still "
++        "required; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 
+diff -ruN -x Input-Manifest.sha256 scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json
+--- scheduler-native-provider-diagnostic-launch-dex-v1/scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json	2026-11-12 16:23:05.784784100 -0800
++++ scheduler-ms-refresh-prep-matt-v1/scheduler-native-provider-diagnostic-launch-v1/payload/runner-config.json	2026-11-12 21:11:06.438950400 -0800
+@@ -1,7 +1,7 @@
+ {
+-  "launch_ready": true,
++  "launch_ready": false,
+   "case_ids": [
+-    "NP-V-MS-NONEXPIRED"
++    "NP-V-MS-REFRESH"
+   ],
+   "expected_unknown_cases": [],
+   "runner_seconds": 600,
+@@ -40,6 +40,13 @@
+   "first_vertical_case_ids": [
+     "NP-V-MS-NONEXPIRED"
+   ],
++  "refresh_increment_batch_case_ids": [
++    "NP-V-MS-REFRESH"
++  ],
++  "implemented_case_ids": [
++    "NP-V-MS-NONEXPIRED",
++    "NP-V-MS-REFRESH"
++  ],
+   "remaining_case_bodies": "HOLD_EXPLICIT_NOT_PASS",
+   "planning_ids_retained": 76
+ }

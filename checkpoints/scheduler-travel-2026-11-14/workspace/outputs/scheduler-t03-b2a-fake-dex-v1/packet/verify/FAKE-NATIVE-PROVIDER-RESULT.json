@@ -1,0 +1,181 @@
+{
+  "control_ids_in_order": [
+    "SUBJECT-PINS",
+    "RUNTIME-PROVENANCE",
+    "DIFF-REDERIVATION",
+    "PRESERVED-OUTSIDE-CHANGE",
+    "NEGATIVE-HELPER",
+    "POSITIVE-HELPER-PRESERVED",
+    "OBSERVE-WIRING",
+    "CASE-BODIES",
+    "RECEIPT-RETENTION",
+    "CONFIG-AND-IMMUTABLES",
+    "ACTUAL-SOURCE-MUTANTS"
+  ],
+  "controls": {
+    "ACTUAL-SOURCE-MUTANTS": {
+      "control_kind": "actual_source_mutant",
+      "mutant_kinds": {
+        "ca_swap_mixed": "behavioral",
+        "class_set_widened": "behavioral",
+        "none_admitted": "behavioral",
+        "note_check_dropped": "behavioral",
+        "outcome_widened": "behavioral",
+        "phase_check_dropped": "behavioral",
+        "second_retirement": "behavioral",
+        "wrong_name_also_swaps_ca": "behavioral"
+      },
+      "mutants": {
+        "ca_swap_mixed": "DETECTED",
+        "class_set_widened": "DETECTED",
+        "none_admitted": "DETECTED",
+        "note_check_dropped": "DETECTED",
+        "outcome_widened": "DETECTED",
+        "phase_check_dropped": "DETECTED",
+        "second_retirement": "DETECTED",
+        "wrong_name_also_swaps_ca": "DETECTED"
+      },
+      "observed": "PASS"
+    },
+    "CASE-BODIES": {
+      "cases": {
+        "case_mapping_exact": "PASS",
+        "no_schema_or_asgi": "PASS",
+        "oracle_names_equal_declarations": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "CONFIG-AND-IMMUTABLES": {
+      "cases": {
+        "api_peer_routes_helpers_immutable": "PASS",
+        "docker_ops_root_rename_only": "PASS",
+        "launch_config": "PASS",
+        "nested_delta_exact": "PASS",
+        "payload_delta_exact": "PASS",
+        "runner_config": "PASS"
+      },
+      "control_kind": "config_data",
+      "observed": "PASS"
+    },
+    "DIFF-REDERIVATION": {
+      "cases": {
+        "runner": "PASS",
+        "runner_config": "PASS",
+        "suite": "PASS",
+        "transcript": "PASS"
+      },
+      "control_kind": "literal_text",
+      "observed": "PASS"
+    },
+    "NEGATIVE-HELPER": {
+      "cases": {
+        "advanced_state_stops": "PASS",
+        "class_outside_set_stops": "PASS",
+        "none_stops": "PASS",
+        "note_mismatch_stops": "PASS",
+        "planned_refusal_accepted": "PASS",
+        "single_attempt_all_paths": "PASS",
+        "unjoined_stops_unknown_same_object": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "hypothesis_note": "the frozen peer class set is a fail-closed fixture hypothesis, not native behavior",
+      "observed": "PASS"
+    },
+    "OBSERVE-WIRING": {
+      "cases": {
+        "valid_one_attempt_one_retirement": "PASS",
+        "wrong_ca_client_trust_only": "PASS",
+        "wrong_name_served_leaf_only": "PASS",
+        "wrong_outcome_stops": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS",
+      "scope_note": "actual _t03_observe with actual routes and transcript units; peer, CoveringHTTP, JoinedTLS, budget and policy are named fakes; no native TLS or certificate behavior is claimed"
+    },
+    "POSITIVE-HELPER-PRESERVED": {
+      "cases": {
+        "clean_joined_accepted": "PASS",
+        "worker_error_and_unjoined_refused": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake",
+      "observed": "PASS"
+    },
+    "PRESERVED-OUTSIDE-CHANGE": {
+      "cases": {
+        "positive_helper_byte_identical": "PASS",
+        "runner": "PASS",
+        "transcript_and_suite": "PASS"
+      },
+      "control_kind": "structural_source",
+      "observed": "PASS"
+    },
+    "RECEIPT-RETENTION": {
+      "cases": {
+        "every_emitted_key_survives": "PASS",
+        "typed_evidence_survives_privacy_unchanged": "PASS"
+      },
+      "control_kind": "extracted_behavior_fake_and_structural",
+      "observed": "PASS"
+    },
+    "RUNTIME-PROVENANCE": {
+      "cases": {
+        "email_feedparser_pin": "PASS",
+        "email_parser_pin": "PASS",
+        "http_client_pin": "PASS",
+        "json_decoder_pin": "PASS",
+        "json_init_pin": "PASS",
+        "json_scanner_pin": "PASS",
+        "transitive_modules_disclosed": "PASS"
+      },
+      "control_kind": "runtime_provenance_partial",
+      "observed": "PASS",
+      "transitive_modules_loaded": {
+        "_json": true,
+        "_ssl": true,
+        "socket": true,
+        "ssl": true
+      }
+    },
+    "SUBJECT-PINS": {
+      "control_kind": "raw_pin",
+      "observed": "PASS",
+      "subjects": {
+        "config/candidate-docker-ops-config.json": "F4EFDC381BB8C45DEA65F44706C55C8A2B88D1183E3C262041CF06294949ECA2",
+        "config/candidate-launch-config.json": "F137A0154EAA5672B88F7352F54873E96AC330B763BD9B8067BE41B83614FDB0",
+        "config/candidate-runner-config.json": "FF286F1ECE29775EC84592B221180B08FB88C1160F9479BD810435ED3AE35561",
+        "config/source-docker-ops-config.json": "5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76",
+        "config/source-launch-config.json": "03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9",
+        "config/source-runner-config.json": "8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029",
+        "diff/np_provider_transcript.py.diff": "A158D735490F7A748BF9242F703181CD834F9A0C6106B424C37DF487D05F4997",
+        "diff/np_runner_entry.py.diff": "653D45E76F8CE631FE42C03E6665C7680DE79CD120B0EC265F37DE46BA441C79",
+        "diff/np_suite.py.diff": "FC6F37ABB3815B8791F6EDB3673BA27DC6B06DC67292FD9FE44CAFADB2CA00A2",
+        "diff/runner-config.json.diff": "5454BEB07BFE806B01A74CBFDE91288A66AC927CEF6462C965140C21D36DC25A",
+        "fixture/np_provider_peer.py": "17EA148E6DE9E30485992FC49C310975076F5F4A71AB3AA9441B3B63C1ADA039",
+        "fixture/np_provider_routes.py": "9CBDE09CD1E84DCB6380BC223C9C23791DA3671AC042C13A745291F9CC5A11EA",
+        "fixture/np_receipts.py": "69F59AF10FF5A6FAED469E4C93DCB128F741C50444CC31E37737EC4889B708FD",
+        "manifest/candidate-nested.txt": "538DB16FC2BD16E32A8ED8DC272456197855A79C97EA7219E475DFF201E6C061",
+        "manifest/candidate.txt": "79810C46C3F42EB25C3B3A0BE4720960D5A5CD897F7AF4565BD20762BCD2F195",
+        "manifest/source-nested.txt": "DA1D9A157E8F6BCB6512923126D2E76104E9D48CE39E27F40B687B5388C08BB8",
+        "manifest/source.txt": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A",
+        "runner/candidate.py": "B9CF830D37B5F9B6E4D24E361C11C2069BC0E0DF692F418E6CB4AF25D52500A4",
+        "runner/source.py": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D",
+        "suite/candidate.py": "F7303ADD3B90F3C8FE531CE26C2FC00C023A747D983F99A9DAD177684AB3478C",
+        "suite/source.py": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+        "transcript/candidate.py": "7EF0CCA026D2A0243102290B7AE393D86F95D09ADD5C672C6AE4820AC07071F3",
+        "transcript/source.py": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3"
+      }
+    }
+  },
+  "endpoint": "unbound",
+  "executed": true,
+  "failed": 0,
+  "failed_controls": [],
+  "kind": "fake-native-provider-structural-result",
+  "launch_authorized": false,
+  "native_proof": false,
+  "nested_predicates": 47,
+  "packet": "scheduler-native-t03-b2a-fake-prep-matt-v1",
+  "passed": 11,
+  "prep_is_not_pass": true
+}

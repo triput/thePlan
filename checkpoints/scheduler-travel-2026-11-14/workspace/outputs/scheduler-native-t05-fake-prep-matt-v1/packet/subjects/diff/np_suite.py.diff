@@ -1,0 +1,20 @@
+--- a/payload/fixture/np_suite.py
++++ b/payload/fixture/np_suite.py
+@@ -453,6 +453,17 @@
+         "peer exchanges, semantic persisted-credential proof; launch_ready gate still "
+         "required; no native PASS until an authorized run"
+     ),
++    "NP-T05-ORDERLY-CLOSE": (
++        "IMPLEMENTED_SOURCE — production Counter/CoveringHTTP/default JoinedTLS; two separate "
++        "observations after orderly close_notify: close-delimited complete accepted (exact body, "
++        "no CL/TE) and short-CL valid-JSON prefix refused (IncompleteRead); peer retired/joined "
++        "before classification; no native PASS until an authorized run"
++    ),
++    "NP-T05-ABRUPT-TRUNCATION": (
++        "IMPLEMENTED_SOURCE — abrupt TLS drop without close_notify mid-body; observed client class "
++        "must be SSLEOFError or ConnectionResetError, distinct from framing/JSON refusal and ASGI "
++        "disconnect; any other class STOPs; no native PASS until an authorized run"
++    ),
+ }
+ 
+ 

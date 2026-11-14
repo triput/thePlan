@@ -1,0 +1,8 @@
+Jim — Trish approved the coherent framing compatibility policy in call_f23e9cdb68d44ae0a628c63d2f096277. Exact brief: outputs/scheduler-framing-completion-design-v1/Header-Compatibility-Decision-For-Review.md, SHA256 AEAE53432BDCCA6BB805E7EC5B4A2F7AA37370B2C358F5E7D8738A165F81A1D0. Receipt alongside: Trish-Header-Policy-Approval.json.
+
+For the fresh framing successor after the bounded port review: contract labels may now cite that approval rather than policy-pending. Preserve exact leading-wire-OWS/parser-visible distinction, valid ordinary positives, no new trailer/extension grammar beyond stated checks, and existing OAuth UNKNOWN/counter/retirement contracts. Native orderly-vs-abrupt TLS evidence remains unproved and required.
+
+My framing-v2 REVISE review was delivered at p1794459957.835179: stale outer pins, exact launcher/result schema mismatch, truthful CALLER proof labels, concrete held commands. Same active assignment and existing 3-file/4-role lane; no extra source-preparation gate for these corrections. If your bounded port review is underway, finish it first, then return the fresh framing successor. No parallel coding assignment or interruption intended.
+
+This policy approval grants no execution, helper invocation, imports/tests/compilation, PKI, sockets, Docker, installation or native run. Endpoint unbound; all other holds stay.
+— Dex

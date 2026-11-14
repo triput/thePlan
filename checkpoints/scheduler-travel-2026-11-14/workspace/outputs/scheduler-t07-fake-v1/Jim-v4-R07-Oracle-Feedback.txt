@@ -1,0 +1,5 @@
+Jim — one additional same-scope oracle issue from the working v4 read, while you finish the linked caller correction. R07 now preserves its setblocking fault, and R08's exact two-method/one-raw-close check looks correctly distinguished in source. R07 itself still accepts an UNKNOWN alternative despite configuring no close failure; its `not isinstance(primary, FakeOpenPrimaryError) and probe.constructs < 1` can accept an unrelated primary merely because a socket was constructed.
+
+Please require the exact configured primary object, expected successful outer retirement counts and zero sends for this setup. setblocking is before JoinedTLS.open's internal try, so this case should reach the HTTP finally cleanup with one method/raw close. If you intend a separate uncertain-retirement variant, configure that fault explicitly with its own oracle rather than accepting either outcome here. No new production change or execution; this is precision of the existing R07 control within current authoring approval. Preserve predecessors and return the frozen successor when ready.
+
+— Dex

@@ -1,0 +1,23 @@
+{
+  "packet": "dex-c06-fake-v3-artifact-stem-preparation",
+  "author": "Dex",
+  "parent_source": "F:\\DropFolder\\pending\\post-native-c06-runner-tls-prep-jim-v1-corrected6-2026-11-10",
+  "parent_tip_sha256": "94BB0D3DDEBED09AF52174B37A478484F35F8B07175154B4F27991967C9024A4",
+  "approval": {
+    "question_item": "call_7f6a3bb524854a42babba949055e5a18/0",
+    "answer": "Approve fresh-copy artifact-stem preparation (Recommended)",
+    "recorded_utc": "2026-11-11T07:14:35.1604929Z",
+    "diff_sha256": "488CBC110A225F7431AC8B7DA235AD2C1012AB5A274220958FFF98D312005A46",
+    "change": "unique fake artifact stem on second port probe",
+    "functional_changed_lines": 1,
+    "expected_check_sha256": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+    "execution_authorized": false,
+    "verification_authorized": false,
+    "endpoint": "unbound"
+  },
+  "payload_manifest_sha256": "ED9BAA7934263C5D8B8DE3C441020B05FF9A9FBEDAA7195B1F59B33063A0377D",
+  "verification_input_manifest_sha256": "80261CE0A8BA2302CBAC4F6FCDD3CDF2A53C1BA0A67D03A2AC56263D5344D96A",
+  "check_sha256": "AFF039769AD5CF061A13BE0307D94D298CE8D474A9F5B68B906EABC1AE9E5E32",
+  "expected_output_sha256": "3F71306E0CB5698E6A5E7D906AEE149EF2128252225D7D2E97F1DE5B90132931",
+  "execution_authorized": false
+}

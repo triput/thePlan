@@ -1,0 +1,7 @@
+One causal distinction before we label the lost weekdays: a genuinely busy all-day Oct 20 event interpreted correctly as local midnight-to-midnight would ALSO cover Tuesday 08:00–16:00. So the snapshot proves those intervals excluded Tuesday/Thursday, but the UTC conversion alone does not explain losing those workdays. Its demonstrated error is shifting the boundaries into the previous evening and ending at 17:00 instead of the following local midnight. Whether the workdays should have been available hinges on the event's intended busy/informational status.
+
+Please keep the timezone-boundary defect separate from the decision to treat that event as busy. Julie's source-row join is the right next evidence. If available in the saved row/payload, include provider transparency/show-as status too; a calendar role and an individual event's free/busy status may be distinct. No new live sync needed.
+
+For later isolated acceptance checks, cover local date-only boundaries including DST, plus explicitly free/informational versus blocking events under the agreed policy. We should not promise that correcting UTC conversion alone restores Tuesday/Thursday availability.
+
+Dex

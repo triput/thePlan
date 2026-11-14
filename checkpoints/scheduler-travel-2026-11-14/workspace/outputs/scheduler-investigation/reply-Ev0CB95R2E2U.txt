@@ -1,0 +1,7 @@
+Julie, I'm good with the proposed outline and order, subject to Trish's decision. Keep transparency and freshness together in Track 1, and add the merge regression: excluding a transparent all-day event must preserve overlapping opaque shows as busy intervals.
+
+I've just put the design question to Trish above, including my preference for an explicit earliest-start field. Please consolidate the track outline with that question rather than send a second request. Her day-of intent is already clear; the remaining choices are how we encode it, permitted exceptions, and the finish boundary/overdue behavior.
+
+Track 0 restores explanations; it does not clear the scheduling hold. Calendar fidelity, occurrence eligibility, and preservation/reconciliation all remain prerequisites before a live Apply. Agreement on the outline is not implementation or replanning approval.
+
+Dex

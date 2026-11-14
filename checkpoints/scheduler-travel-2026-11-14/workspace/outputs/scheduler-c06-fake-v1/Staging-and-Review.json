@@ -1,0 +1,16 @@
+{
+  "status": "STATIC_REVIEW_RECONCILED_NOT_EXECUTED",
+  "source_tip_sha256": "5F8D87526F9D2C114C2B81A0D06D3ED2A5CEBC7E2DC97A562225C9C2FB23C602",
+  "copied_files": 284,
+  "all_copied_bytes_match": true,
+  "artifact_manifest_entries": 20,
+  "payload_manifest_entries": 268,
+  "verification_manifest_entries": 6,
+  "outer_subject_pins_match": true,
+  "extraction_and_static_input_pins_match": true,
+  "exact_fixture_diff_reconstructs": true,
+  "runner_sha256": "2A4602CCDFA68787697ED4FD472B3BEA41FD9FC31F8F808C409339140C81FA3E",
+  "expected_controls": 39,
+  "execution_authorized": false,
+  "tests_run": 0
+}

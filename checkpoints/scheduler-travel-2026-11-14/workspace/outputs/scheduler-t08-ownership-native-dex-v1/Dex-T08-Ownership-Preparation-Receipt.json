@@ -1,0 +1,22 @@
+{
+  "atUtc": "2026-11-14T04:18:06.9012161Z",
+  "status": "PREPARED_NOT_EXECUTED_INDEPENDENT_REVIEW_AND_FAKE_NEEDED",
+  "baseline": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "runner": "C7A0D2DCC8BB50165D825FC05653AF2A0BDE0F0975075C81C40E16C369CC831C",
+  "suite": "A68299A7729C2116FD39F3509828437C4ADF4F044C39E7B82C6BFEB7E483EE97",
+  "host": "8260F22A1888A729C56CACEE4F76BE27E450D8EE537786474464DB621290D92F",
+  "ops": "D46AC0DB9F03F930E04CDB09CE11A7972F81175B686AC4318D88F5F70873A540",
+  "payload_manifest": "F5A258A4DB93A23037A89F64F7BEC4A207B13AD24D1577875A89DB142E4470BD",
+  "nested_manifest": "181864C37AB0F666ED28BBEF4315EFE0D8E2C9AC8C9DB6A66D2A6F9357018577",
+  "application_changes": 0,
+  "mutable_roles": [
+    4,
+    5
+  ],
+  "case": "NP-T08-OWNERSHIP",
+  "future_limit_disclosure": "One non-daemon foreign owned thread, single5s join; existing peer120+5join, PKI45nominal,600runner/900suite,32Docker/1MiBpercommand+report; no current invocation authority",
+  "scope": "Real socket/thread ownership only when later run; no Google import/TLS-framing/assessment closure",
+  "all_original_76_ids_retained": true,
+  "human_authority": "NONE",
+  "endpoint": "unbound"
+}

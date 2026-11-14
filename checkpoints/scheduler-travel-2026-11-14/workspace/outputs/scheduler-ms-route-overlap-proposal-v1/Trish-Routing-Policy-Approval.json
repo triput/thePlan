@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-11-12T02:48:55.3876761Z",
+  "card": "call_490d74ab1e8543eebb401c6e5e377a29",
+  "item": 0,
+  "answer": "Approve exact-path policy and restriction (Recommended)",
+  "brief_sha256": "94DA03D5A5C60DB62F30584500FDC817570E6A0D4435FBDAE1C9B9C89EFB6B84",
+  "policy": "Exact identity and OAuth paths; slash descendants only for event routes",
+  "compatibility": "Unlisted distinct-descendant identity continuation refuses and requires an explicitly reviewed route; external continuation inventory UNKNOWN",
+  "implementation_authorized": false,
+  "execution_authorized": false,
+  "endpoint": "unbound"
+}

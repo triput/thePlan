@@ -1,0 +1,145 @@
+{
+  "at_utc": "2026-11-12T21:24:41.5667861Z",
+  "kind": "draft_successor_static_pin_observation",
+  "packet": "scheduler-native-provider-prep-v4",
+  "frozen_handback_not_assumed": true,
+  "executed": false,
+  "admission_sha256": "E4A74E4C8B784B980CC3C34AB8A23B7EA999728791A8EA63D6C9B7E80349DD81",
+  "declared_packet_count": 14,
+  "observed_packet_count": 14,
+  "packet_mismatches": [],
+  "declared_runtime_count": 3,
+  "observed_runtime_count": 3,
+  "runtime_mismatches": [
+    {
+      "path": "verify/check_native_provider.py",
+      "expected": "7195572674D2F3792E1A92741E38FE405A51FA3E05A3BC0D94533F908EA2B15C",
+      "actual": null,
+      "match": false
+    },
+    {
+      "path": "verify/launch_check.py",
+      "expected": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "actual": null,
+      "match": false
+    },
+    {
+      "path": "verify/EXPECTED-FAKE-STRUCTURAL.json",
+      "expected": "8C2E14CC256F6CBCF4054015EF10C4DB8CD7DA62DB49FD2AFBB4A3352121A3E4",
+      "actual": null,
+      "match": false
+    }
+  ],
+  "packet_pins": [
+    {
+      "path": "verify/check_native_provider.py",
+      "expected": "7195572674D2F3792E1A92741E38FE405A51FA3E05A3BC0D94533F908EA2B15C",
+      "actual": "7195572674D2F3792E1A92741E38FE405A51FA3E05A3BC0D94533F908EA2B15C",
+      "match": true
+    },
+    {
+      "path": "verify/launch_check.py",
+      "expected": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "actual": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "match": true
+    },
+    {
+      "path": "verify/verify_admission.py",
+      "expected": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "actual": "7DCA32E2DEB3A1CFF6B8A7655D8BA72A1284D472C306E7BFDE505502F6E018FB",
+      "match": true
+    },
+    {
+      "path": "verify/EXPECTED-FAKE-STRUCTURAL.json",
+      "expected": "8C2E14CC256F6CBCF4054015EF10C4DB8CD7DA62DB49FD2AFBB4A3352121A3E4",
+      "actual": "8C2E14CC256F6CBCF4054015EF10C4DB8CD7DA62DB49FD2AFBB4A3352121A3E4",
+      "match": true
+    },
+    {
+      "path": "verify/OUTER-ADMISSION.json",
+      "expected": "74B8EE1E42704D2212552982876C2A8F7A50DBDCECD4F9281D8E68DCAC9969FB",
+      "actual": "74B8EE1E42704D2212552982876C2A8F7A50DBDCECD4F9281D8E68DCAC9969FB",
+      "match": true
+    },
+    {
+      "path": "Invoke-Fake.ps1",
+      "expected": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "actual": "AE84E6325E7B932303B21D6F0A0FED788A717A28631C3577DAF860C6EFC4FEB7",
+      "match": true
+    },
+    {
+      "path": "Invoke-Native-Provider.ps1",
+      "expected": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+      "actual": "D6E14CC07AF1B3F35B32DBE1C0FB4F9E7C70B476957314B6D29299CD04B6AE8D",
+      "match": true
+    },
+    {
+      "path": "payload/launch-config.json",
+      "expected": "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+      "actual": "9D85F69DEF83686A4077A2048BAC3DF87081E92DD2A39037E950DEA7FA937722",
+      "match": true
+    },
+    {
+      "path": "payload/runner-config.json",
+      "expected": "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+      "actual": "E1355147AE4F72F3B51DA61F2C9921360F94A45A35985AE0923B3B267081BE9E",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_runner_entry.py",
+      "expected": "D7BFB12B6B9C4F6C481DE44A4BCBA3B2918519EEB81D44A71DE17312E7584FA7",
+      "actual": "D7BFB12B6B9C4F6C481DE44A4BCBA3B2918519EEB81D44A71DE17312E7584FA7",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_provider_peer.py",
+      "expected": "EF35BB8E5E2B0FE96EE324FF24AFE548EABD8AB935D392DF71B2A967A7E7DED6",
+      "actual": "EF35BB8E5E2B0FE96EE324FF24AFE548EABD8AB935D392DF71B2A967A7E7DED6",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_supervisor.py",
+      "expected": "28248F6E9BC67362AB22B66BAB7756BF5F61D6727C4808A4A2F0B8587A4FD81F",
+      "actual": "28248F6E9BC67362AB22B66BAB7756BF5F61D6727C4808A4A2F0B8587A4FD81F",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_suite.py",
+      "expected": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "actual": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673",
+      "match": true
+    },
+    {
+      "path": "payload/fixture/np_receipts.py",
+      "expected": "B75513EFA5A69E713D61B9DD8E8BD6960A3AD7692F237413CF2BF5CC4AE99FA5",
+      "actual": "B75513EFA5A69E713D61B9DD8E8BD6960A3AD7692F237413CF2BF5CC4AE99FA5",
+      "match": true
+    }
+  ],
+  "runtime_pins": [
+    {
+      "path": "verify/check_native_provider.py",
+      "expected": "7195572674D2F3792E1A92741E38FE405A51FA3E05A3BC0D94533F908EA2B15C",
+      "actual": null,
+      "match": false
+    },
+    {
+      "path": "verify/launch_check.py",
+      "expected": "CE1A64193DC30ADB4D800151BD97CE331379612C75F4655BBA038B79BBFB739D",
+      "actual": null,
+      "match": false
+    },
+    {
+      "path": "verify/EXPECTED-FAKE-STRUCTURAL.json",
+      "expected": "8C2E14CC256F6CBCF4054015EF10C4DB8CD7DA62DB49FD2AFBB4A3352121A3E4",
+      "actual": null,
+      "match": false
+    }
+  ],
+  "authority": "source/hash review only; no run authorized; colleague turnaround remains normal",
+  "runtime_observation_interpretation": "Three relative-path packet references are invalid runtime declarations for wrapper absolute_path schema. No actual interpreter/runtime drift established.",
+  "schema_findings": [
+    "packet entries use path; wrapper requires relative_path",
+    "runtime entries use relative path; wrapper requires absolute_path and interpreter membership"
+  ]
+}

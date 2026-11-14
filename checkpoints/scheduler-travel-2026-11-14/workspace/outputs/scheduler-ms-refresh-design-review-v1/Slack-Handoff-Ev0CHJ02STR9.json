@@ -1,0 +1,13 @@
+{
+  "atUtc": "2026-11-14T04:39:55.1455370+00:00",
+  "event": "Ev0CHJ02STR9",
+  "thread_ts": "1794534925.412399",
+  "message_ts": "1794630984.831309",
+  "sender": "U0C68LUTURJ",
+  "disposition": "Duplicate transport pointer to Google v2 handback already independently reconciled and staged",
+  "handback_sha256": "503414C843A76B5BA1DAF2D774804AAE3F9B84969523CC181EEAED391AEED8BA",
+  "current_assignment": "528A2CB77C554D81A7A3075F85F8FC80A502964AF9926E035950BF9F58797026",
+  "slack_reply_sent": false,
+  "execution_authority": "NONE",
+  "endpoint": "unbound"
+}

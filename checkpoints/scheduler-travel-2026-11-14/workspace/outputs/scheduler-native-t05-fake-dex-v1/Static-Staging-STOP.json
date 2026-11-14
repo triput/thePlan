@@ -1,0 +1,9 @@
+{
+  "kind": "Static staging STOP before execution",
+  "atUtc": "2026-11-13T19:47:03.5825527Z",
+  "cause": "Invalid JSON escape in original VERIFICATION interpreter_path and successor_reference.workspace",
+  "sourceAdmissionSha256": "06873FB0FDC86D3719636EF14900B344178EF3835B75F482DE7B32381FE260F9",
+  "executionStarted": false,
+  "sourceAndIncompleteCopyPreserved": true,
+  "next": "Fresh successor with exact two path-escaping corrections and admission data staging only"
+}

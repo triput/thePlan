@@ -1,0 +1,815 @@
+{
+  "kind": "exact-route-original-candidate-oracles",
+  "wire_ids_in_order": [
+    "ROUTE-MS-LIST",
+    "ROUTE-MS-EVENT-OVERLAP",
+    "ROUTE-MS-DEFAULT",
+    "ROUTE-MS-LIST-CONTINUATION-ABS",
+    "ROUTE-MS-LIST-CONTINUATION-ROOT",
+    "ROUTE-MS-EVENT-CONTINUATION",
+    "ROUTE-IDENTITY-DESCENDANT",
+    "ROUTE-HTTP-IDENTITY-DESCENDANT",
+    "ROUTE-EXPLICIT-SECOND-IDENTITY",
+    "ROUTE-EVENT-DESCENDANT",
+    "ROUTE-EQUAL-PATH-CONFLICT",
+    "ROUTE-GOOGLE-LIST",
+    "ROUTE-GOOGLE-EVENT",
+    "ROUTE-OAUTH-EXACT",
+    "ROUTE-D2-PRESERVATION",
+    "ROUTE-REQUEST-SHARING",
+    "ROUTE-SOURCE-INVENTORY",
+    "ROUTE-MUTATION-CLIENT",
+    "ROUTE-MUTATION-HTTP"
+  ],
+  "inputs": {
+    "ROUTE-MS-LIST": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          }
+        }
+      }
+    },
+    "ROUTE-MS-EVENT-OVERLAP": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 1,
+          "sends": 1
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          }
+        }
+      }
+    },
+    "ROUTE-MS-DEFAULT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          }
+        }
+      }
+    },
+    "ROUTE-MS-LIST-CONTINUATION-ABS": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 2,
+            "event": 0,
+            "sends": 2
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 2,
+            "event": 0,
+            "sends": 2
+          }
+        }
+      }
+    },
+    "ROUTE-MS-LIST-CONTINUATION-ROOT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 2,
+            "event": 0,
+            "sends": 2
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 2,
+            "event": 0,
+            "sends": 2
+          }
+        }
+      }
+    },
+    "ROUTE-MS-EVENT-CONTINUATION": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 2,
+          "sends": 2
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 2,
+            "sends": 2
+          }
+        }
+      }
+    },
+    "ROUTE-IDENTITY-DESCENDANT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "candidate": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          }
+        }
+      }
+    },
+    "ROUTE-HTTP-IDENTITY-DESCENDANT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "candidate": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          }
+        }
+      }
+    },
+    "ROUTE-EXPLICIT-SECOND-IDENTITY": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "exact": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "unlisted": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          }
+        },
+        "candidate": {
+          "exact": {
+            "outcome": "OK",
+            "identity": 1,
+            "event": 0,
+            "sends": 1
+          },
+          "unlisted": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          }
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            },
+            "unlisted": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            }
+          },
+          "candidate": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 1,
+              "event": 0,
+              "sends": 1
+            },
+            "unlisted": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        }
+      }
+    },
+    "ROUTE-EVENT-DESCENDANT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 1,
+          "sends": 1
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 1,
+          "sends": 1
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          }
+        }
+      }
+    },
+    "ROUTE-EQUAL-PATH-CONFLICT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "candidate": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          }
+        }
+      }
+    },
+    "ROUTE-GOOGLE-LIST": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 2,
+          "event": 0,
+          "sends": 2
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 2,
+            "event": 0,
+            "sends": 2
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 2,
+            "event": 0,
+            "sends": 2
+          }
+        }
+      }
+    },
+    "ROUTE-GOOGLE-EVENT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 2,
+          "sends": 2
+        },
+        "candidate": {
+          "outcome": "OK",
+          "identity": 0,
+          "event": 2,
+          "sends": 2
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 2,
+            "sends": 2
+          },
+          "candidate": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 2,
+            "sends": 2
+          }
+        }
+      }
+    },
+    "ROUTE-OAUTH-EXACT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "google": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          },
+          "ms": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        },
+        "candidate": {
+          "google": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          },
+          "ms": {
+            "exact": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 0,
+              "sends": 1
+            },
+            "descendant": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            }
+          }
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "google": {
+              "exact": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 0,
+                "sends": 1
+              },
+              "descendant": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              }
+            },
+            "ms": {
+              "exact": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 0,
+                "sends": 1
+              },
+              "descendant": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              }
+            }
+          },
+          "candidate": {
+            "google": {
+              "exact": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 0,
+                "sends": 1
+              },
+              "descendant": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              }
+            },
+            "ms": {
+              "exact": {
+                "outcome": "OK",
+                "identity": 0,
+                "event": 0,
+                "sends": 1
+              },
+              "descendant": {
+                "outcome": "REFUSE",
+                "identity": 0,
+                "event": 0,
+                "sends": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "ROUTE-D2-PRESERVATION": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "traversal": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "encoded_slash": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "unicode": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          }
+        },
+        "candidate": {
+          "traversal": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "encoded_slash": {
+            "outcome": "REFUSE",
+            "identity": 0,
+            "event": 0,
+            "sends": 0
+          },
+          "unicode": {
+            "outcome": "OK",
+            "identity": 0,
+            "event": 1,
+            "sends": 1
+          }
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "traversal": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "encoded_slash": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "unicode": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 1,
+              "sends": 1
+            }
+          },
+          "candidate": {
+            "traversal": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "encoded_slash": {
+              "outcome": "REFUSE",
+              "identity": 0,
+              "event": 0,
+              "sends": 0
+            },
+            "unicode": {
+              "outcome": "OK",
+              "identity": 0,
+              "event": 1,
+              "sends": 1
+            }
+          }
+        }
+      }
+    },
+    "ROUTE-REQUEST-SHARING": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "original": {
+          "outcome": "REFUSE",
+          "identity": 1,
+          "event": 0,
+          "sends": 1,
+          "first": "OK",
+          "stopped": true,
+          "items": 1,
+          "counted_bytes": true,
+          "deadline_used": true
+        },
+        "candidate": {
+          "outcome": "REFUSE",
+          "identity": 1,
+          "event": 0,
+          "sends": 1,
+          "first": "OK",
+          "stopped": true,
+          "items": 1,
+          "counted_bytes": true,
+          "deadline_used": true
+        }
+      },
+      "exact_predicate": {
+        "observation": {
+          "original": {
+            "outcome": "REFUSE",
+            "identity": 1,
+            "event": 0,
+            "sends": 1,
+            "first": "OK",
+            "stopped": true,
+            "items": 1,
+            "counted_bytes": true,
+            "deadline_used": true
+          },
+          "candidate": {
+            "outcome": "REFUSE",
+            "identity": 1,
+            "event": 0,
+            "sends": 1,
+            "first": "OK",
+            "stopped": true,
+            "items": 1,
+            "counted_bytes": true,
+            "deadline_used": true
+          }
+        }
+      }
+    },
+    "ROUTE-SOURCE-INVENTORY": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "changed_files": [
+          "app/services/covering_http_transport.py",
+          "app/services/covering_provider_context.py"
+        ],
+        "bad_pin_rejected": true,
+        "source_count": 468
+      },
+      "exact_predicate": {
+        "observation": {
+          "changed_files": [
+            "app/services/covering_http_transport.py",
+            "app/services/covering_provider_context.py"
+          ],
+          "bad_pin_rejected": true,
+          "source_count": 468
+        }
+      }
+    },
+    "ROUTE-MUTATION-CLIENT": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "outcome": "REFUSE",
+        "identity": 0,
+        "event": 0,
+        "sends": 0
+      },
+      "exact_predicate": {
+        "observation": {
+          "outcome": "REFUSE",
+          "identity": 0,
+          "event": 0,
+          "sends": 0
+        }
+      }
+    },
+    "ROUTE-MUTATION-HTTP": {
+      "predicted_outcome": "PASS",
+      "observation": {
+        "outcome": "OK",
+        "identity": 1,
+        "event": 0,
+        "sends": 1
+      },
+      "exact_predicate": {
+        "observation": {
+          "outcome": "OK",
+          "identity": 1,
+          "event": 0,
+          "sends": 1
+        }
+      }
+    }
+  },
+  "execution_authorized": false,
+  "note": "Static source predictions; not observed results"
+}

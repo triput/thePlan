@@ -1,0 +1,26 @@
+# T05 abrupt receive policy — bounded private-beta decision
+
+Dex,2026-11-13. Recommendation only until Trish approves. Existing frozen policy remains unchanged.
+
+## Observed evidence and disagreement
+Native diagnostic receipt174E1BE136693014C7B9F5F1E885342604BF50FC52B0B9BAB83412EC6CC9EB13 retained BrokenPipeError from actual JoinedTLS.receive sock.recv112, inside _GuardedHTTPResponse.read83 via response body read345. The failure occurred after begin/header gates. Fixture reached the abrupt-classifier guard after its clean peer join and exact inventory assertions; that part is executed-assertion scope, not a retained casePASS. All307 inputs unchanged; cleanupD944C6A1 passed9calls,both containers absent,DBexit0. Stopped run remains STOP permanently.
+
+Matt independently corroborated evidence in AD61EA225F970656C326CD3BED73C1C03D6BC190E262550C513BEA1A0125F306, reconciled84D1E9EC. He prefers splitting mixed abrupt-close stimulus into FIN-only andRST-only cases. He also accepts a minimal finite-class extension if futurePASS retains strong receive/body-stage evidence and negative fake mutations. His FIN/RST explanation is a hypothesis, not retained wire-order proof.
+
+Dex recommends the smaller alternative now for Trish's private beta: demonstrate fail-closed abrupt transport rejection with precise stage and existing peer/resource checks, rather than add two new optional closure-stimulus variants. No production behavior correction has been established. A deterministic FIN-specific requirement remains unproved and can be considered separately if actually required; this decision does not claim SSLEOFError was observed or waive any independently named requirement silently.
+
+## Exact policy requested
+For ONLY the T05 abrupt_distinct fixture, retain existing exact accepted tuples SSLEOFError/ssl and ConnectionResetError/builtins. Additionally permit exactly BrokenPipeError/builtins ONLY when bounded in-memory traceback inspection proves the failure passed through the actual pinned _GuardedHTTPResponse.read code object and terminates at the actual pinned JoinedTLS.receive code object. Require order read→receive and innermost Python frame receive, with at most128 traversed frames. Missing/overflowed/wrong-stage provenance refuses this new alternative. Prefer exact runtime code-object identity, not function name alone, mutable line numbers or exception message/errno. Helpers may expose those code objects as finite arguments for fake verification; production classes/functions are not patched.
+
+Keep current conjunction: one declared request/response stimulus, exact peer inventory, joined retirement with no worker error, no JSON or API-response success for this negative. Do not accept IncompleteRead, JSON failures, unexpected response/status, other OS classes, OSError generally, client admission/send/open-stage BrokenPipe, or any framework/retirement UNKNOWN. No retry or automatic widening.
+
+Retain one typed measured field client_failure_stage='joined_tls_receive_during_body_read' for the newly admitted alternative; unmatched/overflow must not produce that label. Do not serialize traceback objects, code objects, messages, arguments, locals, status/body, credentials, errno or new STOP metadata. Unchanged sanitizer must retain the chosen constant evidence field. Existing class/location-only STOP schema/bounds remain unchanged. Existing positive/short-body controls and original class alternatives remain intact.
+
+## Preparation and verification boundaries
+After policy approval, fresh-copy fixture/checker preparation fits the existing named-role authoring lane389A00DD: role4 helper/capture/classification/measuredfield and role5 truthful implementation note if needed; role13 focused fake/source controls plus associated finite data/manifests. Dex can prepare this while Matt continues Google functional coding; no second Matt assignment. No edits to failed/frozen packets, application bytes, peer script, PKI/routes/DB/host helpers, production exception mapping or execution clocks.
+
+Require fake controls: actual-source code-identity stage helper recognizes proper read→receive stack and rejects BrokenPipe from open/send/other stage, spoofed same-name functions and bounded-walk overflow; old SSLEOFError/ConnectionResetError behavior, positive/short-CL contracts and cleanup/retirement preserved; typed stage label retained without private data. Targeted actual-source mutants must catch dropped stage gate/false stage label and unconditional BrokenPipe acceptance. No arbitrary control-count target. Exact fake and native future commands require independent review and their own execution cards.
+
+This decision is policy plus permission to use the already-approved workspace lane for its bounded fixture implementation, NOT a run. No imports/parsing/compilation/tests/helper invocation,sockets/threads/PKI,Docker/DB,installation/build,cleanup,native/fake rerun or activation. No retrospectivePASS. Endpoint unbound and all other holds stay. Googlefunctionalvertical remains the current single active Matt assignment; Microsoft-specific expansion stays parked.
+
+Signed: Dex

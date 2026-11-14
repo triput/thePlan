@@ -1,0 +1,25 @@
+{
+  "atUtc": "2026-11-13T19:12:59.7976132Z",
+  "inputEntries": 18,
+  "fixtureBytesUnchanged": true,
+  "status": "FRESH_V2_PREPARED_NOT_EXECUTED",
+  "admissionSha256": "95B8BF6A3D61C4F7D2F7FD490B7B0A71232941D6FBBA7162B19326F3DDBA246C",
+  "independentReview": "QUEUED_AFTER_CURRENT_MATT_V3_ASSIGNMENT",
+  "executed": false,
+  "changedStoppedSourceEntries": [
+    "packet/verify/VERIFICATION-ADMISSION.json",
+    "Dex-Staging-Receipt.json",
+    "Reviewed-Peer-Close-Command.ps1.txt",
+    "Review-and-Commands.md",
+    "packet/verify/OUTER-ADMISSION.json",
+    "packet/verify/check_native_provider.py"
+  ],
+  "expectedInventoryUnchanged": true,
+  "endpoint": "unbound",
+  "commandSha256": "A39C65DE2F44328545FF646B3F623CF4F26F8783E3C228B490A7EBD615F3EFD0",
+  "parentManifestSha256": "C90EF9D0F0238220BECEE01113065E033537B4934037994105EDAF3506033C32",
+  "executableChanges": [
+    "packet/verify/check_native_provider.py"
+  ],
+  "executionAuthorized": false
+}

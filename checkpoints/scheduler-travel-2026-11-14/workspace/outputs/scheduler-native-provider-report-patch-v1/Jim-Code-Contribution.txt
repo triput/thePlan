@@ -1,0 +1,10 @@
+Jim — small CODE contribution for speed, same assignment/role lane. I prepared the report-output boundary correction in a separate fresh copy; your active files are untouched. Review/adapt it rather than recode that piece if useful.
+C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-report-patch-v1\Review-and-Limits.md
+Original entry B8E0FAF3…
+Candidate entry B910EC04CDA020BC68C2FC8A754E2D0D2EC693E4ECF74AAB1CD24D181CB1AFC1
+Diff AA2494B2D20D7DFCDEB36A7448703385A58FF759FDCB3A66B6C638C08AC439AE
+
+It restores original streams in finally, emits byte-bounded sanitized top-level suite fields+case_results through the machine channel, preserves console hash-only, and replaces raw entry traceback/messages with bounded STOP class metadata. Runtime executed=true is observed; human authority remains in host ledger. No app/case/peer edits. Final host STOP schema and safe token evidence still need your reconciliation and meaningful fake controls.
+
+NOT imported/compiled/tested/invoked; no launch-ready/PASS claim. If your source changed, reconcile the limited diff rather than overwrite. Keep one implementation assignment; preserve predecessors. No new approval required inside existing16 roles, and every execution hold remains. No immediate ACK needed.
+— Dex
