@@ -1,0 +1,32 @@
+{
+  "kind": "native-google-refresh-preparation-freeze",
+  "workspace": "scheduler-native-google-refresh-prep-matt-v2",
+  "supersedes_as_partial": {"workspace": "scheduler-native-google-refresh-prep-matt-v1", "parent_input_manifest_sha256": "06703C092EDDE4F6E7007E354455EBFFB1F05FE56D2414F69645A250569D6F35", "preserved_untouched": true, "reason": "frozen before Dex 55B75EA0/F04CEFCA were read; lacks primary row, calendarList and revision/busy checks"},
+  "batch_id": "np-v-google-refresh-single-case",
+  "batch_case_ids": ["NP-V-GOOGLE-REFRESH"],
+  "expected_unknown_cases": [],
+  "author": "Matt",
+  "date": "2026-11-13",
+  "status": "PREPARED_NOT_EXECUTED",
+  "assignment_sha256": "CEBD83C31757CFF3B567C400920ADA37AAE334F3F2BEC4EFA1ABC864AE5A6570",
+  "in_task_feedback_sha256": ["3E5590C467323A1D0E4BB334B67C3C51FFCE6D8F132FF711B4C2F296E56161E2", "55B75EA006FB0B4A4B7920CA86C3FFF7EE20F92B71D84F1EB5CC1AA2F8FF26C1", "F04CEFCA2FA1B83F554347734F6645787131E57F0A4B6FC2ECD8E0F68076CB82"],
+  "approved_envelope_sha256": "389A00DD444C610A93877362A574A1C93543F916F119D2D2FF71BA167FBF7E2D",
+  "copy_source": "scheduler-native-ms-nonexpired-retirement-launch-matt-v2",
+  "copy_source_input_manifest_sha256": "C62FDA91504CB037117292E3F2FA70280D3CF9936D8ADB7E171A72A2E6A8F2BA",
+  "evidence_copied": false,
+  "expected_provider_inventory": ["POST oauth2.googleapis.com/token (oauth)", "GET www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=250 (identity)", "GET /calendar/v3/calendars/np-google-canonical-primary/events?<exact> (event)", "GET /calendar/v3/calendars/<informational id>/events?<exact> (event)"],
+  "changed_files_vs_source": {
+    "payload/fixture/np_runner_entry.py": {"role": 4, "before": "A2C32A2042A523BE932826666D87501AA57A6B4D0E4ECCB173AEDF966794B77D", "after": "8EFE8D5BCEA73D5936E4C0B094F5710B1BA7A7F9244A6E4BCD052CAA8A4BF774"},
+    "payload/fixture/np_suite.py": {"role": 5, "before": "AEC59FCDA058124FDF7265D41B8A660C4AD139CE13417F88FA637542CF9C1673", "after": "E028812B852C73A1183D609803A450AB41B42CCDE44B4DEE4441EEDB21EA7D1A"},
+    "payload/fixture/np_provider_transcript.py": {"role": 8, "before": "CFAB2D060BF03779A5B7BB7AF546F57124D5AF501CED6B93FFAAB76ED86AB6A3", "after": "79025EC55B3EFED65D610494753401F65818068B97DA76ACD626ED183C94B513"},
+    "payload/runner-config.json": {"before": "8668F156909260BE7D9A9164757E144190DC79337778FB4CD0B704805DB0D029", "after": "95278DF6B3756F39B5D45CF24C96B3435B20394D3A951FAD95DE5FB76095E7ED"},
+    "payload/SHA256SUMS.txt": {"before": "C058ECCED75C8783E8CDF5E5413137386D10E67A0B33C8122ACE5F2A2D24694A", "after": "4A5550D466B08ED6C264A1B17B10F15326A3E755C0DA079D93BB9CF5BDEE4E68", "rows": 257, "changed_rows": 4},
+    "host/launch-config.json": {"before": "03A131BCF99EF1E65E170E9203C37B037E0374EAA25FB0A3974889453A83F6C9", "after": "B9413B449E744B5C82AEDEBB46D92EDD6B5704049846F6E9C1E20929AA12FBAA"},
+    "host/docker-ops-config.json": {"before": "5E6CEDCB2CB3D64122B840EBB38D278EED5121D6908102C209FEB98F18099A76", "after": "6A497DFC81EB84B790DB494FFE54007F0AF0EE0CB081BEFA056279BD492E40A8"},
+    "Input-Manifest.sha256": {"before": "DA1D9A157E8F6BCB6512923126D2E76104E9D48CE39E27F40B687B5388C08BB8", "after": "FE1B77FA0D257E52B3909E4599E486665C9CF293F271613008EB70F0124A48C9", "rows": 269, "changed_rows": 7}
+  },
+  "held_command_sha256": "08A58907A3BE2B45D91BF95D4B63F8BFFDA26429AE294D5350C4889D6FC9A56F",
+  "evidence_root_present": false,
+  "gates": {"host_launch_ready": false, "candidate_launch_ready_staged": false, "runner_launch_ready": false, "launch_authorized": false, "human_launch_authorized": false},
+  "executed": false, "launch_authorized": false, "prep_is_not_pass": true, "endpoint": "unbound"
+}

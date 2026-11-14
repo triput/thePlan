@@ -1,0 +1,42 @@
+{
+  "revision_before": 1,
+  "inputs_unchanged": 314,
+  "parent_terminals": [
+    {
+      "commit_requested": true,
+      "terminal": "COMMIT_ACKNOWLEDGED"
+    },
+    {
+      "commit_requested": true,
+      "terminal": "COMMIT_ACKNOWLEDGED"
+    }
+  ],
+  "endpoint": "unbound",
+  "busy_before": 0,
+  "busy_after": 2,
+  "token_terminals": [
+    {
+      "commit_requested": true,
+      "terminal": "COMMIT_ACKNOWLEDGED",
+      "token_rollback_ack": false
+    },
+    {
+      "commit_requested": false,
+      "terminal": "ROLLBACK_ACKNOWLEDGED",
+      "token_rollback_ack": true
+    }
+  ],
+  "atUtc": "2026-11-14T06:01:43.0491467+00:00",
+  "scheduling_ready": true,
+  "status": "PASS_RECONCILED_ONE_SHOT_CONSUMED",
+  "unrelated_unchanged": true,
+  "cleanup": "SUCCESS_ONLY_22_COMMANDS_BOTH_REMOVED_ABSENCE_VERIFIED_BY_HOST",
+  "receipt": "FDC0AF907211D2F163A63F6A8EFF65925E7E743D95135EC523FB7BFBB208139E",
+  "retirement": "JOINED_OBSERVERS_RESTORED_PKI_RETIRED",
+  "remaining_authority": 0,
+  "imports": 2,
+  "revision_after": 4,
+  "case": "NP-V-GOOGLE-REFRESH",
+  "oauth": 1,
+  "limitations": "Synthetic Google native integration; no live activation, planning Preview/Apply, full transport closure or goal completion"
+}

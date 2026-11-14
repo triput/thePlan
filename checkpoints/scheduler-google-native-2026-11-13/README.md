@@ -1,0 +1,11 @@
+# Scheduler Google native checkpoint — November 13, 2026
+
+Preservation checkpoint of the exact workspace packet exercised by the one authorized NP-V-GOOGLE-REFRESH native run. This is source and evidence preservation, not application integration, deployment or activation. The application endpoint remains unbound.
+
+The production in-process HTTP ingress/dispatch/connector/default JoinedTLS path exercised synthetic Google OAuth refresh, primary-calendar identification, two event imports and real native final assessment against disposable PostgreSQL. Result: one-case PASS, persisted scheduling revision1→4, busy intervals0→2, scheduling_ready true, unrelated state unchanged. All314 frozen inputs remained unchanged. Success-only exact-ID cleanup removed both disposable containers and verified absence.22 Docker commands.
+
+packet/Input-Manifest.sha256 pins the314 reviewed inputs relative to packet/. Its raw SHA256 is66909DED6CBC6683C18DA8876A1EC0AD07641FF1100F24258D1E8E01CF62C888. Command SHA25647E9CBDEA1261D275DD84538BBF8FE62A665FD6F47F7A51015458DFA3E08F8BE. Evidence contains the host's sanitized retained report and independent reconciliation. Local absolute paths in the frozen packet are provenance; relocated execution is not authorized or validated. Preserve raw file bytes when checking manifests.
+
+The run's one-shot authority is consumed. This snapshot grants no run, repair, retry, cleanup or credential authority. Do not execute copied commands. Private keys and generated certificates, raw child streams, secrets and unrelated working-tree edits are excluded. All application and fixture sources are exactly the frozen inputs; other copied packet documentation may describe historical preparation states. Current result is the separate evidence reconciliation.
+
+Remaining work includes rejected Google refresh handling, outstanding transport obligations and later review/integration. No claim of live Google connectivity, household planning Preview/Apply or full goal completion.

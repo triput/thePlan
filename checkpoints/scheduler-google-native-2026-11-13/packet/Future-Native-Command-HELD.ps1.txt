@@ -1,0 +1,5 @@
+# HELD. NOT AUTHORIZED. CURRENT shape of the future NP-V-MS-NONEXPIRED worker-observer diagnostic native invocation, for review.
+# Against these prep configs (host launch_ready=false; runner-config launch_ready=false) the operator throws STOP before any child.
+# A launch needs a reviewed staging copy flipping the host and runner gates (changes the launch-config hash below and the
+# payload manifest), Dex's matching EXECUTE acknowledgement and Trish's explicit one-shot approval. Omit -ReceiptPath.
+& 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-worker-diagnostic-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\Invoke-Native-Provider.ps1' -ExpectedConfigSHA256 'EBE26FB58EE7ADE11AD90E16B7FE8E1C4A8D96BEDCF233701090F0719C0FBE1C' -ExpectedDockerConfigSHA256 'CB2F70F5D13F781EBC36CF75C0F4A371DB2528EF5D07C3B67CFF586757BDFDF7' -DockerConfigPath 'C:\Users\trish\Documents\Codex\2026-10-15\trish-wants-to-improve-dex-s\outputs\scheduler-native-provider-worker-diagnostic-prep-matt-v1\scheduler-native-provider-diagnostic-launch-v1\host\docker-ops-config.json'
